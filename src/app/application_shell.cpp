@@ -10390,6 +10390,9 @@ void ApplicationShell::pickLevelMap3D(int triangle, int pick)
 		return;
 	}
 	const bool picksFace = (mode == ModelViewportPick::Face || mode == ModelViewportPick::FaceToggle) && owner.kind == LevelMapSelectionKind::QuakeBrush && face >= 0;
+	if (picksFace) {
+		m_levelPickedSelection = m_levelMapDocument.selection;
+	}
 	if (picksFace && (mode == ModelViewportPick::Face || !wasSelected)) {
 		m_inspectorFocus = QStringLiteral("face:%1:%2").arg(owner.objectId).arg(face);
 		showLevelSidebarPage(QStringLiteral("inspector"));
@@ -10576,6 +10579,11 @@ void ApplicationShell::showLevelControlsReference()
 
 void ApplicationShell::refreshLevelMap3DHighlight()
 {
+	// Faces picked in the camera go once the selection changes another way,
+	// even if it later comes back to the same objects.
+	if (!m_levelPickedFaces.isEmpty() && m_levelMapDocument.selection != m_levelPickedSelection) {
+		m_levelPickedFaces.clear();
+	}
 	if (!levelMap3DShowing()) {
 		return;
 	}
@@ -23493,7 +23501,12 @@ bool ApplicationShell::refreshBrushInspector(const QStringList* textureNames)
 
 QVector<LevelSurfaceFace> ApplicationShell::levelPickedSurfaceFaces() const
 {
-	// Only faces of brushes still selected, and still that brush's faces.
+	// Picks hold while the selection is the one the last face pick left:
+	// selecting any other way drops them, as in Radiant. Then only faces of
+	// brushes still selected, and still that brush's faces.
+	if (m_levelPickedFaces.isEmpty() || m_levelMapDocument.selection != m_levelPickedSelection) {
+		return {};
+	}
 	QSet<int> selected;
 	for (const LevelMapSelectionRef& ref : std::as_const(m_levelMapDocument.selection)) {
 		if (ref.kind == LevelMapSelectionKind::QuakeBrush) {

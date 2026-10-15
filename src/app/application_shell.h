@@ -921,6 +921,8 @@ private:
 	[[nodiscard]] QVector<LevelSurfaceFace> levelPickedSurfaceFaces() const;
 	[[nodiscard]] QVector<LevelSurfaceFace> levelSurfaceFaceTargets() const;
 	QVector<LevelSurfaceFace> m_levelPickedFaces;
+	// The selection the last face pick left; picks hold only while it stands.
+	QVector<LevelMapSelectionRef> m_levelPickedSelection;
 	QWidget* buildLevelSurfaceTools();
 	void registerLevelSurfaceCommands();
 	void refreshLevelSurfaceTools();

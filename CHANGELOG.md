@@ -73,6 +73,7 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Projects:** Project manifests (schema 2) record the project's game and release settings and keep settings they do not know; the Workspace page gains a **Releases** card and flags a linked game whose assets are not indexed.
 - **Build:** VibeStudio now compiles Quake and Quake II maps with VibeMap2 and Quake III maps with VibeMap3, its own compilers derived from ericw-tools and from q3map2 in NetRadiant Custom. Compiler ids follow the new names (`ericw-qbsp` is now `vibemap2-bsp`, `q3map2-light` is now `vibemap3-light`, and so on); an old id is refused with a message naming its replacement. Stock ericw-tools and q3map2 builds still work through **Locate…** or `compiler set-path`.
 - **Rendering:** The Levels camera, model views, the modeller, the Doom preview and material previews and swatches now draw on the GPU instead of the processor, so large scenes and animated materials stay fluid; a view with no working renderer says why instead of drawing.
+- **Studio:** The Command Palette matches a command's description by whole words, so a long description no longer brings up unrelated commands; names and categories still match with letters skipped.
 
 ### Removed
 

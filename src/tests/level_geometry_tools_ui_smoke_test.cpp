@@ -13,6 +13,7 @@
 #include "app/map_viewport_projection.h"
 #include "app/model_viewport.h"
 #include "core/level_prefab.h"
+#include "tests/map_viewport_test_helpers.h"
 #include "core/map_preview_mesh.h"
 #include <QAction>
 #include <QApplication>
@@ -139,6 +140,20 @@ void key(QWidget* view, int code, Qt::KeyboardModifiers modifiers = Qt::NoModifi
 {
 	QKeyEvent event(QEvent::KeyPress, code, modifiers);
 	QCoreApplication::sendEvent(view, &event);
+}
+// With VIBESTUDIO_TEST_CAPTURE_DIR set, the view as drawn is saved for review.
+void capture(MapViewport* view, const QString& name)
+{
+	const QString directory = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	if (directory.isEmpty() || !view) {
+		return;
+	}
+	QDir().mkpath(directory);
+	QImage image(view->size() * view->devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);
+	image.setDevicePixelRatio(view->devicePixelRatioF());
+	image.fill(Qt::transparent);
+	tests::settleMapViewport(*view, &image);
+	expect(image.save(QDir(directory).filePath(name + QStringLiteral(".png"))), "capture saved", name);
 }
 } // namespace
 
@@ -313,6 +328,9 @@ int main(int argc, char** argv)
 	}
 	expect(top->pickedComponentCount() == 2 && sharedPicks == static_cast<int>(views.size()) - 1,
 		"a click picks the corners stacked under it, and the other views show the picks", QString::number(top->pickedComponentCount()));
+	for (MapViewport* view : views) {
+		capture(view, QStringLiteral("vertex-picks-%1").arg(static_cast<int>(view->projection())));
+	}
 	const int grid = std::max(1, top->gridSize());
 	const qsizetype steps = document().undoStack.size();
 	key(top, Qt::Key_Right);
@@ -354,6 +372,7 @@ int main(int argc, char** argv)
 	select({{LevelMapSelectionKind::QuakePatch, 0}});
 	vertexTool->trigger();
 	expect(top->componentHandleCount() == 9, "a patch shows its nine control points", QString::number(top->componentHandleCount()));
+	capture(top, QStringLiteral("patch-control-points"));
 	vertexTool->trigger();
 
 	// Snap Vertices rounds the off-grid brush.
@@ -468,6 +487,7 @@ int main(int argc, char** argv)
 	mouse(top, QEvent::MouseButtonRelease, to, Qt::LeftButton, Qt::NoButton);
 	expect(until([&] { return command("map.regionSelect")->isEnabled(); }) && !regionDraw->isChecked() && !top->regionDrawMode(),
 		"the drawn box becomes the region and the mode ends");
+	capture(top, QStringLiteral("region-drawn"));
 	select({});
 	command("map.regionSelect")->trigger();
 	expect(selects(document(), LevelMapSelectionKind::QuakeBrush, 0) && !selects(document(), LevelMapSelectionKind::QuakeBrush, 1)
@@ -559,6 +579,11 @@ int main(int argc, char** argv)
 			only &= (face == 0 || face == 2) ? reset : picked->faces.at(face).shiftX == 7;
 		}
 		expect(only, "Natural changes only the picked faces");
+		// Selecting another way drops the picks, and the whole brush lights again.
+		select({{LevelMapSelectionKind::QuakeBrush, 1}});
+		select({{LevelMapSelectionKind::QuakeBrush, 0}});
+		expect(summary && !summary->text().contains(QStringLiteral("picked")) && until([&] { return camera->highlightedTriangleCount() == 12; }, 10000),
+			"selecting another way drops the picked faces", summary ? summary->text() : QString());
 		target->setCurrentIndex(0);
 		expect(undoAll(), "undo restores the picked faces");
 	}

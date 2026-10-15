@@ -43,13 +43,14 @@ You can also find **Documentation** in the Command Palette.
 
 | To | Press | Then |
 | --- | --- | --- |
-| Run any command | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> or <kbd>Ctrl</kbd>+<kbd>K</kbd> | Type part of its name, category or description, and press <kbd>Enter</kbd> |
+| Run any command | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> or <kbd>Ctrl</kbd>+<kbd>K</kbd> | Type part of its name or category, or words from its description, and press <kbd>Enter</kbd> |
 | Open a file | <kbd>Ctrl</kbd>+<kbd>P</kbd> (**File** > **Go to File…**) | Type part of a file or folder name, and press <kbd>Enter</kbd> to open it on the right page |
 | Search the current page | <kbd>Ctrl</kbd>+<kbd>F</kbd> (**Edit** > **Find**) | Type in the page's filter or search field; on the **Code** page, the editor's find bar opens |
 | Search the whole project | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> (**Edit** > **Find In Project Files…**) | Search, and optionally replace, in every text file of the open project |
 
 The Command Palette and Go to File match loosely, so you can skip letters:
-`opk` finds **Open Package**, and `bwall` finds `brick_wall.tga`. Commands that
+`opk` finds **Open Package**, and `bwall` finds `brick_wall.tga`. A command's
+description matches by whole words, such as `texture lock`. Commands that
 cannot run right now stay in the list, dimmed. Go to File lists recent files,
 your project's files and the entries of the open package; **File** >
 **Open Recent** also lists recent files. In the code editor's find bar,

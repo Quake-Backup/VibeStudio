@@ -323,6 +323,14 @@ bool hasWordStart(const QString& haystack, const QString& needle)
 	return false;
 }
 
+// Every word typed starts a word somewhere in `haystack`, in any order.
+bool hasEveryWordStart(const QString& haystack, const QString& needle)
+{
+	const QStringList words = needle.split(QLatin1Char(' '), Qt::SkipEmptyParts);
+	return !words.isEmpty()
+		&& std::all_of(words.cbegin(), words.cend(), [&haystack](const QString& word) { return hasWordStart(haystack, word); });
+}
+
 } // namespace
 
 QString studioCommandGroupId(StudioCommandGroup group)
@@ -1245,12 +1253,15 @@ void CommandPaletteDialog::applyFilter()
 			rank = recent >= 0 ? static_cast<int>(recent) - static_cast<int>(m_recentCommands.size()) : 0;
 		} else {
 			const QString label = row.label.toLower();
-			const QString haystack = QStringLiteral("%1 %2 %3").arg(label, row.category.toLower(), row.summary.toLower());
+			const QString title = QStringLiteral("%1 %2").arg(label, row.category.toLower());
+			// Letters may be skipped in a command's name and category; its
+			// description, long enough to hold almost any letters in order,
+			// matches by whole words.
 			if (label.startsWith(needle)) {
 				rank = 0;
 			} else if (hasWordStart(label, needle)) {
 				rank = 1;
-			} else if (isSubsequence(haystack, needle)) {
+			} else if (isSubsequence(title, needle) || hasEveryWordStart(QStringLiteral("%1 %2").arg(title, row.summary.toLower()), needle)) {
 				rank = 2;
 			} else {
 				continue;
