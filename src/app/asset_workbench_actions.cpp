@@ -5,14 +5,67 @@
 #include "app/studio_actions.h"
 #include "app/studio_icons.h"
 #include "app/studio_layout.h"
+#include "app/studio_editor_page.h"
 
+#include <QApplication>
+#include <QDialog>
 #include <QFileInfo>
 #include <QListWidget>
 #include <QMenu>
 #include <QStatusBar>
 #include <QToolButton>
+#include <QTabBar>
+#include <QTabWidget>
 
 namespace vibestudio {
+
+QWidget* ApplicationShell::buildAssetWorkspace(StudioMode mode, QWidget* browser)
+{
+	if (m_assetWorkspaces.isEmpty()) {
+		connect(qApp, &QApplication::focusChanged, this, [this](QWidget*, QWidget* focus) {
+			QWidget* editor = focus;
+			while (editor && !editor->property("studioEmbeddedEditor").toBool()) { editor = editor->parentWidget(); }
+			m_commands->setShortcutFocusSurface(editor);
+		});
+	}
+	auto* tabs = new QTabWidget;
+	tabs->setObjectName(QStringLiteral("assetWorkspace%1").arg(int(mode)));
+	tabs->setAccessibleName(tr("Asset workspace tabs"));
+	tabs->setAccessibleDescription(tr("Switch between the asset browser and open editors. Closing an editor checks unsaved changes."));
+	tabs->setDocumentMode(true);
+	tabs->setTabsClosable(true);
+	tabs->setTabBarAutoHide(true);
+	tabs->setElideMode(Qt::ElideRight);
+	tabs->addTab(browser, tr("Browser"));
+	tabs->tabBar()->setTabButton(0, QTabBar::LeftSide, nullptr);
+	tabs->tabBar()->setTabButton(0, QTabBar::RightSide, nullptr);
+	connect(tabs, &QTabWidget::tabCloseRequested, this, [tabs](int index) {
+		if (auto* page = dynamic_cast<StudioEditorPage*>(tabs->widget(index))) { page->closeEditor(); }
+	});
+	connect(tabs, &QTabWidget::currentChanged, this, [this, tabs, mode](int index) {
+		if (auto* page = dynamic_cast<StudioEditorPage*>(tabs->widget(index))) { page->focusEditor(); }
+		else if (index == 0 && tabs->isVisible()) { focusPagePrimaryWidget(mode, true); }
+		if (index == 0 && mode == StudioMode::Textures && tabs->isVisible()) { scheduleTextureThumbnails(); }
+	});
+	m_assetWorkspaces.insert(int(mode), tabs);
+	return tabs;
+}
+
+void ApplicationShell::showStudioEditor(StudioMode mode, QDialog* editor)
+{
+	auto* tabs = m_assetWorkspaces.value(int(mode));
+	if (!tabs || !editor) { return; }
+	StudioEditorPage* page = nullptr;
+	for (int index = 1; index < tabs->count(); ++index) {
+		auto* candidate = dynamic_cast<StudioEditorPage*>(tabs->widget(index));
+		if (candidate && candidate->widget() == editor) { page = candidate; break; }
+	}
+	if (!page) { page = new StudioEditorPage(editor, tabs); }
+	setMode(mode);
+	tabs->setCurrentWidget(page);
+	editor->show();
+	page->focusEditor();
+}
 
 void ApplicationShell::registerAssetWorkbenchCommands()
 {

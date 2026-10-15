@@ -1,0 +1,65 @@
+{
+  "description": "Unmodified application and Qt widget development captures, using repository sample or generated test assets. Captures span multiple builds; they do not certify the current build or production readiness.",
+  "screenshots": [
+    {
+      "file": "docs/showcase/screenshots/levels.png",
+      "source": ".agents/tmp/current-app-showcase/screenshots/02-levels.png",
+      "sha256": "dd84114338dda3e6b3dd75f13d79021506bd8ce0ddacde4aa9d3a128e3b09a64"
+    },
+    {
+      "file": "docs/showcase/screenshots/four-views.png",
+      "source": ".agents/tmp/level-camera-resize/captures-resize-final/level-shell-100.png",
+      "sha256": "93f65ef2d680dfaf85628530f828a4532d9a7ce55b4041170452ba44bf107d3c"
+    },
+    {
+      "file": "docs/showcase/screenshots/props.png",
+      "source": ".agents/tmp/modeller/evidence/model-design-100-tab0-0.png",
+      "sha256": "c8f1e1907df698e653ecac35c14abc8c1a1fb549258c18507cd08fcf61b9ffc2"
+    },
+    {
+      "file": "docs/showcase/screenshots/textures.png",
+      "source": ".agents/tmp/ui-cohesion/captures/texture-editor-100.png",
+      "sha256": "219ffd6b3f4a9104d53a441994807ecc5e7cafa2a704fd9104ddfe179ebb5ba7"
+    },
+    {
+      "file": "docs/showcase/screenshots/audio.png",
+      "source": ".agents/tmp/audio-editor/evidence/audio-editor-100.png",
+      "sha256": "2d19933e92fd2ddc538f2640898e29cf2036543b21c3320250b66ad6f39f3fb0"
+    },
+    {
+      "file": "docs/showcase/screenshots/arrangement.png",
+      "source": ".agents/tmp/audio-daw/arrangement-renders/dark-timeline.png",
+      "sha256": "f0460be837438daadca11a2ca0485293c525575d40ba98b59c393e633005ad6d"
+    },
+    {
+      "file": "docs/showcase/screenshots/packages.png",
+      "source": ".agents/tmp/ui-cohesion/captures/100-loaded/packages.png",
+      "sha256": "d1d250d0f83b0067c3af6952624650ccecb74ae56f33a246cd0f7f5d9f0674b7"
+    },
+    {
+      "file": "docs/showcase/screenshots/code.png",
+      "source": ".agents/tmp/ui-cohesion/captures/100-loaded/code.png",
+      "sha256": "ca879106a1b6c5c66dcbe3a2ef2c43f8714a2a21da9e494476c2683e6c3298dc"
+    },
+    {
+      "file": "docs/showcase/screenshots/build.png",
+      "source": ".agents/tmp/current-app-showcase/screenshots/09-build.png",
+      "sha256": "6bde034f513b1f1f738d2d5e7dbae98b7c57450f6cc08a2b6cd4753235805002"
+    },
+    {
+      "file": "docs/showcase/screenshots/workspace.png",
+      "source": ".agents/tmp/dock-width/restored-en/01-workspace.png",
+      "sha256": "dfd550d3dbf242c70d1a02fbd900c5a7943e805c02459495024648d440094cbc"
+    },
+    {
+      "file": "docs/showcase/screenshots/accessibility.png",
+      "source": ".agents/tmp/dock-width/restored-en/16-settings-accessibility.png",
+      "sha256": "ca04d64af2e35e8fc4050a803ac79c469784e174742c2aa0574a6f520485e2c9"
+    },
+    {
+      "file": "docs/showcase/screenshots/commands.png",
+      "source": ".agents/tmp/dock-width/restored-en/14-command-palette.png",
+      "sha256": "daf752d79b6e26aa8a0552789c450255768065c7b25701d50a961a1f6b1ec5a6"
+    }
+  ]
+}

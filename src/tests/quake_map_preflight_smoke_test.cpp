@@ -158,7 +158,6 @@ int main(int argc, char** argv)
 		QStringLiteral("external-map-lighting-key-risk"),
 		QStringLiteral("external-map-entity-import-risk"),
 		QStringLiteral("external-map-merge-target-risk"),
-		QStringLiteral("light-style-conflict"),
 		QStringLiteral("light-start-off-conflict"),
 		QStringLiteral("q2-angle-mangle"),
 		QStringLiteral("spotlight-phong-risk"),
@@ -187,11 +186,7 @@ int main(int argc, char** argv)
 		QStringLiteral("dotted-map-filename"),
 		QStringLiteral("multiple-region-markers"),
 		QStringLiteral("phong-bmodel-risk"),
-		QStringLiteral("region-brush-entity-cull-risk"),
-		QStringLiteral("region-areaportal-risk"),
-		QStringLiteral("minlight-scale-ambiguity"),
 		QStringLiteral("q2-sunlight2-lightingdir-risk"),
-		QStringLiteral("world-units-per-luxel-override-risk"),
 	};
 	for (const QString& code : expectedCodes) {
 		if (!hasCode(result, code)) {
@@ -206,7 +201,6 @@ int main(int argc, char** argv)
 		129,
 		135,
 		140,
-		173,
 		172,
 		190,
 		194,
@@ -242,19 +236,52 @@ int main(int argc, char** argv)
 		390,
 		405,
 		417,
-		422,
 		443,
-		444,
 		455,
-		470,
-		475,
 		484,
-		485,
 	};
 	for (const int issueNumber : expectedIssueNumbers) {
 		if (!hasIssueNumber(result, issueNumber)) {
 			std::cerr << "Missing upstream issue coverage: #" << issueNumber << "\n";
 			return EXIT_FAILURE;
+		}
+	}
+
+	const QString fixedMap = QStringLiteral(R"MAP(
+{
+"classname" "worldspawn"
+"_minlight" "0.05"
+"_world_units_per_luxel" "16"
+}
+{
+"classname" "light"
+"targetname" "switch_a"
+"style" "11"
+}
+{
+"classname" "light_environment"
+"_light" "255 255 255 200"
+}
+{
+"classname" "light_spot"
+"_light" "255 255 255 200"
+}
+{
+"classname" "func_region"
+}
+{
+"classname" "func_areaportal"
+}
+)MAP");
+	const auto fixedResult = vibestudio::validateQuakeMapPreflightText(fixedMap);
+	const auto fixedReport = vibestudio::inspectQuakeMapPreflightText(fixedMap);
+	if (!fixedResult.parseComplete || !fixedResult.warnings.isEmpty()
+		|| fixedReport.hasIssues() || !fixedReport.warningMessages().isEmpty()) {
+		return fail("Expected both preflight APIs to accept lighting and region cases fixed in VibeMap2 3.1.0.");
+	}
+	for (int retired : {173, 422, 437, 444, 470, 475, 485}) {
+		if (hasIssueNumber(result, retired)) {
+			return fail("Expected mixed-risk maps never to revive a fixed VibeMap2 issue.");
 		}
 	}
 

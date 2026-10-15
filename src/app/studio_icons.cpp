@@ -839,6 +839,108 @@ const QHash<QString, GlyphFunction>& glyphs()
 			p.rect(3.5, 3.5, 20.5, 20.5, 1.5);
 			p.rect(7.5, 7.5, 16.5, 16.5, 0.5);
 		});
+		// Vertex, edge and face editing: a brush outline with its handle of
+		// each kind filled.
+		g.insert(QStringLiteral("vertex-tool"), [](GlyphPainter& p) {
+			p.polygon({{4.0, 18.0}, {8.0, 5.0}, {20.0, 7.5}, {17.0, 19.5}});
+			p.rect(1.75, 15.75, 6.25, 20.25, 0.0, true);
+			p.rect(5.75, 2.75, 10.25, 7.25, 0.0, true);
+			p.rect(17.75, 5.25, 22.25, 9.75, 0.0, true);
+			p.rect(14.75, 17.25, 19.25, 21.75, 0.0, true);
+		});
+		g.insert(QStringLiteral("edge-tool"), [](GlyphPainter& p) {
+			p.polygon({{4.0, 18.0}, {8.0, 5.0}, {20.0, 7.5}, {17.0, 19.5}});
+			p.widerPen(3.0);
+			p.line(8.0, 5.0, 20.0, 7.5);
+		});
+		g.insert(QStringLiteral("face-tool"), [](GlyphPainter& p) {
+			p.polygon({{4.0, 18.0}, {8.0, 5.0}, {20.0, 7.5}, {17.0, 19.5}}, true);
+		});
+		// Patches: a curved grid lattice, or the shape outlined with lattice
+		// lines across it.
+		g.insert(QStringLiteral("patch-plane"), [](GlyphPainter& p) {
+			QPainterPath surface;
+			surface.moveTo(3.5, 16.0);
+			surface.cubicTo(8.0, 12.0, 15.0, 20.0, 20.5, 14.0);
+			surface.lineTo(20.5, 6.0);
+			surface.cubicTo(15.0, 12.0, 8.0, 4.0, 3.5, 8.0);
+			surface.closeSubpath();
+			p.path(surface);
+			p.line(9.5, 6.5, 9.5, 14.5);
+			p.line(15.0, 8.5, 15.0, 16.5);
+		});
+		g.insert(QStringLiteral("patch-cylinder"), [](GlyphPainter& p) {
+			QPainterPath top;
+			top.addEllipse(QRectF(5.0, 3.5, 14.0, 5.0));
+			p.path(top);
+			p.line(5.0, 6.0, 5.0, 18.0);
+			p.line(19.0, 6.0, 19.0, 18.0);
+			QPainterPath bottom;
+			bottom.arcMoveTo(QRectF(5.0, 15.5, 14.0, 5.0), 180.0);
+			bottom.arcTo(QRectF(5.0, 15.5, 14.0, 5.0), 180.0, 180.0);
+			p.path(bottom);
+			QPainterPath middle;
+			middle.arcMoveTo(QRectF(5.0, 9.5, 14.0, 5.0), 180.0);
+			middle.arcTo(QRectF(5.0, 9.5, 14.0, 5.0), 180.0, 180.0);
+			p.path(middle);
+			p.line(12.0, 8.5, 12.0, 20.5);
+		});
+		g.insert(QStringLiteral("patch-square-cylinder"), [](GlyphPainter& p) {
+			p.polygon({{4.5, 7.0}, {12.0, 3.5}, {19.5, 7.0}, {12.0, 10.5}});
+			p.polyline({{4.5, 7.0}, {4.5, 17.0}, {12.0, 20.5}, {19.5, 17.0}, {19.5, 7.0}});
+			p.line(12.0, 10.5, 12.0, 20.5);
+			p.polyline({{4.5, 12.0}, {12.0, 15.5}, {19.5, 12.0}});
+		});
+		g.insert(QStringLiteral("patch-cone"), [](GlyphPainter& p) {
+			QPainterPath base;
+			base.addEllipse(QRectF(4.5, 15.5, 15.0, 5.0));
+			p.path(base);
+			p.line(12.0, 3.5, 4.5, 18.0);
+			p.line(12.0, 3.5, 19.5, 18.0);
+			p.line(12.0, 3.5, 12.0, 20.5);
+		});
+		g.insert(QStringLiteral("patch-sphere"), [](GlyphPainter& p) {
+			p.circle(12.0, 12.0, 8.5);
+			QPainterPath equator;
+			equator.arcMoveTo(QRectF(3.5, 9.5, 17.0, 5.0), 180.0);
+			equator.arcTo(QRectF(3.5, 9.5, 17.0, 5.0), 180.0, 180.0);
+			p.path(equator);
+			QPainterPath meridian;
+			meridian.addEllipse(QRectF(9.0, 3.5, 6.0, 17.0));
+			p.path(meridian);
+		});
+		// A cove: the quarter round from one corner to the opposite one.
+		g.insert(QStringLiteral("patch-bevel"), [](GlyphPainter& p) {
+			p.polyline({{3.5, 3.5}, {3.5, 20.5}, {20.5, 20.5}});
+			QPainterPath curve;
+			curve.moveTo(3.5, 3.5);
+			curve.quadTo(20.5, 3.5, 20.5, 20.5);
+			p.path(curve);
+			p.line(9.0, 6.0, 9.0, 20.5);
+			p.line(15.0, 10.5, 15.0, 20.5);
+		});
+		// A half round.
+		g.insert(QStringLiteral("patch-endcap"), [](GlyphPainter& p) {
+			QPainterPath arch;
+			arch.moveTo(3.5, 19.5);
+			arch.arcTo(QRectF(3.5, 3.0, 17.0, 33.0), 180.0, -180.0);
+			p.path(arch);
+			p.line(3.5, 19.5, 20.5, 19.5);
+			p.line(12.0, 3.0, 12.0, 19.5);
+		});
+		// A curved surface and its thickened copy, joined at the ends.
+		g.insert(QStringLiteral("patch-thicken"), [](GlyphPainter& p) {
+			QPainterPath outer;
+			outer.moveTo(3.5, 10.0);
+			outer.quadTo(12.0, 2.0, 20.5, 10.0);
+			p.path(outer);
+			QPainterPath inner;
+			inner.moveTo(3.5, 17.0);
+			inner.quadTo(12.0, 9.0, 20.5, 17.0);
+			p.path(inner);
+			p.line(3.5, 10.0, 3.5, 17.0);
+			p.line(20.5, 10.0, 20.5, 17.0);
+		});
 		// Level view layouts: the panes as they sit, the camera's filled and
 		// the plans' outlined. They mirror with the panes in right-to-left
 		// layouts (paintGlyph).

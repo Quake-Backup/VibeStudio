@@ -95,6 +95,21 @@ map's file name with its entity and brush counts) and holds the page's main
 actions. A page with nothing open says what it needs and offers buttons to get
 started.
 
+## Keep editors in the studio
+
+**Models**, **Textures** and **Audio** keep their authoring tools in tabs inside
+the main window. **Browser** returns to the package's assets. Mesh editing,
+prop design, assemblies, texture editing, waveform editing and multitrack
+sessions each keep their open document while you switch tabs or use the rail.
+Opening the same editor again selects its existing tab.
+
+Close an editor with its tab's close button or <kbd>Ctrl</kbd>+<kbd>W</kbd>
+while the editor has focus. Unsaved changes still prompt for a decision, and
+cancelling keeps the tab open. Document shortcuts, such as Save and Undo, apply
+to the focused editor. The project, package staging, level placement and build
+services remain shared across pages. File choosers, confirmations and focused
+tool settings still open as dialogs.
+
 ## The panels
 
 Three panels open beside the page, on the side across from the rail. They
@@ -183,5 +198,7 @@ page they work on. **Change Keys…** gives a command keys of your own, and
 
 ## Learn more
 
+- [Visual showcase](../showcase/index.html): twelve development screenshots
+  spanning authoring, project tools, builds and accessibility.
 - [UX design](../UX_DESIGN.md): the principles behind the window's layout.
 - [Portable workspaces](../WORKSPACES.md): what a `.vibeworkspace` file keeps.

@@ -6,12 +6,18 @@
 #include "app/studio_theme.h"
 #include "app/ui_primitives.h"
 #include "app/model_viewport.h"
+#include "app/audio_editor_dialog.h"
+#include "app/audio_session_dialog.h"
+#include "app/model_editor_dialog.h"
+#include "app/texture_editor_dialog.h"
+#include "app/studio_editor_page.h"
 #include "core/audio_export.h"
 #include "core/workspace_document.h"
 
 #include <QAccessible>
 #include <QAction>
 #include <QApplication>
+#include <QCloseEvent>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QEventLoop>
@@ -29,6 +35,8 @@
 #include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
+#include <QScrollArea>
+#include <QPointer>
 #include <QTranslator>
 #include <QtEndian>
 #include <iostream>
@@ -73,6 +81,84 @@ public:
 		return QStringLiteral("[%1 · %1]").arg(QString::fromUtf8(source));
 	}
 };
+
+bool checkEditors(ApplicationShell& shell, const QString& project)
+{
+	bool ok = true;
+	const auto action = [&](const char* id) { return shell.findChild<QAction*>(QString::fromLatin1(id)); };
+	const auto check = [&](StudioMode mode, const char* name) -> QDialog* {
+		auto* editor = shell.findChild<QDialog*>(QString::fromLatin1(name));
+		auto* tabs = shell.findChild<QTabWidget*>(QStringLiteral("assetWorkspace%1").arg(int(mode)));
+		ok &= expect(editor && tabs && tabs->currentWidget()->isAncestorOf(editor) &&
+			editor->isVisible() && !editor->isWindow() && editor->window() == &shell, QStringLiteral("Editor is embedded and selected: ") + name);
+		ok &= expect(shell.width() <= 1440, "Embedded editor does not expand the shell at large text scales");
+		if (!editor || !tabs) { return nullptr; }
+		ok &= expect(QAccessible::queryAccessibleInterface(tabs) && !tabs->accessibleName().isEmpty(), "Workspace tabs have accessible identity");
+		const auto title = editor->windowTitle();
+		editor->setWindowTitle(QStringLiteral("Document[*]")); editor->setWindowModified(true);
+		ok &= expect(tabs->tabText(tabs->currentIndex()) == QStringLiteral("Document*"), "Editor title and dirty marker reach its tab");
+		editor->setWindowModified(false); editor->setWindowTitle(title);
+		tabs->setCurrentIndex(0); QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+		ok &= expect(!editor->isVisible(), "Browser tab hides authoring without closing it");
+		tabs->setCurrentIndex(tabs->count() - 1);
+		return editor;
+	};
+	action("texture.editor")->trigger();
+	QPointer<QDialog> texture = check(StudioMode::Textures, "textureEditorDialog");
+	action("model.editor")->trigger();
+	QPointer<QDialog> model = check(StudioMode::Models, "modelEditorDialog");
+	action("model.design")->trigger();
+	QPointer<QDialog> design = check(StudioMode::Models, "modelDesignDialog");
+	action("model.assembly")->trigger();
+	QPointer<QDialog> assembly = check(StudioMode::Models, "modelAssemblyDialog");
+	shell.openPathFromCommandLine(QDir(project).filePath("sound.wav"));
+	ok &= expect(waitUntil([&] { return action("audio.edit")->isEnabled(); }), "Opened sound is available for editing");
+	action("audio.edit")->trigger();
+	QPointer<QDialog> audio = check(StudioMode::Audio, "audioEditorDialog");
+	if (audio) {
+		auto* editor = static_cast<AudioEditorDialog*>(audio.data());
+		ok &= expect(waitUntil([&] { return !editor->isBusy(); }), "Audio import settles in its tab");
+		shell.activateWindow(); editor->setFocus(); QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+		ok &= expect(QApplication::focusWidget() == editor, "Embedded audio document receives keyboard focus");
+		ok &= expect(!action("project.open")->shortcuts().contains(QKeySequence::Open), "Document Open reserves its key from the shell");
+	}
+	action("audio.session")->trigger();
+	QPointer<QDialog> session = check(StudioMode::Audio, "audioSessionDialog");
+	action("shell.mode.levels")->trigger(); QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+	// No keyboard events are injected: focus and public actions exercise the same routing.
+	shell.findChild<QStackedWidget*>("modeStack")->currentWidget()->setFocus();
+	ok &= expect(action("project.open")->shortcuts().contains(QKeySequence::Open), "Shell keys resume outside an embedded editor");
+	action("texture.editor")->trigger();
+	auto* textures = shell.findChild<QTabWidget*>(QStringLiteral("assetWorkspace%1").arg(int(StudioMode::Textures)));
+	ok &= expect(texture && texture->isVisible() && textures->count() == 2, "Reopening selects the existing texture document");
+	// Declining an editor close must retain the tab. Use a guarded document
+	// without a modal question so the test never synthesises user input.
+	class GuardedDocument final : public QDialog {
+	public:
+		bool allowClose = false;
+		void closeEvent(QCloseEvent* event) override { allowClose ? event->accept() : event->ignore(); }
+	};
+	auto* guarded = new GuardedDocument;
+	guarded->setAttribute(Qt::WA_DeleteOnClose);
+	auto* guardedPage = new StudioEditorPage(guarded, textures);
+	textures->setCurrentWidget(guardedPage); guarded->show();
+	textures->tabCloseRequested(textures->currentIndex());
+	ok &= expect(textures->currentWidget() == guardedPage && guarded->isVisible(), "Rejected close retains the selected document");
+	guarded->allowClose = true; textures->tabCloseRequested(textures->currentIndex());
+	QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+	ok &= expect(textures->count() == 2, "Accepted close removes only the closed document tab");
+	for (const auto& editor : {texture, model, design, assembly, audio, session}) {
+		if (!editor) { continue; }
+		auto* page = dynamic_cast<StudioEditorPage*>(editor->parentWidget()->parentWidget());
+		if (page) { page->closeEditor(); }
+		else { ok &= expect(false, "Editor belongs to a document page"); }
+	}
+	QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+	for (auto* tabs : shell.findChildren<QTabWidget*>()) {
+		if (tabs->objectName().startsWith("assetWorkspace")) { ok &= expect(tabs->count() == 1, "Closing documents retains the browser"); }
+	}
+	return ok;
+}
 bool checkSurface(ApplicationShell& shell, const QString& mode, const QString& capture, bool empty)
 {
 	auto* action = shell.findChild<QAction*>(QStringLiteral("shell.mode.") + mode);
@@ -257,6 +343,7 @@ bool workflow(QApplication& app, const QString& root, int scale)
 			auto entries = tests::PackageRows(shell.findChild<PackageEntryView*>("packageEntries"));
 			ok &= expect(entries->currentItem() && entries->currentItem()->data(Qt::UserRole + 7).toLongLong() == 1, "Package handoff preserves the exact repeated sound occurrence");
 		}
+		ok &= checkEditors(shell, project);
 	}
 	if (scale == 200) { app.removeTranslator(&expansion); }
 	return ok;

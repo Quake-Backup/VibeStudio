@@ -53,8 +53,8 @@ you left it. A page's heading counts what it holds, such as the outliner's objec
 its tab's tooltip.
 
 - The **Tools** tab holds every editing command in one place, as Blender's Tool tab does, grouped into **Brush**,
-  **Transform**, **Align**, **Select**, **Entities**, **Surfaces**, **Patches**, **Sectors and Lines** and **Region and
-  Build**. Each button is the command itself, so it greys out, stays pressed and takes keys just as in the menus; a
+  **Vertices**, **Transform**, **Align**, **Select**, **Navigate**, **Entities**, **Linked Groups**, **Surfaces**,
+  **Patches**, **Patch Rows and Columns**, **Sectors and Lines** and **Region and Build**. Each button is the command itself, so it greys out, stays pressed and takes keys just as in the menus; a
   group the map's format cannot use is hidden.
 - Right-click a tab to move it to the other sidebar, fold the sidebar, show captions under the tab icons, or
   **Reset Sidebars** to where your editor profile keeps them.
@@ -79,6 +79,12 @@ the tools the open map can use are shown, and the material strip below holds the
 - **2D views.** Choose **Top (X/Y)**, **Front (X/Z)** or **Side (Y/Z)** in the projection list. The wheel zooms;
   how you pan, select and draw depends on your [editor profile](editor-profiles.md). **Zoom to Fit**
   (<kbd>Home</kbd>) frames the whole map and **Zoom to Selection** (<kbd>F</kbd>) frames the selection.
+- **Go somewhere.** **Centre Views on Selection** moves every 2D view to the selection without changing its zoom, as
+  Radiant's Center does. **Go to Coordinates…** takes the 2D views, and the camera if you tick it, to a point you
+  type, as Hammer does. **Find Brush by Number…** selects and frames the object a compiler names, such as
+  `Entity 0, Brush 12`: paste the compiler's line and the numbers are read from it. Brushes and patches are counted
+  together from 0, in the order the file lists them, as compilers count them. All three are on the **Tools** tab's
+  **Navigate** group.
 - **Grid.** Choose **Grid 1** to **Grid 256** in the grid list, or press <kbd>[</kbd> and <kbd>]</kbd>. With **Snap**
   ticked, drags and arrow-key nudges move in whole grid steps.
 - **3D view.** Choose **3D** to show the camera. The VibeStudio Default profile orbits an orthographic view of the map;
@@ -103,8 +109,12 @@ the tools the open map can use are shown, and the material strip below holds the
   Kind** brings them all back. Filters are separate from hidden objects, so **Show All Hidden** leaves them on, and
   they only change what you see.
 - **Region.** To work on one area of a big map, choose **Set to Selection** or **Set to View** in the **Region**
-  section of the **View** tab (or **Select** > **Set Region to Selection**). The views shade or hide what lies
-  outside the box, as Radiant's regions and Hammer's cordon do; **Clear Region** brings the whole map back.
+  section of the **View** tab (or **Select** > **Set Region to Selection**). **Draw Region** lets you drag the box in
+  a 2D view, through the whole map's depth; **Set Region to Brush** uses the selected brushes' bounds and removes
+  them, as Radiant does (**Undo** brings them back and keeps the region); and **Region Bounds…** takes the corners
+  you type. The views shade or hide what lies outside the box, as Radiant's regions and Hammer's cordon do, and
+  **Select Everything in Region** selects what it keeps. VibeStudio remembers each map's region and brings it back
+  when you open the map again; **Clear Region** brings the whole map back and forgets it.
   **Compile Region** writes the region beside the map as `<name>-region.map`, unsaved edits included, and compiles
   it with the chosen profile, so `<name>-region` can be loaded in the game to test that area quickly. The region
   map keeps what touches the box, sealed by six brushes just outside it, and gets a player start (where the camera
@@ -133,8 +143,9 @@ clipping, hollowing, component editing and patch tools. Unsupported actions are 
   Quake-family map (never `worldspawn` itself), and every thing in a Doom map; Doom vertices, lines and sectors are
   picked by hand. **Invert Selection** (<kbd>Ctrl</kbd>+<kbd>I</kbd>) works within the same set, and **Select None**
   (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>) clears the selection.
-- The **Edit** menu adds **Select All of This Class**, **Select by Texture…**, **Select Targets**, **Select Sources**
-  and, for Doom maps, **Select Connected Geometry**.
+- The **Edit** menu adds **Select All of This Class**, **Select by Texture…**, **Select Targets**, **Select Sources**,
+  **Expand Selection to Whole Entities** (the whole brush entity of every selected brush or patch, as Radiant's
+  Expand Selection to Entities does) and, for Doom maps, **Select Connected Geometry**.
 - **Select by Region**, in the right-click menu and the **Select** menu above the views, uses the selection as a
   region, as the Radiant editors do: **Select Inside** keeps what lies wholly inside it, **Select Touching** what
   touches it, and **Select Complete Tall** and **Select Partial Tall** do the same seen from the active 2D view,
@@ -167,20 +178,20 @@ Most actions are in the **Edit** menu, the right-click menu of the views and the
 | Shear | Turn on **Transform** > **Shear Tool** and drag the handle in the middle of a side of the selection in any 2D view: that side slides along itself and the opposite side stays put, slanting the selection, as TrenchBroom's shear tool does. <kbd>Escape</kbd> turns the tool off. **Transform** > **Shear…** slants the selection about its centre by an angle you type. Texture lock follows **Texture Lock**; where the map's face format cannot slant textures, the tool shears without it and says so. |
 | Resize | Drag the handles in a 2D view, or the labelled X, Y and Z handles in the 3D view. **Resize Selection…** takes exact sizes and the point that stays in place. |
 | Cut with a plane | Turn on the **Clip Tool** (<kbd>X</kbd>), drag a line across the brushes in a 2D view, press <kbd>Tab</kbd> to choose which side stays (or both), then <kbd>Enter</kbd>. **Clip Selection…** cuts along an exact x, y or z plane. |
-| Hollow | **Hollow…** turns each selected brush into walls of the thickness you choose, one per face. |
+| Hollow | **Hollow…** turns each selected brush into walls of the thickness you choose, one per face, overlapping at the edges. **Hollow Touching…** makes walls that meet without overlapping, and **Make Room** builds walls one grid step thick around the outside of each brush and removes it, so the brush becomes the room, as NetRadiant Custom does. |
 | Carve (CSG subtract) | **Carve** cuts the selected brushes out of every brush they overlap. The carving brushes stay selected, ready to delete; hidden brushes are left alone. |
 | Intersect (CSG) | **Intersect** replaces the selected brushes with the one brush where they all overlap, as TrenchBroom does; each face keeps the texture of the face it came from. |
 | Make detail | **Make Detail** stops brushes sealing the map or splitting its visibility: in Quake II and Quake III maps it sets each face's detail flag, and in Quake maps it moves the brushes into a `func_detail` for VibeMap2, as ericw-tools expects. **Make Structural** undoes it. |
 | Drop to the floor | **Drop to Floor** moves the selected point entities straight down onto the brush or patch below, keeping each class's height above it. |
 | Merge brushes | **Merge Brushes…** previews their convex union and lets you choose where conflicting materials, mappings and flags come from. |
 | Apply a texture | Select brushes or patches and choose **Apply Texture…**, or press <kbd>Enter</kbd> on a tile on the **Textures** tab. **Replace Texture…** swaps one texture for another across the map or the selection. |
-| Align textures | Edit a classic or Valve 220 face's shift, rotation and scale on the **Inspector** tab, or use the **Surfaces** tab: **Target** chooses the selection or the inspected face, **Adjust** shifts, rotates, scales, fits or centres it in steps, and **Copy and Paste** carries one face's material, mapping and flags to others. **Surface Alignment…** gives a detailed preview. |
+| Align textures | Edit a classic or Valve 220 face's shift, rotation and scale on the **Inspector** tab, or use the **Surfaces** tab. **Target** chooses the selection, patches included, or **Picked Faces**: the faces you pick in the camera with your profile's face-pick click, holding its add key to gather more, or else the face in the **Inspector**. **Adjust** shifts, rotates, scales, fits or centres in steps, and has one-click **Flip U** and **Flip V**, **Fit U** and **Fit V** (one repeat across that axis only), **Justify Left**, **Right**, **Top** and **Bottom**, **Natural** (the texture at its natural scale, square to the world, as Radiant's Natural does) and **Align to Face** (the texture laid along the face's own slope). **Copy and Paste** carries one face's material, mapping and flags to others. **Surface Alignment…** gives a detailed preview. |
 | Paint materials | Choose a material in the **Material** box above the views, set the camera tool to **Paint**, then click or drag across surfaces in the 3D view. Each stroke is one undo step. **Sample** picks up a surface's material instead. |
-| Reshape a brush | **Edit Brush Components…** moves its vertices, edges or faces and rebuilds the brush. |
-| Make curves (Quake III) | **Add Patch…** creates a plane, cylinder or cone. **Edit Patch Control Points…**, **Stitch Patches…** and **Cap Patch…** reshape, join and close patches. |
+| Reshape a brush | Turn on **Edit Vertices**, **Edit Edges** or **Edit Faces** (**Geometry** menu, or the **Tools** tab's **Vertices** group): the selected brushes show handles at their corners, edge middles or face centres in every 2D view, and selected patches their control points. Click a handle to pick it with every handle stacked under it, hold your profile's add or toggle key to pick more, or drag a band around several; picks show in every view. Then drag a picked handle, which lands on the grid, or press the arrow keys to move the picks a grid step (<kbd>Shift</kbd>: eight). A corner dragged onto another merges with it, and **Undo** brings it back. <kbd>Esc</kbd> drops the picks, then leaves the mode. **Snap Vertices to Grid** rounds every corner of the selected brushes onto the grid, as TrenchBroom does. **Edit Brush Components…** does the same work with exact numbers and a preview. |
+| Make curves (Quake III) | **Add Patch…** creates a plane, cylinder, square cylinder, cone, sphere, bevel or end cap, its cylinders, cones and spheres true circles of as many spans as you choose; the **Shapes** tab draws them too. **Edit Patch Control Points…**, **Stitch Patches…** and **Cap Patch…** reshape, join and close patches, and **Edit Vertices** drags their control points in the 2D views. The **Patch Rows and Columns** commands, also in the patch editor, insert, add or delete rows and columns without changing the surface, **Transpose**, **Re-disperse** and **Smooth** them, as Radiant's Patch menu does, and **Thicken Patch…** gives patches a back and walls along their open edges, as NetRadiant Custom does. |
 | Link entities | Select the entities, picking the target last, and choose **Connect Entities**. The others target it, and it gets a `targetname` if it has none. |
 | Replace key values | **Edit** > **Replace Key Values…**, or the search button on the **Inspector**'s **Properties** section, finds a value of one key across the map's entities (or the selected ones) and replaces it: the whole value, or with **Match the whole value** off, every occurrence, such as a name's prefix. It counts the matches as you type, and the change is one undo step. |
-| Reuse a group of objects | **Export Selection as Prefab…** or **Save Selection…** on the **Prefabs** tab saves a `.vprefab` file. **Insert Prefab…** places one; the **Prefabs** tab lists those in the project and the open package. |
+| Reuse a group of objects | **Export Selection as Prefab…** or **Save Selection…** on the **Prefabs** tab saves a `.vprefab` file, and the tab lists it at once with those in the project and the open package. **Insert Prefab…** places one with a preview, or drag one from the tab onto a 2D view to place it where you drop it. **Replace Selection with Prefab…** puts one where the selection stands, its anchor at the selection's bottom centre, and removes the selection, as one undo step. |
 
 For repeated steps, columns or props, set **Copies** in **Duplicate with Offset…** to 1–256 additional copies.
 With an X offset of 64, the first copy moves 64 units from the source, the second 128, and the third 192.
@@ -248,6 +259,10 @@ The **Shapes** tab chooses what brush drawing makes, as the object bar does in H
 **Wedge**, **Cylinder**, **Cone** and **Sphere** are one brush each, and **Arch**, **Ring**, **Stairs** and **Room** are
 several. A shape fills the box you draw, in the map's own face format and the material chosen on the **Textures**
 tab, and is one undo step that selects its brushes.
+
+On a Quake III map the tab also offers patch shapes, as Radiant's Patch menu makes them: **Patch Plane**, **Patch
+Cylinder**, **Square Patch Cylinder**, **Patch Cone**, **Patch Sphere**, **Patch Bevel** and **Patch End Cap**. Each is
+one patch filling the box; **Segments** sets how many spans go round a cylinder, cone or sphere.
 
 1. Choose a shape. Its settings appear below it; the box has none.
 2. Choose **Draw in a View**, then drag a box in a 2D view or the 3D view. **Add at View Centre** puts one in the
@@ -454,20 +469,21 @@ vibestudio --cli map move ./maps/start.map --object brush:12 --delta 16,0,0 --ou
 | Command | What it does |
 | --- | --- |
 | `map inspect` | Show a map's entities, textures, statistics and validation |
-| `map find` | List the objects a query matches, as the **Objects** filter does |
+| `map find` | List the objects a query matches, as the **Objects** filter does; `--number 0,12` finds the object a compiler names as `Entity 0, Brush 12` |
 | `map new` | Create an empty map or starter room |
 | `map edit` | Change entity keys, a face's texture and alignment, or Doom sector, linedef and side fields |
 | `map add-entity`, `map add-brush`, `map add-thing` | Add a point entity, a brush shape or a Doom thing |
 | `map delete`, `map duplicate`, `map paste` | Delete objects, copy them with an offset (`map duplicate --copies N` creates a linear array), or insert `.map` text |
 | `map move`, `map rotate`, `map flip`, `map resize`, `map snap` | Transform objects, with texture lock options |
 | `map add-shape` | Add a shape of the **Shapes** tab, or replace brushes with one |
-| `map clip`, `map hollow`, `map carve`, `map intersect`, `map merge-brushes` | Brush tools |
+| `map clip`, `map hollow`, `map carve`, `map intersect`, `map merge-brushes`, `map snap-vertices` | Brush tools; `map hollow --mode touch` or `room` hollows as **Hollow Touching…** or **Make Room** does |
 | `map tie-entity`, `map move-to-world`, `map detail` | Make brush entities, give their brushes back to the world, and make brushes detail |
 | `map select-region`, `map drop-to-floor` | List the objects a region selection picks, and drop entities to the floor |
 | `map align`, `map shear`, `map region` | Line objects up, slant them, and write a region as a sealed map of its own |
 | `map replace-key` | Find and replace a key's values across the entities |
 | `map apply-texture`, `map replace-texture`, `map align-textures` | Texture tools |
-| `map add-patch`, `map edit-patch`, `map stitch-patches`, `map cap-patch` | Quake III patch tools |
+| `map add-patch`, `map edit-patch`, `map stitch-patches`, `map cap-patch`, `map patch-matrix`, `map thicken-patch` | Quake III patch tools |
+| `map export-prefab`, `map inspect-prefab`, `map insert-prefab` | Save objects as a prefab, inspect one, and place one at `--position` or in place of objects with `--replace` |
 | `map connect` | Make entities target the last one given |
 | `map draw-sector`, `map draw-stairs`, `map draw-grid`, `map split-linedef`, `map curve-linedefs`, `map flip-linedef`, `map merge-vertices` | Doom geometry tools |
 | `map join-sectors`, `map merge-sectors`, `map make-door` | Doom sector tools |

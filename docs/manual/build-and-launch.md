@@ -104,6 +104,16 @@ and **Copy All Problems**. Press <kbd>F4</kbd> and <kbd>Shift</kbd>+<kbd>F4</kbd
 through the last build's problems. **Explain** on the toolbar opens the Assistant with the problems
 ready to ask about; AI stays off unless you turn it on, as described in [AI assistant](ai.md).
 
+Known-issue explanations use the VibeMap2 3.1.0 audit and keep ericw-tools issue
+numbers for reference. Reports fixed in that fork no longer add plan or map
+preflight warnings. Platform requirements are guidance; retained historical
+reports still need case-specific verification. Actual compiler warnings and
+errors remain visible. See the [issue reconciliation](../plans/ericw-tools-remaining-bugs-resolution.md)
+for the evidence and remaining limits, including older/custom compiler builds.
+
+VibeMap2's `-embedsettings` option can store effective lighting settings in the
+BSP; it is opt-in. Keep VibeStudio's command manifests for the complete build.
+
 ### Find a leak
 
 A leaking map, one that is not sealed from the void, puts the leak at the top of **Problems**. With

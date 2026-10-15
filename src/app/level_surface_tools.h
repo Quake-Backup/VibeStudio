@@ -33,6 +33,9 @@ public:
 	void setStatus(const QString& text, bool busy);
 	void setClipboardSummary(const LevelSurfaceClipboard& clipboard);
 	LevelSurfacePasteOptions pasteOptions() const;
+	// Map units per texel a Natural or Align to Face reset uses, from the
+	// open map's game.
+	void setDefaultScale(double scale) { m_defaultScale = scale; }
 	std::function<void()> targetChanged;
 	std::function<void()> cancelRequested;
 private:
@@ -50,5 +53,6 @@ private:
 	QHash<QString, QToolButton*> m_buttons;
 	QVector<QBoxLayout*> m_rows;
 	QVector<SidebarSection*> m_sections;
+	double m_defaultScale = 1.0;
 };
 } // namespace vibestudio

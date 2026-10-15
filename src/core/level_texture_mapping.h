@@ -2,6 +2,8 @@
 
 #include "core/level_map.h"
 #include <QPointF>
+#include <QSize>
+#include <utility>
 
 namespace vibestudio
 {
@@ -28,6 +30,18 @@ bool setLevelTextureProjection(LevelMapBrushFace* face, const LevelTextureProjec
 // Empty for no brush faces, otherwise classic, valve220, brushDef, brushDef3
 // or mixed. Clipboard and prefab insertion share the same compatibility rule.
 QString levelMapBrushDialect(const LevelMapDocument& document);
+// The texture axes brush primitives use for a plane with this unit normal,
+// q3map2's ComputeAxisBase.
+std::pair<LevelMapVec3, LevelMapVec3> levelTexturePrimitiveBasis(const LevelMapVec3& normal);
+// The projection a face takes when its mapping is reset, as Radiant's and
+// TrenchBroom's reset do: projected along the world axis the face looks
+// down most (q3map2's TextureAxisFromPlane), unshifted and unrotated, at
+// `scaleU` and `scaleV` map units per texel. Brush primitives count in
+// repeats, so they also need the image size; other faces ignore it.
+LevelTextureProjection levelNaturalTextureProjection(const LevelMapBrushFace& face, double scaleU, double scaleV, QSize imageSize = {});
+// The same axes turned into the face's own plane, so a slope shows its
+// texture unstretched, as TrenchBroom's reset to the face does.
+LevelTextureProjection levelFaceAlignedTextureProjection(const LevelMapBrushFace& face, double scaleU, double scaleV, QSize imageSize = {});
 
 // Columns of the linear transform followed by its translation: p' = A p + t.
 // Brush planes are transformed by the caller; UV covectors use A^-T so every

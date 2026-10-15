@@ -4,6 +4,10 @@ The **Audio** page lists the sounds in a package, draws their waveforms and
 plays them. The audio editor cleans up, converts and delivers game-ready sound
 effects, and multitrack sessions arrange several sounds into one.
 
+Waveform editing and multitrack sessions open in tabs within **Audio**.
+**Browser** returns to the sound list. Session mixdowns and recovery handoffs
+select the receiving editor's tab in the same studio window.
+
 > [!NOTE]
 > **Status: Partial.** Browsing, waveform editing, analysis and delivery in
 > each game's format work and have automated tests, but have not been proven

@@ -1,5 +1,15 @@
 # Accessibility And Localization
 
+Asset authoring stays inside Models, Textures and Audio as native accessible
+tabs with translated browser/workspace labels. Editor titles and unsaved markers
+are exposed as tab text, with full titles in tooltips. Keyboard focus follows the
+selected editor, local document shortcuts take precedence over matching shell
+keys, and Ctrl+W (Cmd+W on macOS) uses the document's normal close guard. Escape
+can cancel child tools without dismissing the whole embedded document. Scroll
+hosts contain expanded controls at large text scales. Offscreen semantic tests
+cover 100% and 200% text, high contrast and RTL; native screen-reader acceptance
+remains outstanding.
+
 **Help** > **Documentation** uses the shared command registry, with a
 translatable menu label and status tip. Standard Qt menu and Command Palette
 accessibility exposes its name and keyboard access. Map-edit status messages

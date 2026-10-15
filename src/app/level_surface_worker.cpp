@@ -80,13 +80,25 @@ bool LevelSurfaceWorker::start(LevelSurfaceWork request)
 					const auto key = face.textureName.trimmed().replace('\\', '/').toCaseFolded();
 					if (request.textureSizes.value(key).isValid()) { continue; }
 					for (const auto& step : request.adjustments) {
-						if ((!face.explicitTextureMatrix && (step.operation == LevelSurfaceOperation::Fit || step.operation == LevelSurfaceOperation::Align))
-							|| (face.explicitTextureMatrix && (step.operation == LevelSurfaceOperation::Shift || step.operation == LevelSurfaceOperation::Rotate))) {
+						if (levelSurfaceOperationNeedsSize(step.operation, face.explicitTextureMatrix)) {
 							materialBrush.faces << face; break;
 						}
 					}
 				}
 				if (!materialBrush.faces.isEmpty()) { visible.brushes << materialBrush; }
+			}
+			// Patches count repeats, so shifts, turns and resets need their image.
+			if (!request.clipboard.ready() && !request.patches.isEmpty()) {
+				const QSet<int> wanted(request.patches.cbegin(), request.patches.cend());
+				const bool needed = std::any_of(request.adjustments.cbegin(), request.adjustments.cend(),
+					[](const LevelSurfaceRequest& step) { return levelSurfaceOperationNeedsSize(step.operation, true); });
+				for (const auto& patch : request.document.patches) {
+					if (!needed || !wanted.contains(patch.id)) { continue; }
+					const auto key = patch.textureName.trimmed().replace('\\', '/').toCaseFolded();
+					if (request.textureSizes.value(key).isValid()) { continue; }
+					LevelMapBrush materialBrush; LevelMapBrushFace materialFace; materialFace.textureName = patch.textureName;
+					materialBrush.faces << materialFace; visible.brushes << materialBrush;
+				}
 			}
 			const auto copiedMaterial = request.clipboard.material().trimmed().replace('\\', '/').toCaseFolded();
 			const auto requiredMaterials = levelSurfaceTransferRequiredMaterials(request.document, request.pasteTargets, request.clipboard, request.paste);
@@ -148,7 +160,7 @@ bool LevelSurfaceWorker::start(LevelSurfaceWork request)
 			}
 			const bool prepared = request.clipboard.ready()
 				? prepareLevelSurfaceTransfer(request.document, request.pasteTargets, request.clipboard, request.paste, &plan, &work->result.error, cancelled)
-				: prepareLevelSurfaceEdits(request.document, request.faces, request.adjustments, request.textureSizes, &plan, &work->result.error, cancelled);
+				: prepareLevelSurfaceEdits(request.document, request.faces, request.patches, request.adjustments, request.textureSizes, &plan, &work->result.error, cancelled);
 			if (!prepared) { return; }
 			if (cancelled() || !commitLevelSurfaceEdit(&request.document, plan, &work->result.error)) { return; }
 			if (request.clipboard.ready() && request.paste.mode == LevelSurfacePasteMode::Seamless && request.pasteTargets.size() == 1

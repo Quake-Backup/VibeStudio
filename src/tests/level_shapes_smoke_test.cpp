@@ -93,8 +93,15 @@ bool checkCatalogue()
 {
 	bool ok = true;
 	const QStringList ids = levelShapeIds();
-	ok &= expect(ids.size() == 9 && ids.first() == QStringLiteral("box") && ids.contains(QStringLiteral("arch")) && ids.contains(QStringLiteral("room")),
-		"The shapes are the five primitives and the four compound shapes", ids.join(QLatin1Char(',')));
+	ok &= expect(ids.size() == 16 && ids.first() == QStringLiteral("box") && ids.contains(QStringLiteral("arch")) && ids.contains(QStringLiteral("room"))
+			&& ids.contains(QStringLiteral("patch-cylinder")) && ids.contains(QStringLiteral("patch-endcap")),
+		"The shapes are the five primitives, the four compound shapes and the seven patch shapes", ids.join(QLatin1Char(',')));
+	int patches = 0;
+	for (const QString& id : ids) {
+		patches += levelShapeIsPatch(id) ? 1 : 0;
+		ok &= expect(!levelShapeIsPatch(id) || !levelShapeIsCompound(id), "A patch shape is not a compound brush shape", id);
+	}
+	ok &= expect(patches == 7, "Seven of the shapes are Quake III patches");
 	for (const QString& id : ids) {
 		ok &= expect(!levelShapeLabel(id).isEmpty() && levelShapeLabel(id) != id && !levelShapeDescription(id).isEmpty(),
 			"Every shape has a label and a description", id);

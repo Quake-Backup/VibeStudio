@@ -12,6 +12,8 @@ class PackageStagingModel;
 struct LevelSurfaceWork {
 	LevelMapDocument document;
 	QVector<LevelSurfaceFace> faces;
+	// Patches the quick adjustments also change.
+	QVector<int> patches;
 	QVector<LevelMaterialTarget> pasteTargets;
 	QVector<LevelSurfaceRequest> adjustments;
 	LevelSurfaceClipboard clipboard;

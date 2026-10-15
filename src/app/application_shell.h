@@ -89,6 +89,9 @@ class QTreeWidgetItem;
 
 namespace vibestudio {
 
+struct LevelMapComponentSet;
+enum class LevelPatchMatrixOperation;
+
 struct LevelPlacementRequest;
 struct LevelShapeRequest;
 struct LevelBuildWorkspace;
@@ -352,6 +355,8 @@ private:
 	QWidget* buildWorkspacePage();
 	QWidget* buildLevelsPage();
 	QWidget* buildModelsPage();
+	QWidget* buildAssetWorkspace(StudioMode mode, QWidget* browser);
+	void showStudioEditor(StudioMode mode, QDialog* editor);
 	// Modeller: the Models page's sidebars and the preview's controls profile (model_page.cpp).
 	void buildModelSidebars(QSplitter* workbench, QWidget* browser, QWidget* centre, QWidget* appearance);
 	void applyModelViewportProfile();
@@ -727,6 +732,40 @@ private:
 	// already on disk: the open map, or a region written from it.
 	void runLevelMapCompile(const LevelMapDocument& document);
 	[[nodiscard]] bool levelRegionActive() const;
+	// Vertex editing in the 2D views, the patch matrix commands and Thicken,
+	// more region tools, navigation and prefab replacement
+	// (level_geometry_actions.cpp).
+	void registerLevelGeometryCommands();
+	void refreshLevelGeometryCommands();
+	[[nodiscard]] static QStringList levelPatchMatrixCommandIds();
+	// `mode` is a MapViewport::ComponentMode cast to an int; 0 leaves it.
+	void setLevelComponentMode(int mode);
+	void moveLevelComponentsFromViewport(const QVector<LevelMapComponentSet>& sets, const LevelMapVec3& delta);
+	void shareLevelComponentPicks(MapViewport* from);
+	void snapLevelMapVerticesFromUi();
+	void hollowLevelMapTouchingFromUi();
+	void makeLevelRoomFromUi();
+	void selectLevelWholeEntitiesFromUi();
+	void applyLevelPatchMatrixFromUi(LevelPatchMatrixOperation operation);
+	void thickenLevelPatchesFromUi();
+	void setLevelRegionDrawMode(bool enabled);
+	void setLevelRegionFromDrawnBox(MapViewport* view, const QRectF& box);
+	void setLevelRegionFromBrushes();
+	void editLevelRegionBounds();
+	void selectLevelRegionObjects();
+	// The region each map file had when it was last set, kept in settings.
+	void rememberLevelRegion();
+	bool rememberedLevelRegion(LevelMapVec3* mins, LevelMapVec3* maxs) const;
+	void zoomLevelViewsToFit();
+	void centreLevelViewsOnSelection();
+	void goToLevelCoordinatesFromUi();
+	void findLevelObjectByNumberFromUi();
+	void replaceLevelSelectionWithPrefabFromUi();
+	bool replaceLevelSelectionWithPrefab(const QString& path);
+	// A prefab dragged from the Prefabs tab: inserted with its anchor where it
+	// was dropped, unturned, as one undo step that selects it.
+	void placeLevelPrefabFromPalette(const QString& payload, const QPointF& viewPoint);
+	QString m_lastLevelPrefabPath;
 	void refreshLevelAssetBrowsers();
 	void refreshLevelModelBrowser();
 	void refreshLevelSoundBrowser();
@@ -877,6 +916,11 @@ private:
 	void editLevelUdmfPropertiesFromUi();
 	void editLevelMapSurfacesFromUi();
 	LevelSurfaceFace inspectedLevelMapSurface() const;
+	// Faces picked in the camera with the face-pick keys, of brushes still
+	// selected; the Surfaces tab's Picked Faces target, else the Inspector's face.
+	[[nodiscard]] QVector<LevelSurfaceFace> levelPickedSurfaceFaces() const;
+	[[nodiscard]] QVector<LevelSurfaceFace> levelSurfaceFaceTargets() const;
+	QVector<LevelSurfaceFace> m_levelPickedFaces;
 	QWidget* buildLevelSurfaceTools();
 	void registerLevelSurfaceCommands();
 	void refreshLevelSurfaceTools();
@@ -1703,6 +1747,7 @@ private:
 	// shows the context line of its page's header.
 	QHash<int, NavigationTile*> m_workspaceTiles;
 	QHash<int, QStackedWidget*> m_surfaceStacks;
+	QHash<int, QTabWidget*> m_assetWorkspaces;
 	QHash<QString, QSplitter*> m_layoutSplitters;
 	QHash<QString, QByteArray> m_defaultLayoutStates;
 	QHash<int, EmptyStateView*> m_emptyStates;
@@ -2111,6 +2156,7 @@ private:
 	QTimer* m_levelSurfaceDebounce = nullptr;
 	QVector<LevelSurfaceRequest> m_levelSurfacePending;
 	QVector<LevelSurfaceFace> m_levelSurfaceFaces;
+	QVector<int> m_levelSurfacePatches;
 	QHash<QString, QSize> m_levelSurfaceSizes;
 	std::function<bool()> m_levelSurfaceCurrent;
 	quint64 m_levelSurfaceToken = 0;
@@ -2323,6 +2369,7 @@ private:
 		// reload starts the revision over.
 		quint64 load = 0;
 		QString entry;
+		QPointer<QWidget> assetPage;
 	};
 	[[nodiscard]] StudioPlace currentPlace() const;
 	[[nodiscard]] bool samePlace(const StudioPlace& first, const StudioPlace& second) const;

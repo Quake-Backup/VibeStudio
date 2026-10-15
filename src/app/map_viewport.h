@@ -14,6 +14,7 @@
 // the change locally and emits moveRequested() or resizeRequested() once on
 // release, so the owner decides what becomes a single undo command.
 
+#include "core/level_brush.h"
 #include "core/level_editor_controls.h"
 #include "core/level_navigation.h"
 #include "core/level_map.h"
@@ -257,6 +258,35 @@ public:
 	// sectorMakeRequested(). Escape leaves the mode.
 	void setMakeSectorMode(bool enabled);
 	[[nodiscard]] bool makeSectorMode() const;
+	// Vertex editing, after Radiant's vertex, edge and face modes and
+	// TrenchBroom's vertex tool: handles on the selected brushes' vertices,
+	// edge middles or face centres, and on the selected patches' control
+	// points. A click picks the handles under the pointer, every one this view
+	// stacks there, Shift or Ctrl (the profile's add and toggle keys) adds or
+	// toggles, and a drag over empty space bands them; a click on an unselected
+	// brush or patch selects it instead. A drag on a picked handle moves every
+	// picked handle, the one under the pointer landing on the grid, and the
+	// arrow keys nudge them a grid step (Shift: eight). The view never edits
+	// the document: it asks through componentMoveRequested() on release.
+	// Escape drops the picks, then leaves the mode.
+	enum class ComponentMode { Off, Vertices, Edges, Faces };
+	void setComponentMode(ComponentMode mode);
+	[[nodiscard]] ComponentMode componentMode() const { return m_componentMode; }
+	[[nodiscard]] int componentHandleCount() const { return static_cast<int>(m_componentHandles.size()); }
+	[[nodiscard]] int pickedComponentCount() const { return static_cast<int>(m_pickedHandles.size()); }
+	// Where handle `index` is drawn, in widget pixels.
+	[[nodiscard]] QPointF componentHandlePosition(int index) const;
+	[[nodiscard]] QVector<LevelMapComponentSet> pickedComponents() const;
+	// The picked handles as objects and positions, so panes can share them.
+	[[nodiscard]] QVector<QPair<LevelMapSelectionRef, LevelMapVec3>> pickedComponentPositions() const;
+	void setPickedComponentPositions(const QVector<QPair<LevelMapSelectionRef, LevelMapVec3>>& picks);
+	void pickAllComponents();
+	[[nodiscard]] bool isMovingComponents() const { return m_componentDragging; }
+	// Region drawing, after Radiant's Region Set XY: a drag over the view,
+	// anywhere, draws the box the region keeps across this view, asked for
+	// through regionDrawRequested(), and the mode ends. Escape leaves it.
+	void setRegionDrawMode(bool enabled);
+	[[nodiscard]] bool regionDrawMode() const { return m_regionDrawMode; }
 	[[nodiscard]] bool isShearing() const;
 	// The corners put down so far, in map units.
 	[[nodiscard]] QVector<QPointF> drawCorners() const;
@@ -322,6 +352,15 @@ Q_SIGNALS:
 	void makeSectorModeChanged(bool enabled);
 	// A point in map units, to make a sector of the lines around.
 	void sectorMakeRequested(const QPointF& point);
+	// `mode` is a ComponentMode cast to an int.
+	void componentModeChanged(int mode);
+	void componentPicksChanged(int picked);
+	// Move the picked components by `delta`, in world units; expected to be
+	// one undo command, for example with moveLevelMapComponents().
+	void componentMoveRequested(const QVector<vibestudio::LevelMapComponentSet>& sets, const vibestudio::LevelMapVec3& delta);
+	void regionDrawModeChanged(bool enabled);
+	// The box drawn, in this view's plane units (its drawn axes).
+	void regionDrawRequested(const QRectF& planeBox);
 	// Slide every point along world axis `axis` (0 x, 1 y, 2 z) by `factor`
 	// times its distance along world axis `along` from `anchor`; expected to
 	// be one undo command, for example with shearLevelMapSelectionAbout().
@@ -657,6 +696,41 @@ private:
 	void commitShear();
 	void paintShearPreview(QPainter& painter, const Palette& palette) const;
 	[[nodiscard]] QString shearSummary() const;
+	// Vertex editing (map_viewport_components.cpp).
+	struct ComponentHandle {
+		LevelMapSelectionRef object;
+		int component = -1;
+		LevelMapVec3 position;
+	};
+	ComponentMode m_componentMode = ComponentMode::Off;
+	QVector<ComponentHandle> m_componentHandles;
+	QSet<int> m_pickedHandles;
+	// Picks to find again after the next rebuild, by object and position:
+	// where a requested move takes them, else where they were.
+	QVector<QPair<LevelMapSelectionRef, LevelMapVec3>> m_componentRepick;
+	QVector<QPair<LevelMapSelectionRef, LevelMapVec3>> m_componentRepickFallback;
+	bool m_componentArmed = false;
+	bool m_componentDragging = false;
+	bool m_componentBanding = false;
+	int m_componentGrabbed = -1;
+	QPointF m_componentGrabPlane;
+	QPointF m_componentDragPlane;
+	QPointF m_componentPressView;
+	QPointF m_componentBandView;
+	Qt::KeyboardModifiers m_componentModifiers = Qt::NoModifier;
+	bool m_regionDrawMode = false;
+	void rebuildComponentHandles();
+	[[nodiscard]] int componentHandleAt(const QPointF& viewPoint) const;
+	[[nodiscard]] QVector<int> componentHandlesStackedAt(int handle) const;
+	[[nodiscard]] QPointF componentDragDelta() const;
+	bool componentMousePress(QMouseEvent* event);
+	bool componentMouseMove(QMouseEvent* event);
+	bool componentMouseRelease(QMouseEvent* event);
+	bool componentKeyPress(QKeyEvent* event);
+	void requestComponentMove(const QPointF& planeDelta);
+	void paintComponents(QPainter& painter, const Palette& palette) const;
+	[[nodiscard]] QString componentSummary() const;
+	[[nodiscard]] QString componentModeName() const;
 	QVector<QPointF> m_drawCorners;
 	// Where the next corner would go, under the pointer.
 	QPointF m_drawHover;

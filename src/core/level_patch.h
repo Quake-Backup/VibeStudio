@@ -8,16 +8,33 @@ namespace vibestudio {
 // axis limit (external/compilers/vibemap3/tools/quake3/q3map2/q3map2.h).
 inline constexpr int kLevelPatchMaxDimension = 31;
 
+// The shapes of GtkRadiant's and NetRadiant's Patch menu: plane, cylinder,
+// square-cylinder, cone, sphere, bevel and endcap. Each fills the box of
+// `center` and `size`; rows run along `axis`, columns around or across it.
 struct LevelPatchCreateRequest {
-	QString shape = QStringLiteral("plane"); // plane, cylinder, cone
+	QString shape = QStringLiteral("plane");
 	QString plane = QStringLiteral("xy");    // plane preset only: xy, xz, yz
 	int columns = 3;
+	// Rows along the axis of everything but a sphere, whose rows come from
+	// `bands`.
 	int rows = 3;
 	LevelMapVec3 center{0, 0, 0, true};
 	LevelMapVec3 size{128, 128, 128, true};
 	QString texture = QStringLiteral("textures/common/caulk");
+	// The axis a cylinder, cone or sphere stands on, and the one a bevel or
+	// end cap runs along: 0 x, 1 y, 2 z.
+	int axis = 2;
+	// Quadratic spans around a cylinder, cone or sphere, 3 to 15. Each span
+	// is a circular arc's quadratic, its middle control on the tangents at its
+	// ends, as NetRadiant Custom's exact cylinders are; 4 is Radiant's
+	// nine-column cylinder.
+	int segments = 4;
+	// Spans from pole to pole of a sphere, 2 to 15.
+	int bands = 2;
 };
 
+// The shape ids createLevelPatch() takes, in menu order.
+QStringList levelPatchShapeIds();
 bool validateLevelPatch(const LevelMapPatch& patch, QString* error = nullptr);
 // q3map2 prefixes patchDef2 shader tokens with "textures/" itself. patchDef3
 // retains its material path. Normalize external material choices once on

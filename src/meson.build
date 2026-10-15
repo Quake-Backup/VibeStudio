@@ -249,6 +249,8 @@ core_sources = files(
   'core/level_patch.cpp',
   'core/level_patch_stitch.cpp',
   'core/level_patch_cap.cpp',
+  'core/level_patch_tools.cpp',
+  'core/level_selection_tools.cpp',
   'core/level_brush.cpp',
   'core/level_primitive.cpp',
   'core/level_merge.cpp',
@@ -418,6 +420,8 @@ install_headers('core/level_dependencies.h', 'core/level_document.h', 'core/pack
 install_headers('core/level_patch.h', subdir: 'vibestudio/core')
 install_headers('core/level_patch_stitch.h', subdir: 'vibestudio/core')
 install_headers('core/level_patch_cap.h', subdir: 'vibestudio/core')
+install_headers('core/level_patch_tools.h', subdir: 'vibestudio/core')
+install_headers('core/level_selection_tools.h', subdir: 'vibestudio/core')
 install_headers('core/level_brush.h', subdir: 'vibestudio/core')
 install_headers('core/level_primitive.h', subdir: 'vibestudio/core')
 install_headers('core/level_prefab.h', subdir: 'vibestudio/core')
@@ -483,6 +487,7 @@ install_headers('core/level_model_appearance.h', subdir: 'vibestudio/core')
 
 app_sources = files(
   'app/asset_workbench_actions.cpp',
+  'app/studio_editor_page.cpp',
   'app/ai_generation_actions.cpp',
   'app/level_ai_edit_dialog.cpp',
   'app/level_generation_dialog.cpp',
@@ -646,6 +651,7 @@ app_sources = files(
   'app/package_copy_budget_dialog.cpp',
   'app/package_copy_sessions_dialog.cpp',
   'app/map_viewport.cpp',
+  'app/map_viewport_components.cpp',
   'app/map_viewport_scene_index.cpp',
   'app/map_viewport_projection.cpp',
   'app/map_viewport_overlay.cpp',
@@ -717,6 +723,7 @@ app_sources = files(
   'app/level_shapes_panel.cpp',
   'app/level_tools_page.cpp',
   'app/level_editing_actions.cpp',
+  'app/level_geometry_actions.cpp',
   'app/studio_sound_cues.cpp',
   'app/studio_speech.cpp',
   'app/studio_theme.cpp',
@@ -1504,6 +1511,14 @@ level_patch_smoke_test = executable(
 )
 test('level-patch-smoke', level_patch_smoke_test, args: [vibestudio], timeout: 90)
 
+level_patch_tools_smoke_test = executable('level_patch_tools_smoke_test', ['tests/level_patch_tools_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-patch-tools-smoke', level_patch_tools_smoke_test, timeout: 120)
+
+level_brush_tools_smoke_test = executable('level_brush_tools_smoke_test', ['tests/level_brush_tools_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-brush-tools-smoke', level_brush_tools_smoke_test, timeout: 120)
+
 level_primitive_smoke_test = executable('level_primitive_smoke_test', ['tests/level_primitive_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
 test('level-primitive-smoke', level_primitive_smoke_test, args: [vibestudio], timeout: 120)
@@ -1804,6 +1819,12 @@ test('level-surface-clipboard-ui-smoke', level_surface_clipboard_ui_smoke_test, 
 level_surface_quick_ui_smoke_test = executable('level_surface_quick_ui_smoke_test', ['tests/level_surface_quick_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
 test('level-surface-quick-ui-smoke', level_surface_quick_ui_smoke_test, timeout: 180)
+
+# Vertex editing, regions, patch matrix and Thicken, navigation, picked faces
+# and prefab drops in the real shell, driven by Qt events.
+level_geometry_tools_ui_smoke_test = executable('level_geometry_tools_ui_smoke_test', ['tests/level_geometry_tools_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+test('level-geometry-tools-ui-smoke', level_geometry_tools_ui_smoke_test, timeout: 180)
 
 brush_editor_ui_smoke_test = executable('brush_editor_ui_smoke_test', ['tests/brush_editor_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)

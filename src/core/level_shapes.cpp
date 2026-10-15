@@ -1,5 +1,6 @@
 #include "core/level_shapes.h"
 
+#include "core/level_patch.h"
 #include "core/level_primitive.h"
 
 #include <QCoreApplication>
@@ -42,6 +43,27 @@ const ShapeInfo kShapes[] = {
 		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Solid steps climbing across the box, one brush each."), "shape-stairs", true, "steps,rise"},
 	{"room", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Room"),
 		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Six brushes walling in the box with its inside left hollow."), "shape-room", true, "thickness"},
+	// Quake III patches, as GtkRadiant's and NetRadiant's Patch menu makes them.
+	{"patch-plane", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch Plane"),
+		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A flat three-by-three patch across the box's top, square to the depth axis, to bend into shape."),
+		"patch-plane", false, "axis"},
+	{"patch-cylinder", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch Cylinder"),
+		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A smooth curved tube along the depth axis, open at its ends."), "patch-cylinder", false, "axis,sides"},
+	{"patch-square-cylinder", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Square Patch Cylinder"),
+		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A four-sided patch tube along the depth axis, to round off or bend later."), "patch-square-cylinder",
+		false, "axis"},
+	{"patch-cone", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch Cone"),
+		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A smooth curved cone narrowing to a point along the depth axis, open at its base."), "patch-cone", false,
+		"axis,sides"},
+	{"patch-sphere", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch Sphere"),
+		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A smooth closed sphere of one patch, its poles on the depth axis."), "patch-sphere", false,
+		"axis,sides,bands"},
+	{"patch-bevel", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch Bevel"),
+		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A quarter-round curve from one corner of the box to the opposite one, along the depth axis, for coves and fillets."),
+		"patch-bevel", false, "axis"},
+	{"patch-endcap", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch End Cap"),
+		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A half-round arch filling the box along the depth axis, for arched ceilings and pipe ends."),
+		"patch-endcap", false, "axis"},
 };
 
 const ShapeInfo* shapeInfo(const QString& shape)
@@ -293,6 +315,50 @@ bool levelShapeIsCompound(const QString& shape)
 	return info && info->compound;
 }
 
+bool levelShapeIsPatch(const QString& shape)
+{
+	return shapeInfo(shape) != nullptr && shape.startsWith(QLatin1String("patch-"));
+}
+
+bool levelShapePatchRequest(const LevelShapeRequest& request, LevelPatchCreateRequest* patch, QString* error)
+{
+	if (error) {
+		error->clear();
+	}
+	if (!levelShapeIsPatch(request.shape) || !patch) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Choose one of the patch shapes."));
+	}
+	const auto finite = [](const LevelMapVec3& p) {
+		return p.valid && std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z) && std::max({std::abs(p.x), std::abs(p.y), std::abs(p.z)}) <= 32768;
+	};
+	if (!finite(request.mins) || !finite(request.maxs) || request.maxs.x - request.mins.x < 1 || request.maxs.y - request.mins.y < 1
+		|| request.maxs.z - request.mins.z < 1) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Use finite bounds within ±32768 units, with at least one unit of size on every axis."));
+	}
+	if (request.axis < 0 || request.axis > 2) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "The shape's axis must be X, Y or Z."));
+	}
+	if (!validMaterial(request.texture)) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Use a material path without spaces, control characters, quotes, brackets, backslashes or comment markers."));
+	}
+	LevelPatchCreateRequest result;
+	result.shape = request.shape.mid(6);
+	result.axis = request.axis;
+	result.segments = request.sides;
+	result.bands = request.bands;
+	result.texture = request.texture.trimmed();
+	result.center = {(request.mins.x + request.maxs.x) / 2, (request.mins.y + request.maxs.y) / 2, (request.mins.z + request.maxs.z) / 2, true};
+	result.size = {request.maxs.x - request.mins.x, request.maxs.y - request.mins.y, request.maxs.z - request.mins.z, true};
+	if (result.shape == QStringLiteral("plane")) {
+		// Square to the depth axis, across the box's top as Radiant lays its
+		// simple patch mesh.
+		result.plane = request.axis == 2 ? QStringLiteral("xy") : (request.axis == 1 ? QStringLiteral("xz") : QStringLiteral("yz"));
+		(request.axis == 0 ? result.center.x : (request.axis == 1 ? result.center.y : result.center.z)) = component(request.maxs, request.axis);
+	}
+	*patch = result;
+	return true;
+}
+
 QStringList levelShapeParameters(const QString& shape)
 {
 	const ShapeInfo* info = shapeInfo(shape);
@@ -349,7 +415,21 @@ bool addLevelMapShape(LevelMapDocument* document, const LevelShapeRequest& reque
 		error->clear();
 	}
 	if (!isLevelShape(request.shape)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Choose box, wedge, cylinder, cone, sphere, arch, ring, stairs or room."));
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes",
+			"Choose box, wedge, cylinder, cone, sphere, arch, ring, stairs, room, or one of the patch shapes."));
+	}
+	if (levelShapeIsPatch(request.shape)) {
+		LevelPatchCreateRequest create;
+		LevelMapPatch patch;
+		int patchId = -1;
+		if (!levelShapePatchRequest(request, &create, error) || !createLevelPatch(create, &patch, error)
+			|| !addLevelMapPatch(document, patch, &patchId, error)) {
+			return false;
+		}
+		if (brushIds) {
+			*brushIds = {patchId};
+		}
+		return true;
 	}
 	if (!levelShapeIsCompound(request.shape)) {
 		LevelBrushPrimitiveRequest primitive;
@@ -463,8 +543,9 @@ bool replaceLevelMapBrushesWithShape(LevelMapDocument* document, const QVector<i
 		QCoreApplication::translate("VibeStudioLevelShapes", "Replace %n brush(es) with a shape: %1", nullptr, count).arg(label),
 		QCoreApplication::translate("VibeStudioLevelShapes", "Restore %n replaced brush(es)", nullptr, count));
 	QVector<LevelMapSelectionRef> chosen;
+	const auto kind = levelShapeIsPatch(fitted.shape) ? LevelMapSelectionKind::QuakePatch : LevelMapSelectionKind::QuakeBrush;
 	for (const int id : std::as_const(added)) {
-		chosen.push_back({LevelMapSelectionKind::QuakeBrush, id});
+		chosen.push_back({kind, id});
 	}
 	setLevelMapSelection(document, chosen);
 	if (newBrushIds) {

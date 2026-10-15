@@ -11,6 +11,7 @@
 #include <QProgressBar>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <algorithm>
 
 namespace vibestudio {
 QStringList LevelSurfaceTools::commandIds()
@@ -20,7 +21,12 @@ QStringList LevelSurfaceTools::commandIds()
 		QStringLiteral("map.surfaceRotateLeft"), QStringLiteral("map.surfaceRotateRight"),
 		QStringLiteral("map.surfaceShrinkU"), QStringLiteral("map.surfaceGrowU"),
 		QStringLiteral("map.surfaceShrinkV"), QStringLiteral("map.surfaceGrowV"),
-		QStringLiteral("map.surfaceFit"), QStringLiteral("map.surfaceCenter")};
+		QStringLiteral("map.surfaceFit"), QStringLiteral("map.surfaceCenter"),
+		QStringLiteral("map.surfaceFlipU"), QStringLiteral("map.surfaceFlipV"),
+		QStringLiteral("map.surfaceFitU"), QStringLiteral("map.surfaceFitV"),
+		QStringLiteral("map.surfaceJustifyLeft"), QStringLiteral("map.surfaceJustifyRight"),
+		QStringLiteral("map.surfaceJustifyTop"), QStringLiteral("map.surfaceJustifyBottom"),
+		QStringLiteral("map.surfaceNatural"), QStringLiteral("map.surfaceFaceAligned")};
 }
 LevelSurfaceTools::LevelSurfaceTools(QWidget* parent) : QScrollArea(parent)
 {
@@ -42,17 +48,17 @@ LevelSurfaceTools::LevelSurfaceTools(QWidget* parent) : QScrollArea(parent)
 	m_target = new QComboBox;
 	m_target->setObjectName(QStringLiteral("surfaceQuickTarget"));
 	m_target->setAccessibleName(tr("Surface edit target"));
-	m_target->addItems({tr("Selection"), tr("Face")});
+	m_target->addItems({tr("Selection"), tr("Picked Faces")});
 	m_target->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
 	m_target->setMinimumContentsLength(12);
 	m_target->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
-	m_target->setToolTip(tr("Selection includes faces and patches in selected brushes, patches and entities. Quick adjustments affect brush faces; parameter paste changes patch materials while preserving their UVs. Face uses the current face in the Inspector."));
+	m_target->setToolTip(tr("Selection includes faces and patches in selected brushes, patches and entities; quick adjustments change both, and parameter paste changes patch materials while preserving their UVs. Picked Faces uses the faces picked in the camera with your profile's face-pick keys, or else the current face in the Inspector."));
 	target->addWidget(m_target);
 	m_summary = new QLabel; m_summary->setObjectName(QStringLiteral("surfaceQuickSummary"));
 	m_summary->setWordWrap(true); m_summary->setTextFormat(Qt::PlainText);
 	m_summary->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	m_summary->setAccessibleName(tr("Surfaces affected by quick edits")); target->addWidget(m_summary);
-	m_status = new QLabel(tr("Select brush surfaces to adjust their texture mapping."));
+	m_status = new QLabel(tr("Select brushes or patches to adjust their texture mapping."));
 	m_status->setObjectName(QStringLiteral("surfaceQuickStatus")); m_status->setWordWrap(true);
 	m_status->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	m_status->setTextFormat(Qt::PlainText); m_status->setAccessibleName(tr("Surface edit status")); target->addWidget(m_status);
@@ -72,6 +78,7 @@ LevelSurfaceTools::LevelSurfaceTools(QWidget* parent) : QScrollArea(parent)
 	for (const auto& id : {QStringLiteral("map.copySurface"), QStringLiteral("map.pasteSurface")}) {
 		auto* button = new QToolButton; button->setObjectName(id);
 		button->setText(id == QLatin1String("map.copySurface") ? tr("Copy") : tr("Paste"));
+		button->setProperty("fullText", button->text());
 		button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed); m_buttons.insert(id, button); clipboardRow->addWidget(button);
 	}
 	clipboard->addLayout(clipboardRow);
@@ -116,6 +123,7 @@ LevelSurfaceTools::LevelSurfaceTools(QWidget* parent) : QScrollArea(parent)
 		for (int i = 0; i < 2; ++i) {
 			auto* button = new QToolButton;
 			button->setObjectName(ids[first + i]); button->setText(i == 0 ? left : right);
+			button->setProperty("fullText", button->text());
 			button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 			m_buttons.insert(ids[first + i], button); row->addWidget(button);
 		}
@@ -129,6 +137,11 @@ LevelSurfaceTools::LevelSurfaceTools(QWidget* parent) : QScrollArea(parent)
 	m_scale->setToolTip(tr("Grow multiplies texture size by 1 + percent / 100; shrink divides by that factor. Rotation and scaling keep the face centre fixed."));
 	pair(6, tr("U ÷"), tr("U ×")); pair(8, tr("V ÷"), tr("V ×"));
 	pair(10, tr("Fit 1 × 1"), tr("Centre"));
+	pair(12, tr("Flip U"), tr("Flip V"));
+	pair(14, tr("Fit U"), tr("Fit V"));
+	pair(16, tr("Justify Left"), tr("Justify Right"));
+	pair(18, tr("Justify Top"), tr("Justify Bottom"));
+	pair(20, tr("Natural"), tr("Align to Face"));
 	// Bordered like the sidebar's other buttons, so they read as buttons
 	// rather than as the flat tool buttons of a tool bar.
 	for (QToolButton* button : std::as_const(m_buttons)) { button->setProperty("sidebarButton", true); }
@@ -154,10 +167,26 @@ void LevelSurfaceTools::updateRows()
 {
 	// The rows sit in sections, inset by each section's frame and margins.
 	const int width = viewport()->width() - 18;
+	// What a button needs for its whole label, whatever it shows now.
+	const auto chrome = [](const QToolButton* button) { return button->sizeHint().width() - button->fontMetrics().horizontalAdvance(button->text()); };
+	const auto whole = [&chrome](const QToolButton* button) {
+		return chrome(button) + button->fontMetrics().horizontalAdvance(button->property("fullText").toString());
+	};
 	for (auto* row : m_rows) {
-		const int pairWidth = row->itemAt(0)->widget()->sizeHint().width() + row->itemAt(1)->widget()->sizeHint().width() + row->spacing();
+		auto* first = qobject_cast<QToolButton*>(row->itemAt(0)->widget());
+		auto* second = qobject_cast<QToolButton*>(row->itemAt(1)->widget());
+		if (!first || !second) { continue; }
+		const int pairWidth = whole(first) + whole(second) + row->spacing();
 		const auto direction = pairWidth > width ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight;
 		if (row->direction() != direction) { row->setDirection(direction); }
+		// A label longer than the panel is wide, at large text or in a long
+		// translation, ends in an ellipsis; the tooltip and accessible name
+		// keep the command's whole name.
+		for (QToolButton* button : {first, second}) {
+			const QString full = button->property("fullText").toString();
+			const QString shown = button->fontMetrics().elidedText(full, Qt::ElideRight, std::max(1, width - chrome(button)));
+			if (button->text() != shown) { button->setText(shown); }
+		}
 	}
 }
 void LevelSurfaceTools::bindCommands(StudioCommandRegistry& commands)
@@ -171,8 +200,9 @@ void LevelSurfaceTools::bindCommands(StudioCommandRegistry& commands)
 bool LevelSurfaceTools::singleFace() const { return m_target->currentIndex() == 1; }
 void LevelSurfaceTools::setTargetSummary(int faces, LevelSurfaceFace inspected, int patches)
 {
-	m_summary->setText(singleFace() ? (faces == 1 ? tr("Brush %1 · Face %2").arg(inspected.brushId).arg(inspected.faceIndex + 1)
-		: tr("Select a face in the Inspector.")) : tr("%n brush face(s) selected", nullptr, faces));
+	m_summary->setText(singleFace() ? (faces > 1 ? tr("%n picked face(s)", nullptr, faces)
+		: faces == 1 ? tr("Brush %1 · Face %2").arg(inspected.brushId).arg(inspected.faceIndex + 1)
+		: tr("Pick faces in the camera, or a face in the Inspector.")) : tr("%n brush face(s) selected", nullptr, faces));
 	if (!singleFace() && patches > 0) { m_summary->setText(m_summary->text() + QLatin1Char('\n') + tr("%n patch(es) selected", nullptr, patches)); }
 }
 void LevelSurfaceTools::setStatus(const QString& text, bool busy)
@@ -214,7 +244,26 @@ LevelSurfaceRequest LevelSurfaceTools::request(const QString& command) const
 		const double factor = 1 + m_scale->value() / 100;
 		const double change = index % 2 ? factor : 1 / factor;
 		if (index < 8) { result.x = change; } else { result.y = change; }
-	} else if (index == 11) { result.operation = LevelSurfaceOperation::Align; }
+	} else if (index == 11) {
+		result.operation = LevelSurfaceOperation::Align;
+	} else if (index == 12 || index == 13) {
+		// A flip is a scale of -1 about the middle.
+		result.operation = LevelSurfaceOperation::Scale;
+		result.x = index == 12 ? -1 : 1;
+		result.y = index == 13 ? -1 : 1;
+	} else if (index == 14 || index == 15) {
+		// A repeat count of zero keeps that axis.
+		result.x = index == 14 ? 1 : 0;
+		result.y = index == 15 ? 1 : 0;
+	} else if (index >= 16 && index <= 19) {
+		// Texture V runs down the image, so its top is the minimum.
+		result.operation = LevelSurfaceOperation::Align;
+		result.alignU = index == 16 ? LevelSurfaceAlignment::Minimum : index == 17 ? LevelSurfaceAlignment::Maximum : LevelSurfaceAlignment::Keep;
+		result.alignV = index == 18 ? LevelSurfaceAlignment::Minimum : index == 19 ? LevelSurfaceAlignment::Maximum : LevelSurfaceAlignment::Keep;
+	} else if (index == 20 || index == 21) {
+		result.operation = index == 20 ? LevelSurfaceOperation::Natural : LevelSurfaceOperation::FaceAligned;
+		result.x = result.y = m_defaultScale;
+	}
 	return result;
 }
 } // namespace vibestudio

@@ -24,8 +24,7 @@ AudioSessionDialog *ApplicationShell::ensureAudioSession()
 		connect(dialog, &AudioSessionDialog::waveformRecoveryRequested, this,
 		        [this](const QString &path, const QByteArray &digest) {
 			        auto *editor = ensureAudioEditor();
-			        editor->show();
-			        editor->raise();
+			        showStudioEditor(StudioMode::Audio, editor);
 			        if (editor->isBusy()) {
 				        statusBar()->showMessage(
 				            tr("Wait for the audio operation to finish, then reopen Audio Recoveries."));
@@ -56,8 +55,7 @@ AudioSessionDialog *ApplicationShell::ensureAudioSession()
 		};
 		connect(dialog, &AudioSessionDialog::mixReady, this, [this](const QByteArray &wav, const QString &source) {
 			auto *editor = ensureAudioEditor();
-			editor->show();
-			editor->raise();
+			showStudioEditor(StudioMode::Audio, editor);
 			editor->refreshContext();
 			if (!editor->loadSource(tr("Session mixdown.wav"), source, [wav](QString *) { return wav; })) {
 				statusBar()->showMessage(tr(
@@ -70,8 +68,7 @@ AudioSessionDialog *ApplicationShell::ensureAudioSession()
 void ApplicationShell::showAudioSession(const QString &path)
 {
 	auto *dialog = ensureAudioSession();
-	dialog->show();
-	dialog->raise();
+	showStudioEditor(StudioMode::Audio, dialog);
 	if (!path.isEmpty()) {
 		dialog->openSession(path);
 	}

@@ -3,6 +3,7 @@
 #include "app/level_surface_worker.h"
 #include "app/model_viewport.h"
 #include "app/studio_actions.h"
+#include "core/level_patch_tools.h"
 #include <QStatusBar>
 #include <QTabWidget>
 #include <QTimer>
@@ -65,7 +66,8 @@ QWidget* ApplicationShell::buildLevelSurfaceTools()
 			refreshLevelSurfaceTools();
 			auto message = changedSurfaces > 0
 				? (result.pasted ? tr("Pasted %n surface(s). The batch is one undo step.", nullptr, changedSurfaces)
-					: tr("Adjusted %n brush face(s). The batch is one undo step.", nullptr, result.changedFaces))
+					: result.changedPatches > 0 ? tr("Adjusted %n surface(s), patches included. The batch is one undo step.", nullptr, changedSurfaces)
+				: tr("Adjusted %n brush face(s). The batch is one undo step.", nullptr, result.changedFaces))
 				: tr("Surface mapping is unchanged; no undo step was added.");
 			if (result.convertedFaces > 0) {
 				message = tr("Pasted surfaces and converted %n classic face(s) throughout the map to Valve 220 in one undo step. Unpasted surfaces retain their materials and UVs.", nullptr, result.convertedFaces);
@@ -83,13 +85,16 @@ void ApplicationShell::registerLevelSurfaceCommands()
 {
 	const QStringList labels{tr("Shift Texture U −"), tr("Shift Texture U +"), tr("Shift Texture V −"), tr("Shift Texture V +"),
 		tr("Rotate Texture −"), tr("Rotate Texture +"), tr("Shrink Texture U"), tr("Grow Texture U"),
-		tr("Shrink Texture V"), tr("Grow Texture V"), tr("Fit Texture 1 × 1"), tr("Centre Texture")};
+		tr("Shrink Texture V"), tr("Grow Texture V"), tr("Fit Texture 1 × 1"), tr("Centre Texture"),
+		tr("Flip Texture U"), tr("Flip Texture V"), tr("Fit Texture Width"), tr("Fit Texture Height"),
+		tr("Justify Texture Left"), tr("Justify Texture Right"), tr("Justify Texture Top"), tr("Justify Texture Bottom"),
+		tr("Natural Texture Mapping"), tr("Align Texture to Face")};
 	const auto ids = LevelSurfaceTools::commandIds();
 	for (int i = 0; i < ids.size(); ++i) {
 		StudioCommandRegistration command;
 		command.commandId = ids[i]; command.label = labels[i]; command.group = StudioCommandGroup::Edit;
 		command.menuSection = tr("Surface Adjustments"); command.iconName = QStringLiteral("image");
-		command.statusTip = tr("Adjust brush texture mapping using the target and step values in Levels > Surfaces.");
+		command.statusTip = tr("Adjust the texture mapping of the targeted brush faces and patches using the step values in Levels > Surfaces.");
 		command.handler = [this, id = ids[i]] {
 			if (!m_levelSurfaceTools) { return; }
 			setMode(StudioMode::Levels);
@@ -114,8 +119,12 @@ void ApplicationShell::registerLevelSurfaceCommands()
 			if (paste) {
 				auto targets = levelSurfacePasteSelectionTargets(m_levelMapDocument);
 				if (m_levelSurfaceTools->singleFace()) {
-					const auto face = inspectedLevelMapSurface(); const LevelMaterialTarget target{LevelMaterialKind::BrushFace, face.brushId, face.faceIndex};
-					targets = targets.contains(target) ? QVector<LevelMaterialTarget>{target} : QVector<LevelMaterialTarget>{};
+					QVector<LevelMaterialTarget> faces;
+					for (const auto& face : levelSurfaceFaceTargets()) {
+						const LevelMaterialTarget target{LevelMaterialKind::BrushFace, face.brushId, face.faceIndex};
+						if (targets.contains(target)) { faces.push_back(target); }
+					}
+					targets = faces;
 				}
 				done = pasteLevelSurfaceTargets(targets, m_levelSurfaceTools->pasteOptions(), &error);
 			} else { done = copyLevelSurfaceSettings(inspectedLevelMapSurface(), &error); }
@@ -137,14 +146,14 @@ std::function<bool()> ApplicationShell::levelSurfaceContextGuard() const
 	const auto package = m_packageStaging.revision(), reload = m_levelPreviewReload;
 	const auto palette = activePaletteId();
 	const bool single = m_levelSurfaceTools->singleFace();
-	const auto inspected = inspectedLevelMapSurface();
+	const auto inspected = levelSurfaceFaceTargets();
 	return [this, load, revision, path, output, hash, selection, scene, active, saved, package, reload, palette, single, inspected] {
 		return load == m_levelMapLoadSerial && revision == m_levelMapDocument.revision && path == m_levelMapDocument.sourcePath
 			&& output == m_levelMapDocument.outputPath && hash == m_levelMapDocument.sourceContentHash
 			&& selection == m_levelMapDocument.selection && scene == m_levelMapDocument.scene && active == m_levelMapDocument.activeSceneNode
 			&& saved == m_levelMapDocument.savedUndoDepth && package == m_packageStaging.revision()
 			&& reload == m_levelPreviewReload && palette == activePaletteId() && single == m_levelSurfaceTools->singleFace()
-			&& (!single || inspected == inspectedLevelMapSurface());
+			&& (!single || inspected == levelSurfaceFaceTargets());
 	};
 }
 
@@ -164,10 +173,15 @@ void ApplicationShell::refreshLevelSurfaceTools()
 			++faces; includesInspected |= target.objectId == inspected.brushId && target.faceIndex == inspected.faceIndex;
 		}
 	}
-	if (m_levelSurfaceTools->singleFace()) { faces = includesInspected ? 1 : 0; }
-	m_levelSurfaceTools->setTargetSummary(faces, inspected, patches);
+	if (m_levelSurfaceTools->singleFace()) { faces = static_cast<int>(levelSurfaceFaceTargets().size()); }
+	const auto faceTargets = levelSurfaceFaceTargets();
+	m_levelSurfaceTools->setTargetSummary(faces, faceTargets.size() == 1 ? faceTargets.first() : inspected, patches);
+	m_levelSurfaceTools->setDefaultScale(levelSurfaceDefaultScale(m_levelMapDocument));
+	// Quick adjustments reach the selected patches too, unless the target is
+	// the one inspected face.
+	const int quickPatches = m_levelSurfaceTools->singleFace() ? 0 : patches;
 	const bool editable = (m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map)
-		&& faces > 0 && faces <= 16384;
+		&& (faces > 0 || quickPatches > 0) && faces <= 16384 && quickPatches <= 256;
 	for (const auto& id : LevelSurfaceTools::commandIds()) { m_commands->setEnabled(id, editable); }
 	m_commands->setEnabled(QStringLiteral("map.copySurface"), inspected.brushId >= 0 && inspected.faceIndex >= 0 && !levelSurfaceEditsPending());
 	const bool pasteEditable = m_levelSurfaceTools->singleFace() ? editable : !pasteTargets.isEmpty() && pasteTargets.size() <= 16384;
@@ -208,11 +222,14 @@ bool ApplicationShell::queueLevelSurfaceEdit(const LevelSurfaceRequest& request,
 	if (m_levelSurfacePending.size() >= 64) { return fail(tr("The surface queue is full. Wait for the pending batch or cancel it.")); }
 	if (!m_levelSurfaceCurrent) {
 		m_levelSurfaceFaces = levelMapSelectedSurfaces(m_levelMapDocument);
+		m_levelSurfacePatches = levelMapSelectedPatchIds(m_levelMapDocument);
 		if (m_levelSurfaceTools->singleFace()) {
-			const auto inspected = inspectedLevelMapSurface();
-			m_levelSurfaceFaces = m_levelSurfaceFaces.contains(inspected) ? QVector<LevelSurfaceFace>{inspected} : QVector<LevelSurfaceFace>{};
+			m_levelSurfaceFaces = levelSurfaceFaceTargets();
+			m_levelSurfacePatches.clear();
 		}
-		if (m_levelSurfaceFaces.isEmpty() || m_levelSurfaceFaces.size() > 16384) { return fail(tr("Select between 1 and 16,384 brush faces for surface alignment.")); }
+		if ((m_levelSurfaceFaces.isEmpty() && m_levelSurfacePatches.isEmpty()) || m_levelSurfaceFaces.size() > 16384 || m_levelSurfacePatches.size() > 256) {
+			return fail(tr("Select between 1 and 16,384 brush faces, or up to 256 patches, for surface alignment."));
+		}
 		m_levelSurfaceCurrent = levelSurfaceContextGuard(); m_levelSurfaceSizes.clear(); ++m_levelSurfaceToken;
 	}
 	m_levelSurfacePending << request;
@@ -228,7 +245,8 @@ void ApplicationShell::startLevelSurfaceBatch()
 	auto archive = m_packageArchive.snapshotReader();
 	if (!archive && m_packageArchive.isOpen()) { archive = std::make_shared<const PackageArchive>(m_packageArchive); }
 	LevelSurfaceWork work;
-	work.document = m_levelMapDocument; work.faces = m_levelSurfaceFaces; work.adjustments = std::move(m_levelSurfacePending);
+	work.document = m_levelMapDocument; work.faces = m_levelSurfaceFaces; work.patches = m_levelSurfacePatches;
+	work.adjustments = std::move(m_levelSurfacePending);
 	work.archive = std::move(archive); work.palette = activePaletteId(); work.textureSizes = m_levelSurfaceSizes;
 	if (m_packageStaging.isLoaded()) { work.staging = std::make_shared<const PackageStagingModel>(m_packageStaging); }
 	work.token = m_levelSurfaceToken;

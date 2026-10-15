@@ -5,6 +5,9 @@ editors: the **Mesh Editor** for geometry, UVs, frames, tags and skeletal
 models, **Design Prop** for building simple props from primitives, and
 **Assemble** for linking models at their tags.
 
+These editors open as tabs within **Models**. Use **Browser** to return to the
+asset list; switching tabs or studio pages keeps your current work open.
+
 > [!NOTE]
 > **Status: Partial.** Models from Doom source ports to the Doom 3 family
 > open and preview, and MDL, MD2, MD3, MD5, IQM, ASE and OBJ can be edited and

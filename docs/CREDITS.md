@@ -607,6 +607,46 @@ animation poses. Polygon filling uses ear clipping after G. H. Meisters,
 "Polygons Have Ears" (American Mathematical Monthly 82, 1975). Both are
 published algorithms; no third-party code is used.
 
+## Level Geometry, Patch And Navigation Tools (2026-10-15)
+
+The Levels page's vertex editing, patch matrix commands, Thicken, hollow modes,
+regions and navigation follow the behaviour of GtkRadiant 1.5, NetRadiant Custom,
+TrenchBroom and Hammer. NetRadiant Custom's editor sources were read at revision
+`8216133984031afaa9a857b56ea66dd9c3d54b26` (the revision VibeMap3 continues
+from) on 2026-10-15; they are GPL-2.0-or-later (copyright William Joseph and
+the GtkRadiant contributors), compatible with this GPL-3.0 repository:
+
+- [`radiant/patch.cpp`](https://github.com/Garux/netradiant-custom/blob/8216133984031afaa9a857b56ea66dd9c3d54b26/radiant/patch.cpp): the exact cylinders of
+  `Patch::ConstructPrefab` (`EPatchPrefab::ExactCylinder`), each span's middle
+  control where the tangents at its ends meet; `Patch::InsertPoints` and
+  `Patch::RemovePoints`; `Patch::TransposeMatrix`; `Patch::Redisperse`;
+  `Patch::Smooth`; `Patch::NaturalTexture` and `Patch::CapTexture`; and
+  `Patch::createThickenedOpposite` and `Patch::createThickenedWall`.
+- [`radiant/patchmanip.cpp`](https://github.com/Garux/netradiant-custom/blob/8216133984031afaa9a857b56ea66dd9c3d54b26/radiant/patchmanip.cpp): `Patch_thicken`
+  and the names and order of the Patch menu's matrix commands.
+- [`radiant/csg.cpp`](https://github.com/Garux/netradiant-custom/blob/8216133984031afaa9a857b56ea66dd9c3d54b26/radiant/csg.cpp): `CSG_Hollow`'s wrapped walls
+  (`eWrap`), which meet without overlapping, and `CSG_MakeRoom`, which builds
+  the walls outside the brush.
+
+The patch shapes, square cylinder, bevel and end cap follow the Patch menu of
+[GtkRadiant](https://github.com/TTimo/GtkRadiant) 1.5; Region Set XY, Region
+Set Brush, Find Brush and Expand Selection to Entities follow the Radiant
+editors' commands of those names, and the entity and brush numbers of Find
+Brush are the ones q3map2 prints. Vertex, edge and face handles and Snap
+Vertices follow [TrenchBroom](https://github.com/TrenchBroom/TrenchBroom)'s
+vertex tool and Snap Vertices command (GPL-3.0, behaviour as documented in its
+[manual](https://trenchbroom.github.io/manual/latest/)); Go to Coordinates
+follows Valve Hammer Editor's command of that name.
+
+These are behaviours and results only: no code was copied. The implementation
+in `src/core/level_patch.cpp`, `src/core/level_patch_tools.*`,
+`src/core/level_brush.*` (`moveLevelMapComponents`,
+`snapLevelMapBrushVertices`), `src/core/level_map.cpp`
+(`hollowLevelMapSelection`), `src/core/level_selection_tools.*`,
+`src/core/level_prefab.cpp` (`replaceLevelMapSelectionWithPrefab`),
+`src/app/map_viewport_components.cpp` and `src/app/level_geometry_actions.cpp`
+is VibeStudio's own, and the source comments name the upstream functions.
+
 ## Materials, Shaders And Textures (2026-10-08)
 
 The materials module (`src/core/material_*`, `src/cli/materials.*`,
@@ -878,6 +918,12 @@ VibeMap3 are VibeStudio's own forks; their URLs, branch, pins and reasons are
 recorded in [Compiler Integration](COMPILER_INTEGRATION.md#vibestudio-compilers).
 
 ### Compiler Upstreams
+
+The compiler known-issue reconciliation and Quake map preflight decisions use
+VibeMap2's [upstream audit](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/docs/upstream-audit.rst)
+and [3.1.0 changelog](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/CHANGELOG.md),
+reviewed 2026-10-09 at that pinned revision (GPL-3.0). These are documented
+behaviour/evidence references; no compiler implementation was copied.
 
 VibeMap2 and VibeMap3 build on these projects, which stay credited as their
 upstreams. Until VibeStudio moved to its own compilers, both were imported here

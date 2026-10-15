@@ -91,6 +91,9 @@ public:
 	// Used for keys that mean something different, or something destructive,
 	// outside their own surface, such as Del staging a package deletion.
 	void setShortcutScopes(const QString& commandId, const QList<QWidget*>& scopes);
+	// Embedded documents keep their local keys; identical shell keys remain
+	// available in menus and resume when focus leaves the document.
+	void setShortcutFocusSurface(QWidget* surface);
 	void setProjectAvailable(bool available);
 	[[nodiscard]] bool projectAvailable() const;
 
@@ -133,6 +136,7 @@ public:
 
 private:
 	void installShortcuts();
+	void refreshShortcutFocus();
 	// The keys the selected editor profile gives commands, by normalized
 	// command id: a profile's keys replace the command's own, and an empty
 	// list takes them away.
@@ -147,6 +151,7 @@ private:
 	QVector<StudioCommandRegistration> m_registrations;
 	QHash<QString, QString> m_shortcuts;
 	QHash<QString, QList<QKeySequence>> m_sequences;
+	QPointer<QWidget> m_shortcutFocusSurface;
 	QHash<QString, QList<QPointer<QWidget>>> m_shortcutScopes;
 	QString m_editorProfileId;
 	QHash<QString, QStringList> m_userShortcuts;

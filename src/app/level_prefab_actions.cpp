@@ -97,6 +97,9 @@ void ApplicationShell::showLevelPrefab(bool capture, bool stage, const QString &
 		recordActivity(tr("Prefab exported"), details.join('\n'), QStringLiteral("level-map"),
 					   result.warnings.isEmpty() ? OperationState::Completed : OperationState::Warning, tr("Prefab saved"));
 		statusBar()->showMessage(tr("Prefab saved to %1").arg(result.path));
+		// The Prefabs tab lists the new file without a reload.
+		m_levelPrefabListKey.clear();
+		refreshLevelPrefabBrowser();
 		if (!result.warnings.isEmpty() || !result.recoveryPaths.isEmpty()) {
 			QMessageBox::warning(this, tr("Prefab saved with recovery details"), details.join('\n'));
 		}

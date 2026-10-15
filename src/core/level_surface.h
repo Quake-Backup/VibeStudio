@@ -15,18 +15,29 @@ struct LevelSurfaceFace {
 	int faceIndex = -1; // Zero-based source face, as used by camera picking.
 	bool operator==(const LevelSurfaceFace &) const = default;
 };
-enum class LevelSurfaceOperation { Shift, Scale, Rotate, Fit, Align };
+// Natural resets a mapping to the default projection along the world axes
+// (a patch: its natural spread along the surface); FaceAligned projects in
+// the surface's own plane instead. Later values keep the earlier ones' numbers,
+// which the dialog and the command line store.
+enum class LevelSurfaceOperation { Shift, Scale, Rotate, Fit, Align, Natural, FaceAligned };
 enum class LevelSurfaceAlignment { Keep, Minimum, Center, Maximum };
 struct LevelSurfaceRequest {
 	LevelSurfaceOperation operation = LevelSurfaceOperation::Fit;
-	double x = 1, y = 1; // Texels for shift, size multipliers for scale, repeats for fit.
+	// Texels for shift, size multipliers for scale (negative mirrors), repeats
+	// for fit (0 keeps that axis), map units per texel for Natural and
+	// FaceAligned.
+	double x = 1, y = 1;
 	double degrees = 0;
 	LevelSurfaceAlignment alignU = LevelSurfaceAlignment::Center;
 	LevelSurfaceAlignment alignV = LevelSurfaceAlignment::Center;
 };
 
-// Selected brushes, including brushes owned by selected entities. Patches use
-// their control-point editor and are intentionally not included in this list.
+// The map units per texel a reset mapping uses: 0.5 for Quake III, as its
+// Radiant editors default to, and 1 for Quake and Quake II.
+double levelSurfaceDefaultScale(const LevelMapDocument& document);
+
+// Selected brushes, including brushes owned by selected entities. Patches
+// are listed by levelMapSelectedPatchIds() (core/level_patch_tools.h).
 QVector<LevelSurfaceFace> levelMapSelectedSurfaces(const LevelMapDocument &document);
 
 class LevelSurfaceEditPlan
@@ -40,8 +51,9 @@ class LevelSurfaceEditPlan
 	bool ready() const { return m_ready; }
 
   private:
-	friend bool prepareLevelSurfaceEdits(const LevelMapDocument &, const QVector<LevelSurfaceFace> &, const QVector<LevelSurfaceRequest> &,
-										 const QHash<QString, QSize> &, LevelSurfaceEditPlan *, QString *, const std::function<bool()> &);
+	friend bool prepareLevelSurfaceEdits(const LevelMapDocument &, const QVector<LevelSurfaceFace> &, const QVector<int> &,
+										 const QVector<LevelSurfaceRequest> &, const QHash<QString, QSize> &, LevelSurfaceEditPlan *, QString *,
+										 const std::function<bool()> &);
 	friend bool prepareLevelSurfaceEdit(const LevelMapDocument &, const QVector<LevelSurfaceFace> &, const LevelSurfaceRequest &,
 										const QHash<QString, QSize> &, LevelSurfaceEditPlan *, QString *, const std::function<bool()> &);
 	friend bool commitLevelSurfaceEdit(LevelMapDocument *, const LevelSurfaceEditPlan &, QString *);
@@ -77,6 +89,14 @@ bool prepareLevelSurfaceEdit(const LevelMapDocument &document, const QVector<Lev
 bool prepareLevelSurfaceEdits(const LevelMapDocument &document, const QVector<LevelSurfaceFace> &faces,
 							  const QVector<LevelSurfaceRequest> &requests, const QHash<QString, QSize> &textureSizes,
 							  LevelSurfaceEditPlan *plan, QString *error = nullptr, const std::function<bool()> &cancelled = {});
+// The same for brush faces and whole patches together. Patch coordinates
+// count repeats, so a shift, a turn, Natural and FaceAligned need the
+// patch's image size; scale, fit and alignment do not.
+bool prepareLevelSurfaceEdits(const LevelMapDocument &document, const QVector<LevelSurfaceFace> &faces, const QVector<int> &patches,
+							  const QVector<LevelSurfaceRequest> &requests, const QHash<QString, QSize> &textureSizes,
+							  LevelSurfaceEditPlan *plan, QString *error = nullptr, const std::function<bool()> &cancelled = {});
+// Whether `operation` needs the material's image size on this face or patch.
+bool levelSurfaceOperationNeedsSize(LevelSurfaceOperation operation, bool repeatsCoordinates);
 // Lightweight, source-validated commit. All changed faces are one undo step.
 // A no-op leaves revision, undo, redo and the saved state unchanged.
 bool commitLevelSurfaceEdit(LevelMapDocument *document, const LevelSurfaceEditPlan &plan, QString *error = nullptr);

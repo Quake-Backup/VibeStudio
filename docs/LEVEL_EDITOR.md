@@ -94,7 +94,14 @@ automated tests; none of it has been proven on production maps yet.
 | Numeric transform of the selection (centre and size) | Blender's Item panel, Hammer's transform dialog | Available |
 | Display filters by kind of object, with counts | Radiant filters, TrenchBroom view options | Available |
 | Pre-build checklist and worldspawn editor | TrenchBroom's Map inspector, VibeRadiant's globals | Available |
-| Vertex, edge and face editing; patches; surface alignment; painting | Radiant, TrenchBroom | Available |
+| Vertex, edge and face editing in the 2D views, with picks shared between views, merging corners and Snap Vertices | Radiant's vertex, edge and face modes; TrenchBroom's vertex tool and Snap Vertices | Available |
+| Hollow with touching walls, and Make Room | NetRadiant Custom | Available |
+| Patch shapes: plane, cylinder, square cylinder, cone, sphere, bevel, end cap, round ones as exact circles | GtkRadiant and NetRadiant Patch menus, NetRadiant Custom's exact cylinders | Available |
+| Patch rows and columns: insert, add, delete, transpose, re-disperse, smooth; Thicken | Radiant's Patch menu, NetRadiant Custom | Available |
+| Surface alignment and painting; Natural, Align to Face, flips, fit one axis, justify; faces picked in the camera | Radiant's Surface Inspector, TrenchBroom's face tools | Available |
+| Region drawn in a view, set to a brush or typed, remembered with the map | Radiant's Region Set XY and Set Brush | Available |
+| Expand selection to whole entities, Find Brush by number, Go to Coordinates, Centre | Radiant, Hammer | Available |
+| Prefabs dragged onto a view, and replacing the selection with a prefab | Hammer's prefabs, VibeRadiant | Available |
 | Doom sectors and lines: draw, make from existing lines, join, merge, doors, gradients, rectangles, polygons, stairs, grids, curved linedefs | Doom Builder, SLADE, Eureka | Available; shapes are dragged as boxes or placed numerically |
 | Doom visual mode: editing in the camera | Doom Builder | Available for Doom and Hexen maps: materials painted and sampled, floors, ceilings and light changed at the crosshair, wall textures dragged, nudged and auto-aligned; UDMF vertex heights (slopes) are edited as properties, not in the camera |
 | Regions (cordon): views kept to a box, the region saved and compiled as a sealed map | Radiant regions, Hammer cordon | Available |
@@ -204,6 +211,156 @@ folds several edits into one), with CLI parity:
 
 `level_map_tools_smoke_test` checks each against exact bytes after undo, redo
 and a reload.
+
+## Vertex editing, patch tools, regions and navigation
+
+A round of tools after Radiant, NetRadiant Custom, TrenchBroom and Hammer. Each
+edit is one undo step from the core, with a `map` command doing the same.
+
+### Vertex, edge and face editing in the 2D views
+
+**Edit Vertices**, **Edit Edges** and **Edit Faces** (`map.vertexTool`,
+`map.edgeTool`, `map.faceTool`) put every 2D view in a `MapViewport`
+component mode (`src/app/map_viewport_components.cpp`). Handles come from
+`levelBrushTopology()`: the corners, edge middles or face centres of the
+selected brushes and of selected entities' brushes, and every control point of
+the selected patches, up to 128 objects and 16,384 handles. A click picks the
+handle under the pointer with every handle the view stacks at the same spot,
+such as a box's top and bottom corners seen from above; the profile's add and
+toggle modifiers add or toggle, and a drag over empty space bands handles. A
+click on an unselected brush or patch selects it instead. Picks are shared
+between the panes by object and position (`shareLevelComponentPicks`), so a
+corner picked from above can be dragged in the front view.
+
+A drag on a picked handle lands the grabbed handle on the grid; the arrow keys
+move the picks a grid step and Shift eight. While handles are picked the view
+accepts the arrows' shortcut override, so a profile's Shift+arrow texture
+shifts do not take them. The view never edits the document: on release it
+emits `componentMoveRequested`, and the shell commits `moveLevelMapComponents()`
+(`src/core/level_brush.*`). Brush components go through the component editor's
+convex rebuild, and a corner moved onto another merges with it, as in
+TrenchBroom's vertex tool; patch control points move directly; every object
+changes in one undo step. After the commit the views find their picks again
+where the move took them, or where they were if it was refused. Escape drops
+the picks, then leaves the mode in every view. The commands toggle from the
+views' mode rather than their check mark, which the page refresh resets.
+
+**Snap Vertices to Grid** (`snapLevelMapBrushVertices`, `map snap-vertices`)
+rounds every corner of the selected brushes onto the grid and rebuilds them, as
+TrenchBroom's Snap Vertices does; a brush the grid would collapse is skipped
+with its reason, and brushes already on the grid add no undo step.
+
+### Hollow modes
+
+`hollowLevelMapSelection` takes a `LevelMapHollowMode`. **Overlap**, the
+existing Hollow, makes one wall per face meeting at the edges. **Touch**
+(Hollow Touching…) cuts each wall back where it meets its neighbours, so the
+walls fill the shell exactly once, as NetRadiant Custom's wrapped hollow does.
+**Room** (Make Room) builds the walls outside the brush, grown by the
+thickness with the corners filled, and removes the brush, as NetRadiant
+Custom's Make Room does; a brush too thin to hollow inwards can still make a
+room. `map hollow --mode overlap|touch|room`.
+
+### Patch shapes and the patch matrix
+
+`createLevelPatch` adds square cylinders, spheres, bevels and end caps, an
+axis to stand on, spans round a curve (`segments`, 3 to 15) and spans from pole
+to pole (`bands`, 2 to 15). Round shapes are exact circles of quadratic spans:
+on-curve points at exact quarter turns, each middle control on the tangents at
+its span's ends at `(P0 + P1) / (1 + cos Δ)`, after NetRadiant Custom's exact
+cylinders. The default four-span cylinder writes the same nine columns as
+before. The Shapes tab and `map add-shape` offer them as `patch-*` shapes on
+Quake III maps (`levelShapePatchRequest`), and `map add-patch` takes `--axis`,
+`--segments` and `--bands`.
+
+`src/core/level_patch_tools.*` holds Radiant's Patch menu matrix commands.
+Insert and add split the first or last span of each row or column by De
+Casteljau, leaving the surface and its UVs unchanged. Delete joins two spans
+through the point they share, the middle control rebuilt as
+`2·shared − (start + end) / 2`, so a split followed by a delete gives back the
+same grid. Transpose swaps rows and columns and so turns the facing round, as
+in Radiant; Invert turns it back. Re-disperse puts each span's middle control
+halfway between its ends. Smooth moves each joint between spans halfway
+between its neighbours, wrapping round a closed row, as NetRadiant Custom does.
+**Thicken Patch…** (`thickenLevelPatch`) copies a patch behind itself along
+each point's normal, or along one axis, facing away, and closes the open edges
+with walls. Edges folded to a point and the seams of closed rows get none, so
+a sphere gains no walls and a cylinder walls only at its rims. The commands
+are `map.patch*` in the Tools tab's **Patch Rows and Columns** group and the
+patch editor's **Rows and Columns** menu, and `map patch-matrix --op` and
+`map thicken-patch` from the command line.
+
+### Texture tools
+
+`LevelSurfaceOperation` adds **Natural**: shift and rotation zero and the
+format's natural scale (0.5 in Quake III, 1 otherwise), square to the world,
+as Radiant's Natural does. **FaceAligned** projects along the face's own plane
+through its primitive basis (`levelFaceAlignedTextureProjection`, after
+q3map2's `ComputeAxisBase`). Patches take natural texturing by arc length
+along their rows and columns (`naturalLevelPatchTexture`) and planar texturing
+through the same basis (`planarLevelPatchTexture`), so these two need the
+material's image size. The Surfaces tab adds Flip U and V (a scale of −1 about
+the middle), Fit U and Fit V (a repeat count of zero keeps the other axis),
+Justify left, right, top and bottom, Natural and Align to Face; long labels end
+in an ellipsis when the panel is narrow. Its Selection target includes selected
+patches (`prepareLevelSurfaceEdits` with patch ids), and **Picked Faces**
+gathers the faces picked in the camera with the face-pick and add modifiers
+together: the brush stays selected while any of its faces is picked, and the
+camera lights only those faces. `map align-textures` takes `--natural`,
+`--face-aligned`, `--flip u|v` and `patch:id` objects.
+
+### Regions, selection and navigation
+
+**Draw Region** turns on `MapViewport::setRegionDrawMode`: a drag anywhere in
+a 2D view draws the box (`regionDrawRequested`), which becomes the region
+through the map's whole depth on the hidden axis, and the mode ends. **Set
+Region to Brush** uses the selected brushes' bounds and deletes them as one
+undo step, as Radiant's Region Set Brush does; undo restores them and keeps the
+region. **Region Bounds…** takes typed corners, and **Select Everything in
+Region** selects the visible objects the region keeps
+(`levelMapRegionObjects`), never worldspawn. The region is remembered per map
+file in the shell's layout state, keyed by a hash of the file's path, and comes
+back when the map opens; **Clear Region** forgets it.
+
+**Expand Selection to Whole Entities** (`levelMapSelectionWholeEntities`)
+replaces each selected brush or patch of a brush entity with that entity, so
+the whole entity is selected; world brushes stay as they are. **Find Brush by
+Number…** (`levelMapObjectAtNumber`, `parseLevelMapObjectNumber`,
+`map find --number`) counts entities and, within each, brushes and patches
+together in file order from 0, as the compilers number them, and reads the
+numbers from a pasted compiler line. **Centre Views on Selection**, **Go to
+Coordinates…** (Hammer) and **Zoom to Fit** move the 2D views; Go to
+Coordinates can take the camera there too.
+
+### Prefabs
+
+The Prefabs tab drags `prefab-file:` and `prefab-entry:` payloads onto a 2D
+view. The anchor lands where the prefab is dropped, at the depth new brushes
+take there, unturned, as one undo step that selects it. **Replace Selection
+with Prefab…** (`replaceLevelMapSelectionWithPrefab`,
+`map insert-prefab --replace`) deletes the selection first, so the target
+names it held are free, then inserts the prefab with its anchor at the
+selection's bottom centre; `collapseLevelMapUndoSteps` folds the two into one
+undo step. Exporting a prefab refreshes the Prefabs tab at once.
+
+### Tests
+
+`level_patch_tools_smoke_test` covers the shapes (the old cylinder byte for
+byte, exact circles, spheres, bevels and end caps on every axis), each matrix
+operation and its inverse, thickening planes, cylinders and spheres, natural
+and planar texturing, and undo to the exact bytes. `level_brush_tools_smoke_test`
+covers the hollow modes by volume, Snap Vertices, component moves across a
+brush and a patch with merging and refusals, whole-entity selection, object
+numbers from compiler lines, and prefab replacement. `level_geometry_tools_ui_smoke_test`
+drives the real shell with Qt events: vertex picks, nudges and drags with
+shared picks, Shift+arrow ahead of texture shortcuts and Escape; edge and face
+modes and patch control points; Snap Vertices, Hollow Touching and Make Room;
+whole entities and Find Brush; centring, Go to Coordinates and Zoom to Fit;
+drawn, brush and typed regions and their return in a new window; Natural on the
+selection and on faces picked in the camera; the patch matrix commands and
+Thicken; patch shapes on the Shapes tab; and prefab drops and replacement.
+`level_prefab_workflow.py` adds `--replace` steps. Native input, screen
+readers and production maps remain unproven.
 
 ## Built-in entity classes
 
@@ -1853,9 +2010,10 @@ measurements are retained in `.agents/tmp/level-primitives/compiler/`.
 
 The **Surfaces** tab beside the level Inspector keeps texture adjustments
 available while the map stays visible. Select **Selection** to affect all
-faces of the selected brushes and brush entities, or choose **Face**
-after focusing a face property in the Inspector. The target summary identifies
-the affected face or count; changing scope cancels pending work.
+faces of the selected brushes and brush entities, and the selected patches, or
+choose **Picked Faces** for the faces picked in the camera, or else the face
+focused in the Inspector. The target summary identifies the affected face or
+count; changing scope cancels pending work.
 
 U/V shift, rotation, independent U/V grow/shrink, **Fit 1 × 1** and **Centre**
 also appear in **Edit → Surface Adjustments**, command search and keyboard
@@ -1888,7 +2046,9 @@ saving, document replacement, selection/face/scope changes and package changes
 invalidate pending candidates before adoption. Selection, source identity,
 save point, scene state, package revision and palette are checked again at
 completion. No map or package is saved automatically; save before building.
-Patches and Doom surfaces retain their existing dedicated workflows.
+Patches take the same adjustments in texture repeats; shifting, rotating,
+Natural and Align to Face need their material's image size. Doom surfaces
+keep their own workflows.
 
 Quick actions and the CLI's `map align-textures` use the same surface service
 and mapping rules. The following dialog remains available for arbitrary values,
@@ -2621,7 +2781,9 @@ The command manifest and generated artifacts are under
 
 ## Curved Surface Authoring
 
-**Edit → Add Patch** creates a Quake III plane, open cylinder or open cone.
+**Edit → Add Patch** creates a Quake III plane, open cylinder or open cone, and
+since the [round of patch tools](#patch-shapes-and-the-patch-matrix) a square
+cylinder, sphere, bevel or end cap too.
 The same actions appear in the map context menu and command palette. Select a
 patch and choose **Edit Patch Control Points** to reshape it. Plane grids have
 odd dimensions from 3 to 31; cylindrical presets use nine columns with a closed
@@ -2757,7 +2919,8 @@ vibestudio --cli map inspect-prefab library.pk3 --entry prefabs/door.vprefab --j
 
 Export also accepts `--description` and an optional `--package` for dependency
 review. Without `--anchor`, it uses the captured bounds' bottom centre. Insertion
-requires `--position`; `--rotation` defaults to zero, `--texture-lock on|off` to
+requires `--position`, or repeatable `--replace kind:id` selectors for objects the
+prefab takes the place of; `--rotation` defaults to zero, `--texture-lock on|off` to
 on, and `--target-prefix` to automatic allocation. `--package` overrides the
 dependency reader; otherwise a prefab loaded via `--entry` uses that package.
 Classic Quake III maps may need explicit `--engine idTech3` because their face
@@ -2794,7 +2957,9 @@ texture and map data. Its 27-step Windows run passed q3map2 BSP/VIS/LIGHT
 names, baked generated MD3 geometry, and verified six final PK3 payloads with no
 warnings or unchecked entries. Evidence is under `.agents/tmp/level-prefabs/`.
 No game was launched; native interaction, macOS/Linux and production-scale
-acceptance remain open.
+acceptance remain open. On 2026-10-15 the workflow, with four new `--replace`
+steps (a replacement and three refusals), passed its 28 steps without a
+compiler on Windows.
 
 ## Placement and Grid Alignment
 

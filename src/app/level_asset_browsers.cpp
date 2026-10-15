@@ -482,8 +482,8 @@ void ApplicationShell::buildLevelPrefabBrowser(SidebarPage* page)
 	m_levelPrefabFilter = browserFilter(tr("Filter prefabs"), tr("Prefab filter"));
 	m_levelPrefabFilter->setObjectName(QStringLiteral("levelPrefabFilter"));
 	m_levelPrefabList = browserTree(QStringLiteral("levelPrefabList"), tr("Prefabs"),
-		tr("Prefabs saved in the project folder and in the open package. Enter or a double-click inserts one with a preview."));
-	m_levelPrefabList->setDragEnabled(false);
+		tr("Prefabs saved in the project folder and in the open package. Drag one onto a 2D view to place it there, or press Enter or "
+		   "double-click to insert it with a preview."));
 	addLevelSidebarSection(page, QStringLiteral("prefabs.library"), tr("Library"), filteredBrowser(m_levelPrefabFilter, m_levelPrefabList), 1);
 
 	auto* actions = new QWidget;

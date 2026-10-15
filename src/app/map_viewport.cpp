@@ -1,4 +1,5 @@
 #include "app/map_viewport.h"
+#include "app/map_viewport_p.h"
 #include "app/viewport_hud.h"
 #include "app/viewport_image.h"
 #include "core/level_scene.h"
@@ -412,33 +413,8 @@ QString planePointText(MapViewportProjection projection, const QPointF& point)
 
 } // namespace
 
-// Colour set for one paint pass. Every distinction the viewport draws is also
-// carried by line weight, dash pattern or marker shape so nothing depends on
-// colour alone.
-struct MapViewport::Palette {
-	QColor background;
-	QColor gridMinor;
-	QColor gridMajor;
-	QColor axis;
-	QColor oneSided;
-	QColor twoSided;
-	QColor vertex;
-	QColor thing;
-	QColor entity;
-	QColor brush;
-	QColor brushEntity;
-	QColor patch;
-	QColor warning;
-	QColor selection;
-	QColor hover;
-	QColor text;
-	QColor subtleText;
-	QColor focus;
-	QColor sectorDark;
-	QColor sectorBright;
-	QColor leak;
-	QColor link;
-};
+// The colour set for one paint pass is MapViewport::Palette, in
+// map_viewport_p.h, shared with map_viewport_components.cpp.
 
 MapViewport::MapViewport(QWidget* parent)
 	: QWidget(parent)
@@ -616,6 +592,17 @@ void MapViewport::setDocument(const LevelMapDocument& document, const MapBrushGe
 		m_drawMode = false;
 		Q_EMIT drawModeChanged(false);
 	}
+	if (m_componentMode != ComponentMode::Off) {
+		m_componentMode = ComponentMode::Off;
+		m_componentHandles.clear();
+		m_pickedHandles.clear();
+		m_componentArmed = m_componentDragging = m_componentBanding = false;
+		Q_EMIT componentModeChanged(static_cast<int>(ComponentMode::Off));
+	}
+	if (m_regionDrawMode) {
+		m_regionDrawMode = false;
+		Q_EMIT regionDrawModeChanged(false);
+	}
 	m_topologyRevision = document.doomTopologyRevision;
 	// A trail belongs to the map whose build wrote it.
 	m_leakTrail.clear();
@@ -687,10 +674,14 @@ void MapViewport::syncPrimaryFromSelection()
 	if (m_selection.isEmpty()) {
 		m_selectionKind = LevelMapSelectionKind::None;
 		m_selectedObjectId = -1;
-		return;
+	} else {
+		m_selectionKind = m_selection.back().kind;
+		m_selectedObjectId = m_selection.back().objectId;
 	}
-	m_selectionKind = m_selection.back().kind;
-	m_selectedObjectId = m_selection.back().objectId;
+	// Vertex editing shows the handles of what is selected now.
+	if (m_componentMode != ComponentMode::Off) {
+		rebuildComponentHandles();
+	}
 }
 
 void MapViewport::setSelectionSetInternal(const QVector<LevelMapSelectionRef>& selection)
@@ -1016,6 +1007,11 @@ void MapViewport::cancelInteraction()
 	m_banding = false;
 	m_dragAnchorPlane = QPointF();
 	m_dragCurrentPlane = QPointF();
+	if (m_componentDragging || m_componentBanding || m_componentArmed) {
+		m_componentDragging = m_componentBanding = m_componentArmed = false;
+		m_componentGrabbed = -1;
+		update();
+	}
 	if (wasBusy) {
 		Q_EMIT hoverChanged(hoverSummary());
 		update();
@@ -1756,6 +1752,12 @@ QString MapViewport::accessibleSummary() const
 		overlays += QStringLiteral(" ")
 			+ tr("Draw Sector is on with %n corner(s) down; Enter closes the shape and Backspace takes a corner back.", nullptr,
 				static_cast<int>(m_drawCorners.size()));
+	}
+	if (m_componentMode != ComponentMode::Off) {
+		overlays += QStringLiteral(" ") + componentSummary();
+	}
+	if (m_regionDrawMode) {
+		overlays += QStringLiteral(" ") + tr("Draw Region is on: drag a box to set the region; Escape leaves.");
 	}
 	if (m_hasCameraBrushDraft) { overlays += QStringLiteral(" ") + tr("Camera brush draft: %1 × %2 × %3 units. No source edit yet.")
 		.arg(m_cameraBrushDraft[3]-m_cameraBrushDraft[0]).arg(m_cameraBrushDraft[4]-m_cameraBrushDraft[1]).arg(m_cameraBrushDraft[5]-m_cameraBrushDraft[2]); }
@@ -3660,6 +3662,7 @@ void MapViewport::paintOverlay(QPainter& painter, const Palette& palette) const
 
 	if (m_hasDocument) {
 		paintSelectionMarkers(painter, palette, hud);
+		paintComponents(painter, palette);
 		if (m_dragging) {
 			paintDragPreview(painter, palette);
 		}
@@ -3706,6 +3709,12 @@ QStringList MapViewport::hudTags() const
 	}
 	if (m_drawMode) {
 		leftParts << tr("Draw Sector");
+	}
+	if (m_componentMode != ComponentMode::Off) {
+		leftParts << tr("%1: %2 picked").arg(componentModeName()).arg(m_pickedHandles.size());
+	}
+	if (m_regionDrawMode) {
+		leftParts << tr("Draw Region");
 	}
 	if (!m_leakTrail.isEmpty()) {
 		leftParts << tr("Leak trail");
@@ -3755,6 +3764,19 @@ bool MapViewport::event(QEvent* event)
 {
 	if (event->type() == QEvent::FocusOut || event->type() == QEvent::Hide || (event->type() == QEvent::EnabledChange && !isEnabled())) {
 		setTemporaryPan(false);
+	}
+	if (event->type() == QEvent::ShortcutOverride && (m_componentMode != ComponentMode::Off || m_regionDrawMode)) {
+		// While vertex editing, the arrows (Shift: eight steps) move the picked
+		// handles and Escape steps out, ahead of commands such as a profile's
+		// Shift+arrow texture shifts; Escape also leaves region drawing.
+		const auto* key = static_cast<QKeyEvent*>(event);
+		const bool arrow = key->key() == Qt::Key_Left || key->key() == Qt::Key_Right || key->key() == Qt::Key_Up || key->key() == Qt::Key_Down;
+		const auto modifiers = key->modifiers() & ~(Qt::KeypadModifier | Qt::ShiftModifier);
+		if ((key->key() == Qt::Key_Escape && key->modifiers() == Qt::NoModifier)
+			|| (arrow && modifiers == Qt::NoModifier && m_componentMode != ComponentMode::Off && !m_pickedHandles.isEmpty())) {
+			event->accept();
+			return true;
+		}
 	}
 	if (event->type() == QEvent::ShortcutOverride) {
 		const auto* key = static_cast<QKeyEvent*>(event);
@@ -4157,6 +4179,25 @@ void MapViewport::mousePressEvent(QMouseEvent* event)
 		return;
 	}
 
+	// Vertex editing picks and drags handles rather than objects.
+	if (m_componentMode != ComponentMode::Off && componentMousePress(event)) {
+		return;
+	}
+
+	// Region drawing: a drag from anywhere draws the box the region keeps.
+	if (m_regionDrawMode && keys == Qt::NoModifier) {
+		m_pressViewPoint = event->position();
+		m_clickArmed = true;
+		m_clickBands = false;
+		m_clickSelects = false;
+		m_clickModifiers = event->modifiers();
+		m_brushArmed = true;
+		m_brushFromPlane = snappedPlanePoint(event->position());
+		m_brushToPlane = m_brushFromPlane;
+		event->accept();
+		return;
+	}
+
 	// A handle outranks whatever lies under it; with Shift or Ctrl held the
 	// press edits the selection instead. In shear mode the side handles
 	// shear, and the corners do nothing.
@@ -4336,6 +4377,10 @@ void MapViewport::mouseMoveEvent(QMouseEvent* event)
 		return;
 	}
 
+	if (m_componentMode != ComponentMode::Off && componentMouseMove(event)) {
+		return;
+	}
+
 	if (m_clickArmed) {
 		const QPointF travel = position - m_pressViewPoint;
 		if (std::hypot(travel.x(), travel.y()) >= kDragThresholdPixels) {
@@ -4502,6 +4547,9 @@ void MapViewport::mouseReleaseEvent(QMouseEvent* event)
 		QWidget::mouseReleaseEvent(event);
 		return;
 	}
+	if (m_componentMode != ComponentMode::Off && componentMouseRelease(event)) {
+		return;
+	}
 	if (m_brushDrawing) {
 		commitBrushDraw();
 		event->accept();
@@ -4623,6 +4671,9 @@ void MapViewport::keyPressEvent(QKeyEvent* event)
 	if (navigationHoldKeyMatches(m_controls.panHoldKey, event->key(), event->modifiers())) {
 		if (!event->isAutoRepeat()) { setTemporaryPan(true, m_lastPointerPosition); }
 		event->accept(); return;
+	}
+	if (m_componentMode != ComponentMode::Off && componentKeyPress(event)) {
+		return;
 	}
 	const auto direction = planArrowPanDirection(m_controls, event->key(), event->modifiers());
 	if (!direction.isNull()) {
@@ -4769,6 +4820,15 @@ void MapViewport::keyPressEvent(QKeyEvent* event)
 				cancelInteraction();
 			} else {
 				setShapeDrawMode(false);
+			}
+			event->accept();
+			return;
+		}
+		if (m_regionDrawMode) {
+			if (m_brushDrawing || m_clickArmed) {
+				cancelInteraction();
+			} else {
+				setRegionDrawMode(false);
 			}
 			event->accept();
 			return;
@@ -5192,6 +5252,11 @@ QPair<double,double> MapViewport::brushDepthRange(int hiddenAxis) const
 QString MapViewport::brushSummary() const
 {
 	const QRectF box = brushPlaneBox();
+	if (m_regionDrawMode) {
+		return tr("Region %1 %2 by %3 %4").arg(planeAxisLetters(m_projection, false)).arg(box.width(), 0, 'g', 8)
+			.arg(planeAxisLetters(m_projection, true))
+			.arg(box.height(), 0, 'g', 8);
+	}
 	return tr("New brush %1 %2 by %3 %4").arg(planeAxisLetters(m_projection, false)).arg(box.width(), 0, 'g', 8)
 		.arg(planeAxisLetters(m_projection, true))
 		.arg(box.height(), 0, 'g', 8);
@@ -5207,6 +5272,12 @@ void MapViewport::commitBrushDraw()
 	Q_EMIT hoverChanged(hoverSummary());
 	// A line or a point draws nothing.
 	if (box.width() <= 0.0 || box.height() <= 0.0) {
+		return;
+	}
+	if (m_regionDrawMode) {
+		const QRectF drawn = box;
+		setRegionDrawMode(false);
+		Q_EMIT regionDrawRequested(drawn);
 		return;
 	}
 	double low = 0.0;

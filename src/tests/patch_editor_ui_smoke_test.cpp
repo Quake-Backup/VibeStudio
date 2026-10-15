@@ -19,6 +19,7 @@
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
+#include <QToolButton>
 #include <QTranslator>
 #include <iostream>
 
@@ -123,6 +124,22 @@ int main(int argc, char** argv)
 		split->trigger();
 		ok &= expect(dialog.patch().width == 9 && view->selectedPoints().isEmpty(), "topology edits clear ambiguous component IDs");
 		dialog.undo();
+		// The Rows and Columns menu edits the draft, each command one local step.
+		auto* addColumns = dialog.findChild<QAction*>(QStringLiteral("patchMatrix-add-columns"));
+		auto* transpose = dialog.findChild<QAction*>(QStringLiteral("patchMatrix-transpose"));
+		const int columnsBefore = dialog.patch().width;
+		const int rowsBefore = dialog.patch().height;
+		ok &= expect(addColumns && transpose && dialog.findChild<QToolButton*>(QStringLiteral("patchMatrixButton")),
+		             "Rows and Columns menu offers the patch matrix commands");
+		if (addColumns && transpose) {
+			addColumns->trigger();
+			ok &= expect(dialog.patch().width == columnsBefore + 2 && dialog.patch().height == rowsBefore, "Add Columns adds two control columns");
+			transpose->trigger();
+			ok &= expect(dialog.patch().width == rowsBefore && dialog.patch().height == columnsBefore + 2, "Transpose swaps rows and columns");
+			dialog.undo();
+			dialog.undo();
+			ok &= expect(dialog.patch().width == columnsBefore && dialog.patch().height == rowsBefore, "local undo takes the matrix commands back");
+		}
 		shape->setCurrentIndex(shape->findData(QStringLiteral("cylinder")));
 		generate->click();
 		ok &= expect(dialog.patch().width == 9 && dialog.patch().height == 3 && preview->hasMesh() && preview->hasSkin(),

@@ -360,8 +360,7 @@ void ApplicationShell::showSoundGenerator()
 			ensureAudioEditor();
 			unloadAudioPlayback();
 			refreshAudioTransport();
-			m_audioEditorDialog->show();
-			m_audioEditorDialog->raise();
+			showStudioEditor(StudioMode::Audio, m_audioEditorDialog);
 			m_audioEditorDialog->refreshContext();
 			m_audioEditorDialog->loadSource(name + QStringLiteral(".wav"), QString(), [wav](QString*) { return wav; });
 		};

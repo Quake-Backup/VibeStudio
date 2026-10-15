@@ -4,6 +4,9 @@ The **Textures** page lists the images in a package, decodes them with the
 right palette, and opens the Texture Editor for painting, converting and
 staging textures for Doom, Quake, Quake II and Quake III projects.
 
+The Texture Editor opens in a tab within **Textures**. **Browser** returns to
+the image list without closing the texture document.
+
 > [!NOTE]
 > **Status: Partial.** Decoding the classic idTech image formats, the Texture
 > Editor and its game export profiles work and have automated tests, but they

@@ -9588,6 +9588,7 @@ bool commitLevelSurfaceEdit(LevelMapDocument* document, const LevelSurfaceEditPl
 	}
 	if (command.brushResults.isEmpty() && command.patchResults.isEmpty()) { return true; }
 	command.description = plan.m_paste ? QCoreApplication::translate("LevelSurface", "Paste %n surface(s)", nullptr, plan.m_faceCount + plan.patchCount())
+		: plan.patchCount() > 0 ? QCoreApplication::translate("LevelSurface", "Align %n surface(s)", nullptr, plan.m_faceCount + plan.patchCount())
 		: QCoreApplication::translate("LevelSurface", "Align %n brush face(s)", nullptr, plan.m_faceCount);
 	command.undoDescription = plan.m_paste ? QCoreApplication::translate("LevelSurface", "Restore pasted surfaces")
 		: QCoreApplication::translate("LevelSurface", "Restore surface alignment");
@@ -10680,6 +10681,59 @@ std::optional<LevelMapBrush> brushWithAddedFace(const LevelMapDocument& document
 	return made;
 }
 
+// The brush keeping only the faces `keep` marks (all when empty), with the
+// `added` faces after them: re-solved, faces left without an edge dropped,
+// written in the brush's own format and read back by the parser. Null when
+// that is not a closed brush or the last added face does not bound it.
+std::optional<LevelMapBrush> brushWithFaces(const LevelMapDocument& document, const LevelMapBrush& brush, const BrushPieceText& text,
+	const QVector<bool>& keep, const QVector<NewBrushFace>& added)
+{
+	QVector<LevelMapBrushFace> faces;
+	QVector<int> kept;
+	for (int face = 0; face < brush.faces.size(); ++face) {
+		if (keep.isEmpty() || keep.value(face)) {
+			faces.push_back(brush.faces.at(face));
+			kept.push_back(face);
+		}
+	}
+	for (const NewBrushFace& face : added) {
+		LevelMapBrushFace plane;
+		plane.p0 = face.p0;
+		plane.p1 = face.p1;
+		plane.p2 = face.p2;
+		faces.push_back(plane);
+	}
+	const MapBrushGeometry solved = solveBrushGeometry(faces);
+	if (!solved.solved || solved.faces.size() != faces.size() || (!added.isEmpty() && !solved.faces.last().isValid())) {
+		return std::nullopt;
+	}
+	QStringList lines = text.lines;
+	int insertAt = text.lastFace + 1;
+	for (int face = 0; face < added.size(); ++face) {
+		if (solved.faces.at(kept.size() + face).isValid()) {
+			lines.insert(insertAt++, brushFaceLine(text.style, added.at(face)));
+		}
+	}
+	// Faces left out or left without an edge go, from the bottom up so the
+	// line numbers still hold; the new lines all come after them.
+	QVector<int> drop;
+	for (int face = 0; face < brush.faces.size(); ++face) {
+		const int at = static_cast<int>(kept.indexOf(face));
+		if (at < 0 || !solved.faces.at(at).isValid()) {
+			drop << text.faceLines.at(face);
+		}
+	}
+	std::sort(drop.begin(), drop.end(), std::greater<int>());
+	for (const int line : drop) {
+		lines.removeAt(line);
+	}
+	std::optional<LevelMapBrush> made = parsedNewBrush(document, lines);
+	if (made) {
+		made->entityId = brush.entityId;
+	}
+	return made;
+}
+
 // A new face on a solved face's plane, moved `shift` units along `outward`,
 // its points wound so `outward` is its outward normal, and textured like
 // `like`. Its points are the polygon's own corners, so they sit on the plane.
@@ -11097,12 +11151,38 @@ bool clipLevelMapSelection(LevelMapDocument* document, const LevelMapVec3& a, co
 	return true;
 }
 
+QString levelMapHollowModeId(LevelMapHollowMode mode)
+{
+	return mode == LevelMapHollowMode::Touch ? QStringLiteral("touch") : (mode == LevelMapHollowMode::Room ? QStringLiteral("room") : QStringLiteral("overlap"));
+}
+
+bool parseLevelMapHollowMode(const QString& id, LevelMapHollowMode* mode)
+{
+	const QString key = id.trimmed().toLower();
+	const LevelMapHollowMode parsed = key == QStringLiteral("touch") ? LevelMapHollowMode::Touch
+		: key == QStringLiteral("room") ? LevelMapHollowMode::Room : LevelMapHollowMode::Overlap;
+	if (key != QStringLiteral("touch") && key != QStringLiteral("room") && key != QStringLiteral("overlap")) {
+		return false;
+	}
+	if (mode) {
+		*mode = parsed;
+	}
+	return true;
+}
+
 bool hollowLevelMapSelection(LevelMapDocument* document, double thickness, int* hollowed, QString* error, QStringList* skipped)
+{
+	return hollowLevelMapSelection(document, thickness, LevelMapHollowMode::Overlap, hollowed, error, skipped);
+}
+
+bool hollowLevelMapSelection(LevelMapDocument* document, double thickness, LevelMapHollowMode mode, int* hollowed, QString* error,
+	QStringList* skipped)
 {
 	int sceneResult_hollowed = 0;
 	QStringList sceneResult_skipped = skipped ? *skipped : QStringList{};
 	if (const auto guarded = guardLevelSceneEdit(document, error, [&](LevelMapDocument* candidate) {
-		return hollowLevelMapSelection(candidate, thickness, hollowed ? &sceneResult_hollowed : nullptr, error, skipped ? &sceneResult_skipped : nullptr);
+		return hollowLevelMapSelection(candidate, thickness, mode, hollowed ? &sceneResult_hollowed : nullptr, error,
+			skipped ? &sceneResult_skipped : nullptr);
 	}); guarded.has_value()) {
 		if (*guarded && hollowed) { *hollowed = std::move(sceneResult_hollowed); }
 		if (*guarded && skipped) { *skipped = std::move(sceneResult_skipped); }
@@ -11171,7 +11251,8 @@ bool hollowLevelMapSelection(LevelMapDocument* document, double thickness, int* 
 			}
 			thickEnough = thickEnough && highest - lowest > 2.0 * thickness;
 		}
-		if (!thickEnough) {
+		// Make Room builds outwards, so any brush is thick enough.
+		if (!thickEnough && mode != LevelMapHollowMode::Room) {
 			refusals << QCoreApplication::translate("VibeStudioLevelMap", "Brush %1 is too thin for two walls %2 units thick.").arg(brush.id).arg(mapCoordinateText(thickness));
 			continue;
 		}
@@ -11188,17 +11269,45 @@ bool hollowLevelMapSelection(LevelMapDocument* document, double thickness, int* 
 			continue;
 		}
 		// One wall per face: the face pulled in by the thickness, turned to face
-		// the inside, and textured like the face it grew from.
+		// the inside, and textured like the face it grew from. Touching walls
+		// also stop at the inside of the walls before them, as NetRadiant
+		// Custom's wrapped hollow does; Make Room builds each wall outside its
+		// face instead, between the face and the brush pushed out on every
+		// side, so the room is the brush itself.
 		QVector<LevelMapBrush> walls;
 		bool built = true;
+		QVector<NewBrushFace> pulledIn;
+		QVector<NewBrushFace> pushedOut;
+		const auto outwardOf = [](const MapFacePolygon& polygon) {
+			return LevelMapVec3 {polygon.plane.normalX, polygon.plane.normalY, polygon.plane.normalZ, true};
+		};
+		if (mode == LevelMapHollowMode::Room) {
+			for (int face = 0; face < geometry.faces.size() && face < brush.faces.size(); ++face) {
+				if (geometry.faces.at(face).isValid()) {
+					pushedOut << faceOnPolygon(geometry.faces.at(face), outwardOf(geometry.faces.at(face)), brush.faces.at(face), thickness);
+				}
+			}
+		}
 		for (int face = 0; face < geometry.faces.size() && face < brush.faces.size() && built; ++face) {
 			const MapFacePolygon& polygon = geometry.faces.at(face);
 			if (!polygon.isValid()) {
 				continue;
 			}
-			const LevelMapVec3 inward {-polygon.plane.normalX, -polygon.plane.normalY, -polygon.plane.normalZ, true};
-			const NewBrushFace added = faceOnPolygon(polygon, inward, brush.faces.at(face), thickness);
-			std::optional<LevelMapBrush> wall = brushWithAddedFace(*document, brush, text, added);
+			const LevelMapVec3 outward = outwardOf(polygon);
+			const LevelMapVec3 inward {-outward.x, -outward.y, -outward.z, true};
+			std::optional<LevelMapBrush> wall;
+			if (mode == LevelMapHollowMode::Overlap) {
+				wall = brushWithAddedFace(*document, brush, text, faceOnPolygon(polygon, inward, brush.faces.at(face), thickness));
+			} else if (mode == LevelMapHollowMode::Touch) {
+				QVector<NewBrushFace> added = pulledIn;
+				added << faceOnPolygon(polygon, inward, brush.faces.at(face), thickness);
+				wall = brushWithFaces(*document, brush, text, {}, added);
+				pulledIn << faceOnPolygon(polygon, outward, brush.faces.at(face), -thickness);
+			} else {
+				QVector<NewBrushFace> added = pushedOut;
+				added << faceOnPolygon(polygon, inward, brush.faces.at(face), 0.0);
+				wall = brushWithFaces(*document, brush, text, QVector<bool>(brush.faces.size(), false), added);
+			}
 			built = wall.has_value();
 			if (wall) {
 				wall->id = nextId++;

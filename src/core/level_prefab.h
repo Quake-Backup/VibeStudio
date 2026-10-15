@@ -63,6 +63,12 @@ bool writeLevelPrefab(const LevelPrefab &prefab, const QString &path, bool overw
 // dialects and cross-engine insertion are refused before modifying the map.
 bool insertLevelPrefab(LevelMapDocument *destination, const LevelPrefab &prefab, const LevelPrefabPlacement &placement,
 					   LevelPrefabReport *report = nullptr, QString *error = nullptr, LevelPrefabCancellation cancelled = {});
+// Puts the prefab where the selection stands, its anchor at the bottom centre
+// of the selection's bounds (the placement's position is not used), and
+// removes the selection, as one undo step that selects the prefab: a
+// blockout placeholder swapped for the finished assembly.
+bool replaceLevelMapSelectionWithPrefab(LevelMapDocument *document, const LevelPrefab &prefab, LevelPrefabPlacement placement,
+										LevelPrefabReport *report = nullptr, QString *error = nullptr, LevelPrefabCancellation cancelled = {});
 QJsonObject levelPrefabReportJson(const LevelPrefabReport &report);
 
 } // namespace vibestudio

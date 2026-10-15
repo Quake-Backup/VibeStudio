@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/level_map.h"
+#include "core/level_patch.h"
 
 #include <QString>
 #include <QStringList>
@@ -47,6 +48,12 @@ struct LevelShapeRequest {
 [[nodiscard]] QString levelShapeIconName(const QString& shape);
 // True for the shapes made of more than one brush.
 [[nodiscard]] bool levelShapeIsCompound(const QString& shape);
+// True for the Quake III patch shapes ("patch-..."), which add one patch
+// rather than brushes and take only `axis`, `sides` (segments around) and
+// `bands`.
+[[nodiscard]] bool levelShapeIsPatch(const QString& shape);
+// The patch a patch shape makes filling the request's box.
+bool levelShapePatchRequest(const LevelShapeRequest& request, LevelPatchCreateRequest* patch, QString* error = nullptr);
 // The settings a shape reads: any of "axis", "sides", "bands", "thickness",
 // "arc", "start", "steps" and "rise".
 [[nodiscard]] QStringList levelShapeParameters(const QString& shape);
@@ -57,7 +64,8 @@ struct LevelShapeRequest {
 bool levelShapeHulls(const LevelShapeRequest& request, QVector<QVector<LevelMapVec3>>* hulls, QString* error = nullptr);
 
 // Adds the shape to worldspawn in the map's own face style as one undo step
-// and selects its brushes. Failure leaves the map unchanged.
+// and selects its brushes, or for a patch shape the patch, whose id comes
+// back in `brushIds`. Failure leaves the map unchanged.
 bool addLevelMapShape(LevelMapDocument* document, const LevelShapeRequest& request, QVector<int>* brushIds = nullptr, QString* error = nullptr);
 
 // The combined bounds of world brushes, for a shape to fill. False when a

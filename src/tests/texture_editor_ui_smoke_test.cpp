@@ -411,6 +411,9 @@ int main(int argc, char** argv)
 		auto* texturesMode = shell->findChild<QAction*>(QStringLiteral("shell.mode.textures"));
 		ok &= expect(texturesMode && texturesMode->isEnabled(), "Textures mode action is available");
 		if (texturesMode) { texturesMode->trigger(); }
+		if (auto* workspace = shell->findChild<QTabWidget*>(QStringLiteral("assetWorkspace%1").arg(int(StudioMode::Textures)))) {
+			workspace->setCurrentIndex(0);
+		}
 		shell->resize(1600, 1000); shell->show(); app.processEvents();
 		QElapsedTimer completedPreviewWait; completedPreviewWait.start();
 		while (cancelPreview && cancelPreview->isEnabled() && completedPreviewWait.elapsed() < 15000) { app.processEvents(); }

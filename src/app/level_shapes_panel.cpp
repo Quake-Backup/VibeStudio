@@ -302,12 +302,18 @@ void ApplicationShell::refreshLevelShapesPanel()
 	const bool quake = m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map;
 	const bool doomMap = m_levelMapDocument.format == LevelMapFormat::DoomWad;
 	const bool doom = doomMap && levelMapDoomEditable();
-	// A Doom map shows its sector shapes; anything else the brush shapes.
+	const bool quake3 = m_levelMapDocument.format == LevelMapFormat::Quake3Map;
+	// Patch shapes need a Quake III map; another map falls back to the box.
+	if (hasMap && !quake3 && levelShapeIsPatch(m_levelShape)) {
+		m_levelShape = QStringLiteral("box");
+	}
+	// A Doom map shows its sector shapes; anything else the brush shapes,
+	// and a Quake III map its patch shapes too.
 	const QString current = doomMap ? m_levelSectorShape : m_levelShape;
 	for (QAbstractButton* button : m_levelShapeButtons->buttons()) {
 		const QString id = button->property("shapeId").toString();
 		const QSignalBlocker blocker(button);
-		button->setVisible(isSectorShape(id) == doomMap);
+		button->setVisible(isSectorShape(id) == doomMap && (!levelShapeIsPatch(id) || quake3));
 		button->setEnabled(quake || doom || !hasMap);
 		button->setChecked(id == current);
 	}
@@ -338,16 +344,21 @@ void ApplicationShell::refreshLevelShapesPanel()
 	show(m_levelShapeStepHeight, "stepHeight");
 	show(m_levelShapeColumns, "columns");
 	show(m_levelShapeRows, "rows");
-	// Round shapes and polygons have sides; arches and rings are built of
-	// segments.
-	const bool segments = current == QLatin1String("arch") || current == QLatin1String("ring");
+	// Round shapes and polygons have sides; arches, rings and round patches
+	// are built of segments.
+	const bool patchShape = levelShapeIsPatch(current);
+	const bool segments = current == QLatin1String("arch") || current == QLatin1String("ring") || patchShape;
 	if (auto* label = qobject_cast<QLabel*>(m_levelShapeForm->labelForField(m_levelShapeSides))) {
 		label->setText(segments ? tr("Segments") : tr("Sides"));
 	}
 	m_levelShapeSides->setAccessibleName(segments ? tr("Segments") : tr("Sides"));
 	{
-		const QSignalBlocker blocker(m_levelShapeSides);
+		// A patch is at most 31 control points across: 15 quadratic spans.
+		const QSignalBlocker sides(m_levelShapeSides);
+		const QSignalBlocker bands(m_levelShapeBands);
 		m_levelShapeSides->setMinimum(current == QLatin1String("arch") ? 1 : 3);
+		m_levelShapeSides->setMaximum(patchShape ? 15 : 64);
+		m_levelShapeBands->setMaximum(patchShape ? 15 : 16);
 	}
 	if (m_levelShapeSettingsSection) {
 		m_levelShapeSettingsSection->setVisible(!parameters.isEmpty());
@@ -378,6 +389,9 @@ void ApplicationShell::refreshLevelShapesPanel()
 	m_levelShapeReplace->setEnabled(quake && brushes);
 	if (!hasMap) {
 		m_levelShapeNote->setText(tr("Open a map to add shapes to it."));
+	} else if (quake && patchShape) {
+		m_levelShapeNote->setText(tr("New patches get %1, the material chosen in Textures; shape them further with Edit Vertices or the Patches tools.")
+				.arg(levelBrushMaterial()));
 	} else if (quake) {
 		m_levelShapeNote->setText(tr("New brushes get %1, the material chosen in Textures.").arg(levelBrushMaterial()));
 	} else if (doom) {
@@ -463,10 +477,14 @@ bool ApplicationShell::addLevelShapeFromUi(const LevelMapVec3& mins, const Level
 	}
 	m_lastDrawnBrushTexture = request.texture;
 	rememberLevelMaterial(request.texture);
-	recordActivity(drawn ? tr("Level map shape drawn") : tr("Level map shape added"), QStringLiteral("%1 brush:%2").arg(request.shape).arg(added.value(0)),
-		QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	const bool patch = levelShapeIsPatch(request.shape);
+	recordActivity(drawn ? tr("Level map shape drawn") : tr("Level map shape added"),
+		QStringLiteral("%1 %2:%3").arg(request.shape, patch ? QStringLiteral("patch") : QStringLiteral("brush")).arg(added.value(0)), QStringLiteral("level-map"),
+		OperationState::Warning, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
-	statusBar()->showMessage(tr("%1 added: %n brush(es) in %2, selected.", nullptr, static_cast<int>(added.size())).arg(label, request.texture), 5000);
+	statusBar()->showMessage(patch ? tr("%1 added: one patch in %2, selected.").arg(label, request.texture)
+								   : tr("%1 added: %n brush(es) in %2, selected.", nullptr, static_cast<int>(added.size())).arg(label, request.texture),
+		5000);
 	return true;
 }
 

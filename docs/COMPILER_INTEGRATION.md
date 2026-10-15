@@ -223,10 +223,14 @@ The other dated compiler proofs in this document and in
 [Level Editor](LEVEL_EDITOR.md) ran stock ericw-tools 2.0.0-alpha8 and
 NetRadiant Custom q3map2, and the [MD3 instance appearance contract](#md3-instance-appearance-contract)
 was verified against NetRadiant Custom q3map2; those still need rerunning with
-VibeMap2 and VibeMap3, as do other platforms. The known-issue catalogue still lists ericw-tools issues
-that VibeMap2's `docs/upstream-audit.rst` records as resolved, for example
-#463 (isolated hub preview workspaces) and #483 (embedded light settings); it
-has not been re-audited against VibeMap2.
+VibeMap2 and VibeMap3, as do other platforms. On 2026-10-09 the known-issue
+catalogue and Quake map preflight were reconciled against the pinned VibeMap2
+3.1.0 audit and changelog: 15 resolved/inapplicable reports were retired,
+3 became informational guidance, and the other 107 were retained with reasons.
+The [reconciliation matrix](plans/ericw-tools-remaining-bugs-resolution.md)
+accounts for every original issue ID. This source review does not replace
+native compiler or visual acceptance; VibeStudio remains pre-alpha and largely
+untested in real projects.
 
 ## Integration Model
 1. Discover compiler availability from bundled builds, user paths, source-port toolchains, and project-local overrides.
@@ -266,16 +270,19 @@ Current implementation:
   service.
 - `src/core/compiler_known_issues.*` defines the high-value known issue
   catalog for the VibeMap2 profiles used by compiler plans. Its entries come
-  from the ericw-tools issue tracker and keep those upstream issue numbers; it
-  has not yet been re-audited against VibeMap2 (see [Status](#status)).
+  from the ericw-tools issue tracker and keep those upstream issue numbers.
+  Resolved/inapplicable reports are retired against the VibeMap2 3.1.0 audit
+  (see [Status](#status)); retained reports are not proof of a reproduced fork defect.
   Warnings are scoped by profile/tool, include the issue IDs and suggested
   local actions, and are also kept in the manifest `knownIssueWarnings` field.
 - `src/core/quake_map_preflight.*` performs conservative Quake `.map`
   preflight checks for VibeMap2 profiles. It reports path privacy, long
   values, escape sequences, external-map/prefab hazards, light-group conflicts,
   region risks, brush-entity origin keys, non-integer brush coordinates, Phong
-  risks, `_minlight`, `_sunlight2`, and per-entity `world_units_per_luxel`
-  warnings. Compiler plans and manifests keep these separately in
+  risks and `_sunlight2` sampling warnings. Fixed light-style, Half-Life
+  light-range, forced-luxel-scale and region culling/areaportal reports no
+  longer produce preflight warnings. Compiler plans and manifests keep these
+  separately in
   `preflightWarnings` while preserving the combined warning list.
 - `src/core/compiler_runner.*` executes compiler profiles through `QProcess`,
   streams stdout/stderr line by line while the process runs, parses diagnostics
@@ -591,25 +598,32 @@ Compiler wrappers should emit:
 - Re-run recipe.
 
 ## VibeMap2 Known-Issue Mitigation Model
-The known-issue catalogue began as an audit of open ericw-tools issues, made
-while VibeStudio wrapped stock ericw-tools, and it keeps those upstream issue
-numbers. VibeMap2 inherits the issues unless its own `docs/upstream-audit.rst`
-records them as fixed. The catalogue has not been re-audited against VibeMap2
-yet, so some entries (for example #463 and #483) still warn about problems that
-VibeMap2 reports as resolved. High-value and remaining-pass issues are handled
-through wrapper behavior, preflight map validation, manifest provenance,
-artifact gates where local services can inspect the output, and known-issue
-diagnostics. When a behavior requires compiler internals or output changes, the
-fix now belongs in VibeMap2; until it lands there, VibeStudio should identify
-the risk and recommend a known-good compiler version or workflow.
+The catalogue keeps ericw-tools issue numbers for traceability, but its current
+baseline is VibeMap2 3.1.0 at `4495049a9e4c1f6deadae3a76b8256614840af35`.
+The [2026-10-09 reconciliation](plans/ericw-tools-remaining-bugs-resolution.md)
+records evidence and a disposition for all 125 original IDs. It retires fixed
+reports, including Hub workspace isolation (#463), embedded light settings
+(#167/#483), style preservation (#173/#475), bounce debug (#400/#416),
+saturation (#401), region culling/areaportals (#422/#444), GoldSrc sun/spot
+support (#437), texture lookup (#451), Half-Life light ranges (#470), forced
+luxel scale (#485), and the inapplicable generic-binary warning (#335).
 
-The full remaining-pass acceptance matrix is maintained in
-`docs/plans/ericw-tools-remaining-bugs-resolution.md`. That document groups
-issue IDs by VibeStudio-owned status rather than duplicating the upstream audit
-rows: implemented catalog warnings, implemented map preflight warnings,
-registry/helper readiness, artifact validation, and upstream-only tracked
-limitations. If a source/test lane has only targeted a mitigation in the
-current Ralph pass, docs should say so until the code exists.
+Platform constraints (#480/#482) and partially resolved lightgrid optimisation
+(#425) are informational help-only notes. The sampling guidance for #484 and
+the design decisions for #456/#464 remain explicit. Other retained reports
+have insufficient issue-specific fix evidence; they are conservative risks
+or authoring/integration guidance, not confirmed VibeMap2 defects. General
+compiler hardening does not establish every historical map-specific case fixed.
+
+Coverage tests require each original ID to be retained or explicitly retired,
+with no duplicates or overlap. Plan and preflight tests check that fixed cases
+stay quiet and unresolved inputs still warn. Actual compiler diagnostics and
+artifact validation remain independent of catalogue matching. GUI, CLI,
+manifests, prepared builds and package review share those services.
+
+The catalogue is source-baseline-aware, not dynamically version-gated. A
+user-selected older/custom executable does not automatically restore historical
+warnings. Native compiler/version acceptance remains a separate task.
 
 Wrapper and preflight mitigations VibeStudio owns in the current implementation:
 - Run compiler processes with isolated temporary directories and register only
@@ -619,31 +633,35 @@ Wrapper and preflight mitigations VibeStudio owns in the current implementation:
   native launch and OpenGL/Qt behavior stay with VibeMap2 until VibeStudio adds
   a smoke-tested preview workflow.
 - Generate command manifests with resolved executable path, command line,
-  inputs, outputs, hashes, warnings, and diagnostics, mitigating provenance
-  gaps from #167 and #483 even when BSP/BSPX metadata is unavailable. Registry
-  version/help probes remain discovery data rather than manifest fields.
+  inputs, outputs, hashes, warnings, and diagnostics. VibeMap2 3.1.0 also offers
+  opt-in `-embedsettings` for a path-sanitised effective lighting manifest in
+  `LIGHTING_SETTINGS`; VibeStudio does not enable it automatically. Wrapper
+  manifests remain useful for the whole pipeline and non-BSP-writing modes.
+  Registry version/help probes remain discovery data rather than manifest fields.
 - Sanitize or warn about absolute WAD paths, long entity values, escape
   sequences, dotted filenames, and hardcoded asset roots before invoking the
   compiler, covering the wrapper side of #87, #201, #230, #245, #288, #293,
-  #450, and #451.
-- Validate light entities for grouped/toggled light style conflicts, mismatched
-  `START_OFF` flags, ambiguous `_minlight` scale, risky Phong/bmodel settings,
-  and unsupported sun/surface-light combinations, covering the product-facing
-  side of #122, #173, #310, #351, #377, #405, #470, and #475.
+  #450.
+- Validate light entities for mismatched `START_OFF` flags, risky Phong/bmodel
+  settings and unsupported sun/surface-light combinations, covering the
+  product-facing side of #122, #310, #351, #377 and #405. Authored switchable
+  styles are preserved as `oldstyle` in VibeMap2; the generated runtime style
+  is not guaranteed to equal the authored value.
 - Detect risky region and prefab compile setups, including multiple region
-  brushes, region brushes with areaportals or origin brushes, external-map
+  brushes, rotating origin brushes in region builds, external-map
   missing classnames, grouped external maps, and map-relative path ambiguity,
-  covering #193, #194, #199, #207, #231, #327, #333, #390, #417, #422, and
-  #444 as diagnostics or workflow constraints.
+  covering #193, #194, #199, #207, #231, #327, #333, #390 and #417 as
+  diagnostics or workflow constraints.
 - Catalog helper-tool risks for `bspinfo` and `bsputil`, expose first-class
   helper descriptors, and smoke-test the core registry path so packaging,
-  binary-name, argument-parsing, and dependency issues can become clear setup
+  argument-parsing and dependency constraints can become clear setup
   diagnostics. Runnable wrapper profiles now exist for `bspinfo` and for
   `bsputil --check`, `--extract-entities`, and `--extract-textures`. The
   sub-command is emitted as argument 0, ahead of any caller extras, because
   `bsputil` parses its options before the single positional BSP path; that keeps
-  VibeStudio's own command shape stable but does not resolve the
-  argument-parsing risk inherited from ericw-tools and tracked as #435.
+  VibeStudio's own command shape stable. The historical #435 argument-parsing
+  report remains unverified because the fork audit does not explicitly resolve
+  that operation; it is not presented as a reproduced VibeMap2 failure.
   Registry discovery itself is still presence and help/version output only, and
   operation-level `bspinfo`/`bsputil` probes remain without smoke-test coverage.
 
@@ -662,8 +680,8 @@ Compiler-side items the wrapper should not claim to resolve:
   lump generation bugs, VIS behavior changes, corrupt BSP output, and geometry
   compile bugs. VibeStudio can flag known affected versions and maintain
   regression fixtures, but fixes belong in VibeMap2.
-- New compiler features such as `world_units_per_luxel` command overrides,
-  `func_viscluster`, `func_detail_null`, embedded lightmaps, custom hull sizes,
+- Remaining compiler feature requests such as `func_viscluster`,
+  `func_detail_null`, embedded lightmaps, custom hull sizes,
   conditional entities, model shadow casting, translucent lighting, and new
   image-format support. VibeStudio can expose options once VibeMap2 releases
   and documents them.

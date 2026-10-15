@@ -48,4 +48,31 @@ bool moveLevelBrushComponents(LevelMapBrush *brush, LevelBrushComponent kind, co
 // comments and primitive dialect belong to the document and are retained.
 bool replaceLevelMapBrushGeometry(LevelMapDocument *document, int brushId, const LevelMapBrush &replacement, QString *error = nullptr);
 
+// Components of one brush (ids as levelBrushTopology() numbers them for
+// `kind`) or control points of one patch (row * width + column), for moving
+// the parts of several objects as one edit, as the 2D views' vertex editing
+// does.
+struct LevelMapComponentSet {
+	LevelMapSelectionRef object;
+	LevelBrushComponent kind = LevelBrushComponent::Vertex;
+	QVector<int> components;
+};
+struct LevelMapComponentReport {
+	int brushes = 0;
+	int patches = 0;
+	int collapsedVertices = 0;
+};
+// Moves every set by `delta` as one undo step, rebuilding each brush's
+// convex hull as moveLevelBrushComponents() does. All or nothing: a brush or
+// patch that cannot take the move leaves the map as it was, named in `error`.
+bool moveLevelMapComponents(LevelMapDocument *document, const QVector<LevelMapComponentSet> &sets, const LevelMapVec3 &delta,
+							bool allowCollapse, LevelMapComponentReport *report = nullptr, QString *error = nullptr);
+// Rounds every vertex of the brushes onto the grid and rebuilds them, as
+// TrenchBroom's Snap Vertices does, to clean up brushes left off the grid
+// by rotation, shear or other editors; one undo step. A brush the snap would
+// collapse, or that cannot be rewritten in place, is left as it was with its
+// reason in `skipped`.
+bool snapLevelMapBrushVertices(LevelMapDocument *document, const QVector<int> &brushIds, double grid, int *snapped = nullptr,
+							   QStringList *skipped = nullptr, QString *error = nullptr);
+
 } // namespace vibestudio

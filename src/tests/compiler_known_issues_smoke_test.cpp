@@ -144,40 +144,60 @@ int main()
 		QStringLiteral("77"),
 	};
 
+	// Keep the original 125-ID audit as a closed partition: every report is either
+	// retained or explicitly retired against the VibeMap2 3.1.0 audit/changelog.
+	// The reasons and pinned source links live in the remaining-bugs resolution matrix.
+	const QStringList retiredIssueIds = {
+		QStringLiteral("167"), // Effective settings/version manifest: same fix as #483.
+		QStringLiteral("173"), // Authored style preserved as oldstyle: same fix as #475.
+		QStringLiteral("335"), // Both vibemap2-* and pre-rename vmt-* names are prefixed.
+		QStringLiteral("400"), // Bounce debug repair: same fix as #416.
+		QStringLiteral("401"), // Saturation preserves brightness.
+		QStringLiteral("416"), // Bounce debug modes repaired.
+		QStringLiteral("422"), // Region brush-entity culling repaired.
+		QStringLiteral("437"), // GoldSrc sun/spot entities supported; not blanket format parity.
+		QStringLiteral("444"), // Region areaportals preserved.
+		QStringLiteral("451"), // Prefix-free texture layouts supported.
+		QStringLiteral("463"), // Hub preview uses owned temporary workspaces.
+		QStringLiteral("470"), // Half-Life min/max light scale restored.
+		QStringLiteral("475"), // Authored switchable-light style preserved as oldstyle.
+		QStringLiteral("483"), // Opt-in -embedsettings LIGHTING_SETTINGS manifest.
+		QStringLiteral("485"), // -force_world_units_per_luxel supported.
+	};
 	const QStringList knownIssueIds = vibestudio::compilerKnownIssueIds();
-	if (issues.size() < auditIssueIds.size() || knownIssueIds.size() < auditIssueIds.size()) {
-		return fail("Expected known-issue catalog coverage for every audited open ericw-tools issue.");
+	if (issues.size() + retiredIssueIds.size() != auditIssueIds.size()) {
+		return fail("Expected every audited issue to be retained or explicitly retired, with no unreviewed additions.");
 	}
-	QStringList deduplicatedIssueIds = knownIssueIds;
-	deduplicatedIssueIds.removeDuplicates();
-	if (deduplicatedIssueIds.size() != knownIssueIds.size()) {
-		return fail("Expected known-issue catalog IDs to be unique.");
+	QStringList accountedIssueIds = knownIssueIds + retiredIssueIds;
+	accountedIssueIds.removeDuplicates();
+	if (accountedIssueIds.size() != auditIssueIds.size()) {
+		return fail("Expected unique, disjoint retained and retired issue IDs.");
 	}
 	for (const QString& issueId : auditIssueIds) {
-		if (!knownIssueIds.contains(issueId)) {
-			return fail("Expected every audited open ericw-tools issue ID to be cataloged.");
+		if (!accountedIssueIds.contains(issueId)) {
+			return fail("Expected an explicit VibeMap2 disposition for every original ericw-tools audit ID.");
 		}
 	}
-	if (!knownIssueIds.contains(QStringLiteral("483"))) {
-		return fail("Expected provenance issue #483.");
+	for (const QString& issueId : retiredIssueIds) {
+		if (vibestudio::compilerKnownIssueForId(issueId)) {
+			return fail("A fixed or inapplicable upstream issue must not re-enter the active catalogue.");
+		}
+	}
+	for (const QString& issueId : {QStringLiteral("425"), QStringLiteral("480"), QStringLiteral("482")}) {
+		vibestudio::CompilerKnownIssueDescriptor note;
+		if (!vibestudio::compilerKnownIssueForId(issueId, &note)
+			|| note.severity != vibestudio::CompilerKnownIssueSeverity::Info || note.highValue || !note.matchKeywords.isEmpty()) {
+			return fail("Expected partial optimisation and platform constraints to remain informational help-only notes.");
+		}
 	}
 
 	const QStringList highIssueIds = {
-		QStringLiteral("485"),
 		QStringLiteral("484"),
-		QStringLiteral("483"),
-		QStringLiteral("482"),
-		QStringLiteral("475"),
-		QStringLiteral("470"),
-		QStringLiteral("463"),
 		QStringLiteral("456"),
-		QStringLiteral("451"),
 		QStringLiteral("450"),
-		QStringLiteral("444"),
 		QStringLiteral("441"),
 		QStringLiteral("439"),
 		QStringLiteral("435"),
-		QStringLiteral("422"),
 		QStringLiteral("417"),
 		QStringLiteral("405"),
 		QStringLiteral("399"),
@@ -209,8 +229,6 @@ int main()
 		QStringLiteral("199"),
 		QStringLiteral("194"),
 		QStringLiteral("192"),
-		QStringLiteral("173"),
-		QStringLiteral("167"),
 		QStringLiteral("135"),
 		QStringLiteral("122"),
 		QStringLiteral("114"),
@@ -224,8 +242,8 @@ int main()
 	}
 
 	vibestudio::CompilerKnownIssueDescriptor issue;
-	if (!vibestudio::compilerKnownIssueForId(QStringLiteral("#475"), &issue) || issue.clusterId != QStringLiteral("D02") || !issue.highValue) {
-		return fail("Expected #475 to resolve as a high-value D02 issue.");
+	if (!vibestudio::compilerKnownIssueForId(QStringLiteral("#122"), &issue) || issue.clusterId != QStringLiteral("D02") || !issue.highValue) {
+		return fail("Expected the unresolved START_OFF issue #122 to remain high-value in D02.");
 	}
 	if (issue.warningText.isEmpty() || issue.actionText.isEmpty() || issue.matchKeywords.isEmpty()) {
 		return fail("Expected issue warning, action, and match keywords.");
@@ -313,8 +331,20 @@ int main()
 	}
 
 	const QString text = vibestudio::compilerKnownIssueText(issue);
-	if (!text.contains(QStringLiteral("D02")) || !text.contains(QStringLiteral("https://github.com/ericwa/ericw-tools/issues/475"))) {
+	if (!text.contains(QStringLiteral("D02")) || !text.contains(QStringLiteral("https://github.com/ericwa/ericw-tools/issues/122"))) {
 		return fail("Expected formatted known-issue text to include cluster and upstream URL.");
+	}
+
+	// Supported VibeMap2 lighting switches no longer raise historical feature warnings.
+	if (!vibestudio::vibemap2KnownIssuePlanWarnings(QStringLiteral("vibemap2-light"),
+			QStringLiteral("maps/start.bsp"), {QStringLiteral("-embedsettings"),
+				QStringLiteral("-world_units_per_luxel"), QStringLiteral("32"),
+				QStringLiteral("-force_world_units_per_luxel"), QStringLiteral("-bouncedebug")}).isEmpty()) {
+		return fail("Expected supported VibeMap2 3.1.0 lighting switches to produce no known-issue plan warnings.");
+	}
+	if (!vibestudio::matchCompilerKnownIssues(QStringLiteral("temporary directory overwrite Wayland"),
+			QStringLiteral("vibemap2-hub"), QStringLiteral("vibemap2-hub")).isEmpty()) {
+		return fail("Expected isolated Hub previews and platform guidance not to match compiler diagnostics.");
 	}
 
 	const QStringList lightWarnings = vibestudio::vibemap2KnownIssuePlanWarnings(

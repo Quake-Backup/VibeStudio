@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore VibeStudio: an open-source development studio for classic idTech games. A visual tour of levels, models, textures, audio, packages and builds.">
+  <meta name="color-scheme" content="light">
+  <title>VibeStudio — Build your next classic</title>
+  <link rel="icon" href="../../assets/branding/web/favicon-32.png">
+  <style>
+    @font-face { font-family: Manrope; font-style: normal; font-weight: 600; font-display: swap; src: url('../../assets/branding/web/fonts/manrope-600.woff2') format('woff2'); }
+    @font-face { font-family: Manrope; font-style: normal; font-weight: 800; font-display: swap; src: url('../../assets/branding/web/fonts/manrope-800.woff2') format('woff2'); }
+    :root { --orange: #e8841a; --burnt: #b35900; --ink: #242424; --muted: #62625d; --snow: #f4f4f2; --line: #deded8; --peach: #fde6cc; --paper: #fff; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 30px; }
+    body { margin: 0; color: var(--ink); background: var(--paper); font: 16px/1.65 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    body.viewer-open { overflow: hidden; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; cursor: pointer; }
+    a { color: inherit; text-underline-offset: .22em; }
+    a:hover { color: var(--burnt); }
+    :focus-visible { outline: 3px solid var(--burnt); outline-offset: 5px; }
+    img { display: block; max-width: 100%; height: auto; }
+    figure, p, h1, h2, h3 { margin: 0; }
+    h1, h2, h3, .eyebrow, .button, .filter, .number, .stat strong { font-family: Manrope, system-ui, sans-serif; }
+    h1, h2, h3 { font-weight: 800; }
+    h1 { font-size: clamp(3.4rem, 7.2vw, 6.8rem); line-height: 1.03; letter-spacing: -.065em; }
+    h2 { font-size: clamp(2.1rem, 4vw, 3.65rem); line-height: 1.12; letter-spacing: -.045em; }
+    h3 { font-size: 1.15rem; line-height: 1.4; letter-spacing: -.025em; }
+    .wrap { width: min(1264px, calc(100% - 112px)); margin-inline: auto; }
+    .skip { position: absolute; top: -100px; left: 20px; z-index: 5; padding: 12px 20px; background: white; }
+    .skip:focus { top: 12px; }
+    header { display: flex; align-items: center; justify-content: space-between; min-height: 106px; border-bottom: 1px solid var(--line); gap: 24px; }
+    .brand { flex: 0 0 auto; }
+    .brand img { width: 190px; }
+    nav { display: flex; align-items: center; gap: 30px; font-size: .85rem; font-weight: 600; }
+    nav a { text-decoration: none; padding: 8px 0; }
+    nav .source-link { border: 1px solid var(--line); padding: 8px 14px; }
+    .eyebrow { display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: .14em; font-size: .7rem; font-weight: 800; }
+    .eyebrow::before { content: ''; width: 7px; height: 7px; background: var(--orange); flex-shrink: 0; }
+    .hero { padding-top: 66px; }
+    .hero-top { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .edition { color: var(--muted); font-size: .75rem; font-variant-numeric: tabular-nums; }
+    .hero-copy { display: grid; grid-template-columns: 1.65fr 1fr; align-items: end; gap: 60px; margin: 30px 0 44px; }
+    .hero-copy h1 span { color: var(--burnt); }
+    .intro { max-width: 390px; padding-bottom: 4px; }
+    .intro p { font-size: 1.08rem; color: #50504c; line-height: 1.7; }
+    .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 24px; }
+    .button { display: inline-flex; justify-content: center; align-items: center; gap: 20px; min-height: 48px; padding: 12px 22px; background: var(--orange); color: var(--ink); text-decoration: none; font-weight: 800; font-size: .85rem; border: 1px solid transparent; }
+    .button:hover { background: var(--peach); color: var(--ink); }
+    .quiet-link { font-size: .85rem; font-weight: 600; }
+    .hero-image { position: relative; padding: 30px 30px 0; background: var(--snow); border-top: 4px solid var(--orange); }
+    .hero-image > a { display: block; }
+    .hero-image img { width: 100%; box-shadow: 0 8px 24px #24242415; }
+    .hero-image figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 17px 0 19px; font-size: .75rem; color: var(--muted); }
+    .hero-image figcaption strong { color: var(--ink); font-weight: 600; }
+    .enlarge { white-space: nowrap; color: var(--burnt); }
+    .specs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--line); padding: 27px 0; }
+    .stat { padding: 0 28px; border-left: 1px solid var(--line); }
+    .stat:first-child { padding-left: 0; border: 0; }
+    .stat strong { display: block; font-size: .96rem; font-weight: 800; }
+    .stat span { font-size: .75rem; color: var(--muted); }
+    .section { padding: 92px 0; }
+    .section-heading { display: grid; grid-template-columns: 1.35fr 1fr; gap: 70px; align-items: end; margin-bottom: 34px; }
+    .section-heading .eyebrow { margin-bottom: 17px; }
+    .section-heading > p { color: var(--muted); max-width: 465px; font-size: .96rem; }
+    .section-heading > p a { color: var(--burnt); }
+    .gallery-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; padding: 12px 0 24px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 7px; }
+    .filter { border: 1px solid var(--line); background: white; padding: 9px 15px; min-height: 44px; font-size: .78rem; font-weight: 600; color: var(--ink); }
+    .filter[aria-pressed="true"] { background: var(--ink); color: white; border-color: var(--ink); }
+    .filter:hover { border-color: var(--burnt); }
+    .gallery-count { color: var(--muted); font-size: .75rem; }
+    .gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 24px; }
+    .shot { min-width: 0; }
+    .shot-link { position: relative; display: block; background: #242424; border: 1px solid #242424; aspect-ratio: 1.6; overflow: hidden; }
+    .shot-link img { width: 100%; height: 100%; object-fit: contain; }
+    .shot-link::after { content: '↗'; position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 32px; height: 32px; background: white; color: var(--ink); border: 1px solid var(--line); font-size: 1rem; transition: background .15s; }
+    .shot-link:hover::after { background: var(--orange); border-color: var(--orange); }
+    .shot figcaption { padding-top: 15px; }
+    .shot-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 7px; }
+    .number { color: var(--burnt); font-weight: 600; font-size: .7rem; }
+    .shot h3 { font-size: 1rem; }
+    .shot p { color: var(--muted); font-size: .81rem; line-height: 1.6; }
+    .gallery-note { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: .74rem; max-width: 880px; }
+    .workflow { background: var(--snow); border-block: 1px solid var(--line); }
+    .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 34px; margin-top: 48px; }
+    .step { border-top: 2px solid var(--orange); padding-top: 18px; }
+    .step .number { display: block; margin-bottom: 20px; }
+    .step h3 { margin-bottom: 10px; }
+    .step p { font-size: .87rem; color: var(--muted); }
+    .workflow-foot { margin-top: 35px; font-size: .8rem; color: var(--muted); }
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 74px; }
+    .choices .eyebrow { margin-bottom: 18px; }
+    .choices h2 { font-size: clamp(2rem, 3.3vw, 3rem); }
+    .choices p { margin-top: 20px; color: var(--muted); }
+    .choices-list { margin: 0; padding: 0; list-style: none; }
+    .choices-list li { padding: 18px 0; border-bottom: 1px solid var(--line); }
+    .choices-list li:first-child { padding-top: 0; }
+    .choices-list strong { font-family: Manrope, system-ui, sans-serif; font-weight: 800; }
+    .choices-list span { display: block; color: var(--muted); font-size: .86rem; margin-top: 5px; }
+    .status { border-top: 1px solid var(--line); }
+    .status .section-heading { margin-bottom: 30px; }
+    .status-note { padding: 20px 24px; background: var(--peach); border-left: 3px solid var(--orange); margin-bottom: 30px; font-size: .9rem; }
+    .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .status-grid article { padding: 4px 0; }
+    .badge { display: inline-block; font: 800 .72rem Manrope, system-ui, sans-serif; border: 1px solid var(--line); padding: 6px 10px; margin-bottom: 14px; }
+    .badge.partial { background: var(--peach); border-color: #deb88e; }
+    .status-grid p { font-size: .85rem; color: var(--muted); }
+    .status-grid strong { color: var(--ink); }
+    .end { position: relative; background: var(--orange); padding: 62px; display: flex; justify-content: space-between; align-items: center; gap: 40px; overflow: hidden; }
+    .end h2 { max-width: 650px; }
+    .end p { margin-top: 13px; font-size: .93rem; max-width: 650px; }
+    .end .button { background: white; white-space: nowrap; }
+    .end .button:hover { background: var(--peach); }
+    footer { display: flex; gap: 35px; justify-content: space-between; align-items: start; padding-block: 35px; font-size: .73rem; color: var(--muted); }
+    footer .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+    footer p { max-width: 650px; }
+    details { margin-top: 8px; }
+    summary { cursor: pointer; }
+    details p { padding-block: 12px; }
+    .licence { white-space: pre-wrap; font: .72rem/1.55 ui-monospace, Consolas, monospace; max-width: 780px; }
+    dialog { border: 1px solid #666; padding: 0; width: min(1600px, calc(100vw - 40px)); max-height: calc(100dvh - 40px); background: #242424; color: white; }
+    dialog::backdrop { background: #101010e8; }
+    .viewer-bar { display: flex; align-items: center; gap: 20px; justify-content: space-between; padding: 16px 22px; border-bottom: 1px solid #4b4b4b; }
+    .viewer-bar h2 { font-size: 1.1rem; letter-spacing: -.02em; }
+    .viewer-close, .viewer-nav button { color: white; background: transparent; border: 1px solid #888; min-height: 44px; padding: 7px 15px; font-size: .85rem; }
+    .viewer-close:hover, .viewer-nav button:hover { background: #494949; }
+    dialog :focus-visible { outline-color: #f7a040; }
+    .viewer-image { margin: 0 auto; width: 100%; max-height: calc(100dvh - 235px); object-fit: contain; background: #181818; }
+    .viewer-bottom { padding: 17px 22px; display: flex; gap: 30px; align-items: center; justify-content: space-between; }
+    .viewer-bottom p { font-size: .84rem; max-width: 1000px; color: #e2e2e2; }
+    .viewer-nav { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .viewer-position { font-size: .75rem; min-width: 45px; text-align: center; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+    [hidden] { display: none !important; }
+    @media (min-width: 1500px) { .hero-copy { gap: 90px; } }
+    @media (max-width: 1050px) {
+      .wrap { width: calc(100% - 64px); }
+      .hero-copy { gap: 35px; grid-template-columns: 1.35fr 1fr; }
+      h1 { font-size: 5.1rem; }
+      nav { gap: 20px; }
+      nav .source-link { display: none; }
+      .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .section-heading { gap: 35px; }
+      .choices { gap: 45px; }
+      .end { padding: 42px; flex-wrap: wrap; }
+      .steps { gap: 23px; }
+      .stat { padding-inline: 16px; }
+    }
+    @media (max-width: 720px) {
+      .wrap { width: calc(100% - 40px); }
+      header { min-height: 90px; flex-wrap: wrap; padding-block: 20px; gap: 17px; }
+      .brand img { width: 160px; }
+      nav { width: 100%; justify-content: space-between; gap: 12px; font-size: .8rem; }
+      .hero { padding-top: 35px; }
+      .hero-copy { display: block; margin-top: 22px; }
+      h1 { font-size: clamp(3.5rem, 12vw, 5.3rem); }
+      .intro { margin-top: 25px; max-width: 520px; }
+      .intro p { font-size: 1rem; }
+      .hero-image { padding: 10px 10px 0; }
+      .hero-image figcaption { display: block; font-size: .69rem; padding: 12px 2px; }
+      .hero-image .enlarge { display: none; }
+      .specs { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+      .stat { padding-inline: 14px 0; }
+      .stat:nth-child(3) { border: 0; padding-left: 0; }
+      .section { padding-block: 56px; }
+      .section-heading, .choices { grid-template-columns: 1fr; gap: 22px; }
+      .section-heading > p { max-width: none; }
+      .gallery { gap: 30px 18px; }
+      .shot-head { gap: 8px; }
+      .shot h3 { font-size: .93rem; }
+      .steps { grid-template-columns: repeat(2, 1fr); gap: 30px; margin-top: 30px; }
+      .status-grid { grid-template-columns: 1fr; gap: 22px; }
+      .end { padding: 34px 25px; gap: 24px; }
+      footer { flex-direction: column; gap: 18px; }
+      .viewer-bottom { flex-direction: column; align-items: start; gap: 12px; }
+      .viewer-image { max-height: calc(100dvh - 310px); }
+      .viewer-bar { padding: 12px; }
+      .viewer-bar h2 { font-size: .95rem; }
+    }
+    @media (max-width: 480px) {
+      .gallery { grid-template-columns: 1fr; }
+      .edition { display: none; }
+      .filter { padding: 8px 11px; }
+      .hero-actions { gap: 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; } }
+    @media (forced-colors: active) {
+      .button, .filter, .badge, .shot-link, .status-note { border: 1px solid CanvasText; }
+      .filter[aria-pressed="true"] { border: 3px solid Highlight; }
+      .eyebrow::before { background: CanvasText; }
+    }
+    @media print {
+      @page { size: A4; margin: 15mm; }
+      html { scroll-behavior: auto; }
+      body { font-size: 10pt; color: black; }
+      .wrap { width: 100%; }
+      nav, .hero-actions, .gallery-toolbar, .enlarge, dialog, .skip, .end .button, .footer-links { display: none !important; }
+      header { min-height: 50px; }
+      .hero { padding-top: 25px; }
+      .hero-copy { gap: 24px; margin-block: 20px; grid-template-columns: 1.5fr 1fr; }
+      h1 { font-size: 42pt; }
+      h2 { font-size: 25pt; }
+      .intro p { font-size: 10pt; }
+      .hero-image { padding: 8px 8px 0; }
+      .hero-image img { max-height: 120mm; object-fit: contain; box-shadow: none; }
+      .specs { padding-block: 15px; }
+      .section { padding-block: 26px; }
+      .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+      .gallery .shot[hidden] { display: block !important; }
+      .shot, .step, .status-grid article, .choices-list li, .status-note { break-inside: avoid; }
+      .shot-link::after { display: none; }
+      .section-heading { gap: 24px; margin-bottom: 20px; }
+      .end { padding: 25px; border: 1px solid #bbb; background: white; }
+      .end h2 { font-size: 24pt; }
+      footer { padding-block: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#overview">Skip to content</a>
+  <header class="wrap">
+    <a class="brand" href="#overview" aria-label="VibeStudio overview"><img src="../../assets/branding/logo/vibestudio-logo-on-light.svg" width="190" height="48" alt="VibeStudio"></a>
+    <nav aria-label="Main navigation">
+      <a href="#gallery">Screenshots</a><a href="#workflow">Workflow</a><a href="#status">Project status</a>
+      <a class="source-link" href="https://github.com/themuffinator/VibeStudio">Source code <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main id="overview">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-top"><p class="eyebrow">The all-in-one idTech development studio</p><p class="edition">A visual introduction · October 2026</p></div>
+      <div class="hero-copy">
+        <h1 id="hero-title">Build your<br>next <span>classic.</span></h1>
+        <div class="intro">
+          <p>Levels, models, textures, sound and code. Bring the pieces of your next Doom or Quake-family project together in one open-source studio.</p>
+          <div class="hero-actions"><a class="button" href="#gallery">Explore the studio <span aria-hidden="true">↓</span></a><a class="quiet-link" href="#status">Pre-alpha · in development</a></div>
+        </div>
+      </div>
+      <figure class="hero-image">
+        <a href="screenshots/four-views.png" data-view="four-views" aria-label="Enlarge the four-view level editor screenshot"><img src="screenshots/four-views.png" width="1700" height="1100" alt="VibeStudio level editor with a textured 3D camera, top, front and side views, a selected brush and its surface inspector." fetchpriority="high"></a>
+        <figcaption><span><strong>A place for the whole scene.</strong> Four connected views, one level document.</span><span class="enlarge">Explore the image ↗</span></figcaption>
+      </figure>
+      <div class="specs" aria-label="At a glance">
+        <div class="stat"><strong>idTech 1, 2 &amp; 3</strong><span>Classic games at the centre</span></div>
+        <div class="stat"><strong>Windows · macOS · Linux</strong><span>A native Qt 6 studio</span></div>
+        <div class="stat"><strong>Open source</strong><span>GPL-3.0-or-later</span></div>
+        <div class="stat"><strong>AI is optional</strong><span>Off by default</span></div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="gallery" aria-labelledby="gallery-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">01 / Look inside</p><h2 id="gallery-title">One studio.<br>Many ways to create.</h2></div>
+        <p>Follow a map from its first brush to its build pipeline, or look closer at the tools for individual assets. Select any screenshot to explore it at a larger size.</p>
+      </div>
+      <div class="gallery-toolbar" hidden id="gallery-toolbar">
+        <div class="filters" role="group" aria-label="Filter screenshots">
+          <button class="filter" type="button" data-filter="all" aria-pressed="true" aria-controls="screenshots">All views</button>
+          <button class="filter" type="button" data-filter="authoring" aria-pressed="false" aria-controls="screenshots">Authoring</button>
+          <button class="filter" type="button" data-filter="project" aria-pressed="false" aria-controls="screenshots">Project &amp; build</button>
+          <button class="filter" type="button" data-filter="personal" aria-pressed="false" aria-controls="screenshots">Make it yours</button>
+        </div>
+        <p class="gallery-count" aria-live="polite" aria-atomic="true" id="gallery-count">12 development captures</p>
+      </div>
+      <div class="gallery" id="screenshots">
+        <figure class="shot" data-category="authoring" id="shot-levels">
+          <a class="shot-link" href="screenshots/levels.png" data-view="levels" aria-label="Enlarge: shape a level"><img src="screenshots/levels.png" width="1600" height="1000" loading="lazy" decoding="async" alt="Quake III sample map in the 2D level editor, with the player entity selected and its properties visible."></a>
+          <figcaption><div class="shot-head"><span class="number">01</span><h3>Shape a level</h3></div><p>A Quake III sample map, grid snapping, entity properties and a clear view of the scene.</p></figcaption>
+        </figure>
+        <figure class="shot" data-category="authoring" id="shot-four-views">
+          <a class="shot-link" href="screenshots/four-views.png" data-view="four-views" aria-label="Enlarge: see every angle"><img src="screenshots/four-views.png" width="1700" height="1100" loading="lazy" decoding="async" alt="Four-view level editing layout with a checker-textured test scene and selected brush."></a>
+          <figcaption><div class="shot-head"><span class="number">02</span><h3>See every angle</h3></div><p>A textured camera beside three orthographic views. Familiar layouts keep spatial work in context.</p></figcaption>
+        </figure>
+        <figure class="shot" data-category="authoring" id="shot-props">
+          <a class="shot-link" href="screenshots/props.png" data-view="props" aria-label="Enlarge: design a prop"><img src="screenshots/props.png" width="1220" height="800" loading="lazy" decoding="async" alt="Prop designer showing a box and cylinder assembly with part dimensions, position and rotation controls."></a>
+          <figcaption><div class="shot-head"><span class="number">03</span><h3>Design a prop</h3></div><p>Combine simple parts, inspect their surfaces, and hand the result to packages and level placement.</p></figcaption>
+        </figure>
+        <figure class="shot" data-category="authoring" id="shot-textures">
+          <a class="shot-link" href="screenshots/textures.png" data-view="textures" aria-label="Enlarge: work at pixel scale"><img src="screenshots/textures.png" width="1180" height="800" loading="lazy" decoding="async" alt="Texture editor with a repeated test tile, pixel grid, pencil controls and export actions."></a>
+          <figcaption><div class="shot-head"><span class="number">04</span><h3>Work at pixel scale</h3></div><p>Paint with a pixel grid, inspect a repeating tile, and stage an export for the project.</p></figcaption>
+        </figure>
+        <figure class="shot" data-category="authoring" id="shot-audio">
+          <a class="shot-link" href="screenshots/audio.png" data-view="audio" aria-label="Enlarge: give the world a sound"><img src="screenshots/audio.png" width="980" height="760" loading="lazy" decoding="async" alt="Audio editor showing a stereo test waveform, selection, fade and effects tools, and a package handoff."></a>
+          <figcaption><div class="shot-head"><span class="number">05</span><h3>Give the world a sound</h3></div><p>Inspect a stereo waveform, trim and fade a selection, then stage a WAV in its asset path.</p></figcaption>
+        </figure>
+        <figure class="shot" data-category="authoring" id="shot-arrangement">
+          <a class="shot-link" href="screenshots/arrangement.png" data-view="arrangement" aria-label="Enlarge: arrange across tracks"><img src="screenshots/arrangement.png" width="1100" height="326" loading="lazy" decoding="async" alt="Multitrack timeline component showing three tracks, selected waveform clips and a vertical playhead."></a>
+          <figcaption><div class="shot-head"><span class="number">06</span><h3>Arrange across tracks</h3></div><p>A close view of the multitrack timeline, with clip selections, waveforms and a shared time ruler.</p></figcaption>
+        </figure>
+        <figure class="shot" data-category="project" id="shot-packages">
+          <a class="shot-link" href="screenshots/packages.png" data-view="packages" aria-label="Enlarge: inspect what ships"><img src="screenshots/packages.png" width="1440" height="900" loading="lazy" decoding="async" alt="Package browser listing generated sample assets, with a sound selected and its metadata in the inspector."></a>
+          <figcaption><div class="shot-head"><span class="number">07</span><h3>Inspect what ships</h3></div><p>Browse assets and their metadata, review staged changes, and save a new package.</p></figcaption>
+        </figure>
+        <figure class="shot" data-category="project" id="shot-code">
+          <a class="shot-link" href="screenshots/code.png" data-view="code" aria-label="Enlarge: keep scripts close"><img src="screenshots/code.png" width="1440" height="900" loading="lazy" decoding="async" alt="Code page with a small QuakeC test function, project files, a breadcrumb and diagnostics tabs."></a>
+          <figcaption><div class="shot-head"><span class="number">08</span><h3>Keep scripts close</h3></div><p>Edit QuakeC, configs and shader scripts with project files and diagnostics alongside the text.</p></figcaption>
+        </figure>
+        <figure class="shot" data-category="project" id="shot-build">
+          <a class="shot-link" href="screenshots/build.png" data-view="build" aria-label="Enlarge: follow the build"><img src="screenshots/build.png" width="1600" height="1000" loading="lazy" decoding="async" alt="Quake III build pipeline dry run, showing Source, BSP, VIS, LIGHT and Artifact stages with command details."></a>
+          <figcaption><div class="shot-head"><span class="number">09</span><h3>Follow the build</h3></div><p>A pipeline dry run exposes BSP, VIS and LIGHT stages, commands and warnings before compilation.</p></figcaption>
+        </figure>
+        <figure class="shot" data-category="project" id="shot-workspace">
+          <a class="shot-link" href="screenshots/workspace.png" data-view="workspace" aria-label="Enlarge: keep the project in view"><img src="screenshots/workspace.png" width="1600" height="1000" loading="lazy" decoding="async" alt="Workspace page showing project health, authoring areas, recent projects, game installation state and activity details."></a>
+          <figcaption><div class="shot-head"><span class="number">10</span><h3>Keep the project in view</h3></div><p>See project health, installations and recent activity, with detailed inspection a panel away.</p></figcaption>
+        </figure>
+        <figure class="shot" data-category="personal" id="shot-accessibility">
+          <a class="shot-link" href="screenshots/accessibility.png" data-view="accessibility" aria-label="Enlarge: make space for your needs"><img src="screenshots/accessibility.png" width="1600" height="1000" loading="lazy" decoding="async" alt="Accessibility settings for colour vision, reduced motion, screen-reader announcements and text to speech."></a>
+          <figcaption><div class="shot-head"><span class="number">11</span><h3>Make space for your needs</h3></div><p>Adjust motion, focus visibility, announcements and speech from the studio’s settings.</p></figcaption>
+        </figure>
+        <figure class="shot" data-category="personal" id="shot-commands">
+          <a class="shot-link" href="screenshots/commands.png" data-view="commands" aria-label="Enlarge: find the next action"><img src="screenshots/commands.png" width="1600" height="1000" loading="lazy" decoding="async" alt="Command palette over the workspace listing texture, model and audio tools, with keyboard navigation instructions."></a>
+          <figcaption><div class="shot-head"><span class="number">12</span><h3>Find the next action</h3></div><p>A searchable Command Palette connects the studio’s tools without leaving your project.</p></figcaption>
+        </figure>
+      </div>
+      <p class="gallery-note">These are unmodified development captures from several local builds, using sample projects and generated test assets. Some interface labels and layouts differ from the current build. The timeline is a component capture; the build image shows a dry run. Screenshots illustrate the tools, not production readiness.</p>
+    </section>
+
+    <section class="section workflow" id="workflow" aria-labelledby="workflow-title">
+      <div class="wrap">
+        <div class="section-heading"><div><p class="eyebrow">02 / Connect the work</p><h2 id="workflow-title">From an idea<br>to a playable build.</h2></div><p>Shared project context connects the authoring tools to dependency review, compilation, packaging and game launching. Each handoff keeps the next task visible.</p></div>
+        <div class="steps">
+          <article class="step"><span class="number">01 / AUTHOR</span><h3>Make the pieces</h3><p>Build a level, model a prop, paint a texture or edit a sound. Keep editable source assets with the project.</p></article>
+          <article class="step"><span class="number">02 / REVIEW</span><h3>Check the handoff</h3><p>Inspect dependencies and diagnostics. Review staged package changes before writing an output.</p></article>
+          <article class="step"><span class="number">03 / COMPILE</span><h3>Build with context</h3><p>Run external compiler pipelines with commands, progress, logs and artifacts in the studio.</p></article>
+          <article class="step"><span class="number">04 / TEST</span><h3>See it in the game</h3><p>Prepare the build, choose a configured installation and launch a test through the project’s workflow.</p></article>
+        </div>
+        <p class="workflow-foot">Integration is <strong>Partial</strong> and varies by engine and format. The <a href="https://github.com/themuffinator/VibeStudio/blob/main/docs/manual/build-and-launch.md">build and launch guide</a> describes the supported paths and their limits.</p>
+      </div>
+    </section>
+
+    <section class="section wrap choices" aria-labelledby="choices-title">
+      <div><p class="eyebrow">03 / Work your way</p><h2 id="choices-title">Keep the controls<br>that feel familiar.</h2><p>VibeStudio brings classic editing habits into a shared workspace. The same project services also power a documented command line for diagnostics, package operations and automation.</p></div>
+      <ul class="choices-list">
+        <li><strong>Choose an editor profile</strong><span>Profiles inspired by GtkRadiant, NetRadiant Custom, TrenchBroom and QuArK adapt keys, gestures, cameras and layouts. Behaviour parity is partial.</span></li>
+        <li><strong>Shape the interface around you</strong><span>High-visibility themes, scalable text, keyboard navigation and reduced motion are part of the studio. Accessibility testing remains incomplete.</span></li>
+        <li><strong>Use AI when you choose</strong><span>The optional assistant is off by default. Core editing, building, packaging and CLI work do not require cloud AI. Agentic workflows are planned.</span></li>
+      </ul>
+    </section>
+
+    <section class="section status wrap" id="status" aria-labelledby="status-title">
+      <div class="section-heading"><div><p class="eyebrow">04 / Know where it stands</p><h2 id="status-title">Explore an evolving studio.</h2></div><p>VibeStudio is <strong>pre-alpha and largely untested in real projects</strong>. Automated coverage is a starting point; it does not establish production readiness.</p></div>
+      <p class="status-note"><strong>Try it with copies of your work.</strong> Expect rough edges, missing pieces and bugs. Keep backups, and check the <a href="https://github.com/themuffinator/VibeStudio/blob/main/docs/manual/status.md">project status</a> before adopting a workflow.</p>
+      <div class="status-grid">
+        <article><span class="badge">Available</span><p><strong>Package operations and the CLI.</strong> Implemented and covered by automated tests, but not yet proven in real projects.</p></article>
+        <article><span class="badge partial">Partial</span><p><strong>Most authoring and integration workflows.</strong> Levels, models, textures, audio, materials, code, builds and accessibility work within documented limits. Linux audio playback and recording are unavailable.</p></article>
+        <article><span class="badge">Planned</span><p><strong>Further studio capabilities.</strong> Sprite animation editing and agentic AI workflows remain future work. Language registration does not mean completed translations.</p></article>
+      </div>
+    </section>
+
+    <section class="end wrap" aria-labelledby="next-title"><div><h2 id="next-title">Start with a small project.</h2><p>Explore the samples. Read the manual. Help shape what comes next.</p></div><a class="button" href="https://github.com/themuffinator/VibeStudio/blob/main/docs/manual/index.md">Open the manual <span aria-hidden="true">↗</span></a></section>
+  </main>
+  <footer class="wrap">
+    <div><p>VibeStudio · The all-in-one idTech development studio.<br>Doom, Quake and the id Tech engines belong to their respective owners.</p>
+      <details><summary>About this document and credits</summary><p>Prepared from the VibeStudio repository’s manual, status and branding records in October 2026. Product details may change. Captures retain the application’s original content, including test warnings and temporary project paths. See the <a href="https://github.com/themuffinator/VibeStudio/blob/main/docs/CREDITS.md">project credits</a> for the studio’s upstream foundations, including PakFu and community editors.</p><p>Manrope © 2019 The Manrope Project Authors, used under the SIL Open Font License 1.1. Branding and captures are existing VibeStudio repository assets. This document introduces no external code or visual assets.</p><details><summary>Manrope font licence</summary><pre class="licence" id="font-licence">See assets/branding/fonts/OFL.txt in the repository. The single-file export includes the full licence here.</pre></details></details>
+    </div>
+    <div class="footer-links"><a href="https://github.com/themuffinator/VibeStudio">GitHub ↗</a><a href="https://github.com/themuffinator/VibeStudio/releases">Releases ↗</a><a href="#overview">Back to top ↑</a></div>
+  </footer>
+
+  <dialog id="viewer" aria-labelledby="viewer-title" aria-describedby="viewer-description">
+    <div class="viewer-bar"><h2 id="viewer-title">Screenshot</h2><button class="viewer-close" type="button" autofocus>Close <span aria-hidden="true">×</span></button></div>
+    <img class="viewer-image" id="viewer-image" alt="">
+    <div class="viewer-bottom"><p id="viewer-description"></p><div class="viewer-nav" aria-label="Screenshot navigation"><button type="button" id="previous" aria-label="Previous screenshot">←</button><span class="viewer-position" id="viewer-position" aria-live="polite" aria-atomic="true"></span><button type="button" id="next" aria-label="Next screenshot">→</button></div></div>
+  </dialog>
+  <script>
+    (() => {
+      const shots = [...document.querySelectorAll('.shot')];
+      const filters = [...document.querySelectorAll('[data-filter]')];
+      const viewer = document.getElementById('viewer');
+      const image = document.getElementById('viewer-image');
+      let selected = 0;
+      let returnFocus = null;
+      const visibleShots = () => shots.filter(shot => !shot.hidden);
+
+      document.getElementById('gallery-toolbar').hidden = false;
+      filters.forEach(button => button.addEventListener('click', () => {
+        filters.forEach(filter => filter.setAttribute('aria-pressed', String(filter === button)));
+        shots.forEach(shot => { shot.hidden = button.dataset.filter !== 'all' && shot.dataset.category !== button.dataset.filter; });
+        document.getElementById('gallery-count').textContent = `${visibleShots().length} development captures`;
+      }));
+
+      if (typeof viewer.showModal !== 'function') return;
+      let sequence = shots;
+      const show = index => {
+        selected = (index + sequence.length) % sequence.length;
+        const shot = sequence[selected];
+        const original = shot.querySelector('img');
+        image.src = original.src;
+        image.alt = original.alt;
+        document.getElementById('viewer-title').textContent = shot.querySelector('h3').textContent;
+        document.getElementById('viewer-description').textContent = shot.querySelector('p').textContent;
+        document.getElementById('viewer-position').textContent = `${selected + 1} / ${sequence.length}`;
+      };
+      document.querySelectorAll('[data-view]').forEach(link => link.addEventListener('click', event => {
+        if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        const target = document.getElementById(`shot-${link.dataset.view}`);
+        sequence = link.closest('.shot') ? visibleShots() : shots;
+        returnFocus = link;
+        show(sequence.indexOf(target));
+        viewer.showModal();
+        document.body.classList.add('viewer-open');
+      }));
+      document.getElementById('previous').addEventListener('click', () => show(selected - 1));
+      document.getElementById('next').addEventListener('click', () => show(selected + 1));
+      viewer.querySelector('.viewer-close').addEventListener('click', () => viewer.close());
+      viewer.addEventListener('keydown', event => {
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+          event.preventDefault(); show(selected + (event.key === 'ArrowLeft' ? -1 : 1));
+        }
+      });
+      viewer.addEventListener('click', event => {
+        const bounds = viewer.getBoundingClientRect();
+        if (event.target === viewer && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) viewer.close();
+      });
+      viewer.addEventListener('close', () => {
+        document.body.classList.remove('viewer-open');
+        image.removeAttribute('src');
+        if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
+      });
+    })();
+  </script>
+</body>
+</html>

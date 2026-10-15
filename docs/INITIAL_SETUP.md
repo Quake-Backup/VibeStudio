@@ -1,5 +1,12 @@
 # Initial Setup Flow
 
+Asset editors open as tabs inside the main studio window by default; no
+first-run option or separate-window preference is required. Existing language,
+text scale, theme and editor profiles apply to these embedded surfaces. Switching
+pages keeps documents open; closing their tabs retains normal save/recovery
+checks. Saved workspaces still restore asset selections rather than authoring
+tabs or unsaved document contents.
+
 **Help** > **Documentation**, also available in the Command Palette, opens the
 bundled HTML manual without setup. Release packages support offline reading;
 development builds or installations without the manual open the online manual.

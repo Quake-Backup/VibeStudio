@@ -1,11 +1,14 @@
 #include "core/level_brush.h"
+#include "core/level_patch.h"
 #include "core/level_placement_control_p.h"
+#include "core/level_scene_locks.h"
 
 #include <QCoreApplication>
 #include <QMap>
 #include <QSet>
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 
 namespace vibestudio
 {
@@ -423,6 +426,198 @@ bool moveLevelBrushComponents(LevelMapBrush *brush, LevelBrushComponent kind, co
 	*brush = candidate;
 	if (report) {
 		*report = result;
+	}
+	return true;
+}
+
+bool moveLevelMapComponents(LevelMapDocument *document, const QVector<LevelMapComponentSet> &sets, const LevelMapVec3 &delta, bool allowCollapse,
+							LevelMapComponentReport *report, QString *error)
+{
+	LevelMapComponentReport staged;
+	if (const auto guarded = guardLevelSceneEdit(document, error, [&](LevelMapDocument *candidate) {
+			return moveLevelMapComponents(candidate, sets, delta, allowCollapse, report ? &staged : nullptr, error);
+		});
+		guarded.has_value()) {
+		if (*guarded && report) {
+			*report = staged;
+		}
+		return *guarded;
+	}
+	if (error) {
+		error->clear();
+	}
+	if (report) {
+		*report = {};
+	}
+	if (!document || (document->format != LevelMapFormat::QuakeMap && document->format != LevelMapFormat::Quake3Map)) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelBrush", "Open a Quake-family map to edit brush and patch components."));
+	}
+	if (sets.isEmpty() || sets.size() > 256 || !finite(delta)) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelBrush", "Choose components of 1 to 256 brushes and patches, and a finite movement."));
+	}
+	LevelMapDocument working = *document;
+	const quint64 revision = working.revision;
+	LevelMapComponentReport result;
+	QMap<int, LevelMapPatch> patches;
+	QSet<int> seenBrushes;
+	for (const auto &set : sets) {
+		if (set.object.kind == LevelMapSelectionKind::QuakeBrush) {
+			const auto found = std::find_if(working.brushes.cbegin(), working.brushes.cend(), [&set](const auto &b) { return b.id == set.object.objectId; });
+			if (found == working.brushes.cend() || seenBrushes.contains(set.object.objectId)) {
+				return fail(error, QT_TRANSLATE_NOOP("LevelBrush", "A brush to edit is missing or named twice."));
+			}
+			seenBrushes.insert(set.object.objectId);
+			LevelMapBrush moved = *found;
+			LevelBrushEditReport edit;
+			QString problem;
+			if (!moveLevelBrushComponents(&moved, set.kind, set.components, delta, 0, allowCollapse, &edit, &problem)) {
+				if (error) {
+					*error = QCoreApplication::translate("LevelBrush", "Brush %1: %2").arg(set.object.objectId).arg(problem);
+				}
+				return false;
+			}
+			if (!edit.changed) {
+				continue;
+			}
+			if (!replaceLevelMapBrushGeometry(&working, set.object.objectId, moved, &problem)) {
+				if (error) {
+					*error = QCoreApplication::translate("LevelBrush", "Brush %1: %2").arg(set.object.objectId).arg(problem);
+				}
+				return false;
+			}
+			++result.brushes;
+			result.collapsedVertices += edit.collapsedVertices;
+		} else if (set.object.kind == LevelMapSelectionKind::QuakePatch) {
+			const auto found = std::find_if(working.patches.cbegin(), working.patches.cend(), [&set](const auto &p) { return p.id == set.object.objectId; });
+			if (found == working.patches.cend() || patches.contains(set.object.objectId)) {
+				return fail(error, QT_TRANSLATE_NOOP("LevelBrush", "A patch to edit is missing or named twice."));
+			}
+			LevelMapPatch moved = *found;
+			QString problem;
+			if (!moveLevelPatchPoints(&moved, set.components, delta, 0, &problem)) {
+				if (error) {
+					*error = QCoreApplication::translate("LevelBrush", "Patch %1: %2").arg(set.object.objectId).arg(problem);
+				}
+				return false;
+			}
+			patches.insert(set.object.objectId, moved);
+		} else {
+			return fail(error, QT_TRANSLATE_NOOP("LevelBrush", "Only brushes and patches have components to move."));
+		}
+	}
+	if (!patches.isEmpty()) {
+		const quint64 before = working.revision;
+		if (!replaceLevelMapPatches(&working, patches, error)) {
+			return false;
+		}
+		result.patches = working.revision != before ? static_cast<int>(patches.size()) : 0;
+	}
+	const int steps = static_cast<int>(working.revision - revision);
+	if (steps == 0) {
+		return true;
+	}
+	if (steps > 1
+		&& !collapseLevelMapUndoSteps(&working, steps,
+			QCoreApplication::translate("LevelBrush", "Move components of %n object(s)", nullptr, result.brushes + result.patches),
+			QCoreApplication::translate("LevelBrush", "Put the components back"), error)) {
+		return false;
+	}
+	*document = std::move(working);
+	if (report) {
+		*report = result;
+	}
+	return true;
+}
+
+bool snapLevelMapBrushVertices(LevelMapDocument *document, const QVector<int> &brushIds, double grid, int *snapped, QStringList *skipped,
+							   QString *error)
+{
+	int stagedSnapped = 0;
+	QStringList stagedSkipped;
+	if (const auto guarded = guardLevelSceneEdit(document, error, [&](LevelMapDocument *candidate) {
+			return snapLevelMapBrushVertices(candidate, brushIds, grid, &stagedSnapped, &stagedSkipped, error);
+		});
+		guarded.has_value()) {
+		if (*guarded) {
+			if (snapped) {
+				*snapped = stagedSnapped;
+			}
+			if (skipped) {
+				*skipped = stagedSkipped;
+			}
+		}
+		return *guarded;
+	}
+	if (error) {
+		error->clear();
+	}
+	if (snapped) {
+		*snapped = 0;
+	}
+	if (skipped) {
+		skipped->clear();
+	}
+	if (!document || (document->format != LevelMapFormat::QuakeMap && document->format != LevelMapFormat::Quake3Map)) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelBrush", "Open a Quake-family map to snap brush vertices."));
+	}
+	if (!std::isfinite(grid) || grid <= 0 || grid > 4096) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelBrush", "Snap vertices to a grid from more than 0 to 4096 units."));
+	}
+	if (brushIds.isEmpty()) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelBrush", "Select brushes to snap their vertices."));
+	}
+	LevelMapDocument working = *document;
+	const quint64 revision = working.revision;
+	QStringList refusals;
+	int changed = 0;
+	for (const int id : brushIds) {
+		const auto found = std::find_if(working.brushes.cbegin(), working.brushes.cend(), [id](const auto &b) { return b.id == id; });
+		if (found == working.brushes.cend()) {
+			refusals << QCoreApplication::translate("LevelBrush", "Brush %1 is no longer in the map.").arg(id);
+			continue;
+		}
+		LevelBrushTopology topology;
+		QString problem;
+		if (!levelBrushTopology(*found, &topology, &problem)) {
+			refusals << QCoreApplication::translate("LevelBrush", "Brush %1: %2").arg(id).arg(problem);
+			continue;
+		}
+		QVector<int> all(topology.vertices.size());
+		std::iota(all.begin(), all.end(), 0);
+		LevelMapBrush moved = *found;
+		LevelBrushEditReport edit;
+		if (!moveLevelBrushComponents(&moved, LevelBrushComponent::Vertex, all, {0, 0, 0, true}, grid, false, &edit, &problem)
+			|| (edit.changed && !replaceLevelMapBrushGeometry(&working, id, moved, &problem))) {
+			refusals << QCoreApplication::translate("LevelBrush", "Brush %1: %2").arg(id).arg(problem);
+			continue;
+		}
+		changed += edit.changed ? 1 : 0;
+	}
+	const int steps = static_cast<int>(working.revision - revision);
+	if (steps == 0) {
+		if (changed == 0 && !refusals.isEmpty() && refusals.size() == brushIds.size()) {
+			if (error) {
+				*error = refusals.first();
+			}
+			return false;
+		}
+		if (skipped) {
+			*skipped = refusals;
+		}
+		return true;
+	}
+	if (steps > 1
+		&& !collapseLevelMapUndoSteps(&working, steps,
+			QCoreApplication::translate("LevelBrush", "Snap the vertices of %n brush(es) to the grid", nullptr, changed),
+			QCoreApplication::translate("LevelBrush", "Put the brushes' vertices back"), error)) {
+		return false;
+	}
+	*document = std::move(working);
+	if (snapped) {
+		*snapped = changed;
+	}
+	if (skipped) {
+		*skipped = refusals;
 	}
 	return true;
 }

@@ -1,5 +1,18 @@
 # VibeStudio Architecture
 
+`app/studio_editor_page` hosts the existing mesh, prop, assembly, texture,
+waveform and multitrack document controllers as `Qt::Widget` children in each
+asset mode's tab workspace. The browser remains the first tab. Editor lifetime,
+undo, recovery, staging callbacks and asynchronous close guards remain owned by
+the existing document controllers; removing a tab follows document destruction,
+never bypasses close approval. A scroll host bounds scaled/translated layouts.
+Tab titles follow document titles and modification state. Focus reserves local
+document shortcuts against identical shell keys; shell menus remain available.
+Shell navigation and authoring/recovery handoffs select the existing host tab.
+This changes no core service, dependency, document format or CLI behaviour.
+Restoring open authoring tabs from `.vibeworkspace` remains an integration gap;
+workspaces continue to restore references and asset browser selections.
+
 `core/audio_meter` owns fixed-capacity sample-clock meter processors and the
 shared offline range-analysis service. Optional renderer hooks accumulate
 combined pre/post strip taps and master taps without altering audio samples.
@@ -1989,6 +2002,23 @@ The current scaffold contains:
   command with selection restoration. `app/level_merge_dialog` shares immutable
   package/staging assets and the Models renderer; `map merge-brushes` consumes
   the same plan and conflict report. See [Brush Merging](LEVEL_EDITOR.md#brush-merging).
+- `src/core/level_patch_tools.*` holds the patch matrix commands (insert, add and
+  delete rows and columns by exact span splits and joins, transpose, invert,
+  re-disperse, smooth), Thicken, and natural and planar patch texturing, each on
+  plain patch values; `applyLevelMapPatchMatrixOperation` and
+  `thickenLevelMapPatches` commit them through `level_map`'s patch replacement and
+  insertion as one undo step. The Tools tab, the patch editor's **Rows and
+  Columns** menu, `map patch-matrix` and `map thicken-patch` share them. See
+  [Patch shapes and the patch matrix](LEVEL_EDITOR.md#patch-shapes-and-the-patch-matrix).
+- `src/core/level_selection_tools.*` answers selection questions without editing:
+  the whole brush entities of a selection and the Radiant/q3map2 entity and
+  brush numbers of an object, read back from compiler lines. `app/level_geometry_actions`
+  registers the round's commands (vertex modes, Snap Vertices, hollow modes,
+  patch matrix, regions, navigation, prefab replacement) over these services and
+  `level_brush::moveLevelMapComponents`; `app/map_viewport_components` adds the
+  2D views' component handles and region drawing, which only pick and preview
+  and ask the shell to commit. See
+  [Vertex editing, patch tools, regions and navigation](LEVEL_EDITOR.md#vertex-editing-patch-tools-regions-and-navigation).
 - `src/core/level_surface.*`: immutable batch surface-alignment plans using the
   shared projection/brush solver. `level_map` validates source bindings and
   commits each plan through existing undo and source-preserving serialization.

@@ -1,4 +1,5 @@
 #include "app/patch_editor_dialog.h"
+#include "core/level_patch_tools.h"
 
 #include "app/model_viewport.h"
 #include "core/map_geometry.h"
@@ -18,7 +19,9 @@
 #include <QLineEdit>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QMenu>
 #include <QPushButton>
+#include <QToolButton>
 #include <QScrollArea>
 #include <QSignalBlocker>
 #include <QSpinBox>
@@ -409,6 +412,43 @@ PatchEditorDialog::PatchEditorDialog(const LevelMapPatch& patch, bool creating, 
 			setError(error);
 		}
 	});
+	// Radiant's Patch menu row and column commands, on the draft.
+	auto* matrixButton = new QToolButton(tools);
+	matrixButton->setObjectName(QStringLiteral("patchMatrixButton"));
+	matrixButton->setText(tr("Rows and Columns"));
+	matrixButton->setAccessibleName(tr("Patch rows and columns"));
+	matrixButton->setPopupMode(QToolButton::InstantPopup);
+	auto* matrix = new QMenu(matrixButton);
+	const std::pair<LevelPatchMatrixOperation, QString> operations[] = {
+		{LevelPatchMatrixOperation::InsertColumns, tr("Insert Columns")},
+		{LevelPatchMatrixOperation::AddColumns, tr("Add Columns")},
+		{LevelPatchMatrixOperation::InsertRows, tr("Insert Rows")},
+		{LevelPatchMatrixOperation::AddRows, tr("Add Rows")},
+		{LevelPatchMatrixOperation::DeleteFirstColumns, tr("Delete First Columns")},
+		{LevelPatchMatrixOperation::DeleteLastColumns, tr("Delete Last Columns")},
+		{LevelPatchMatrixOperation::DeleteFirstRows, tr("Delete First Rows")},
+		{LevelPatchMatrixOperation::DeleteLastRows, tr("Delete Last Rows")},
+		{LevelPatchMatrixOperation::Transpose, tr("Transpose")},
+		{LevelPatchMatrixOperation::RedisperseColumns, tr("Re-disperse Columns")},
+		{LevelPatchMatrixOperation::RedisperseRows, tr("Re-disperse Rows")},
+		{LevelPatchMatrixOperation::SmoothColumns, tr("Smooth Columns")},
+		{LevelPatchMatrixOperation::SmoothRows, tr("Smooth Rows")},
+	};
+	for (const auto& [operation, label] : operations) {
+		QAction* entry = matrix->addAction(label);
+		entry->setObjectName(QStringLiteral("patchMatrix-") + levelPatchMatrixOperationId(operation));
+		connect(entry, &QAction::triggered, this, [this, operation = operation]() {
+			auto p = m_patch;
+			QString error;
+			if (applyLevelPatchMatrixOperation(&p, operation, &error)) {
+				applyPatch(p);
+			} else {
+				setError(error);
+			}
+		});
+	}
+	matrixButton->setMenu(matrix);
+	tools->addWidget(matrixButton);
 	action(tr("Reset UV"), QStringLiteral("patchResetUv"), [this]() {
 		auto p = m_patch;
 		for (int row = 0; row < p.height; ++row) {

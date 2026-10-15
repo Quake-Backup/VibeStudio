@@ -139,6 +139,14 @@ def main():
                             '--output', second, '--overwrite', '--json'], expected=4)
     assert second.read_bytes() == output_bytes
     run('bad-position', ['map', 'insert-prefab', first, '--prefab', prefab, '--position', 'nan,0,0', '--output', second, '--json'], expected=2)
+    swapped = root / 'swapped.map'
+    replace_args = ['map', 'insert-prefab', room, '--engine', 'idTech3', '--prefab', prefab, '--output', swapped, '--overwrite', '--json']
+    three = run('replace', replace_args + ['--replace', 'entity:2'])['prefab']
+    assert three['replaced'] == ['entity:2'] and three['position'][:2] == [0, 0], three
+    assert '"light" "500"' not in swapped.read_text(encoding='utf-8') and 'prefab1_gate' in swapped.read_text(encoding='utf-8')
+    run('replace-and-position', replace_args + ['--replace', 'entity:2', '--position', '0,0,0'], expected=2)
+    run('replace-unknown-kind', replace_args + ['--replace', 'widget:2'], expected=2)
+    run('replace-missing-object', replace_args + ['--replace', 'entity:99'], expected=2)
     run('bad-lock', insert_args + ['--texture-lock', 'maybe'], expected=2)
     dry_map = root / 'dry.map'
     run('insert-dry', ['map', 'insert-prefab', room, '--engine', 'idTech3', '--prefab', prefab, '--position', '0,0,0', '--output', dry_map, '--dry-run', '--json'])

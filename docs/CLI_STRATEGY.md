@@ -486,8 +486,11 @@ settings still allow inspection. See [Linked Navigation](LEVEL_EDITOR.md#linked-
 `map export-prefab`, `map inspect-prefab`, and `map insert-prefab` share Levels'
 versioned prefab service, target-link remapping, texture lock and persistence.
 Export accepts repeated `--object`, a required `--name`, optional `--description`
-and `--anchor x,y,z`. Insert requires `--prefab` and `--position x,y,z`, with
-optional `--rotation x,y,z`, `--texture-lock on|off` and `--target-prefix`.
+and `--anchor x,y,z`. Insert requires `--prefab` and either `--position x,y,z`
+or repeatable `--replace kind:id`: the objects the prefab takes the place of,
+removed in the same undo step with its anchor on their bottom centre (JSON lists
+them as `replaced`). Optional `--rotation x,y,z`, `--texture-lock on|off` and
+`--target-prefix` apply to both.
 `--entry` reads from a package, and `--package` supplies dependency assets.
 Writes require `--output`; `--dry-run` creates no files and overwrites are explicit.
 Unknown/duplicate options and extra positional arguments fail. JSON contains the
@@ -690,7 +693,8 @@ rebuilt nodes; ordinary-thing transforms retain valid nodes. See
   inspects prefab content and optional asset dependencies.
 - `map insert-prefab <map> --prefab <file> --position x,y,z --output <map>`
   places prefab content with optional `--rotation x,y,z` and
-  `--texture-lock on|off`, remapping internal target links.
+  `--texture-lock on|off`, remapping internal target links; `--replace kind:id`
+  instead of `--position` puts it where those objects stand and removes them.
 - `map recoveries <directory>` lists recovery checkpoint metadata.
 - `map recover <checkpoint.vsrecovery> --output <map>` verifies and restores a
   snapshot. Map creation and recovery support `--dry-run`, `--overwrite`, and
@@ -1256,10 +1260,13 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   each `--set` as one undo step, as the Levels inspector sets a key on several
   selected entities: `map edit start.map --where class=light --set light=300`.
 - [x] `map move` for Doom vertices/linedefs/things and Quake entities.
-- [x] `map align-textures <map>` for batch brush surface alignment. Select
-  repeatable `--object brush:id|entity:id` or `--face brushId:faceNumber`
-  (one-based). Choose exactly one of `--shift U,V`, `--scale U,V`, `--degrees N`,
-  `--fit U,V`, or `--align U,V` with `keep|minimum|center|maximum` modes.
+- [x] `map align-textures <map>` for batch brush and patch surface alignment.
+  Select repeatable `--object brush:id|patch:id|entity:id` or
+  `--face brushId:faceNumber` (one-based). Choose exactly one of `--shift U,V`,
+  `--scale U,V`, `--degrees N`, `--fit U,V` (a zero keeps that axis),
+  `--align U,V` with `keep|minimum|center|maximum` modes, `--natural U,V` or
+  `--face-aligned U,V` (map units per texel, Radiant's Natural and a projection
+  along each face's own plane), or `--flip u|v`.
   Resolve original image sizes through `--package <archive-or-folder>` and
   optional `--palette`, or override with `--texture-size W,H`. Required unknown
   dimensions fail; no size is guessed. Requires `--output`, supports
@@ -1343,12 +1350,26 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   retain their source syntax; deformed faces do not have texture lock. Bounds
   are 128 faces, 256 vertices and ±32768 units. Supports `--dry-run`, `--json`
   and `--overwrite`; JSON includes before/after counts and `collapsedVertices`.
-- [x] `map add-patch` to add a Quake III plane, cylinder, or cone using `--shape`,
-  `--size x,y,z`, `--origin x,y,z`, `--texture`, and optional grid dimensions.
+- [x] `map add-patch` to add a Quake III plane, cylinder, square cylinder, cone,
+  sphere, bevel or end cap using `--shape`, `--size x,y,z`, `--origin x,y,z`,
+  `--texture`, and optional grid dimensions; `--axis x|y|z` turns it,
+  `--segments N` (3 to 15) sets the spans round a cylinder, cone or sphere and
+  `--bands N` a sphere's spans from pole to pole.
   `map edit-patch` selects `--patch <id>` and zero-based `--point row,column`
   values, with `--delta`, `--grid`, `--uv`, `--texture`, `--subdivide rows|columns`,
   or `--invert`. Both require an input map and `--output` and support `--dry-run`,
   `--overwrite`, and `--json` through the existing map save service.
+- [x] `map patch-matrix` to change the control grids of repeatable `--patch`
+  ids as Radiant's Patch menu does, with `--op insert-columns`, `add-columns`,
+  `insert-rows`, `add-rows`, `delete-first-columns`, `delete-last-columns`,
+  `delete-first-rows`, `delete-last-rows`, `transpose`, `invert`,
+  `redisperse-columns`, `redisperse-rows`, `smooth-columns` or `smooth-rows`,
+  as one undo step; JSON reports the changed patches and their grids.
+- [x] `map thicken-patch` to give repeatable `--patch` ids a back
+  `--thickness` units behind them (negative: in front), along each point's
+  normal or `--axis x|y|z`, with walls along the open edges unless
+  `--no-seams`, as NetRadiant Custom's Thicken does; the new selectors are
+  reported as `created`.
 - [x] `map add-thing` to add a thing to a Doom or Hexen map by DoomEd number
   (`--type`), at `--origin x,y`, facing `--angle`, on every skill.
 - [x] `map snap` to move objects onto a `--grid` (16 by default), each by its
@@ -1534,7 +1555,14 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   [Patch Stitching](LEVEL_EDITOR.md#patch-stitching).
 - [x] `map hollow` to turn brushes (`--object` brushes or brush entities) into
   walls `--thickness` units thick, one per face, each textured like the face
-  it grew from; the new selectors are reported as `walls`.
+  it grew from; the new selectors are reported as `walls`. `--mode overlap`
+  (the default) lets the walls meet at the edges, `touch` cuts them back so
+  they meet without overlapping, and `room` builds them outside the brush, as
+  NetRadiant Custom's Make Room does.
+- [x] `map snap-vertices` to round every vertex of the `--object` brushes, or
+  of entities' brushes, onto `--grid` and rebuild them, as TrenchBroom's Snap
+  Vertices does; a brush the grid would collapse is left as it was and listed
+  with its reason under `skipped`.
 - [x] `map clip` to cut brushes (`--object` brushes or brush entities) with a
   plane: `--axis x|y|z --at <units>`, whose front is up the axis, or
   `--points "x,y,z x,y,z x,y,z"`, whose front is (b - a) x (c - a).
@@ -1581,7 +1609,10 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   `key>n`, and plain words, all of which must hold (`--where "class=light
   light>200"`). Entities answer to their own keys, brushes and patches to
   `texture`, Doom things to `type` and `name`, linedefs to `special` and `tag`,
-  and sectors to `floor`, `ceiling`, `light`, and `tag`.
+  and sectors to `floor`, `ceiling`, `light`, and `tag`. `--number 0,12`
+  instead finds the object a compiler names as "Entity 0, Brush 12": entities
+  and, within each, brushes and patches together are counted from 0 in file
+  order, and an entity number alone names the entity.
 - [x] JSON output for map statistics, entities, brushes, textures, validation,
   preview lines, selection, properties, and save reports.
 

@@ -759,6 +759,30 @@ void StudioCommandRegistry::installShortcuts()
 		m_sequences.insert(registration->commandId, accepted);
 		action->setToolTip(commandToolTip(registration->label, registration->statusTip, shortcutText));
 	}
+	refreshShortcutFocus();
+}
+
+void StudioCommandRegistry::setShortcutFocusSurface(QWidget* surface)
+{
+	m_shortcutFocusSurface = surface;
+	refreshShortcutFocus();
+}
+
+void StudioCommandRegistry::refreshShortcutFocus()
+{
+	QList<QKeySequence> documentKeys;
+	if (m_shortcutFocusSurface) {
+		for (auto* action : m_shortcutFocusSurface->findChildren<QAction*>()) {
+			// Reserve even disabled document keys so an unavailable document
+			// command cannot fall through to an unrelated shell command.
+			documentKeys.append(action->shortcuts());
+		}
+	}
+	for (auto it = m_actions.cbegin(); it != m_actions.cend(); ++it) {
+		auto keys = m_sequences.value(it.key());
+		keys.removeIf([&documentKeys](const QKeySequence& key) { return documentKeys.contains(key); });
+		if (it.value()->shortcuts() != keys) { it.value()->setShortcuts(keys); }
+	}
 }
 
 void StudioCommandRegistry::setUserShortcuts(const QHash<QString, QStringList>& shortcuts)
@@ -821,7 +845,7 @@ QStringList StudioCommandRegistry::commandsUsingShortcut(const QString& sequence
 		if (!action) {
 			continue;
 		}
-		const QList<QKeySequence> installed = action->shortcuts();
+		const QList<QKeySequence> installed = m_sequences.value(registration.commandId);
 		const bool uses = std::any_of(installed.cbegin(), installed.cend(), [&key](const QKeySequence& candidate) {
 			return normalizedSequenceKey(candidate) == key;
 		});

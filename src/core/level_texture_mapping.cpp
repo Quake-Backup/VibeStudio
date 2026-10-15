@@ -142,6 +142,61 @@ QString levelMapBrushDialect(const LevelMapDocument& document)
 	return kinds.size() > 1 ? QStringLiteral("mixed") : kinds.isEmpty() ? QString() : *kinds.cbegin();
 }
 
+std::pair<LevelMapVec3, LevelMapVec3> levelTexturePrimitiveBasis(const LevelMapVec3& normal) { return primitiveBasis(normal); }
+
+LevelTextureProjection levelNaturalTextureProjection(const LevelMapBrushFace& face, double scaleU, double scaleV, QSize imageSize)
+{
+	LevelTextureProjection result;
+	const auto p = plane(face);
+	if (!p.valid || !std::isfinite(scaleU) || !std::isfinite(scaleV) || scaleU == 0 || scaleV == 0
+		|| (face.explicitTextureMatrix && (imageSize.width() <= 0 || imageSize.height() <= 0))) {
+		return result;
+	}
+	// Brush primitives count repeats: a texel is 1 / width of one.
+	const double width = face.explicitTextureMatrix ? imageSize.width() : 1.0;
+	const double height = face.explicitTextureMatrix ? imageSize.height() : 1.0;
+	const auto axes = classicAxes(normal(p));
+	result.u = {0, 0, 0, true};
+	result.v = result.u;
+	setComponent(&result.u, axes[0], 1.0 / (scaleU * width));
+	setComponent(&result.v, axes[1], -1.0 / (scaleV * height));
+	result.normalizedCoordinates = face.explicitTextureMatrix;
+	result.valid = finite(result.u) && finite(result.v);
+	return result;
+}
+
+LevelTextureProjection levelFaceAlignedTextureProjection(const LevelMapBrushFace& face, double scaleU, double scaleV, QSize imageSize)
+{
+	auto result = levelNaturalTextureProjection(face, scaleU, scaleV, imageSize);
+	const auto p = plane(face);
+	if (!result.valid) {
+		return result;
+	}
+	// Take the world-axis directions into the plane, keeping their lengths,
+	// then square V to U in the plane on the side V already points.
+	const auto n = normal(p);
+	const auto inPlane = [&n](const LevelMapVec3& axis) { return add(axis, scale(n, -dot(axis, n))); };
+	const double uLength = std::sqrt(dot(result.u, result.u)), vLength = std::sqrt(dot(result.v, result.v));
+	auto u = inPlane(result.u);
+	const double uIn = std::sqrt(dot(u, u));
+	if (uIn < 1e-9 * uLength) {
+		return {};
+	}
+	u = scale(u, uLength / uIn);
+	auto v = cross(n, u);
+	if (dot(v, result.v) < 0) {
+		v = scale(v, -1);
+	}
+	const double vIn = std::sqrt(dot(v, v));
+	if (vIn < 1e-12) {
+		return {};
+	}
+	result.u = u;
+	result.v = scale(v, vLength / vIn);
+	result.valid = finite(result.u) && finite(result.v);
+	return result;
+}
+
 LevelTextureProjection levelTextureProjection(const LevelMapBrushFace &face)
 {
 	LevelTextureProjection result;

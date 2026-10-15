@@ -11,6 +11,7 @@
   <img alt="Platforms: Windows, macOS, Linux" src="https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-3A3A3A?style=flat-square">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-3A3A3A?style=flat-square"></a>
   <a href="https://github.com/themuffinator/VibeStudio/actions/workflows/pr-ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/themuffinator/VibeStudio/pr-ci.yml?label=CI&style=flat-square"></a>
+  <a href="AGENTS.md"><img alt="Proudly vibecoded" src="assets/docs/img/badge-proudly-vibecoded.svg"></a>
 </p>
 
 <p align="center">
@@ -169,10 +170,11 @@ revisions.
 | Upstream | Used for | Licence | Pinned revision |
 | --- | --- | --- | --- |
 | [PakFu](https://github.com/themuffinator/PakFu) | Package, archive, format and installation reference; DDS/FTX/SWL codecs | GPL-3.0 | `13111e4c` |
-| [VibeMap2](https://github.com/themuffinator/VibeyMapTools) | VibeStudio's Quake/idTech2 compilers (submodule), derived from ericw-tools | GPL-3.0 | `4495049a9e4c1f6deadae3a76b8256614840af35` |
+| [VibeMap2](https://github.com/themuffinator/VibeyMapTools) | VibeStudio's Quake/idTech2 compilers (submodule), derived from ericw-tools; [audit reference](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/docs/upstream-audit.rst) for known-issue reconciliation | GPL-3.0 | `4495049a9e4c1f6deadae3a76b8256614840af35` |
 | [VibeMap3](https://github.com/themuffinator/q3mapx) | VibeStudio's Quake III compiler (submodule), continuing q3map2 from NetRadiant Custom | GPL-3.0-or-later; imported q3map2 files GPL-2.0-or-later | `897524439cb58d2b736bc96b16c231d22dc5ddce` |
 | [ericw-tools](https://github.com/ericwa/ericw-tools) | Upstream of VibeMap2; Quake BSP format and interface references | GPL-2.0-or-later | `f80b1e216a415581aea7475cb52b16b8c4859084` |
 | q3map2 from [NetRadiant Custom](https://github.com/Garux/netradiant-custom) | Upstream of VibeMap3; Quake III format and interface references | GPL (repository mixes GPL, LGPL and BSD) | `68ecbed64b7be78741878c730279b5471d978c7c` |
+| [NetRadiant Custom](https://github.com/Garux/netradiant-custom) editor (`radiant/patch.cpp`, `patchmanip.cpp`, `csg.cpp`) | Behaviour of the Levels patch matrix commands, exact patch cylinders, Thicken, wrapped hollow and Make Room (no code copied) | GPL-2.0-or-later | `8216133984031afaa9a857b56ea66dd9c3d54b26` |
 | [ZDBSP](https://github.com/rheit/zdbsp) | Doom node builder (submodule) | GPL-2.0-or-later | `bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659` |
 | [ZokumBSP](https://github.com/zokum-no/zokumbsp) | Doom node, blockmap and reject builder (submodule) | GPL-2.0 | `22af6defeb84ce836e0b184d6be5e80f127d9451` |
 | [r8brain-free-src](https://github.com/avaneev/r8brain-free-src) 7.5 | Sample-rate conversion | MIT | `cb2abb9977efe2471979b380ed95daa56ab4fdb9` |

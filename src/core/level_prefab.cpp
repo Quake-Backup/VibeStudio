@@ -1,6 +1,7 @@
 #include "core/level_prefab.h"
 #include "core/level_document.h"
 #include "core/level_patch.h"
+#include "core/level_scene_locks.h"
 #include "core/level_texture_mapping.h"
 #include "core/package_publication.h"
 #include <QCoreApplication>
@@ -662,6 +663,53 @@ bool insertLevelPrefab(LevelMapDocument *destination, const LevelPrefab &prefab,
 	}
 	return true;
 }
+bool replaceLevelMapSelectionWithPrefab(LevelMapDocument *document, const LevelPrefab &prefab, LevelPrefabPlacement placement,
+										LevelPrefabReport *report, QString *error, LevelPrefabCancellation cancelled)
+{
+	LevelPrefabReport staged;
+	if (const auto guarded = guardLevelSceneEdit(document, error, [&](LevelMapDocument *candidate) {
+			return replaceLevelMapSelectionWithPrefab(candidate, prefab, placement, report ? &staged : nullptr, error, cancelled);
+		});
+		guarded.has_value()) {
+		if (*guarded && report) {
+			*report = staged;
+		}
+		return *guarded;
+	}
+	if (error) {
+		error->clear();
+	}
+	LevelMapVec3 mins, maxs;
+	if (!document || !textMap(*document) || document->selection.isEmpty() || !levelMapSelectionBounds(*document, &mins, &maxs)) {
+		return fail(error, QCoreApplication::translate("LevelPrefab", "Select the objects in a Quake-family map that the prefab takes the place of."));
+	}
+	// The prefab's anchor goes where the selection stands: the bottom centre
+	// of its bounds, as a prefab's own anchor defaults to.
+	placement.position = {(mins.x + maxs.x) / 2, (mins.y + maxs.y) / 2, mins.z, true};
+	LevelMapDocument working = *document;
+	const quint64 revision = working.revision;
+	// The selection goes first, so names it held are free for the prefab.
+	if (!deleteLevelMapObjects(&working, working.selection, error)) {
+		return false;
+	}
+	LevelPrefabReport inserted;
+	if (!insertLevelPrefab(&working, prefab, placement, &inserted, error, cancelled)) {
+		return false;
+	}
+	const int steps = static_cast<int>(working.revision - revision);
+	if (steps > 1 && !collapseLevelMapUndoSteps(&working, steps,
+						 QCoreApplication::translate("LevelPrefab", "Replace the selection with prefab %1").arg(prefab.name),
+						 QCoreApplication::translate("LevelPrefab", "Put back what prefab %1 replaced").arg(prefab.name), error)) {
+		return false;
+	}
+	setLevelMapSelection(&working, inserted.inserted);
+	*document = std::move(working);
+	if (report) {
+		*report = inserted;
+	}
+	return true;
+}
+
 QJsonObject levelPrefabReportJson(const LevelPrefabReport &report)
 {
 	QJsonObject names;

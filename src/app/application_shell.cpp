@@ -951,6 +951,7 @@ ApplicationShell::ApplicationShell(QWidget* parent, std::unique_ptr<AudioPlaybac
 
 ApplicationShell::~ApplicationShell()
 {
+	disconnect(qApp, &QApplication::focusChanged, this, nullptr);
 	delete m_levelSurfaceWorker; m_levelSurfaceWorker = nullptr;
 	delete m_levelTextureAudit; m_levelTextureAudit = nullptr;
 	delete m_packagePreviewWorker; m_packagePreviewWorker = nullptr;
@@ -1779,11 +1780,11 @@ void ApplicationShell::buildUi()
 	timing.mark("workspace");
 	m_modeStack->addWidget(buildLevelsPage());
 	timing.mark("levels");
-	m_modeStack->addWidget(buildModelsPage());
+	m_modeStack->addWidget(buildAssetWorkspace(StudioMode::Models, buildModelsPage()));
 	timing.mark("models");
-	m_modeStack->addWidget(buildTexturesPage());
+	m_modeStack->addWidget(buildAssetWorkspace(StudioMode::Textures, buildTexturesPage()));
 	timing.mark("textures");
-	m_modeStack->addWidget(buildAudioPage());
+	m_modeStack->addWidget(buildAssetWorkspace(StudioMode::Audio, buildAudioPage()));
 	timing.mark("audio");
 	m_modeStack->addWidget(buildPackagesPage());
 	timing.mark("packages");
@@ -2983,6 +2984,7 @@ QWidget* ApplicationShell::buildLevelsPage()
 			statusBar()->showMessage(error);
 			return;
 		}
+		m_levelPickedFaces.clear();
 		// A brush picked on one of its faces opens that face in the Inspector,
 		// as picking a face does in Radiant.
 		const int face = m_levelMap3DFaces.value(triangle, -1);
@@ -8476,6 +8478,8 @@ void ApplicationShell::placeFromLevelMapPalette(const QString& payload, const QP
 		placeLevelAsset(payload, viewPoint);
 	} else if (payload.startsWith(QStringLiteral("brush-entity:"))) {
 		placeLevelBrushEntity(payload.mid(13), viewPoint);
+	} else if (payload.startsWith(QStringLiteral("prefab-file:")) || payload.startsWith(QStringLiteral("prefab-entry:"))) {
+		placeLevelPrefabFromPalette(payload, viewPoint);
 	}
 }
 
@@ -10207,7 +10211,13 @@ void ApplicationShell::frameLevelMapSelection()
 	frameLevelPlanViews();
 	LevelMapVec3 mins;
 	LevelMapVec3 maxs;
-	if (!levelMap3DShowing() || !m_levelMap3D->isPerspective() || !levelMapSelectionBounds(m_levelMapDocument, &mins, &maxs)) {
+	if (!levelMap3DShowing() || !levelMapSelectionBounds(m_levelMapDocument, &mins, &maxs)) {
+		return;
+	}
+	if (!m_levelMap3D->isPerspective()) {
+		// The orbiting camera turns about the selection and fits it.
+		m_levelMap3D->frameBounds({static_cast<float>(mins.x), static_cast<float>(mins.y), static_cast<float>(mins.z)},
+			{static_cast<float>(maxs.x), static_cast<float>(maxs.y), static_cast<float>(maxs.z)});
 		return;
 	}
 	// The camera keeps its heading and backs off along it until the
@@ -10339,20 +10349,41 @@ void ApplicationShell::pickLevelMap3D(int triangle, int pick)
 		return ref.kind == owner.kind && ref.objectId == owner.objectId;
 	});
 	const bool wasSelected = at != selection.end();
-	switch (mode) {
-	case ModelViewportPick::Toggle:
-	case ModelViewportPick::FaceToggle:
-		if (wasSelected) {
-			selection.erase(at);
-		} else {
-			selection.push_back(owner);
+	const bool brushFace = owner.kind == LevelMapSelectionKind::QuakeBrush && face >= 0;
+	if (mode == ModelViewportPick::FaceToggle && brushFace) {
+		// Picked faces gather, as Radiant's face selection does; the brush
+		// stays selected while any of its faces is picked.
+		const LevelSurfaceFace picked {owner.objectId, face};
+		if (!m_levelPickedFaces.removeOne(picked)) {
+			m_levelPickedFaces.push_back(picked);
 		}
-		break;
-	case ModelViewportPick::Face:
-		selection = {owner};
-		break;
-	case ModelViewportPick::Replace:
-		break;
+		const bool anyOfBrush = std::any_of(m_levelPickedFaces.cbegin(), m_levelPickedFaces.cend(),
+			[&owner](const LevelSurfaceFace& f) { return f.brushId == owner.objectId; });
+		if (anyOfBrush && !wasSelected) {
+			selection.push_back(owner);
+		} else if (!anyOfBrush && wasSelected) {
+			selection.erase(at);
+		}
+	} else {
+		switch (mode) {
+		case ModelViewportPick::Toggle:
+		case ModelViewportPick::FaceToggle:
+			if (wasSelected) {
+				selection.erase(at);
+			} else {
+				selection.push_back(owner);
+			}
+			break;
+		case ModelViewportPick::Face:
+			selection = {owner};
+			m_levelPickedFaces.clear();
+			if (brushFace) {
+				m_levelPickedFaces.push_back({owner.objectId, face});
+			}
+			break;
+		case ModelViewportPick::Replace:
+			break;
+		}
 	}
 	if (!setLevelMapSelection(&m_levelMapDocument, selection, &error)) {
 		statusBar()->showMessage(error);
@@ -10364,7 +10395,10 @@ void ApplicationShell::pickLevelMap3D(int triangle, int pick)
 		showLevelSidebarPage(QStringLiteral("inspector"));
 	}
 	refreshLevelMapWorkbench();
-	if (picksFace) {
+	if (picksFace && mode == ModelViewportPick::FaceToggle && m_levelPickedFaces.size() > 1) {
+		statusBar()->showMessage(tr("%n face(s) picked; the Surfaces tab's Picked Faces target adjusts them together.", nullptr,
+			static_cast<int>(m_levelPickedFaces.size())));
+	} else if (picksFace) {
 		statusBar()->showMessage(tr("Face %1 of %2 is in the Inspector.").arg(face + 1).arg(levelMapSelectionRefId(owner)));
 	} else {
 		statusBar()->showMessage(wasSelected ? tr("Took %1 out of the selection.").arg(levelMapSelectionRefId(owner))
@@ -10565,9 +10599,21 @@ void ApplicationShell::refreshLevelMap3DHighlight()
 			lit.insert({static_cast<int>(LevelMapSelectionKind::QuakePatch), patch.id});
 		}
 	}
+	// A brush with picked faces lights only those faces.
+	const QVector<LevelSurfaceFace> picked = levelPickedSurfaceFaces();
+	QSet<int> facedBrushes;
+	for (const LevelSurfaceFace& face : picked) {
+		facedBrushes.insert(face.brushId);
+	}
 	QVector<int> triangles;
 	for (int triangle = 0; triangle < m_levelMap3DOwners.size(); ++triangle) {
 		const LevelMapSelectionRef& owner = m_levelMap3DOwners.at(triangle);
+		if (owner.kind == LevelMapSelectionKind::QuakeBrush && facedBrushes.contains(owner.objectId)) {
+			if (picked.contains(LevelSurfaceFace {owner.objectId, m_levelMap3DFaces.value(triangle, -1)})) {
+				triangles.push_back(triangle);
+			}
+			continue;
+		}
 		if (lit.contains({static_cast<int>(owner.kind), owner.objectId})) {
 			triangles.push_back(triangle);
 		}
@@ -14858,6 +14904,7 @@ void ApplicationShell::buildCommands()
 	registerLevelSurfaceCommands();
 	registerLevelSidebarCommands();
 	registerLevelEditingCommands();
+	registerLevelGeometryCommands();
 	add(QStringLiteral("map.editPatch"), StudioCommandGroup::Edit, tr("Edit Patch Control Points…"),
 		tr("Reshape, subdivide and texture the selected patch."), QStringLiteral("edit"), false, false, false,
 		[this]() { editLevelMapPatchFromUi(false); });
@@ -16805,6 +16852,12 @@ void ApplicationShell::focusPagePrimaryWidget(StudioMode mode, bool leavingRail)
 	if (!leavingRail && focus && m_modeRail && m_modeRail->isAncestorOf(focus)) {
 		return;
 	}
+	if (auto* tabs = m_assetWorkspaces.value(int(mode)); tabs && tabs->currentIndex() > 0) {
+		if (auto* surface = qobject_cast<QScrollArea*>(tabs->currentWidget())) {
+			surface->widget()->setFocus(Qt::OtherFocusReason);
+			return;
+		}
+	}
 	QWidget* target = nullptr;
 	switch (mode) {
 	case StudioMode::Workspace:
@@ -17583,6 +17636,7 @@ bool ApplicationShell::showAssetEntry(StudioMode mode, const QString& virtualPat
 	for (int row = 0; row < list->count(); ++row) {
 		QListWidgetItem* item = list->item(row);
 		if (item->data(Qt::UserRole).toString().compare(virtualPath, Qt::CaseInsensitive) == 0) {
+			if (auto* tabs = m_assetWorkspaces.value(int(mode))) { tabs->setCurrentIndex(0); }
 			item->setHidden(false);
 			list->clearSelection();
 			list->setCurrentItem(item);
@@ -18979,17 +19033,17 @@ void ApplicationShell::closeEvent(QCloseEvent* event)
 		event->ignore();
 		return;
 	}
-	if (m_audioEditorDialog && !m_audioEditorDialog->close()) { event->ignore(); return; }
-	if (m_audioSessionDialog && !m_audioSessionDialog->close()) { event->ignore(); return; }
+	if (m_audioEditorDialog && !m_audioEditorDialog->close()) { showStudioEditor(StudioMode::Audio, m_audioEditorDialog); event->ignore(); return; }
+	if (m_audioSessionDialog && !m_audioSessionDialog->close()) { showStudioEditor(StudioMode::Audio, m_audioSessionDialog); event->ignore(); return; }
 	if (m_packageSaveRunning) {
 		if (m_packageSaveDialog) { m_packageSaveDialog->close(); }
 		event->ignore();
 		return;
 	}
-	if (m_textureEditorDialog && !m_textureEditorDialog->requestClose([this]() { QTimer::singleShot(0, this, [this]() { close(); }); })) { event->ignore(); return; }
-	if (m_modelDesignDialog && !m_modelDesignDialog->close()) { event->ignore(); return; }
-	if (m_modelEditorDialog && !m_modelEditorDialog->close()) { event->ignore(); return; }
-	if (m_modelAssemblyDialog && !m_modelAssemblyDialog->close()) { event->ignore(); return; }
+	if (m_textureEditorDialog && !m_textureEditorDialog->requestClose([this]() { QTimer::singleShot(0, this, [this]() { close(); }); })) { showStudioEditor(StudioMode::Textures, m_textureEditorDialog); event->ignore(); return; }
+	if (m_modelDesignDialog && !m_modelDesignDialog->close()) { showStudioEditor(StudioMode::Models, m_modelDesignDialog); event->ignore(); return; }
+	if (m_modelEditorDialog && !m_modelEditorDialog->close()) { showStudioEditor(StudioMode::Models, m_modelEditorDialog); event->ignore(); return; }
+	if (m_modelAssemblyDialog && !m_modelAssemblyDialog->close()) { showStudioEditor(StudioMode::Models, m_modelAssemblyDialog); event->ignore(); return; }
 	if (m_packageExtractionRunning) {
 		// Ask the extraction to stop; the window can close once it has.
 		m_packageExtractionCancelRequested = true;
@@ -20131,7 +20185,7 @@ void ApplicationShell::showTextureEditor(bool editSelected)
 		}
 	}
 	m_textureEditorDialog->refreshContext();
-	m_textureEditorDialog->show(); m_textureEditorDialog->raise();
+	showStudioEditor(StudioMode::Textures, m_textureEditorDialog);
 	if (editSelected) {
 		const auto* item = m_textureEntries->currentItem();
 		const QString path = item ? item->data(Qt::UserRole).toString() : QStringLiteral("texture");
@@ -20362,7 +20416,7 @@ void ApplicationShell::showModelDesign()
 			preview->setHighContrast(preferences.theme == StudioTheme::HighContrastDark || preferences.theme == StudioTheme::HighContrastLight);
 		}
 	}
-	m_modelDesignDialog->refreshContext(); m_modelDesignDialog->show(); m_modelDesignDialog->raise();
+	m_modelDesignDialog->refreshContext(); showStudioEditor(StudioMode::Models, m_modelDesignDialog);
 }
 
 void ApplicationShell::refreshModelMaterials()
@@ -20382,13 +20436,13 @@ void ApplicationShell::refreshModelMaterials()
 
 void ApplicationShell::showModelAssembly()
 {
-	if (m_modelAssemblyDialog) { m_modelAssemblyDialog->show(); m_modelAssemblyDialog->raise(); return; }
+	if (m_modelAssemblyDialog) { showStudioEditor(StudioMode::Models, m_modelAssemblyDialog); return; }
 	auto* assembly = new ModelAssemblyDialog(this);
 	m_modelAssemblyDialog = assembly;
 	assembly->editBakedPose = [this](const ModelMesh& mesh, QString* error) {
 		if (m_modelEditorDialog) {
 			if (error) { *error = tr("Close the current mesh document before opening a baked assembly pose."); }
-			m_modelEditorDialog->show(); m_modelEditorDialog->raise(); return false;
+			showStudioEditor(StudioMode::Models, m_modelEditorDialog); return false;
 		}
 		showModelEditor(&mesh);
 		if (!m_modelEditorDialog && error) { *error = tr("The baked assembly pose could not be opened."); }
@@ -20406,14 +20460,14 @@ void ApplicationShell::showModelAssembly()
 			QString error; assembly->setAssembly(recipe, QDir::currentPath(), &error);
 		}
 	}
-	assembly->show();
+	showStudioEditor(StudioMode::Models, assembly);
 }
 
 void ApplicationShell::showModelEditor(const ModelMesh* initial)
 {
 	if (m_modelEditorDialog) {
 		if (initial) { statusBar()->showMessage(tr("Close the current mesh document before opening another baked design.")); }
-		m_modelEditorDialog->refreshContext(); m_modelEditorDialog->show(); m_modelEditorDialog->raise(); return;
+		m_modelEditorDialog->refreshContext(); showStudioEditor(StudioMode::Models, m_modelEditorDialog); return;
 	}
 	if (!initial && m_modelPreview && m_modelPreview->busy()) {
 		statusBar()->showMessage(tr("Wait for the model preview to finish, or cancel it before opening the mesh editor.")); return;
@@ -20462,7 +20516,7 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial)
 	refreshModelMaterials();
 	const auto preferences = m_settings.accessibilityPreferences();
 	editor->setAccessibility(preferences.theme == StudioTheme::HighContrastDark || preferences.theme == StudioTheme::HighContrastLight, preferences.reducedMotion);
-	editor->refreshContext(); editor->show();
+	editor->refreshContext(); showStudioEditor(StudioMode::Models, editor);
 }
 
 void ApplicationShell::showSelectedModel()
@@ -20789,7 +20843,7 @@ AudioEditorDialog* ApplicationShell::ensureAudioEditor()
 		});
 		connect(editor, &AudioEditorDialog::sessionRecoveryRequested, this, [this](const QString& path, const QByteArray& digest) {
 			auto* session = ensureAudioSession();
-			session->show(); session->raise();
+			showStudioEditor(StudioMode::Audio, session);
 			if (session->isBusy()) { statusBar()->showMessage(tr("Wait for the session operation to finish, then reopen Audio Recoveries.")); }
 			else { session->restoreRecovery(path, digest); }
 		});
@@ -20800,7 +20854,7 @@ AudioEditorDialog* ApplicationShell::ensureAudioEditor()
 		editor->playbackAllowed = [this] { return !m_audioSessionDialog || !m_audioSessionDialog->recordingOpen(); };
 		connect(editor, &AudioEditorDialog::sessionRequested, this, [this](const AudioProject& source) {
 			auto* session = ensureAudioSession();
-			session->show(); session->raise();
+			showStudioEditor(StudioMode::Audio, session);
 			if (session->isBusy()) { statusBar()->showMessage(tr("Wait for the session operation before importing this sound.")); return; }
 			if (!session->hasChanges() && session->sessionPath().isEmpty() && session->session().tracks.isEmpty()) {
 				session->newSession(source.clip.sampleRate);
@@ -20876,7 +20930,7 @@ void ApplicationShell::showAudioEditor(bool selectedEntry, const QString& reques
 	}
 	ensureAudioEditor();
 	unloadAudioPlayback(); refreshAudioTransport();
-	m_audioEditorDialog->show(); m_audioEditorDialog->raise(); m_audioEditorDialog->refreshContext();
+	showStudioEditor(StudioMode::Audio, m_audioEditorDialog); m_audioEditorDialog->refreshContext();
 	if (!selectedEntry) { m_audioEditorDialog->openFile(localPath); return; }
 	const auto archive = std::make_shared<PackageArchive>(m_audioArchive);
 	const qsizetype entryIndex = selected && selected->data(Qt::UserRole + 6).isValid() ? selected->data(Qt::UserRole + 6).toLongLong() : -1;
@@ -22141,6 +22195,7 @@ ApplicationShell::StudioPlace ApplicationShell::currentPlace() const
 {
 	StudioPlace place;
 	place.mode = currentMode();
+	if (auto* tabs = m_assetWorkspaces.value(int(place.mode))) { place.assetPage = tabs->currentWidget(); }
 	const auto currentEntry = [](const QListWidget* list) {
 		return list && list->currentItem() ? list->currentItem()->data(Qt::UserRole).toString() : QString();
 	};
@@ -22211,7 +22266,8 @@ void ApplicationShell::refreshPlaceButtons()
 bool ApplicationShell::samePlace(const StudioPlace& first, const StudioPlace& second) const
 {
 	return first.mode == second.mode && sameFilePath(first.path, second.path) && first.line == second.line
-		&& first.selection == second.selection && first.load == second.load && first.entry == second.entry;
+		&& first.selection == second.selection && first.load == second.load && first.entry == second.entry
+		&& first.assetPage == second.assetPage;
 }
 
 void ApplicationShell::rememberPlace()
@@ -22265,6 +22321,10 @@ bool ApplicationShell::restorePlace(const StudioPlace& place)
 	case StudioMode::Textures:
 	case StudioMode::Models:
 	case StudioMode::Audio: {
+		if (auto* tabs = m_assetWorkspaces.value(int(place.mode))) {
+			const int index = tabs->indexOf(place.assetPage);
+			tabs->setCurrentIndex(index < 0 ? 0 : index);
+		}
 		QListWidget* list = place.mode == StudioMode::Textures ? m_textureEntries : (place.mode == StudioMode::Models ? m_modelEntries : m_audioEntries);
 		if (QListWidgetItem* item = entryRow(list, place.entry); item && !item->isHidden() && list->currentItem() != item) {
 			list->setCurrentItem(item);
@@ -23431,6 +23491,40 @@ bool ApplicationShell::refreshBrushInspector(const QStringList* textureNames)
 	return true;
 }
 
+QVector<LevelSurfaceFace> ApplicationShell::levelPickedSurfaceFaces() const
+{
+	// Only faces of brushes still selected, and still that brush's faces.
+	QSet<int> selected;
+	for (const LevelMapSelectionRef& ref : std::as_const(m_levelMapDocument.selection)) {
+		if (ref.kind == LevelMapSelectionKind::QuakeBrush) {
+			selected.insert(ref.objectId);
+		}
+	}
+	QHash<int, int> faceCounts;
+	for (const LevelMapBrush& brush : std::as_const(m_levelMapDocument.brushes)) {
+		if (selected.contains(brush.id)) {
+			faceCounts.insert(brush.id, static_cast<int>(brush.faces.size()));
+		}
+	}
+	QVector<LevelSurfaceFace> faces;
+	for (const LevelSurfaceFace& face : m_levelPickedFaces) {
+		if (face.faceIndex >= 0 && face.faceIndex < faceCounts.value(face.brushId, 0)) {
+			faces.push_back(face);
+		}
+	}
+	return faces;
+}
+
+QVector<LevelSurfaceFace> ApplicationShell::levelSurfaceFaceTargets() const
+{
+	const QVector<LevelSurfaceFace> picked = levelPickedSurfaceFaces();
+	if (!picked.isEmpty()) {
+		return picked;
+	}
+	const LevelSurfaceFace inspected = inspectedLevelMapSurface();
+	return levelMapSelectedSurfaces(m_levelMapDocument).contains(inspected) ? QVector<LevelSurfaceFace> {inspected} : QVector<LevelSurfaceFace> {};
+}
+
 LevelSurfaceFace ApplicationShell::inspectedLevelMapSurface() const
 {
 	if (!m_entityInspector || !m_entityInspector->currentItem()) { return {}; }
@@ -24035,6 +24129,17 @@ void ApplicationShell::showLevelMapContextMenu(const QPoint& globalPosition, boo
 		addPatch = menu.addAction(studioIcon(QStringLiteral("cube")), tr("Add Patch…"));
 		if (m_levelMapDocument.selectionKind == LevelMapSelectionKind::QuakePatch) {
 			editPatch = menu.addAction(studioIcon(QStringLiteral("edit")), tr("Edit Patch Control Points…"));
+		}
+		// Radiant's Patch menu, for the selected patches.
+		if (auto* thicken = m_commands->action(QStringLiteral("map.thickenPatch")); thicken && thicken->isEnabled()) {
+			QMenu* matrix = menu.addMenu(studioIcon(QStringLiteral("patch-cylinder")), tr("Patch Rows and Columns"));
+			matrix->setObjectName(QStringLiteral("levelPatchMatrixMenu"));
+			for (const QString& id : levelPatchMatrixCommandIds()) {
+				if (QAction* action = m_commands->action(id)) {
+					matrix->addAction(action);
+				}
+			}
+			menu.addAction(thicken);
 		}
 	}
 	if (textMap) {

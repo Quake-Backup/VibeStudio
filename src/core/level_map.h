@@ -1033,6 +1033,16 @@ bool clipLevelMapSelection(LevelMapDocument* document, const LevelMapVec3& a, co
 // and `skipped` why any other selected brush was left as it was.
 bool hollowLevelMapSelection(LevelMapDocument* document, double thickness, int* hollowed = nullptr, QString* error = nullptr,
 	QStringList* skipped = nullptr);
+// How hollow builds its walls: Overlap as above; Touch stops each wall at the
+// inside of the walls before it, so no two overlap (NetRadiant Custom's
+// wrapped hollow); Room builds them outside the brush instead, the room
+// being the brush itself, as NetRadiant Custom's Make Room does, with the
+// walls pushed out on every side so the corners are filled.
+enum class LevelMapHollowMode { Overlap, Touch, Room };
+QString levelMapHollowModeId(LevelMapHollowMode mode);
+bool parseLevelMapHollowMode(const QString& id, LevelMapHollowMode* mode);
+bool hollowLevelMapSelection(LevelMapDocument* document, double thickness, LevelMapHollowMode mode, int* hollowed = nullptr,
+	QString* error = nullptr, QStringList* skipped = nullptr);
 // Carves the selected brushes out of every other brush they overlap, the way
 // CSG Subtract does in Radiant and TrenchBroom: a brush they cut gives way to
 // the parts of it outside them, split along their faces, and the faces the

@@ -11,6 +11,15 @@ package, or **VibeStudio Documentation** in the Start menu on Windows).
 
 ## User manual
 
+For a visual introduction, open the [HTML showcase](showcase/index.html), with
+twelve development screenshots and an overview of the connected workflows.
+It works directly from disk. Run `python scripts/build_showcase.py` to produce
+`build/showcase/VibeStudio.html`, a single file with embedded screenshots,
+branding and fonts for offline sharing. Edit `docs/showcase/index.html` to
+update the presentation; `docs/showcase/screenshots.json` records the original
+capture paths and checksums. The showcase reflects pre-alpha development,
+not production readiness.
+
 | Get started | Use the studio | Reference |
 | --- | --- | --- |
 | [Welcome](manual/index.md) | [Projects and game installations](manual/projects.md) | [Accessibility and languages](manual/accessibility.md) |

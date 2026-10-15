@@ -12,6 +12,10 @@ namespace vibestudio {
 
 namespace {
 
+// VibeMap2 3.1.0 preserves authored light styles as oldstyle, restores Half-Life light
+// ranges, supports forced luxel scale and fixes region culling/areaportals. Do not
+// recreate warnings for #173/#475, #470, #485, #422 or #444 here; see the audit matrix.
+
 struct PreflightCancelled {};
 void preflightCheckpoint(const QuakeMapPreflightOptions* options, qint64 completed = -1, qint64 total = 0)
 {
@@ -313,12 +317,6 @@ bool looksLikeRegionEntity(const MapEntity& entity)
 		|| entity.rawText.contains(QStringLiteral("antiregion"), Qt::CaseInsensitive);
 }
 
-bool looksLikeAreaportalEntity(const MapEntity& entity)
-{
-	return cleanClassName(entity).contains(QStringLiteral("areaportal"), Qt::CaseInsensitive)
-		|| entity.rawText.contains(QStringLiteral("areaportal"), Qt::CaseInsensitive);
-}
-
 bool isBrushEntity(const MapEntity& entity)
 {
 	const QString className = cleanClassName(entity);
@@ -534,9 +532,6 @@ void inspectEntityValues(const MapEntity& entity, QuakeMapPreflightReport* repor
 	if (entity.hasEmptyTextureName) {
 		addIssue(report, 342, QString(), QT_TRANSLATE_NOOP("VibeStudioQuakeMapPreflight", "A brush face appears to have an empty texture name; assign a concrete texture before decompile or texture extraction workflows."), entity);
 	}
-	if (hasAnyKey(entity, {QStringLiteral("_minlight"), QStringLiteral("minlight")})) {
-		addIssue(report, 470, QStringLiteral("D12"), QT_TRANSLATE_NOOP("VibeStudioQuakeMapPreflight", "This entity uses minlight; confirm whether the target format expects integer or normalized float scale."), entity, QStringLiteral("_minlight"));
-	}
 	if (hasKey(entity, QStringLiteral("mangle")) && hasKey(entity, QStringLiteral("angle"))) {
 		addIssue(report, 310, QString(), QT_TRANSLATE_NOOP("VibeStudioQuakeMapPreflight", "This entity has both angle and mangle; Quake 2 light workflows have an upstream angle/mangle conflict."), entity, QStringLiteral("mangle"));
 	}
@@ -613,10 +608,6 @@ void inspectEntityValues(const MapEntity& entity, QuakeMapPreflightReport* repor
 		addIssue(report, 270, QString(), QT_TRANSLATE_NOOP("VibeStudioQuakeMapPreflight", "Monster origin is exactly 24 units above the map Z origin; verify outside-fill behavior and floor contact before qbsp."), entity, QStringLiteral("origin"));
 	}
 	if (isLightEntity(entity)) {
-		if (hasKey(entity, QStringLiteral("style")) && hasKey(entity, QStringLiteral("targetname"))) {
-			addIssue(report, 173, QStringLiteral("D02"), QT_TRANSLATE_NOOP("VibeStudioQuakeMapPreflight", "Toggled light has an explicit style; upstream may overwrite it, so preserve intent in a separate key or script."), entity, QStringLiteral("style"));
-			addIssue(report, 475, QStringLiteral("D02"), QT_TRANSLATE_NOOP("VibeStudioQuakeMapPreflight", "Toggled light style preservation is not guaranteed upstream; check grouped lights before compiling."), entity, QStringLiteral("style"));
-		}
 		for (const MapKeyValue& surface : valuesForKey(entity, QStringLiteral("_surface"))) {
 			preflightCheckpoint(options);
 			const QString normalizedSurface = surface.value.trimmed().toLower();
@@ -646,10 +637,7 @@ void inspectEntityValues(const MapEntity& entity, QuakeMapPreflightReport* repor
 		addIssue(report, 190, QStringLiteral("D07"), QT_TRANSLATE_NOOP("VibeStudioQuakeMapPreflight", "Bounce, soft, and extra lighting hints are combined in map keys; run a comparison compile before trusting final lighting."), entity, QStringLiteral("_bounce"));
 	}
 	if (hasKey(entity, QStringLiteral("_sunlight2"))) {
-		addIssue(report, 484, QStringLiteral("D07"), QT_TRANSLATE_NOOP("VibeStudioQuakeMapPreflight", "_sunlight2 can produce BSPX LIGHTINGDIR artifacts in Q2 workflows; verify directional lighting output."), entity, QStringLiteral("_sunlight2"));
-	}
-	if (hasAnyKey(entity, {QStringLiteral("world_units_per_luxel"), QStringLiteral("_world_units_per_luxel")})) {
-		addIssue(report, 485, QStringLiteral("D11"), QT_TRANSLATE_NOOP("VibeStudioQuakeMapPreflight", "world_units_per_luxel is set per entity; upstream does not yet expose a stable force-override flag."), entity, QStringLiteral("world_units_per_luxel"));
+		addIssue(report, 484, QStringLiteral("D07"), QT_TRANSLATE_NOOP("VibeStudioQuakeMapPreflight", "_sunlight2 can produce discrete BSPX LIGHTINGDIR direction steps in Q2 workflows; compare -sunsamples and -extra4 previews, allowing for the legacy dome brightness trade-off."), entity, QStringLiteral("_sunlight2"));
 	}
 	if (hasAnyKey(entity, {QStringLiteral("_compile_condition"), QStringLiteral("_compile_if"), QStringLiteral("_compile_ifnot"), QStringLiteral("_if"), QStringLiteral("_ifnot"), QStringLiteral("_ifdef"), QStringLiteral("_ifndef")})) {
 		addIssue(report, 343, QStringLiteral("D12"), QT_TRANSLATE_NOOP("VibeStudioQuakeMapPreflight", "Conditional compile entity keys are present; route variants through explicit VibeStudio build profiles because upstream conditional entity compilation is not guaranteed."), entity, QStringLiteral("_compile_if"));
@@ -681,8 +669,6 @@ void inspectEntityGroups(const QVector<MapEntity>& entities, QuakeMapPreflightRe
 	int regionCount = 0;
 	int totalBrushCount = 0;
 	int detailBrushCount = 0;
-	bool hasRegion = false;
-	bool hasAreaportal = false;
 	bool hasSpotlight = false;
 	bool hasPhongModelOrBrush = false;
 	QMap<QString, LightGroupState> lightGroups;
@@ -697,9 +683,7 @@ void inspectEntityGroups(const QVector<MapEntity>& entities, QuakeMapPreflightRe
 		}
 		if (looksLikeRegionEntity(entity)) {
 			++regionCount;
-			hasRegion = true;
 		}
-		hasAreaportal = hasAreaportal || looksLikeAreaportalEntity(entity);
 		hasSpotlight = hasSpotlight || className.compare(QStringLiteral("light_spot"), Qt::CaseInsensitive) == 0;
 		hasPhongModelOrBrush = hasPhongModelOrBrush
 			|| ((isBrushEntity(entity) || className.compare(QStringLiteral("misc_model"), Qt::CaseInsensitive) == 0)
@@ -734,14 +718,6 @@ void inspectEntityGroups(const QVector<MapEntity>& entities, QuakeMapPreflightRe
 	if (regionCount > 1) {
 		const MapEntity entity = entities.isEmpty() ? MapEntity{} : entities.front();
 		addIssueText(report, 390, QStringLiteral("D06"), QCoreApplication::translate("VibeStudioQuakeMapPreflight", "Multiple region markers were detected; upstream qbsp supports limited region workflows, so use one explicit region or validate with a full compile."), entity);
-	}
-	if (hasRegion && hasAreaportal) {
-		const MapEntity entity = entities.isEmpty() ? MapEntity{} : entities.front();
-		addIssueText(report, 444, QStringLiteral("D06"), QCoreApplication::translate("VibeStudioQuakeMapPreflight", "Region or antiregion markers appear alongside areaportals; Quake 2 areaportal behavior may be invalid in partial compiles."), entity);
-	}
-	if (hasRegion) {
-		const MapEntity entity = entities.isEmpty() ? MapEntity{} : entities.front();
-		addIssueText(report, 422, QStringLiteral("D06"), QCoreApplication::translate("VibeStudioQuakeMapPreflight", "Region compiles may leave brush entities outside the intended slice; verify entity targets and run a full compile before release."), entity);
 	}
 
 	if (hasSpotlight && hasPhongModelOrBrush) {
@@ -908,8 +884,6 @@ QuakeMapPreflightResult validateQuakeMapPreflightText(const QString& mapText, co
 				warning.code = QStringLiteral("external-map-missing-classname");
 			} else if (issue.issueId.endsWith(QStringLiteral("#199"))) {
 				warning.code = QStringLiteral("external-map-path-portability");
-			} else if (issue.issueId.endsWith(QStringLiteral("#173")) || issue.issueId.endsWith(QStringLiteral("#475"))) {
-				warning.code = QStringLiteral("light-style-conflict");
 			} else if (issue.issueId.endsWith(QStringLiteral("#122"))) {
 				warning.code = QStringLiteral("light-start-off-conflict");
 			} else if (issue.issueId.endsWith(QStringLiteral("#310"))) {
@@ -936,16 +910,8 @@ QuakeMapPreflightResult validateQuakeMapPreflightText(const QString& mapText, co
 				warning.code = QStringLiteral("multiple-region-markers");
 			} else if (issue.issueId.endsWith(QStringLiteral("#405"))) {
 				warning.code = QStringLiteral("phong-bmodel-risk");
-			} else if (issue.issueId.endsWith(QStringLiteral("#422"))) {
-				warning.code = QStringLiteral("region-brush-entity-cull-risk");
-			} else if (issue.issueId.endsWith(QStringLiteral("#444"))) {
-				warning.code = QStringLiteral("region-areaportal-risk");
-			} else if (issue.issueId.endsWith(QStringLiteral("#470"))) {
-				warning.code = QStringLiteral("minlight-scale-ambiguity");
 			} else if (issue.issueId.endsWith(QStringLiteral("#484"))) {
 				warning.code = QStringLiteral("q2-sunlight2-lightingdir-risk");
-			} else if (issue.issueId.endsWith(QStringLiteral("#485"))) {
-				warning.code = QStringLiteral("world-units-per-luxel-override-risk");
 			} else {
 				warning.code = issue.issueId.toLower().replace(QStringLiteral("ericw-tools #"), QStringLiteral("ericw-issue-"));
 			}

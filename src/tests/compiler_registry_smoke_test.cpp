@@ -108,12 +108,29 @@ int main(int argc, char** argv)
 		|| bsputil->readinessWarnings.isEmpty()) {
 		return fail("Expected bsputil argument parsing readiness warning.");
 	}
-	if (!lightpreview->capabilityFlags.contains(QStringLiteral("platform-launch-risk"))
+	if (!lightpreview->capabilityFlags.contains(QStringLiteral("platform-launch-constraints"))
 		|| !lightpreview->capabilityFlags.contains(QStringLiteral("gui-helper"))
 		|| lightpreview->versionProbeSupported
 		|| lightpreview->readinessWarnings.isEmpty()
 		|| !lightpreview->executableNames.join(QLatin1Char(' ')).contains(QStringLiteral("vibemap2-hub"))) {
 		return fail("Expected hub launch readiness metadata without an unsafe probe.");
+	}
+	if (!lightpreview->capabilityFlags.contains(QStringLiteral("isolated-preview-workspace"))
+		|| !lightpreview->capabilityFlags.contains(QStringLiteral("upstream-issue-480"))) {
+		return fail("Expected fixed preview isolation alongside the retained platform constraint.");
+	}
+	for (const auto& descriptor : descriptors) {
+		if (descriptor.integrationId != QStringLiteral("vibemap2")) { continue; }
+		for (const QString& name : descriptor.executableNames) {
+			if (!name.startsWith(QStringLiteral("vibemap2-")) && !name.startsWith(QStringLiteral("vmt-"))) {
+				return fail("Expected every VibeMap2 binary to avoid generic-name conflicts (#335).");
+			}
+		}
+		for (int retired : {167, 173, 335, 400, 401, 416, 422, 437, 444, 451, 463, 470, 475, 483, 485}) {
+			if (descriptor.capabilityFlags.contains(QStringLiteral("upstream-issue-%1").arg(retired))) {
+				return fail("Expected no stale upstream-issue capability flag for a retired VibeMap2 report.");
+			}
+		}
 	}
 	// The pre-rename VibeyMapTools binaries stay discoverable; stock ericw-tools names do not.
 	if (!qbsp->executableNames.join(QLatin1Char(' ')).contains(QStringLiteral("vmt-bsp"))

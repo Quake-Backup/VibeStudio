@@ -1164,6 +1164,7 @@ void ApplicationShell::refreshLevelEditingCommands()
 	m_commands->setEnabled(QStringLiteral("map.makeStructural"), textMap && brushes);
 	m_commands->setEnabled(QStringLiteral("map.intersect"), textMap && brushCount >= 2);
 	m_commands->setEnabled(QStringLiteral("map.dropToFloor"), textMap && pointEntity);
+	refreshLevelGeometryCommands();
 }
 
 void ApplicationShell::tieLevelMapSelectionFromUi(const QString& className)

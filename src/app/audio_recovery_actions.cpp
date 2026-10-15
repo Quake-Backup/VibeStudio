@@ -90,8 +90,7 @@ void ApplicationShell::recoverAudioFromUi()
 	dialog->restore = [this](const QString &path, const QByteArray &digest, AudioRecoveryKind kind) {
 		if (kind == AudioRecoveryKind::Session) {
 			auto *session = ensureAudioSession();
-			session->show();
-			session->raise();
+			showStudioEditor(StudioMode::Audio, session);
 			if (session->isBusy()) {
 				statusBar()->showMessage(tr("Wait for the session operation to finish, then reopen Audio Recoveries."));
 			} else {
@@ -106,8 +105,7 @@ void ApplicationShell::recoverAudioFromUi()
 		}
 		unloadAudioPlayback();
 		refreshAudioTransport();
-		editor->show();
-		editor->raise();
+		showStudioEditor(StudioMode::Audio, editor);
 		editor->refreshContext();
 		editor->openProject(path, true, digest);
 	};

@@ -1,9 +1,11 @@
 #include "core/level_patch.h"
 
 #include <QCoreApplication>
+#include <QPointF>
 #include <QSet>
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 namespace vibestudio {
 namespace {
@@ -136,6 +138,52 @@ void refreshLevelPatchBounds(LevelMapPatch* patch)
 	}
 }
 
+QStringList levelPatchShapeIds()
+{
+	return {QStringLiteral("plane"), QStringLiteral("cylinder"), QStringLiteral("square-cylinder"), QStringLiteral("cone"),
+		QStringLiteral("sphere"), QStringLiteral("bevel"), QStringLiteral("endcap")};
+}
+
+namespace {
+// Cosine and sine of `step` parts of a turn of `steps`, exact on quarter
+// turns, so a four-span ring lands on whole corners.
+std::pair<double, double> turn(int step, int steps)
+{
+	const int quarter = ((4 * step) % (4 * steps) + 4 * steps) % (4 * steps);
+	if (quarter % steps == 0) {
+		switch (quarter / steps) {
+		case 0: return {1.0, 0.0};
+		case 1: return {0.0, 1.0};
+		case 2: return {-1.0, 0.0};
+		default: return {0.0, -1.0};
+		}
+	}
+	const double angle = 2.0 * 3.14159265358979323846 * step / steps;
+	return {std::cos(angle), std::sin(angle)};
+}
+
+// A circle of `segments` quadratic arcs as control points: the ends on the
+// circle and each middle where the tangents at its ends meet, which is how
+// NetRadiant Custom builds its exact cylinders (radiant/patch.cpp,
+// Patch::ConstructPrefab, ExactCylinder; GPL-2.0-or-later, revision
+// 8216133984031afaa9a857b56ea66dd9c3d54b26). Original implementation.
+QVector<QPointF> circleControls(int segments, int start, int steps)
+{
+	QVector<QPointF> ring;
+	for (int span = 0; span <= segments; ++span) {
+		const auto [c0, s0] = turn(start + span * 2, steps);
+		ring << QPointF(c0, s0);
+		if (span == segments) {
+			break;
+		}
+		const auto [c1, s1] = turn(start + span * 2 + 2, steps);
+		const auto [chord, ignored] = turn(2, steps);
+		ring << QPointF((c0 + c1) / (1.0 + chord), (s0 + s1) / (1.0 + chord));
+	}
+	return ring;
+}
+} // namespace
+
 bool createLevelPatch(const LevelPatchCreateRequest& request, LevelMapPatch* patch, QString* error)
 {
 	if (!patch) {
@@ -145,30 +193,71 @@ bool createLevelPatch(const LevelPatchCreateRequest& request, LevelMapPatch* pat
 		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch",
 		                                     "Patch sizes must be positive and the center must contain finite coordinates."));
 	}
-	if (request.shape != QStringLiteral("plane") && request.shape != QStringLiteral("cylinder") &&
-	    request.shape != QStringLiteral("cone")) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Patch shape must be plane, cylinder or cone."));
+	const QString& shape = request.shape;
+	if (!levelPatchShapeIds().contains(shape)) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch",
+			"Patch shape must be plane, cylinder, square-cylinder, cone, sphere, bevel or endcap."));
 	}
 	if (request.plane != QStringLiteral("xy") && request.plane != QStringLiteral("xz") && request.plane != QStringLiteral("yz")) {
 		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Patch plane must be xy, xz or yz."));
 	}
+	if (request.axis < 0 || request.axis > 2) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch axis must be x, y or z."));
+	}
+	const bool round = shape == QStringLiteral("cylinder") || shape == QStringLiteral("cone") || shape == QStringLiteral("sphere");
+	if (round && (request.segments < 3 || request.segments > (kLevelPatchMaxDimension - 1) / 2)) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "A round patch needs 3 to 15 segments around it."));
+	}
+	if (shape == QStringLiteral("sphere") && (request.bands < 2 || request.bands > (kLevelPatchMaxDimension - 1) / 2)) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "A sphere needs 2 to 15 bands from pole to pole."));
+	}
 	LevelMapPatch built;
-	built.width = request.shape == QStringLiteral("plane") ? request.columns : 9;
-	built.height = request.rows;
+	if (shape == QStringLiteral("plane")) {
+		built.width = request.columns;
+	} else if (round) {
+		built.width = request.segments * 2 + 1;
+	} else if (shape == QStringLiteral("square-cylinder")) {
+		built.width = 9;
+	} else {
+		built.width = shape == QStringLiteral("bevel") ? 3 : 5;
+	}
+	built.height = shape == QStringLiteral("sphere") ? request.bands * 2 + 1 : request.rows;
 	built.textureName = levelPatchMaterialToken(request.texture, false);
 	built.controlGridNormalized = true;
 	built.definitionDirty = true;
 	if (!dimension(built.width) || !dimension(built.height)) {
 		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Patch grid dimensions must be odd numbers from 3 to 31."));
 	}
-	constexpr double ringX[9]{1, 1, 0, -1, -1, -1, 0, 1, 1};
-	constexpr double ringY[9]{0, 1, 1, 1, 0, -1, -1, -1, 0};
+	// The profile across the axis, in units of the half size, one point per
+	// column. Bevel, end cap and square cylinder follow Radiant's prefabs.
+	QVector<QPointF> ring;
+	if (round) {
+		ring = circleControls(request.segments, 0, request.segments * 2);
+	} else if (shape == QStringLiteral("square-cylinder")) {
+		ring = {{-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}};
+	} else if (shape == QStringLiteral("bevel")) {
+		ring = {{-1, -1}, {1, -1}, {1, 1}};
+	} else if (shape == QStringLiteral("endcap")) {
+		ring = {{1, -1}, {1, 1}, {0, 1}, {-1, 1}, {-1, -1}};
+	}
+	// A sphere's meridian, one point per row: half a turn of a circle from
+	// straight down (the bottom pole) to straight up, so each row's radius is
+	// the point's cosine and its height the sine.
+	const QVector<QPointF> meridian =
+		shape == QStringLiteral("sphere") ? circleControls(request.bands, -request.bands, request.bands * 4) : QVector<QPointF>{};
+	// Local axes across (a, b) and along (c) the axis, permuted cyclically
+	// as Radiant's prefabs are, so every axis keeps the patch's facing.
+	const int across = request.axis == 2 ? 0 : (request.axis == 1 ? 2 : 1);
+	const int up = request.axis == 2 ? 1 : (request.axis == 1 ? 0 : 2);
+	const int along = request.axis;
+	const auto component = [](LevelMapVec3& p, int index) -> double& { return index == 0 ? p.x : (index == 1 ? p.y : p.z); };
+	const auto sizeOf = [&request](int index) { return index == 0 ? request.size.x : (index == 1 ? request.size.y : request.size.z); };
 	for (int row = 0; row < built.height; ++row) {
 		const double v = static_cast<double>(row) / (built.height - 1);
 		for (int col = 0; col < built.width; ++col) {
 			const double u = static_cast<double>(col) / (built.width - 1);
 			LevelMapVec3 p = request.center;
-			if (request.shape == QStringLiteral("plane")) {
+			if (shape == QStringLiteral("plane")) {
 				if (request.plane == QStringLiteral("xy")) {
 					p.x += (u - 0.5) * request.size.x;
 					p.y += (v - 0.5) * request.size.y;
@@ -179,11 +268,16 @@ bool createLevelPatch(const LevelPatchCreateRequest& request, LevelMapPatch* pat
 					p.y += (u - 0.5) * request.size.y;
 					p.z += (v - 0.5) * request.size.z;
 				}
+			} else if (shape == QStringLiteral("sphere")) {
+				const QPointF& at = meridian.at(row);
+				component(p, across) += ring.at(col).x() * sizeOf(across) * 0.5 * at.x();
+				component(p, up) += ring.at(col).y() * sizeOf(up) * 0.5 * at.x();
+				component(p, along) += at.y() * sizeOf(along) * 0.5;
 			} else {
-				const double taper = request.shape == QStringLiteral("cone") ? 1.0 - v : 1.0;
-				p.x += ringX[col] * request.size.x * 0.5 * taper;
-				p.y += ringY[col] * request.size.y * 0.5 * taper;
-				p.z += (v - 0.5) * request.size.z;
+				const double taper = shape == QStringLiteral("cone") ? 1.0 - v : 1.0;
+				component(p, across) += ring.at(col).x() * sizeOf(across) * 0.5 * taper;
+				component(p, up) += ring.at(col).y() * sizeOf(up) * 0.5 * taper;
+				component(p, along) += (v - 0.5) * sizeOf(along);
 			}
 			built.controlPoints << p;
 			built.controlU << u;

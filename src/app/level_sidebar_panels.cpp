@@ -592,15 +592,25 @@ bool ApplicationShell::levelRegionActive() const
 
 void ApplicationShell::refreshLevelRegionPanel()
 {
-	// A region belongs to the map it was set on.
-	if (m_levelRegionSerial != m_levelMapLoadSerial && (m_levelRegionMins.valid || m_levelRegionMaxs.valid)) {
-		m_levelRegionMins = {};
-		m_levelRegionMaxs = {};
-		for (MapViewport* view : std::as_const(m_levelPlanViews)) {
-			view->setRegionBox();
+	// A region belongs to the map it was set on; a map opened again finds
+	// the region it was left with.
+	if (m_levelRegionSerial != m_levelMapLoadSerial) {
+		m_levelRegionSerial = m_levelMapLoadSerial;
+		LevelMapVec3 mins;
+		LevelMapVec3 maxs;
+		if (rememberedLevelRegion(&mins, &maxs)) {
+			setLevelRegion(mins, maxs);
+			statusBar()->showMessage(tr("The region this map was left with is back; Clear Region shows the whole map."), 6000);
+			return;
+		}
+		if (m_levelRegionMins.valid || m_levelRegionMaxs.valid) {
+			m_levelRegionMins = {};
+			m_levelRegionMaxs = {};
+			for (MapViewport* view : std::as_const(m_levelPlanViews)) {
+				view->setRegionBox();
+			}
 		}
 	}
-	m_levelRegionSerial = m_levelMapLoadSerial;
 	if (!m_levelRegionSummary) {
 		return;
 	}
@@ -633,6 +643,7 @@ void ApplicationShell::setLevelRegion(const LevelMapVec3& mins, const LevelMapVe
 	m_levelRegionMins = mins;
 	m_levelRegionMaxs = maxs;
 	m_levelRegionSerial = m_levelMapLoadSerial;
+	rememberLevelRegion();
 	for (MapViewport* view : std::as_const(m_levelPlanViews)) {
 		view->setRegionBox(mins, maxs);
 	}
