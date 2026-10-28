@@ -90,6 +90,7 @@ struct ModelViewport::GeometryKey {
 	bool jointDescendants = true;
 	int editSurface = -1;
 	ModelTransform editTransform;
+	ModelTransformPieceMap editPieces;
 	QSet<int> editSurfaces;
 	QSet<int> editVertices;
 	bool moving = false;
@@ -163,6 +164,8 @@ struct ModelViewport::RasterWork {
 	int frame = 0, blendFrame = 0, editSurface = -1, edgeSelectionSurface = -1, hover = -1;
 	double frameBlend = 0;
 	ModelTransform editTransform;
+	// Individual Origins: each piece's own pivot (and axes).
+	ModelTransformPieceMap editPieces;
 	QSet<int> editVertices, editSurfaces, surfaceStrokeTriangles;
 	QVector<bool> highlighted;
 	QSet<QPair<int, int>> selectedEdges;
@@ -211,7 +214,7 @@ struct ModelViewport::RasterWork {
 			point = interpolateModelPosition(point, part.frames[blendFrame].positions[vertex], frameBlend);
 		}
 		return editMoveActive && (editSurfaces.contains(surface) || (surface == editSurface && editVertices.contains(vertex)))
-			? transformModelPoint(point, editTransform)
+			? transformModelPoint(point, editPieces.transformFor(editTransform, surface, vertex))
 			: point;
 	}
 	void toView(const ModelVec3& point, double* x, double* y, double* z) const

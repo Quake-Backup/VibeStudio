@@ -2512,20 +2512,26 @@ Each resolved path may be a definition file or a folder of them.
   0.000001 to 1,000,000 model units. `--snap-angle N` snaps degrees (positive
   range 0.000001–180); `--snap-scale N` snaps factors relative to 1 (positive
   range 0.000001–10,000). Zero disables either step. `--pivot-mode
-  origin|selection|custom` chooses the pivot, with legacy default custom 0,0,0;
-  `--pivot x,y,z` supplies custom coordinates. `--pivot-frame N` chooses the
-  selection-bounds reference pose for all-frame transforms only (default 0).
+  origin|selection|custom|individual` chooses the pivot, with legacy default custom 0,0,0;
+  `--pivot x,y,z` supplies custom coordinates and `individual` turns each connected
+  piece about its own bounds centre (whole surfaces each about their own).
+  `--pivot-frame N` chooses the selection-bounds reference pose for all-frame
+  transforms only (default 0).
   A frame-local transform uses the edited pose. Other operations reject these
   pivot and snapping flags; contradictory pivot options are usage errors.
   `--dry-run --json` reports the proposed result without writing it.
 - [x] Mesh/tag transforms, face extrusion/duplication and collision transforms
-  accept `--transform-space world|selection|custom` (default world). Custom
+  accept `--transform-space world|selection|custom|normal` (default world). Custom
   accepts `--axis-rotation X,Y,Z`, using XYZ Euler degrees (default 0,0,0).
   Selection derives axes from the first usable selected/touching triangle, the
-  active whole surface, or the selected tag/box. `--axes-frame N` chooses a
-  fixed reference pose for selection axes; default is the edited frame, or
+  active whole surface, or the selected tag/box. Normal uses the area-weighted
+  normal of the selected faces (vertex normals without faces) as Z and the longest
+  border edge as X; a closed selection keeps world axes, and with
+  `--pivot-mode individual` each piece uses its own normal axes. `model tool --tool
+  transform` takes the same axes options. `--axes-frame N` chooses a
+  fixed reference pose for selection or normal axes; default is the edited frame, or
   `--pivot-frame`/pose 0 for all-frame edits. The pivot remains in model coordinates.
-  Axis angles require Custom; the reference requires Selection. Repeated,
+  Axis angles require Custom; the reference requires Selection or Normal. Repeated,
   malformed, out-of-range or inapplicable axes options are usage errors (exit 2).
   Collision size remains intrinsic to the box under every axes mode. No output
   is written on failure or dry run. For example:

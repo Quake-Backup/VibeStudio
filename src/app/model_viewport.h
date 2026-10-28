@@ -27,6 +27,7 @@
 #include "core/model_mdl.h"
 #include "core/model_pose.h"
 #include "core/model_transform.h"
+#include "core/model_transform_pieces.h"
 #include "app/level_component_gizmo.h"
 #include "app/level_linked_group_boxes.h"
 #include "app/level_vertex_insertion.h"
@@ -211,7 +212,9 @@ public:
 	void setVertexPicking(bool enabled);
 	void setXrayVertices(bool enabled);
 	void setTransformGizmo(bool enabled, ModelTransformTool tool, double moveGrid = 0, double angleGrid = 0, double scaleGrid = 0);
-	void setTransformPivot(ModelTransformPivot mode, ModelVec3 custom = {});
+	// Individual Origins previews each connected piece about its own centre,
+	// and with pieceNormals in its own normal axes (core/model_transform_pieces.h).
+	void setTransformPivot(ModelTransformPivot mode, ModelVec3 custom = {}, bool pieceNormals = false);
 	void setTransformAxes(const ModelTransformBasis& basis, const QString& name = {}, bool available = true);
 	[[nodiscard]] std::array<QPointF, 4> transformGizmoPoints();
 	[[nodiscard]] std::array<QPolygonF, 3> rotationGizmoRings();
@@ -1039,6 +1042,8 @@ private:
 	ModelTransformTool m_transformTool = ModelTransformTool::Move;
 	ModelTransformPivot m_transformPivot = ModelTransformPivot::SelectionCentre;
 	ModelVec3 m_customTransformPivot;
+	bool m_transformPieceNormals = false;
+	ModelTransformPieceMap m_editPieces;
 	ModelTransformBasis m_transformBasis;
 	QString m_transformAxesName;
 	bool m_transformAxesAvailable = true;

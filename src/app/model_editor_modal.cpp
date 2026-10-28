@@ -310,7 +310,7 @@ bool ModelEditorTools::beginModal(ModelModalOperator op, const QPointF &pointer,
 	}
 	else if (pivotMode == 2)
 		pivot = {float(m_editor->m_pivot[0]->value()), float(m_editor->m_pivot[1]->value()), float(m_editor->m_pivot[2]->value())};
-	else if (pivotMode == 1 || !transform)
+	else if (pivotMode == 1 || pivotMode == int(ModelTransformPivot::IndividualOrigins) || !transform)
 	{
 		if (!selectionCentre(&pivot))
 			pivot = m_cursor;
@@ -634,7 +634,10 @@ void ModelEditorTools::constrainModal(int axis, bool plane)
 		ModelEdit probe;
 		probe.kind = ModelEditKind::Transform;
 		probe.selection = m.selection;
-		probe.transformSpace = ModelTransformSpace::Selection;
+		// The second press uses the selection's own axes, or its normal axes
+		// when the editor's transform axes are Normal.
+		probe.transformSpace = m_editor->m_transformSpace->currentIndex() == int(ModelTransformSpace::Normal) ? ModelTransformSpace::Normal
+																										  : ModelTransformSpace::Selection;
 		probe.axesFrame = std::max(0, m_editor->m_frame->currentIndex());
 		QString error;
 		if (!resolveModelTransformAxes(m_editor->m_document.mesh(), probe, &m.basis, &error))
@@ -829,6 +832,10 @@ void ModelEditorTools::updateModalPreview()
 		edit.axesFrame = -1;
 		edit.pivotMode = ModelTransformPivot::Custom;
 		edit.pivot = m.pivot;
+		// Individual Origins: every connected piece about its own centre.
+		if (m_editor->m_pivotMode->currentIndex() == int(ModelTransformPivot::IndividualOrigins) && m.selection.tag.isEmpty() &&
+			m.selection.collision.isEmpty())
+			edit.pivotMode = ModelTransformPivot::IndividualOrigins;
 		if (kind == ModelEditKind::TransformCollisionBox)
 		{
 			const auto box = findModelCollisionBox(mesh, edit.selection.collision);
@@ -848,7 +855,8 @@ void ModelEditorTools::updateModalPreview()
 		}
 		if (m.local && m.axis >= 0)
 		{
-			edit.transformSpace = ModelTransformSpace::Selection;
+			edit.transformSpace = m_editor->m_transformSpace->currentIndex() == int(ModelTransformSpace::Normal) ? ModelTransformSpace::Normal
+																											 : ModelTransformSpace::Selection;
 			edit.axesFrame = frame;
 		}
 		if (m.op == ModelModalOperator::Move)
@@ -858,7 +866,7 @@ void ModelEditorTools::updateModalPreview()
 			if (!ok)
 				break;
 			const bool vertexSnap = snapToVertex(&delta);
-			if (edit.transformSpace == ModelTransformSpace::Selection)
+			if (edit.transformSpace == ModelTransformSpace::Selection || edit.transformSpace == ModelTransformSpace::Normal)
 				delta = modelBasisFromWorld(delta, m.basis);
 			edit.translation = delta;
 			if (snapping && !vertexSnap)

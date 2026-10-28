@@ -468,6 +468,7 @@ core_sources = files(
   'core/box_draw.cpp',
   'core/camera_surface_placement.cpp',
   'core/model_transform_axes.cpp',
+  'core/model_transform_pieces.cpp',
   'core/model_tags.cpp',
   'core/model_uv.cpp',
   'core/model_uv_transform.cpp',
@@ -657,6 +658,7 @@ install_headers('core/package_wad_groups.h', subdir: 'vibestudio/core')
 install_headers('core/model_transform.h', subdir: 'vibestudio/core')
 install_headers('core/model_trackball.h', subdir: 'vibestudio/core')
 install_headers('core/model_transform_axes.h', subdir: 'vibestudio/core')
+install_headers('core/model_transform_pieces.h', subdir: 'vibestudio/core')
 install_headers('core/model_tags.h', subdir: 'vibestudio/core')
 install_headers('core/model_uv.h', subdir: 'vibestudio/core')
 install_headers('core/model_uv_density.h', subdir: 'vibestudio/core')
@@ -3907,6 +3909,18 @@ model_transform_axes_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-transform-axes-smoke', model_transform_axes_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+
+model_transform_pieces_smoke_test = executable(
+  'model_transform_pieces_smoke_test', ['tests/model_transform_pieces_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-transform-pieces-smoke', model_transform_pieces_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+
+model_polygon_tools_ui_smoke_test = executable(
+  'model_polygon_tools_ui_smoke_test', ['tests/model_polygon_tools_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-polygon-tools-ui-smoke', model_polygon_tools_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 model_transform_axes_ui_smoke_test = executable(
   'model_transform_axes_ui_smoke_test', ['tests/model_transform_axes_ui_smoke_test.cpp'],

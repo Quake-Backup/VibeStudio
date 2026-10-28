@@ -808,7 +808,8 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	m_transformSpace->setObjectName(QStringLiteral("meshTransformSpace"));
 	m_transformSpace->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Transform axes"));
 	m_transformSpace->addItems({QCoreApplication::translate("VibeStudioModelEditor", "World"),
-		QCoreApplication::translate("VibeStudioModelEditor", "Selection"), QCoreApplication::translate("VibeStudioModelEditor", "Custom")});
+		QCoreApplication::translate("VibeStudioModelEditor", "Selection"), QCoreApplication::translate("VibeStudioModelEditor", "Custom"),
+		QCoreApplication::translate("VibeStudioModelEditor", "Normal")});
 	geometry->addRow(m_transformSpace->accessibleName(), m_transformSpace);
 	auto *customAxesRow = values(geometry, QCoreApplication::translate("VibeStudioModelEditor", "Custom axes"),
 		QStringLiteral("meshAxisRotation"), m_axisRotation, 3, 0);
@@ -828,11 +829,14 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	m_pivotMode->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Transform pivot"));
 	m_pivotMode->addItems({QCoreApplication::translate("VibeStudioModelEditor", "Model origin"),
 						   QCoreApplication::translate("VibeStudioModelEditor", "Selection centre"),
-						   QCoreApplication::translate("VibeStudioModelEditor", "Custom")});
+						   QCoreApplication::translate("VibeStudioModelEditor", "Custom"),
+						   QCoreApplication::translate("VibeStudioModelEditor", "Individual origins")});
 	m_pivotMode->setCurrentIndex(1);
 	m_pivotMode->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
-														"Use the selected bounds in the displayed pose, the model origin, or a custom "
-														"point. An all-frame transform uses that same fixed pivot in every pose."));
+														"Use the selected bounds in the displayed pose, the model origin, a custom "
+														"point, or each connected piece's own centre (individual origins). An all-frame "
+														"transform uses the same fixed pivots in every pose."));
+	m_pivotMode->setAccessibleDescription(m_pivotMode->toolTip());
 	geometry->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Pivot"), m_pivotMode);
 	auto *customPivotRow =
 		values(geometry, QCoreApplication::translate("VibeStudioModelEditor", "Custom pivot"), QStringLiteral("meshPivot"), m_pivot, 3, 0);
@@ -1261,7 +1265,8 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 		m_preview->setTransformGizmo(m_moveGizmo->isChecked(), ModelTransformTool(tool), snap ? m_translationGrid->value() : 0,
 									 snap ? m_rotationGrid->value() : 0, snap ? m_scaleGrid->value() : 0);
 		m_preview->setTransformPivot(ModelTransformPivot(m_pivotMode->currentIndex()),
-									 {float(m_pivot[0]->value()), float(m_pivot[1]->value()), float(m_pivot[2]->value())});
+									 {float(m_pivot[0]->value()), float(m_pivot[1]->value()), float(m_pivot[2]->value())},
+									 m_transformSpace->currentIndex() == int(ModelTransformSpace::Normal));
 		for (auto *field : m_pivot)
 		{
 			field->setEnabled(m_pivotMode->currentIndex() == 2);
@@ -1400,7 +1405,8 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 				{
 					refresh();
 				}
-				else if (m_transformSpace->currentIndex() == int(ModelTransformSpace::Selection))
+				else if (m_transformSpace->currentIndex() == int(ModelTransformSpace::Selection) ||
+						 m_transformSpace->currentIndex() == int(ModelTransformSpace::Normal))
 				{
 					refreshTransformAxes();
 				}
@@ -1556,6 +1562,8 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 				edit.rotation = transform.rotation;
 				edit.scale = transform.scale;
 				edit.pivot = transform.pivot;
+				if (m_pivotMode->currentIndex() == int(ModelTransformPivot::IndividualOrigins))
+					edit.pivotMode = ModelTransformPivot::IndividualOrigins;
 				configureTransformAxes(edit);
 				const auto collision = findModelCollisionBox(m_document.mesh(), edit.selection.collision);
 				edit.frame = (collision && collision->framePoses.isEmpty()) || m_frameScope->currentIndex() == 0 ? -1 : m_frame->currentIndex();
@@ -2308,7 +2316,8 @@ void ModelEditorDialog::configureTransformAxes(ModelEdit &edit) const
 		edit.kind != ModelEditKind::TransformCollisionBox && edit.kind != ModelEditKind::Extrude && edit.kind != ModelEditKind::DuplicateFaces)
 		return;
 	edit.transformSpace = ModelTransformSpace(m_transformSpace->currentIndex());
-	edit.axesFrame = edit.transformSpace == ModelTransformSpace::Selection ? m_frame->currentIndex() : -1;
+	edit.axesFrame = edit.transformSpace == ModelTransformSpace::Selection || edit.transformSpace == ModelTransformSpace::Normal
+		? m_frame->currentIndex() : -1;
 	if (edit.transformSpace == ModelTransformSpace::Custom)
 		edit.axisRotation = {float(m_axisRotation[0]->value()), float(m_axisRotation[1]->value()), float(m_axisRotation[2]->value())};
 }
@@ -2325,7 +2334,8 @@ void ModelEditorDialog::refreshTransformAxes()
 	m_preview->setTransformAxes(basis, m_transformSpace->currentText(), available);
 	const QString description = QCoreApplication::translate("VibeStudioModelEditor",
 		"Selection axes follow the first usable selected or touching face, the active whole surface, or the selected tag or collision box. "
-		"The displayed pose supplies fixed axes for every affected frame. Collision size always uses the box's local axes.");
+		"Normal axes follow the selection's averaged face normal (Z) and its longest border edge (X); with individual origins each piece "
+		"uses its own. The displayed pose supplies fixed axes for every affected frame. Collision size always uses the box's local axes.");
 	m_transformSpace->setToolTip(available ? description : error + QLatin1Char('\n') + description);
 	m_transformSpace->setAccessibleDescription(m_transformSpace->toolTip());
 	if (!available && m_status && (!edit.selection.faces.isEmpty() || !edit.selection.vertices.isEmpty() ||

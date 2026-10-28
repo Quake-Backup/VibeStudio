@@ -180,6 +180,19 @@ moving a vertex also moves its counterpart on the other side, and vertices on
 the mirror plane stay on it. Counterparts are matched by position in the
 displayed pose.
 
+### Individual origins and normal axes
+
+**Shift+S > Pivot at Individual Origins** (or **Pivot > Individual origins** in
+Geometry) makes Rotate and Scale turn each connected piece of the selection about
+its own centre: separate teeth, bolts or panels shrink or spin in place instead of
+gathering towards the middle. **Shift+S > Normal Transform Axes** (or **Transform
+axes > Normal**) orients the axes by the selection's averaged normal, with X along
+its longest border edge; pressing an axis key twice during G, R or S then uses
+these axes, so G **Z** **Z** moves along the normal. With both, every piece uses its
+own normal. The modal keys, the gizmo and the numeric Geometry fields share one
+definition, described in [Transform axes and pivots](MODEL_MESH.md); the gizmo's
+preview shows each piece turning about its own centre.
+
 ## The 3D Cursor
 
 Shift+right-click places the 3D cursor on the surface under the pointer (or in
@@ -484,7 +497,7 @@ its `binding`.
 | `inset` | `--faces`, `--thickness`, `--depth`, `--individual`, `--no-even` |
 | `shrink-fatten` | selection, `--distance`, `--no-even`, `--frame all\|N` |
 | `smooth` | selection, `--factor`, `--iterations`, `--pin-boundary`, `--frame` |
-| `transform` | selection, `--offset`/`--rotate`/`--scale`, `--pivot-mode`, `--pivot`, `--proportional-radius`, `--falloff`, `--connected`, `--mirror x\|y\|z\|xy…`, `--threshold`, `--frame` |
+| `transform` | selection, `--offset`/`--rotate`/`--scale`, `--pivot-mode origin\|selection\|custom\|individual`, `--pivot`, `--transform-space world\|selection\|custom\|normal` (with `--axis-rotation` or `--axes-frame`), `--proportional-radius`, `--falloff`, `--connected`, `--mirror x\|y\|z\|xy…`, `--threshold`, `--frame` |
 | `shade-flat`, `shade-smooth` | `--faces` |
 | `auto-smooth` | `--faces`, `--angle` (default 30) |
 | `bisect` | `--faces`, `--plane-point`, `--plane-normal`, `--keep both\|front\|back` |

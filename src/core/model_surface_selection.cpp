@@ -1,5 +1,6 @@
 #include "core/model_surface_selection.h"
 #include "core/model_transform_axes.h"
+#include "core/model_transform_pieces.h"
 
 #include <QCoreApplication>
 #include <algorithm>
@@ -38,7 +39,7 @@ bool modelSurfaceSelectionPivot(const ModelMesh &mesh, const QSet<int> &surfaces
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
 	if (!work.check())
 		return false;
-	if (!result || surfaces.isEmpty() || frame < 0 || int(mode) < 0 || int(mode) > 2 || !std::isfinite(custom.x) ||
+	if (!result || surfaces.isEmpty() || frame < 0 || int(mode) < 0 || int(mode) > int(ModelTransformPivot::IndividualOrigins) || !std::isfinite(custom.x) ||
 		!std::isfinite(custom.y) || !std::isfinite(custom.z))
 		return fail(error, Text::tr("Select surfaces and a valid reference pose and pivot."));
 	std::array<double, 3> low{INFINITY, INFINITY, INFINITY}, high{-INFINITY, -INFINITY, -INFINITY};
@@ -91,6 +92,25 @@ bool applyModelSurfaceTransform(ModelMesh *mesh, const ModelEdit &edit, QString 
 		if (!edit.selection.surfaces.contains(index))
 			continue;
 		auto &surface = mesh->surfaces[index];
+		// Individual Origins: each surface about its own centre, and in its own
+		// normal axes when the edit uses Normal axes.
+		auto own = transform;
+		if (edit.pivotMode == ModelTransformPivot::IndividualOrigins)
+		{
+			const int reference = edit.frame >= 0 ? edit.frame : edit.pivotFrame;
+			if (!modelSurfaceSelectionPivot(*mesh, {index}, reference, ModelTransformPivot::SelectionCentre, {}, &own.pivot, error, control))
+				return false;
+			if (edit.transformSpace == ModelTransformSpace::Normal)
+			{
+				// A closed surface has no facing direction and keeps the selection's axes.
+				QSet<int> everything;
+				for (int vertex = 0; vertex < surface.vertexCount; ++vertex)
+					everything.insert(vertex);
+				ModelTransformBasis basis;
+				if (modelNormalTransformBasis(surface, edit.axesFrame >= 0 ? edit.axesFrame : reference, everything, &basis))
+					own.basis = basis;
+			}
+		}
 		for (int frame = 0; frame < surface.frames.size(); ++frame)
 		{
 			if (edit.frame >= 0 && frame != edit.frame)
@@ -100,8 +120,8 @@ bool applyModelSurfaceTransform(ModelMesh *mesh, const ModelEdit &edit, QString 
 			{
 				if (!work.step())
 					return false;
-				pose.positions[vertex] = transformModelPoint(pose.positions[vertex], transform);
-				pose.normals[vertex] = transformModelNormal(pose.normals[vertex], transform);
+				pose.positions[vertex] = transformModelPoint(pose.positions[vertex], own);
+				pose.normals[vertex] = transformModelNormal(pose.normals[vertex], own);
 			}
 		}
 		if (mirrored)

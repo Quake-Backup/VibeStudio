@@ -533,6 +533,16 @@ selection instead. Every change is one undo step. Changes to the mesh's
 structure, such as extrusions and cuts, apply to every animation frame; moves
 can apply to **All frames** or the **Current frame**.
 
+To scale or turn several separate pieces in place, such as a row of teeth or
+bolts, choose **Mesh > Snap > Pivot at Individual Origins** (or **Pivot >
+Individual origins** on the **Item** page): each connected piece then rotates
+and scales about its own centre, in the view, with the gizmo and in the numeric
+fields. **Mesh > Snap > Normal Transform Axes** (**Transform axes > Normal**)
+lines the axes up with the selection's surface; press an axis key twice while a
+transform runs to use them, so <kbd>G</kbd> <kbd>Z</kbd> <kbd>Z</kbd> moves along
+the normal. With both, each piece uses its own normal. See
+[Editable Meshes](../MODEL_MESH.md) for the exact rules.
+
 The mesh menus (**View**, **Select**, **Add**, **Mesh**, **Vertex**, **Edge**,
 **Face** and **UV**) hold the rest: primitives, merging, dissolving, bisecting,
 symmetrising, smoothing, solidify, decimation, normals, UV projections, seams

@@ -493,6 +493,18 @@ void ModelEditorTools::buildActions()
 			  });
 	addAction(QStringLiteral("meshPivotSelection"), Text::tr("Pivot at Selection Center"), {},
 			  [this] { m_editor->m_pivotMode->setCurrentIndex(1); });
+	addAction(QStringLiteral("meshPivotIndividual"), Text::tr("Pivot at Individual Origins"), {},
+			  [this]
+			  {
+				  m_editor->m_pivotMode->setCurrentIndex(int(ModelTransformPivot::IndividualOrigins));
+				  showBanner(Text::tr("Rotate and scale now turn each connected piece about its own centre."));
+			  });
+	addAction(QStringLiteral("meshAxesNormal"), Text::tr("Normal Transform Axes"), {},
+			  [this]
+			  {
+				  m_editor->m_transformSpace->setCurrentIndex(int(ModelTransformSpace::Normal));
+				  showBanner(Text::tr("Transform axes now follow the selection's normal: press an axis key twice in a transform to use them."));
+			  });
 	// View.
 	addAction(QStringLiteral("meshViewAll"), Text::tr("Frame All"), QStringLiteral("Home"), [this] { m_viewport->frameModel(); },
 			  QStringLiteral("frame"));
@@ -663,7 +675,8 @@ void ModelEditorTools::buildMenus()
 	m_menuBar->addMenu(add);
 	auto *snap = named(menu(Text::tr("Snap"), {QStringLiteral("meshCursorToSelected"), QStringLiteral("meshCursorToOrigin"),
 											   QStringLiteral("meshCursorToGrid"), {}, QStringLiteral("meshSelectionToCursor"), {},
-											   QStringLiteral("meshPivotCursor"), QStringLiteral("meshPivotSelection")}),
+											   QStringLiteral("meshPivotCursor"), QStringLiteral("meshPivotSelection"),
+											   QStringLiteral("meshPivotIndividual"), QStringLiteral("meshAxesNormal")}),
 					   QStringLiteral("meshMenuSnap"));
 	auto *merge = named(menu(Text::tr("Merge"), {QStringLiteral("meshMergeCentre"), QStringLiteral("meshMergeCursor"),
 												 QStringLiteral("meshMergeCollapse"), QStringLiteral("meshMergeDistance")}),

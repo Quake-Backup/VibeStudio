@@ -21,6 +21,7 @@
 #include "core/model_boundary_bridge.h"
 #include "core/model_transform.h"
 #include "core/model_transform_axes.h"
+#include "core/model_transform_pieces.h"
 #include "core/model_uv_atlas.h"
 #include "core/model_uv_obstacles.h"
 
@@ -2062,6 +2063,11 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Mirroring requires the whole surface and all "
 																					  "frames so winding remains consistent."));
 		}
+		// Individual Origins: one transform per connected piece.
+		QVector<ModelTransform> pieces;
+		QHash<int, int> pieceOf;
+		if (!modelPieceTransforms(surface, edit, transform, vertices, reference, &pieces, &pieceOf, error, control))
+			return false;
 		for (int f = 0; f < surface.frames.size(); ++f)
 		{
 			if (!work.step())
@@ -2079,8 +2085,9 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 				{
 					return false;
 				}
-				frame.positions[i] = transformModelPoint(frame.positions[i], transform);
-				frame.normals[i] = transformModelNormal(frame.normals[i], transform);
+				const auto &own = pieces[pieceOf.value(i)];
+				frame.positions[i] = transformModelPoint(frame.positions[i], own);
+				frame.normals[i] = transformModelNormal(frame.normals[i], own);
 			}
 			if (vertices.size() != surface.vertexCount)
 			{

@@ -259,20 +259,22 @@ void ModelViewport::setTransformGizmo(bool enabled, ModelTransformTool tool, dou
 	setAccessibleDescription(accessibleSummary());
 	update();
 }
-void ModelViewport::setTransformPivot(ModelTransformPivot mode, ModelVec3 custom)
+void ModelViewport::setTransformPivot(ModelTransformPivot mode, ModelVec3 custom, bool pieceNormals)
 {
-	if (int(mode) < 0 || int(mode) > 2 || !std::isfinite(custom.x) || !std::isfinite(custom.y) || !std::isfinite(custom.z))
+	if (int(mode) < 0 || int(mode) > int(ModelTransformPivot::IndividualOrigins) || !std::isfinite(custom.x) || !std::isfinite(custom.y) ||
+		!std::isfinite(custom.z))
 	{
 		return;
 	}
 	if (mode == m_transformPivot && custom.x == m_customTransformPivot.x && custom.y == m_customTransformPivot.y &&
-		custom.z == m_customTransformPivot.z)
+		custom.z == m_customTransformPivot.z && pieceNormals == m_transformPieceNormals)
 	{
 		return;
 	}
 	finishEditTransform(false);
 	m_transformPivot = mode;
 	m_customTransformPivot = custom;
+	m_transformPieceNormals = pieceNormals;
 	setAccessibleDescription(accessibleSummary());
 	update();
 }
@@ -302,8 +304,9 @@ ModelVec3 ModelViewport::editVertexPosition(int surface, int vertex) const
 	{
 		point = interpolateModelPosition(point, part.frames[m_blendFrame].positions[vertex], m_frameBlend);
 	}
-	return m_editMoveActive && (m_editSurfaces.contains(surface) || (surface == m_editSurface && m_editVertices.contains(vertex))) ? transformModelPoint(point, m_editTransform)
-																						   : point;
+	return m_editMoveActive && (m_editSurfaces.contains(surface) || (surface == m_editSurface && m_editVertices.contains(vertex)))
+		? transformModelPoint(point, m_editPieces.transformFor(m_editTransform, surface, vertex))
+		: point;
 }
 QPointF ModelViewport::vertexScreenPosition(int surface, int vertex)
 {
@@ -719,6 +722,12 @@ bool ModelViewport::beginEditTransform(const QPointF &point)
 	m_editTransform = {};
 	m_editTransform.pivot = pivot;
 	m_editTransform.basis = m_transformBasis;
+	// Individual Origins: the same pieces, pivots and axes the committed
+	// Transform uses, so the preview matches the result.
+	m_editPieces = {};
+	if (m_transformPivot == ModelTransformPivot::IndividualOrigins && m_editTag.isEmpty() && m_editCollision.isEmpty() && m_editJoint.isEmpty() &&
+		!modelTransformPieceMap(m_mesh, m_editSurface, m_editVertices, m_editSurfaces, m_frame, m_transformPieceNormals, &m_editPieces))
+		m_editPieces = {};
 	m_editMovePress = point;
 	setAccessibleDescription(accessibleSummary());
 	update();
@@ -861,6 +870,7 @@ void ModelViewport::finishEditTransform(bool commit)
 	m_editMoveActive = false;
 	m_editMoveTravelled = false;
 	m_editTransform = {};
+	m_editPieces = {};
 	m_pressButton = Qt::NoButton;
 	m_dragAction = DragAction::None;
 	m_dragStarted = false;

@@ -1,4 +1,5 @@
 #include "cli/model_tools.h"
+#include "cli/model_transform_options.h"
 
 #include "core/game_installation.h"
 #include "core/model_document.h"
@@ -299,7 +300,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		QStringLiteral("--path"), QStringLiteral("--path-file"), QStringLiteral("--view"), QStringLiteral("--camera-origin"),
 		QStringLiteral("--camera-right"), QStringLiteral("--camera-up"), QStringLiteral("--camera-forward"),
 		QStringLiteral("--steps"), QStringLiteral("--centre"), QStringLiteral("--axis-vector"), QStringLiteral("--joint-map"),
-		QStringLiteral("--bind"), QStringLiteral("--bind-joint"), QStringLiteral("--new-surface")};
+		QStringLiteral("--bind"), QStringLiteral("--bind-joint"), QStringLiteral("--new-surface"),
+		QStringLiteral("--transform-space"), QStringLiteral("--axis-rotation"), QStringLiteral("--axes-frame")};
 	Arguments args;
 	QString error;
 	if (!parse(arguments, flags, options, &args, &error))
@@ -359,7 +361,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("smooth"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--factor"), QStringLiteral("--iterations"), QStringLiteral("--pin-boundary"), QStringLiteral("--frame")}},
 		{QStringLiteral("transform"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--offset"), QStringLiteral("--rotate"), QStringLiteral("--scale"),
 									   QStringLiteral("--pivot-mode"), QStringLiteral("--pivot"), QStringLiteral("--proportional-radius"), QStringLiteral("--falloff"), QStringLiteral("--connected"),
-									   QStringLiteral("--mirror"), QStringLiteral("--threshold"), QStringLiteral("--frame")}},
+									   QStringLiteral("--mirror"), QStringLiteral("--threshold"), QStringLiteral("--frame"),
+									   QStringLiteral("--transform-space"), QStringLiteral("--axis-rotation"), QStringLiteral("--axes-frame")}},
 		{QStringLiteral("shade-flat"), {QStringLiteral("--faces")}},
 		{QStringLiteral("shade-smooth"), {QStringLiteral("--faces")}},
 		{QStringLiteral("auto-smooth"), {QStringLiteral("--faces"), QStringLiteral("--angle")}},
@@ -650,8 +653,10 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			edit.pivotMode = ModelTransformPivot::SelectionCentre;
 		else if (text == QStringLiteral("custom"))
 			edit.pivotMode = ModelTransformPivot::Custom;
+		else if (text == QStringLiteral("individual"))
+			edit.pivotMode = ModelTransformPivot::IndividualOrigins;
 		else
-			return fail(2, Text::tr("Use --pivot-mode origin|selection|custom."));
+			return fail(2, Text::tr("Use --pivot-mode origin|selection|custom|individual."));
 	}
 	else if (kind == ModelEditKind::WeightedTransform)
 		edit.pivotMode = args.values.contains(QStringLiteral("--pivot")) ? ModelTransformPivot::Custom : ModelTransformPivot::SelectionCentre;
@@ -718,6 +723,9 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		return fail(4, Text::tr("The requested frame does not exist."));
 	edit.selection.surface = surfaceIndex;
 	if (!readSelection(args, mesh.surfaces[surfaceIndex], &edit.selection, &error))
+		return fail(2, error);
+	// Transform axes (world, selection, custom or normal), as model edit takes them.
+	if (!parseModelTransformAxesOptions(args.values, int(mesh.frames.size()), &edit, &error))
 		return fail(2, error);
 	// The editor's Detect Pairs: the same name patterns, keeping only pairs
 	// that mirror across this plane and involve a joint of this surface.

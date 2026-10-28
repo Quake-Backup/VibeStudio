@@ -175,6 +175,16 @@ Isolated vertices and wholly degenerate selections require World or Custom axes.
 Custom reveals three XYZ orientation angles in degrees. Pivots remain in model
 coordinates. Extrude and Duplicate Faces also interpret Offset in the chosen axes.
 
+**Normal** orients the axes by the selection's surface rather than one face. Z is
+the area-weighted normal of the faces whose three corners are all selected, or the
+average vertex normal when there are no such faces (a lone vertex or an edge). X
+follows the longest border edge of those faces projected onto the plane (the
+longest edge between selected vertices when there are no faces), so a quad's
+diagonal never decides it; when no edge gives a direction X is the world axis least
+aligned with Z. Y completes a right-handed basis. A selection whose faces cancel
+out, such as a closed box, has no facing direction and keeps world axes. The
+displayed pose supplies the axes, as it does for Selection.
+
 **Gizmo** provides Move, Rotate, and Scale tools in those axes. Move uses labelled
 X/Y/Z arrows and a centre square for view-plane movement. Rotate uses labelled
 rings; an edge-on ring follows the tangent at the grabbed point. Scale uses axis
@@ -182,8 +192,25 @@ boxes and a centre box for uniform scaling; dragging the centre right or up
 increases the scale. Scale gestures remain positive; use numeric transforms for
 explicit mirroring. Move/scale axes too closely aligned with the view are hidden.
 Geometry's **Pivot** selects the model origin, selection bounds centre (the GUI
-default), or custom coordinates. The displayed pose supplies the selection pivot,
-which stays fixed for every affected frame. Numeric transforms scale about that
+default), custom coordinates, or **Individual origins**. The displayed pose supplies
+the selection pivot, which stays fixed for every affected frame.
+
+**Individual origins** transforms each connected piece of the selection about the
+centre of its own bounds, so scaling a row of separate teeth or panels shrinks each
+in place and rotating two bolts turns each on its own axis. Selected vertices that a
+triangle edge joins, or that are seam copies at one position, belong to one piece;
+pieces that touch only at a shared vertex therefore move as one piece. With
+**Normal** axes every piece also uses its own normal axes, so a move along local Z
+pushes each panel out along its own normal. A piece without one facing direction
+(a closed shape) keeps the selection's axes. Proportional editing measures each
+falloff vertex to the selection as before and moves it with the piece of its
+nearest selected vertex; symmetry counterparts follow their source's piece. Whole
+surfaces each pivot on their own bounds centre. Tags, collision boxes and joints
+are single items and pivot on their own centre. The modal G/R/S keys, the gizmo
+(whose preview shows every piece turning about its own centre) and numeric
+transforms all use the same pieces; `model edit --operation transform` and
+`model tool --tool transform` take `--pivot-mode individual` and
+`--transform-space normal`. Numeric transforms scale about that
 pivot, rotate in X/Y/Z order, then translate, all in the chosen basis. Normals use
 the corresponding inverse transpose. Collision sizing always uses each box's
 intrinsic axes to keep boxes rectangular; its movement and rotation follow the

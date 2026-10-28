@@ -2,6 +2,7 @@
 
 #include "core/model_transform.h"
 #include "core/model_transform_axes.h"
+#include "core/model_transform_pieces.h"
 
 #include <algorithm>
 #include <cmath>
@@ -453,10 +454,21 @@ bool weightedTransform(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *s
 		return fail(error, Text::tr("Choose a valid transform pivot and reference frame."));
 	if (double(transform.scale.x) * transform.scale.y * transform.scale.z <= 0)
 		return fail(error, Text::tr("Weighted transforms keep positive scale; mirror the whole surface with Apply Transform instead."));
+	// Individual Origins: one transform per connected piece. Falloff vertices
+	// follow the piece of their nearest selected vertex, mirror counterparts
+	// the piece of their source.
+	QVector<ModelTransform> pieces;
+	QHash<int, int> pieceOf;
+	if (!modelPieceTransforms(surface, edit, transform, vertices, reference, &pieces, &pieceOf, error, control))
+		return false;
+	QHash<int, int> groupPiece;
 	// Weight 1 for the selection; the proportional falloff for the rest.
 	QSet<int> selectedGroups;
 	for (int v : vertices)
+	{
 		selectedGroups.insert(topology.group(v));
+		groupPiece.insert(topology.group(v), pieceOf.value(v));
+	}
 	QHash<int, double> weights;
 	for (int group : selectedGroups)
 		weights.insert(group, 1.0);
@@ -494,6 +506,8 @@ bool weightedTransform(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *s
 					if (next < distance.value(other, INFINITY) && next < radius)
 					{
 						distance.insert(other, next);
+						if (!selectedGroups.contains(other))
+							groupPiece.insert(other, groupPiece.value(group));
 						queue.push({next, other});
 					}
 				}
@@ -501,8 +515,11 @@ bool weightedTransform(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *s
 		}
 		else
 		{
+			// Ascending groups, so equal distances fall to the lowest source.
+			auto ordered = selectedGroups.values();
+			std::sort(ordered.begin(), ordered.end());
 			QVector<P3> sources;
-			for (int group : selectedGroups)
+			for (int group : std::as_const(ordered))
 				sources.append(position(surface, reference, group));
 			for (int v = 0; v < surface.vertexCount; ++v)
 			{
@@ -512,10 +529,21 @@ bool weightedTransform(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *s
 					continue;
 				const P3 p = position(surface, reference, v);
 				double nearest = INFINITY;
-				for (const auto &source : std::as_const(sources))
-					nearest = std::min(nearest, length(p - source));
+				int source = -1;
+				for (int i = 0; i < sources.size(); ++i)
+				{
+					const double d = length(p - sources[i]);
+					if (d < nearest)
+					{
+						nearest = d;
+						source = i;
+					}
+				}
 				if (nearest < radius)
+				{
 					distance.insert(v, nearest);
+					groupPiece.insert(v, groupPiece.value(ordered[source]));
+				}
 			}
 		}
 		for (auto it = distance.cbegin(); it != distance.cend(); ++it)
@@ -589,6 +617,7 @@ bool weightedTransform(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *s
 				if (match == it.key())
 					continue;
 				mirrored.insert(match, {axes, it.value()});
+				groupPiece.insert(match, groupPiece.value(it.key()));
 			}
 		}
 	}
@@ -602,9 +631,9 @@ bool weightedTransform(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *s
 			p.z = -p.z;
 		return p;
 	};
-	const auto scaled = [&](double weight)
+	const auto scaled = [&](double weight, int group)
 	{
-		ModelTransform t = transform;
+		ModelTransform t = pieces.value(groupPiece.value(group), transform);
 		t.translation = {float(transform.translation.x * weight), float(transform.translation.y * weight),
 						 float(transform.translation.z * weight)};
 		t.rotation = {float(transform.rotation.x * weight), float(transform.rotation.y * weight), float(transform.rotation.z * weight)};
@@ -634,7 +663,7 @@ bool weightedTransform(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *s
 		{
 			if (!work.step())
 				return false;
-			const auto t = scaled(it.value());
+			const auto t = scaled(it.value(), it.key());
 			const P3 p = position(surface, frame, it.key());
 			P3 result = point(transformModelPoint(vec(p), t));
 			const int plane = onPlane(position(surface, reference, it.key()), std::max(options.mergeThreshold, 1e-6));
@@ -647,7 +676,7 @@ bool weightedTransform(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *s
 		}
 		for (auto it = mirrored.cbegin(); it != mirrored.cend(); ++it)
 		{
-			const auto t = scaled(it.value().second);
+			const auto t = scaled(it.value().second, it.key());
 			const int axes = it.value().first;
 			const P3 p = position(surface, frame, it.key());
 			results.insert(it.key(), reflect(point(transformModelPoint(vec(reflect(p, axes)), t)), axes));

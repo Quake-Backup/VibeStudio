@@ -5,6 +5,7 @@
 #include "core/model_skeleton.h"
 #include "core/model_surface_selection.h"
 #include "core/model_tags.h"
+#include "core/model_transform_pieces.h"
 
 #include <QCoreApplication>
 #include <algorithm>
@@ -65,12 +66,12 @@ bool validModelTransformAxesOptions(const ModelEdit &edit, QString *error)
 		edit.kind == ModelEditKind::TransformCollisionBox || edit.kind == ModelEditKind::Extrude || edit.kind == ModelEditKind::DuplicateFaces ||
 		edit.kind == ModelEditKind::WeightedTransform || edit.kind == ModelEditKind::ExtrudeEdges;
 	ModelVec3 checked;
-	if ((specified && !supported) || int(edit.transformSpace) < 0 || int(edit.transformSpace) > 2 ||
+	if ((specified && !supported) || int(edit.transformSpace) < 0 || int(edit.transformSpace) > int(ModelTransformSpace::Normal) ||
 		(rotated && edit.transformSpace != ModelTransformSpace::Custom) || edit.axesFrame < -1 ||
-		(edit.axesFrame != -1 && edit.transformSpace != ModelTransformSpace::Selection) ||
+		(edit.axesFrame != -1 && edit.transformSpace != ModelTransformSpace::Selection && edit.transformSpace != ModelTransformSpace::Normal) ||
 		!snapModelRotation(edit.axisRotation, 0, &checked))
 	{
-		return fail(error, Text::tr("Transform axes apply to mesh, tag or collision transforms, face extrusion and duplication. Use world, selection or custom axes; axis rotation requires custom axes and a reference pose requires selection axes."));
+		return fail(error, Text::tr("Transform axes apply to mesh, tag or collision transforms, face extrusion and duplication. Use world, selection, normal or custom axes; axis rotation requires custom axes and a reference pose requires selection or normal axes."));
 	}
 	return true;
 }
@@ -141,6 +142,33 @@ bool resolveModelTransformAxes(const ModelMesh &mesh, const ModelEdit &edit, Mod
 		return fail(error, Text::tr("Select mesh components or a whole surface for transform axes."));
 	const auto &surface = mesh.surfaces[surfaceIndex];
 	if (reference >= surface.frames.size()) return fail(error, Text::tr("The axes reference pose is unavailable on the selected surface."));
+	if (edit.transformSpace == ModelTransformSpace::Normal)
+	{
+		// The selection's averaged normal; a selection without one facing
+		// direction (a closed shape) keeps world axes.
+		QSet<int> vertices = selected.vertices;
+		if (!selected.surfaces.isEmpty())
+		{
+			for (int vertex = 0; vertex < surface.vertexCount; ++vertex)
+				vertices.insert(vertex);
+		}
+		for (const auto edge : selected.edges)
+			vertices << edge.first << edge.second;
+		for (int face : selected.faces)
+		{
+			if (face < 0 || face >= surface.triangles.size())
+				return fail(error, Text::tr("The selected face has invalid vertex indices."));
+			const auto &t = surface.triangles[face];
+			vertices << t.a << t.b << t.c;
+		}
+		if (vertices.isEmpty())
+			return fail(error, Text::tr("Normal axes need selected vertices, edges or faces. Select some, or use world or custom axes."));
+		if (!modelNormalTransformBasis(surface, reference, vertices, &candidate))
+			candidate = {};
+		if (!work.check()) return false;
+		*result = candidate;
+		return true;
+	}
 	const auto &positions = surface.frames[reference].positions;
 	for (int face = 0; face < surface.triangles.size(); ++face)
 	{

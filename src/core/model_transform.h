@@ -18,13 +18,18 @@ enum class ModelTransformPivot
 {
 	Origin,
 	SelectionCentre,
-	Custom
+	Custom,
+	// Each connected piece about its own centre (core/model_transform_pieces.h).
+	// Single items such as tags and joints pivot on their own centre.
+	IndividualOrigins
 };
 enum class ModelTransformSpace
 {
 	World,
 	Selection,
-	Custom
+	Custom,
+	// The selection's averaged surface normal (core/model_transform_pieces.h).
+	Normal
 };
 struct ModelTransformBasis
 {
