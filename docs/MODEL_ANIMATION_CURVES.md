@@ -281,8 +281,11 @@ The captured destination baseline and transferred curves must fit the model's
 a dense baseline; capture and reduce those destination curves first if the
 budget is exceeded.
 
-This transfers local channel values within one rig. Cross-document exchange,
-retargeting, animation layers and blending remain separate planned workflows.
+This transfers local channel values within one rig. To move keys between
+models, copy them with `model pose --operation copy-out --keys` (or **Copy Pose**
+on a keyed joint) and paste them; see
+[the pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses).
+Retargeting, animation layers and blending remain separate planned workflows.
 
 ### Automate range transfers
 
@@ -311,7 +314,8 @@ the editable source. Refresh derivatives used by level placement, attachments
 and packaging; review collision, animation scripts and engine playback.
 Export fixtures do not prove acceptance in the original engines.
 
-Curve clipboard exchange, quaternion tracks, cyclic
+Key copy and paste between clips and models goes through the
+[pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses). Quaternion tracks, cyclic
 extrapolation, layers/blending, persistent constraints, long-chain IK and
 retargeting remain planned. Physical keyboard/screen-reader acceptance,
 maximum-size performance, real projects and clean cross-platform release

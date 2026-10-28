@@ -199,6 +199,25 @@ bool captureModelPoseCurves(const ModelMesh &mesh, int clip, const QString &name
 	*result = std::move(group);
 	return true;
 }
+bool modelPoseCurveValues(const ModelJointMatrix &local, const std::array<double, 3> *previous, std::array<double, 9> *values)
+{
+	const auto t = modelJointTranslation(local), s = modelJointScale(local);
+	if (!values || !modelJointMatrixIsFinite(local) || s.x <= .000001f || s.y <= .000001f || s.z <= .000001f)
+		return false;
+	const auto r = euler(local, s, previous ? *previous : std::array<double, 3>{}, !previous);
+	const std::array<double, 9> result{t.x, t.y, t.z, r[0], r[1], r[2], s.x, s.y, s.z};
+	ModelPoseCurves group;
+	for (int c = 0; c < 9; ++c)
+	{
+		ModelPoseCurveKey key;
+		key.value = result[c];
+		group.channels[c] = {key};
+	}
+	if (!near(local, evaluateModelPoseCurves(group, 0)))
+		return false;
+	*values = result;
+	return true;
+}
 bool editModelCurveGroup(ModelPoseCurves *group, int frameCount, const ModelCurveEditOptions &o, QString *error)
 {
 	if (!group || o.channel < 0 || o.channel >= 9 || o.frame < 0 || o.frame >= frameCount || group->joint != o.joint)

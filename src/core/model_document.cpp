@@ -1780,6 +1780,8 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		return fail(error, QCoreApplication::translate("ModelDocument", "Animation range transfer settings require a curve transfer operation."));
 	if (edit.kind != ModelEditKind::EditCurveKeys && !(edit.curveKeys == ModelCurveKeyOptions{}))
 		return fail(error, QCoreApplication::translate("ModelCurveKeyTools", "Batch key settings apply only to batch key operations."));
+	if (!validModelAnimationAuthoringOptions(edit, error))
+		return false;
 	if (!isModelSkinEdit(edit.kind) && !(edit.skin == ModelSkinOptions{}))
 		return fail(error, QCoreApplication::translate("ModelSkinningTools", "Skinning options apply only to skinning operations."));
 	if (edit.kind != ModelEditKind::TransferSkinWeights && !(edit.weightTransfer == ModelWeightTransferOptions{}))

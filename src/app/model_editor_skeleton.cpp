@@ -22,6 +22,7 @@
 #include "core/model_skeleton.h"
 
 #include <QCoreApplication>
+#include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
@@ -334,6 +335,28 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		if (!applyEdit(dialog.edit(), &error)) m_status->setText(error);
 	});
 	form->addRow(editPoses);
+	// The pose clipboard commands (model_editor_pose.cpp) on the shown sample.
+	for (const auto &item : {qMakePair(QStringLiteral("meshCopyPose"), Text::tr("Copy the shown pose of the selected joint and its children, or of every joint, to the clipboard.")),
+							 qMakePair(QStringLiteral("meshPastePose"), Text::tr("Paste the copied pose or keys at the shown clip sample, replacing keys there.")),
+							 qMakePair(QStringLiteral("meshPastePoseMirrored"), Text::tr("Paste the copied pose onto the opposite left/right joints, reflected.")),
+							 qMakePair(QStringLiteral("meshMirrorPose"), Text::tr("Swap and reflect the shown pose between left and right joints."))})
+	{
+		const QString id = item.first;
+		const auto title = id == QStringLiteral("meshCopyPose")			 ? Text::tr("Copy Pose")
+						   : id == QStringLiteral("meshPastePose")		 ? Text::tr("Paste Pose")
+						   : id == QStringLiteral("meshPastePoseMirrored") ? Text::tr("Paste Pose Mirrored")
+																		   : Text::tr("Mirror Pose");
+		auto *button = new WrappingActionButton(title, 2);
+		button->setObjectName(id + QStringLiteral("Button"));
+		button->setAccessibleName(title);
+		button->setAccessibleDescription(item.second);
+		button->setToolTip(item.second);
+		connect(button, &QPushButton::clicked, this, [this, id] {
+			if (auto *action = m_tools ? m_tools->action(id) : nullptr)
+				action->trigger();
+		});
+		form->addRow(button);
+	}
 	m_exportMd5 = new WrappingActionButton(Text::tr("Export MD5 Mesh…"), 2);
 	m_exportMd5->setObjectName(QStringLiteral("exportMeshMd5"));
 	m_exportMd5->setToolTip(Text::tr("Write a Doom 3, Quake 4 or Prey md5mesh; a model without joints gets one origin joint."));

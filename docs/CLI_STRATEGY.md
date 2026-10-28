@@ -44,7 +44,9 @@ reject independent frame changes. See [Skeleton authoring](MODEL_RIG.md).
 same candidate transaction: bind positioning, creation/duplication/rename/delete,
 tail resizing, timing, joint transforms, full joint-pose copying, parent-space
 interpolation and `--operation working-set`, which chooses the clips baked into
-editable frames. Inspection returns clip metadata, preview ranges, the
+editable frames. `copy-out`, `paste` and `mirror` move poses and keys through the
+pose clipboard (`application/x-vibestudio-pose+json`), across clips, models and,
+with a joint map, rigs, optionally mirrored left to right. Inspection returns clip metadata, preview ranges, the
 `workingSet` report and model-space joint matrices. New displayed clips must
 fit the full editable frame budget; no authoring operation silently skips its
 requested output. `model import` re-bakes a skeletal model over the editable

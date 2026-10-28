@@ -597,6 +597,7 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshUvMenu"), Text::tr("UV Mapping Menu"), QStringLiteral("U"),
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuUv"))->popup(QCursor::pos()); });
 	buildProfileActions();
+	buildPoseActions();
 	buildFocusActions();
 }
 

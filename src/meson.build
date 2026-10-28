@@ -500,6 +500,8 @@ core_sources = files(
   'core/model_animation_curves.cpp',
   'core/model_curve_key_tools.cpp',
   'core/model_curve_transfer.cpp',
+  'core/model_pose_clipboard.cpp',
+  'core/model_animation_authoring.cpp',
   'core/model_animation_curves_json.cpp',
   'core/model_formats.cpp',
   'core/model_formats_p.h',
@@ -630,6 +632,7 @@ install_headers('core/model_ik.h', subdir: 'vibestudio/core')
 install_headers('core/model_animation_curves.h', subdir: 'vibestudio/core')
 install_headers('core/model_curve_key_tools.h', subdir: 'vibestudio/core')
 install_headers('core/model_curve_transfer.h', subdir: 'vibestudio/core')
+install_headers('core/model_pose_clipboard.h', 'core/model_animation_authoring.h', subdir: 'vibestudio/core')
 install_headers('core/model_edge_slide.h', subdir: 'vibestudio/core')
 install_headers('core/model_rip.h', subdir: 'vibestudio/core')
 install_headers('core/model_vertex_identity.h', subdir: 'vibestudio/core')
@@ -956,6 +959,7 @@ app_sources = files(
   'app/model_editor_layout.cpp',
   'app/model_editor_budget.cpp',
   'app/model_editor_skeleton.cpp',
+  'app/model_editor_pose.cpp',
   'app/model_editor_joints.cpp',
   'app/model_rig_dialog.cpp',
   'app/model_skeletal_dialog.cpp',
@@ -5344,3 +5348,14 @@ model_curve_transfer_ui_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
 )
 test('model-curve-transfer-ui-smoke', model_curve_transfer_ui_smoke_test, env: model_document_test_env, timeout: 240)
+
+model_pose_clipboard_smoke_test = executable(
+  'model_pose_clipboard_smoke_test', ['tests/model_pose_clipboard_smoke_test.cpp', 'cli/model_skeletal_edit.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-pose-clipboard-smoke', model_pose_clipboard_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+model_pose_clipboard_ui_smoke_test = executable(
+  'model_pose_clipboard_ui_smoke_test', ['tests/model_pose_clipboard_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-pose-clipboard-ui-smoke', model_pose_clipboard_ui_smoke_test, env: model_document_test_env, timeout: 240)

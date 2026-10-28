@@ -6,7 +6,8 @@ positioning, clip management and sampled pose authoring are also implemented.
 Bone overlays and viewport posing are available, as are [influence inspection,
 explicit binding and weight repair](MODEL_SKINNING.md) and [two-bone IK](MODEL_IK.md).
 [Animation curves](MODEL_ANIMATION_CURVES.md) and [mirrored and spatial weight
-transfer](MODEL_WEIGHT_TRANSFER.md) are available. Persistent constraints,
+transfer](MODEL_WEIGHT_TRANSFER.md) are available, as are a [pose and key
+clipboard with mirrored paste](#copy-paste-and-mirror-poses). Persistent constraints,
 long-chain IK and retargeting remain planned.
 [Staged weight painting](MODEL_WEIGHT_PAINT.md) is available.
 These operations do not establish production readiness for the modeller.
@@ -122,6 +123,55 @@ weight offsets, an md5anim refuses poses that scale a joint differently from its
 bind pose and needs a whole frame rate, and IQM reports influence reduction and
 quantisation. See [what each export keeps](MODEL_FORMATS.md#what-each-export-keeps-changes-or-leaves-out).
 
+## Copy, paste and mirror poses
+
+A pose copy holds the whole source rig (joint names, parents and bind poses,
+which identify it), the copied joints and, for a sample range, either each
+joint's parent-local pose or its animation curve keys. It travels as JSON under
+the MIME type `application/x-vibestudio-pose+json` (and as text), or as a file
+written by `model pose --operation copy-out`. Pasting is the document edit
+`PastePose`, so it is one undo step, is recovered with the document and is
+validated like other skeletal edits.
+
+| Paste | Behaviour |
+| --- | --- |
+| Pose, same rig | Each copied joint takes its copied parent-local pose; a joint whose whole parent chain was copied takes its exact model-space pose, so a whole-pose round trip is exact. Joints that were not copied keep their local pose and follow their parents. |
+| Pose, another rig | Refused unless a joint map names the destination of each differently named joint. Every destination joint must have the parent the copy expects (mapped too). Local poses are pasted as they are, without bind compensation; use retargeting for rigs with different proportions. |
+| Pose, mirrored | Each copied joint lands on its left/right partner, or on itself when it sits on the mirror plane. Its pose becomes `B'p⁻¹ S Bp · local · B⁻¹ S B'`, where `S` reflects across the plane and `B`, `Bp` are the source joint's and parent's binds and `B'`, `B'p` the partner's: the copied motion relative to the bind, reflected. For rigs whose left and right binds mirror each other this is `S M S` in model space. A result with shear or a reflection is refused. |
+| Keys | The copied channel keys replace the destination's keys inside the pasted interval, with the destination's outward tangents kept, as [range transfer](MODEL_ANIMATION_CURVES.md#transfer-or-reverse-a-range) does. A destination joint without curves is captured first. Keys cannot be mirrored. |
+| Onto curves | A pasted pose sets a key on all nine channels of a joint with curves, choosing the rotation solution nearest the curve at that sample. |
+
+Existing keys at the pasted samples (or, for keys, inside the pasted interval)
+are refused unless the paste replaces keys. The Mesh Editor's viewport
+commands do replace them, as setting a key would; **Edit Skeletal Animation**
+asks with **Replace keys already there**. A paste that would run past the end
+of its clip is refused; extend the clip first.
+
+**Skeleton** > **Copy Pose**, **Paste Pose**, **Paste Pose Mirrored** and
+**Mirror Pose** are also commands (category Animation) that every control
+profile can bind. Copy Pose takes the selected joint with its descendants, or
+every joint, at the shown sample. The mirror axis is the one across which the
+rig's left/right joint names (`detectModelMirrorJointPairs`, as Symmetrize
+uses) pair up.
+
+```sh
+vibestudio --cli model pose models/walk.mesh.json --operation copy-out --clip 0 --first 0 --last 11 --output poses/half.json --json
+vibestudio --cli model pose models/walk.mesh.json --operation paste --clipboard poses/half.json --clip 0 --first 12 --mirror y --output models/full.mesh.json --json
+vibestudio --cli model pose models/walk.mesh.json --operation mirror --clip 0 --first 4 --last 4 --output models/mirrored.mesh.json
+vibestudio --cli model pose models/other.mesh.json --operation paste --clipboard poses/half.json --clip 2 --first 0 --joint-map map.json --replace-keys --output models/other-walk.mesh.json
+```
+
+`copy-out` takes `--clip N` or `--clip bind`, `--first`, optional `--last`
+(default `--first`), `--joints a,b` and `--keys` with optional `--channels
+tx,rx,...`, and writes the copy to `--output` (any file other than the input).
+`paste` takes `--clipboard`, `--clip`, `--first` and optionally `--joint-map`
+(a JSON object from copied joint names to this rig's names), `--mirror x|y|z`,
+`--plane N` (default 0) and `--mirror-joints detect|left=right,...` (default
+`detect`), and `--replace-keys`. `mirror` copies `--first`..`--last` of `--clip`
+(optionally only `--joints`) and pastes it mirrored in place, detecting the axis
+and pairs unless they are given. JSON reports the kind, samples, joints, mirror
+axis, plane, the joint pairs used and `outputSource`.
+
 `model pose` exposes the same operations with text and JSON inspection:
 
 ```sh
@@ -137,7 +187,8 @@ The example starts with a rig without clips. `list` is the default operation;
 label their joint inspection with `poseClip` and `poseFrame`; clip -1
 means the bind pose. Editing operations are `bind`, `add`, `duplicate`,
 `rename`, `remove`, `resize`, `timing`,
-`transform`, `copy`, `interpolate` and `working-set`. Help lists each operation's required fields.
+`transform`, `copy`, `interpolate`, `working-set`, `copy-out`, `paste` and
+`mirror`. Help lists each operation's required fields.
 `working-set` takes `--clips` with clip names or indexes, or `-` for the bind
 pose alone, and fits clips automatically without it; see
 [the working set](MODEL_SKELETAL_WORKING_SET.md#use-the-command-line).

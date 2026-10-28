@@ -427,7 +427,10 @@ See [skeleton authoring](../MODEL_RIG.md#automate-the-workflow) for options and
 examples shared with **Edit Skeleton** in the Mesh Editor.
 
 `model pose` manages skeletal clips, transforms bind joints and pose ranges,
-copies joint poses and interpolates hierarchical motion. Both commands share
+copies joint poses and interpolates hierarchical motion. `--operation copy-out`
+writes a pose or key copy to a file, `paste --clipboard` applies one (a copy
+from another rig needs `--joint-map`), and `mirror` mirrors a range onto the
+left/right partner joints. Both commands share
 the modeller's document service, guarded outputs and dry-run validation. See
 [skeletal animation authoring](../MODEL_RIG.md#author-skeletal-animation).
 `model pose --operation working-set --clips a,b` chooses the clips baked into
@@ -443,6 +446,7 @@ still finds its companion files (md5anim, GLA, `.def`) beside it. See
 ```sh
 vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --json
 vibestudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json
+vibestudio --cli model pose ./out/walk.mesh.json --operation mirror --clip 0 --first 0 --last 11 --output ./out/walk-mirrored.mesh.json
 ```
 `model import` and `model edit` report the source they wrote (or would write
 with `--dry-run`) in JSON as `"source": {"bytes", "encoding", "limitBytes"}`.

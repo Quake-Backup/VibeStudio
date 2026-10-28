@@ -1,13 +1,17 @@
 #include "app/model_skeletal_dialog.h"
 #include "app/dialog_screen_fit.h"
+#include "app/model_editor_pose.h"
+#include "core/model_pose_clipboard.h"
 #include "core/model_skeleton.h"
 
+#include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -78,7 +82,8 @@ ModelSkeletalDialog::ModelSkeletalDialog(const ModelMesh &mesh, const ModelSelec
 							 qMakePair(Text::tr("Rename skeletal clip"), ModelEditKind::RenameSkeletalClip),
 							 qMakePair(Text::tr("Resize skeletal clip"), ModelEditKind::ResizeSkeletalClip),
 							 qMakePair(Text::tr("Set clip timing"), ModelEditKind::SetSkeletalClipTiming),
-							 qMakePair(Text::tr("Delete skeletal clip"), ModelEditKind::DeleteSkeletalClip)})
+							 qMakePair(Text::tr("Delete skeletal clip"), ModelEditKind::DeleteSkeletalClip),
+							 qMakePair(Text::tr("Paste pose or keys"), ModelEditKind::PastePose)})
 		m_operation->addItem(item.first, int(item.second));
 	m_clip = combo("skeletalClip", Text::tr("&Clip"),
 				   Text::tr("The retained skeletal clip to edit. Indices "
@@ -165,6 +170,17 @@ ModelSkeletalDialog::ModelSkeletalDialog(const ModelMesh &mesh, const ModelSelec
 			   Text::tr("Move the joint's children with it. Clear this to keep "
 						"child joints in their current model-space poses."));
 	m_form->addRow(m_children);
+	m_mirror = new QCheckBox(Text::tr("Mirror left and right"));
+	m_mirror->setObjectName("skeletalPasteMirror");
+	accessible(m_mirror, m_mirror->text(),
+			   Text::tr("Paste the copied pose onto the opposite joints, reflected across the plane the rig's left/right joint names "
+						"cross."));
+	m_form->addRow(m_mirror);
+	m_replaceKeys = new QCheckBox(Text::tr("Replace keys already there"));
+	m_replaceKeys->setObjectName("skeletalPasteReplaceKeys");
+	accessible(m_replaceKeys, m_replaceKeys->text(),
+			   Text::tr("Joints with animation curves receive keys. Without this, a paste onto existing keys is refused."));
+	m_form->addRow(m_replaceKeys);
 	const QStringList labels{Text::tr("Translation"), Text::tr("Rotation"), Text::tr("Scale")};
 	const QStringList descriptions{Text::tr("Translation in model units."),
 								   Text::tr("Rotation in degrees, applied around X, then Y, then Z."),
@@ -201,6 +217,35 @@ ModelSkeletalDialog::ModelSkeletalDialog(const ModelMesh &mesh, const ModelSelec
 	m_summary->setAccessibleName(Text::tr("Skeletal edit scope"));
 	m_form->addRow(m_summary);
 	auto *buttons = new QDialogButtonBox(QDialogButtonBox::Apply | QDialogButtonBox::Cancel);
+	m_copy = buttons->addButton(Text::tr("Copy Pose Range"), QDialogButtonBox::ActionRole);
+	m_copy->setObjectName("copySkeletalPose");
+	m_copy->setShortcut(QKeySequence::Copy);
+	accessible(m_copy, Text::tr("Copy pose range"),
+			   Text::tr("Copy every joint's pose over the first to last pose of the clip to the clipboard (Ctrl+C). Paste it with "
+						"Paste pose or keys (Ctrl+V), here, in another clip or in another model."));
+	connect(m_copy, &QPushButton::clicked, this,
+			[this]
+			{
+				ModelPoseCopyOptions options;
+				options.clip = m_clip->currentData().toInt();
+				options.first = m_first->value();
+				options.last = m_last->value();
+				ModelPoseClipboard clipboard;
+				QString error;
+				if (!copyModelPose(m_mesh, options, &clipboard, &error))
+				{
+					m_summary->setText(error);
+					return;
+				}
+				modelPoseClipboardToSystem(modelPoseClipboardBytes(clipboard));
+				m_summary->setText(Text::tr("Copied. %1").arg(modelPoseClipboardSummary(clipboard)));
+			});
+	auto *pasteKey = new QAction(this);
+	pasteKey->setShortcut(QKeySequence::Paste);
+	pasteKey->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	addAction(pasteKey);
+	connect(pasteKey, &QAction::triggered, this,
+			[this] { m_operation->setCurrentIndex(m_operation->findData(int(ModelEditKind::PastePose))); });
 	m_apply = buttons->button(QDialogButtonBox::Apply);
 	m_apply->setObjectName("applySkeletalEdit");
 	accessible(m_apply, Text::tr("Apply skeletal edit"),
@@ -235,10 +280,13 @@ void ModelSkeletalDialog::refresh(bool resetFields)
 	const bool transform = kind == ModelEditKind::TransformSkeletalPose, copy = kind == ModelEditKind::CopySkeletalPose;
 	const bool interpolate = kind == ModelEditKind::InterpolateSkeletalPoses, timing = kind == ModelEditKind::SetSkeletalClipTiming;
 	const bool resize = kind == ModelEditKind::ResizeSkeletalClip, range = transform || copy || interpolate;
+	const bool paste = kind == ModelEditKind::PastePose;
+	m_form->setRowVisible(m_mirror, paste);
+	m_form->setRowVisible(m_replaceKeys, paste);
 	m_form->setRowVisible(m_clip, !bind && !add);
 	m_form->setRowVisible(m_joint, bind || transform);
 	m_form->setRowVisible(m_name, add || duplicate || rename);
-	m_form->setRowVisible(m_first, range);
+	m_form->setRowVisible(m_first, range || paste);
 	m_form->setRowVisible(m_last, range);
 	m_form->setRowVisible(m_count, add || resize);
 	m_form->setRowVisible(m_rate, add || timing);
@@ -250,6 +298,7 @@ void ModelSkeletalDialog::refresh(bool resetFields)
 	for (auto *vector : m_vectors)
 		m_form->setRowVisible(vector, bind || transform);
 	const int clip = m_clip->currentIndex() >= 0 ? m_clip->currentData().toInt() : -1;
+	m_copy->setEnabled(clip >= 0);
 	if (clip >= 0)
 	{
 		const auto &value = m_mesh.skeleton.clips[clip];
@@ -294,6 +343,8 @@ void ModelSkeletalDialog::refresh(bool resetFields)
 													"range. Existing frame names stay unchanged.")
 					  : timing		? Text::tr("Save clip timing without resampling poses. Native loop "
 													"flags are separate from transport looping.")
+					  : paste		? Text::tr("Paste the copied pose or keys from the clipboard, starting at the first pose. Copies from "
+													"another rig need a joint map: use model pose --operation paste.")
 									: Text::tr("Delete this clip and its preview poses. Custom ranges that "
 													"would become empty must be removed explicitly first.");
 	if (clip >= 0 && !add && !bind && !m_mesh.skeleton.bakedClipForFrame.contains(clip))
@@ -308,6 +359,13 @@ void ModelSkeletalDialog::refresh(bool resetFields)
 		summary = Text::tr("Add the model's first joint in Edit Skeleton before "
 						   "authoring skeletal animation.");
 	m_summary->setText(summary);
+	if (paste)
+	{
+		ModelPoseClipboard clipboard;
+		const auto bytes = modelPoseClipboardFromSystem();
+		summary += QLatin1Char(' ') + (parseModelPoseClipboard(bytes, &clipboard) ? Text::tr("Clipboard: %1").arg(modelPoseClipboardSummary(clipboard))
+																				  : Text::tr("The clipboard holds no copied pose or keys."));
+	}
 	m_apply->setEnabled(!m_mesh.skeleton.isEmpty() && (add || bind || clip >= 0) &&
 						(!(add || rename || duplicate) || !m_name->text().isEmpty()));
 }
@@ -320,7 +378,7 @@ ModelEdit ModelSkeletalDialog::edit() const
 	const auto kind = result.kind;
 	const bool bind = kind == ModelEditKind::TransformBindJoint, add = kind == ModelEditKind::AddSkeletalClip;
 	const bool transform = kind == ModelEditKind::TransformSkeletalPose, copy = kind == ModelEditKind::CopySkeletalPose;
-	if (!bind && !add)
+	if (!bind && !add && kind != ModelEditKind::PastePose)
 		o.clip = m_clip->currentData().toInt();
 	if (add || kind == ModelEditKind::DuplicateSkeletalClip || kind == ModelEditKind::RenameSkeletalClip)
 		o.name = m_name->text();
@@ -340,6 +398,17 @@ ModelEdit ModelSkeletalDialog::edit() const
 	{
 		o.sourceClip = m_sourceClip->currentData().toInt();
 		o.sourceFrame = m_sourceFrame->value();
+	}
+	if (kind == ModelEditKind::PastePose)
+	{
+		auto &paste = result.animation.paste;
+		paste.clipboard = modelPoseClipboardFromSystem();
+		paste.clip = m_clip->currentData().toInt();
+		paste.first = m_first->value();
+		paste.replaceKeys = m_replaceKeys->isChecked();
+		if (m_mirror->isChecked())
+			paste.mirrorAxis = detectModelPoseMirrorAxis(m_mesh, &paste.mirrorJoints);
+		o.clip = -1;
 	}
 	if (bind || transform)
 	{

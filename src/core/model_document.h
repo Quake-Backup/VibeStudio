@@ -6,6 +6,7 @@
 #include "core/model_mesh.h"
 #include "core/model_rig.h"
 #include "core/model_ik.h"
+#include "core/model_animation_authoring.h"
 #include "core/model_animation_curves.h"
 #include "core/model_curve_key_tools.h"
 #include "core/model_curve_transfer.h"
@@ -201,6 +202,8 @@ enum class ModelEditKind
 	// Chooses the skeletal clips baked into editable frames
 	// (core/model_skeletal_working_set.h); ModelSkeletalEditOptions::workingSet.
 	SetSkeletalWorkingSet,
+	// Animation authoring (core/model_animation_authoring.h); settings in ModelEdit::animation.
+	PastePose,
 };
 
 struct ModelEdit
@@ -276,6 +279,7 @@ struct ModelEdit
 	QVector<ModelWeightStroke> weightStrokes;
 	ModelWeightTransferOptions weightTransfer{};
 	ModelUvDensityOptions uvDensity{};
+	ModelAnimationAuthoringOptions animation{};
 };
 
 struct ModelExportReport

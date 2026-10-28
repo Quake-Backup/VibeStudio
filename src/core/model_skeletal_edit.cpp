@@ -534,7 +534,7 @@ bool chooseWorkingSet(const ModelMesh &mesh, const QVector<int> &chosen, QVector
 
 bool isModelSkeletalEdit(ModelEditKind kind)
 {
-	return (kind >= ModelEditKind::TransformBindJoint && kind <= ModelEditKind::InterpolateSkeletalPoses) || kind == ModelEditKind::SolveTwoBoneIk || kind == ModelEditKind::EditAnimationCurves || kind == ModelEditKind::EditCurveKeys || kind == ModelEditKind::TransferAnimationCurves || kind == ModelEditKind::SetSkeletalWorkingSet;
+	return (kind >= ModelEditKind::TransformBindJoint && kind <= ModelEditKind::InterpolateSkeletalPoses) || kind == ModelEditKind::SolveTwoBoneIk || kind == ModelEditKind::EditAnimationCurves || kind == ModelEditKind::EditCurveKeys || kind == ModelEditKind::TransferAnimationCurves || kind == ModelEditKind::SetSkeletalWorkingSet || isModelAnimationAuthoringEdit(kind);
 }
 bool defaultModelSkeletalOptions(const ModelSkeletalEditOptions &o)
 {
@@ -553,6 +553,8 @@ bool applyModelSkeletalEdit(ModelMesh *mesh, const ModelEdit &edit, QString *err
         return applyModelCurveTransfer(mesh, edit, error, control);
 	if (edit.kind == ModelEditKind::EditCurveKeys)
 		return applyModelCurveKeys(mesh, edit, nullptr, error, control);
+	if (isModelAnimationAuthoringEdit(edit.kind))
+		return applyModelAnimationAuthoringEdit(mesh, edit, error, control);
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
 	if (!mesh || !isModelSkeletalEdit(edit.kind) || !work.check())
 		return false;

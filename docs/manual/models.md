@@ -250,6 +250,28 @@ constraints remain planned. The
 [skeletal authoring reference](../MODEL_RIG.md#author-skeletal-animation) includes
 `model pose` automation and exact limits.
 
+### Copy, paste and mirror poses
+
+Show a frame of a skeletal clip, select a joint (or none for the whole rig) and
+choose **Skeleton** > **Copy Pose**. **Paste Pose** writes the copy at the
+frame you show; it works across clips and across models with the same
+skeleton. **Paste Pose Mirrored** puts a copied left-side pose on the right
+side, reflected, and **Mirror Pose** swaps the shown pose between left and
+right in one step, which turns half of a walk cycle into the other half. The
+mirror axis and the left/right joint pairs come from joint names such as
+`l_arm`/`r_arm`, `Lhand`/`Rhand` or `Bip01 L Thigh`; a joint that sits off the
+centre without a partner is refused rather than mirrored onto itself.
+
+For a range, open **Edit Skeletal Animation**, choose the clip and the first and
+last poses, and press **Copy Pose Range** (<kbd>Ctrl</kbd>+<kbd>C</kbd>). Then
+choose **Paste pose or keys** (<kbd>Ctrl</kbd>+<kbd>V</kbd>), the destination
+clip and first pose, and optionally **Mirror left and right**. Joints with
+animation curves receive keys instead of samples: the dialog refuses to paste
+over existing keys unless **Replace keys already there** is on, while the
+viewport commands replace the keys at the frame you show. Each paste is one
+undo step. A copy from a differently named rig needs a joint map, which the
+command line takes; see [pose clipboard](../MODEL_RIG.md#copy-paste-and-mirror-poses).
+
 ## Edit a mesh
 
 1. Select a model and choose **Mesh Editor** on the page header. With no model
