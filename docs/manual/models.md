@@ -606,6 +606,14 @@ steps, closure, duplication and UV scale. Detached face profiles can close a
 full turn. Review every pose, face orientation and UV packing before exporting;
 see [Spin](../MODEL_SPIN.md) for skinning behaviour, limits and CLI examples.
 
+**Edge → Screw** and **Face → Screw** turn the selection once around the **3D
+Cursor**'s Z axis while climbing, for springs, threads and spiral horns; **F9**
+sets the **Axial offset (screw)**, steps and axis. **Face → Array** copies the
+selected faces in a row in one step, for chains, railings, ammunition belts and
+teeth: **F9** sets the **Count**, the **Offset** and **Relative offset**, a
+per-copy **Rotation** and **Scale** about the **Centre**, and a **Merge
+distance** that joins neighbouring copies into one piece. Each is one undo step.
+
 **Vertex → Rip** and **Edge → Rip** open a selected vertex or connected edge
 chain; **Rip and Fill** bridges the gap. **V/Alt+V** start these in the studio
 and Blender profiles. The starting pointer chooses the side; **B** swaps it

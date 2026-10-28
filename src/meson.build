@@ -438,6 +438,7 @@ core_sources = files(
   'core/model_edge_slide.cpp',
   'core/model_edge_bevel.cpp',
   'core/model_spin.cpp',
+  'core/model_array.cpp',
   'core/model_rip.cpp',
   'core/model_vertex_identity.cpp',
   'core/model_vertex_origins.cpp',
@@ -3915,6 +3916,12 @@ model_transform_pieces_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-transform-pieces-smoke', model_transform_pieces_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+
+model_array_smoke_test = executable(
+  'model_array_smoke_test', ['tests/model_array_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-array-smoke', model_array_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
 
 model_polygon_tools_ui_smoke_test = executable(
   'model_polygon_tools_ui_smoke_test', ['tests/model_polygon_tools_ui_smoke_test.cpp'],

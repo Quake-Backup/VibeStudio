@@ -301,7 +301,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		QStringLiteral("--camera-right"), QStringLiteral("--camera-up"), QStringLiteral("--camera-forward"),
 		QStringLiteral("--steps"), QStringLiteral("--centre"), QStringLiteral("--axis-vector"), QStringLiteral("--joint-map"),
 		QStringLiteral("--bind"), QStringLiteral("--bind-joint"), QStringLiteral("--new-surface"),
-		QStringLiteral("--transform-space"), QStringLiteral("--axis-rotation"), QStringLiteral("--axes-frame")};
+		QStringLiteral("--transform-space"), QStringLiteral("--axis-rotation"), QStringLiteral("--axes-frame"),
+		QStringLiteral("--count"), QStringLiteral("--relative"), QStringLiteral("--axial-offset")};
 	Arguments args;
 	QString error;
 	if (!parse(arguments, flags, options, &args, &error))
@@ -311,6 +312,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		return fail(2, error);
 	const QHash<QString, ModelEditKind> tools{
 		{QStringLiteral("spin"), ModelEditKind::Spin},
+		{QStringLiteral("array"), ModelEditKind::Array},
 		{QStringLiteral("rip"), ModelEditKind::Rip},
 		{QStringLiteral("knife"), ModelEditKind::Knife},
 		{QStringLiteral("bevel-edges"), ModelEditKind::BevelEdges},
@@ -355,7 +357,9 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("extrude-edges"), {QStringLiteral("--edges"), QStringLiteral("--offset")}},
 		{QStringLiteral("spin"), {QStringLiteral("--faces"), QStringLiteral("--edges"), QStringLiteral("--angle"), QStringLiteral("--steps"),
 			QStringLiteral("--centre"), QStringLiteral("--axis"), QStringLiteral("--axis-vector"), QStringLiteral("--duplicate"),
-			QStringLiteral("--no-close"), QStringLiteral("--tile-size")}},
+			QStringLiteral("--no-close"), QStringLiteral("--tile-size"), QStringLiteral("--axial-offset")}},
+		{QStringLiteral("array"), {QStringLiteral("--faces"), QStringLiteral("--count"), QStringLiteral("--offset"), QStringLiteral("--relative"),
+			QStringLiteral("--rotate"), QStringLiteral("--scale"), QStringLiteral("--centre"), QStringLiteral("--merge")}},
 		{QStringLiteral("inset"), {QStringLiteral("--faces"), QStringLiteral("--thickness"), QStringLiteral("--depth"), QStringLiteral("--individual"), QStringLiteral("--no-even")}},
 		{QStringLiteral("shrink-fatten"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--distance"), QStringLiteral("--no-even"), QStringLiteral("--frame")}},
 		{QStringLiteral("smooth"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--factor"), QStringLiteral("--iterations"), QStringLiteral("--pin-boundary"), QStringLiteral("--frame")}},
@@ -531,6 +535,10 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		!readNumber(QStringLiteral("--angle"), kind == ModelEditKind::Spin ? &tool.spinAngle : toolName == QStringLiteral("auto-smooth") ? &tool.smoothAngle : &tool.maxAngle,
 			kind == ModelEditKind::Spin ? -360 : 0, kind == ModelEditKind::Spin ? 360 : 180) ||
 		!readInt(QStringLiteral("--steps"), &tool.spinSteps, 1, 256) ||
+		!readNumber(QStringLiteral("--axial-offset"), &tool.spinAxialOffset, -1000000, 1000000) ||
+		!readInt(QStringLiteral("--count"), &tool.arrayCount, 2, 256) ||
+		(kind == ModelEditKind::Array && (!readNumber(QStringLiteral("--scale"), &tool.arrayScale, 0.001, 1000) ||
+			!readNumber(QStringLiteral("--merge"), &tool.arrayMerge, 0, 1000))) ||
 		!readInt(QStringLiteral("--side-face"), &tool.ripFace, 0, 131071) ||
 		!readNumber(QStringLiteral("--threshold"), &tool.mergeThreshold, 0, 1000) || !readInt(QStringLiteral("--cuts"), &tool.cuts, 1, 64) ||
 		!readNumber(QStringLiteral("--slide"), &tool.slide, -1, 1) ||
@@ -558,7 +566,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 						: toolName == QStringLiteral("uv-cylinder") ? ModelUvProjection::Cylinder
 						: toolName == QStringLiteral("uv-sphere")	 ? ModelUvProjection::Sphere
 																	 : ModelUvProjection::Cube;
-	if (args.values.contains(QStringLiteral("--merge")))
+	if (args.values.contains(QStringLiteral("--merge")) && kind != ModelEditKind::Array)
 	{
 		const auto text = args.values.value(QStringLiteral("--merge"));
 		if (text == QStringLiteral("centre") || text == QStringLiteral("center"))
@@ -579,11 +587,20 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		(args.values.contains(QStringLiteral("--size")) && !triple(args.values.value(QStringLiteral("--size")), &tool.size)) ||
 		(args.values.contains(QStringLiteral("--offset")) && !vector(args.values.value(QStringLiteral("--offset")), &edit.translation)) ||
 		(args.values.contains(QStringLiteral("--rotate")) && !vector(args.values.value(QStringLiteral("--rotate")), &edit.rotation)) ||
-		(args.values.contains(QStringLiteral("--scale")) && !vector(args.values.value(QStringLiteral("--scale")), &edit.scale)) ||
+		(args.values.contains(QStringLiteral("--scale")) && kind != ModelEditKind::Array && !vector(args.values.value(QStringLiteral("--scale")), &edit.scale)) ||
+		(args.values.contains(QStringLiteral("--relative")) && !triple(args.values.value(QStringLiteral("--relative")), &tool.arrayRelative)) ||
 		(args.values.contains(QStringLiteral("--pivot")) && !vector(args.values.value(QStringLiteral("--pivot")), &edit.pivot)) ||
 		(args.values.contains(QStringLiteral("--u-axis")) && !triple(args.values.value(QStringLiteral("--u-axis")), &tool.uvAxisU)) ||
 		(args.values.contains(QStringLiteral("--v-axis")) && !triple(args.values.value(QStringLiteral("--v-axis")), &tool.uvAxisV)))
 		return fail(2, Text::tr("Coordinates use three comma-separated finite numbers, such as 0,0,16."));
+	// Array: the offset and rotation are per copy.
+	if (kind == ModelEditKind::Array)
+	{
+		tool.arrayOffset = {edit.translation.x, edit.translation.y, edit.translation.z};
+		tool.arrayRotation = {edit.rotation.x, edit.rotation.y, edit.rotation.z};
+		edit.translation = {};
+		edit.rotation = {};
+	}
 	if (toolName == QStringLiteral("merge") && tool.merge == ModelMergeMode::Point && !args.values.contains(QStringLiteral("--point")))
 		return fail(2, Text::tr("--merge point requires --point x,y,z."));
 	if (args.values.contains(QStringLiteral("--axis")) || args.values.contains(QStringLiteral("--up")))
@@ -724,6 +741,31 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	edit.selection.surface = surfaceIndex;
 	if (!readSelection(args, mesh.surfaces[surfaceIndex], &edit.selection, &error))
 		return fail(2, error);
+	// An array turns and scales about the selection's centre unless --centre names one.
+	if (kind == ModelEditKind::Array && !args.values.contains(QStringLiteral("--centre")) && !edit.selection.faces.isEmpty() &&
+		referenceFrame < mesh.surfaces[surfaceIndex].frames.size())
+	{
+		const auto &part = mesh.surfaces[surfaceIndex];
+		double low[3]{INFINITY, INFINITY, INFINITY}, high[3]{-INFINITY, -INFINITY, -INFINITY};
+		for (int face : std::as_const(edit.selection.faces))
+		{
+			if (face < 0 || face >= part.triangles.size())
+				continue;
+			const auto &t = part.triangles[face];
+			for (int v : {t.a, t.b, t.c})
+			{
+				const auto p = part.frames[referenceFrame].positions[v];
+				const double values[3]{p.x, p.y, p.z};
+				for (int axis = 0; axis < 3; ++axis)
+				{
+					low[axis] = std::min(low[axis], values[axis]);
+					high[axis] = std::max(high[axis], values[axis]);
+				}
+			}
+		}
+		if (std::isfinite(low[0]))
+			tool.point = {(low[0] + high[0]) / 2, (low[1] + high[1]) / 2, (low[2] + high[2]) / 2};
+	}
 	// Transform axes (world, selection, custom or normal), as model edit takes them.
 	if (!parseModelTransformAxesOptions(args.values, int(mesh.frames.size()), &edit, &error))
 		return fail(2, error);

@@ -201,6 +201,8 @@ enum class ModelEditKind
 	// Chooses the skeletal clips baked into editable frames
 	// (core/model_skeletal_working_set.h); ModelSkeletalEditOptions::workingSet.
 	SetSkeletalWorkingSet,
+	// Copies of the selected faces along a per-copy transform (core/model_array.cpp).
+	Array,
 };
 
 struct ModelEdit

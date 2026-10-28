@@ -773,6 +773,7 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::ProjectUvMapping:
 	case ModelEditKind::SlideEdges:
 	case ModelEditKind::SetUvDensity:
+	case ModelEditKind::Array:
 		return ModelEditSkinHandling::Provenance;
 	}
 	return ModelEditSkinHandling::Provenance;

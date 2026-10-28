@@ -175,6 +175,17 @@ struct ModelMeshToolOptions
 	double spinAngle = 90;
 	int spinSteps = 8;
 	bool spinDuplicate = false, spinClose = true;
+	// Screw: how far the last step advances along the spin axis (each step a
+	// share of it). A screw cannot close a turn.
+	double spinAxialOffset = 0;
+	// Array (core/model_array.cpp): copies including the selection (2-256).
+	// Each copy applies the per-copy transform to the one before: rotate and
+	// scale uniformly about `point`, then move by the offset plus the relative
+	// offset times the selection's bounds. Copies' border vertices this close
+	// together in every pose join (0 keeps copies separate).
+	int arrayCount = 2;
+	std::array<double, 3> arrayOffset{0, 0, 0}, arrayRelative{1, 0, 0}, arrayRotation{0, 0, 0};
+	double arrayScale = 1, arrayMerge = 0;
 	// Rip selected vertices/edges toward the incident side face, optionally
 	// bridge the opening. The translation is carried by ModelEdit::translation.
 	int ripFace = -1;

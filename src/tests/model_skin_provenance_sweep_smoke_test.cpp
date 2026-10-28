@@ -772,6 +772,14 @@ void checkSweep()
 		e.tool.point = {-20, 0, 0};
 		e.tool.normal = {0, 1, 0};
 		add(QStringLiteral("Spin"), e);
+		e.tool.spinAxialOffset = 3;
+		add(QStringLiteral("Screw"), e);
+		// Polygon modelling tools that copy vertices with provenance.
+		e = kindEdit(ModelEditKind::Array, {0, {}, {0, 1}});
+		e.tool.arrayCount = 3;
+		e.tool.arrayOffset = {0, 0, 4};
+		e.tool.arrayRelative = {0, 0, 0};
+		add(QStringLiteral("Array"), e);
 	}
 	for (const auto &item : cases)
 		runCase(item);

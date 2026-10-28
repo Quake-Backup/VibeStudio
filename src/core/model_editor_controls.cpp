@@ -93,6 +93,8 @@ constexpr CommandEntry kCommands[] = {
 	{"meshRip", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Rip"), "V"},
 	{"meshRipFill", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Rip and Fill"), "Alt+V"},
 	{"meshSpinDuplicate", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Spin Duplicates"), ""},
+	{"meshScrew", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Screw"), ""},
+	{"meshArray", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Array"), ""},
 	{"meshMergeCentre", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Merge at Centre"), ""},
 	{"meshMergeCollapse", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Collapse"), ""},
 	{"meshMergeDistance", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Merge by Distance"), ""},

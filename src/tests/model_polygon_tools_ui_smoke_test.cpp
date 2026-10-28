@@ -1,5 +1,5 @@
 // Mesh Editor coverage for the polygon modelling tools: Individual Origins
-// and Normal axes (modal and gizmo).
+// and Normal axes (modal and gizmo), Array and Screw.
 // Each scenario runs in the dark theme at 100%, and in high-contrast themes at
 // 200% text with expanded translations, the second right to left.
 #include "app/model_editor_dialog.h"
@@ -169,6 +169,87 @@ void individualOrigins(QApplication &app, ModelEditorDialog &editor, ModelEditor
 	pivot->setCurrentIndex(int(ModelTransformPivot::SelectionCentre));
 	expect(editor.setMesh(squares, &error), "restore the squares", error);
 }
+
+// Array and Screw from the menus, adjusted with F9, each one undo step.
+void arraysAndScrews(QApplication &app, ModelEditorDialog &editor, ModelEditorTools &tools, ModelViewport &view)
+{
+	QString error;
+	QVector<ModelVec3> p;
+	QVector<ModelTriangle> t;
+	appendSquare(&p, &t, {4, 4, 0}, {1, 0, 0}, {0, 1, 0});
+	const auto square = polygonMesh(p, t);
+	expect(editor.setMesh(square, &error), "open a square for the array", error);
+	tools.applySelection(facesOf(square));
+	auto *face = tools.menuBar()->findChild<QMenu *>("meshMenuFace");
+	expect(face && face->actions().contains(tools.action("meshArray")) && face->actions().contains(tools.action("meshScrew")) &&
+			   tools.searchableActions().contains(tools.action("meshArray")),
+		   "the Face menu and command search offer Array and Screw");
+	tools.action("meshArray")->trigger();
+	app.processEvents();
+	expect(editor.document().mesh().surfaces[0].triangles.size() == 6 && editor.document().selection().faces.size() == 6,
+		   "Array makes three copies in a row and selects them");
+	tools.action("meshAdjustLast")->trigger();
+	app.processEvents();
+	auto *panel = tools.lastOperationPanel();
+	auto fields = panel ? panel->findChildren<QDoubleSpinBox *>() : QList<QDoubleSpinBox *>{};
+	if (!expect(panel && panel->isVisible() && fields.size() == 15, "Array's count, offsets, rotation, scale, centre and merge are adjustable"))
+		return;
+	for (auto *field : fields)
+	{
+		auto *accessible = QAccessible::queryAccessibleInterface(field);
+		expect(accessible && !accessible->text(QAccessible::Name).isEmpty() && (field->focusPolicy() & Qt::TabFocus),
+			   "each array setting is named and reachable by keyboard");
+	}
+	fields[0]->setValue(5);
+	app.processEvents();
+	expect(editor.document().mesh().surfaces[0].triangles.size() == 10, "F9 changes the count and replays once");
+	fields = panel->findChildren<QDoubleSpinBox *>();
+	fields[14]->setValue(.01);
+	app.processEvents();
+	ModelGeometricTopology topology;
+	expect(buildModelGeometricTopology(editor.document().mesh().surfaces[0], &topology) && topology.edgeFaces.size() == 21,
+		   "F9's merge distance joins the copies into one strip");
+	editor.findChild<QAction *>("undoMesh")->trigger();
+	app.processEvents();
+	expect(bytes(editor.document().mesh()) == bytes(square) && !editor.document().canUndo(), "the adjusted array is one undo step");
+	tools.action("meshAdjustLast")->trigger();
+	app.processEvents();
+
+	// Screw a vertical profile around the 3D cursor.
+	p.clear();
+	t.clear();
+	appendSquare(&p, &t, {20, 0, 4}, {1, 0, 0}, {0, 0, 1});
+	const auto profile = polygonMesh(p, t);
+	expect(editor.setMesh(profile, &error), "open a profile for the screw", error);
+	tools.applySelection(facesOf(profile));
+	tools.setCursor3d({0, 0, 0});
+	tools.action("meshScrew")->trigger();
+	app.processEvents();
+	ModelEdit screw;
+	screw.kind = ModelEditKind::Spin;
+	screw.selection = facesOf(profile);
+	screw.tool.spinAngle = 360;
+	screw.tool.spinSteps = 16;
+	screw.tool.spinAxialOffset = 16;
+	auto expected = profile;
+	expect(applyModelEdit(&expected, screw, nullptr, &error) && bytes(editor.document().mesh()) == bytes(expected),
+		   "Screw climbs one full turn around the cursor through the shared spin service", error);
+	tools.action("meshAdjustLast")->trigger();
+	app.processEvents();
+	fields = panel->findChildren<QDoubleSpinBox *>();
+	if (!expect(fields.size() == 10, "Spin's adjustment adds the axial offset"))
+		return;
+	fields[9]->setValue(32);
+	app.processEvents();
+	screw.tool.spinAxialOffset = 32;
+	expected = profile;
+	expect(applyModelEdit(&expected, screw, nullptr, &error) && bytes(editor.document().mesh()) == bytes(expected),
+		   "F9 changes the climb", error);
+	tools.action("meshAdjustLast")->trigger();
+	app.processEvents();
+	expect(editor.setMesh(profile, &error), "restore the profile", error);
+	(void)view;
+}
 } // namespace
 int main(int argc, char **argv)
 {
@@ -210,6 +291,7 @@ int main(int argc, char **argv)
 			return 1;
 		tools->applyControls(modelEditorControlsForProfile("studio"));
 		individualOrigins(app, editor, *tools, *view);
+		arraysAndScrews(app, editor, *tools, *view);
 		editor.close();
 		app.processEvents();
 		if (scenario)

@@ -2,7 +2,8 @@
 
 **Available** — **Spin** makes curved extrusions from face regions or open
 border edges. **Spin Duplicates** distributes selected faces around an axis.
-Both use the shared Mesh Editor document and CLI service. VibeStudio remains
+**Screw** is a spin that climbs along its axis. All three use the shared Mesh
+Editor document and CLI service. VibeStudio remains
 pre-alpha; [release acceptance](MODELLER_RELEASE.md) is still open.
 
 ## Make a curved extrusion
@@ -40,6 +41,21 @@ closure enabled, a 360-degree spin of eight steps produces eight total islands,
 including the original. Other angles produce the original plus eight copies.
 Disable **Close full turn** only when the coincident endpoint is intentional.
 
+## Make a screw, spring or spiral
+
+**Edge → Screw** or **Face → Screw** spins the selection one full turn around
+the 3D cursor's Z axis in 16 steps while climbing 16 units, so a profile becomes
+a thread, a spring coil or a spiral horn. **F9** sets the **Axial offset
+(screw)**, the distance the last step climbs (each step climbs its share), with
+the angle, steps, centre and axis. Any spin becomes a screw with a non-zero
+offset: **Spin Duplicates** with an offset makes a spiral of copies such as a
+spiral staircase. A screw never meets its first step, so it always keeps its end
+cap and never closes a turn; profile points on the axis climb too, so they form
+bands rather than fans. Each band's strip chart runs the length of its helix
+(the arc and the climb together). Every pose and skin binding follows the same
+rules as a flat spin. For more than one turn, repeat the screw (**Shift+R**) on
+its end cap.
+
 ## Retain animation and finish the asset
 
 Geometric adjacency is shared across indexed UV and hard-normal seams only
@@ -76,13 +92,15 @@ limits still apply. Keep `.mesh.json` as the editable source.
 ```sh
 vibestudio --cli model tool models/profile.mesh.json --tool spin --faces all --centre 0,0,0 --axis z --angle 360 --steps 16 --output models/ring.mesh.json --dry-run --json
 vibestudio --cli model tool models/part.mesh.json --tool spin --faces all --centre 0,0,16 --axis-vector 0,0,1 --angle 360 --steps 8 --duplicate --output models/radial.mesh.json --json
+vibestudio --cli model tool models/coil.mesh.json --tool spin --faces all --axis z --angle 360 --steps 24 --axial-offset 12 --output models/spring.mesh.json --json
 ```
 
 Use `--faces` or `--edges` with the existing component syntax. Duplication
 requires faces. `--centre` defaults to `0,0,0`, `--axis` to `z`, `--angle` to
 90, and `--steps` to 8. Use either `--axis x|y|z` or `--axis-vector x,y,z`,
 never both; the vector is normalised. `--no-close` disables full-turn closure.
-`--tile-size` controls strip UV scale. `--surface` and `--reference-frame`
+`--tile-size` controls strip UV scale. `--axial-offset D` makes a screw that
+climbs D units along the axis over the whole spin. `--surface` and `--reference-frame`
 default to zero. `--frame` is inapplicable because topology is shared.
 
 Dry runs perform the full edit and output validation without writing. Replacing

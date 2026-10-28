@@ -338,7 +338,9 @@ weights. See [skin weights through mesh edits](MODEL_SKIN_PROVENANCE.md) and the
 | Poke Faces | Adds a centre vertex to each face, optionally lifted along the face normal. |
 | Beautify Faces | Flips diagonals inside the selection to make triangles more even. |
 | Extrude Edges | Pulls open border edges out into a new strip. |
-| Spin / Spin Duplicates | Curved face/open-border extrusion or radial face copies around the 3D cursor. Type degrees, choose X/Y/Z, adjust steps with Page Up/Down, then confirm or cancel. F9 exposes centre, axis, closure, copies and UV scale. See [Spin](MODEL_SPIN.md) for all-pose and skinning semantics. |
+| Spin / Spin Duplicates | Curved face/open-border extrusion or radial face copies around the 3D cursor. Type degrees, choose X/Y/Z, adjust steps with Page Up/Down, then confirm or cancel. F9 exposes centre, axis, closure, copies, UV scale and the screw's axial offset. See [Spin](MODEL_SPIN.md) for all-pose and skinning semantics. |
+| Screw | A spin that climbs: one full turn around the 3D cursor's Z axis, 16 steps, 16 units of climb; F9 sets the climb (**Axial offset**), turn, steps, centre and axis. Springs, threads and spiral horns. See [Spin](MODEL_SPIN.md#make-a-screw-spring-or-spiral). |
+| Array | Copies the selected faces in a row in one step: each copy repeats the per-copy rotation and uniform scale (about the selection's centre, or F9's **Centre**) and moves by the **Offset** plus the **Relative offset** times the selection's size (one width along X by default). **Merge distance** joins each copy's border vertices to the copy before it when they lie that close in every pose, so chains of segments become one strip; joined vertices share a position and connectivity and keep their own UVs. Copies get their own vertex identities, keep their source's UVs, seams and skin weights (rebound where they land) and follow every pose. 2–256 copies; capacity is checked first. |
 | Inset Faces | Insets a region (or each face) by a thickness with optional depth. Even thickness keeps a constant border at corners; a thickness that would fold the border over is refused. |
 | Shrink/Fatten | Moves vertices along their normals; even thickness keeps faces parallel. |
 | Smooth Vertices | Averages selected vertices toward their neighbours (factor, repeat, keep borders). |
@@ -495,6 +497,7 @@ its `binding`.
 | `make-face` | `--vertices` or `--edges` |
 | `extrude-edges` | `--edges`, `--offset x,y,z` |
 | `inset` | `--faces`, `--thickness`, `--depth`, `--individual`, `--no-even` |
+| `array` | `--faces`, `--count 2..256`, `--offset x,y,z`, `--relative x,y,z` (default 1,0,0), `--rotate x,y,z`, `--scale`, `--centre x,y,z` (default the selection's centre), `--merge distance` |
 | `shrink-fatten` | selection, `--distance`, `--no-even`, `--frame all\|N` |
 | `smooth` | selection, `--factor`, `--iterations`, `--pin-boundary`, `--frame` |
 | `transform` | selection, `--offset`/`--rotate`/`--scale`, `--pivot-mode origin\|selection\|custom\|individual`, `--pivot`, `--transform-space world\|selection\|custom\|normal` (with `--axis-rotation` or `--axes-frame`), `--proportional-radius`, `--falloff`, `--connected`, `--mirror x\|y\|z\|xy…`, `--threshold`, `--frame` |

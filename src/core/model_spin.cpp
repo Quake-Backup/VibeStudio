@@ -108,8 +108,13 @@ class SpinBuilder
 		if (!std::isfinite(m_options.spinAngle) || std::abs(m_options.spinAngle) > 360 || m_options.spinSteps < 1 ||
 			m_options.spinSteps > 256 || length(m_axis) < 1e-9)
 			return refuse(SpinText::tr("Spin needs an angle from −360 to 360 degrees, 1–256 steps and a nonzero axis."));
+		if (!std::isfinite(m_options.spinAxialOffset) || std::abs(m_options.spinAxialOffset) > 1000000)
+			return refuse(SpinText::tr("A screw's axial offset must be finite and within ±1,000,000 units."));
 		m_axis = unit(m_axis);
-		m_closed = m_options.spinClose && std::abs(m_options.spinAngle) == 360;
+		// A screw advances along the axis, so its last step never meets the first.
+		m_closed = m_options.spinClose && std::abs(m_options.spinAngle) == 360 && m_options.spinAxialOffset == 0;
+		if (m_options.spinAxialOffset != 0 && m_options.spinAngle == 0)
+			return refuse(SpinText::tr("A screw needs a nonzero angle."));
 		if ((m_closed && m_options.spinSteps < 3) ||
 			(!m_options.spinDuplicate && std::abs(m_options.spinAngle) / m_options.spinSteps >= 180))
 			return refuse(SpinText::tr("Use at least three steps for a closed turn, and less than 180 degrees per extrusion step."));
@@ -276,11 +281,16 @@ class SpinBuilder
 		const double angle = m_options.spinAngle * (std::numbers::pi / 180) * step / m_options.spinSteps;
 		return value * std::cos(angle) + cross(m_axis, value) * std::sin(angle) + m_axis * (dot(m_axis, value) * (1 - std::cos(angle)));
 	}
+	// The screw's advance along the axis at a step.
+	P3 advance(int step) const { return m_axis * (m_options.spinAxialOffset * step / m_options.spinSteps); }
 	P3 transformed(P3 value, int step) const
 	{
-		if (step == 0 || (m_closed && step == m_options.spinSteps) || length(cross(m_axis, value - m_centre)) == 0)
+		if (step == 0 || (m_closed && step == m_options.spinSteps))
 			return value;
-		return m_centre + rotate(value - m_centre, step);
+		const bool screw = m_options.spinAxialOffset != 0;
+		if (length(cross(m_axis, value - m_centre)) == 0)
+			return screw ? value + advance(step) : value;
+		return screw ? m_centre + rotate(value - m_centre, step) + advance(step) : m_centre + rotate(value - m_centre, step);
 	}
 	int copyVertex(int source, int step, bool strip)
 	{
@@ -411,8 +421,12 @@ class SpinBuilder
 		QVector<std::array<int, 2>> columns;
 		const auto a = position(m_before, m_options.referenceFrame, border.a), b = position(m_before, m_options.referenceFrame, border.b);
 		const double span = length(b - a) / m_options.uvTileSize;
-		const double arc = std::abs(m_options.spinAngle) * (std::numbers::pi / 180) / m_options.uvTileSize;
+		const double sweep = std::abs(m_options.spinAngle) * (std::numbers::pi / 180);
+		// Each side's strip runs the length of its helix (its arc when flat).
 		const double radius[2]{length(cross(m_axis, a - m_centre)), length(cross(m_axis, b - m_centre))};
+		const double arc = sweep / m_options.uvTileSize, rise = m_options.spinAxialOffset;
+		const double path[2]{rise == 0 ? arc * radius[0] : std::hypot(sweep * radius[0], rise) / m_options.uvTileSize,
+							 rise == 0 ? arc * radius[1] : std::hypot(sweep * radius[1], rise) / m_options.uvTileSize};
 		for (int step = 0; step <= m_options.spinSteps; ++step)
 		{
 			const int x = copyVertex(border.a, step, true), y = copyVertex(border.b, step, true);
@@ -422,7 +436,7 @@ class SpinBuilder
 			for (int side = 0; side < 2; ++side)
 			{
 				const int vertex = columns.last()[side], start = columns.first()[side];
-				m_surface.texCoords[vertex] = {float(arc * radius[side] * step / m_options.spinSteps), float(side * span)};
+				m_surface.texCoords[vertex] = {float(path[side] * step / m_options.spinSteps), float(side * span)};
 				m_normalGroups[vertex] = samePoint(start, vertex) ? start : vertex;
 			}
 			if (step > 0)

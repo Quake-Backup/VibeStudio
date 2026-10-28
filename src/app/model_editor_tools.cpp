@@ -330,6 +330,46 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshRipFill"), Text::tr("Rip and Fill"), {}, [this] { startModalAtPointer(ModelModalOperator::RipFill); });
 	addAction(QStringLiteral("meshSpinDuplicate"), Text::tr("Spin Duplicates"), {},
 			  [this] { startModalAtPointer(ModelModalOperator::SpinDuplicate); });
+	// Screw: a full spin around the 3D cursor's Z axis that climbs as it turns;
+	// Adjust Last Operation sets the axis, turn, steps and climb.
+	addAction(QStringLiteral("meshScrew"), Text::tr("Screw"), {},
+			  [this]
+			  {
+				  runKind(ModelEditKind::Spin,
+						  [this](ModelEdit &e)
+						  {
+							  e.selection = selectionFor(ModelEditKind::Extrude);
+							  if (e.selection.faces.isEmpty())
+								  e.selection = selectionFor(ModelEditKind::ExtrudeEdges);
+							  else
+							  {
+								  e.selection.vertices.clear();
+								  e.selection.edges.clear();
+							  }
+							  e.tool.point = {m_cursor.x, m_cursor.y, m_cursor.z};
+							  e.tool.normal = {0, 0, 1};
+							  e.tool.spinAngle = 360;
+							  e.tool.spinSteps = 16;
+							  e.tool.spinAxialOffset = 16;
+						  });
+			  });
+	// Array: copies of the selected faces; Adjust Last Operation sets the
+	// count, offsets, rotation, scale and merging.
+	addAction(QStringLiteral("meshArray"), Text::tr("Array"), {},
+			  [this]
+			  {
+				  runKind(ModelEditKind::Array,
+						  [this](ModelEdit &e)
+						  {
+							  e.selection = selectionFor(ModelEditKind::Extrude);
+							  e.selection.vertices.clear();
+							  e.selection.edges.clear();
+							  ModelVec3 centre;
+							  if (selectionCentre(&centre))
+								  e.tool.point = {centre.x, centre.y, centre.z};
+							  e.tool.arrayCount = 3;
+						  });
+			  });
 	addAction(QStringLiteral("meshSubdivide"), Text::tr("Subdivide"), {}, [this] { m_editor->execute(ModelEditKind::Subdivide); });
 	addAction(QStringLiteral("meshSplitEdges"), Text::tr("Split Edges"), {}, [this] { m_editor->execute(ModelEditKind::SplitEdges); });
 	addAction(QStringLiteral("meshMarkSeam"), Text::tr("Mark Seam"), {}, [this] { m_editor->execute(ModelEditKind::MarkUvSeams); });
@@ -716,13 +756,13 @@ void ModelEditorTools::buildMenus()
 							 QStringLiteral("meshMenuVertex")));
 	m_menuBar->addMenu(named(menu(Text::tr("&Edge"), {QStringLiteral("meshLoopCut"), QStringLiteral("meshRotateEdge"), QStringLiteral("meshExtrudeEdges"),
 													   QStringLiteral("meshRip"), QStringLiteral("meshRipFill"),
-													   QStringLiteral("meshSpin"), QStringLiteral("meshEdgeSlide"), QStringLiteral("meshBevelEdges"), QStringLiteral("meshSplitEdges"), QStringLiteral("meshBridge"), QStringLiteral("meshFillHoles"), {},
+													   QStringLiteral("meshSpin"), QStringLiteral("meshScrew"), QStringLiteral("meshEdgeSlide"), QStringLiteral("meshBevelEdges"), QStringLiteral("meshSplitEdges"), QStringLiteral("meshBridge"), QStringLiteral("meshFillHoles"), {},
 													   QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSeam"), {},
 													   QStringLiteral("meshSelectLoopPick"), QStringLiteral("meshSelectRingPick"),
 													   QStringLiteral("meshSelectLoop"), QStringLiteral("meshSelectRing")}),
 							 QStringLiteral("meshMenuEdge")));
 	m_menuBar->addMenu(named(menu(Text::tr("&Face"), {QStringLiteral("meshExtrude"), QStringLiteral("meshInset"), QStringLiteral("meshInsetIndividual"),
-													   QStringLiteral("meshSpin"), QStringLiteral("meshSpinDuplicate"), QStringLiteral("meshPoke"), QStringLiteral("meshSolidify"), QStringLiteral("meshSubdivide"), QStringLiteral("meshDissolveFaces"),
+													   QStringLiteral("meshSpin"), QStringLiteral("meshSpinDuplicate"), QStringLiteral("meshScrew"), QStringLiteral("meshArray"), QStringLiteral("meshPoke"), QStringLiteral("meshSolidify"), QStringLiteral("meshSubdivide"), QStringLiteral("meshDissolveFaces"),
 													   QStringLiteral("meshBeautify"), QStringLiteral("meshMakeFace"), {}, QStringLiteral("meshFlip"),
 													   QStringLiteral("meshShadeSmooth"), QStringLiteral("meshShadeFlat"), QStringLiteral("meshAutoSmooth"), {},
 													   QStringLiteral("meshDeleteFaces")}),
@@ -1914,7 +1954,18 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 			{Text::tr("Close full turn"), 0, 1, 0, [](const E &e) { return double(e.tool.spinClose); }, [](E &e, double v) { e.tool.spinClose = v > .5; }, true},
 			{Text::tr("Units per texture repeat"), .001, 100000, 3, [](const E &e) { return e.tool.uvTileSize; }, [](E &e, double v) { e.tool.uvTileSize = v; }}}
 			+ array3(Text::tr("Centre"), &ModelMeshToolOptions::point, -100000, 100000)
-			+ array3(Text::tr("Axis"), &ModelMeshToolOptions::normal, -1, 1);
+			+ array3(Text::tr("Axis"), &ModelMeshToolOptions::normal, -1, 1)
+			+ QVector<LastField>{{Text::tr("Axial offset (screw)"), -100000, 100000, 3, [](const E &e) { return e.tool.spinAxialOffset; },
+								  [](E &e, double v) { e.tool.spinAxialOffset = v; }}};
+	case ModelEditKind::Array:
+		return QVector<LastField>{
+				   {Text::tr("Count"), 2, 256, 0, [](const E &e) { return double(e.tool.arrayCount); }, [](E &e, double v) { e.tool.arrayCount = int(v); }}}
+			+ array3(Text::tr("Offset"), &ModelMeshToolOptions::arrayOffset, -100000, 100000)
+			+ array3(Text::tr("Relative offset"), &ModelMeshToolOptions::arrayRelative, -1000, 1000)
+			+ array3(Text::tr("Rotation"), &ModelMeshToolOptions::arrayRotation, -360, 360)
+			+ QVector<LastField>{{Text::tr("Scale"), .001, 1000, 3, [](const E &e) { return e.tool.arrayScale; }, [](E &e, double v) { e.tool.arrayScale = v; }}}
+			+ array3(Text::tr("Centre"), &ModelMeshToolOptions::point, -100000, 100000)
+			+ QVector<LastField>{{Text::tr("Merge distance"), 0, 1000, 4, [](const E &e) { return e.tool.arrayMerge; }, [](E &e, double v) { e.tool.arrayMerge = v; }}};
 	case ModelEditKind::Rip:
 		return vector3(Text::tr("Offset"), &E::translation, -100000, 100000) + QVector<LastField>{
 			{Text::tr("Side face"), 0, 131071, 0, [](const E &e) { return double(e.tool.ripFace); }, [](E &e, double v) { e.tool.ripFace = int(v); }},
@@ -2087,6 +2138,8 @@ QString kindTitle(ModelEditKind kind)
 		return Text::tr("Knife");
 	case ModelEditKind::Spin:
 		return Text::tr("Spin");
+	case ModelEditKind::Array:
+		return Text::tr("Array");
 	case ModelEditKind::Rip:
 		return Text::tr("Rip");
 	case ModelEditKind::Solidify:
