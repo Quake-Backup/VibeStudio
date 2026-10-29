@@ -111,6 +111,14 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 	string(skeleton.sourceFormat);
 	list(skeleton.bakedClipForFrame);
 	strings(mesh.companionPaths);
+	list(mesh.tagAnchors);
+	for (const auto &anchor : mesh.tagAnchors)
+	{
+		string(anchor.tag);
+		string(anchor.surfaceName);
+		list(anchor.vertices);
+		list(anchor.faces);
+	}
 }
 
 void ModelMemoryVisitor::topology(const ModelSurfaceTopology &topology)

@@ -1,3 +1,4 @@
+#include "core/model_assembly.h"
 #include "core/model_document.h"
 #include "core/model_tag_follow.h"
 #include "core/model_tags.h"
@@ -5,6 +6,8 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QFile>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
@@ -178,6 +181,112 @@ void checkCore()
 		   QStringLiteral("MD3 keeps the fitted tag track: ") + error);
 }
 
+// Anchors keep what Follow Selection fitted, so the tag can be fitted again.
+void checkAnchors(const QDir &dir)
+{
+	QString error;
+	const auto mesh = plateFixture();
+	ModelDocument document;
+	expect(document.setMesh(mesh, &error) && document.edit(followEdit("tag_mount", ModelTagFollowMode::Rigid), &error),
+		   QStringLiteral("fit an anchored tag: ") + error);
+	const auto anchors = document.mesh().tagAnchors;
+	expect(anchors.size() == 1 && anchors[0].tag == "tag_mount" && anchors[0].vertices == QVector<int>({0, 1, 2, 3}) && anchors[0].vertexCount == 4 &&
+			   anchors[0].surfaceName == mesh.surfaces[0].name && modelTagAnchorProblem(document.mesh(), anchors[0]).isEmpty(),
+		   QStringLiteral("Follow Selection keeps an anchor"));
+	// Move the plate in frames 2-3; the tag stays until it is refitted.
+	ModelEdit lift;
+	lift.kind = ModelEditKind::TransformFrameRange;
+	lift.selection.surface = 0;
+	lift.selection.vertices = {0, 1, 2, 3};
+	lift.poseRange.first = 2;
+	lift.poseRange.last = 3;
+	lift.translation = {0, 0, 6};
+	expect(document.edit(lift, &error), QStringLiteral("move the plate in two frames: ") + error);
+	const auto before = moved(2, {3, 4, 5});
+	expect(near(findModelTag(document.mesh(), "tag_mount", 2)->origin, before), QStringLiteral("a geometry edit leaves the baked tag alone"));
+	ModelEdit refit;
+	refit.kind = ModelEditKind::RefitAnchoredTags;
+	expect(document.edit(refit, &error), QStringLiteral("refit anchored tags: ") + error);
+	expect(near(findModelTag(document.mesh(), "tag_mount", 2)->origin, {before.x, before.y, before.z + 6}) &&
+			   near(findModelTag(document.mesh(), "tag_mount", 4)->origin, moved(4, {3, 4, 5})),
+		   QStringLiteral("refitting moves the tag with its components again"));
+	expect(document.undo() && near(findModelTag(document.mesh(), "tag_mount", 2)->origin, before), QStringLiteral("a refit undoes in one step"));
+	document.redo();
+	// Anchors are saved in the editable source (version 15).
+	const auto path = dir.filePath("anchored.mesh.json");
+	ModelDocument reloaded;
+	QFile saved(path);
+	expect(document.save(path, false, &error) && reloaded.load(path, &error) && reloaded.mesh().tagAnchors == document.mesh().tagAnchors &&
+			   saved.open(QIODevice::ReadOnly) && QJsonDocument::fromJson(saved.readAll()).object().value("version").toInt() == modelSourceTagAnchorVersion,
+		   QStringLiteral("anchors survive a save and reload: ") + error);
+	// Renaming and deleting the tag keep the anchor in step.
+	ModelEdit rename;
+	rename.kind = ModelEditKind::RenameTag;
+	rename.selection.tag = "tag_mount";
+	rename.text = "tag_hand";
+	expect(document.edit(rename, &error) && document.mesh().tagAnchors.value(0).tag == "tag_hand", QStringLiteral("a renamed tag keeps its anchor"));
+	// A topology change makes the anchor stale; refitting says so.
+	ModelEdit cut;
+	cut.kind = ModelEditKind::DeleteFaces;
+	cut.selection.surface = 0;
+	cut.selection.faces = {1};
+	expect(document.edit(cut, &error), QStringLiteral("delete a face: ") + error);
+	const auto stale = modelTagAnchorProblem(document.mesh(), document.mesh().tagAnchors.value(0));
+	const bool refused = !document.edit(refit, &error) && error.contains("Follow Selection again");
+	expect(!stale.isEmpty() && refused, QStringLiteral("a stale anchor is refused with a reason: ") + error);
+	document.undo();
+	ModelEdit remove;
+	remove.kind = ModelEditKind::DeleteTag;
+	remove.selection.tag = "tag_hand";
+	expect(document.edit(remove, &error) && document.mesh().tagAnchors.isEmpty(), QStringLiteral("deleting the tag removes its anchor"));
+	// Following without an anchor keeps none.
+	auto unanchored = followEdit("tag_mount", ModelTagFollowMode::Rigid);
+	unanchored.tagFollow.keepAnchor = false;
+	ModelDocument plain;
+	expect(plain.setMesh(mesh, &error) && plain.edit(unanchored, &error) && plain.mesh().tagAnchors.isEmpty() &&
+			   !plain.edit(refit, &error) && error.contains("Follow Selection"),
+		   QStringLiteral("a fit without an anchor cannot be refitted"));
+}
+
+// A part attached at the fitted tag follows the moving plate.
+void checkAssembly(const QDir &dir)
+{
+	QString error;
+	ModelDocument root, child;
+	const auto rootPath = dir.filePath("assembly_plate.mesh.json"), childPath = dir.filePath("child.mesh.json");
+	ModelMesh part = plateFixture();
+	part.tags.clear();
+	part.tagAnchors.clear();
+	expect(root.setMesh(plateFixture(), &error) && root.edit(followEdit("tag_mount", ModelTagFollowMode::Rigid), &error) &&
+			   root.save(rootPath, false, &error) && child.setMesh(part, &error) && child.save(childPath, false, &error),
+		   QStringLiteral("save the assembly parts: ") + error);
+	ModelAssembly assembly;
+	ModelAssemblyPart base;
+	base.id = "plate";
+	base.source = "assembly_plate.mesh.json";
+	base.framesPerSecond = 1;
+	base.interpolate = false;
+	ModelAssemblyPart attached = base;
+	attached.id = "weapon";
+	attached.source = "child.mesh.json";
+	attached.parent = "plate";
+	attached.tag = "tag_mount";
+	assembly.parts = {base, attached};
+	ModelAssemblyContext context;
+	context.directory = dir.path();
+	ModelAssemblyResolved resolved;
+	if (!expect(resolveModelAssembly(assembly, context, &resolved, &error), QStringLiteral("resolve the assembly: ") + error))
+		return;
+	bool follows = true;
+	for (int frame = 0; frame < 6; ++frame)
+	{
+		ModelAssemblyPose pose;
+		follows = follows && sampleModelAssembly(assembly, resolved, frame, &pose, &error) && pose.partTransforms.size() == 2 &&
+				  near(pose.partTransforms[1].origin, moved(frame, {3, 4, 5}), 1e-3);
+	}
+	expect(follows, QStringLiteral("the attached part follows the fitted tag in every frame: ") + error);
+}
+
 void checkCli(const QString &program, const QDir &dir)
 {
 	const auto source = dir.filePath("plate.mesh.json");
@@ -197,6 +306,12 @@ void checkCli(const QString &program, const QDir &dir)
 			   written.load(output, &error) && expected.setMesh(mesh, &error) &&
 			   expected.edit(followEdit("tag_mount", ModelTagFollowMode::Rigid), &error) && bytes(written.mesh()) == bytes(expected.mesh()),
 		   QStringLiteral("model frames follow-tag writes the shared fit: ") + error);
+	QProcess refit;
+	refit.start(program, {"--cli", "model", "frames", output, "--operation", "refit-tags", "--output", dir.filePath("refit.mesh.json"), "--json",
+						  "--settings-file", dir.filePath("settings.ini")});
+	const bool done = refit.waitForStarted(10000) && refit.waitForFinished(120000);
+	const auto refitJson = QJsonDocument::fromJson(refit.readAllStandardOutput()).object();
+	expect(done && refit.exitCode() == 0 && refitJson.value("tagAnchors").toArray().size() == 1, QStringLiteral("model frames refit-tags refits anchors"));
 }
 } // namespace
 
@@ -215,6 +330,8 @@ int main(int argc, char **argv)
 	if (!temporary.isValid())
 		return EXIT_FAILURE;
 	checkCore();
+	checkAnchors(QDir(temporary.path()));
+	checkAssembly(QDir(temporary.path()));
 	if (argc > 1)
 		checkCli(QString::fromLocal8Bit(argv[1]), QDir(temporary.path()));
 	return ok ? EXIT_SUCCESS : EXIT_FAILURE;

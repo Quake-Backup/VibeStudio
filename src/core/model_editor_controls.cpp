@@ -152,6 +152,7 @@ constexpr CommandEntry kCommands[] = {
 	{"meshFrameFirst", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "First Frame"), ""},
 	{"meshFrameLast", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Last Frame"), ""},
 	{"meshCopyPoseToFrame", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Copy Pose to Current Frame"), ""},
+	{"meshToggleOnionSkin", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Toggle Onion Skin"), ""},
 	// Tools and search.
 	{"meshOperatorSearch", "tools", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Search Commands"), "F3"},
 	{"meshAdjustLast", "tools", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Adjust Last Operation"), "F9"},

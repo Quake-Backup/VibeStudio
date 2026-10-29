@@ -5,10 +5,12 @@
 #include "core/model_tags.h"
 
 #include <QCoreApplication>
+#include <QJsonObject>
 
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <tuple>
 
 namespace vibestudio
 {
@@ -310,16 +312,170 @@ QString modelTagFollowSummary(const ModelTagFollowOptions &options, const ModelT
 		.arg(locale.toString(result.worstFrame));
 }
 
+QString modelTagAnchorProblem(const ModelMesh &mesh, const ModelTagAnchor &anchor)
+{
+	if (!findModelTag(mesh, anchor.tag, 0))
+		return Text::tr("Anchored tag %1 no longer exists.").arg(anchor.tag);
+	if (anchor.surface < 0 || anchor.surface >= mesh.surfaces.size())
+		return Text::tr("The surface tag %1 follows no longer exists. Select its components and choose Follow Selection again.").arg(anchor.tag);
+	const auto &surface = mesh.surfaces[anchor.surface];
+	if (surface.name != anchor.surfaceName || surface.vertexCount != anchor.vertexCount || surface.triangles.size() != anchor.triangleCount)
+		return Text::tr("Surface %1 gained or lost vertices or faces since tag %2 was fitted, so its components cannot be found again. "
+						"Select them and choose Follow Selection again.")
+			.arg(surface.name, anchor.tag);
+	const int frames = int(mesh.frames.size());
+	if (anchor.referenceFrame >= frames || anchor.last >= frames)
+		return Text::tr("The frames tag %1 was fitted over no longer exist. Choose Follow Selection again.").arg(anchor.tag);
+	return {};
+}
+
+bool solveModelTagAnchor(const ModelMesh &mesh, const ModelTagAnchor &anchor, ModelTagFollowResult *result, QString *error,
+						 const ModelWorkControl &control)
+{
+	const auto problem = modelTagAnchorProblem(mesh, anchor);
+	if (!problem.isEmpty())
+		return fail(error, problem);
+	ModelSelection selection;
+	selection.surface = anchor.surface;
+	selection.vertices = QSet<int>(anchor.vertices.cbegin(), anchor.vertices.cend());
+	selection.faces = QSet<int>(anchor.faces.cbegin(), anchor.faces.cend());
+	ModelTagFollowOptions options;
+	options.tag = anchor.tag;
+	options.mode = ModelTagFollowMode(anchor.mode);
+	options.referenceFrame = anchor.referenceFrame;
+	options.first = anchor.first;
+	options.last = anchor.last;
+	return solveModelTagFollow(mesh, selection, options, result, error, control);
+}
+
+QJsonArray modelTagAnchorsJson(const QVector<ModelTagAnchor> &anchors)
+{
+	static const char *const modes[]{"rigid", "centroid", "surface"};
+	QJsonArray result;
+	for (const auto &anchor : anchors)
+	{
+		QJsonArray vertices, faces;
+		for (int vertex : anchor.vertices)
+			vertices.append(vertex);
+		for (int face : anchor.faces)
+			faces.append(face);
+		result.append(QJsonObject{{QStringLiteral("tag"), anchor.tag},
+								  {QStringLiteral("surface"), anchor.surface},
+								  {QStringLiteral("surfaceName"), anchor.surfaceName},
+								  {QStringLiteral("vertices"), vertices},
+								  {QStringLiteral("faces"), faces},
+								  {QStringLiteral("mode"), QString::fromLatin1(modes[std::clamp(anchor.mode, 0, 2)])},
+								  {QStringLiteral("referenceFrame"), anchor.referenceFrame},
+								  {QStringLiteral("first"), anchor.first},
+								  {QStringLiteral("last"), anchor.last},
+								  {QStringLiteral("vertexCount"), anchor.vertexCount},
+								  {QStringLiteral("triangleCount"), anchor.triangleCount}});
+	}
+	return result;
+}
+
+bool parseModelTagAnchors(const QJsonValue &value, QVector<ModelTagAnchor> *anchors, QString *error)
+{
+	const auto malformed = [&] { return fail(error, Text::tr("The editable source's tag anchors are malformed.")); };
+	if (!value.isArray() || value.toArray().size() > 16)
+		return malformed();
+	QVector<ModelTagAnchor> result;
+	const auto integer = [](const QJsonValue &v, int minimum, int maximum, int *out)
+	{
+		if (!v.isDouble() || v.toDouble() != double(v.toInt(minimum - 1)) || v.toInt() < minimum || v.toInt() > maximum)
+			return false;
+		*out = v.toInt();
+		return true;
+	};
+	for (const auto &item : value.toArray())
+	{
+		const auto object = item.toObject();
+		ModelTagAnchor anchor;
+		anchor.tag = object.value(QStringLiteral("tag")).toString();
+		anchor.surfaceName = object.value(QStringLiteral("surfaceName")).toString();
+		const auto mode = object.value(QStringLiteral("mode")).toString();
+		anchor.mode = mode == QStringLiteral("rigid") ? 0 : mode == QStringLiteral("centroid") ? 1 : mode == QStringLiteral("surface") ? 2 : -1;
+		if (!item.isObject() || !nativeName(anchor.tag) || anchor.mode < 0 || !object.value(QStringLiteral("surfaceName")).isString() ||
+			!integer(object.value(QStringLiteral("surface")), 0, 31, &anchor.surface) ||
+			!integer(object.value(QStringLiteral("referenceFrame")), 0, 1023, &anchor.referenceFrame) ||
+			!integer(object.value(QStringLiteral("first")), -1, 1023, &anchor.first) ||
+			!integer(object.value(QStringLiteral("last")), -1, 1023, &anchor.last) ||
+			!integer(object.value(QStringLiteral("vertexCount")), 0, 65536, &anchor.vertexCount) ||
+			!integer(object.value(QStringLiteral("triangleCount")), 0, 131072, &anchor.triangleCount) ||
+			(anchor.first == -1) != (anchor.last == -1) || anchor.last < anchor.first)
+			return malformed();
+		for (const auto &[key, list, limit] : {std::tuple{"vertices", &anchor.vertices, anchor.vertexCount},
+											   std::tuple{"faces", &anchor.faces, anchor.triangleCount}})
+		{
+			const auto array = object.value(QLatin1String(key)).toArray();
+			if (!object.value(QLatin1String(key)).isArray() || array.size() > limit)
+				return malformed();
+			for (const auto &entry : array)
+			{
+				int index = 0;
+				if (!integer(entry, 0, limit - 1, &index) || (!list->isEmpty() && index <= list->last()))
+					return malformed();
+				list->append(index);
+			}
+		}
+		if (anchor.vertices.isEmpty() || std::any_of(result.cbegin(), result.cend(), [&](const ModelTagAnchor &other) { return other.tag == anchor.tag; }))
+			return malformed();
+		result.append(anchor);
+	}
+	*anchors = std::move(result);
+	return true;
+}
+
 bool applyModelTagFollowEdit(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control)
 {
-	if (!candidate || edit.kind != ModelEditKind::FollowTagComponents)
+	const bool refit = edit.kind == ModelEditKind::RefitAnchoredTags;
+	if (!candidate || (edit.kind != ModelEditKind::FollowTagComponents && !refit))
 		return fail(error, Text::tr("Choose Follow Selection."));
 	if (edit.frame != -1)
 		return fail(error, Text::tr("Tag following uses its frame range, not one frame."));
+	auto &tags = candidate->tags;
+	const auto write = [&](const ModelTagFollowResult &result)
+	{
+		for (const auto &pose : std::as_const(result.poses))
+		{
+			const auto found = std::find_if(tags.begin(), tags.end(),
+											[&](const ModelTag &tag) { return tag.name == pose.name && tag.frameIndex == pose.frameIndex; });
+			if (found == tags.end())
+				return fail(error, Text::tr("Attachment tag %1 is missing in frame %2.").arg(pose.name).arg(pose.frameIndex));
+			*found = pose;
+		}
+		return true;
+	};
+	if (refit)
+	{
+		ModelTagFollowOptions only;
+		only.tag = edit.tagFollow.tag;
+		if (!(edit.tagFollow == only))
+			return fail(error, Text::tr("Refit Anchored Tags takes only the name of one anchored tag, or none for every one."));
+		QVector<ModelTagAnchor> chosen;
+		for (const auto &anchor : std::as_const(candidate->tagAnchors))
+			if (only.tag.isEmpty() || anchor.tag == only.tag)
+				chosen.append(anchor);
+		if (chosen.isEmpty())
+			return fail(error, only.tag.isEmpty() ? Text::tr("No tag is anchored to mesh components yet. Fit one with Follow Selection first.")
+												  : Text::tr("Tag %1 is not anchored to mesh components.").arg(only.tag));
+		// Fit every anchor before changing any tag.
+		QVector<ModelTagFollowResult> results;
+		for (const auto &anchor : std::as_const(chosen))
+		{
+			ModelTagFollowResult result;
+			if (!solveModelTagAnchor(*candidate, anchor, &result, error, control))
+				return false;
+			results.append(result);
+		}
+		for (const auto &result : std::as_const(results))
+			if (!write(result))
+				return false;
+		return true;
+	}
 	ModelTagFollowResult result;
 	if (!solveModelTagFollow(*candidate, edit.selection, edit.tagFollow, &result, error, control))
 		return false;
-	auto &tags = candidate->tags;
 	if (result.created)
 	{
 		// The new tag exists in every frame: fitted inside the range, its
@@ -331,13 +487,29 @@ bool applyModelTagFollowEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 			tags.append(tag);
 		}
 	}
-	for (const auto &pose : std::as_const(result.poses))
+	if (!write(result))
+		return false;
+	auto &anchors = candidate->tagAnchors;
+	anchors.removeIf([&](const ModelTagAnchor &anchor) { return anchor.tag == edit.tagFollow.tag; });
+	if (edit.tagFollow.keepAnchor)
 	{
-		const auto found = std::find_if(tags.begin(), tags.end(),
-										[&](const ModelTag &tag) { return tag.name == pose.name && tag.frameIndex == pose.frameIndex; });
-		if (found == tags.end())
-			return fail(error, Text::tr("Attachment tag %1 is missing in frame %2.").arg(pose.name).arg(pose.frameIndex));
-		*found = pose;
+		const auto &surface = candidate->surfaces[edit.selection.surface];
+		ModelTagAnchor anchor;
+		anchor.tag = edit.tagFollow.tag;
+		anchor.surface = edit.selection.surface;
+		anchor.surfaceName = surface.name;
+		const auto vertices = model_tools::selectedVertexSet(surface, edit.selection);
+		anchor.vertices = QVector<int>(vertices.cbegin(), vertices.cend());
+		std::sort(anchor.vertices.begin(), anchor.vertices.end());
+		anchor.faces = QVector<int>(edit.selection.faces.cbegin(), edit.selection.faces.cend());
+		std::sort(anchor.faces.begin(), anchor.faces.end());
+		anchor.mode = int(edit.tagFollow.mode);
+		anchor.referenceFrame = edit.tagFollow.referenceFrame;
+		anchor.first = edit.tagFollow.first;
+		anchor.last = edit.tagFollow.last;
+		anchor.vertexCount = surface.vertexCount;
+		anchor.triangleCount = int(surface.triangles.size());
+		anchors.append(anchor);
 	}
 	return true;
 }

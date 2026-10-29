@@ -95,6 +95,9 @@ class ModelEditorDialog final : public QDialog
 	[[nodiscard]] const ModelDocument &document() const;
 	bool setMesh(const ModelMesh &mesh, QString *error = nullptr);
 	bool openSource(const QString &path, QString *error = nullptr);
+	// An OBJ with explicit import settings (core/model_obj.h); other formats
+	// require the defaults.
+	bool openSource(const QString &path, const ModelObjImportOptions &obj, QString *error = nullptr);
 	bool repairSource(const QString &path, QString *error = nullptr);
 	bool applyEdit(const ModelEdit &operation, QString *error = nullptr, ModelEditReport *report = nullptr);
 	bool importMdlSkin(const QString &path, ModelEditKind kind, QString *error = nullptr);

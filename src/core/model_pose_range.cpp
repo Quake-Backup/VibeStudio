@@ -4,6 +4,7 @@
 #include "core/model_mesh_tools_p.h"
 #include "core/model_pose.h"
 #include "core/model_transform.h"
+#include "core/model_transform_axes.h"
 
 #include <QCoreApplication>
 
@@ -101,6 +102,10 @@ bool applyModelPoseRangeEdit(ModelMesh *mesh, const ModelEdit &edit, QString *er
 		if (edit.pivotFrame < 0 || edit.pivotFrame >= frames ||
 			!modelTransformPivot(surface.frames[edit.pivotFrame].positions, vertices, edit.pivotMode, edit.pivot, &resolved.pivot))
 			return fail(error, Text::tr("Choose a valid transform pivot and reference frame."));
+		// World, selection or custom axes, as the Geometry page and the
+		// viewport's modal transform choose them.
+		if (!resolveModelTransformAxes(*mesh, edit, &resolved.basis, error, control))
+			return false;
 	}
 	const ModelMesh source = *mesh;
 	const auto &original = source.surfaces[edit.selection.surface];

@@ -27,6 +27,7 @@
 #include "core/model_mesh.h"
 #include "core/model_work.h"
 
+#include <QJsonArray>
 #include <QLocale>
 
 namespace vibestudio
@@ -54,8 +55,14 @@ struct ModelTagFollowOptions
 	// The inclusive frames to fit; -1 and -1 fit every frame.
 	int first = -1;
 	int last = -1;
+	// Keep an anchor (ModelMesh::tagAnchors) so Refit Anchored Tags can fit
+	// the tag again after geometry edits.
+	bool keepAnchor = true;
 	bool operator==(const ModelTagFollowOptions &) const = default;
 };
+
+// The editable source version that first stores tag anchors.
+inline constexpr int modelSourceTagAnchorVersion = 15;
 
 struct ModelTagFollowResult
 {
@@ -79,6 +86,17 @@ bool solveModelTagFollow(const ModelMesh &mesh, const ModelSelection &selection,
 // "tag_weapon follows 12 points across 40 frames; largest residual 0.003 in frame 17."
 [[nodiscard]] QString modelTagFollowSummary(const ModelTagFollowOptions &options, const ModelTagFollowResult &result,
 											const QLocale &locale = QLocale::c());
-// Candidate-only implementation; applyModelEdit validates and adopts.
+// Why an anchor can no longer be refitted (its tag, surface, components or
+// frames changed since it was fitted); empty when it can.
+[[nodiscard]] QString modelTagAnchorProblem(const ModelMesh &mesh, const ModelTagAnchor &anchor);
+// Refit one anchor: the fit Follow Selection would make with its stored
+// components and settings.
+bool solveModelTagAnchor(const ModelMesh &mesh, const ModelTagAnchor &anchor, ModelTagFollowResult *result, QString *error = nullptr,
+						 const ModelWorkControl &control = {});
+QJsonArray modelTagAnchorsJson(const QVector<ModelTagAnchor> &anchors);
+bool parseModelTagAnchors(const QJsonValue &value, QVector<ModelTagAnchor> *anchors, QString *error = nullptr);
+// Candidate-only implementation of FollowTagComponents and
+// RefitAnchoredTags (tagFollow.tag names one anchored tag, or every one when
+// empty); applyModelEdit validates and adopts.
 bool applyModelTagFollowEdit(ModelMesh *candidate, const ModelEdit &edit, QString *error = nullptr, const ModelWorkControl &control = {});
 } // namespace vibestudio

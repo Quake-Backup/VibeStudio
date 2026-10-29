@@ -1,6 +1,8 @@
 #include "app/model_editor_dialog.h"
 #include "app/model_editor_frames.h"
 #include "app/model_editor_tools.h"
+#include "app/model_obj_import_dialog.h"
+#include "app/model_skeletal_dialog.h"
 #include "app/model_viewport.h"
 #include "app/studio_theme.h"
 #include "core/model_frame_tools.h"
@@ -13,6 +15,7 @@
 #include <QAccessible>
 #include <QDoubleSpinBox>
 #include <QElapsedTimer>
+#include <QFile>
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QAction>
@@ -164,9 +167,13 @@ int main(int argc, char **argv)
 						relative && importButton && exportObj && follow && followResult && tagName && preview && panel,
 					QStringLiteral("animation panel controls exist")))
 			return EXIT_FAILURE;
+		auto *followAnchor = editor.findChild<QCheckBox *>("meshTagFollowAnchor");
+		auto *refitButton = editor.findChild<QPushButton *>("refitMeshAnchoredTags");
+		if (!expect(followAnchor && refitButton, QStringLiteral("anchor controls exist")))
+			return EXIT_FAILURE;
 		const QList<QWidget *> controls{first,	last,	  destination, move,		   duplicate,  remove,	   reverse,		 pingPong,
 										start,	renameClips, name,	   onion,		   targetFps,  resample,   closeLoop,	 rangeTransform,
-										blendSource, blendPose, relative, importButton, exportObj, follow};
+										blendSource, blendPose, relative, importButton, exportObj, follow, followAnchor, refitButton};
 		for (auto *control : controls)
 		{
 			auto *accessible = QAccessible::queryAccessibleInterface(control);
@@ -333,6 +340,139 @@ int main(int argc, char **argv)
 		}
 		if (scenario == 0)
 		{
+			// The onion skin toggles from its registered command and draws in
+			// every pane of the four views.
+			auto *toggle = editor.tools()->action(QStringLiteral("meshToggleOnionSkin"));
+			expect(toggle && !onion->isChecked(), QStringLiteral("the onion skin command is registered"));
+			if (toggle)
+				toggle->trigger();
+			expect(onion->isChecked(), QStringLiteral("Toggle Onion Skin turns the onion skin on"));
+			onion->setChecked(false);
+			editor.setViewLayout(ModelViewLayout::FourViews);
+			frame->setCurrentIndex(3);
+			app.processEvents();
+			ModelViewport *mirror = nullptr;
+			for (auto *pane : editor.panes())
+				if (pane != preview)
+					mirror = pane;
+			if (expect(mirror, QStringLiteral("four views show mirror panes")))
+			{
+				editor.syncPanes();
+				app.processEvents();
+				tests::settleModelViewport(*mirror);
+				QImage plainMirror(mirror->size(), QImage::Format_ARGB32_Premultiplied);
+				mirror->render(&plainMirror);
+				onion->setChecked(true);
+				app.processEvents();
+				tests::settleModelViewport(*mirror);
+				QImage ghostMirror(mirror->size(), QImage::Format_ARGB32_Premultiplied);
+				mirror->render(&ghostMirror);
+				expect(plainMirror != ghostMirror, QStringLiteral("a mirror pane draws the onion skin too"));
+				onion->setChecked(false);
+			}
+			editor.setViewLayout(ModelViewLayout::Single);
+			// Geometry > Over the frame range turns a move into a range transform.
+			auto *scope = editor.findChild<QCheckBox *>("meshFrameRangeScope");
+			if (expect(scope && !scope->accessibleName().isEmpty(), QStringLiteral("the frame range scope exists beside Apply to")))
+			{
+				ModelSelection vertices;
+				vertices.surface = 0;
+				vertices.vertices = {0, 1};
+				editor.tools()->applySelection(vertices);
+				first->setValue(1);
+				last->setValue(2);
+				scope->setChecked(true);
+				ModelEdit move;
+				move.kind = ModelEditKind::Transform;
+				move.selection = vertices;
+				move.translation = {0, 0, 6};
+				move.pivotFrame = 1;
+				ModelEdit ranged = move;
+				ranged.kind = ModelEditKind::TransformFrameRange;
+				ranged.poseRange.first = 1;
+				ranged.poseRange.last = 2;
+				ModelDocument expected;
+				expected.setMesh(editor.document().mesh(), &error);
+				expected.edit(ranged, &error);
+				expect(editor.applyEdit(move, &error) && bytes(editor.document().mesh()) == bytes(expected.mesh()),
+					   QStringLiteral("a move with the range scope edits frames 1 and 2: ") + error);
+				undo->trigger();
+				scope->setChecked(false);
+				editor.tools()->applySelection(ModelSelection{});
+			}
+			// Refit Anchored Tags after Follow Selection remembered the components.
+			auto *refit = editor.findChild<QPushButton *>("refitMeshAnchoredTags");
+			auto *anchorSummary = editor.findChild<QLabel *>("meshTagAnchorSummary");
+			ModelSelection plate;
+			plate.surface = 0;
+			plate.vertices = {0, 1, 2};
+			editor.tools()->applySelection(plate);
+			tagName->setText("tag_weapon");
+			follow->click();
+			expect(refit && anchorSummary && editor.document().mesh().tagAnchors.size() == 1 && refit->isEnabled() &&
+					   anchorSummary->text().contains("tag_weapon"),
+				   QStringLiteral("Follow Selection anchors the tag and enables Refit Anchored Tags"));
+			if (refit)
+				refit->click();
+			expect(editor.document().canUndo() && !followResult->text().isEmpty(), QStringLiteral("Refit Anchored Tags reports its result"));
+			editor.tools()->applySelection(ModelSelection{});
+			expect(editor.setMesh(original, &error), QStringLiteral("reset after anchoring"));
+			// OBJ import settings.
+			ModelObjImportDialog settings;
+			ModelObjImportOptions chosen;
+			chosen.up = ModelObjUpAxis::Y;
+			chosen.scale = 2;
+			chosen.materials = ModelObjMaterials::Ignore;
+			chosen.refuseLooseData = true;
+			settings.setOptions(chosen);
+			bool named = true;
+			for (const char *id : {"objUpAxis", "objScale", "objMaterials", "objLooseData"})
+			{
+				auto *field = settings.findChild<QWidget *>(QString::fromLatin1(id));
+				named = named && field && !field->accessibleName().isEmpty() && field->focusPolicy() != Qt::NoFocus;
+			}
+			expect(named && settings.options() == chosen, QStringLiteral("the OBJ settings dialog round-trips its options accessibly"));
+			const auto objPath = QDir(temporary.path()).filePath("yup.obj");
+			QFile objFile(objPath);
+			if (objFile.open(QIODevice::WriteOnly))
+			{
+				objFile.write("v 0 0 0\nv 1 0 0\nv 1 2 0\nv 0 2 0\nl 1 3\nf 1 2 3 4\n");
+				objFile.close();
+			}
+			ModelObjImportOptions yUp;
+			yUp.up = ModelObjUpAxis::Y;
+			yUp.scale = 2;
+			bool converted = editor.openSource(objPath, yUp, &error);
+			if (converted)
+			{
+				converted = false;
+				for (const auto &p : editor.document().mesh().surfaces[0].frames[0].positions)
+					converted = converted || (std::abs(p.x - 2) < 1e-5 && std::abs(p.y) < 1e-5 && std::abs(p.z - 4) < 1e-5);
+			}
+			expect(converted, QStringLiteral("Open with OBJ settings converts Y up and scales: ") + error);
+			expect(editor.setMesh(original, &error), QStringLiteral("reset after the OBJ"));
+			// Edit Skeletal Animation offers resampling and loop closing.
+			const auto skinnedModel = tests::skinFixture();
+			ModelSkeletalDialog skeletal(skinnedModel, {}, QString(), 1);
+			auto *operation = skeletal.findChild<QComboBox *>("skeletalOperation");
+			auto *resampleFps = skeletal.findChild<QDoubleSpinBox *>("skeletalResampleFps");
+			if (expect(operation && resampleFps, QStringLiteral("the skeletal dialog has resampling controls")))
+			{
+				operation->setCurrentIndex(operation->findData(int(ModelEditKind::ResampleSkeletalClip)));
+				resampleFps->setValue(20);
+				const auto resampleEdit = skeletal.edit();
+				expect(resampleEdit.kind == ModelEditKind::ResampleSkeletalClip && resampleEdit.resample.clip == 0 &&
+						   resampleEdit.resample.targetFps == 20 && defaultModelSkeletalOptions(resampleEdit.skeletal),
+					   QStringLiteral("Resample clip builds a skeletal resample edit"));
+				operation->setCurrentIndex(operation->findData(int(ModelEditKind::CloseSkeletalLoop)));
+				const auto loopEdit = skeletal.edit();
+				expect(loopEdit.kind == ModelEditKind::CloseSkeletalLoop && loopEdit.resample.loopClose == ModelLoopClose::ReplaceLast,
+					   QStringLiteral("Close clip loop builds a loop edit"));
+				expect(editor.setMesh(skinnedModel, &error) && editor.applyEdit(resampleEdit, &error) &&
+						   editor.document().mesh().skeleton.clips[0].frames.size() == 3,
+					   QStringLiteral("the dialog's resample applies through the editor: ") + error);
+				expect(editor.setMesh(original, &error), QStringLiteral("reset after the skeletal resample"));
+			}
 			// The timeline keeps up with the largest model: 1,024 frames.
 			auto large = tests::frameRangeFixture(modelDocumentMaxFrames);
 			large.collisionBoxes.clear();

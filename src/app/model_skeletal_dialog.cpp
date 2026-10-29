@@ -78,6 +78,8 @@ ModelSkeletalDialog::ModelSkeletalDialog(const ModelMesh &mesh, const ModelSelec
 							 qMakePair(Text::tr("Rename skeletal clip"), ModelEditKind::RenameSkeletalClip),
 							 qMakePair(Text::tr("Resize skeletal clip"), ModelEditKind::ResizeSkeletalClip),
 							 qMakePair(Text::tr("Set clip timing"), ModelEditKind::SetSkeletalClipTiming),
+							 qMakePair(Text::tr("Resample clip"), ModelEditKind::ResampleSkeletalClip),
+							 qMakePair(Text::tr("Close clip loop"), ModelEditKind::CloseSkeletalLoop),
 							 qMakePair(Text::tr("Delete skeletal clip"), ModelEditKind::DeleteSkeletalClip)})
 		m_operation->addItem(item.first, int(item.second));
 	m_clip = combo("skeletalClip", Text::tr("&Clip"),
@@ -153,6 +155,43 @@ ModelSkeletalDialog::ModelSkeletalDialog(const ModelMesh &mesh, const ModelSelec
 			   Text::tr("Save the clip loop flag for formats such as IQM. The "
 						"editor transport has its own looping preview."));
 	m_form->addRow(m_loop);
+	m_resampleFps = new QDoubleSpinBox;
+	m_resampleFps->setObjectName("skeletalResampleFps");
+	m_resampleFps->setRange(0, 1000);
+	m_resampleFps->setDecimals(3);
+	m_resampleFps->setValue(30);
+	m_resampleFps->setKeyboardTracking(false);
+	m_resampleFps->setLayoutDirection(Qt::LeftToRight);
+	m_resampleFps->setSpecialValueText(Text::tr("Use pose count"));
+	accessible(m_resampleFps, Text::tr("New FPS"),
+			   Text::tr("The rate to resample the clip to, such as a whole number for MD5. Use pose count resamples to "
+						"New pose count instead."));
+	m_form->addRow(Text::tr("New FPS"), m_resampleFps);
+	m_resampleFrames = spin("skeletalResampleFrames", Text::tr("New pose count"),
+							Text::tr("The number of poses the clip gets when New FPS is Use pose count."), 1, 1024);
+	m_resampleMethod = combo("skeletalResampleMethod", Text::tr("Sampling"),
+							 Text::tr("Blend joints in parent space between stored poses, or copy the nearer stored pose."));
+	m_resampleMethod->addItem(Text::tr("Blend"), int(ModelResampleMethod::Linear));
+	m_resampleMethod->addItem(Text::tr("Nearest pose"), int(ModelResampleMethod::Nearest));
+	m_cyclic = new QCheckBox(Text::tr("Looping clip"));
+	m_cyclic->setObjectName("skeletalResampleCyclic");
+	accessible(m_cyclic, m_cyclic->text(),
+			   Text::tr("Sample the step from the last pose back to the first too, dividing the whole loop evenly."));
+	m_form->addRow(m_cyclic);
+	m_loopClose = combo("skeletalLoopClose", Text::tr("Close loop by"),
+						Text::tr("Replace the last pose with the first, append a copy of the first pose, or blend the last poses "
+								 "toward the first. Animation curves get the same change on their keys."));
+	m_loopClose->addItem(Text::tr("Replacing the last pose"), int(ModelLoopClose::ReplaceLast));
+	m_loopClose->addItem(Text::tr("Appending the first pose"), int(ModelLoopClose::AppendFirst));
+	m_loopClose->addItem(Text::tr("Cross-fading"), int(ModelLoopClose::CrossFade));
+	m_blendFrames = spin("skeletalLoopBlendFrames", Text::tr("Cross-fade poses"),
+						 Text::tr("How many of the last poses blend toward the first pose."), 1, 1023);
+	m_blendFrames->setValue(2);
+	m_bakeCurves = new QCheckBox(Text::tr("Bake curves"));
+	m_bakeCurves->setObjectName("skeletalBakeCurves");
+	accessible(m_bakeCurves, m_bakeCurves->text(),
+			   Text::tr("Sample animation curves into poses and remove them, instead of rescaling or editing their keys."));
+	m_form->addRow(m_bakeCurves);
 	m_space = combo("skeletalSpace", Text::tr("Transform space"),
 					Text::tr("Model axes rotate around the joint origin. Local "
 							 "axes follow the joint's current orientation."));
@@ -222,6 +261,8 @@ ModelSkeletalDialog::ModelSkeletalDialog(const ModelMesh &mesh, const ModelSelec
 		m_last->setValue(local);
 	}
 	connect(m_operation, &QComboBox::currentIndexChanged, this, [this] { refresh(true); });
+	connect(m_resampleFps, &QDoubleSpinBox::valueChanged, this, [this] { refresh(false); });
+	connect(m_loopClose, &QComboBox::currentIndexChanged, this, [this] { refresh(false); });
 	connect(m_clip, &QComboBox::currentIndexChanged, this, [this] { refresh(true); });
 	connect(m_sourceClip, &QComboBox::currentIndexChanged, this, [this] { refresh(false); });
 	connect(m_name, &QLineEdit::textChanged, this, [this] { refresh(false); });
@@ -235,6 +276,16 @@ void ModelSkeletalDialog::refresh(bool resetFields)
 	const bool transform = kind == ModelEditKind::TransformSkeletalPose, copy = kind == ModelEditKind::CopySkeletalPose;
 	const bool interpolate = kind == ModelEditKind::InterpolateSkeletalPoses, timing = kind == ModelEditKind::SetSkeletalClipTiming;
 	const bool resize = kind == ModelEditKind::ResizeSkeletalClip, range = transform || copy || interpolate;
+	const bool resample = kind == ModelEditKind::ResampleSkeletalClip, closeLoop = kind == ModelEditKind::CloseSkeletalLoop;
+	m_form->setRowVisible(m_resampleFps, resample);
+	m_form->setRowVisible(m_resampleFrames, resample);
+	m_form->setRowVisible(m_resampleMethod, resample);
+	m_form->setRowVisible(m_cyclic, resample);
+	m_form->setRowVisible(m_loopClose, closeLoop);
+	m_form->setRowVisible(m_blendFrames, closeLoop);
+	m_form->setRowVisible(m_bakeCurves, resample || closeLoop);
+	m_resampleFrames->setEnabled(m_resampleFps->value() == 0);
+	m_blendFrames->setEnabled(m_loopClose->currentData().toInt() == int(ModelLoopClose::CrossFade));
 	m_form->setRowVisible(m_clip, !bind && !add);
 	m_form->setRowVisible(m_joint, bind || transform);
 	m_form->setRowVisible(m_name, add || duplicate || rename);
@@ -261,6 +312,9 @@ void ModelSkeletalDialog::refresh(bool resetFields)
 			m_last->setValue(m_last->maximum());
 			if (resize)
 				m_count->setValue(value.frames.size());
+			if (resample)
+				m_resampleFrames->setValue(std::max(1, int(value.frames.size())));
+			m_blendFrames->setMaximum(std::max(1, int(value.frames.size()) - 1));
 			if (timing)
 			{
 				m_rate->setValue(std::max(.001, value.framesPerSecond));
@@ -294,6 +348,10 @@ void ModelSkeletalDialog::refresh(bool resetFields)
 													"range. Existing frame names stay unchanged.")
 					  : timing		? Text::tr("Save clip timing without resampling poses. Native loop "
 													"flags are separate from transport looping.")
+					  : resample	? Text::tr("Resample the clip to a new rate or pose count, blending joints in parent space. "
+												"Curve keys are rescaled and must land on whole poses unless Bake curves is on.")
+					  : closeLoop	? Text::tr("Make the clip loop without a jump from its last pose to its first. Curve keys "
+												 "get the same change unless Bake curves is on.")
 									: Text::tr("Delete this clip and its preview poses. Custom ranges that "
 													"would become empty must be removed explicitly first.");
 	if (clip >= 0 && !add && !bind && !m_mesh.skeleton.bakedClipForFrame.contains(clip))
@@ -320,6 +378,26 @@ ModelEdit ModelSkeletalDialog::edit() const
 	const auto kind = result.kind;
 	const bool bind = kind == ModelEditKind::TransformBindJoint, add = kind == ModelEditKind::AddSkeletalClip;
 	const bool transform = kind == ModelEditKind::TransformSkeletalPose, copy = kind == ModelEditKind::CopySkeletalPose;
+	if (kind == ModelEditKind::ResampleSkeletalClip || kind == ModelEditKind::CloseSkeletalLoop)
+	{
+		// Resampling and loop closing use their own settings (ModelEdit::resample).
+		auto &r = result.resample;
+		r.clip = m_clip->currentData().toInt();
+		r.bakeCurves = m_bakeCurves->isChecked();
+		if (kind == ModelEditKind::ResampleSkeletalClip)
+		{
+			r.targetFps = m_resampleFps->value();
+			r.targetFrames = r.targetFps > 0 ? 0 : m_resampleFrames->value();
+			r.method = ModelResampleMethod(m_resampleMethod->currentData().toInt());
+			r.cyclic = m_cyclic->isChecked();
+		}
+		else
+		{
+			r.loopClose = ModelLoopClose(m_loopClose->currentData().toInt());
+			r.blendFrames = r.loopClose == ModelLoopClose::CrossFade ? m_blendFrames->value() : 0;
+		}
+		return result;
+	}
 	if (!bind && !add)
 		o.clip = m_clip->currentData().toInt();
 	if (add || kind == ModelEditKind::DuplicateSkeletalClip || kind == ModelEditKind::RenameSkeletalClip)

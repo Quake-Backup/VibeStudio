@@ -995,6 +995,7 @@ app_sources = files(
   'app/model_editor_animation.cpp',
   'app/model_editor_frames.cpp',
   'app/model_frame_timeline.cpp',
+  'app/model_obj_import_dialog.cpp',
   'app/model_editor_mdl.cpp',
   'app/model_editor_skin_source.cpp',
   'app/model_skin_source_dialog.cpp',

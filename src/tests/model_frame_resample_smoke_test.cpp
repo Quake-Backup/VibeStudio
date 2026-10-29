@@ -255,6 +255,30 @@ void checkSkeletal()
 		edit.resample.bakeCurves = true;
 		expect(cyclic.edit(edit, &error) && cyclic.mesh().skeleton.clips[0].curves.isEmpty(), QStringLiteral("baking removes the curves: ") + error);
 	}
+	// Closing a loop on a clip with curves edits the curve keys too.
+	ModelPoseCurves armCurves;
+	if (expect(captureModelPoseCurves(mesh, 0, "arm.L", &armCurves, &error), QStringLiteral("capture curves for the loop: ") + error))
+	{
+		auto curved = mesh;
+		curved.skeleton.clips[0].curves = {armCurves};
+		const int arm = modelJointIndex(curved.skeleton, "arm.L", Qt::CaseSensitive);
+		for (const auto mode : {ModelLoopClose::ReplaceLast, ModelLoopClose::AppendFirst})
+		{
+			ModelEdit close;
+			close.kind = ModelEditKind::CloseSkeletalLoop;
+			close.resample.clip = 0;
+			close.resample.loopClose = mode;
+			ModelDocument keyed;
+			const bool closed = keyed.setMesh(curved, &error) && keyed.edit(close, &error);
+			const auto &result = keyed.mesh().skeleton.clips[0];
+			const int last = int(result.frames.size()) - 1;
+			const auto firstLocal = modelJointsToLocalSpace(parents, result.frames[0]), lastLocal = modelJointsToLocalSpace(parents, result.frames[last]);
+			expect(closed && result.curves.size() == 1 && result.curves[0].channels[0].last().frame == last &&
+					   modelJointMatrixDistance(firstLocal[arm], lastLocal[arm]) < 1e-4 &&
+					   modelJointMatrixDistance(evaluateModelPoseCurves(result.curves[0], last), lastLocal[arm]) < 1e-4,
+				   QStringLiteral("closing a loop keeps the curves and keys the first pose at the end: ") + error);
+		}
+	}
 	ModelEdit loop;
 	loop.kind = ModelEditKind::CloseSkeletalLoop;
 	loop.resample.clip = 0;

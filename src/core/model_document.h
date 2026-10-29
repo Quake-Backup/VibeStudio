@@ -226,6 +226,8 @@ enum class ModelEditKind
 	ApplyRelativePose,
 	// Frames from other files (core/model_frame_import.h).
 	ImportFrames,
+	// Fits every anchored tag again (ModelMesh::tagAnchors).
+	RefitAnchoredTags,
 };
 
 struct ModelEdit

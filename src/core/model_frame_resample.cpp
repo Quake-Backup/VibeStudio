@@ -421,10 +421,6 @@ bool closeSkeletalLoop(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 	const int n = int(clip.frames.size());
 	if (n < 2)
 		return fail(error, Text::tr("Closing a loop needs a clip of at least two frames."));
-	if (!clip.curves.isEmpty() && !o.bakeCurves)
-		return fail(error, Text::tr("Clip %1 has animation curves. Edit its last keys in the curve editor, or choose Bake curves to close "
-									"the loop on sampled poses and remove the curves.")
-							   .arg(clip.name));
 	if (o.loopClose == ModelLoopClose::CrossFade && (o.blendFrames < 1 || o.blendFrames > n - 1))
 		return fail(error, Text::tr("Cross-fade 1 to %1 frames of this clip toward its first pose.").arg(n - 1));
 	if (o.loopClose != ModelLoopClose::CrossFade && o.blendFrames != 0)
@@ -441,7 +437,68 @@ bool closeSkeletalLoop(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 			const int frame = n - 1 - o.blendFrames + k;
 			samples[frame] = blendPose(parents, clip.frames[frame], clip.frames.first(), double(k) / (o.blendFrames + 1));
 		}
-	return replaceSkeletalClip(mesh, o.clip, samples, {}, clip.framesPerSecond, error, control);
+	QVector<ModelPoseCurves> curves;
+	if (!clip.curves.isEmpty() && !o.bakeCurves)
+	{
+		// Curves keep authority: the same close is made on each channel's
+		// keys, and keyed joints take their curves' values in every sample.
+		const int count = int(samples.size());
+		for (auto group : clip.curves)
+		{
+			for (int channel = 0; channel < 9; ++channel)
+			{
+				auto &keys = group.channels[channel];
+				const double start = evaluateModelCurve(keys, 0);
+				// Rotation channels close to the equivalent angle nearest the
+				// current value, so the joint does not spin a full turn.
+				const auto target = [&](double near)
+				{ return channel >= 3 && channel <= 5 ? start + 360.0 * std::round((near - start) / 360.0) : start; };
+				const auto setKey = [&](int frame, double value)
+				{
+					auto key = sampleModelCurveKey(keys, std::min(frame, n - 1));
+					key.frame = frame;
+					key.value = value;
+					const auto at = std::lower_bound(keys.begin(), keys.end(), frame,
+													 [](const ModelPoseCurveKey &existing, int f) { return existing.frame < f; });
+					if (at != keys.end() && at->frame == frame)
+						*at = key;
+					else
+						keys.insert(at, key);
+				};
+				if (o.loopClose == ModelLoopClose::ReplaceLast)
+					setKey(n - 1, target(evaluateModelCurve(keys, n - 1)));
+				else if (o.loopClose == ModelLoopClose::AppendFirst)
+					setKey(n, target(evaluateModelCurve(keys, n - 1)));
+				else
+				{
+					QVector<double> values;
+					for (int k = 1; k <= o.blendFrames; ++k)
+						values.append(evaluateModelCurve(keys, n - 1 - o.blendFrames + k));
+					for (int k = 1; k <= o.blendFrames; ++k)
+					{
+						const double value = values[k - 1], amount = double(k) / (o.blendFrames + 1);
+						setKey(n - 1 - o.blendFrames + k, value + (target(value) - value) * amount);
+					}
+				}
+			}
+			QString why;
+			if (!validateModelCurveGroup(group, count, &why))
+				return fail(error, Text::tr("Closing the loop on the curves of joint %1 failed: %2").arg(group.joint, why));
+			curves.append(group);
+		}
+		QHash<int, int> curveOfJoint;
+		for (int g = 0; g < curves.size(); ++g)
+			curveOfJoint.insert(modelJointIndex(skeleton, curves[g].joint, Qt::CaseSensitive), g);
+		for (int frame = 0; frame < count; ++frame)
+		{
+			auto local = modelJointsToLocalSpace(parents, samples[frame]);
+			for (auto it = curveOfJoint.cbegin(); it != curveOfJoint.cend(); ++it)
+				if (it.key() >= 0)
+					local[it.key()] = evaluateModelPoseCurves(curves[it.value()], frame);
+			samples[frame] = modelJointsToModelSpace(parents, local);
+		}
+	}
+	return replaceSkeletalClip(mesh, o.clip, samples, curves, clip.framesPerSecond, error, control);
 }
 
 bool resampleOptionsOnly(const ModelEdit &edit, QString *error)

@@ -118,13 +118,15 @@ ModelEditorAnimationPanel::ModelEditorAnimationPanel(ModelEditorDialog *editor, 
 	buildImport(animation, &row);
 	buildTagFollow();
 	buildTimeline();
+	buildRangeScope();
 	connect(editor->m_preview, &ModelViewport::playbackChanged, this, [this](bool) { refresh(); });
 }
 
 ModelEditorAnimationPanel::~ModelEditorAnimationPanel()
 {
-	if (m_viewport)
-		m_viewport->setAnimationOverlayPainter({});
+	for (const auto &pane : std::as_const(m_onionPanes))
+		if (pane)
+			pane->setAnimationOverlayPainter({});
 }
 
 QPushButton *ModelEditorAnimationPanel::addButton(QFormLayout *form, const char *id, const QString &label, const QString &description)
@@ -451,6 +453,24 @@ void ModelEditorAnimationPanel::buildTagFollow()
 													 "every frame, keeping its offset from the reference frame. A new name adds the tag at the "
 													 "selection's centre. The result is ordinary per-frame tags, in one undo step."));
 	connect(m_follow, &QPushButton::clicked, this, [this] { run(ModelEditKind::FollowTagComponents); });
+	m_followAnchor = checkBox(form, "meshTagFollowAnchor", QCoreApplication::translate("VibeStudioModelEditor", "Remember the components"),
+							  QCoreApplication::translate("VibeStudioModelEditor",
+														  "Keep an anchor in the editable source, so Refit Anchored Tags can fit the tag to the "
+														  "same components again after geometry edits."));
+	m_followAnchor->setChecked(true);
+	m_refitAnchors = addButton(form, "refitMeshAnchoredTags", QCoreApplication::translate("VibeStudioModelEditor", "Refit Anchored Tags"),
+							   QCoreApplication::translate("VibeStudioModelEditor",
+														   "Fit every anchored tag to its remembered components again, in one undo step, after "
+														   "moving, sculpting or importing frames."));
+	connect(m_refitAnchors, &QPushButton::clicked, this, [this] { run(ModelEditKind::RefitAnchoredTags); });
+	m_anchorSummary = new QLabel;
+	m_anchorSummary->setObjectName(QStringLiteral("meshTagAnchorSummary"));
+	m_anchorSummary->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Anchored tags"));
+	m_anchorSummary->setTextFormat(Qt::PlainText);
+	m_anchorSummary->setWordWrap(true);
+	m_anchorSummary->setMinimumWidth(0);
+	m_anchorSummary->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+	form->addRow(m_anchorSummary);
 	m_followResult = new LiveStatusLabel;
 	m_followResult->setObjectName(QStringLiteral("meshTagFollowResult"));
 	m_followResult->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Tag fit result"));
@@ -461,6 +481,86 @@ void ModelEditorAnimationPanel::buildTagFollow()
 	form->addRow(m_followResult);
 	if (m_editor->m_tagName)
 		connect(m_editor->m_tagName, &QLineEdit::textChanged, this, [this] { refresh(); });
+}
+
+void ModelEditorAnimationPanel::buildRangeScope()
+{
+	// Geometry > Over the frame range, beside Apply to.
+	auto *scope = m_editor->m_frameScope;
+	auto *form = scope && scope->parentWidget() ? qobject_cast<QFormLayout *>(scope->parentWidget()->layout()) : nullptr;
+	if (!form)
+		return;
+	int row = -1;
+	QFormLayout::ItemRole role;
+	form->getWidgetPosition(scope, &row, &role);
+	m_rangeScope = new WrappingCheckBox(QCoreApplication::translate("VibeStudioModelEditor", "Over the frame range"));
+	m_rangeScope->setObjectName(QStringLiteral("meshFrameRangeScope"));
+	describe(m_rangeScope, m_rangeScope->text(),
+			 QCoreApplication::translate("VibeStudioModelEditor",
+										 "Move, rotate and scale the selected components in every frame of Animation > Frame range, "
+										 "scaled by Range sculpt's falloff, instead of the frames Apply to chooses. The viewport's "
+										 "live preview shows the full amount on the displayed frame. Proportional editing, mirror, tags "
+										 "and collision boxes keep Apply to."));
+	form->insertRow(row < 0 ? form->rowCount() : row + 1, m_rangeScope);
+	connect(m_rangeScope, &QCheckBox::toggled, this, [this](bool) { refresh(); });
+}
+
+bool ModelEditorAnimationPanel::rangeScopeApplies(const ModelEdit &edit) const
+{
+	return m_rangeScope && m_rangeScope->isChecked() &&
+		   (edit.kind == ModelEditKind::Transform || edit.kind == ModelEditKind::WeightedTransform) && componentsSelected(edit.selection);
+}
+
+bool ModelEditorAnimationPanel::rangeScoped(const ModelEdit &edit, ModelEdit *scoped, QString *error) const
+{
+	const auto refuse = [&](const QString &reason)
+	{
+		if (error)
+			*error = reason;
+		return false;
+	};
+	if (edit.kind != ModelEditKind::Transform)
+		return refuse(QCoreApplication::translate("VibeStudioModelEditor",
+												  "Over the frame range moves the selection without proportional editing or mirror. Turn those "
+												  "off, or clear Over the frame range."));
+	ModelEdit result;
+	result.kind = ModelEditKind::TransformFrameRange;
+	result.selection = edit.selection;
+	QString problem;
+	if (!snapModelTranslation(edit.translation, edit.translationGrid, &result.translation, &problem) ||
+		!snapModelRotation(edit.rotation, edit.rotationGrid, &result.rotation, &problem) ||
+		!snapModelScale(edit.scale, edit.scaleGrid, &result.scale, &problem))
+		return refuse(problem);
+	result.pivot = edit.pivot;
+	result.pivotMode = edit.pivotMode;
+	result.pivotFrame = edit.frame >= 0 ? edit.frame : edit.pivotFrame;
+	result.transformSpace = edit.transformSpace;
+	result.axisRotation = edit.axisRotation;
+	result.axesFrame = edit.axesFrame;
+	result.poseRange.first = m_first->value();
+	result.poseRange.last = m_last->value();
+	result.poseRange.falloff = ModelFrameFalloff(m_falloff->currentIndex());
+	*scoped = result;
+	return true;
+}
+
+void ModelEditorAnimationPanel::refreshAnchors()
+{
+	if (!m_anchorSummary)
+		return;
+	const auto &mesh = m_editor->m_document.mesh();
+	QStringList lines;
+	for (const auto &anchor : mesh.tagAnchors)
+	{
+		const auto problem = modelTagAnchorProblem(mesh, anchor);
+		const int points = int(anchor.vertices.size());
+		lines << (problem.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "%1 follows %n vertices of %2.", nullptr, points)
+										  .arg(anchor.tag, anchor.surfaceName)
+									: problem);
+	}
+	m_anchorSummary->setText(lines.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "No tag is anchored to mesh components.")
+											 : lines.join(QLatin1Char('\n')));
+	m_anchorSummary->setAccessibleDescription(m_anchorSummary->text());
 }
 
 void ModelEditorAnimationPanel::buildTimeline()
@@ -518,10 +618,7 @@ void ModelEditorAnimationPanel::refreshOnion()
 	const bool on = m_onion->isChecked();
 	for (auto *field : {m_onionBefore, m_onionAfter, m_onionStep})
 		field->setEnabled(on);
-	if (on)
-		m_viewport->setAnimationOverlayPainter([this](QPainter &painter) { paintOnion(painter); });
-	else
-		m_viewport->setAnimationOverlayPainter({});
+	syncOnionPanes();
 	const auto frames = onionFrames();
 	QStringList shown;
 	for (int frame : frames)
@@ -535,10 +632,41 @@ void ModelEditorAnimationPanel::refreshOnion()
 																 .arg(shown.join(QStringLiteral(", "))));
 }
 
-void ModelEditorAnimationPanel::paintOnion(QPainter &painter)
+void ModelEditorAnimationPanel::syncOnionPanes()
 {
-	if (!m_viewport || m_viewport->isPlaying() || !m_onion->isChecked())
+	// Every pane of the four views draws the ghosts through its own camera;
+	// panes the layout adds later join when the main view next paints.
+	QList<QPointer<ModelViewport>> panes;
+	if (m_onion->isChecked() && m_viewport)
+	{
+		for (auto *pane : m_editor->panes())
+			panes.append(pane);
+		if (!panes.contains(m_viewport))
+			panes.append(m_viewport);
+	}
+	for (const auto &pane : std::as_const(m_onionPanes))
+		if (pane && !panes.contains(pane))
+			pane->setAnimationOverlayPainter({});
+	for (const auto &pane : std::as_const(panes))
+		if (pane && !m_onionPanes.contains(pane))
+		{
+			const QPointer<ModelViewport> view = pane;
+			pane->setAnimationOverlayPainter(
+				[this, view](QPainter &painter)
+				{
+					if (view)
+						paintOnion(painter, view.data());
+				});
+		}
+	m_onionPanes = panes;
+}
+
+void ModelEditorAnimationPanel::paintOnion(QPainter &painter, ModelViewport *view)
+{
+	if (!m_viewport || !view || m_viewport->isPlaying() || !m_onion->isChecked())
 		return;
+	if (view == m_viewport)
+		syncOnionPanes();
 	const auto &mesh = m_editor->m_document.mesh();
 	const auto revision = m_editor->m_document.revisionFingerprint();
 	if (revision != m_edgeRevision)
@@ -581,7 +709,7 @@ void ModelEditorAnimationPanel::paintOnion(QPainter &painter)
 			QVector<QPointF> projected(positions.size());
 			QVector<bool> visible(positions.size(), false);
 			for (int v = 0; v < positions.size(); ++v)
-				visible[v] = m_viewport->projectToView(positions[v], &projected[v]);
+				visible[v] = view->projectToView(positions[v], &projected[v]);
 			QVector<QLineF> lines;
 			lines.reserve(m_edges[s].size());
 			for (const auto &[a, b] : m_edges[s])
@@ -678,6 +806,7 @@ ModelEdit ModelEditorAnimationPanel::edit(ModelEditKind kind) const
 			result.tagFollow.first = m_first->value();
 			result.tagFollow.last = m_last->value();
 		}
+		result.tagFollow.keepAnchor = !m_followAnchor || m_followAnchor->isChecked();
 		break;
 	default:
 		break;
@@ -769,6 +898,19 @@ void ModelEditorAnimationPanel::refresh()
 		if (reason.isEmpty() && m_editor->m_tagName && m_editor->m_tagName->text().trimmed().isEmpty())
 			reason = QCoreApplication::translate("VibeStudioModelEditor", "Type the tag's name in Name first.");
 		gate(m_follow, reason, editable);
+		QString stale;
+		for (const auto &anchor : mesh.tagAnchors)
+			if (stale.isEmpty())
+				stale = modelTagAnchorProblem(mesh, anchor);
+		gate(m_refitAnchors,
+			 mesh.tagAnchors.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "No tag is anchored yet. Fit one with Follow Selection.")
+									   : stale,
+			 editable);
+		if (revision != m_anchorRevision)
+		{
+			m_anchorRevision = revision;
+			refreshAnchors();
+		}
 	}
 	if (m_timeline)
 	{
@@ -885,6 +1027,13 @@ bool ModelEditorAnimationPanel::run(ModelEditKind kind, bool pingPong, QString *
 		message = modelTagFollowSummary(operation.tagFollow, follow, QLocale());
 		m_followResult->setText(message, LiveStatus::Result);
 		break;
+	case ModelEditKind::RefitAnchoredTags:
+	{
+		const int count = int(after.tagAnchors.size());
+		message = QCoreApplication::translate("VibeStudioModelEditor", "Refitted %n anchored tags.", nullptr, count);
+		m_followResult->setText(message, LiveStatus::Result);
+		break;
+	}
 	default:
 		message = modelNativeClipSummary(modelNativeClipRoundTrip(after));
 		break;

@@ -620,6 +620,16 @@ void ModelEditorTools::buildProfileActions()
 				  else
 					  showBanner(Text::tr("Choose a different source frame in Animation to copy its pose here."), {}, LiveStatus::Problem);
 			  });
+	addAction(QStringLiteral("meshToggleOnionSkin"), Text::tr("Toggle Onion Skin"), {},
+			  [this]
+			  {
+				  // Animation > Frame range > Onion skin (app/model_editor_frames.h).
+				  if (auto *onion = m_editor->findChild<QCheckBox *>(QStringLiteral("meshOnionSkin")))
+				  {
+					  onion->toggle();
+					  showBanner(onion->isChecked() ? Text::tr("Onion skin on") : Text::tr("Onion skin off"), {}, LiveStatus::Result);
+				  }
+			  });
 	addAction(QStringLiteral("meshTypeIn"), Text::tr("Numeric Transform"), {}, [this] { m_editor->showSidebarPage(QStringLiteral("item")); });
 }
 

@@ -39,7 +39,7 @@ bool isModelAnimationEdit(ModelEditKind kind)
 	return kind == ModelEditKind::AddAnimation || kind == ModelEditKind::RenameAnimation || kind == ModelEditKind::SetAnimationRange ||
 		   kind == ModelEditKind::DeleteAnimation || kind == ModelEditKind::InsertInbetweens || kind == ModelEditKind::CopyFramePose ||
 		   kind == ModelEditKind::SetAnimationRate || isModelFrameRangeEdit(kind) || isModelPoseRangeEdit(kind) ||
-		   kind == ModelEditKind::FollowTagComponents;
+		   kind == ModelEditKind::FollowTagComponents || kind == ModelEditKind::RefitAnchoredTags;
 }
 
 bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control)
@@ -65,7 +65,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 	{
 		return applyModelPoseRangeEdit(candidate, edit, error, control);
 	}
-	if (edit.kind == ModelEditKind::FollowTagComponents)
+	if (edit.kind == ModelEditKind::FollowTagComponents || edit.kind == ModelEditKind::RefitAnchoredTags)
 	{
 		return applyModelTagFollowEdit(candidate, edit, error, control);
 	}

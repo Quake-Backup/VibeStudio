@@ -2068,7 +2068,9 @@ ModelMesh decodeModelMesh(const QString& virtualPath, const QByteArray& bytes, c
 	model_formats::Companions companions(&companionSource, &mesh);
 	switch (mesh.format) {
 	case ModelMeshFormat::WavefrontObj:
-		return decodeModelObj(virtualPath, bytes, control);
+		// Material libraries are read through the same companions as other
+		// formats' side files (a package entry or the files beside a loose OBJ).
+		return decodeModelObj(virtualPath, bytes, ModelObjImportOptions{}, &companionSource, nullptr, control);
 	case ModelMeshFormat::QuakeMdl:
 		decodeQuakeMdl(bytes, effectivePalette, &mesh, control);
 		break;

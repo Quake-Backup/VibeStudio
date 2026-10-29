@@ -2305,7 +2305,9 @@ Each resolved path may be a definition file or a folder of them.
   `--operation name-from-clips [--clip N] [--start N] [--keep-clip-names]`
   names frames after their clips. `resample`, `close-loop`,
   `resample-skeletal` and `close-skeletal-loop` resample clips and close their
-  loops; `follow-tag` fits a tag to selected components in every frame;
+  loops; `follow-tag` fits a tag to selected components in every frame and
+  keeps an anchor (`--no-anchor` keeps none); `refit-tags [--tag NAME]` fits
+  anchored tags again after geometry edits;
   `transform-range`, `blend-pose` and `relative-pose` edit selected components
   over a frame range with a falloff; `import --source FILE ...` adds frames from
   an OBJ sequence or another model of the same mesh; `export-obj` writes one OBJ

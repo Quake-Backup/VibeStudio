@@ -140,8 +140,16 @@ and scale blending) and re-bakes the clip's frames. Joints with animation
 curves follow their curves: keys are rescaled to the new length and must each
 land on a whole frame, so a looping clip or a count that would put a key
 between frames is refused unless **Bake curves** samples the motion and
-removes the curves. **Close Skeletal Loop** works on sampled poses, with the
-same choices; a clip with curves needs **Bake curves**.
+removes the curves. **Close Skeletal Loop** makes the same choices; on a clip
+with curves it keys each channel the same way (the first value at the last
+key, an appended key, or blended keys over the cross-faded poses; rotations
+close to the nearest equivalent angle), so the curves keep authority. **Bake
+curves** closes the loop on sampled poses and removes the curves instead.
+
+The same two operations are in **Skeleton → Edit Skeletal Animation** as
+**Resample clip** and **Close clip loop**, with **New FPS** or **New pose
+count**, **Sampling**, **Looping clip**, **Close loop by**, **Cross-fade
+poses** and **Bake curves**.
 
 ## See neighbouring frames: the timeline and onion skin
 
@@ -161,9 +169,14 @@ every layout direction.
 **Frames before** (dashed) and **Frames after** (dotted), every **Onion step**
 frames, fainter with distance. In high-visibility themes the ghosts use the
 text colour at full strength; the line style tells earlier from later without
-colour. Ghosts are hidden while the animation plays, and the checkbox's
-description lists the frames shown. Very large models draw as many ghosts as
-fit a fixed amount of work per redraw.
+colour. Every pane of the four views draws the ghosts through its own camera.
+Ghosts are hidden while the animation plays, and the checkbox's description
+lists the frames shown. Very large models draw as many ghosts as fit a fixed
+amount of work per redraw.
+
+**Toggle Onion Skin** is a registered command: find it with **Search Commands**
+(F3), or bind a key to it in the controls of any editor profile. It has no key
+by default.
 
 ## Make a tag follow the mesh
 
@@ -187,8 +200,22 @@ rotation is always proper and a reflected tag basis keeps its handedness. The
 **Tag fit result** line reports the largest RMS residual and its frame: a large
 residual means the selection does not move rigidly there. A frame where the
 selection collapses onto a line refuses the whole edit. The tags written are
-ordinary per-frame MD3 tags, not a live constraint: fit them again after later
-geometry edits.
+ordinary per-frame MD3 tags, not a live constraint.
+
+With **Remember the components** on (the default), the editable source keeps
+an anchor: the tag, its surface, the components, the mode and the frames.
+After moving, sculpting, resampling or importing frames, choose **Refit
+Anchored Tags** to fit every anchored tag again in one undo step. The
+**Anchored tags** line lists each anchor; an anchor whose surface gained or
+lost vertices or faces, was renamed or removed, or whose frames no longer
+exist cannot be refitted, and the line and the disabled button say why:
+select the components and choose **Follow Selection** again. Renaming a tag
+keeps its anchor and deleting it removes the anchor. Sources with anchors are
+saved as editable source version 15.
+
+Assemblies read the fitted tags like any other: a part attached at the tag
+follows it frame by frame (checked with a synthetic assembly; not yet in a
+game).
 
 ## Sculpt over a range of frames
 
@@ -208,6 +235,15 @@ strongest in the middle, sin²(πk / (n + 1))):
   a shape key.
 
 Unselected vertices, frames outside the range, tags and collision stay exact.
+
+The same range applies to the **Geometry** page and the 3D view's modal move,
+rotate and scale when **Geometry → Over the frame range** is on (beside
+**Apply to**): the transform covers the frame range with the Range sculpt
+falloff, using the chosen axes and pivot, resolved once in the displayed
+frame. The live preview shows the full amount on the displayed frame; the
+committed edit scales each frame by its falloff weight. Proportional editing
+and mirror are refused with the scope on; tags and collision boxes keep
+**Apply to**.
 Normals are rebuilt around the moved vertices only; a whole-surface transform
 or blend carries its normals instead.
 
@@ -245,23 +281,25 @@ when a file already exists.
 ### OBJ import settings
 
 OBJ is the generic interchange format, so imports accept typical Blender
-exports. `model import` and frame import take these settings; opening an OBJ
-in the Mesh Editor uses the defaults (Z up, scale 1, libraries resolved, loose
-data dropped):
+exports. Opening an OBJ with **Open or Import Model** asks for these settings
+in **OBJ Import Settings**, starting from the last ones chosen in the session;
+`model import` and frame import take them as options:
 
 - **Up axis**: Y up and -Z forward converts to Z up (a rotation, so faces keep
   their winding); Z up keeps coordinates.
 - **Scale** multiplies positions after the conversion.
-- **Material libraries** (`mtllib`): read from beside a loose OBJ. A material
-  with a diffuse map (`map_Kd`) binds that image, relative to the OBJ's
-  package folder, or by file name for absolute paths; other materials keep
-  their names. Colours, specular and other shading statements have no idTech
+- **Material libraries** (`mtllib`): read from beside a loose OBJ, or from the
+  package entry beside an OBJ in a package (the package browser and package
+  previews). A material with a diffuse map (`map_Kd`) binds that image,
+  relative to the OBJ's package folder, or by file name for absolute paths;
+  other materials keep their names. Colours, specular and other shading statements have no idTech
   equivalent and are noted. Without the file, or with **ignore**, material
   names are kept; **refuse** stops the import.
 - **Loose data**: line (`l`) and point (`p`) records and vertices no face uses
   are dropped with a note, or refused on request.
 
-The import report lists every conversion and drop.
+The import report lists every conversion and drop, and the Mesh Editor's
+status line repeats it after opening.
 
 ## Command line
 
@@ -285,7 +323,8 @@ vibestudio --cli model frames ./models/soldier.mesh.json --operation export-obj 
 | `name-from-clips` | `--clip N`, `--start N` (0-1000, default 1), `--keep-clip-names` |
 | `resample`, `resample-skeletal` | `--clip N`, `--fps F` or `--frames N`, `--source-fps F`, `--method linear\|nearest`, `--cyclic`; skeletal also `--bake-curves` |
 | `close-loop`, `close-skeletal-loop` | `--clip N`, `--mode replace\|append\|crossfade`, `--blend-frames N`; skeletal also `--bake-curves` |
-| `follow-tag` | `--tag NAME`, `--surface S`, `--faces`/`--vertices`/`--edges`, `--reference-frame F`, `--mode rigid\|centroid\|surface`, optional `--first --last` |
+| `follow-tag` | `--tag NAME`, `--surface S`, `--faces`/`--vertices`/`--edges`, `--reference-frame F`, `--mode rigid\|centroid\|surface`, optional `--first --last`, `--no-anchor` |
+| `refit-tags` | optional `--tag NAME` (default every anchored tag) |
 | `transform-range` | `--first`, `--last`, components, `--falloff constant\|ramp-in\|ramp-out\|smooth`, `--offset`, `--rotate`, `--scale`, `--pivot-mode origin\|selection\|custom`, `--pivot`, `--pivot-frame` |
 | `blend-pose` | `--first`, `--last`, components, `--falloff`, `--source-frame F`, `--amount 0..1` |
 | `relative-pose` | `--first`, `--last`, components, `--falloff`, `--pose-frame A`, `--base-frame B`, `--weight -10..10` |
@@ -297,7 +336,8 @@ Edits need `--output` ending in `.mesh.json`, different from the input.
 output. JSON output lists `frames`, `frameNames`, and `clips` with
 `survivesNativeNames`, `rateLost`, `rebuiltName`, `rebuiltFirst` and
 `rebuiltLast`, plus `nativeClipSummary`; `follow-tag` adds `tagFollow` with
-per-frame `residuals`, `import` adds `importedFrames`, skeletal operations add
+per-frame `residuals`; `follow-tag` and `refit-tags` list `tagAnchors` with any
+`problem`; `import` adds `importedFrames`, skeletal operations add
 `skeletalClip`, and `export-obj` lists `files`. Usage errors return 2,
 unreadable sources and outputs 1, and refused edits 4 without writing.
 
@@ -312,12 +352,12 @@ JSON lists `notes`.
 - Frames that follow a skinned skeleton cannot be moved, copied, reversed,
   resampled or replaced with these tools; use the skeletal clip tools.
 - Clip names longer than a frame name holds come back shortened, as the stem.
-- Tag following is baked, not a constraint, and anchors are not stored for a
-  later refit. It has not been checked against an assembly child in a game.
-- Range sculpting is on the Animation page; the viewport's modal move, rotate
-  and scale do not yet offer a frame-range scope.
+- Tag following is baked, not a constraint: refit anchored tags after
+  geometry edits. Anchors do not survive topology edits on their surface, and
+  an assembly child on a fitted tag has not been checked in a game.
+- The range scope's live preview shows the full transform on the displayed
+  frame rather than its falloff weight; proportional editing and mirror do not
+  combine with it.
 - Frame import matches whole surfaces; it cannot import a subset of surfaces
-  or remap differing topology. Material libraries are read only beside loose
-  OBJ files, not from packages.
-- Skeletal loop closing does not edit curve keys; curves must be baked first.
+  or remap differing topology.
 - There are no animation events or markers on the timeline yet.
