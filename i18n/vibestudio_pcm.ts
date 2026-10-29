@@ -16579,7 +16579,7 @@ Assets: %2</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location line="+7" />
+        <location line="+9" />
         <source>Assembly playback</source>
         <translation type="unfinished" />
     </message>
@@ -21840,11 +21840,11 @@ Original source files remain unchanged.</source>
         <translation type="unfinished" /></message>
     <message>
         <location line="+13" />
-        <location line="+477" />
+        <location line="+483" />
         <source>End-joint target in model-space units.</source>
         <translation type="unfinished" /></message>
     <message>
-        <location line="-475" />
+        <location line="-481" />
         <source>A point in model space that chooses the elbow or knee bend direction. Keep it off the root-to-target line.</source>
         <translation type="unfinished" /></message>
     <message>
@@ -22034,7 +22034,7 @@ Original source files remain unchanged.</source>
         <source>Remove every target and pole key; the point fields apply again.</source>
         <translation type="unfinished" /></message>
     <message>
-        <location line="+31" />
+        <location line="+37" />
         <source>&amp;Preview</source>
         <translation type="unfinished" /></message>
     <message>
@@ -78230,23 +78230,11 @@ Second: surface %6 (%7), face %8</source>
         <source>New FPS</source>
         <translation type="unfinished" /></message>
     <message>
-        <location line="+1" />
-        <source>The rate to resample to, such as 10 for Quake and Quake II frame steps. Use frame count resamples to New frame count instead.</source>
-        <translation type="unfinished" /></message>
-    <message>
-        <location line="+4" />
-        <source>Use frame count</source>
-        <translation type="unfinished" /></message>
-    <message>
-        <location line="+2" />
+        <location line="+7" />
         <source>New frame count</source>
         <translation type="unfinished" /></message>
     <message>
-        <location line="+1" />
-        <source>The number of frames the clip gets, when New FPS is Use frame count.</source>
-        <translation type="unfinished" /></message>
-    <message>
-        <location line="+2" />
+        <location line="+3" />
         <source>Use FPS</source>
         <translation type="unfinished" /></message>
     <message>
@@ -78442,8 +78430,20 @@ Second: surface %6 (%7), face %8</source>
         <source>Add the selected vertices' movement from Base frame to Pose frame to every frame of the range, like a shape key, scaled by the weight and falloff.</source>
         <translation type="unfinished" /></message>
     <message>
-        <location line="+9" />
-        <source>Import and export frames</source>
+        <location line="-101" />
+        <source>The rate to resample to, such as 10 for Quake and Quake II frame steps. By count resamples to New frame count instead.</source>
+        <translation type="unfinished" /></message>
+    <message>
+        <location line="+4" />
+        <source>By count</source>
+        <translation type="unfinished" /></message>
+    <message>
+        <location line="+3" />
+        <source>The number of frames the clip gets, when New FPS is By count.</source>
+        <translation type="unfinished" /></message>
+    <message>
+        <location line="+103" />
+        <source>Frame files</source>
         <translation type="unfinished" /></message>
     <message>
         <location line="+1" />
