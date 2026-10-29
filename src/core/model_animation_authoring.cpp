@@ -87,7 +87,11 @@ int modelAnimationAuthoringSourceVersion(const ModelMesh &mesh)
 {
 	const auto limited = std::any_of(mesh.skeleton.joints.cbegin(), mesh.skeleton.joints.cend(), [](const auto &joint) { return joint.limits.enabled; });
 	const auto clipData = std::any_of(mesh.skeleton.clips.cbegin(), mesh.skeleton.clips.cend(),
-									  [](const auto &clip) { return !clip.events.isEmpty() || modelClipHasStack(clip); });
+									  [](const auto &clip)
+									  {
+										  return !clip.events.isEmpty() || modelClipHasStack(clip) ||
+												 std::any_of(clip.curves.cbegin(), clip.curves.cend(), [](const auto &group) { return !group.rotation.isEmpty(); });
+									  });
 	const auto vertexEvents = std::any_of(mesh.animations.cbegin(), mesh.animations.cend(), [](const auto &clip) { return !clip.events.isEmpty(); });
 	return limited || clipData || vertexEvents ? 15 : 0;
 }

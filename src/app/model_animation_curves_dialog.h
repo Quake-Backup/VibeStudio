@@ -3,6 +3,7 @@
 #include "core/model_document.h"
 #include <QDialog>
 #include <functional>
+class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
@@ -38,6 +39,11 @@ class ModelAnimationCurvesDialog final : public QDialog
 	void capture();
 	void review();
 	void reject() override;
+	// Copy Keys (Ctrl+C) puts the shown channel's draft keys on the pose
+	// clipboard; Paste Keys (Ctrl+V) splices a key or pose copy into the draft
+	// from the key sample, replacing the keys in the pasted span.
+	void copyKeys();
+	void pasteKeys();
 
   private:
 	struct Draft
@@ -56,11 +62,13 @@ class ModelAnimationCurvesDialog final : public QDialog
 	int m_historyIndex = 0;
 	bool m_ready = false, m_busy = false, m_closeAfter = false, m_updating = false;
 	std::function<void()> m_cancel;
-	QComboBox *m_clip = nullptr, *m_joint = nullptr, *m_channel = nullptr, *m_mode = nullptr, *m_tangent = nullptr, *m_view = nullptr;
+	QComboBox *m_clip = nullptr, *m_joint = nullptr, *m_channel = nullptr, *m_mode = nullptr, *m_tangent = nullptr, *m_view = nullptr,
+			  *m_rotationMode = nullptr;
+	QCheckBox *m_everySample = nullptr;
 	QSpinBox *m_frame = nullptr, *m_sample = nullptr;
 	QDoubleSpinBox *m_value = nullptr, *m_in = nullptr, *m_out = nullptr;
 	QPushButton *m_capture = nullptr, *m_bake = nullptr, *m_set = nullptr, *m_move = nullptr, *m_remove = nullptr, *m_undo = nullptr,
-				*m_redo = nullptr, *m_discard = nullptr, *m_review = nullptr, *m_apply = nullptr;
+				*m_redo = nullptr, *m_discard = nullptr, *m_review = nullptr, *m_apply = nullptr, *m_copyKeys = nullptr, *m_pasteKeys = nullptr;
 	LiveStatusLabel *m_status = nullptr;
 	QTabWidget *m_tabs = nullptr;
 	QTableView *m_keys = nullptr;
@@ -78,5 +86,10 @@ class ModelAnimationCurvesDialog final : public QDialog
 	void commitKey(int oldFrame, const ModelPoseCurveKey &key);
 	void removeKey(int frame);
 	ModelPoseCurveKey keyFromControls() const;
+	// A rotation channel of a joint with quaternion rotation keys: the table
+	// and graph show its angle view and edits set quaternion keys.
+	[[nodiscard]] bool quaternionChannel() const;
+	[[nodiscard]] QVector<ModelPoseCurveKey> shownKeys() const;
+	void convertRotation();
 };
 } // namespace vibestudio

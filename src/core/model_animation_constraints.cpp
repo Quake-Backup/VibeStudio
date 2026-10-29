@@ -6,6 +6,7 @@
 
 #include <QCoreApplication>
 #include <QJsonArray>
+#include <QRegularExpression>
 #include <QSet>
 #include <algorithm>
 #include <cmath>
@@ -155,9 +156,52 @@ bool nearPose(const ModelJointMatrix &a, const ModelJointMatrix &b)
 			return false;
 	return true;
 }
+const QStringList &weightModes()
+{
+	static const QStringList modes{QStringLiteral("step"), QStringLiteral("linear"), QStringLiteral("cubic"), QStringLiteral("step-next")};
+	return modes;
+}
+const QStringList &weightTangents()
+{
+	static const QStringList tangents{QStringLiteral("auto"), QStringLiteral("clamped"), QStringLiteral("free"), QStringLiteral("flat")};
+	return tangents;
+}
+QJsonArray weightKeysJson(const QVector<ModelPoseCurveKey> &keys)
+{
+	QJsonArray result;
+	for (const auto &k : keys)
+		result.append(QJsonArray{k.frame, k.value, weightModes().value(int(k.interpolation)), weightTangents().value(int(k.tangent)), k.inSlope,
+								 k.outSlope});
+	return result;
+}
+bool readWeightKeys(const QJsonValue &value, int frames, QVector<ModelPoseCurveKey> *keys)
+{
+	if (value.isUndefined())
+		return true;
+	if (!value.isArray() || value.toArray().size() > frames)
+		return false;
+	QVector<ModelPoseCurveKey> result;
+	for (const auto &entry : value.toArray())
+	{
+		const auto key = entry.toArray();
+		if (key.size() != 6 || !key[0].isDouble() || std::floor(key[0].toDouble()) != key[0].toDouble() || !key[1].isDouble() ||
+			!key[4].isDouble() || !key[5].isDouble())
+			return false;
+		const int mode = weightModes().indexOf(key[2].toString()), tangent = weightTangents().indexOf(key[3].toString());
+		if (mode < 0 || tangent < 0)
+			return false;
+		result.append({key[0].toInt(), key[1].toDouble(), key[4].toDouble(), key[5].toDouble(), ModelCurveInterpolation(mode),
+					   ModelCurveTangent(tangent)});
+	}
+	if (!validModelWeightKeys(result, frames))
+		return false;
+	*keys = std::move(result);
+	return true;
+}
 bool layer(const ModelSkeleton &skeleton, const ModelClipLayer &layer, int frame, Pose *pose, QString *error)
 {
-	if (!layer.enabled || layer.weight <= 0)
+	const double w = layer.enabled ? std::min(1.0, modelClipStackWeight(layer.weight, layer.weightKeys, frame)) : 0.0;
+	if (w <= 0)
 		return true;
 	const auto before = *pose;
 	QVector<int> group(pose->size(), -1);
@@ -181,7 +225,6 @@ bool layer(const ModelSkeleton &skeleton, const ModelClipLayer &layer, int frame
 		const auto base = local(skeleton, before, j);
 		const auto t = modelJointTranslation(base), s = modelJointScale(base);
 		const auto r = modelJointRotation(base);
-		const double w = std::min(1.0, layer.weight);
 		ModelJointMatrix updated;
 		if (layer.additive)
 			updated = modelJointMatrix(modelQuatMultiply(r, quatFromEuler(w * v[3], w * v[4], w * v[5])),
@@ -228,6 +271,9 @@ bool constrain(const ModelSkeleton &skeleton, const ModelClipConstraint &c, QVec
 	{
 		if (!work.step())
 			return false;
+		const double weight = std::min(1.0, modelClipStackWeight(c.weight, c.weightKeys, f));
+		if (weight <= 0)
+			continue;
 		const auto before = (*poses)[f];
 		auto pose = before;
 		const auto goal = target < 0 ? vec(c.point) : modelJointTransformPoint(before[target], vec(c.point));
@@ -235,11 +281,11 @@ bool constrain(const ModelSkeleton &skeleton, const ModelClipConstraint &c, QVec
 		switch (c.kind)
 		{
 		case ModelClipConstraintKind::Ik:
-			if (!solveModelConstraintIk(skeleton, &pose, c.rootJoint, c.joint, goal, vec(c.pole), c.usePole, &problem))
+			if (!solveModelConstraintIk(skeleton, &pose, c.rootJoint, c.joint, goal, vec(c.pole), c.usePole, c.limits, &problem))
 				return fail(error, Text::tr("Constraint %1, sample %2: %3").arg(c.name).arg(f).arg(problem));
 			break;
 		case ModelClipConstraintKind::FootLock:
-			if (!solveModelConstraintIk(skeleton, &pose, c.rootJoint, c.joint, lockAt, vec(c.pole), c.usePole, &problem))
+			if (!solveModelConstraintIk(skeleton, &pose, c.rootJoint, c.joint, lockAt, vec(c.pole), c.usePole, c.limits, &problem))
 				return fail(error, Text::tr("Constraint %1, sample %2: %3").arg(c.name).arg(f).arg(problem));
 			break;
 		case ModelClipConstraintKind::Aim:
@@ -281,7 +327,7 @@ bool constrain(const ModelSkeleton &skeleton, const ModelClipConstraint &c, QVec
 			for (int j = 0; j < pose.size(); ++j)
 				fixed[j] = true;
 		follow(skeleton, before, &pose, fixed);
-		if (c.weight < 1)
+		if (weight < 1)
 		{
 			auto blended = before;
 			QVector<bool> set(pose.size(), false);
@@ -290,7 +336,7 @@ bool constrain(const ModelSkeleton &skeleton, const ModelClipConstraint &c, QVec
 				if (!moved[j])
 					continue;
 				const int parent = skeleton.joints[j].parent;
-				const auto mixed = blend(local(skeleton, before, j), local(skeleton, pose, j), c.weight);
+				const auto mixed = blend(local(skeleton, before, j), local(skeleton, pose, j), weight);
 				blended[j] = parent < 0 ? mixed : modelJointMultiply(blended[parent], mixed);
 				set[j] = true;
 			}
@@ -348,6 +394,60 @@ bool modelClipHasStack(const ModelSkeletalClip &clip)
 {
 	return !clip.constraints.isEmpty() || !clip.layers.isEmpty();
 }
+double modelClipStackWeight(double weight, const QVector<ModelPoseCurveKey> &keys, int frame)
+{
+	return keys.isEmpty() ? weight : weight * std::clamp(evaluateModelCurve(keys, frame), 0.0, 1.0);
+}
+bool validModelWeightKeys(const QVector<ModelPoseCurveKey> &keys, int frames, QString *error)
+{
+	if (keys.isEmpty())
+		return true;
+	// The shared curve rules (order, range, finite slopes) through a group
+	// whose other channels hold one neutral key each.
+	ModelPoseCurves group;
+	group.joint = QStringLiteral("weight");
+	for (int c = 0; c < 9; ++c)
+		group.channels[c] = c == 0 ? keys : QVector<ModelPoseCurveKey>{ModelPoseCurveKey{0, c >= 6 ? 1.0 : 0.0}};
+	QString problem;
+	if (keys.size() > frames || !validateModelCurveGroup(group, frames, &problem))
+		return fail(error, Text::tr("Weight keys must be ordered samples inside the clip. %1").arg(problem));
+	for (const auto &key : keys)
+		if (key.value < 0 || key.value > 1)
+			return fail(error, Text::tr("Weight keys hold values from 0 to 1."));
+	return true;
+}
+bool parseModelWeightKeys(const QString &text, int frames, QVector<ModelPoseCurveKey> *keys, QString *error)
+{
+	if (!keys)
+		return false;
+	QVector<ModelPoseCurveKey> result;
+	const auto parts = text.split(QRegularExpression(QStringLiteral("[,;\\s]+")), Qt::SkipEmptyParts);
+	for (const auto &part : parts)
+	{
+		const auto pair = part.split(QLatin1Char(':'));
+		bool frameOk = false, valueOk = false;
+		const int frame = pair.value(0).toInt(&frameOk);
+		const double value = pair.value(1).toDouble(&valueOk);
+		if (pair.size() != 2 || !frameOk || !valueOk)
+			return fail(error, Text::tr("Write weight keys as sample:value pairs, such as 0:0, 12:1."));
+		ModelPoseCurveKey key;
+		key.frame = frame;
+		key.value = value;
+		result.append(key);
+	}
+	std::sort(result.begin(), result.end(), [](const auto &a, const auto &b) { return a.frame < b.frame; });
+	if (!validModelWeightKeys(result, frames, error))
+		return false;
+	*keys = std::move(result);
+	return true;
+}
+QString modelWeightKeysText(const QVector<ModelPoseCurveKey> &keys)
+{
+	QStringList parts;
+	for (const auto &key : keys)
+		parts << QStringLiteral("%1:%2").arg(key.frame).arg(key.value, 0, 'g', 9);
+	return parts.join(QStringLiteral(", "));
+}
 const QVector<QVector<ModelJointMatrix>> &modelClipEditableSamples(const ModelSkeletalClip &clip)
 {
 	return modelClipHasStack(clip) && clip.base.size() == clip.frames.size() ? clip.base : clip.frames;
@@ -389,8 +489,12 @@ bool validModelClipStack(const ModelSkeleton &skeleton, const ModelSkeletalClip 
 			return fail(error, Text::tr("Constraint %1 needs a sample range inside clip %2.").arg(title, clip.name));
 		if (!std::isfinite(c.weight) || c.weight < 0 || c.weight > 1 || c.axis < 0 || c.axis > 5 || !finite(c.point) || !finite(c.pole))
 			return fail(error, Text::tr("Constraint %1 needs a weight from 0 to 1, an aim axis and finite points.").arg(title));
-		if ((!chain && !c.rootJoint.isEmpty()) || (follows && c.target.isEmpty()) || (c.kind == ModelClipConstraintKind::FootLock && !c.target.isEmpty()))
+		if ((!chain && (!c.rootJoint.isEmpty() || c.limits)) || (follows && c.target.isEmpty()) ||
+			(c.kind == ModelClipConstraintKind::FootLock && !c.target.isEmpty()))
 			return fail(error, Text::tr("Constraint %1 has settings its kind does not use, or lacks a target joint.").arg(title));
+		QString weightProblem;
+		if (!validModelWeightKeys(c.weightKeys, frames, &weightProblem))
+			return fail(error, Text::tr("Constraint %1: %2").arg(title, weightProblem));
 		if (chain)
 		{
 			int root = c.rootJoint.isEmpty() ? -1 : modelJointIndex(skeleton, c.rootJoint, Qt::CaseSensitive);
@@ -418,11 +522,14 @@ bool validModelClipStack(const ModelSkeleton &skeleton, const ModelSkeletalClip 
 	{
 		if (!std::isfinite(l.weight) || l.weight < 0 || l.weight > 1 || l.name.size() > 63 || l.curves.isEmpty())
 			return fail(error, Text::tr("Layer %1 needs a weight from 0 to 1 and at least one keyed joint.").arg(l.name));
+		QString weightProblem;
+		if (!validModelWeightKeys(l.weightKeys, frames, &weightProblem))
+			return fail(error, Text::tr("Layer %1: %2").arg(l.name, weightProblem));
 		QSet<QString> joints;
 		for (const auto &group : l.curves)
 		{
 			QString problem;
-			if (joints.contains(group.joint) || modelJointIndex(skeleton, group.joint, Qt::CaseSensitive) < 0 ||
+			if (joints.contains(group.joint) || modelJointIndex(skeleton, group.joint, Qt::CaseSensitive) < 0 || !group.rotation.isEmpty() ||
 				!validateModelCurveGroup(group, frames, &problem))
 				return fail(error, Text::tr("Layer %1 keys joint %2 twice, keys a joint this rig lacks, or has invalid keys. %3")
 									   .arg(l.name, group.joint, problem));
@@ -589,14 +696,23 @@ void writeModelClipStackJson(const ModelSkeletalClip &clip, bool packed, QJsonOb
 		object.insert(QStringLiteral("pole"), triple(c.pole));
 		object.insert(QStringLiteral("usePole"), c.usePole);
 		object.insert(QStringLiteral("axis"), c.axis);
+		if (c.limits)
+			object.insert(QStringLiteral("limits"), true);
+		if (!c.weightKeys.isEmpty())
+			object.insert(QStringLiteral("weightKeys"), weightKeysJson(c.weightKeys));
 		constraints.append(object);
 	}
 	for (const auto &l : clip.layers)
-		layers.append(QJsonObject{{QStringLiteral("name"), l.name},
-								  {QStringLiteral("additive"), l.additive},
-								  {QStringLiteral("weight"), l.weight},
-								  {QStringLiteral("enabled"), l.enabled},
-								  {QStringLiteral("curves"), modelClipCurvesJson(l.curves)}});
+	{
+		QJsonObject object{{QStringLiteral("name"), l.name},
+						   {QStringLiteral("additive"), l.additive},
+						   {QStringLiteral("weight"), l.weight},
+						   {QStringLiteral("enabled"), l.enabled},
+						   {QStringLiteral("curves"), modelClipCurvesJson(l.curves)}};
+		if (!l.weightKeys.isEmpty())
+			object.insert(QStringLiteral("weightKeys"), weightKeysJson(l.weightKeys));
+		layers.append(object);
+	}
 	if (!packed)
 		for (const auto &pose : clip.base)
 		{
@@ -638,6 +754,9 @@ bool readModelClipStackJson(const QJsonObject &entry, int jointCount, bool packe
 		c.enabled = object.value(QStringLiteral("enabled")).toBool(true);
 		c.usePole = object.value(QStringLiteral("usePole")).toBool(true);
 		c.axis = object.value(QStringLiteral("axis")).toInt(0);
+		c.limits = object.value(QStringLiteral("limits")).toBool(false);
+		if (!readWeightKeys(object.value(QStringLiteral("weightKeys")), int(clip->frames.size()), &c.weightKeys))
+			return false;
 		constraints.append(c);
 	}
 	QVector<ModelClipLayer> layers;
@@ -650,7 +769,8 @@ bool readModelClipStackJson(const QJsonObject &entry, int jointCount, bool packe
 		l.weight = object.value(QStringLiteral("weight")).toDouble(-1);
 		l.enabled = object.value(QStringLiteral("enabled")).toBool(true);
 		QString problem;
-		if (!modelClipCurvesFromJson(object.value(QStringLiteral("curves")), int(clip->frames.size()), &l.curves, &problem))
+		if (!modelClipCurvesFromJson(object.value(QStringLiteral("curves")), int(clip->frames.size()), &l.curves, &problem) ||
+			!readWeightKeys(object.value(QStringLiteral("weightKeys")), int(clip->frames.size()), &l.weightKeys))
 			return false;
 		layers.append(l);
 	}

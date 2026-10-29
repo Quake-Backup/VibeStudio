@@ -7,7 +7,10 @@
 
 #include <QAccessible>
 #include <QApplication>
+#include <QCheckBox>
 #include <QComboBox>
+#include <QLineEdit>
+#include <QSpinBox>
 #include <QDir>
 #include <QDoubleSpinBox>
 #include <QListWidget>
@@ -57,7 +60,8 @@ int main(int argc, char **argv)
 		QCoreApplication::processEvents();
 		for (const char *id : {"constraintsClip", "constraintsList", "constraintKind", "constraintJoint", "constraintRoot", "constraintTarget",
 							   "constraintPoint0", "constraintPole2", "constraintAxis", "constraintFirst", "constraintLast", "constraintWeight",
-							   "constraintAdd", "constraintsLayers", "layerWeight"})
+							   "constraintAdd", "constraintsLayers", "layerWeight", "constraintWeightKeys", "constraintLimits", "layerName", "layerJoint",
+							   "layerChannel", "layerKeySample", "layerKeyValue", "layerSetKey", "layerRemoveKey", "layerAdd"})
 		{
 			auto *w = dialog.findChild<QWidget *>(id);
 			expect(w && QAccessible::queryAccessibleInterface(w) && (w->focusPolicy() & Qt::TabFocus) && !w->accessibleName().isEmpty() &&
@@ -103,6 +107,59 @@ int main(int argc, char **argv)
 		bake.choose(ModelClipStackAction::Bake);
 		auto baked = updated;
 		expect(applyModelEdit(&baked, bake.edit(), nullptr, &error) && !modelClipHasStack(baked.skeleton.clips[0]), "the dialog bakes the stack");
+
+		// Keying a new layer in the dialog, with its weight keys.
+		ModelConstraintsDialog layers(mesh, frame);
+		layers.show();
+		QCoreApplication::processEvents();
+		auto *addLayer = layers.findChild<QPushButton *>("layerAdd");
+		expect(addLayer && !addLayer->isEnabled(), "a layer needs keys before it can be added");
+		expect(layers.setLayerKey("l_arm", 5, 2, 30), "key the arm's rotation in the layer draft");
+		const auto &draft = layers.layerDraft();
+		expect(draft.curves.size() == 1 && draft.curves[0].joint == "l_arm" && draft.curves[0].channels[5].size() == 2 &&
+				   draft.curves[0].channels[5][1].value == 30 && draft.curves[0].channels[0].size() == 1 && draft.curves[0].channels[6][0].value == 1,
+			   "an additive layer starts neutral and takes the key");
+		expect(layers.setLayerKey("l_arm", 9, 0, 0) && layers.setLayerKey("l_arm", 9, 3, 1) && layers.layerDraft().weightKeys.size() == 2,
+			   "the layer weight is keyed on its own channel");
+		expect(!layers.setLayerKey("l_arm", 9, 1, 1.5) && layers.layerDraft().weightKeys.size() == 2, "a weight above 1 is refused");
+		expect(layers.removeLayerKey("l_arm", 9, 3) && layers.layerDraft().weightKeys.size() == 1, "remove a weight key");
+		expect(addLayer->isEnabled(), "a keyed layer can be added");
+		layers.choose(ModelClipStackAction::AddLayer);
+		auto layered = mesh;
+		expect(layers.result() == QDialog::Accepted && layers.edit().animation.stack.action == ModelClipStackAction::AddLayer &&
+				   layers.edit().animation.stack.layer.curves.size() == 1 && applyModelEdit(&layered, layers.edit(), nullptr, &error) &&
+				   layered.skeleton.clips[0].layers.size() == 1,
+			   "the dialog adds the keyed layer");
+		ModelConstraintsDialog keyed(layered, frame);
+		keyed.show();
+		QCoreApplication::processEvents();
+		keyed.findChild<QListWidget *>("constraintsLayers")->setCurrentRow(0);
+		expect(keyed.layerDraft() == layered.skeleton.clips[0].layers[0] && keyed.setLayerKey("l_arm", 3, 1, 15), "a selected layer loads as the draft");
+		keyed.choose(ModelClipStackAction::UpdateLayer);
+		auto rekeyed = layered;
+		expect(keyed.edit().animation.stack.index == 0 && applyModelEdit(&rekeyed, keyed.edit(), nullptr, &error) &&
+				   rekeyed.skeleton.clips[0].layers[0].curves[0].channels[3].size() == 2,
+			   "Update Layer applies the draft's keys");
+
+		// Weight keys and limits on a constraint.
+		ModelConstraintsDialog form(mesh, frame);
+		form.show();
+		QCoreApplication::processEvents();
+		auto *formKind = form.findChild<QComboBox *>("constraintKind");
+		formKind->setCurrentIndex(formKind->findData(int(ModelClipConstraintKind::Ik)));
+		form.findChild<QComboBox *>("constraintJoint")->setCurrentIndex(form.findChild<QComboBox *>("constraintJoint")->findData("l_hand"));
+		auto *limitsBox = form.findChild<QCheckBox *>("constraintLimits");
+		expect(limitsBox && limitsBox->isEnabled(), "IK constraints offer joint limits");
+		limitsBox->setChecked(true);
+		form.findChild<QLineEdit *>("constraintWeightKeys")->setText("0:1, 3:0.5");
+		const auto described = form.formConstraint();
+		expect(described.limits && described.weightKeys.size() == 2 && described.weightKeys[1].value == .5, "the form carries weight keys and limits");
+		form.findChild<QLineEdit *>("constraintWeightKeys")->setText("0:1, 3");
+		form.choose(ModelClipStackAction::AddConstraint);
+		expect(form.result() != QDialog::Accepted && form.isVisible(), "unreadable weight keys are explained instead of applied");
+		formKind->setCurrentIndex(formKind->findData(int(ModelClipConstraintKind::CopyTransform)));
+		expect(!limitsBox->isEnabled() && !form.formConstraint().limits, "constraints without a chain do not keep limits");
+		form.reject();
 	}
 	std::cout << checks << " constraint UI checks; " << failures << " failures\n";
 	return failures ? 1 : 0;

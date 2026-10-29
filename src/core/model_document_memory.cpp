@@ -105,6 +105,7 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 		for (const auto &group : clip.curves)
 		{
 			string(group.joint);
+			list(group.rotation);
 			for (const auto &channel : group.channels)
 			{
 				list(channel);
@@ -128,11 +129,13 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 			string(constraint.joint);
 			string(constraint.rootJoint);
 			string(constraint.target);
+			list(constraint.weightKeys);
 		}
 		list(clip.layers);
 		for (const auto &layer : clip.layers)
 		{
 			string(layer.name);
+			list(layer.weightKeys);
 			list(layer.curves);
 			for (const auto &group : layer.curves)
 			{

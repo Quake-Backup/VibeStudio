@@ -1,9 +1,12 @@
 #include "cli/model_tools.h"
 #include "core/model_document.h"
+#include "core/model_rotation_tracks.h"
 #include <QCoreApplication>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
+#include <algorithm>
+#include <array>
 #include <cmath>
 namespace vibestudio::cli
 {
@@ -35,10 +38,11 @@ bool number(const QString &s, double *n)
 } // namespace
 ModelToolsCliResult runModelCurves(const QStringList &args)
 {
-	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite"};
+	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--every-sample"};
 	const QSet<QString> options{"--input",	   "--output",	  "--operation",	 "--clip",			"--joint",		 "--channel",
 								"--frame",	   "--new-frame", "--value",		 "--interpolation", "--tangent",	 "--in-slope",
-								"--out-slope", "--curves",	  "--settings-file", "--locale",		"--catalog-root"};
+								"--out-slope", "--curves",	  "--settings-file", "--locale",		"--catalog-root", "--to",
+								"--rotate",	   "--quat"};
 	QSet<QString> seen;
 	QHash<QString, QString> values;
 	QStringList positional;
@@ -68,11 +72,16 @@ ModelToolsCliResult runModelCurves(const QStringList &args)
 	if (positional.size() != (input ? 2 : 3) || positional.value(0) != "model" || positional.value(1) != "curves")
 		return fail(2, Text::tr("Provide one editable model source, positionally or with --input."));
 	const QStringList actions{"capture", "replace", "set-key", "remove-key", "move-key", "bake"};
+	// Quaternion rotation operations (core/model_rotation_tracks.h) replace
+	// the joint's curve group, as the curves dialog does.
+	const QStringList rotationActions{"convert-rotation", "set-rotation-key", "remove-rotation-key"};
 	const auto action = values.value("--operation", "inspect");
 	const bool inspect = action == "inspect";
+	const bool rotationAction = rotationActions.contains(action);
 	const int actionIndex = actions.indexOf(action);
-	if (!inspect && actionIndex < 0)
-		return fail(2, Text::tr("Operation must be inspect, capture, replace, set-key, remove-key, move-key or bake."));
+	if (!inspect && actionIndex < 0 && !rotationAction)
+		return fail(2, Text::tr("Operation must be inspect, capture, replace, set-key, remove-key, move-key, bake, convert-rotation, "
+								"set-rotation-key or remove-rotation-key."));
 	ModelEdit edit;
 	edit.kind = ModelEditKind::EditAnimationCurves;
 	auto &o = edit.curves;
@@ -84,12 +93,18 @@ ModelToolsCliResult runModelCurves(const QStringList &args)
 	if (!inspect)
 	{
 		allowed.unite({"--output", "--dry-run", "--overwrite"});
-		o.action = ModelCurveAction(actionIndex);
+		o.action = rotationAction ? ModelCurveAction::Replace : ModelCurveAction(actionIndex);
 		if (o.joint.isEmpty() || !values.value("--output").endsWith(".mesh.json", Qt::CaseInsensitive))
 			return fail(2, Text::tr("Curve edits require --joint and --output ending in .mesh.json."));
 		if (action == "replace")
 			allowed.insert("--curves");
-		if (action.endsWith("-key"))
+		if (action == "convert-rotation")
+			allowed.unite({"--to", "--every-sample"});
+		if (action == "set-rotation-key")
+			allowed.unite({"--frame", "--rotate", "--quat", "--interpolation"});
+		if (action == "remove-rotation-key")
+			allowed.insert("--frame");
+		if (action.endsWith("-key") && !rotationAction)
 		{
 			allowed.unite({"--channel", "--frame"});
 			o.channel = modelCurveChannelIndex(values.value("--channel"));
@@ -152,6 +167,65 @@ ModelToolsCliResult runModelCurves(const QStringList &args)
 					o.key.outSlope = slope;
 			}
 	}
+	double rotationChange = 0;
+	if (rotationAction)
+	{
+		const auto existing =
+			std::find_if(clip.curves.cbegin(), clip.curves.cend(), [&](const ModelPoseCurves &group) { return group.joint == o.joint; });
+		if (existing == clip.curves.cend())
+			return fail(4, Text::tr("The selected joint has no stored curves. Capture them first."));
+		o.group = *existing;
+		const int frames = int(clip.frames.size());
+		if (action == "convert-rotation")
+		{
+			const auto to = values.value("--to");
+			if (to != "quaternion" && to != "euler")
+				return fail(2, Text::tr("Converting rotation requires --to quaternion or --to euler."));
+			if (!convertModelPoseCurvesRotation(&o.group, to == "quaternion",
+												seen.contains("--every-sample") ? ModelRotationKeyTimes::EverySample : ModelRotationKeyTimes::Keys,
+												frames, &rotationChange, &error))
+				return fail(4, error);
+		}
+		else
+		{
+			int frame = 0;
+			if (!integer(values.value("--frame"), &frame))
+				return fail(2, Text::tr("Rotation key edits require a nonnegative --frame."));
+			if (action == "remove-rotation-key")
+			{
+				if (!removeModelQuatKey(&o.group, frame, &error))
+					return fail(4, error);
+			}
+			else
+			{
+				if (seen.contains("--rotate") == seen.contains("--quat"))
+					return fail(2, Text::tr("Give the key's rotation as --rotate x,y,z (degrees) or --quat x,y,z,w."));
+				ModelPoseQuatKey key;
+				key.frame = frame;
+				for (const auto &old : o.group.rotation)
+					if (old.frame == frame)
+						key.interpolation = old.interpolation;
+				const auto parts = values.value(seen.contains("--rotate") ? "--rotate" : "--quat").split(',');
+				const int count = seen.contains("--rotate") ? 3 : 4;
+				std::array<double, 4> numbers{};
+				bool ok = parts.size() == count;
+				for (int i = 0; ok && i < count; ++i)
+					ok = number(parts[i], &numbers[i]);
+				if (!ok || (count == 4 && numbers[0] * numbers[0] + numbers[1] * numbers[1] + numbers[2] * numbers[2] + numbers[3] * numbers[3] < 1e-12))
+					return fail(2, Text::tr("Give --rotate as three angles in degrees, or --quat as four numbers of a nonzero quaternion."));
+				key.value = count == 3 ? modelQuatFromEulerDegrees({numbers[0], numbers[1], numbers[2]}) : numbers;
+				if (seen.contains("--interpolation"))
+				{
+					const int mode = QStringList{"step", "linear", "cubic", "step-next"}.indexOf(values["--interpolation"]);
+					if (mode < 0)
+						return fail(2, Text::tr("Interpolation must be step, linear, cubic or step-next."));
+					key.interpolation = ModelCurveInterpolation(mode);
+				}
+				if (!setModelQuatKey(&o.group, key, frames, &error))
+					return fail(4, error);
+			}
+		}
+	}
 	if (action == "replace")
 	{
 		if (modelPathsReferToSameFile(values["--output"], values["--curves"]))
@@ -200,6 +274,11 @@ ModelToolsCliResult runModelCurves(const QStringList &args)
 					  {"written", !dry},
 					  {"curves", modelClipCurvesJson(document.mesh().skeleton.clips[o.clip].curves)}};
 	result.lines << Text::tr("Animation curve operation %1 validated for joint %2.").arg(action, o.joint);
+	if (action == "convert-rotation")
+	{
+		result.payload.insert("rotationChange", rotationChange);
+		result.lines << Text::tr("Largest rotation change at any sample: %1 degrees.").arg(rotationChange, 0, 'g', 6);
+	}
 	result.payload.insert("outputSource", modelSourceSaveJson(document));
 	if (const auto packed = modelSourceSaveNotice(document); !packed.isEmpty())
 		result.lines << packed;

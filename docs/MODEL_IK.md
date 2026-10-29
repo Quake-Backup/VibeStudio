@@ -31,7 +31,23 @@ length in every affected sample. The grandparent's origin stays fixed.
 the pole from the current bend. A straight chain uses a perpendicular model
 axis; adjust it to match the intended elbow or knee direction. **Target at 3D
 Cursor** and **Pole at 3D Cursor** take the editor's 3D cursor, so a target can
-be placed by putting the cursor on a point in the viewport first. The pole
+be placed by putting the cursor on a point in the viewport first. In
+**Preview**, **Drag handle** puts the viewports' shared move handle on the
+**Target** (the default) or the **Pole**: drag an arrow to move along that
+axis, or the centre to move in the view plane, and the point fields follow
+when the handle is dropped. A ring marks the target and a diamond the pole,
+each labelled. A followed joint's target is dragged where that joint is at the
+preview sample and stored as an offset in its space. Moving a point needs
+another review; the fields remain the keyboard route.
+
+**Key the dragged point at the preview sample** keys the target or pole where
+the handle is dropped, at the preview sample, so a solve over a range follows
+an animated target: samples between keys move in a straight line from one key
+to the next, and samples outside the keys hold the nearest one. Once a point
+has keys, dropping its handle always keys it. The line under the checkbox lists
+the keyed samples, and **Clear Keys** removes them (as does choosing another
+clip). Keyed targets are model-space points, so they need **Target source**
+**Fixed point**. The pole
 stays constant across the selected range. The target does too unless
 **Target source** is **Follow a joint**: each sample then aims at that joint's
 pose applied to the target fields, read as an offset in its space, so a hand
@@ -73,6 +89,16 @@ animation curves' convention), from −180 to 180 degrees. **No limits** clears
 them. Limits are saved in the editable source (mesh version 15) and do not
 change existing poses.
 
+**Limit type** **Swing and twist** suits shoulders and hips. The relative
+rotation is split into a twist about the joint's own **Twist axis** (the bind
+axis the bone points along) and a swing that moves that axis. The twist stays
+within that axis's minimum and maximum; the swing, as a rotation vector in
+degrees across the other two axes, stays inside the ellipse their bounds span
+(the maximum on the positive side of each axis, the minimum's size on the
+negative side), so a 20-degree bound on Y and 40 on Z make an elliptical cone.
+Swing bounds must include zero, so the bind pose is always allowed. A swing
+outside the ellipse is scaled back onto it.
+
 With **Apply joint limits**, chain solves clamp every joint they turn after each
 pass: the joint's relative rotation is decomposed into those angles, clamped and
 rebuilt, and its subtree follows. Every turned joint therefore ends inside its
@@ -80,9 +106,15 @@ limits; a target that cannot be reached within them is refused unless
 **Nearest reachable** is chosen. The end joint keeps its orientation (or follows
 the last bone) and is not clamped. The two-bone solve does not apply limits.
 
+`model ik ... --target-keys "0:3,4,0; 12:4,3,0"` keys the target and
+`--pole-keys` the pole from the command line (sample:x,y,z entries; JSON
+reports them as `targetKeys` and `poleKeys`); both solvers accept them.
+
 `model rig --operation limits --joint knee.L --min -150,0,0 --max 0,0,0`
-sets limits from the command line (`--clear` removes them), and `model rig`
-listings report each joint's limits.
+sets limits from the command line (`--clear` removes them; `--swing-twist
+x|y|z` makes them swing-twist limits about that axis), and `model rig`
+listings report each joint's limits. [IK and foot lock
+constraints](MODEL_ANIMATION_CONSTRAINTS.md) can keep the same limits.
 
 ## Choose reach and orientation policies
 
@@ -162,10 +194,10 @@ The CLI and GUI apply the same `SolveTwoBoneIk` or `SolveChainIk` document edit.
 ## Remaining animation work
 
 [Persistent IK, aim, follow and foot-lock constraints](MODEL_ANIMATION_CONSTRAINTS.md)
-keep a solve live as the clip changes. Dedicated target and pole drag
-handles in the viewport remain planned (the 3D cursor places them today); joint
-limits apply to chain solves only, as Euler bounds rather than swing-twist
-cones. Physical
+keep a solve live as the clip changes, with joint limits if asked. Keyed
+targets and poles interpolate linearly; there is no curve shaping between IK
+keys, and they are part of one solve rather than stored with the clip. The
+two-bone solve does not apply joint limits. Physical
 keyboard/screen-reader acceptance, real-project animation quality, maximum-size
 performance, engine playback and cross-platform release checks remain open.
 The numeric controls, native results table and full detail field provide

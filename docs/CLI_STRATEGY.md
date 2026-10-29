@@ -46,7 +46,7 @@ tail resizing, timing, joint transforms, full joint-pose copying, parent-space
 interpolation and `--operation working-set`, which chooses the clips baked into
 editable frames. `copy-out`, `paste` and `mirror` move poses and keys through the
 pose clipboard (`application/x-vibestudio-pose+json`), across clips, models and,
-with a joint map, rigs, optionally mirrored left to right. `import --source FILE` adds another file's clip, exactly or retargeted. Inspection returns clip metadata, preview ranges, the
+with a joint map, rigs, optionally mirrored left to right. `import --source FILE` adds another file's clip, exactly or retargeted, with its events and curves unless `--no-events` or `--no-curves`. Inspection returns clip metadata, preview ranges, the
 `workingSet` report and model-space joint matrices. New displayed clips must
 fit the full editable frame budget; no authoring operation silently skips its
 requested output. `model import` re-bakes a skeletal model over the editable
@@ -3465,8 +3465,12 @@ See [clipboard limits and examples](LEVEL_PASTE.md#cli). **Status: Partial.**
 
 `model constraints` lists and edits a clip's persistent constraints and layers
 through the shared `EditClipStack` edit, with list, add, update, remove,
-add-layer, update-layer, remove-layer and bake operations, guarded `.mesh.json`
-outputs and JSON reports. See [constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md).
+add-layer, update-layer, remove-layer and bake operations (`model curves`
+also converts joints between Euler channels and quaternion rotation keys and
+edits those keys), weight keys
+(`--weight-keys`), joint limits inside IK constraints (`--limits yes|no`),
+guarded `.mesh.json` outputs and JSON reports. See
+[constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md).
 
 ### Animation events and game declarations
 
@@ -3474,8 +3478,9 @@ outputs and JSON reports. See [constraints and layers](MODEL_ANIMATION_CONSTRAIN
 the shared `EditAnimationEvents` edit, with guarded `.mesh.json` outputs.
 `model declarations` generates Doom 3 model declarations (and, with `--set`,
 the whole md5mesh, md5anim and `.def` set, every destination checked before
-any write), QuakeC `$frame` macros, Quake II frame headers and GZDoom MODELDEF
-from the same services as **Skeleton > Game Declarations**. See
+any write), QuakeC `$frame` macros, Quake II frame headers, GZDoom MODELDEF and
+GZDoom VOXELDEF (`--target gzdoom-voxeldef`, from an editable source or a
+`.kvx`) from the same services as **Skeleton > Game Declarations**. See
 [game declarations](MODEL_GAME_DECLARATIONS.md).
 
 ### Inverse kinematics

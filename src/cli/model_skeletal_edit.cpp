@@ -157,6 +157,10 @@ ModelToolsCliResult runModelPoseImport(const QString &input, const QSet<QString>
 	}
 	if (!modelClipImportFromSource(source, sourceClip, QFileInfo(sourcePath).fileName(), &o, &error))
 		return fail(4, error);
+	if (seen.contains("--no-curves"))
+		o.curves.clear();
+	if (seen.contains("--no-events"))
+		o.events.clear();
 	if (seen.contains("--loop"))
 		o.loops = values.value("--loop") == "yes";
 	if (seen.contains("--loop") && values.value("--loop") != "yes" && values.value("--loop") != "no")
@@ -190,6 +194,11 @@ ModelToolsCliResult runModelPoseImport(const QString &input, const QSet<QString>
 		result.lines << Text::tr("The clip is outside the working set; add it with --operation working-set to preview it.");
 	if (!plan.unusedSourceJoints.isEmpty())
 		result.lines << Text::tr("Unused source joints: %1.").arg(plan.unusedSourceJoints.join(QStringLiteral(", ")));
+	if (plan.curves > 0)
+		result.lines << (plan.capturedCurves ? Text::tr("Joints with curves captured from the retargeted samples: %1.").arg(plan.curves)
+											 : Text::tr("Joints with the source's curves: %1.").arg(plan.curves));
+	if (plan.events > 0)
+		result.lines << Text::tr("Events kept: %1.").arg(plan.events);
 	result.payload = {{"source", QFileInfo(input).absoluteFilePath()},
 					  {"operation", "import"},
 					  {"animationSource", QFileInfo(sourcePath).absoluteFilePath()},
@@ -203,6 +212,9 @@ ModelToolsCliResult runModelPoseImport(const QString &input, const QSet<QString>
 					  {"inWorkingSet", baked},
 					  {"joints", joints},
 					  {"unusedSourceJoints", QJsonArray::fromStringList(plan.unusedSourceJoints)},
+					  {"curveJoints", plan.curves},
+					  {"curvesCaptured", plan.capturedCurves},
+					  {"events", plan.events},
 					  {"outputPath", QFileInfo(output).absoluteFilePath()},
 					  {"written", !dry},
 					  {"dryRun", dry}};
@@ -354,7 +366,7 @@ ModelToolsCliResult runModelPoseClipboard(const QString &input, const QString &o
 ModelToolsCliResult runModelPose(const QStringList &arguments)
 {
 	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--keys", "--replace-keys", "--retarget",
-							  "--fill-from-bind"};
+							  "--fill-from-bind", "--no-curves", "--no-events"};
 	const QSet<QString> options{"--input",	"--output", "--operation", "--joint",	 "--name",			"--clip",		  "--frames",
 								"--fps",	"--loop",	"--first",	   "--last",	 "--source-clip",	"--source-frame", "--translate",
 								"--rotate", "--scale", "--matrix", "--space", "--children", "--clips", "--settings-file", "--locale", "--catalog-root",
@@ -447,13 +459,15 @@ ModelToolsCliResult runModelPose(const QStringList &arguments)
 		allowed.unite({"--joints", "--mirror", "--plane", "--mirror-joints", "--replace-keys"});
 	if (import)
 		allowed.unite({"--source-clip", "--joint-map", "--retarget", "--root-scale", "--fill-from-bind", "--copy-translation", "--name", "--fps",
-					   "--loop"});
+					   "--loop", "--no-curves", "--no-events"});
 	for (const auto &key : required)
 		if (!seen.contains(key))
 			return fail(2, Text::tr("Operation %1 requires %2.").arg(operation, key));
 	for (const auto &key : seen)
 		if ((!flags.contains(key) && !allowed.contains(key)) || (list && (key == "--dry-run" || key == "--overwrite")) ||
-			((key == "--keys" || key == "--replace-keys" || key == "--retarget" || key == "--fill-from-bind") && !allowed.contains(key)))
+			((key == "--keys" || key == "--replace-keys" || key == "--retarget" || key == "--fill-from-bind" || key == "--no-curves" ||
+			  key == "--no-events") &&
+			 !allowed.contains(key)))
 			return fail(2, Text::tr("Option %1 does not apply to %2.").arg(key, operation));
 	if (list && seen.contains("--clip") != seen.contains("--first"))
 		return fail(2, Text::tr("Pose inspection requires --clip and --first together."));

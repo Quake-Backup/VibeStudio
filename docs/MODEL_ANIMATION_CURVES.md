@@ -79,6 +79,61 @@ the integer samples; scale must remain greater than 0.000001 throughout.
 The model permits at most 1,048,576 stored keys across all clips and joints,
 subject to existing clip, preview and 64 MiB editable-source limits.
 
+## Use quaternion rotation keys
+
+Euler channels are easy to read and edit one axis at a time, but they have
+gimbal singularities and interpolate each axis separately. A joint can keep its
+rotation as quaternion keys instead: **Rotation keys** in **Animation Curves**
+switches between **Euler angles (X, Y, Z)** and **Quaternion keys**, staging the
+conversion as a draft to review. Each joint chooses on its own; translation and
+scale stay as channels.
+
+| Quaternion key interpolation | Behaviour |
+| --- | --- |
+| Linear | Slerp: a constant-speed turn along the shorter arc to the next key |
+| Cubic | Squad (Shoemake's spherical quadrangle interpolation) through the neighbouring keys, so turns ease through each key; it assumes roughly even key spacing |
+| Step, Hold next | Holds this key, or the next key strictly between the two |
+
+Converting at the keys keys the samples where any of rx, ry and rz had a key
+(cubic where any of them was cubic) or, back to Euler, the samples of the
+quaternion keys. Interpolation between keys differs, so samples between keys can
+move: the status line, and the CLI's `rotationChange`, report the largest change
+at any sample in degrees. **Convert with a key at every sample** keys every
+sample instead, so every sample keeps its rotation exactly. A single-axis turn
+converts without change either way.
+
+For a quaternion joint, the rx, ry and rz channels show an **angle view**: each
+key's rotation as X, Y and Z degrees, unwrapped from key to key, joined in the
+graph by the key's curve shape (the sampled motion follows slerp or squad).
+Setting a key's value on one axis sets a quaternion key whose other two axes
+are the rotation's angles at that sample; moving a key keeps its rotation, and
+removing one keeps at least one. Tangent fields and key copies do not apply.
+
+In the source, a quaternion joint's group adds an optional `rotation` array of
+`[sample, x, y, z, w, interpolation]` keys (unit quaternions, at most one per
+sample), and rx, ry and rz each keep one zero key at sample 0 as placeholders.
+A source with quaternion keys uses version 15; a group without them is written
+exactly as before.
+
+Some tools do not edit quaternion keys yet and refuse such joints with a
+message, leaving them unchanged: key groups in **Edit Animation Keys** and
+range transfer on rotation channels, key copies and key pastes of rotation
+channels, and layers (which add Euler offsets). Translation and scale keys of
+the same joint work everywhere. A pasted pose sets a quaternion key, as it sets
+keys on curves. Convert the joint back to Euler angles to use the other tools.
+
+```sh
+vibestudio --cli model curves models/keyed.mesh.json --clip 0 --joint upper --operation convert-rotation --to quaternion --output models/quat.mesh.json --json
+vibestudio --cli model curves models/quat.mesh.json --clip 0 --joint upper --operation set-rotation-key --frame 8 --rotate 0,0,90 --interpolation cubic --output models/quat.mesh.json --overwrite
+vibestudio --cli model curves models/quat.mesh.json --clip 0 --joint upper --operation remove-rotation-key --frame 4 --output models/quat.mesh.json --overwrite
+vibestudio --cli model curves models/quat.mesh.json --clip 0 --joint upper --operation convert-rotation --to euler --every-sample --output models/euler.mesh.json
+```
+
+`set-rotation-key` takes `--rotate x,y,z` in degrees (X then Y then Z) or
+`--quat x,y,z,w` (normalised), and keeps an existing key's interpolation unless
+`--interpolation` is given. All three operations replace the joint's curve group
+through the same `EditAnimationCurves` edit as the dialog.
+
 ## Keep poses and source data consistent
 
 The editable source stores curves alongside the dense samples used for preview
@@ -281,6 +336,19 @@ The captured destination baseline and transferred curves must fit the model's
 a dense baseline; capture and reduce those destination curves first if the
 budget is exceeded.
 
+**Animation Curves** copies and pastes keys too. **Copy Keys**
+(<kbd>Ctrl</kbd>+<kbd>C</kbd>) puts the shown joint's shown channel, staged
+changes included, on the pose clipboard over the whole clip. **Paste Keys**
+(<kbd>Ctrl</kbd>+<kbd>V</kbd>) splices the clipboard into the draft from the
+**Sample** field on: the copied keys replace the draft's keys inside the pasted
+span, with the outward tangents kept, as a range transfer does. One copied
+channel lands on the shown channel (copy rotation X, paste it into rotation Y);
+several land on their own channels; a copied pose keys all nine channels at
+each copied sample, choosing the rotation nearest the curve. The keys come from
+the copied joint with this joint's name, or from the only copied joint. Keys
+past the clip's last sample are left out and reported. The paste is a draft
+change: **Undo draft** reverses it and **Review** checks it like any other.
+
 This transfers local channel values within one rig. To move keys between
 models, select them in **Edit Animation Keys** and choose **Copy Keys**
 (<kbd>Ctrl</kbd>+<kbd>C</kbd>: the selected joints and channels over the samples the
@@ -320,9 +388,10 @@ and packaging; review collision, animation scripts and engine playback.
 Export fixtures do not prove acceptance in the original engines.
 
 Key copy and paste between clips and models goes through the
-[pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses). Quaternion tracks, cyclic
-extrapolation and layer weight curves remain planned
-([persistent constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md),
+[pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses). Quaternion rotation
+keys are available per joint (see above), with the tool limits listed there;
+cyclic extrapolation remains planned
+([persistent constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md) with weight keys,
 [long-chain IK](MODEL_IK.md#solve-longer-chains) and
 [retargeting](MODEL_RIG.md#import-and-retarget-clips) are available). Resampling a clip to another rate or frame count
 rescales its keys when each lands on a whole frame, or bakes the curves on

@@ -136,6 +136,24 @@ every controls profile. Strings use `ModelPoseClipboard`, `ModelClipImport`,
 100% and 200% text and right-to-left; physical keyboard and screen-reader
 acceptance remains open.
 
+The 2026-10-29 additions follow the same rules. **Animation Curves** has
+**Copy Keys** and **Paste Keys** buttons on Ctrl+C and Ctrl+V; the pose paste's
+**Joint map** is a native table with one labelled combo box per copied joint;
+the IK preview's **Drag handle** is a combo box, the dragged point is announced
+in the status line and the point fields remain the keyboard route, and its
+target and pole markers differ by shape (ring, diamond) and label, not colour;
+**Limit type** and **Twist axis** are labelled combo boxes; **Import
+Animation**'s two previews have accessible names and a shared **Sample** spin
+box; **Constraints and Layers** keys layers with the same accessible curve graph
+as **Animation Curves** plus numeric **Key**, **Set Key** and **Remove Key**
+controls; **Game Declarations** adds VOXELDEF fields and **Stage in Package**.
+**Rotation keys** in **Animation Curves** is a labelled combo box with a
+**Convert with a key at every sample** check box, and the angle view uses the
+existing key table and graph; the IK preview's **Key the dragged point at the
+preview sample** check box, keyed-samples line and **Clear Keys** button are
+native, labelled controls. Strings use `ModelRotationTracks` and the dialogs'
+contexts.
+
 **Transfer Skin Weights** uses native focusable controls, wrapped labels and a
 scrollable form; joint mapping, locks and before/after weights use native tables.
 A read-only detail field exposes full numeric rows independently of column width.

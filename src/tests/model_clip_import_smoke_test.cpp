@@ -183,6 +183,58 @@ int main(int argc, char **argv)
 	across.animation.import.retarget = true;
 	expect(moved.edit(across, &error), "retargeting imports between different hierarchies");
 
+	// The source clip's curves and events come along.
+	auto keyed = mesh;
+	ModelEdit capture;
+	capture.kind = ModelEditKind::EditAnimationCurves;
+	capture.curves.clip = 0;
+	capture.curves.joint = "l_arm";
+	ModelEdit step;
+	step.kind = ModelEditKind::EditAnimationEvents;
+	step.animation.events.clip = 0;
+	step.animation.events.event = {2, "sound_body", {"snd_step"}};
+	expect(applyModelEdit(&keyed, capture, nullptr, &error) && applyModelEdit(&keyed, step, nullptr, &error) &&
+			   keyed.skeleton.clips[0].curves.size() == 1 && keyed.skeleton.clips[0].events.size() == 1,
+		   "key the source's arm and add a footstep event");
+	auto withCurves = importEdit(keyed, "keyed");
+	expect(withCurves.animation.import.curves.size() == 1 && withCurves.animation.import.events.size() == 1,
+		   "the source's curves and events fill the import");
+	expect(planModelClipImport(mesh, withCurves.animation.import, &plan, &error) && plan.curves == 1 && plan.events == 1 && !plan.capturedCurves,
+		   "the plan counts the curves and events it keeps");
+	ModelDocument keyedDocument;
+	expect(keyedDocument.setMesh(mesh, &error) && keyedDocument.edit(withCurves, &error), "import a keyed clip");
+	const auto &keyedClip = keyedDocument.mesh().skeleton.clips.last();
+	expect(keyedClip.curves.size() == 1 && keyedClip.curves[0] == keyed.skeleton.clips[0].curves[0] && keyedClip.events == keyed.skeleton.clips[0].events,
+		   "an exact import keeps the source's keys and events");
+	ModelDocument renamedKeys;
+	auto renamedArm = rename;
+	renamedArm.rig.joint = "l_arm";
+	renamedArm.rig.name = "l_limb";
+	auto mappedKeys = importEdit(keyed, "keyed");
+	mappedKeys.animation.import.joints = {{"l_arm", "l_limb"}};
+	expect(renamedKeys.setMesh(mesh, &error) && renamedKeys.edit(renamedArm, &error) && renamedKeys.edit(mappedKeys, &error) &&
+			   renamedKeys.mesh().skeleton.clips.last().curves.size() == 1 && renamedKeys.mesh().skeleton.clips.last().curves[0].joint == "l_limb",
+		   "curves follow the joint map");
+	auto samplesOnly = importEdit(keyed, "plain");
+	samplesOnly.animation.import.curves.clear();
+	samplesOnly.animation.import.events.clear();
+	expect(keyedDocument.edit(samplesOnly, &error) && keyedDocument.mesh().skeleton.clips.last().curves.isEmpty() &&
+			   keyedDocument.mesh().skeleton.clips.last().events.isEmpty(),
+		   "cleared curves and events import the samples alone");
+	auto lateEvent = importEdit(keyed, "late");
+	lateEvent.animation.import.events = {{9, "sound_body", {"snd_step"}}};
+	expect(!planModelClipImport(mesh, lateEvent.animation.import, &plan, &error) && !keyedDocument.edit(lateEvent, &error),
+		   "events past the clip's samples are refused");
+	auto keyedRetarget = importEdit(keyed, "keyed_tall");
+	keyedRetarget.animation.import.retarget = true;
+	ModelDocument keyedTall;
+	expect(planModelClipImport(tall, keyedRetarget.animation.import, &plan, &error) && plan.capturedCurves && plan.curves == 1 &&
+			   keyedTall.setMesh(tall, &error) && keyedTall.edit(keyedRetarget, &error),
+		   "a retargeted import captures curves for the keyed joints");
+	const auto &tallClip = keyedTall.mesh().skeleton.clips.last();
+	expect(tallClip.curves.size() == 1 && tallClip.curves[0].joint == "l_arm" && tallClip.curves[0].channels[5].size() == 4 && tallClip.events.size() == 1,
+		   "captured curves hold one key per sample and the events are kept");
+
 	// CLI.
 	const auto source = QDir(tmp.path()).filePath("rig.mesh.json"), out = QDir(tmp.path()).filePath("out.mesh.json");
 	ModelDocument cliSource;
@@ -204,6 +256,20 @@ int main(int argc, char **argv)
 							 "walk_again", "--retarget", "--name", "again", "--output", out, "--overwrite", "--json"});
 	expect(cli.exitCode == 0 && cli.payload["retarget"].toBool() && cli.payload["sourceClip"].toString() == "walk_again",
 		   "CLI retargets a named clip of another editable source");
+	const auto keyedPath = QDir(tmp.path()).filePath("keyed.mesh.json");
+	ModelDocument keyedSave;
+	expect(keyedSave.setMesh(keyed, &error) && keyedSave.save(keyedPath, false, &error), "save the keyed source");
+	cli = cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "import", "--source", keyedPath, "--name", "keyed",
+							 "--output", out, "--overwrite", "--json"});
+	expect(cli.exitCode == 0 && cli.payload["curveJoints"].toInt() == 1 && cli.payload["events"].toInt() == 1 && !cli.payload["curvesCaptured"].toBool(),
+		   "CLI imports the source's curves and events");
+	cli = cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "import", "--source", keyedPath, "--name", "keyed",
+							 "--no-curves", "--no-events", "--output", out, "--overwrite", "--json"});
+	expect(cli.exitCode == 0 && cli.payload["curveJoints"].toInt() == 0 && cli.payload["events"].toInt() == 0, "CLI imports samples alone on request");
+	expect(cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "copy-out", "--clip", "0", "--first", "0", "--no-events",
+							  "--output", out, "--overwrite"})
+				   .exitCode == 2,
+		   "CLI refuses --no-events outside import");
 	if (argc > 1)
 	{
 		QProcess process;

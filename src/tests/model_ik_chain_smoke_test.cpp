@@ -13,6 +13,7 @@
 #include <QTemporaryDir>
 #include <cmath>
 #include <iostream>
+#include <numbers>
 
 using namespace vibestudio;
 using namespace vibestudio::tests;
@@ -168,6 +169,122 @@ int main(int argc, char **argv)
 	ModelMesh parsed;
 	expect(!parseEditableModel(older, &parsed, &error), "a version 14 source cannot carry joint limits");
 
+	// Swing-twist limits: the twist about the bone's own axis and the swing
+	// inside the ellipse of the other two axes' bounds.
+	{
+		ModelJointLimits swing;
+		swing.enabled = true;
+		swing.swingTwist = true;
+		swing.twistAxis = 0;
+		swing.minimum = {-30, -10, -20};
+		swing.maximum = {30, 10, 20};
+		ModelJointLimits read;
+		expect(validModelJointLimits(swing, &error) && modelJointLimitsFromJson(modelJointLimitsJson(swing), &read) && read == swing,
+			   "swing-twist limits round-trip through JSON");
+		auto off = swing;
+		off.minimum[1] = 5;
+		auto axis = swing;
+		axis.twistAxis = 3;
+		auto euler = swing;
+		euler.swingTwist = false;
+		euler.twistAxis = 2;
+		expect(!validModelJointLimits(off) && !validModelJointLimits(axis) && !validModelJointLimits(euler),
+			   "swing bounds must include zero and the twist axis must be X, Y or Z");
+		const auto turn = [](int which, double degrees)
+		{
+			const double half = degrees * std::numbers::pi / 360;
+			ModelQuat q{0, 0, 0, float(std::cos(half))};
+			(which == 0 ? q.x : which == 1 ? q.y : q.z) = float(std::sin(half));
+			return q;
+		};
+		auto skeleton = ikChainFixture(3).skeleton;
+		skeleton.joints[1].limits = swing;
+		auto pose = modelSkeletonBindPose(skeleton);
+		// Twisted 50 degrees about the bone (X), then swung 40 degrees about Z.
+		pose[1] = modelJointMatrix(modelQuatMultiply(turn(2, 40), turn(0, 50)), modelJointTranslation(pose[1]));
+		pose[2] = modelJointMultiply(pose[1], modelJointMatrix({}, {2, 0, 0}));
+		const auto angles = modelJointLimitAngles(skeleton, pose, 1);
+		expect(std::abs(angles[0] - 50) < .01 && std::abs(angles[1]) < .01 && std::abs(angles[2] - 40) < .01,
+			   "swing-twist angles split the twist from the swing");
+		QString problem;
+		expect(!modelPoseWithinJointLimits(skeleton, pose, 1e-3, &problem) && !problem.isEmpty(), "the twisted, swung pose is outside the limits");
+		pose[1] = modelJointMatrix(modelQuatMultiply(turn(2, 10), turn(0, 25)), modelJointTranslation(pose[1]));
+		expect(modelPoseWithinJointLimits(skeleton, pose, 1e-3), "a pose inside the swing ellipse and twist range is within the limits");
+
+		// A chain solve keeps swing-twist joints inside their limits.
+		ModelDocument swung;
+		expect(swung.setMesh(mesh, &error), "open the chain for swing-twist limits");
+		for (const auto *name : {"j0", "j1", "j2", "j3"})
+		{
+			auto set = limit;
+			set.animation.limits.joint = QString::fromLatin1(name);
+			set.animation.limits.limits = swing;
+			set.animation.limits.limits.minimum = {-5, -10, -25};
+			set.animation.limits.limits.maximum = {5, 10, 25};
+			expect(swung.edit(set, &error), "set swing-twist limits on a chain joint");
+		}
+		expect(swung.edit(constrained, &error), "chain IK solves with swing-twist limits");
+		bool inside = true;
+		for (const auto &solved : swung.mesh().skeleton.clips[0].frames)
+			inside = inside && modelPoseWithinJointLimits(swung.mesh().skeleton, solved, 1e-3, &error);
+		expect(inside && lengthsKept(swung.mesh(), joints), "swing-twist limits are never exceeded and bone lengths are kept");
+		const auto savedSwing = QDir(tmp.path()).filePath("swing.mesh.json");
+		ModelDocument reread;
+		expect(swung.save(savedSwing, false, &error) && reread.load(savedSwing, &error) &&
+				   reread.mesh().skeleton.joints[1].limits == swung.mesh().skeleton.joints[1].limits &&
+				   reread.mesh().skeleton.joints[1].limits.swingTwist,
+			   "swing-twist limits survive save and reload");
+	}
+
+	// Keyed targets and poles: samples between keys follow a straight line.
+	{
+		QVector<ModelIkKey> parsed;
+		expect(parseModelIkKeys("2:4,3,0; 0:3,4,0", &parsed, &error) && parsed.size() == 2 && parsed[0].sample == 0 &&
+				   modelIkKeysText(parsed) == "0:3,4,0; 2:4,3,0",
+			   "keys read as sample:x,y,z entries, in sample order");
+		expect(!parseModelIkKeys("0:1,2", &parsed, &error) && !parseModelIkKeys("0:1,2,3; 0:4,5,6", &parsed, &error),
+			   "malformed and repeated keys are refused");
+		const auto middle = modelIkKeyedPoint(parsed, 1);
+		expect(distance(middle, {3.5f, 3.5f, 0}) < 1e-6 && distance(modelIkKeyedPoint(parsed, 9), {4, 3, 0}) < 1e-6,
+			   "keys interpolate linearly and hold outside");
+		auto keyed = chainIkEdit(joints, {0, 0, 0}, {2, 8, 0});
+		keyed.ik.targetKeys = parsed;
+		keyed.ik.iterations = 200;
+		ModelDocument keyedDocument;
+		expect(keyedDocument.setMesh(mesh, &error) && keyedDocument.edit(keyed, &error), "chain IK solves keyed targets");
+		const auto solvedKeyed = keyedDocument.mesh();
+		expect(distance(at(solvedKeyed, 0, joints - 1), {3, 4, 0}) < 1e-3 && distance(at(solvedKeyed, 1, joints - 1), {3.5f, 3.5f, 0}) < 1e-3 &&
+				   distance(at(solvedKeyed, 2, joints - 1), {4, 3, 0}) < 1e-3,
+			   "each sample reaches its keyed target");
+		const auto keyedSamples = modelIkSamples(solvedKeyed, keyed.ik, true);
+		expect(keyedSamples.size() == 3 && distance(keyedSamples[1].target, {3.5f, 3.5f, 0}) < 1e-6, "diagnostics report the keyed targets");
+		auto poles = keyed;
+		poles.ik.poleKeys = {{0, {2, 8, 0}}, {2, {2, -8, 0}}};
+		ModelDocument poleDocument;
+		expect(poleDocument.setMesh(mesh, &error) && poleDocument.edit(poles, &error), "chain IK solves keyed poles");
+		const auto bentFirst = at(poleDocument.mesh(), 0, joints / 2), bentLast = at(poleDocument.mesh(), 2, joints / 2);
+		const auto sideOf = [](ModelVec3 point, ModelVec3 target) { return double(target.x) * point.y - double(target.y) * point.x; };
+		expect(sideOf(bentFirst, {3, 4, 0}) > 0 && sideOf(bentLast, {4, 3, 0}) < 0, "keyed poles bend each sample their own way");
+		auto followed = keyed;
+		followed.ik.targetJoint = "prop";
+		ModelDocument refusedDocument;
+		expect(refusedDocument.setMesh(mesh, &error) && !refusedDocument.edit(followed, &error), "keyed targets cannot follow a joint too");
+		auto outside = keyed;
+		outside.ik.targetKeys = {{0, {3, 4, 0}}, {5, {4, 3, 0}}};
+		expect(!refusedDocument.edit(outside, &error), "keys past the clip are refused");
+		auto twoBone = chainIkEdit(3, {0, 0, 0}, {2, 4, 0});
+		twoBone.kind = ModelEditKind::SolveTwoBoneIk;
+		twoBone.ik.rootJoint.clear();
+		twoBone.ik.endJoint = "j2";
+		twoBone.ik.iterations = 32;
+		twoBone.ik.targetKeys = {{0, {2, 2, 0}}, {2, {3, 1, 0}}};
+		ModelDocument twoBoneDocument;
+		const auto three = ikChainFixture(3);
+		expect(twoBoneDocument.setMesh(three, &error) && twoBoneDocument.edit(twoBone, &error) &&
+				   distance(at(twoBoneDocument.mesh(), 1, 2), {2.5f, 1.5f, 0}) < 1e-3,
+			   "the two-bone solve follows keyed targets too");
+	}
+
 	// Curve protection still applies.
 	ModelEdit capture;
 	capture.kind = ModelEditKind::EditAnimationCurves;
@@ -246,10 +363,39 @@ int main(int argc, char **argv)
 							 "--output", limitedOut, "--overwrite"})
 				   .exitCode == 2,
 		   "CLI limits need both bounds");
+	const auto swingOut = QDir(tmp.path()).filePath("swing-cli.mesh.json");
+	rig = cli::runModelRig({"vibestudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-30,-10,-20",
+							"--max", "30,10,20", "--swing-twist", "x", "--output", swingOut, "--json"});
+	expect(rig.exitCode == 0 &&
+			   rig.payload["joints"].toArray()[1].toObject()["limits"].toObject()["mode"].toString() == QStringLiteral("swing-twist") &&
+			   rig.payload["joints"].toArray()[1].toObject()["limits"].toObject()["twistAxis"].toInt() == 0,
+		   "CLI sets swing-twist limits");
+	expect(cli::runModelRig({"vibestudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-30,-10,-20",
+							 "--max", "30,10,20", "--swing-twist", "w", "--output", swingOut, "--overwrite"})
+				   .exitCode == 2,
+		   "CLI swing-twist needs an axis of x, y or z");
+	expect(cli::runModelRig({"vibestudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "5,5,5", "--max",
+							 "30,10,20", "--swing-twist", "x", "--output", swingOut, "--overwrite"})
+				   .exitCode != 0,
+		   "CLI refuses swing bounds that exclude the bind pose");
 	result = cli::runModelIk({"vibestudio", "--cli", "model", "ik", limitedOut, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
 							  "--end-joint", "j4", "--target", "3,4,0", "--pole", "2,8,0", "--limits", "--nearest-reachable", "--output", out,
 							  "--overwrite", "--json"});
 	expect(result.exitCode == 0 && result.payload["withinLimits"].toBool() && result.payload["limits"].toBool(), "CLI honours joint limits");
+	result = cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+							  "--end-joint", "j4", "--target-keys", "0:3,4,0; 2:4,3,0", "--pole-keys", "0:2,8,0", "--iterations", "200", "--output",
+							  out, "--overwrite", "--json"});
+	expect(result.exitCode == 0 && result.payload["targetKeys"].toString() == "0:3,4,0; 2:4,3,0" &&
+			   std::abs(result.payload["samples"].toArray()[1].toObject()["target"].toArray()[0].toDouble() - 3.5) < 1e-6,
+		   "CLI solves keyed targets");
+	expect(cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+							"--end-joint", "j4", "--target-keys", "0:3,4,0", "--target", "3,4,0", "--output", out, "--overwrite"})
+				   .exitCode == 2,
+		   "CLI takes one target source");
+	expect(cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+							"--end-joint", "j4", "--target-keys", "0:3,4", "--output", out, "--overwrite"})
+				   .exitCode == 2,
+		   "CLI refuses malformed keys");
 	if (argc > 1)
 	{
 		QProcess process;

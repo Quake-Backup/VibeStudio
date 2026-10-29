@@ -1,4 +1,5 @@
 #include "core/model_animation_curves.h"
+#include "core/model_rotation_tracks.h"
 #include "core/model_skeleton.h"
 #include <QCoreApplication>
 #include <algorithm>
@@ -144,6 +145,17 @@ ModelJointMatrix evaluateModelPoseCurves(const ModelPoseCurves &group, double fr
 	double v[9];
 	for (int c = 0; c < 9; ++c)
 		v[c] = evaluateModelCurve(group.channels[c], frame);
+	if (!group.rotation.isEmpty())
+	{
+		// Quaternion rotation keys (core/model_rotation_tracks.h).
+		const auto q = sampleModelQuatTrack(group.rotation, frame);
+		const double x = q[0], y = q[1], z = q[2], w = q[3];
+		const double r[9] = {1 - 2 * (y * y + z * z), 2 * (x * y - w * z),	 2 * (x * z + w * y),
+							 2 * (x * y + w * z),	  1 - 2 * (x * x + z * z), 2 * (y * z - w * x),
+							 2 * (x * z - w * y),	  2 * (y * z + w * x),	 1 - 2 * (x * x + y * y)};
+		return {{float(r[0] * v[6]), float(r[1] * v[7]), float(r[2] * v[8]), float(v[0]), float(r[3] * v[6]), float(r[4] * v[7]),
+				 float(r[5] * v[8]), float(v[1]), float(r[6] * v[6]), float(r[7] * v[7]), float(r[8] * v[8]), float(v[2])}};
+	}
 	const double radians = std::numbers::pi / 180, x = std::remainder(v[3], 360.0) * radians, y = std::remainder(v[4], 360.0) * radians,
 				 z = std::remainder(v[5], 360.0) * radians;
 	const double sx = std::sin(x), cx = std::cos(x), sy = std::sin(y), cy = std::cos(y), sz = std::sin(z), cz = std::cos(z);
@@ -319,6 +331,17 @@ bool validateModelCurveGroup(const ModelPoseCurves &group, int frameCount, QStri
 			return fail(error,
 						Text::tr("Channel %1 exceeds its allowed range between keys. Scale must remain positive; adjust cubic tangents.")
 							.arg(modelCurveChannelId(channel)));
+	}
+	if (!group.rotation.isEmpty())
+	{
+		// Quaternion rotation keys replace rx, ry and rz, which keep one zero
+		// placeholder key each.
+		for (int channel = 3; channel < 6; ++channel)
+			if (!(group.channels[channel] == QVector<ModelPoseCurveKey>{ModelPoseCurveKey{0, 0.0}}))
+				return fail(error, Text::tr("A joint with quaternion rotation keys keeps one zero key at sample 0 in rx, ry and rz."));
+		if (count + group.rotation.size() > modelCurveMaxKeys)
+			return fail(error, Text::tr("Each joint needs nine nonempty channels, at most one key per sample, within the curve key budget."));
+		return validateModelQuatTrack(group.rotation, frameCount, error);
 	}
 	return true;
 }

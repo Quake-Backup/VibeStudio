@@ -177,7 +177,7 @@ QString ModelAnimationCurveView::keyPositionText() const
 }
 QString ModelAnimationCurveView::keyDetailText() const
 {
-	const auto channel = modelCurveChannelId(m_channel);
+	const auto channel = m_channel == 9 ? QStringLiteral("weight") : modelCurveChannelId(m_channel);
 	if (m_selected < 0 || m_selected >= m_keys.size())
 		return Text::tr("Channel %1.").arg(channel);
 	const auto &key = m_keys[m_selected];
@@ -251,7 +251,8 @@ void ModelAnimationCurveView::paintEvent(QPaintEvent *)
 					 localeNumber(m_first, 5));
 	painter.drawText(QRectF(box.left(), box.bottom() + 4, box.width(), fontMetrics().height()), Qt::AlignRight,
 					 localeNumber(m_last, 5));
-	painter.drawText(QRectF(box.left(), 0, box.width(), fontMetrics().height()), Qt::AlignCenter, modelCurveChannelId(m_channel));
+	painter.drawText(QRectF(box.left(), 0, box.width(), fontMetrics().height()), Qt::AlignCenter,
+					 m_channel == 9 ? QStringLiteral("weight") : modelCurveChannelId(m_channel));
 	painter.save();
 	painter.setClipRect(box.adjusted(-6, -6, 6, 6));
 	QPen cursor(palette().text().color(), 1, Qt::DashLine);

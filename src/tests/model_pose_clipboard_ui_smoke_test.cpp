@@ -1,3 +1,4 @@
+#include "app/model_animation_curves_dialog.h"
 #include "app/model_curve_keys_dialog.h"
 #include "app/model_editor_dialog.h"
 #include "app/model_editor_pose.h"
@@ -17,9 +18,11 @@
 #include <QClipboard>
 #include <QComboBox>
 #include <QDir>
+#include <QLabel>
 #include <QMimeData>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QTableWidget>
 #include <QTemporaryDir>
 #include <cmath>
 #include <iostream>
@@ -156,6 +159,75 @@ int main(int argc, char **argv)
 				   clipboard.joints == QStringList{"l_arm"},
 			   "Animation Keys copies the selected keys");
 		keys.reject();
+
+		// Animation Curves: Copy Keys and Paste Keys on the draft.
+		ModelAnimationCurvesDialog curves(keyed, "l_arm", first + 1, &editor);
+		curves.show();
+		app.processEvents();
+		auto *copyCurve = curves.findChild<QPushButton *>("curvesCopyKeys");
+		auto *pasteCurve = curves.findChild<QPushButton *>("curvesPasteKeys");
+		auto *channel = curves.findChild<QComboBox *>("curvesChannel");
+		auto *keySample = curves.findChild<QSpinBox *>("curvesKeyFrame");
+		expect(copyCurve && pasteCurve && channel && keySample && copyCurve->shortcut() == QKeySequence(QKeySequence::Copy) &&
+				   pasteCurve->shortcut() == QKeySequence(QKeySequence::Paste) && !copyCurve->accessibleDescription().isEmpty() &&
+				   !pasteCurve->accessibleDescription().isEmpty(),
+			   "Animation Curves copies with Ctrl+C and pastes with Ctrl+V");
+		channel->setCurrentIndex(5);
+		QGuiApplication::clipboard()->clear();
+		curves.copyKeys();
+		expect(parseModelPoseClipboard(modelPoseClipboardFromSystem(), &clipboard) && clipboard.kind == ModelPoseClipboardKind::Keys &&
+				   clipboard.joints == QStringList{"l_arm"} && clipboard.channels == QVector<int>{5} && clipboard.samples == 4,
+			   "Copy Keys copies the shown channel over the clip");
+		channel->setCurrentIndex(3);
+		keySample->setValue(0);
+		curves.pasteKeys();
+		curves.review();
+		const auto pastedKeys = curves.edit().curves.group.channels;
+		bool same = curves.ready() && pastedKeys[3].size() == pastedKeys[5].size();
+		for (int i = 0; same && i < pastedKeys[3].size(); ++i)
+			same = pastedKeys[3][i].frame == pastedKeys[5][i].frame && std::abs(pastedKeys[3][i].value - pastedKeys[5][i].value) < 1e-6;
+		expect(same, "one copied channel pastes onto the shown channel");
+		modelPoseClipboardToSystem(copyPoseBytes(keyed, 0, 3, 3, {"l_arm"}));
+		keySample->setValue(1);
+		curves.pasteKeys();
+		curves.review();
+		const auto posed = curves.edit().curves.group.channels[5];
+		bool atOne = false;
+		for (const auto &k : posed)
+			atOne = atOne || (k.frame == 1 && std::abs(k.value - 60) < 1e-3);
+		expect(curves.ready() && atOne, "a copied pose keys all nine channels at the key sample");
+		QGuiApplication::clipboard()->clear();
+		curves.pasteKeys();
+		expect(curves.findChild<QLabel *>("curvesStatus")->text().contains(QStringLiteral("clipboard")), "an empty clipboard is reported");
+		curves.reject();
+
+		// Edit Skeletal Animation: a copy from another rig lands through the joint map.
+		auto other = source;
+		for (auto &joint : other.skeleton.joints)
+			joint.name = joint.name.toUpper();
+		modelPoseClipboardToSystem(copyPoseBytes(other, 0, 2, 2));
+		ModelSkeletalDialog mapped(editor.document().mesh(), editor.document().selection(), QString(), first, &editor);
+		mapped.show();
+		app.processEvents();
+		auto *mappedOperation = mapped.findChild<QComboBox *>("skeletalOperation");
+		mappedOperation->setCurrentIndex(mappedOperation->findData(int(ModelEditKind::PastePose)));
+		auto *map = mapped.findChild<QTableWidget *>("skeletalPasteJointMap");
+		auto *applyMapped = mapped.findChild<QPushButton *>("applySkeletalEdit");
+		expect(map && map->isVisibleTo(&mapped) && map->rowCount() == 6 && !map->accessibleDescription().isEmpty(),
+			   "paste lists every copied joint in the joint map");
+		const auto mapEdit = mapped.edit();
+		expect(mapEdit.animation.paste.joints.size() == 6 && mapEdit.animation.paste.joints.value("L_ARM") == "l_arm" && applyMapped->isEnabled(),
+			   "copied joints match this rig's joints whatever their case");
+		ModelMesh mappedResult = editor.document().mesh();
+		expect(applyModelEdit(&mappedResult, mapEdit, nullptr, &error) &&
+				   near(modelJointTranslation(mappedResult.skeleton.clips[0].frames[0][3]), modelJointTranslation(source.skeleton.clips[0].frames[2][3])),
+			   "the mapped paste lands on this rig's joints");
+		auto *lArm = qobject_cast<QComboBox *>(map->cellWidget(2, 1));
+		lArm->setCurrentIndex(0);
+		expect(!applyMapped->isEnabled(), "an unmapped copied joint blocks Apply");
+		lArm->setCurrentIndex(lArm->findData(QStringLiteral("l_arm")));
+		expect(applyMapped->isEnabled(), "mapping it again allows Apply");
+		mapped.close();
 		expect(editor.setMesh(source, &error), "restore the clean fixture before closing");
 		editor.close();
 		app.processEvents();

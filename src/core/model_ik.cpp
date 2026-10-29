@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QRegularExpression>
 #include <algorithm>
 #include <cmath>
 #include <numbers>
@@ -270,6 +271,107 @@ ModelJointMatrix localPose(const ModelSkeleton &skeleton, const QVector<ModelJoi
 	const int parent = skeleton.joints[joint].parent;
 	return parent < 0 ? pose[joint] : modelJointMultiply(modelJointInverse(pose[parent]), pose[joint]);
 }
+// Swing-twist limits: the relative rotation q = swing * twist, where twist
+// turns about the joint's own axis `twistAxis` and swing moves that axis. The
+// coordinates are the twist angle on the twist axis and the swing's rotation
+// vector (degrees) on the other two.
+ModelQuat aboutAxis(int axis, double degrees)
+{
+	const double half = degrees * std::numbers::pi / 360;
+	ModelQuat result{0, 0, 0, float(std::cos(half))};
+	(axis == 0 ? result.x : axis == 1 ? result.y : result.z) = float(std::sin(half));
+	return result;
+}
+std::array<double, 3> swingTwistDegrees(const ModelQuat &rotation, int axis)
+{
+	double q[4]{rotation.x, rotation.y, rotation.z, rotation.w};
+	if (q[3] < 0)
+		for (double &value : q)
+			value = -value;
+	const double degrees = 180 / std::numbers::pi;
+	std::array<double, 3> result{};
+	const double twistLength = std::sqrt(q[axis] * q[axis] + q[3] * q[3]);
+	double twist[4]{0, 0, 0, 1};
+	if (twistLength > 1e-12)
+	{
+		twist[axis] = q[axis] / twistLength;
+		twist[3] = q[3] / twistLength;
+		result[axis] = 2 * std::atan2(twist[axis], twist[3]) * degrees;
+	}
+	// swing = q * conjugate(twist)
+	const ModelQuat swing = modelQuatMultiply(rotation.w < 0 ? ModelQuat{-rotation.x, -rotation.y, -rotation.z, -rotation.w} : rotation,
+											  ModelQuat{float(-twist[0]), float(-twist[1]), float(-twist[2]), float(twist[3])});
+	double s[4]{swing.x, swing.y, swing.z, swing.w};
+	if (s[3] < 0)
+		for (double &value : s)
+			value = -value;
+	const double length = std::sqrt(s[0] * s[0] + s[1] * s[1] + s[2] * s[2]);
+	if (length > 1e-12)
+	{
+		const double angle = 2 * std::atan2(length, s[3]) * degrees;
+		for (int i = 0; i < 3; ++i)
+			if (i != axis)
+				result[i] = s[i] / length * angle;
+	}
+	return result;
+}
+ModelQuat quatFromSwingTwist(const std::array<double, 3> &coordinates, int axis)
+{
+	double vector[3]{};
+	double angle = 0;
+	for (int i = 0; i < 3; ++i)
+		if (i != axis)
+		{
+			vector[i] = coordinates[i];
+			angle += coordinates[i] * coordinates[i];
+		}
+	angle = std::sqrt(angle);
+	ModelQuat swing{};
+	if (angle > 1e-12)
+	{
+		const double half = angle * std::numbers::pi / 360, s = std::sin(half) / angle;
+		swing = {float(vector[0] * s), float(vector[1] * s), float(vector[2] * s), float(std::cos(half))};
+	}
+	return modelQuatNormalized(modelQuatMultiply(swing, aboutAxis(axis, coordinates[axis])));
+}
+// The joint's limit coordinates for its mode: Euler degrees, or swing-twist.
+std::array<double, 3> limitCoordinates(const ModelJointLimits &limits, const ModelQuat &relative)
+{
+	return limits.swingTwist ? swingTwistDegrees(relative, limits.twistAxis) : eulerDegrees(relative);
+}
+ModelQuat limitRotation(const ModelJointLimits &limits, const std::array<double, 3> &coordinates)
+{
+	return limits.swingTwist ? quatFromSwingTwist(coordinates, limits.twistAxis) : quatFromEuler(coordinates);
+}
+// The nearest coordinates inside the limits: Euler bounds clamp each axis; the
+// swing scales towards zero onto its ellipse (an axis with no room keeps zero).
+std::array<double, 3> clampLimitCoordinates(const ModelJointLimits &limits, std::array<double, 3> c)
+{
+	if (!limits.swingTwist)
+	{
+		for (int i = 0; i < 3; ++i)
+			c[i] = std::clamp(c[i], limits.minimum[i], limits.maximum[i]);
+		return c;
+	}
+	const int t = limits.twistAxis, u = (t + 1) % 3, v = (t + 2) % 3;
+	c[t] = std::clamp(c[t], limits.minimum[t], limits.maximum[t]);
+	const double a = c[u] >= 0 ? limits.maximum[u] : -limits.minimum[u];
+	const double b = c[v] >= 0 ? limits.maximum[v] : -limits.minimum[v];
+	if (a <= 0)
+		c[u] = 0;
+	if (b <= 0)
+		c[v] = 0;
+	if (a > 0 && b > 0)
+	{
+		const double r = (c[u] / a) * (c[u] / a) + (c[v] / b) * (c[v] / b);
+		if (r > 1)
+		{
+			c[u] /= std::sqrt(r);
+			c[v] /= std::sqrt(r);
+		}
+	}
+	return c;
+}
 bool rigid(const ModelJointMatrix &matrix)
 {
 	const auto rebuilt = modelJointMatrix(modelJointRotation(matrix), modelJointTranslation(matrix), modelJointScale(matrix));
@@ -287,19 +389,16 @@ bool clampJoint(const ModelSkeleton &skeleton, QVector<ModelJointMatrix> *pose, 
 	const auto local = localPose(skeleton, *pose, joint);
 	const auto bind = modelJointRotation(bindLocal(skeleton, joint));
 	const auto relative = modelQuatMultiply(modelQuatConjugate(bind), modelJointRotation(local));
-	const auto angles = eulerDegrees(relative);
-	std::array<double, 3> clamped{};
+	const auto angles = limitCoordinates(limits, relative);
+	const auto clamped = clampLimitCoordinates(limits, angles);
 	bool changed = false;
 	for (int i = 0; i < 3; ++i)
-	{
-		clamped[i] = std::clamp(angles[i], limits.minimum[i], limits.maximum[i]);
 		changed = changed || std::abs(clamped[i] - angles[i]) > 1e-9;
-	}
 	if (!changed)
 		return true;
 	if (!rigid(local))
 		return fail(error, Text::tr("Joint %1 has shear, so its limits cannot be applied.").arg(skeleton.joints[joint].name));
-	const auto rotation = modelQuatMultiply(bind, quatFromEuler(clamped));
+	const auto rotation = modelQuatMultiply(bind, limitRotation(limits, clamped));
 	const auto updatedLocal = modelJointMatrix(rotation, modelJointTranslation(local), modelJointScale(local));
 	const int parent = skeleton.joints[joint].parent;
 	const auto updated = parent < 0 ? updatedLocal : modelJointMultiply((*pose)[parent], updatedLocal);
@@ -544,11 +643,29 @@ bool resolve(const ModelMesh &mesh, const ModelIkOptions &o, bool chained, Resol
 	}
 	else if (o.targetOffset.x != 0 || o.targetOffset.y != 0 || o.targetOffset.z != 0)
 		return fail(error, Text::tr("A target offset needs a followed target joint."));
+	if (!o.targetKeys.isEmpty() && (!o.targetJoint.isEmpty() || !o.targets.isEmpty()))
+		return fail(error, Text::tr("Keyed targets cannot be combined with a followed joint or per-sample targets."));
+	const int frames = int(skeleton.clips[o.clip].frames.size());
+	for (const auto *keys : {&o.targetKeys, &o.poleKeys})
+	{
+		int previous = -1;
+		if (keys->size() > frames)
+			return fail(error, Text::tr("Keyed targets and poles hold at most one key per clip sample."));
+		for (const auto &key : *keys)
+		{
+			if (key.sample <= previous || key.sample >= frames || !finite(key.point))
+				return fail(error, Text::tr("Target and pole keys need increasing samples inside the clip and finite points within one million "
+											"model units."));
+			previous = key.sample;
+		}
+	}
 	*result = std::move(r);
 	return true;
 }
 V sampleTarget(const ModelIkOptions &o, const Resolved &r, int sample, const QVector<ModelJointMatrix> &pose)
 {
+	if (!o.targetKeys.isEmpty())
+		return v(modelIkKeyedPoint(o.targetKeys, sample));
 	if (!o.targets.isEmpty())
 		return v(o.targets[sample - o.first]);
 	if (r.follow >= 0)
@@ -564,10 +681,16 @@ bool defaultChainSettings(const ModelIkOptions &o)
 bool ModelIkOptions::operator==(const ModelIkOptions &o) const
 {
 	const auto same = [](ModelVec3 a, ModelVec3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; };
-	if (targets.size() != o.targets.size())
+	if (targets.size() != o.targets.size() || targetKeys.size() != o.targetKeys.size() || poleKeys.size() != o.poleKeys.size())
 		return false;
 	for (int i = 0; i < targets.size(); ++i)
 		if (!same(targets[i], o.targets[i]))
+			return false;
+	for (int i = 0; i < targetKeys.size(); ++i)
+		if (targetKeys[i].sample != o.targetKeys[i].sample || !same(targetKeys[i].point, o.targetKeys[i].point))
+			return false;
+	for (int i = 0; i < poleKeys.size(); ++i)
+		if (poleKeys[i].sample != o.poleKeys[i].sample || !same(poleKeys[i].point, o.poleKeys[i].point))
 			return false;
 	return clip == o.clip && first == o.first && last == o.last && endJoint == o.endJoint && same(target, o.target) && same(pole, o.pole) &&
 		   nearestReachable == o.nearestReachable && keepEndOrientation == o.keepEndOrientation && rootJoint == o.rootJoint &&
@@ -623,6 +746,10 @@ bool applyModelIk(ModelMesh *mesh, const ModelEdit &edit, QString *error, const 
 		const auto &editable = modelClipEditableSamples(mesh->skeleton.clips[o.clip]);
 		auto pose = editable[frame];
 		const V target = sampleTarget(o, r, frame, pose);
+		// Keyed poles give each sample its own bend direction.
+		auto sampled = o;
+		if (!o.poleKeys.isEmpty())
+			sampled.pole = modelIkKeyedPoint(o.poleKeys, frame);
 		if (chained)
 		{
 			r.chain.lengths.clear();
@@ -642,8 +769,8 @@ bool applyModelIk(ModelMesh *mesh, const ModelEdit &edit, QString *error, const 
 				r.chain.total += length;
 			}
 		}
-		if (!(chained ? solveChain(mesh->skeleton, &pose, r.chain, o, target, error, work)
-					  : solve(mesh->skeleton, &pose, r.end, o, target, error, work)))
+		if (!(chained ? solveChain(mesh->skeleton, &pose, r.chain, sampled, target, error, work)
+					  : solve(mesh->skeleton, &pose, r.end, sampled, target, error, work)))
 		{
 			if (error && !error->isEmpty())
 				*error = Text::tr("Sample %1: %2").arg(frame).arg(*error);
@@ -659,7 +786,7 @@ bool applyModelIk(ModelMesh *mesh, const ModelEdit &edit, QString *error, const 
 }
 
 bool solveModelConstraintIk(const ModelSkeleton &skeleton, QVector<ModelJointMatrix> *pose, const QString &rootJoint, const QString &endJoint,
-							const ModelVec3 &target, const ModelVec3 &pole, bool usePole, QString *error)
+							const ModelVec3 &target, const ModelVec3 &pole, bool usePole, bool limits, QString *error)
 {
 	const int end = modelJointIndex(skeleton, endJoint, Qt::CaseSensitive);
 	if (!pose || end < 0 || pose->size() != skeleton.joints.size())
@@ -687,16 +814,70 @@ bool solveModelConstraintIk(const ModelSkeleton &skeleton, QVector<ModelJointMat
 	options.iterations = 64;
 	options.usePole = usePole;
 	options.pole = pole;
+	options.limits = limits;
 	ModelWorkProgress work({}, ModelWorkPhase::Editing, error);
 	return solveChain(skeleton, pose, chain, options, v(target), error, work);
 }
 
+ModelVec3 modelIkKeyedPoint(const QVector<ModelIkKey> &keys, int sample)
+{
+	if (keys.isEmpty())
+		return {};
+	if (sample <= keys.first().sample)
+		return keys.first().point;
+	if (sample >= keys.last().sample)
+		return keys.last().point;
+	const auto next = std::upper_bound(keys.cbegin(), keys.cend(), sample, [](int s, const ModelIkKey &key) { return s < key.sample; });
+	const auto &b = *next, &a = *(next - 1);
+	const double t = double(sample - a.sample) / double(b.sample - a.sample);
+	return {float(a.point.x + (double(b.point.x) - a.point.x) * t), float(a.point.y + (double(b.point.y) - a.point.y) * t),
+			float(a.point.z + (double(b.point.z) - a.point.z) * t)};
+}
+bool parseModelIkKeys(const QString &text, QVector<ModelIkKey> *keys, QString *error)
+{
+	if (!keys)
+		return false;
+	QVector<ModelIkKey> result;
+	for (const auto &entry : text.split(QRegularExpression(QStringLiteral("[;\\s]+")), Qt::SkipEmptyParts))
+	{
+		const auto parts = entry.split(QLatin1Char(':'));
+		const auto point = parts.value(1).split(QLatin1Char(','));
+		bool ok = false;
+		ModelIkKey key;
+		key.sample = parts.value(0).toInt(&ok);
+		ok = ok && parts.size() == 2 && point.size() == 3 && key.sample >= 0;
+		double xyz[3]{};
+		for (int i = 0; ok && i < 3; ++i)
+		{
+			xyz[i] = point[i].toDouble(&ok);
+			ok = ok && std::isfinite(xyz[i]) && std::abs(xyz[i]) <= 1000000;
+		}
+		if (!ok)
+			return fail(error, Text::tr("Write keys as sample:x,y,z entries separated by semicolons, such as 0:1,2,3; 12:4,5,6."));
+		key.point = {float(xyz[0]), float(xyz[1]), float(xyz[2])};
+		result.append(key);
+	}
+	std::sort(result.begin(), result.end(), [](const auto &a, const auto &b) { return a.sample < b.sample; });
+	for (int i = 1; i < result.size(); ++i)
+		if (result[i].sample == result[i - 1].sample)
+			return fail(error, Text::tr("Each sample holds at most one key."));
+	*keys = std::move(result);
+	return true;
+}
+QString modelIkKeysText(const QVector<ModelIkKey> &keys)
+{
+	QStringList parts;
+	for (const auto &key : keys)
+		parts << QStringLiteral("%1:%2,%3,%4").arg(key.sample).arg(key.point.x, 0, 'g', 9).arg(key.point.y, 0, 'g', 9).arg(key.point.z, 0, 'g', 9);
+	return parts.join(QStringLiteral("; "));
+}
 std::array<double, 3> modelJointLimitAngles(const ModelSkeleton &skeleton, const QVector<ModelJointMatrix> &pose, int joint)
 {
 	if (joint < 0 || joint >= skeleton.joints.size() || pose.size() != skeleton.joints.size())
 		return {};
 	const auto bind = modelJointRotation(bindLocal(skeleton, joint));
-	return eulerDegrees(modelQuatMultiply(modelQuatConjugate(bind), modelJointRotation(localPose(skeleton, pose, joint))));
+	return limitCoordinates(skeleton.joints[joint].limits,
+							modelQuatMultiply(modelQuatConjugate(bind), modelJointRotation(localPose(skeleton, pose, joint))));
 }
 bool modelPoseWithinJointLimits(const ModelSkeleton &skeleton, const QVector<ModelJointMatrix> &pose, double tolerance, QString *problem)
 {
@@ -706,14 +887,24 @@ bool modelPoseWithinJointLimits(const ModelSkeleton &skeleton, const QVector<Mod
 		if (!limits.enabled)
 			continue;
 		const auto angles = modelJointLimitAngles(skeleton, pose, j);
+		const auto clamped = clampLimitCoordinates(limits, angles);
+		const QStringList axes{QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")};
 		for (int axis = 0; axis < 3; ++axis)
-			if (angles[axis] < limits.minimum[axis] - tolerance || angles[axis] > limits.maximum[axis] + tolerance)
-				return fail(problem, Text::tr("Joint %1 turns %2 degrees about %3, outside its limits of %4 to %5.")
+		{
+			if (std::abs(clamped[axis] - angles[axis]) <= tolerance)
+				continue;
+			if (limits.swingTwist && axis != limits.twistAxis)
+				return fail(problem, Text::tr("Joint %1 swings %2 degrees about %3, outside its swing limits.")
 										 .arg(skeleton.joints[j].name)
 										 .arg(angles[axis], 0, 'g', 6)
-										 .arg(QStringList{QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")}[axis])
-										 .arg(limits.minimum[axis])
-										 .arg(limits.maximum[axis]));
+										 .arg(axes[axis]));
+			return fail(problem, Text::tr("Joint %1 turns %2 degrees about %3, outside its limits of %4 to %5.")
+									 .arg(skeleton.joints[j].name)
+									 .arg(angles[axis], 0, 'g', 6)
+									 .arg(axes[axis])
+									 .arg(limits.minimum[axis])
+									 .arg(limits.maximum[axis]));
+		}
 	}
 	return true;
 }
@@ -723,18 +914,38 @@ bool validModelJointLimits(const ModelJointLimits &limits, QString *error)
 		if (!std::isfinite(limits.minimum[axis]) || !std::isfinite(limits.maximum[axis]) || limits.minimum[axis] < -180 ||
 			limits.maximum[axis] > 180 || limits.minimum[axis] > limits.maximum[axis])
 			return fail(error, Text::tr("Joint limits need a minimum no greater than the maximum on each axis, both from -180 to 180 degrees."));
+	if (limits.twistAxis < 0 || limits.twistAxis > 2 || (!limits.swingTwist && limits.twistAxis != 0))
+		return fail(error, Text::tr("Swing-twist limits need a twist axis of X, Y or Z."));
+	if (limits.swingTwist)
+		for (int axis = 0; axis < 3; ++axis)
+			if (axis != limits.twistAxis && (limits.minimum[axis] > 0 || limits.maximum[axis] < 0))
+				return fail(error, Text::tr("Swing limits must include zero on both swing axes, so the bind pose stays inside them."));
 	return true;
 }
 QJsonValue modelJointLimitsJson(const ModelJointLimits &limits)
 {
-	return QJsonObject{{QStringLiteral("minimum"), QJsonArray{limits.minimum[0], limits.minimum[1], limits.minimum[2]}},
+	QJsonObject object{{QStringLiteral("minimum"), QJsonArray{limits.minimum[0], limits.minimum[1], limits.minimum[2]}},
 					   {QStringLiteral("maximum"), QJsonArray{limits.maximum[0], limits.maximum[1], limits.maximum[2]}}};
+	if (limits.swingTwist)
+	{
+		object.insert(QStringLiteral("mode"), QStringLiteral("swing-twist"));
+		object.insert(QStringLiteral("twistAxis"), limits.twistAxis);
+	}
+	return object;
 }
 bool modelJointLimitsFromJson(const QJsonValue &value, ModelJointLimits *limits)
 {
-	const auto object = value.toObject();
+	auto object = value.toObject();
 	ModelJointLimits result;
 	result.enabled = true;
+	if (object.contains(QStringLiteral("mode")))
+	{
+		const auto axis = object.take(QStringLiteral("twistAxis"));
+		if (object.take(QStringLiteral("mode")) != QJsonValue(QStringLiteral("swing-twist")) || !axis.isDouble() || axis.toDouble() != axis.toInt())
+			return false;
+		result.swingTwist = true;
+		result.twistAxis = axis.toInt();
+	}
 	for (const auto &field : {qMakePair(QStringLiteral("minimum"), &result.minimum), qMakePair(QStringLiteral("maximum"), &result.maximum)})
 	{
 		const auto values = object.value(field.first).toArray();

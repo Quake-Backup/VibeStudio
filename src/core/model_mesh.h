@@ -107,11 +107,17 @@ struct ModelJointMatrix {
 // How far inverse kinematics may turn a joint (core/model_ik.h): its
 // parent-local rotation relative to its bind pose's, as X-then-Y-then-Z Euler
 // degrees (the animation curves' convention), each within [minimum, maximum].
+// Swing-twist limits instead split that rotation into a twist about the
+// joint's own bind axis `twistAxis` (0-2), kept within that axis's bounds, and
+// a swing (a rotation vector in degrees across the other two axes), kept
+// inside the ellipse those axes' bounds span; their bounds must include zero.
 // Editable sources keep enabled limits (mesh version 15).
 struct ModelJointLimits {
 	bool enabled = false;
 	std::array<double, 3> minimum{-180.0, -180.0, -180.0};
 	std::array<double, 3> maximum{180.0, 180.0, 180.0};
+	bool swingTwist = false;
+	int twistAxis = 0;
 	bool operator==(const ModelJointLimits&) const = default;
 };
 
@@ -168,6 +174,38 @@ struct ModelAnimationEvent {
 	bool operator==(const ModelAnimationEvent&) const = default;
 };
 
+// Step holds the left value between keys; StepNext holds the right value.
+// Exact key times always return that key's own value, so reversing a step is lossless.
+enum class ModelCurveInterpolation { Step, Linear, Cubic, StepNext };
+enum class ModelCurveTangent { Auto, Clamped, Free, Flat };
+struct ModelPoseCurveKey {
+	int frame = 0;
+	double value = 0, inSlope = 0, outSlope = 0;
+	ModelCurveInterpolation interpolation = ModelCurveInterpolation::Linear;
+	ModelCurveTangent tangent = ModelCurveTangent::Clamped;
+	bool operator==(const ModelPoseCurveKey &) const = default;
+};
+// A quaternion rotation key (core/model_rotation_tracks.h): the joint's
+// parent-local rotation at `frame` as x, y, z, w. Linear slerps to the next
+// key, Cubic follows squad through the neighbouring keys, Step holds this key
+// and StepNext the next one.
+struct ModelPoseQuatKey {
+	int frame = 0;
+	std::array<double, 4> value{0.0, 0.0, 0.0, 1.0};
+	ModelCurveInterpolation interpolation = ModelCurveInterpolation::Linear;
+	bool operator==(const ModelPoseQuatKey &) const = default;
+};
+struct ModelPoseCurves {
+	QString joint;
+	// Parent-local tx/ty/tz, rx/ry/rz (degrees, X then Y then Z), sx/sy/sz.
+	// All nine channels are present. Samples outside the key range hold endpoints.
+	std::array<QVector<ModelPoseCurveKey>, 9> channels;
+	// Quaternion rotation keys. When present they hold the joint's rotation
+	// and rx, ry and rz each keep one zero key at sample 0, unused (see
+	// core/model_rotation_tracks.h). Editable sources keep them (mesh version 15).
+	QVector<ModelPoseQuatKey> rotation{};
+	bool operator==(const ModelPoseCurves &) const = default;
+};
 // A persistent constraint of a skeletal clip (core/model_animation_constraints.h),
 // evaluated over the clip's base samples into its dense frames.
 enum class ModelClipConstraintKind { Ik, Aim, ChildOf, CopyTransform, FootLock };
@@ -197,35 +235,25 @@ struct ModelClipConstraint {
 	// Blend from the unconstrained pose (0) to the constrained one (1).
 	double weight = 1.0;
 	bool enabled = true;
+	// Ik and FootLock: keep the chain's joints within their limits
+	// (ModelJoint::limits).
+	bool limits = false;
+	// Optional weight keys over the clip's samples, values 0-1, that scale
+	// `weight` sample by sample; empty keeps `weight` constant.
+	QVector<ModelPoseCurveKey> weightKeys{};
 	bool operator==(const ModelClipConstraint&) const = default;
-};
-// Step holds the left value between keys; StepNext holds the right value.
-// Exact key times always return that key's own value, so reversing a step is lossless.
-enum class ModelCurveInterpolation { Step, Linear, Cubic, StepNext };
-enum class ModelCurveTangent { Auto, Clamped, Free, Flat };
-struct ModelPoseCurveKey {
-	int frame = 0;
-	double value = 0, inSlope = 0, outSlope = 0;
-	ModelCurveInterpolation interpolation = ModelCurveInterpolation::Linear;
-	ModelCurveTangent tangent = ModelCurveTangent::Clamped;
-	bool operator==(const ModelPoseCurveKey &) const = default;
-};
-struct ModelPoseCurves {
-	QString joint;
-	// Parent-local tx/ty/tz, rx/ry/rz (degrees, X then Y then Z), sx/sy/sz.
-	// All nine channels are present. Samples outside the key range hold endpoints.
-	std::array<QVector<ModelPoseCurveKey>, 9> channels;
-	bool operator==(const ModelPoseCurves &) const = default;
 };
 // An animation layer over a clip's base samples, before its constraints:
 // additive layers add translation and Euler degrees and multiply scale on the
-// joints they key; override layers replace those channels. Weight blends.
+// joints they key; override layers replace those channels. Weight blends,
+// scaled sample by sample by the optional weight keys (values 0-1).
 struct ModelClipLayer {
 	QString name;
 	bool additive = true;
 	double weight = 1.0;
 	bool enabled = true;
 	QVector<ModelPoseCurves> curves;
+	QVector<ModelPoseCurveKey> weightKeys{};
 	bool operator==(const ModelClipLayer&) const = default;
 };
 

@@ -39,17 +39,45 @@ class ModelIkDialog final : public QDialog
 	void reject() override;
 	// The editor's 3D cursor, offered as a target or pole placed in the viewport.
 	void setCursorPoint(const ModelVec3 &point);
+	// The preview's drag handle: 0 none, 1 the target, 2 the pole. The handle
+	// is the viewports' shared move gizmo; dropping it sets the point.
+	void setHandle(int handle);
+	// Where the target (in model space, following a joint at the preview
+	// sample) and the pole are.
+	[[nodiscard]] ModelVec3 targetPoint() const;
+	[[nodiscard]] ModelVec3 polePoint() const;
+	[[nodiscard]] ModelViewport *preview() const
+	{
+		return m_preview;
+	}
+	// Keyed targets and poles (ModelIkOptions::targetKeys, poleKeys): with
+	// Key the dragged point (or once a point has keys), dropping the handle keys
+	// it at the preview sample instead of moving the one point.
+	[[nodiscard]] const QVector<ModelIkKey> &targetKeys() const
+	{
+		return m_targetKeys;
+	}
+	[[nodiscard]] const QVector<ModelIkKey> &poleKeys() const
+	{
+		return m_poleKeys;
+	}
+	void setAutoKey(bool enabled);
+	void clearKeys();
 
   private:
 	ModelMesh m_source, m_result;
 	ModelEdit m_reviewed;
 	bool m_ready = false, m_busy = false, m_closeAfter = false;
 	std::function<void()> m_cancel;
-	QComboBox *m_clip = nullptr, *m_end = nullptr, *m_reach = nullptr, *m_orientation = nullptr, *m_view = nullptr;
+	QComboBox *m_clip = nullptr, *m_end = nullptr, *m_reach = nullptr, *m_orientation = nullptr, *m_view = nullptr, *m_handle = nullptr;
 	// Chain solves and target sources.
 	QComboBox *m_solver = nullptr, *m_root = nullptr, *m_targetSource = nullptr, *m_targetJoint = nullptr;
 	QSpinBox *m_iterations = nullptr;
-	QCheckBox *m_limits = nullptr, *m_usePole = nullptr;
+	QCheckBox *m_limits = nullptr, *m_usePole = nullptr, *m_autoKey = nullptr;
+	QVector<ModelIkKey> m_targetKeys, m_poleKeys;
+	QLabel *m_keys = nullptr;
+	QPushButton *m_clearKeys = nullptr;
+	void showKeys();
 	QPushButton *m_targetCursor = nullptr, *m_poleCursor = nullptr;
 	QFormLayout *m_form = nullptr;
 	ModelVec3 m_cursor;
@@ -68,5 +96,7 @@ class ModelIkDialog final : public QDialog
 	void clipChanged();
 	void usePose();
 	void showPreview();
+	void updateHandle();
+	void dropHandle(const ModelVec3 &point);
 };
 } // namespace vibestudio

@@ -147,8 +147,18 @@ which source joints are unused. **Apply** adds the clip as one undoable edit
 A joint of this rig with no source joint refuses the import unless **Keep
 unmatched joints in their bind pose** is on. A clip that fits the editable
 frame budget joins the working set; a longer one stays in the skeleton for the
-skeletal tools and exports (add it with **Working Set…** to preview it). Events
-and curves of the source clip are not imported: the clip arrives as samples.
+skeletal tools and exports (add it with **Working Set…** to preview it).
+
+With **Import the clip's events** the source clip's frame commands (such as
+footstep sounds) keep their samples. With **Import the clip's animation
+curves** an exact import keeps the source's keys on the mapped joints, renamed
+through the map; retargeting cannot keep keys (the rotations change), so it
+captures one key per sample for the joints the source keyed. A stacked source
+clip's curves describe its base, not its evaluated samples, so they are left
+out. **Update Preview** imports into a copy of the model on the worker and
+shows the source clip and this model with the result side by side at the same
+**Sample**, each in its own viewport; any changed setting marks the result
+stale until it is updated again. Nothing changes until **Apply**.
 
 ```sh
 vibestudio --cli model pose models/imp.mesh.json --operation import --source models/monster/walk.md5anim --name walk --output models/imp-walk.mesh.json --json
@@ -158,11 +168,12 @@ vibestudio --cli model pose models/marine.mesh.json --operation import --source 
 `--source` is required; `--source-clip` takes a name or index (default the
 first clip), `--name` defaults to the source clip's name, and `--fps`,
 `--loop yes|no`, `--joint-map map.json`, `--fill-from-bind`, `--retarget`,
-`--root-scale auto|N` and `--copy-translation a,b` match the dialog. The output
+`--root-scale auto|N` and `--copy-translation a,b` match the dialog;
+`--no-curves` and `--no-events` import the samples alone. The output
 may not replace the input, the source or the joint map, including aliases of
 the same file. JSON reports the new clip, its samples and rate, whether it is
-in the working set, each joint's source, the root scale and unused source
-joints.
+in the working set, each joint's source, the root scale, unused source
+joints, `curveJoints`, `curvesCaptured` and `events`.
 
 ## Copy, paste and mirror poses
 
@@ -180,13 +191,22 @@ validated like other skeletal edits.
 | Pose, another rig | Refused unless a joint map names the destination of each differently named joint. Every destination joint must have the parent the copy expects (mapped too). Local poses are pasted as they are, without bind compensation; use retargeting for rigs with different proportions. |
 | Pose, mirrored | Each copied joint lands on its left/right partner, or on itself when it sits on the mirror plane. Its pose becomes `B'p⁻¹ S Bp · local · B⁻¹ S B'`, where `S` reflects across the plane and `B`, `Bp` are the source joint's and parent's binds and `B'`, `B'p` the partner's: the copied motion relative to the bind, reflected. For rigs whose left and right binds mirror each other this is `S M S` in model space. A result with shear or a reflection is refused. |
 | Keys | The copied channel keys replace the destination's keys inside the pasted interval, with the destination's outward tangents kept, as [range transfer](MODEL_ANIMATION_CURVES.md#transfer-or-reverse-a-range) does. A destination joint without curves is captured first. Keys cannot be mirrored. |
-| Onto curves | A pasted pose sets a key on all nine channels of a joint with curves, choosing the rotation solution nearest the curve at that sample. |
+| Onto curves | A pasted pose sets a key on all nine channels of a joint with curves, choosing the rotation solution nearest the curve at that sample; a joint with quaternion rotation keys takes a rotation key instead of rx, ry and rz keys. |
 
 Existing keys at the pasted samples (or, for keys, inside the pasted interval)
 are refused unless the paste replaces keys. The Mesh Editor's viewport
 commands do replace them, as setting a key would; **Edit Skeletal Animation**
 asks with **Replace keys already there**. A paste that would run past the end
 of its clip is refused; extend the clip first.
+
+**Paste pose or keys** in **Edit Skeletal Animation** lists every copied joint
+in a **Joint map** with the joint of this model it lands on. Same names match,
+ignoring case and a `prefix:` or `prefix|` namespace (so `mixamorig:Hips`
+finds `Hips`); choose the others. **Apply** waits until every copied joint has a
+joint. A copy from this same rig with every joint on its own name pastes
+without a map, so whole parent chains keep their exact poses. **Animation
+Curves** pastes copied keys or poses into one joint's draft curves too; see
+[copy and paste keys](MODEL_ANIMATION_CURVES.md).
 
 **Skeleton** > **Copy Pose**, **Paste Pose**, **Paste Pose Mirrored** and
 **Mirror Pose** are also commands (category Animation) that every control

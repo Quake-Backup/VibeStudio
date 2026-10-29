@@ -11,6 +11,7 @@
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QHeaderView>
 #include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
@@ -18,6 +19,7 @@
 #include <QScrollArea>
 #include <QSignalBlocker>
 #include <QSpinBox>
+#include <QTableWidget>
 #include <QVBoxLayout>
 #include <algorithm>
 
@@ -220,6 +222,16 @@ ModelSkeletalDialog::ModelSkeletalDialog(const ModelMesh &mesh, const ModelSelec
 	accessible(m_replaceKeys, m_replaceKeys->text(),
 			   Text::tr("Joints with animation curves receive keys. Without this, a paste onto existing keys is refused."));
 	m_form->addRow(m_replaceKeys);
+	m_jointMap = new QTableWidget(0, 2);
+	m_jointMap->setObjectName("skeletalPasteJointMap");
+	m_jointMap->setHorizontalHeaderLabels({Text::tr("Copied joint"), Text::tr("Joint in this model")});
+	m_jointMap->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	m_jointMap->verticalHeader()->setVisible(false);
+	m_jointMap->setMinimumHeight(fontMetrics().height() * 6);
+	accessible(m_jointMap, Text::tr("Joint map"),
+			   Text::tr("Choose the joint of this model each copied joint lands on. Joints with the same name match automatically; a copy "
+						"from another rig needs every copied joint mapped."));
+	m_form->addRow(m_jointMap);
 	const QStringList labels{Text::tr("Translation"), Text::tr("Rotation"), Text::tr("Scale")};
 	const QStringList descriptions{Text::tr("Translation in model units."),
 								   Text::tr("Rotation in degrees, applied around X, then Y, then Z."),
@@ -334,6 +346,9 @@ void ModelSkeletalDialog::refresh(bool resetFields)
 	m_form->setRowVisible(m_bakeCurves, resample || closeLoop);
 	m_resampleFrames->setEnabled(m_resampleFps->value() == 0);
 	m_blendFrames->setEnabled(m_loopClose->currentData().toInt() == int(ModelLoopClose::CrossFade));
+	if (paste)
+		fillJointMap();
+	m_form->setRowVisible(m_jointMap, paste && m_jointMap->rowCount() > 0);
 	m_form->setRowVisible(m_clip, !bind && !add);
 	m_form->setRowVisible(m_joint, bind || transform);
 	m_form->setRowVisible(m_name, add || duplicate || rename);
@@ -397,8 +412,8 @@ void ModelSkeletalDialog::refresh(bool resetFields)
 													"range. Existing frame names stay unchanged.")
 					  : timing		? Text::tr("Save clip timing without resampling poses. Native loop "
 													"flags are separate from transport looping.")
-					  : paste		? Text::tr("Paste the copied pose or keys from the clipboard, starting at the first pose. Copies from "
-													"another rig need a joint map: use model pose --operation paste.")
+					  : paste		? Text::tr("Paste the copied pose or keys from the clipboard, starting at the first pose. A copy from "
+													"another rig lands on the joints chosen in the joint map.")
 					  : resample	? Text::tr("Resample the clip to a new rate or pose count, blending joints in parent space. "
 												"Curve keys are rescaled and must land on whole poses unless Bake curves is on.")
 					  : closeLoop	? Text::tr("Make the clip loop without a jump from its last pose to its first. Curve keys "
@@ -416,16 +431,83 @@ void ModelSkeletalDialog::refresh(bool resetFields)
 	if (m_mesh.skeleton.isEmpty())
 		summary = Text::tr("Add the model's first joint in Edit Skeleton before "
 						   "authoring skeletal animation.");
-	m_summary->setText(summary);
+	bool mapped = true;
 	if (paste)
 	{
 		ModelPoseClipboard clipboard;
 		const auto bytes = modelPoseClipboardFromSystem();
 		summary += QLatin1Char(' ') + (parseModelPoseClipboard(bytes, &clipboard) ? Text::tr("Clipboard: %1").arg(modelPoseClipboardSummary(clipboard))
 																				  : Text::tr("The clipboard holds no copied pose or keys."));
+		static_cast<void>(jointMap(&mapped));
+		if (!mapped)
+			summary += QLatin1Char(' ') + Text::tr("Choose a joint of this model for every copied joint in the joint map.");
 	}
+	m_summary->setText(summary);
 	m_apply->setEnabled(!m_mesh.skeleton.isEmpty() && (add || bind || clip >= 0) &&
-						(!(add || rename || duplicate) || !m_name->text().isEmpty()));
+						(!(add || rename || duplicate) || !m_name->text().isEmpty()) && mapped);
+}
+void ModelSkeletalDialog::fillJointMap()
+{
+	// Choices stay while the clipboard holds the same copy.
+	const auto bytes = modelPoseClipboardFromSystem();
+	if (bytes == m_mapBytes)
+		return;
+	m_mapBytes = bytes;
+	ModelPoseClipboard clipboard;
+	m_jointMap->setRowCount(0);
+	m_mapFingerprint.clear();
+	if (!parseModelPoseClipboard(bytes, &clipboard))
+		return;
+	m_mapFingerprint = modelPoseClipboardFingerprint(clipboard);
+	// A copied name such as "mixamorig:Hips" or "rig|Hips" also matches "Hips".
+	const auto shortName = [](const QString &name)
+	{
+		const int cut = int(std::max(name.lastIndexOf(QLatin1Char(':')), name.lastIndexOf(QLatin1Char('|'))));
+		return name.mid(cut + 1);
+	};
+	m_jointMap->setRowCount(int(clipboard.joints.size()));
+	for (int row = 0; row < clipboard.joints.size(); ++row)
+	{
+		const auto &name = clipboard.joints[row];
+		auto *item = new QTableWidgetItem(name);
+		item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+		m_jointMap->setItem(row, 0, item);
+		auto *combo = new QComboBox;
+		combo->setLayoutDirection(Qt::LeftToRight);
+		combo->setAccessibleName(Text::tr("Joint for copied joint %1").arg(name));
+		combo->addItem(Text::tr("(choose a joint)"), QString());
+		for (const auto &joint : m_mesh.skeleton.joints)
+			combo->addItem(joint.name, joint.name);
+		int match = combo->findData(name);
+		for (int i = 1; match < 0 && i < combo->count(); ++i)
+			if (combo->itemData(i).toString().compare(name, Qt::CaseInsensitive) == 0 ||
+				shortName(combo->itemData(i).toString()).compare(shortName(name), Qt::CaseInsensitive) == 0)
+				match = i;
+		combo->setCurrentIndex(std::max(0, match));
+		connect(combo, &QComboBox::currentIndexChanged, this, [this] { refresh(false); });
+		m_jointMap->setCellWidget(row, 1, combo);
+	}
+}
+QMap<QString, QString> ModelSkeletalDialog::jointMap(bool *complete) const
+{
+	QMap<QString, QString> map;
+	bool identity = true, all = true;
+	for (int row = 0; row < m_jointMap->rowCount(); ++row)
+	{
+		const auto *combo = qobject_cast<QComboBox *>(m_jointMap->cellWidget(row, 1));
+		const auto source = m_jointMap->item(row, 0)->text();
+		const auto destination = combo ? combo->currentData().toString() : QString();
+		all = all && !destination.isEmpty();
+		identity = identity && destination == source;
+		map.insert(source, destination);
+	}
+	if (complete)
+		*complete = all;
+	// The same rig with every joint on its own name pastes without a map, so
+	// whole parent chains keep their exact model-space poses.
+	if (identity && m_mapFingerprint == modelRigFingerprint(m_mesh.skeleton))
+		return {};
+	return map;
 }
 ModelEdit ModelSkeletalDialog::edit() const
 {
@@ -484,6 +566,7 @@ ModelEdit ModelSkeletalDialog::edit() const
 		paste.clip = m_clip->currentData().toInt();
 		paste.first = m_first->value();
 		paste.replaceKeys = m_replaceKeys->isChecked();
+		paste.joints = jointMap();
 		if (m_mirror->isChecked())
 			paste.mirrorAxis = detectModelPoseMirrorAxis(m_mesh, &paste.mirrorJoints);
 		o.clip = -1;

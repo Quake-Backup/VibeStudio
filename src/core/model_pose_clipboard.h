@@ -119,6 +119,13 @@ struct ModelPosePasteOptions
 [[nodiscard]] int detectModelPoseMirrorAxis(const ModelMesh &mesh, QMap<QString, QString> *pairs = nullptr);
 // A JSON object mapping exact source joint names to destination names.
 bool parseModelJointMapJson(const QByteArray &bytes, QMap<QString, QString> *map, QString *error = nullptr);
+// Key paste into one channel, shared by PastePose and the Animation Curves
+// dialog: `copied`'s samples 0..last, moved to start at `first`, replace the
+// keys of `destination` inside [first, first + last]. Both ends keep the
+// destination's outward tangent sides, as range transfer does. `frames` is the
+// destination clip's sample count; the pasted range must fit inside it.
+bool spliceModelCurveKeys(const QVector<ModelPoseCurveKey> &destination, const QVector<ModelPoseCurveKey> &copied, int last, int first,
+						  int frames, QVector<ModelPoseCurveKey> *result, QString *error = nullptr, const ModelWorkControl &control = {});
 // Candidate-only: use applyModelEdit/ModelDocument for transactional publication.
 bool applyModelPosePaste(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
 } // namespace vibestudio

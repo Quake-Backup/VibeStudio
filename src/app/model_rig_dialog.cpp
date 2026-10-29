@@ -127,6 +127,20 @@ ModelRigDialog::ModelRigDialog(const ModelMesh &mesh, const ModelSelection &sele
 	accessible(m_limitsEnabled, Text::tr("Joint limits"),
 			   Text::tr("Chain inverse kinematics keeps a limited joint's rotation, relative to its bind pose, within these angles."));
 	m_form->addRow(Text::tr("&Limits"), m_limitsEnabled);
+	m_limitMode = new QComboBox;
+	m_limitMode->setObjectName("rigLimitMode");
+	m_limitMode->addItems({Text::tr("Euler angles"), Text::tr("Swing and twist")});
+	accessible(m_limitMode, Text::tr("Limit type"),
+			   Text::tr("Euler angles bound each axis, applied X then Y then Z. Swing and twist bound the twist about the bone's own axis "
+						"and keep the swing inside the ellipse the other two axes' angles span, as shoulders and hips need."));
+	m_form->addRow(Text::tr("Limit &type"), m_limitMode);
+	m_twistAxis = new QComboBox;
+	m_twistAxis->setObjectName("rigTwistAxis");
+	m_twistAxis->setLayoutDirection(Qt::LeftToRight);
+	m_twistAxis->addItems({QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")});
+	accessible(m_twistAxis, Text::tr("Twist axis"),
+			   Text::tr("The joint's own axis, in its bind pose, that the bone points along; the twist turns about it."));
+	m_form->addRow(Text::tr("T&wist axis"), m_twistAxis);
 	m_limits = new QWidget;
 	auto *limitsLayout = new QGridLayout(m_limits);
 	limitsLayout->setContentsMargins(0, 0, 0, 0);
@@ -167,7 +181,16 @@ ModelRigDialog::ModelRigDialog(const ModelMesh &mesh, const ModelSelection &sele
 	layout->addWidget(buttons);
 	connect(m_operation, &QComboBox::currentIndexChanged, this, [this] { refresh(); });
 	connect(m_joint, &QComboBox::currentIndexChanged, this, [this] { refresh(); });
-	connect(m_limitsEnabled, &QComboBox::currentIndexChanged, this, [this] { m_limits->setEnabled(m_limitsEnabled->currentData().toBool()); });
+	connect(m_limitsEnabled, &QComboBox::currentIndexChanged, this,
+			[this]
+			{
+				const bool enabled = m_limitsEnabled->currentData().toBool();
+				m_limits->setEnabled(enabled);
+				m_limitMode->setEnabled(enabled);
+				m_twistAxis->setEnabled(enabled && m_limitMode->currentIndex() == 1);
+			});
+	connect(m_limitMode, &QComboBox::currentIndexChanged, this,
+			[this] { m_twistAxis->setEnabled(m_limitsEnabled->currentData().toBool() && m_limitMode->currentIndex() == 1); });
 	const auto updateApply = [this, apply = buttons->button(QDialogButtonBox::Apply)] {
 		const auto kind = ModelEditKind(m_operation->currentData().toInt());
 		const bool add = kind == ModelEditKind::AddJoint;
@@ -203,11 +226,15 @@ ModelEdit ModelRigDialog::edit() const
 		result.rig.joint.clear();
 		o.limits.enabled = m_limitsEnabled->currentData().toBool();
 		if (o.limits.enabled)
+		{
 			for (int axis = 0; axis < 3; ++axis)
 			{
 				o.limits.minimum[axis] = m_limitAxes[axis]->value();
 				o.limits.maximum[axis] = m_limitAxes[3 + axis]->value();
 			}
+			o.limits.swingTwist = m_limitMode->currentIndex() == 1;
+			o.limits.twistAxis = o.limits.swingTwist ? m_twistAxis->currentIndex() : 0;
+		}
 	}
 	if (result.kind == ModelEditKind::SetJointWeight)
 		result.rig.weight = m_weight->value();
@@ -224,6 +251,8 @@ void ModelRigDialog::refresh()
 	m_form->setRowVisible(m_weight, weight);
 	const bool limits = kind == ModelEditKind::SetJointLimits;
 	m_form->setRowVisible(m_limitsEnabled, limits);
+	m_form->setRowVisible(m_limitMode, limits);
+	m_form->setRowVisible(m_twistAxis, limits);
 	m_form->setRowVisible(m_limits, limits);
 	m_limits->setEnabled(m_limitsEnabled->currentData().toBool());
 	if (kind == ModelEditKind::RenameJoint)
@@ -243,7 +272,11 @@ void ModelRigDialog::refresh()
 				m_limitAxes[axis]->setValue(current.minimum[axis]);
 				m_limitAxes[3 + axis]->setValue(current.maximum[axis]);
 			}
+			m_limitMode->setCurrentIndex(current.swingTwist ? 1 : 0);
+			m_twistAxis->setCurrentIndex(current.twistAxis);
 			m_limits->setEnabled(true);
+			m_limitMode->setEnabled(true);
+			m_twistAxis->setEnabled(current.swingTwist);
 		}
 		summary = Text::tr("Limits bound the joint's rotation relative to its bind pose when chain inverse kinematics solves with "
 						   "Apply joint limits. They do not change existing poses.");

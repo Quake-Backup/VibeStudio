@@ -59,6 +59,8 @@ QJsonObject constraintJson(const ModelClipConstraint &c, int index)
 			{"first", c.first},
 			{"last", c.last},
 			{"weight", c.weight},
+			{"weightKeys", modelWeightKeysText(c.weightKeys)},
+			{"limits", c.limits},
 			{"enabled", c.enabled}};
 }
 } // namespace
@@ -68,7 +70,7 @@ ModelToolsCliResult runModelConstraints(const QStringList &arguments)
 	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--no-pole", "--disabled"};
 	const QSet<QString> options{"--input", "--output", "--operation", "--clip", "--index", "--kind", "--joint", "--root-joint", "--target",
 								"--point", "--pole", "--axis", "--first", "--last", "--weight", "--name", "--layer", "--mode",
-								"--settings-file", "--locale", "--catalog-root"};
+								"--settings-file", "--locale", "--catalog-root", "--weight-keys", "--limits"};
 	QSet<QString> seen;
 	QHash<QString, QString> values;
 	QStringList positional;
@@ -124,9 +126,9 @@ ModelToolsCliResult runModelConstraints(const QStringList &arguments)
 		allowed.insert("--clip");
 	if (constraint)
 		allowed.unite({"--kind", "--joint", "--root-joint", "--target", "--point", "--pole", "--no-pole", "--axis", "--first", "--last", "--weight",
-					   "--name", "--disabled"});
+					   "--name", "--disabled", "--weight-keys", "--limits"});
 	if (layerEdit)
-		allowed.unite({"--layer", "--mode", "--weight", "--name", "--disabled"});
+		allowed.unite({"--layer", "--mode", "--weight", "--name", "--disabled", "--weight-keys"});
 	for (const auto &key : required)
 		if (!seen.contains(key))
 			return fail(2, Text::tr("Operation %1 requires %2.").arg(operation, key));
@@ -191,6 +193,12 @@ ModelToolsCliResult runModelConstraints(const QStringList &arguments)
 				c.last = -1;
 			if (seen.contains("--disabled"))
 				c.enabled = false;
+			if (seen.contains("--limits"))
+			{
+				if (values.value("--limits") != "yes" && values.value("--limits") != "no")
+					return fail(2, Text::tr("Option --limits requires yes or no."));
+				c.limits = values.value("--limits") == "yes";
+			}
 		}
 		if (layerEdit)
 		{
@@ -232,6 +240,13 @@ ModelToolsCliResult runModelConstraints(const QStringList &arguments)
 				return fail(2, Text::tr("Weight must be from 0 to 1."));
 			(constraint ? o.constraint.weight : o.layer.weight) = weight;
 		}
+		if (seen.contains("--weight-keys"))
+		{
+			// "-" clears them; otherwise sample:value pairs.
+			const auto text = values.value("--weight-keys") == "-" ? QString() : values.value("--weight-keys");
+			if (!parseModelWeightKeys(text, int(clip.frames.size()), constraint ? &o.constraint.weightKeys : &o.layer.weightKeys, &error))
+				return fail(2, error);
+		}
 		if (!document.edit(edit, &error))
 			return fail(4, error);
 		const auto target = inspectModelWriteTarget(values.value("--output"));
@@ -272,6 +287,7 @@ ModelToolsCliResult runModelConstraints(const QStringList &arguments)
 									  {"name", layer.name},
 									  {"mode", layer.additive ? "additive" : "override"},
 									  {"weight", layer.weight},
+									  {"weightKeys", modelWeightKeysText(layer.weightKeys)},
 									  {"enabled", layer.enabled},
 									  {"joints", QJsonArray::fromStringList(joints)}});
 			result.lines << Text::tr("Clip %1 layer %2 (%3): %4, weight %5")

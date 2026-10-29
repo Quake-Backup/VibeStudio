@@ -1,4 +1,5 @@
 #include "core/model_animation_curves.h"
+#include "core/model_rotation_tracks.h"
 #include <QCoreApplication>
 #include <cmath>
 namespace vibestudio
@@ -32,17 +33,24 @@ QJsonObject modelPoseCurvesJson(const ModelPoseCurves &group)
 				QJsonArray{k.frame, k.value, modes().value(int(k.interpolation)), tangents().value(int(k.tangent)), k.inSlope, k.outSlope});
 		channels.insert(modelCurveChannelId(c), keys);
 	}
-	return {{"joint", group.joint}, {"channels", channels}};
+	QJsonObject result{{"joint", group.joint}, {"channels", channels}};
+	// Optional within source version 15; a group without it is unchanged.
+	if (!group.rotation.isEmpty())
+		result.insert("rotation", modelQuatKeysJson(group.rotation));
+	return result;
 }
 bool modelPoseCurvesFromJson(const QJsonObject &object, int frameCount, ModelPoseCurves *group, QString *error)
 {
-	if (!group || object.size() != 2 || !object["joint"].isString() || !object["channels"].isObject())
+	const bool quaternion = object.contains("rotation");
+	if (!group || object.size() != (quaternion ? 3 : 2) || !object["joint"].isString() || !object["channels"].isObject())
 		return fail(error);
 	const auto channels = object["channels"].toObject();
 	if (channels.size() != 9)
 		return fail(error);
 	ModelPoseCurves result;
 	result.joint = object["joint"].toString();
+	if (quaternion && !modelQuatKeysFromJson(object["rotation"], frameCount, &result.rotation))
+		return fail(error);
 	qint64 count = 0;
 	for (int c = 0; c < 9; ++c)
 	{

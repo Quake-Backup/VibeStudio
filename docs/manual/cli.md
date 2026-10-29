@@ -176,21 +176,26 @@ reports and validate outputs with `--dry-run`. See
 [key-group automation](../MODEL_ANIMATION_CURVES.md#automate-key-groups).
 
 `model curves` inspects, captures, edits and bakes persistent skeletal animation
-curves. Key actions share the GUI's channel, interpolation, tangent and sampled
+curves, and converts a joint between Euler channels and quaternion rotation
+keys (`--operation convert-rotation --to quaternion|euler`,
+`set-rotation-key`, `remove-rotation-key`). `model ik --target-keys` and
+`--pole-keys` key the IK target and pole at clip samples. Key actions share the GUI's channel, interpolation, tangent and sampled
 pose validation, with guarded `.mesh.json` outputs and `--dry-run`. See
 [animation curves](../MODEL_ANIMATION_CURVES.md#automate-curve-edits) for options
 and examples. Native game exports receive sampled motion.
 
 `model constraints` lists and edits a skeletal clip's persistent constraints
-(IK, aim, child of, copy transform, foot lock) and layers, and `--operation
-bake` turns them into plain samples. See
+(IK, aim, child of, copy transform, foot lock) and layers, with weight keys
+(`--weight-keys "0:0,12:1"`) and joint limits inside IK (`--limits yes`), and
+`--operation bake` turns them into plain samples. See
 [constraints and layers](../MODEL_ANIMATION_CONSTRAINTS.md).
 
 `model events` lists and edits animation events, the game-side frame commands
 on clip frames (`--operation add --clip N --frame N --command "sound_body
-snd_footstep"`). `model declarations --target doom3|quakec|quake2|gzdoom`
-prints or writes the Doom 3 model declaration, QuakeC `$frame` macros, Quake II
-frame header or GZDoom MODELDEF generated from a source; `--target doom3 --set
+snd_footstep"`). `model declarations --target
+doom3|quakec|quake2|gzdoom|gzdoom-voxeldef` prints or writes the Doom 3 model
+declaration, QuakeC `$frame` macros, Quake II frame header, GZDoom MODELDEF or
+GZDoom VOXELDEF generated from a source; `--target doom3 --set
 DIR` writes the md5mesh, every clip's md5anim and the `.def`. See
 [game declarations](../MODEL_GAME_DECLARATIONS.md).
 
