@@ -227,10 +227,10 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		else { m_document.setSelection(selection); refresh(); }
 	});
 	form->addRow(transferWeights);
-	auto *ik = new WrappingActionButton(Text::tr("Two-Bone Inverse Kinematics…"), 2);
+	auto *ik = new WrappingActionButton(Text::tr("Inverse Kinematics…"), 2);
 	ik->setObjectName(QStringLiteral("editMeshIk"));
-	ik->setAccessibleName(Text::tr("Two-bone inverse kinematics"));
-	ik->setAccessibleDescription(Text::tr("Place a hand or foot at a model-space target with an explicit bend pole. Review selected clip samples before applying."));
+	ik->setAccessibleName(Text::tr("Inverse kinematics"));
+	ik->setAccessibleDescription(Text::tr("Place a hand, foot, head or tail at a target, a followed joint or the 3D cursor, with two bones or a longer chain, a bend pole and joint limits. Review selected clip samples before applying."));
 	ik->setToolTip(ik->accessibleDescription());
 	connect(ik, &QPushButton::clicked, this, [this] {
 		if (m_working) return;
@@ -240,9 +240,11 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		ModelIkDialog dialog(m_document.mesh(), selection.joint, m_preview->frame(), this);
 		if (auto *preview = dialog.findChild<ModelViewport *>(QStringLiteral("ikPreview")))
 			preview->setCameraControls(m_preview->cameraControls());
+		if (m_tools)
+			dialog.setCursorPoint(m_tools->cursor3d());
 		if (dialog.exec() != QDialog::Accepted) return;
 		if (revision != m_document.revisionFingerprint()) {
-			m_status->setText(Text::tr("The model changed while reviewing inverse kinematics. Reopen Two-Bone Inverse Kinematics.")); return;
+			m_status->setText(Text::tr("The model changed while reviewing inverse kinematics. Reopen Inverse Kinematics.")); return;
 		}
 		QString error;
 		if (!applyEdit(dialog.edit(), &error)) m_status->setText(error);

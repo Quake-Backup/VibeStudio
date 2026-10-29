@@ -74,8 +74,9 @@ contexts. Semantic Qt checks and owned renders cover scaling, high contrast,
 expanded translations and RTL; physical keyboard/screen-reader acceptance remains
 open. See [animation curves](MODEL_ANIMATION_CURVES.md).
 
-**Two-Bone Inverse Kinematics** uses labelled native clip/joint/sample controls,
-numeric target and pole fields, a scrollable settings form and a virtual result
+**Inverse Kinematics** uses labelled native clip/joint/sample/solver/root-joint
+controls, numeric target and pole fields (renamed as offsets when following a
+joint), 3D-cursor buttons, a scrollable settings form and a virtual result
 table with a full selected-row detail field. Reach status includes words and
 numbers. Review is cancellable; changing settings invalidates Apply and results.
 The preview is static and shares the modeller camera profile. Strings use

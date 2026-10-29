@@ -3362,11 +3362,13 @@ and `mapWritten` on success or failure; failed map saving retains the source.
 See [clipboard limits and examples](LEVEL_PASTE.md#cli). **Status: Partial.**
 
 
-### Two-bone inverse kinematics
+### Inverse kinematics
 
-`model ik` shares the modeller's two-bone solver over an inclusive clip sample
-range. Model-space target/pole inputs, fixed bone lengths, optional nearest
-reachable clamping and end-joint following use the shared service. Normal
+`model ik` shares the modeller's two-bone and chain (FABRIK, CCD) solvers over
+an inclusive clip sample range. Model-space target/pole inputs, a followed
+target joint or per-sample targets, fixed bone lengths, joint limits
+(`model rig --operation limits`), optional nearest reachable clamping and
+end-joint following use the shared service. Normal
 `--dry-run`, `--output .mesh.json` and `--overwrite` publication rules apply.
 See the [CLI manual](manual/cli.md).
 

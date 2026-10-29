@@ -1,5 +1,6 @@
 #include "cli/model_tools.h"
 #include "core/model_document.h"
+#include "core/model_ik.h"
 #include "core/model_skeleton.h"
 
 #include <QCoreApplication>
@@ -31,9 +32,9 @@ bool index(const QString &text, int *out)
 
 ModelToolsCliResult runModelRig(const QStringList &arguments)
 {
-	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite"};
+	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--clear"};
 	const QSet<QString> options{"--input",	 "--output",   "--operation", "--joint",		 "--name",	 "--parent",	  "--origin",
-								"--surface", "--vertices", "--weight",	  "--settings-file", "--locale", "--catalog-root"};
+								"--surface", "--vertices", "--weight",	  "--settings-file", "--locale", "--catalog-root", "--min", "--max"};
 	QSet<QString> seen;
 	QHash<QString, QString> values;
 	QStringList positional;
@@ -71,8 +72,10 @@ ModelToolsCliResult runModelRig(const QStringList &arguments)
 											  {"remove", ModelEditKind::DeleteJoint},
 											  {"weight", ModelEditKind::SetJointWeight}};
 	const bool list = operation == "list", add = operation == "add", weight = operation == "weight";
-	if (!list && !kinds.contains(operation))
-		return fail(2, Text::tr("Choose list, add, rename, reparent, remove or weight."));
+	// Joint limits for chain inverse kinematics (ModelEditKind::SetJointLimits).
+	const bool limits = operation == "limits";
+	if (!list && !limits && !kinds.contains(operation))
+		return fail(2, Text::tr("Choose list, add, rename, reparent, remove, weight or limits."));
 	const QSet<QString> required = list						 ? QSet<QString>{}
 								   : add					 ? QSet<QString>{"--name", "--output"}
 								   : operation == "rename"	 ? QSet<QString>{"--joint", "--name", "--output"}
@@ -84,6 +87,13 @@ ModelToolsCliResult runModelRig(const QStringList &arguments)
 		allowed.unite({"--parent", "--origin"});
 	if (list)
 		allowed.unite({"--surface", "--vertices"});
+	if (limits)
+		allowed.unite({"--min", "--max"});
+	if ((seen.contains("--min") || seen.contains("--max") || seen.contains("--clear")) && !limits)
+		return fail(2, Text::tr("Options --min, --max and --clear apply only to the limits operation."));
+	if (limits && (seen.contains("--clear") == (seen.contains("--min") || seen.contains("--max")) ||
+				   (!seen.contains("--clear") && seen.contains("--min") != seen.contains("--max"))))
+		return fail(2, Text::tr("The limits operation needs --min and --max together, or --clear."));
 	for (const auto &key : {"--joint", "--name", "--parent", "--origin", "--surface", "--vertices", "--weight", "--output"})
 		if ((required.contains(key) && !seen.contains(key)) || (!allowed.contains(key) && seen.contains(key)))
 			return fail(2, Text::tr("Operation %1 has a missing or inapplicable option: %2.").arg(operation, key));
@@ -93,7 +103,25 @@ ModelToolsCliResult runModelRig(const QStringList &arguments)
 	if (!list && !values.value("--output").endsWith(".mesh.json", Qt::CaseInsensitive))
 		return fail(2, Text::tr("Rig edits require an output ending in .mesh.json."));
 	ModelEdit edit;
-	edit.rig.joint = values.value("--joint");
+	if (limits)
+	{
+		auto &o = edit.animation.limits;
+		o.joint = values.value("--joint");
+		o.limits.enabled = !seen.contains("--clear");
+		for (const auto &field : {qMakePair(QStringLiteral("--min"), &o.limits.minimum), qMakePair(QStringLiteral("--max"), &o.limits.maximum)})
+		{
+			if (!seen.contains(field.first))
+				continue;
+			const auto parts = values.value(field.first).split(',');
+			bool ok = parts.size() == 3;
+			for (int i = 0; ok && i < 3; ++i)
+				(*field.second)[i] = parts[i].toDouble(&ok);
+			if (!ok)
+				return fail(2, Text::tr("Limits are three comma-separated angles in degrees about X, Y and Z."));
+		}
+	}
+	else
+		edit.rig.joint = values.value("--joint");
 	edit.rig.name = values.value("--name");
 	edit.rig.parent = values.value("--parent");
 	if (edit.rig.parent == "-")
@@ -145,7 +173,7 @@ ModelToolsCliResult runModelRig(const QStringList &arguments)
 	const bool dry = seen.contains("--dry-run");
 	if (!list)
 	{
-		edit.kind = kinds[operation];
+		edit.kind = limits ? ModelEditKind::SetJointLimits : kinds[operation];
 		if (!document.edit(edit, &error))
 			return fail(4, error);
 		const auto target = inspectModelWriteTarget(values.value("--output"));
@@ -167,12 +195,23 @@ ModelToolsCliResult runModelRig(const QStringList &arguments)
 	{
 		const auto &joint = mesh.skeleton.joints[i];
 		const auto origin = modelJointTranslation(joint.bind);
-		joints.append(QJsonObject{{"index", i},
-								  {"name", joint.name},
-								  {"parent", joint.parent},
-								  {"origin", QJsonArray{origin.x, origin.y, origin.z}},
-								  {"influences", influences[i]}});
+		QJsonObject entry{{"index", i},
+						  {"name", joint.name},
+						  {"parent", joint.parent},
+						  {"origin", QJsonArray{origin.x, origin.y, origin.z}},
+						  {"influences", influences[i]}};
+		if (joint.limits.enabled)
+			entry.insert("limits", modelJointLimitsJson(joint.limits));
+		joints.append(entry);
 		result.lines << Text::tr("%1: %2 · parent %3 · %4 influences").arg(i).arg(joint.name).arg(joint.parent).arg(influences[i]);
+		if (joint.limits.enabled)
+			result.lines << Text::tr("  limits X %1 to %2 · Y %3 to %4 · Z %5 to %6 degrees")
+								.arg(joint.limits.minimum[0])
+								.arg(joint.limits.maximum[0])
+								.arg(joint.limits.minimum[1])
+								.arg(joint.limits.maximum[1])
+								.arg(joint.limits.minimum[2])
+								.arg(joint.limits.maximum[2]);
 	}
 	auto selected = edit.selection.vertices.values();
 	std::sort(selected.begin(), selected.end());

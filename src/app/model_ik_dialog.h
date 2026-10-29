@@ -3,7 +3,9 @@
 #include "core/model_document.h"
 #include <QDialog>
 #include <functional>
+class QCheckBox;
 class QComboBox;
+class QFormLayout;
 class QDoubleSpinBox;
 class QSpinBox;
 class QLabel;
@@ -35,6 +37,8 @@ class ModelIkDialog final : public QDialog
 	}
 	void review();
 	void reject() override;
+	// The editor's 3D cursor, offered as a target or pole placed in the viewport.
+	void setCursorPoint(const ModelVec3 &point);
 
   private:
 	ModelMesh m_source, m_result;
@@ -42,6 +46,15 @@ class ModelIkDialog final : public QDialog
 	bool m_ready = false, m_busy = false, m_closeAfter = false;
 	std::function<void()> m_cancel;
 	QComboBox *m_clip = nullptr, *m_end = nullptr, *m_reach = nullptr, *m_orientation = nullptr, *m_view = nullptr;
+	// Chain solves and target sources.
+	QComboBox *m_solver = nullptr, *m_root = nullptr, *m_targetSource = nullptr, *m_targetJoint = nullptr;
+	QSpinBox *m_iterations = nullptr;
+	QCheckBox *m_limits = nullptr, *m_usePole = nullptr;
+	QPushButton *m_targetCursor = nullptr, *m_poleCursor = nullptr;
+	QFormLayout *m_form = nullptr;
+	ModelVec3 m_cursor;
+	bool m_hasCursor = false;
+	void endChanged();
 	QSpinBox *m_first = nullptr, *m_last = nullptr, *m_sample = nullptr;
 	QDoubleSpinBox *m_target[3]{}, *m_pole[3]{};
 	QLabel *m_chain = nullptr;

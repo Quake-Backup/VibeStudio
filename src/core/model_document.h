@@ -204,6 +204,11 @@ enum class ModelEditKind
 	SetSkeletalWorkingSet,
 	// Animation authoring (core/model_animation_authoring.h); settings in ModelEdit::animation.
 	PastePose,
+	SolveChainIk,
+	SetJointLimits,
+	ImportSkeletalClip,
+	EditAnimationEvents,
+	EditClipStack,
 };
 
 struct ModelEdit

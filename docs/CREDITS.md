@@ -1120,6 +1120,20 @@ engines do. No engine code is copied; every fixture is built by the tests. See
 | [Doom 3 GPL source](https://github.com/id-Software/DOOM-3) (`neo/renderer/Model_md5.cpp`, `Model_ase.cpp`, `tr_trisurf.cpp`, `neo/idlib/math/Quat.h`, `Quat.cpp`, `JointTransform.h`, `neo/game/anim/Anim.cpp`, `neo/framework/FileSystem.cpp`, `DeclManager.cpp`) | The oracle's MD5 and ASE readers: `CalcW`, `ToMat3`, weight offsets, joint concatenation, face planes and material naming; Doom 3's absence of MD5 count limits | GPL release, reviewed 2026-10-22 | GPL-3.0 with id's additional terms; conventions only |
 | q3map2 in [q3mapx](https://github.com/themuffinator/q3mapx) (`tools/quake3/q3map2/model.cpp`, `AssModelMesh`) | The oracle's q3map2 ASE shader-name rule | `8975244`, reviewed 2026-10-22 | GPL-2.0-or-later; behaviour only |
 
+## Modeller Animation Authoring (2026-10-28)
+
+The pose clipboard, chain inverse kinematics and joint limits
+(`src/core/model_pose_clipboard.*`, `src/core/model_ik.*`,
+`src/core/model_animation_authoring.*`, `src/app/model_editor_pose.*`,
+`src/app/model_ik_dialog.*`, `src/cli/model_ik.cpp`) are original VibeStudio
+code. The chain solvers follow published algorithm descriptions; no code was
+copied. See [inverse kinematics](MODEL_IK.md#solve-longer-chains).
+
+| Reference | What it informed | Revision | Licence / use |
+|---|---|---|---|
+| A. Aristidou and J. Lasenby, "FABRIK: A fast, iterative solver for the Inverse Kinematics problem", *Graphical Models* 73(5), 2011, [doi:10.1016/j.gmod.2011.05.003](https://doi.org/10.1016/j.gmod.2011.05.003) | The forward and backward reaching passes of the FABRIK chain solver | Published paper, read 2026-10-28 | Algorithm description only |
+| L.-C. T. Wang and C. C. Chen, "A combined optimization method for solving the inverse kinematics problem of mechanical manipulators", *IEEE Transactions on Robotics and Automation* 7(4), 1991, [doi:10.1109/70.86079](https://doi.org/10.1109/70.86079) | Cyclic coordinate descent, turning each joint from the end towards the target | Published paper, read 2026-10-28 | Algorithm description only |
+
 ## Imported Compiler Toolchains
 
 | Tool | Role | Upstream | Imported revision | License notes |

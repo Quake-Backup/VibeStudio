@@ -669,6 +669,11 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::TransferAnimationCurves:
 	case ModelEditKind::SetSkeletalWorkingSet:
 	case ModelEditKind::PastePose:
+	case ModelEditKind::SolveChainIk:
+	case ModelEditKind::SetJointLimits:
+	case ModelEditKind::ImportSkeletalClip:
+	case ModelEditKind::EditAnimationEvents:
+	case ModelEditKind::EditClipStack:
 		return ModelEditSkinHandling::Direct;
 	case ModelEditKind::BevelEdges:
 	case ModelEditKind::Knife:

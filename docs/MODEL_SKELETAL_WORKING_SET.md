@@ -86,7 +86,7 @@ a clip rejoins the working set.
 
 ## Edit clips outside the working set
 
-**Two-Bone Inverse Kinematics**, **Animation Curves**, **Edit Animation Keys**
+**Inverse Kinematics**, **Animation Curves**, **Edit Animation Keys**
 and **Transfer Animation Range** list every clip with poses, marking clips
 outside the working set. Their previews skin one sample at a time, so you can
 review a clip that has no editable frames. **Edit Skeletal Animation** lists

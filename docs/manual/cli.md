@@ -107,10 +107,17 @@ pose validation, with guarded `.mesh.json` outputs and `--dry-run`. See
 and examples. Native game exports receive sampled motion.
 
 `model ik` solves two-bone inverse kinematics over an inclusive clip sample
-range with an explicit end joint, target and pole. `--nearest-reachable` clamps
+range with an explicit end joint, target and pole. `--root-joint` with
+`--solver fabrik|ccd` solves a longer chain, `--limits` keeps it within the
+joint limits that `model rig --operation limits` sets, and `--target-joint` or
+`--targets file.json` replace the fixed target. `--nearest-reachable` clamps
 unreachable targets without stretching; JSON reports reach and residual distance
 per sample. It shares the GUI pose service, source writer and dry-run validation.
 See [inverse kinematics](../MODEL_IK.md) for required options and examples.
+
+```sh
+vibestudio --cli model ik ./models/monster.mesh.json --clip 0 --first 0 --last 20 --root-joint tail1 --end-joint tail6 --solver fabrik --target 0,-40,8 --pole 0,-20,30 --output ./out/tail.mesh.json --json
+```
 
 `model build` first checks the model against a delivery target, the game the
 file is for: `--target ID` names one (such as `quakespasm` for MDL, `q2pro` for

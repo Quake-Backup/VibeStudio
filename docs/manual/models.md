@@ -177,7 +177,7 @@ watch the meter, then choose **Apply** or press Enter; **Fit Automatically**
 and **Bind Pose Only** set the checklist for you, and **Show Details** lists the
 full report. A clip too long to bake cannot be checked.
 It is one undoable edit, and a clip whose frames you edited on their own stays
-until those edits are undone. **Two-Bone Inverse Kinematics**, **Animation
+until those edits are undone. **Inverse Kinematics**, **Animation
 Curves**, **Edit Animation Keys** and **Transfer Animation Range** list clips
 outside the working set too and preview them one sample at a time. See
 [the skeletal working set](../MODEL_SKELETAL_WORKING_SET.md).
@@ -947,9 +947,15 @@ mirroring, joint maps, export handoff and CLI options.
 
 ## Place a hand or foot
 
-Open **Skeleton → Two-Bone Inverse Kinematics**. Choose a clip, an end joint
-and an inclusive sample range. Its parent and grandparent form the chain.
-Set the target in model units and a pole point on the desired elbow/knee side.
+Open **Skeleton → Inverse Kinematics**. Choose a clip, an end joint
+and an inclusive sample range. With **Two bones (exact)** its parent and
+grandparent form the chain; for a spine, neck or tail choose **Chain (FABRIK)**
+or **Chain (CCD)** and a **Root joint** further up.
+Set the target in model units and a pole point on the desired elbow/knee side,
+or put the 3D cursor on the spot in the viewport and choose **Target at 3D
+Cursor**. To keep a hand on a moving prop, set **Target source** to **Follow a
+joint**. **Apply joint limits** keeps the chain inside the limits set with
+**Edit Skeleton > Set joint limits**.
 **Require target** refuses unreachable poses; **Nearest reachable** clamps
 without stretching and reports the remaining distance. Choose whether the
 end keeps its orientation or follows the lower bone.
@@ -1005,8 +1011,8 @@ for boundary behaviour and the `model curve-transfer` CLI.
   MD5, IQM or ASE export has been loaded in the original games yet.
 - MDC, MDS, MDM, MDR, Ghoul 2, Half-Life, Hexen II, Heretic II, LightWave and
   KVX models are read only; export them as MD3 or another written format.
-- Long-chain IK, persistent constraints, animation layers, retargeting and
-  joint modal pointer-following remain planned. Two-bone IK, bone overlays,
+- Persistent constraints, animation layers, retargeting, IK drag handles and
+  joint modal pointer-following remain planned. Two-bone and chain IK, bone overlays,
   shared viewport handles and numeric joint,
   weight and skeletal pose tools are available.
   Game animation scripts (Jedi Academy `animation.cfg`,

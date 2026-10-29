@@ -41,7 +41,7 @@ Animation** before capturing keys. The GUI requires editable preview frames;
 `model curves` also handles complete retained clips outside that budget. It adds
 no setup option, dependency or AI connector. See [animation curves](MODEL_ANIMATION_CURVES.md).
 
-**Two-Bone Inverse Kinematics** works offline with the current skeleton and
+**Inverse Kinematics** works offline with the current skeleton and
 retained clips, camera profile, language, theme and text scale. A three-joint
 chain and a previewable clip enable the GUI workflow; `model ik` also handles
 retained clips outside the preview budget. No extra setup, dependency or AI

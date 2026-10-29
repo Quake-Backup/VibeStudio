@@ -1,4 +1,5 @@
 #include "core/model_document.h"
+#include "core/model_animation_events.h"
 #include "core/model_lod.h"
 #include "core/model_skin_variants.h"
 #include "core/model_vertex_identity.h"
@@ -598,6 +599,8 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 		QString problem;
 		if (!validateModelSkeleton(mesh, &problem, control)) errors << problem;
 	}
+	if (QString problem; !validateModelAnimationAuthoring(mesh, &problem, control))
+		errors << problem;
 	if (!work.check())
 	{
 		return {cancelError};
@@ -814,7 +817,7 @@ int readableSourceVersion(const ModelMesh &mesh)
 	const bool timed = std::any_of(mesh.animations.cbegin(), mesh.animations.cend(), [](const auto &clip) { return clip.framesPerSecond > 0; });
 	const bool collisionAnimation = std::any_of(mesh.collisionBoxes.cbegin(), mesh.collisionBoxes.cend(), [](const auto &box) { return !box.framePoses.isEmpty(); });
 	const bool explicitTopology = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return !s.topologyVertices.isEmpty(); });
-	return !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3;
+	return std::max(modelAnimationAuthoringSourceVersion(mesh), !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3);
 }
 // Packed sources (version 12) store the bulk arrays as base64 strings of
 // little-endian 32-bit words; the rest of the source is the same JSON.
@@ -949,6 +952,8 @@ QJsonObject sourceJson(const ModelMesh &mesh, QString *error, const ModelWorkCon
 		{
 			clip.insert(QStringLiteral("framesPerSecond"), animation.framesPerSecond);
 		}
+		if (!animation.events.isEmpty())
+			clip.insert(QStringLiteral("events"), modelAnimationEventsJson(animation.events));
 		animations << clip;
 	}
 	for (const auto &tag : mesh.tags)
@@ -1194,7 +1199,7 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 		 root.value(QStringLiteral("version")) != QJsonValue(3) && root.value(QStringLiteral("version")) != QJsonValue(4) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(5) && root.value(QStringLiteral("version")) != QJsonValue(6) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(7) && root.value(QStringLiteral("version")) != QJsonValue(8) && root.value(QStringLiteral("version")) != QJsonValue(9) && root.value(QStringLiteral("version")) != QJsonValue(10) && root.value(QStringLiteral("version")) != QJsonValue(11) &&
-		 root.value(QStringLiteral("version")) != QJsonValue(modelSourcePackedVersion) && root.value(QStringLiteral("version")) != QJsonValue(13) && root.value(QStringLiteral("version")) != QJsonValue(14)) ||
+		 root.value(QStringLiteral("version")) != QJsonValue(modelSourcePackedVersion) && root.value(QStringLiteral("version")) != QJsonValue(13) && root.value(QStringLiteral("version")) != QJsonValue(14) && root.value(QStringLiteral("version")) != QJsonValue(15)) ||
 		!root.value(QStringLiteral("source")).isString())
 	{
 		return malformed();
@@ -1538,6 +1543,10 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 			}
 			a.framesPerSecond = rate.toDouble();
 		}
+		// Version 15 adds animation events.
+		if (object.contains(QStringLiteral("events")) &&
+			(result.version < 15 || !modelAnimationEventsFromJson(object.value(QStringLiteral("events")), a.frameCount, &a.events)))
+			return malformed();
 		result.animations << a;
 	}
 	for (const auto &value : root.value(QStringLiteral("tags")).toArray())
@@ -1649,6 +1658,9 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 			return variantError.isEmpty() ? malformed() : fail(error, variantError);
 		}
 	}
+	// Version 15 adds joint limits, animation events and clip stacks.
+	if (result.version < modelAnimationAuthoringSourceVersion(result))
+		return malformed();
 	updateEditableModelMetadata(&result);
 	if (!work.check())
 	{
@@ -1772,7 +1784,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		return fail(error, QCoreApplication::translate("ModelRig", "Joint options apply only to skeleton authoring operations."));
 	if (!isModelSkeletalEdit(edit.kind) && !defaultModelSkeletalOptions(edit.skeletal))
 		return fail(error, QCoreApplication::translate("ModelSkeletalEdit", "Skeletal pose and clip options apply only to skeletal authoring operations."));
-	if (edit.kind != ModelEditKind::SolveTwoBoneIk && !(edit.ik == ModelIkOptions{}))
+	if (edit.kind != ModelEditKind::SolveTwoBoneIk && edit.kind != ModelEditKind::SolveChainIk && !(edit.ik == ModelIkOptions{}))
 		return fail(error, QCoreApplication::translate("ModelIk", "Inverse kinematics settings apply only to inverse kinematics."));
 	if (edit.kind != ModelEditKind::EditAnimationCurves && !(edit.curves == ModelCurveEditOptions{}))
 		return fail(error, QCoreApplication::translate("ModelAnimationCurves", "Curve settings apply only to animation curve operations."));
@@ -1950,6 +1962,8 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 			selection.joint = edit.rig.name;
 		if (!selection.joint.isEmpty() && modelJointIndex(candidate.skeleton, selection.joint, Qt::CaseSensitive) < 0)
 			selection.joint.clear();
+		if (!remapModelAnimationEvents(*mesh, &candidate, edit, error))
+			return false;
 		const auto errors = validateEditableModel(candidate, control);
 		if (!errors.isEmpty())
 		{
@@ -3022,6 +3036,8 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		selection.edges.removeIf([&](auto edge) { return !std::binary_search(available.cbegin(), available.cend(), edge); });
 		surface.uvSeams.removeIf([&](auto edge) { return !std::binary_search(available.cbegin(), available.cend(), edge); });
 	}
+	if (!remapModelAnimationEvents(*mesh, &candidate, edit, error))
+		return false;
 	const auto errors = validateEditableModel(candidate, control);
 	if (!errors.isEmpty())
 	{

@@ -502,6 +502,9 @@ core_sources = files(
   'core/model_curve_transfer.cpp',
   'core/model_pose_clipboard.cpp',
   'core/model_animation_authoring.cpp',
+  'core/model_animation_events.cpp',
+  'core/model_animation_constraints.cpp',
+  'core/model_clip_import.cpp',
   'core/model_animation_curves_json.cpp',
   'core/model_formats.cpp',
   'core/model_formats_p.h',
@@ -632,7 +635,8 @@ install_headers('core/model_ik.h', subdir: 'vibestudio/core')
 install_headers('core/model_animation_curves.h', subdir: 'vibestudio/core')
 install_headers('core/model_curve_key_tools.h', subdir: 'vibestudio/core')
 install_headers('core/model_curve_transfer.h', subdir: 'vibestudio/core')
-install_headers('core/model_pose_clipboard.h', 'core/model_animation_authoring.h', subdir: 'vibestudio/core')
+install_headers('core/model_pose_clipboard.h', 'core/model_animation_authoring.h', 'core/model_animation_events.h', subdir: 'vibestudio/core')
+install_headers('core/model_animation_constraints.h', 'core/model_clip_import.h', subdir: 'vibestudio/core')
 install_headers('core/model_edge_slide.h', subdir: 'vibestudio/core')
 install_headers('core/model_rip.h', subdir: 'vibestudio/core')
 install_headers('core/model_vertex_identity.h', subdir: 'vibestudio/core')
@@ -5359,3 +5363,13 @@ model_pose_clipboard_ui_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
 )
 test('model-pose-clipboard-ui-smoke', model_pose_clipboard_ui_smoke_test, env: model_document_test_env, timeout: 240)
+model_ik_chain_smoke_test = executable(
+  'model_ik_chain_smoke_test', ['tests/model_ik_chain_smoke_test.cpp', 'cli/model_ik.cpp', 'cli/model_rig.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-ik-chain-smoke', model_ik_chain_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 300)
+model_ik_chain_ui_smoke_test = executable(
+  'model_ik_chain_ui_smoke_test', ['tests/model_ik_chain_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-ik-chain-ui-smoke', model_ik_chain_ui_smoke_test, env: model_document_test_env, timeout: 240)
