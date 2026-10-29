@@ -230,7 +230,7 @@ material's `collision` keyword), `--operation export-clipmodel --target doom3
 --weapon-part P` publishes a Quake III weapon set, with optional `--lod-levels N`
 or `--lod-recipes` and repeatable `--sound NAME=PATH`, and `--operation
 q2-player-review|q2-player-export --player-name N --body B --weapon W --q2-skin
-NAME=IMAGE` a Quake II player. See [weapon packages](../MODEL_ASSEMBLY.md#weapon-packages)
+NAME=IMAGE` a Quake II player, whose inputs may also be `package:PATH` entries. See [weapon packages](../MODEL_ASSEMBLY.md#weapon-packages)
 and [Quake II player packages](../MODEL_ASSEMBLY.md#quake-ii-player-packages).
 
 VibeStudio includes a full command line that runs the same services as the studio. Use it to script

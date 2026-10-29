@@ -700,7 +700,8 @@ with the 198 standard player frames, `weapon.md2` playing in step with it, each
 skin and icon as a PCX in the game's palette, and optional sounds and view
 weapons. Open the game's `pak0.pak` (or a package with `pics/colormap.pcx`) first
 for the palette. A wrong frame count names the standard ranges so you can see
-what is missing. See [Quake II player packages](../MODEL_ASSEMBLY.md#quake-ii-player-packages).
+what is missing. Type `package:PATH` in any path to use a model, image or sound
+already in the open package. See [Quake II player packages](../MODEL_ASSEMBLY.md#quake-ii-player-packages).
 
 ### Publish a Quake III player
 

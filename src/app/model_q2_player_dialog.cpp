@@ -135,7 +135,8 @@ void ModelAssemblyDialog::chooseQ2PlayerBundle()
 	const auto models = Text::tr("Models (*.mesh.json *.md2 *.md3 *.obj *.mdl)");
 	const auto images = Text::tr("Images (*.png *.tga *.pcx *.jpg *.bmp)");
 	auto *bodyModel = fileField("q2PlayerBody", Text::tr("Body model"),
-								Text::tr("tris.md2: one surface with the 198 frames of Quake II's player animation."), models);
+								Text::tr("tris.md2: one surface with the 198 frames of Quake II's player animation. A file, or package:PATH for "
+											  "an entry of the open package."), models);
 	auto *weaponModel = fileField("q2PlayerWeapon", Text::tr("Weapon model"),
 								  Text::tr("weapon.md2: one surface, in frame lock with the body."), models);
 	auto *weaponSkin = fileField("q2PlayerWeaponSkin", Text::tr("Weapon skin"),
@@ -154,7 +155,8 @@ void ModelAssemblyDialog::chooseQ2PlayerBundle()
 		return widget;
 	};
 	auto *skins = table("q2PlayerSkins", Text::tr("Skins"), {Text::tr("Skin ID"), Text::tr("Image"), Text::tr("Icon")});
-	skins->setAccessibleDescription(Text::tr("One row per skin: its ID, its image and an optional icon image. Every skin has one size."));
+	skins->setAccessibleDescription(Text::tr("One row per skin: its ID, its image and an optional icon image, each a file or package:PATH. Every skin has "
+											 "one size."));
 	auto *rows = new QHBoxLayout;
 	auto *addSkin = new QPushButton(Text::tr("Add Skin"));
 	auto *removeSkin = new QPushButton(Text::tr("Remove Skin"));
@@ -178,7 +180,8 @@ void ModelAssemblyDialog::chooseQ2PlayerBundle()
 			skins->removeRow(skins->currentRow());
 	});
 	auto *sounds = table("q2PlayerSounds", Text::tr("Sounds"), {Text::tr("Sound"), Text::tr("File")});
-	sounds->setAccessibleDescription(Text::tr("Optional custom sounds; the game plays the male sound for each one left empty."));
+	sounds->setAccessibleDescription(Text::tr("Optional custom sounds, each a file or package:PATH; the game plays the male sound for each one "
+											  "left empty."));
 	for (const auto &sound : modelQ2PlayerSoundNames())
 	{
 		const int row = sounds->rowCount();
@@ -189,7 +192,7 @@ void ModelAssemblyDialog::chooseQ2PlayerBundle()
 		sounds->setItem(row, 1, new QTableWidgetItem);
 	}
 	auto *views = table("q2PlayerViewWeapons", Text::tr("View weapons"), {Text::tr("Weapon"), Text::tr("Model")});
-	views->setAccessibleDescription(Text::tr("Optional w_<weapon>.md2 models, each in frame lock with the body."));
+	views->setAccessibleDescription(Text::tr("Optional w_<weapon>.md2 models, each a file or package:PATH, in frame lock with the body."));
 	views->setRowCount(4);
 	for (int row = 0; row < 4; ++row)
 		for (int column = 0; column < 2; ++column)
@@ -209,7 +212,8 @@ void ModelAssemblyDialog::chooseQ2PlayerBundle()
 	content->addWidget(details);
 	scroll->setWidget(body);
 	layout->addWidget(scroll, 1);
-	auto *status = new QLabel(Text::tr("Choose the models and skins, then review the package. The open package supplies the palette."));
+	auto *status = new QLabel(Text::tr("Choose the models and skins, then review the package. The open package supplies the palette; type "
+									"package:PATH in any path to use one of its entries."));
 	status->setObjectName(QStringLiteral("q2PlayerStatus"));
 	status->setWordWrap(true);
 	status->setAccessibleName(Text::tr("Quake II player package status"));

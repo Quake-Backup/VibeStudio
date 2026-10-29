@@ -2,6 +2,8 @@
 
 #include "core/audio_delivery.h"
 #include "core/model_archive.h"
+#include "core/model_file_io.h"
+#include "core/model_skin_source.h"
 #include "core/texture_export.h"
 
 #include <QCoreApplication>
@@ -43,26 +45,59 @@ QString absolute(const QString &directory, const QString &path)
 {
 	return QDir::cleanPath(QDir(directory).absoluteFilePath(path));
 }
-bool loadModel(const QString &path, ModelMesh *mesh, QByteArray *sha256, QString *error, const ModelWorkControl &control)
+// The inputs: files relative to `directory`, protected from being replaced, or
+// "package:PATH" entries of the open package, resolved as linked skins are
+// (exactly one entry for the path).
+struct Inputs
 {
-	QByteArray bytes;
-	if (!readModelFile(path, &bytes, error, control) || !importEditableModel(path, bytes, mesh, error, nullptr, control))
-		return fail(error, Text::tr("%1 cannot be read as a model: %2").arg(path, error ? *error : QString()));
-	*sha256 = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256);
-	return true;
-}
-bool readImage(const QString &path, QImage *image, QString *error, const ModelWorkControl &control)
-{
-	QByteArray bytes;
-	if (!readModelFile(path, &bytes, error, control))
-		return false;
-	const auto decoded = decodeIdTechImage(path, bytes, {});
-	if (!decoded.decoded || decoded.image.isNull() || !decoded.frames.isEmpty() || decoded.image.width() > 640 ||
-		decoded.image.height() > 480)
-		return fail(error, Text::tr("%1 must be a single image up to 640 × 480 pixels. %2").arg(path, decoded.error));
-	*image = decoded.image;
-	return true;
-}
+	QString directory;
+	std::shared_ptr<const PackageArchiveReader> archive;
+	ModelPlayerBundle *package = nullptr;
+	ModelWorkControl control;
+	// `label` names the input in messages and decoders: the file's path or
+	// the entry's virtual path, whose extension chooses the decoder.
+	bool read(const QString &text, QByteArray *bytes, QString *label, QString *error) const
+	{
+		const auto reference = modelPlayerReference(text);
+		if (reference.sourceKind == ModelAssemblySource::File)
+		{
+			*label = absolute(directory, reference.source);
+			protectModelBundleInput(package, *label);
+			return readModelFile(*label, bytes, error, control);
+		}
+		if (!validateModelAssemblySkin(reference, nullptr))
+			return fail(error, Text::tr("Name a package entry as package:PATH with a normalized path, such as "
+										"package:players/male/tris.md2; %1 is not one.")
+								   .arg(text));
+		qsizetype index = -1;
+		if (!resolveModelSkinSource(*archive, {reference.source, -1}, &index, error))
+			return false;
+		*label = archive->entries()[index].virtualPath;
+		return ModelArchiveReader(*archive, control).readEntryAt(index, bytes, error, qint64(256) * 1024 * 1024);
+	}
+	bool model(const QString &text, ModelMesh *mesh, QByteArray *sha256, QString *error) const
+	{
+		QByteArray bytes;
+		QString label;
+		if (!read(text, &bytes, &label, error) || !importEditableModel(label, bytes, mesh, error, nullptr, control))
+			return fail(error, Text::tr("%1 cannot be read as a model: %2").arg(label.isEmpty() ? text : label, error ? *error : QString()));
+		*sha256 = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256);
+		return true;
+	}
+	bool image(const QString &text, QImage *image, QString *error) const
+	{
+		QByteArray bytes;
+		QString label;
+		if (!read(text, &bytes, &label, error))
+			return false;
+		const auto decoded = decodeIdTechImage(label, bytes, {});
+		if (!decoded.decoded || decoded.image.isNull() || !decoded.frames.isEmpty() || decoded.image.width() > 640 ||
+			decoded.image.height() > 480)
+			return fail(error, Text::tr("%1 must be a single image up to 640 × 480 pixels. %2").arg(label, decoded.error));
+		*image = decoded.image;
+		return true;
+	}
+};
 } // namespace
 
 const QVector<ModelQ2PlayerRange> &modelQ2PlayerFrameRanges()
@@ -113,14 +148,13 @@ bool prepareModelQ2PlayerBundle(const ModelQ2PlayerOptions &options, const QStri
 	candidate.options = options;
 	auto &package = candidate.package;
 	package.sourceArchive = archive;
+	const Inputs inputs{directory, archive, &package, control};
 	QJsonArray models;
 	QStringList notes;
 	// Body: one surface, the standard 198 frames.
 	ModelMesh body;
 	QByteArray bodyHash;
-	const auto bodyPath = absolute(directory, options.bodySource);
-	protectModelBundleInput(&package, bodyPath);
-	if (!loadModel(bodyPath, &body, &bodyHash, error, control))
+	if (!inputs.model(options.bodySource, &body, &bodyHash, error))
 		return false;
 	if (body.surfaces.size() != 1)
 		return fail(error, Text::tr("A Quake II player model has one surface; the body has %n. Join its surfaces in the Mesh Editor first.",
@@ -140,9 +174,7 @@ bool prepareModelQ2PlayerBundle(const ModelQ2PlayerOptions &options, const QStri
 	for (const auto &skin : options.skins)
 	{
 		QImage image;
-		const auto path = absolute(directory, skin.image);
-		protectModelBundleInput(&package, path);
-		if (!readImage(path, &image, error, control))
+		if (!inputs.image(skin.image, &image, error))
 			return false;
 		if (!skinSize.isEmpty() && image.size() != skinSize)
 			return fail(error, Text::tr("Skin %1 is %2 × %3 pixels, but the first skin is %4 × %5. Every skin of a model shares one size.")
@@ -178,9 +210,7 @@ bool prepareModelQ2PlayerBundle(const ModelQ2PlayerOptions &options, const QStri
 		QImage icon;
 		if (!skin.icon.isEmpty())
 		{
-			const auto path = absolute(directory, skin.icon);
-			protectModelBundleInput(&package, path);
-			if (!readImage(path, &icon, error, control))
+			if (!inputs.image(skin.icon, &icon, error))
 				return false;
 		}
 		else
@@ -211,9 +241,7 @@ bool prepareModelQ2PlayerBundle(const ModelQ2PlayerOptions &options, const QStri
 		return false;
 	// Weapon and view weapons play in frame lock with the body.
 	const auto locked = [&](const QString &source, const QString &label, ModelMesh *mesh, QByteArray *hash) {
-		const auto path = absolute(directory, source);
-		protectModelBundleInput(&package, path);
-		if (!loadModel(path, mesh, hash, error, control))
+		if (!inputs.model(source, mesh, hash, error))
 			return false;
 		if (mesh->surfaces.size() != 1)
 			return fail(error, Text::tr("%1 needs one surface; join its surfaces first.").arg(label));
@@ -230,9 +258,8 @@ bool prepareModelQ2PlayerBundle(const ModelQ2PlayerOptions &options, const QStri
 	if (!options.weaponSkin.isEmpty())
 	{
 		QImage image;
-		const auto path = absolute(directory, options.weaponSkin);
-		protectModelBundleInput(&package, path);
-		if (!readImage(path, &image, error, control) || !encode(image, folder + QStringLiteral("weapon.pcx"), QStringLiteral("weapon-skin")))
+		if (!inputs.image(options.weaponSkin, &image, error) ||
+			!encode(image, folder + QStringLiteral("weapon.pcx"), QStringLiteral("weapon-skin")))
 			return false;
 		weapon.md2SkinSize = image.size();
 	}
@@ -263,10 +290,9 @@ bool prepareModelQ2PlayerBundle(const ModelQ2PlayerOptions &options, const QStri
 		if (!modelQ2PlayerSoundNames().contains(sound.name) || names.contains(sound.name))
 			return fail(error, Text::tr("Quake II plays these player sounds: %1. Each once.").arg(modelQ2PlayerSoundNames().join(QStringLiteral(", "))));
 		names.insert(sound.name);
-		const auto path = absolute(directory, sound.source);
-		protectModelBundleInput(&package, path);
 		QByteArray bytes;
-		if (!readModelFile(path, &bytes, error, control))
+		QString path;
+		if (!inputs.read(sound.source, &bytes, &path, error))
 			return false;
 		const AudioWorkControl audioControl{control.cancelled};
 		const auto decoded = decodeAudioClip(path, bytes, audioControl);

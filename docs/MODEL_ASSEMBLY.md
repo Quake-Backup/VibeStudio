@@ -638,6 +638,12 @@ packages, through the same atomic, deterministic writer as Quake III packages;
 inputs are never replaced. Select the player as `<player>/<skin>`. The skins'
 colours, animation timing and gameplay still need testing in the game.
 
+Every model, image and sound may instead be `package:PATH`, an entry of the open
+package (the one that supplies the palette), so a player can be rebuilt from
+files already in `pak0.pak` or a project package. The path must be normalized
+and name exactly one entry, as for linked skins; entries are read, never
+changed, and the same bytes give the same package as local files.
+
 ```sh
 vibestudio --cli model assembly --operation q2-player-review --player-name vamp \
   --body ./vamp/body.mesh.json --weapon ./vamp/gun.mesh.json \
@@ -650,7 +656,8 @@ vibestudio --cli model assembly --operation q2-player-export --player-name vamp 
 ```
 
 The operations take no assembly source. Paths resolve from the working
-directory; JSON adds `frameRanges`, the 20 standard ranges.
+directory, and `package:PATH` names an entry of `--package`; JSON adds
+`frameRanges`, the 20 standard ranges.
 
 ## Baking And Studio Handoff
 

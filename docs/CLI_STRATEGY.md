@@ -2221,7 +2221,8 @@ Each resolved path may be a definition file or a folder of them.
   reviews and publishes a Quake III weapon set, with detail levels (`--lod-levels`,
   `--lod-ratio`, `--lod-recipes`) and repeatable `--sound NAME=PATH` (see
   [Weapon packages](MODEL_ASSEMBLY.md#weapon-packages)), and
-  `--operation q2-player-review|q2-player-export` a Quake II player (see
+  `--operation q2-player-review|q2-player-export` a Quake II player, from files or
+  `package:PATH` entries of `--package` (see
   [Quake II player packages](MODEL_ASSEMBLY.md#quake-ii-player-packages)).
 - [x] `model assembly --operation bake-animation` requires `--frames` and
   `--sample-fps`, with optional `--time` and `--clip-name`. It writes a sampled

@@ -154,19 +154,22 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 													   "Quake II players need --player-name, --body, --weapon, at least one --q2-skin NAME=IMAGE[,ICON] and "
 													   "--package (for the palette); export also needs an --output ending in .pak, .pk2 or .zip."));
 		ModelQ2PlayerOptions q2;
+		// A file (from the working directory) or package:PATH, an entry of --package.
+		const auto input = [](const QString &text) {
+			return text.startsWith(QStringLiteral("package:")) ? text : QFileInfo(text).absoluteFilePath();
+		};
 		q2.modelName = values.value("--player-name");
-		q2.bodySource = QFileInfo(values.value("--body")).absoluteFilePath();
-		q2.weaponSource = QFileInfo(values.value("--weapon")).absoluteFilePath();
+		q2.bodySource = input(values.value("--body"));
+		q2.weaponSource = input(values.value("--weapon"));
 		if (values.contains("--weapon-skin"))
-			q2.weaponSkin = QFileInfo(values.value("--weapon-skin")).absoluteFilePath();
+			q2.weaponSkin = input(values.value("--weapon-skin"));
 		for (const auto &item : repeated.value("--q2-skin"))
 		{
 			const int equal = int(item.indexOf('='));
 			const auto files = item.mid(equal + 1).split(',');
 			if (equal <= 0 || files.size() > 2 || files[0].isEmpty())
 				return fail(2, QCoreApplication::translate("ModelAssemblyCli", "Write --q2-skin as NAME=IMAGE or NAME=IMAGE,ICON."));
-			q2.skins.append({item.left(equal), QFileInfo(files[0]).absoluteFilePath(),
-							 files.size() == 2 ? QFileInfo(files[1]).absoluteFilePath() : QString()});
+			q2.skins.append({item.left(equal), input(files[0]), files.size() == 2 ? input(files[1]) : QString()});
 		}
 		for (const auto &[key, target] : {std::pair{QStringLiteral("--sound"), &q2.sounds}, std::pair{QStringLiteral("--view-weapon"), &q2.viewWeapons}})
 			for (const auto &item : repeated.value(key))
@@ -174,7 +177,7 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 				const int equal = int(item.indexOf('='));
 				if (equal <= 0)
 					return fail(2, QCoreApplication::translate("ModelAssemblyCli", "Write %1 as NAME=PATH.").arg(key));
-				target->append({item.left(equal), QFileInfo(item.mid(equal + 1)).absoluteFilePath()});
+				target->append({item.left(equal), input(item.mid(equal + 1))});
 			}
 		QString error;
 		std::shared_ptr<const PackageArchiveReader> archive;
