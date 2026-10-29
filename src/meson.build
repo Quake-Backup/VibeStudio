@@ -485,6 +485,8 @@ core_sources = files(
   'core/model_delivery.cpp',
   'core/model_recovery.cpp',
   'core/model_recovery_policy.cpp',
+  'core/model_session_draft.cpp',
+  'core/model_weight_stroke_recipe.cpp',
   'core/model_outputs.cpp',
   'core/model_stage.cpp',
   'core/level_model_placement.cpp',
@@ -646,6 +648,7 @@ install_headers('core/model_target_prepare.h', subdir: 'vibestudio/core')
 install_headers('core/model_delivery.h', subdir: 'vibestudio/core')
 install_headers('core/model_recovery_policy.h', 'core/model_outputs.h', 'core/model_stage.h', subdir: 'vibestudio/core')
 install_headers('core/level_model_placement.h', 'core/cli_cancellation.h', subdir: 'vibestudio/core')
+install_headers('core/model_session_draft.h', 'core/model_weight_stroke_recipe.h', subdir: 'vibestudio/core')
 install_headers('core/model_editor_controls.h', 'core/model_sidebar.h', subdir: 'vibestudio/core')
 install_headers('core/model_surface_selection.h', subdir: 'vibestudio/core')
 install_headers('core/model_geometric_topology.h', 'core/model_mesh_tools.h', 'core/model_selection_tools.h', 'core/model_lod.h', subdir: 'vibestudio/core')
@@ -902,6 +905,8 @@ app_sources = files(
   'app/model_recovery_discovery.cpp',
   'app/model_recovery_actions.cpp',
   'app/model_recovery_writer.cpp',
+  'app/model_session_draft_writer.cpp',
+  'app/model_session_drafts.cpp',
   'app/model_recovery_dialog.cpp',
   'app/package_operation_dialog.cpp',
   'app/package_progress.cpp',
@@ -4176,6 +4181,14 @@ model_recovery_ui_smoke_test = executable(
   install: false,
 )
 test('model-recovery-ui-smoke', model_recovery_ui_smoke_test, env: model_document_test_env, timeout: 90)
+model_session_draft_ui_smoke_test = executable(
+  'model_session_draft_ui_smoke_test',
+  ['tests/model_session_draft_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep],
+  install: false,
+)
+test('model-session-draft-ui-smoke', model_session_draft_ui_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 300)
 
 model_editor_ui_smoke_test = executable(
   'model_editor_ui_smoke_test',

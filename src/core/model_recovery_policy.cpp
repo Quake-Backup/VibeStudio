@@ -1,4 +1,5 @@
 #include "core/model_recovery_policy.h"
+#include "core/model_session_draft.h"
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -151,6 +152,20 @@ ModelRecoveryPruneReport pruneModelRecoveries(const QString &directory, const Mo
 			continue;
 		}
 		report.removed.prepend(id);
+	}
+	// Sidecars outlive their copy only when a crash came between the two
+	// removals; drop them once the studio that wrote them has gone.
+	for (const auto &draft : inspectModelSessionDrafts(directory))
+	{
+		if (stopped(cancelled) || !report.error.isEmpty())
+			break;
+		const bool orphan = draft.ownerId.isEmpty() || !QFileInfo::exists(modelRecoveryPath(directory, draft.ownerId)) ||
+							(dryRun && report.removed.contains(draft.ownerId));
+		if (!orphan || (draft.ownerProcessId > 0 && ownerRunning && ownerRunning(draft.ownerProcessId)))
+			continue;
+		if (!dryRun && !QFile::remove(draft.path))
+			continue;
+		++report.removedSessions;
 	}
 	return report;
 }

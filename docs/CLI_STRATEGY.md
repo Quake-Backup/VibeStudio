@@ -2245,8 +2245,11 @@ Each resolved path may be a definition file or a folder of them.
   JSON lines to stderr. Guarded writes remove their own stale staging files.
 - [x] `model recoveries [--directory <folder>]` lists bounded recovery headers,
   newest first, with each copy's `sourceState` (unchanged, changed, missing,
-  unreadable, unsaved); `--prune [--dry-run]` applies the retention policy
-  (32 copies or 2 GiB, never a live owner's copy) and reports `pruned`.
+  unreadable, unsaved) and staged `sessions` (Paint Skin Weights strokes,
+  Animation Curves drafts); `--prune [--dry-run]` applies the retention policy
+  (32 copies or 2 GiB, never a live owner's copy) and reports `pruned` and
+  `prunedSessions`. `model recover` takes `--strokes-output` and
+  `--curves-output` to write a copy's staged work for replay.
   JSON distinguishes header validity from payload verification. `model recover
   <copy.vsmeshrecovery> --output <new.mesh.json>` verifies the payload and writes
   a new source, with `--dry-run` and JSON support. Existing files and original

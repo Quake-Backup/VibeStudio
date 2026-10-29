@@ -11,6 +11,7 @@
 
 #include "app/model_recovery_dialog.h"
 #include "app/model_recovery_writer.h"
+#include "app/model_session_draft_writer.h"
 #include "app/model_skeletal_working_set_dialog.h"
 #include "app/model_uv_view.h"
 #include "app/model_viewport.h"
@@ -1768,6 +1769,12 @@ ModelEditorDialog::~ModelEditorDialog()
 	m_recovery->finished = {};
 	delete m_recovery;
 	m_recovery = nullptr;
+	if (m_sessionDrafts)
+	{
+		m_sessionDrafts->finished = {};
+		delete m_sessionDrafts;
+		m_sessionDrafts = nullptr;
+	}
 }
 bool ModelEditorDialog::setMesh(const ModelMesh &mesh, QString *error)
 {
@@ -2176,7 +2183,7 @@ void ModelEditorDialog::selectFromTable()
 void ModelEditorDialog::refreshSelection()
 {
 	++m_recoveryRevision;
-	if (!m_document.isModified() && m_recoveryActive)
+	if (!m_document.isModified() && m_recoveryActive && !m_sessionDraftActive)
 	{
 		retireRecovery();
 	}
@@ -2904,7 +2911,7 @@ bool ModelEditorDialog::recoveryBusy() const { return m_recovery && m_recovery->
 QString ModelEditorDialog::recoveryPath() const { return modelRecoveryPath(m_recoveryDirectory, m_recoveryId); }
 void ModelEditorDialog::checkpointRecovery()
 {
-	if (!m_document.isModified())
+	if (!m_document.isModified() && !m_sessionDraftActive)
 	{
 		if (m_recoveryActive)
 		{
@@ -3000,6 +3007,8 @@ void ModelEditorDialog::chooseRecovery()
 	checkpointRecovery();
 	m_status->setText(
 		QCoreApplication::translate("VibeStudioModelEditor", "Recovered an unsaved draft. Save it to an editable mesh source."), LiveStatus::Result);
+	// Weight strokes or curves staged when the studio stopped come back for review.
+	reviewRecoveredSessions(restored->record.id);
 }
 
 } // namespace vibestudio

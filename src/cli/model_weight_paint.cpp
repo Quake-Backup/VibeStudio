@@ -1,5 +1,6 @@
 #include "cli/model_tools.h"
 #include "core/model_document.h"
+#include "core/model_weight_stroke_recipe.h"
 #include <QCoreApplication>
 #include <QFile>
 #include <QFileInfo>
@@ -43,82 +44,13 @@ bool recipe(const QString &path, QVector<ModelWeightStroke> *strokes, QString *e
 	const auto bytes = file.read(modelDocumentMaxSourceBytes + 1);
 	QJsonParseError parse;
 	const auto doc = QJsonDocument::fromJson(bytes, &parse);
-	const auto root = doc.object();
-	if (bytes.size() > modelDocumentMaxSourceBytes || parse.error != QJsonParseError::NoError || root.size() != 2 ||
-		root.value("version") != QJsonValue(1) || !root.value("strokes").isArray())
+	if (bytes.size() > modelDocumentMaxSourceBytes || parse.error != QJsonParseError::NoError || !doc.isObject())
 	{
 		*error = Text::tr("A stroke file needs version 1 and a strokes array.");
 		return false;
 	}
-	const QSet<QString> allowed{"surface", "joint", "mode", "value", "strength", "lockedJoints", "remainderJoint", "samples"};
-	qint64 count = 0;
-	for (const auto &entry : root["strokes"].toArray())
-	{
-		if (!entry.isObject())
-		{
-			*error = Text::tr("Every stroke must be an object.");
-			return false;
-		}
-		const auto object = entry.toObject();
-		for (auto it = object.constBegin(); it != object.constEnd(); ++it)
-			if (!allowed.contains(it.key()))
-			{
-				*error = Text::tr("Unknown stroke field: %1.").arg(it.key());
-				return false;
-			}
-		ModelWeightStroke s;
-		const auto surface = object.value("surface");
-		const auto mode = object.value("mode").toString("replace");
-		if (!surface.isDouble() || surface.toDouble() != surface.toInt(-1) || surface.toInt(-1) < 0 || !object.value("joint").isString() ||
-			!object.value("samples").isArray() || !modes.contains(mode) || (object.contains("mode") && !object["mode"].isString()) ||
-			(object.contains("remainderJoint") && !object["remainderJoint"].isString()) ||
-			(object.contains("lockedJoints") && !object["lockedJoints"].isArray()))
-		{
-			*error = Text::tr("Stroke surface, joint, mode, locks and samples have invalid types or values.");
-			return false;
-		}
-		s.surface = surface.toInt();
-		s.joint = object["joint"].toString();
-		s.mode = modes[mode];
-		s.remainderJoint = object["remainderJoint"].toString();
-		for (const auto &key : {QStringLiteral("value"), QStringLiteral("strength")})
-			if (object.contains(key))
-			{
-				if (!object[key].isDouble())
-				{
-					*error = Text::tr("Stroke numbers must be JSON numbers.");
-					return false;
-				}
-				(key == "value" ? s.value : s.strength) = object[key].toDouble();
-			}
-		for (const auto &lock : object["lockedJoints"].toArray())
-		{
-			if (!lock.isString())
-			{
-				*error = Text::tr("Locked joints must be names.");
-				return false;
-			}
-			s.lockedJoints.append(lock.toString());
-		}
-		for (const auto &sample : object["samples"].toArray())
-		{
-			const auto pair = sample.toArray();
-			if (pair.size() != 2 || !pair[0].isDouble() || pair[0].toDouble() != pair[0].toInt(-1) || pair[0].toInt(-1) < 0 ||
-				!pair[1].isDouble() || ++count > modelWeightMaxSamples)
-			{
-				*error = Text::tr("Samples must be [vertex, opacity] pairs within the sample limit.");
-				return false;
-			}
-			s.samples.append({pair[0].toInt(), pair[1].toDouble()});
-		}
-		strokes->append(s);
-		if (strokes->size() > modelWeightMaxStrokes)
-		{
-			*error = Text::tr("A recipe supports at most 1024 strokes.");
-			return false;
-		}
-	}
-	return true;
+	// The recipe format is shared with recovery sidecars (core/model_weight_stroke_recipe.h).
+	return parseModelWeightStrokeRecipe(doc.object(), strokes, error);
 }
 } // namespace
 ModelToolsCliResult runModelWeightPaint(const QStringList &arguments)

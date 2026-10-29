@@ -51,6 +51,10 @@ class ModelIntersectionList;
 class ModelViewport;
 class ModelUvView;
 class ModelRecoveryWriter;
+class ModelSessionDraftWriter;
+class ModelWeightPaintDialog;
+class ModelAnimationCurvesDialog;
+struct ModelSessionDraft;
 struct ModelSourceWatchState;
 struct ModelOutputsState;
 struct ModelOutputRecord;
@@ -203,6 +207,11 @@ class ModelEditorDialog final : public QDialog
 	void checkpointRecovery();
 	// Model > Recover…: the recovery chooser (the studio's startup notice).
 	void reviewRecoveryCopies() { chooseRecovery(); }
+	// Staged work recovered with a copy (app/model_session_drafts.cpp): tests
+	// answer whether to review it again (1) or discard it (0) without a dialog.
+	std::function<int(const QString &)> sessionDraftPrompt;
+	// The staged-session sidecar being kept now, or empty.
+	[[nodiscard]] QString sessionDraftPath() const;
 	[[nodiscard]] bool recoveryBusy() const;
 	[[nodiscard]] QString recoveryPath() const;
 	[[nodiscard]] bool operationBusy() const;
@@ -446,6 +455,21 @@ class ModelEditorDialog final : public QDialog
 	QString m_recoveryProblem;
 	quint64 m_recoveryRevision = 1, m_recoveryRequestedRevision = 0;
 	bool m_recoveryActive = false, m_approvedClose = false;
+	// Paint Skin Weights and Animation Curves keep their staged work beside
+	// the recovery copy while they are open (app/model_session_drafts.cpp);
+	// the copy is kept even for an unmodified model then.
+	ModelSessionDraftWriter *m_sessionDrafts = nullptr;
+	bool m_sessionDraftActive = false;
+	QByteArray m_sessionDraftBase;
+	QString m_sessionDraftOwner;
+	void watchSessionDraft(ModelWeightPaintDialog &dialog);
+	void watchSessionDraft(ModelAnimationCurvesDialog &dialog);
+	void beginSessionDraft();
+	void checkpointSessionDraft(ModelSessionDraft draft);
+	void endSessionDraft();
+	void reviewRecoveredSessions(const QString &recoveryId);
+	bool reviewRecoveredWeights(const ModelSessionDraft &draft);
+	bool reviewRecoveredCurves(const ModelSessionDraft &draft);
 	// Source size and undo history (model_editor_budget.cpp): the summary in
 	// the status strip, the history limit setting in Model > Undo History
 	// Limit…, and whether this

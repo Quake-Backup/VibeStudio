@@ -141,6 +141,9 @@
 #include "core/model_frame_export.h"
 #include "core/model_recovery.h"
 #include "core/model_recovery_policy.h"
+#include "core/model_session_draft.h"
+#include "core/model_weight_stroke_recipe.h"
+#include "core/model_animation_curves.h"
 #include "core/model_skeletal_export.h"
 #include "core/model_targets.h"
 #include "core/operation_state.h"
@@ -177,6 +180,7 @@
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QSaveFile>
 #include <QJsonObject>
 #include <QProcess>
 #include <QRegularExpression>
@@ -578,10 +582,10 @@ QVector<CliCommandDescriptor> cliCommandDescriptors()
 		{QStringLiteral("model"), QStringLiteral("collision"), QCoreApplication::translate("ModelCollisionCli", "Author static or animated collision boxes with --operation inspect|add|fit|fit-animated|animate|freeze|update|transform|duplicate|delete|export-map|place. Use --name, --box, --centre X,Y,Z, --size X,Y,Z and --rotation X,Y,Z. Transform uses --box with --offset/--rotate X,Y,Z in --transform-space world|selection|custom (default world), custom --axis-rotation X,Y,Z, and intrinsic local --scale X,Y,Z, --pivot-mode selection|origin|custom, custom --pivot X,Y,Z and --snap-grid/--snap-angle/--snap-scale. The default pivot is selection centre. Static fitting accepts --frame all|N; fit-animated fits every pose. Both accept optional --surface with --vertices, --faces or --edges. Animate copies a static --box into every frame; freeze keeps --frame N. Animated update/transform require explicit --frame all|N; omitted update fields retain their per-pose values. Inspect accepts --frame N. Export/placement of animated boxes require --frame N and produce static brushes. Export/placement require --target quake|quake2|quake3; Quake III also requires --material for a project clip shader. Use --origin X,Y,Z and --map for placement into a separate output map. All mutations require --output; --dry-run validates without writing. Existing derivatives require --overwrite."), {QStringLiteral("vibestudio --cli model collision ./models/prop.mesh.json --operation fit --name body --output ./models/collision.mesh.json --dry-run --json"), QStringLiteral("vibestudio --cli model collision ./models/collision.mesh.json --operation export-map --target quake3 --material common/clip --output ./maps/prop-clip.map --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("assembly"), QCoreApplication::translate("ModelAssemblyCli", "Inspect or edit a linked .assembly.json recipe, independently sample each part, or bake composed poses. Animation baking uses --operation bake-animation with --frames, --sample-fps, optional --time and --clip-name; output supports .mesh.json, .md2 and .md3 with normal format limits. Sampling is start + index / FPS; editable sources retain clip timing. Supports --operation inspect|add|update|remove|bake|bake-animation, --new, --part, --model, --kind file|package, --parent, --tag, --translation X,Y,Z, --rotation X,Y,Z, --scale, --first-frame, --last-frame, --fps, --phase, --loop on|off, --interpolate on|off, --rename-to, --time, --package and --palette. Mutations require --output. Part add/update accepts --skin PATH, --skin-kind file|package (default file), and package-only --skin-entry-index N. An omitted index requires a unique package path. Omitted skin options preserve the link; update --clear-skin removes it. Linked skins use assembly schema 3, drive preview/bake materials, and retain original model files. JSON includes verified skin inputs and material assignments. Quake III animation.cfg uses animation-set with --config, --lower-part, --upper-part and optional --lower-animation/--upper-animation native slot names. Existing bindings retain omitted choices. animation-export writes .cfg; animation-clear removes the binding. All require --output and support --dry-run. Native clip selections drive inspection and bakes with lower frame offsets, reverse and loop tails. Player publication: player-review and player-export require --player-name ID, --head-part ID, --icon PATH and --package PATH. Optional --skin-name defaults to default; --icon-kind file|package defaults to file; --icon-entry-index selects an exact package image. More skins: --skin-variants a,b (each part's stored skin variant of that name, else its own materials), --team-variants (adds red and blue, which team games use, and needs real red and blue materials), repeated --variant-skin NAME:ROLE=PATH (ROLE lower, upper or head; a .skin file, or package:PATH) and --variant-icon NAME=PATH. Detail levels: --lod-levels 1-2 with --lod-ratio 0.05-0.95, or --lod-recipes for each part's stored recipe. Custom sounds: repeated --sound NAME=PATH (death1, death2, death3, jump1, pain25_1, pain50_1, pain75_1, pain100_1, falling1, gasp, drown, fall1, taunt); mono PCM WAV is kept, other audio is converted to 22,050 Hz mono 16-bit PCM. Review requires tag_weapon on upper and captures separate lower/upper/head MD3 models with their detail levels, a .skin set and icon per skin, animation.cfg, sounds and shader/image dependencies. Export requires --output .pk3 and supports --overwrite and --dry-run. It uses protected atomic publication and verifies deterministic bytes. Source models and assembly stay unchanged. Existing players: --operation players --package PATH lists the Quake III players of a package or folder; --new --from-player NAME --package PATH --output FILE opens one as a new assembly (lower, upper on tag_torso and head on tag_head as package parts, the --skin-name skin linked to each, native animation from its animation.cfg) and reports the player-review options that publish it again. The package is never written. animation-set also reads --config-entry PATH from --package, with --config-entry-index N for a repeated path. Recovery operations: recoveries lists verified copies; recover and discard require --recovery UUID and --sha256 DIGEST. All three accept --directory. Recover requires --output and protects the original source; discard refuses active editors. Both support --dry-run."), {QStringLiteral("vibestudio --cli model assembly --new --part root --model ./models/body.md3 --output ./models/player.assembly.json --dry-run --json"), QStringLiteral("vibestudio --cli model assembly ./models/player.assembly.json --operation bake --time 0.5 --output ./out/player.obj --dry-run --json"), QStringLiteral("vibestudio --cli model assembly --new --from-player myplayer --package ./mymod.pk3 --output ./myplayer.assembly.json --dry-run --json"), QStringLiteral("vibestudio --cli model assembly --operation recoveries --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("mdl"), QStringLiteral("Inspect or edit native MDL indexed skins, frame groups, timing, palette and header settings. Skin sources use --image or --package with one --entry or --entry-index, including saved drafts; --palette selects package palette paths. Use --time <seconds> with --native-frame, --skin, --timing stored|glquake and --sync-phase for read-only playback sampling."), {QStringLiteral("vibestudio --cli model mdl ./models/prop.mesh.json --json"), QStringLiteral("vibestudio --cli model mdl ./models/prop.mesh.json --operation add-skin --image ./skins/prop.pcx --output ./out/prop.mesh.json --dry-run --json"), QStringLiteral("vibestudio --cli model mdl ./models/prop.mesh.json --operation add-skin --package ./textures.vibepackage --entry textures/prop.png --output ./out/prop.mesh.json --dry-run --json")}, true, true, true},
-		{QStringLiteral("model"), QStringLiteral("recoveries"), QStringLiteral("List local mesh recovery headers, newest first, each with whether its source is unchanged, changed, missing, unreadable or unsaved (sourceState); --prune removes the oldest copies beyond 32 or 2 GiB, never one a running studio is writing, and --dry-run only reports them; --directory selects a recovery folder."), {QStringLiteral("vibestudio --cli model recoveries --json"), QStringLiteral("vibestudio --cli model recoveries --prune --dry-run --json")}, true, true, true},
+		{QStringLiteral("model"), QStringLiteral("recoveries"), QStringLiteral("List local mesh recovery headers, newest first, each with whether its source is unchanged, changed, missing, unreadable or unsaved (sourceState) and the weight strokes or curves staged but not applied when the studio stopped (sessions); --prune removes the oldest copies beyond 32 or 2 GiB, never one a running studio is writing, and --dry-run only reports them; --directory selects a recovery folder."), {QStringLiteral("vibestudio --cli model recoveries --json"), QStringLiteral("vibestudio --cli model recoveries --prune --dry-run --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("outputs"), QStringLiteral("List the receipts a project keeps of the game files made from its model sources (exports, staged models, detail levels), each current, source-changed, output-changed, missing or unknown; exits 4 when any is stale or changed elsewhere. --project DIR, or the project holding the source; --refresh OUTPUT|stale re-exports with the recorded settings, never over a changed file; --forget OUTPUT drops a receipt; --receipt PACKAGE checks a player package's embedded receipt, with --assembly FILE against its parts. --dry-run applies to --refresh and --forget."), {QStringLiteral("vibestudio --cli model outputs ./models/crate.mesh.json --json"), QStringLiteral("vibestudio --cli model outputs --project ./mymod --refresh stale --dry-run --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("stage"), QStringLiteral("Stage an editable source in a package as the set of files the game loads with it, as Stage in Package does: --as models/x.md3 with --lod N (0-3, default the source's stored levels) and --lod-ratio R, an md5mesh with --md5-clips all|none|N,N (default all) as md5anims beside it, or one MDL, MD2, IQM or ASE. Reviews the materials it uses against the package (--require-materials refuses missing ones), stages every file as one step (--replace-existing replaces entries), and writes --output as a new package or .vibepackage draft (--overwrite for an existing file; never the input package). --map M --origin x,y,z [--angles p,y,r] [--modelscale S] [--class NAME] also places it, written to --map-output. Supports --dry-run, --target, --strict and --project."), {QStringLiteral("vibestudio --cli model stage ./models/crate.mesh.json --package ./mymod.pk3 --as models/props/crate.md3 --lod 2 --output ./out/mymod.pk3 --dry-run --json")}, true, true, true},
-		{QStringLiteral("model"), QStringLiteral("recover"), QStringLiteral("Verify a mesh recovery copy and write a new editable source; existing files are protected."), {QStringLiteral("vibestudio --cli model recover ./copy.vsmeshrecovery --output ./out/recovered.mesh.json --dry-run --json")}, true, true, true},
+		{QStringLiteral("model"), QStringLiteral("recover"), QStringLiteral("Verify a mesh recovery copy and write a new editable source; existing files are protected. --strokes-output writes the weight strokes staged in Paint Skin Weights when the studio stopped, as a recipe for model weight-paint --stroke-file, and --curves-output the staged joint curves for model curves --operation replace --curves; both refuse work staged on another version of the model."), {QStringLiteral("vibestudio --cli model recover ./copy.vsmeshrecovery --output ./out/recovered.mesh.json --dry-run --json"), QStringLiteral("vibestudio --cli model recover ./copy.vsmeshrecovery --output ./out/recovered.mesh.json --strokes-output ./out/strokes.json --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("build"), QStringLiteral("Build MDL, MD2, MD3, MD5 mesh or animation, IQM, ASE or an OBJ frame from an editable mesh; primitive designs support MD2, MD3 and OBJ. For .md5anim choose --clip N|NAME (--frame N selects the clip that frame belongs to), or --all-clips --output-dir DIR for one file per clip; --md5-frame-rate N sets a whole frame rate. --target ID checks the model against a delivery target first (see model targets; the default is the one saved with the project that holds the source, or --project DIR, else the format's original engine) and exits 4 listing every limit it exceeds. Notes report what the format leaves out or approximates; --strict refuses an export that leaves data out, and --no-strict overrides a project that saves strict exports."), {QStringLiteral("vibestudio --cli model build ./samples/models/pillar.model.json --output ./out/pillar.md3 --dry-run --json"), QStringLiteral("vibestudio --cli model build ./models/monster.mesh.json --output ./out/monster.mdl --target quakespasm --json"), QStringLiteral("vibestudio --cli model build ./models/monster.mesh.json --output ./out/walk.md5anim --clip walk --json"), QStringLiteral("vibestudio --cli model build ./models/monster.mesh.json --all-clips --output-dir ./out/anims --strict --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("import"), QStringLiteral("Import OBJ, MDL, MD2, MD3, MDC, MD5 mesh, IQM, ASE, LWO, MDR, MDS, MDM, GLM, FM or KVX, or bake a primitive design, into an editable mesh source. The input is a loose file or a package entry: <package> <entry>, or --package and --entry, reads an archive, folder or portable draft with the companions inside it (md5anim, MDX, GLA) and records the entry as the source; the output may not be written inside that package. --palette quake|quake2|doom|heretic|hexen|generic chooses the palette family MDL skins decode with when the package has no palette of its own. OBJ retains UV/normal seams and direct material paths; material libraries and non-polygon data require conversion in the source modeller. A skeletal model over the editable frame budget keeps every clip in its skeleton and bakes the clips that fit; --clips a,b (names or indexes, or - for the bind pose alone) chooses that working set; a clip that matches nothing exits 2. Relative paths find loose companions such as md5anims beside the model."), {QStringLiteral("vibestudio --cli model import ./samples/models/pillar.model.json --output ./out/pillar.mesh.json --dry-run --json"), QStringLiteral("vibestudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./player.mesh.json --dry-run --json"), QStringLiteral("vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --dry-run --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("edit"), QCoreApplication::translate("ModelSurfaceSelection", "Apply a validated mesh, UV, material, animation-frame, or attachment-tag edit. Transforms support --transform-space world|selection|custom (default world), custom --axis-rotation X,Y,Z and selection --axes-frame N. Axes also apply to face extrusion and duplication. One reference pose fixes selection axes across affected frames; default is the edited frame or pivot reference pose. Pivots remain in model coordinates. Transforms support snapping, explicit pivots, and --surfaces all or unique comma-separated indices for whole surfaces sharing one pivot. Do not mix --surfaces with component selectors. Boundary operations fill-boundary-loops and bridge-boundary-loops require --edges and cover all frames; --source-frame chooses a reference pose (default 0). Bridging joins exactly two loops, supports unequal counts and accepts --bridge-twist -1023 to 1023 (default 0). UV atlas operations accept --uv-atlas-size N or WIDTHxHEIGHT and --uv-padding pixels. uv-pack-around packs complete islands around fixed unselected and shared-material regions in the 0–1 tile; --uv-pack-scale fit|preserve chooses uniform fit (default) or unchanged UV scale. Clip timing: set-clip-fps requires --clip and --clip-fps; add-clip optionally accepts --clip-fps. Zero leaves timing unspecified, otherwise use 0.001–1000 FPS. On skeletal models JSON adds skinProvenance (kept, interpolated, mirrored, rebound, merged and bound weights per skinned surface); while a surface is skinned, duplicate-frame, delete-frame, insert-inbetweens and copy-frame-pose refuse the bind frame and frames baked from a skeletal clip, and keep every other frame's clip mapping; once every surface is unbound they apply to any frame."), {QStringLiteral("vibestudio --cli model edit ./out/pillar.mesh.json --operation transform --faces all --offset 0,0,8 --snap-grid 1 --output ./out/raised.mesh.json --dry-run --json")}, true, true, true},
@@ -1116,6 +1120,7 @@ QStringList commandTokens(const QStringList& args)
 			// map place-model, model stage and model outputs
 			QStringLiteral("--angles"), QStringLiteral("--modelscale"), QStringLiteral("--lod"), QStringLiteral("--lod-ratio"),
 			QStringLiteral("--md5-clips"), QStringLiteral("--refresh"), QStringLiteral("--forget"), QStringLiteral("--receipt"),
+			QStringLiteral("--strokes-output"), QStringLiteral("--curves-output"),
 			// model prepare and lod (cli/model_tools.cpp)
 			QStringLiteral("--skip"), QStringLiteral("--level-source"),
 			// accessibility speak
@@ -14985,27 +14990,38 @@ int runModelRecoveriesCommand(const QStringList& args, CliOutputFormat format)
 	if (directory.isEmpty()) { return printCliError(command, CliExitCode::Usage, QStringLiteral("--directory requires a folder path."), format); }
 	// --prune applies the retention policy first (never a running studio's copy).
 	QJsonArray pruned;
+	int prunedSessions = 0;
 	if (hasOption(args, QStringLiteral("--prune"))) {
 		const auto report = pruneModelRecoveries(directory, {}, [](qint64 owner) { return studioProcessIsRunning(owner); }, {}, hasOption(args, QStringLiteral("--dry-run")));
 		if (!report.error.isEmpty()) { return printCliError(command, CliExitCode::Failure, report.error, format); }
 		pruned = QJsonArray::fromStringList(report.removed);
+		prunedSessions = report.removedSessions;
 	} else if (hasOption(args, QStringLiteral("--dry-run"))) {
 		return printCliError(command, CliExitCode::Usage, QCoreApplication::translate("ModelRecoveryCli", "--dry-run applies to --prune."), format);
 	}
 	const auto scan = listModelRecoveries(directory);
 	if (!scan.error.isEmpty()) { return printCliError(command, CliExitCode::Failure, scan.error, format); }
 	QJsonArray records;
-	QStringList states;
+	QStringList states, staged;
 	for (const auto& record : scan.records) {
 		const auto state = modelRecoverySourceStateId(modelRecoverySourceState(record));
 		states << state;
+		// Weight strokes or curves staged but not applied when the studio stopped (core/model_session_draft.h).
+		QJsonArray sessions;
+		QStringList summaries;
+		for (const auto& draft : inspectModelSessionDrafts(directory, record.id)) {
+			sessions.append(modelSessionDraftJson(draft));
+			summaries << modelSessionDraftSummary(draft);
+		}
+		staged << summaries.join(QStringLiteral("; "));
 		QJsonObject item{{QStringLiteral("path"), record.path}, {QStringLiteral("id"), record.id}, {QStringLiteral("sourceState"), state},
 			{QStringLiteral("title"), record.title}, {QStringLiteral("sourcePath"), record.sourcePath},
 			{QStringLiteral("sourceSha256"), QString::fromLatin1(record.sourceSha256.toHex())},
 			{QStringLiteral("payloadSha256"), QString::fromLatin1(record.payloadSha256.toHex())},
 			{QStringLiteral("payloadBytes"), record.payloadBytes}, {QStringLiteral("ownerProcessId"), record.ownerProcessId},
 			{QStringLiteral("writtenUtc"), record.writtenUtc.toString(Qt::ISODateWithMs)},
-			{QStringLiteral("headerValid"), record.isValid()}, {QStringLiteral("payloadVerified"), false}, {QStringLiteral("error"), record.error}};
+			{QStringLiteral("headerValid"), record.isValid()}, {QStringLiteral("payloadVerified"), false}, {QStringLiteral("error"), record.error},
+			{QStringLiteral("sessions"), sessions}};
 		records.append(item);
 	}
 	if (format == CliOutputFormat::Json) {
@@ -15013,13 +15029,14 @@ int runModelRecoveriesCommand(const QStringList& args, CliOutputFormat format)
 		result.insert(QStringLiteral("directory"), QFileInfo(directory).absoluteFilePath());
 		result.insert(QStringLiteral("limited"), scan.limited);
 		result.insert(QStringLiteral("records"), records);
-		if (hasOption(args, QStringLiteral("--prune"))) { result.insert(QStringLiteral("pruned"), pruned); }
+		if (hasOption(args, QStringLiteral("--prune"))) { result.insert(QStringLiteral("pruned"), pruned); result.insert(QStringLiteral("prunedSessions"), prunedSessions); }
 		printJson(result);
 	} else {
 		for (int index = 0; index < scan.records.size(); ++index) {
 			const auto& record = scan.records.at(index);
 			std::cout << text(QStringLiteral("%1 · %2 · %3 · %4\n").arg(record.path, record.writtenUtc.toLocalTime().toString(Qt::ISODate),
 				record.isValid() ? QStringLiteral("header valid; payload verified on restore") : record.error, states.at(index)));
+			if (!staged.at(index).isEmpty()) { std::cout << text(QStringLiteral("  staged: %1\n").arg(staged.at(index))); }
 		}
 		if (!pruned.isEmpty()) { std::cout << text(QStringLiteral("%1 old copies %2\n").arg(pruned.size()).arg(hasOption(args, QStringLiteral("--dry-run")) ? QStringLiteral("would be removed") : QStringLiteral("removed"))); }
 		std::cout << text(QStringLiteral("%1 recovery copies%2\n").arg(records.size()).arg(scan.limited ? QStringLiteral(" (scan limit reached)") : QString()));
@@ -15044,7 +15061,47 @@ int runModelRecoverCommand(const QString& path, const QStringList& args, CliOutp
 	ModelDocument document;
 	if (!document.restoreDraft(snapshot.mesh, snapshot.selection, &error)) { return printCliError(command, CliExitCode::ValidationFailed, error, format); }
 	const bool dryRun = hasOption(args, QStringLiteral("--dry-run"));
+	// --strokes-output / --curves-output: the staged work kept with the copy, as
+	// a stroke recipe for `model weight-paint --stroke-file` or joint curves for
+	// `model curves --operation replace --curves` (core/model_session_draft.h).
+	QJsonObject sessionOutputs;
+	QVector<QPair<QString, QByteArray>> sessionFiles;
+	const QString recoveryDirectory = QFileInfo(record.path).absolutePath();
+	for (const auto kind : {ModelSessionDraftKind::WeightPaint, ModelSessionDraftKind::AnimationCurves}) {
+		const QString option = kind == ModelSessionDraftKind::WeightPaint ? QStringLiteral("--strokes-output") : QStringLiteral("--curves-output");
+		if (!hasOption(args, option)) { continue; }
+		const QString destination = optionValue(args, option);
+		const QFileInfo destinationInfo(destination);
+		if (destination.isEmpty() || !destination.endsWith(QStringLiteral(".json"), Qt::CaseInsensitive)) {
+			return printCliError(command, CliExitCode::Usage, QStringLiteral("%1 requires a new .json path.").arg(option), format);
+		}
+		if (destinationInfo.exists() || destinationInfo.isSymLink() || destinationInfo.isJunction() || modelPathsReferToSameFile(destination, output)) {
+			return printCliError(command, CliExitCode::Failure, QStringLiteral("Choose a new path for %1; existing files are protected.").arg(option), format);
+		}
+		ModelSessionDraft draft;
+		if (!readModelSessionDraft(modelSessionDraftPath(recoveryDirectory, record.id, kind), &draft, &error)) {
+			return printCliError(command, CliExitCode::NotFound, QStringLiteral("This copy keeps no readable %1 session: %2").arg(modelSessionDraftKindId(kind), error), format);
+		}
+		if (draft.baseFingerprint != document.revisionFingerprint()) {
+			return printCliError(command, CliExitCode::ValidationFailed, QStringLiteral("The %1 session was staged on another version of this model, so it cannot be replayed on the recovered source.").arg(modelSessionDraftKindId(kind)), format);
+		}
+		auto session = modelSessionDraftJson(draft);
+		session.insert(QStringLiteral("output"), destinationInfo.absoluteFilePath());
+		if (kind == ModelSessionDraftKind::WeightPaint) {
+			sessionFiles.append({destination, QJsonDocument(modelWeightStrokeRecipeJson(draft.strokes)).toJson(QJsonDocument::Indented)});
+		} else {
+			sessionFiles.append({destination, QJsonDocument(modelPoseCurvesJson(draft.curves)).toJson(QJsonDocument::Indented)});
+		}
+		sessionOutputs.insert(modelSessionDraftKindId(kind), session);
+	}
 	if (!dryRun && !document.save(output, false, &error)) { return printCliError(command, CliExitCode::Failure, error, format); }
+	for (const auto& [destination, bytes] : std::as_const(sessionFiles)) {
+		QSaveFile file(destination);
+		if (dryRun) { continue; }
+		if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit()) {
+			return printCliError(command, CliExitCode::Failure, QStringLiteral("Could not write %1: %2").arg(destination, file.errorString()), format);
+		}
+	}
 	if (format == CliOutputFormat::Json) {
 		auto result = cliResultJson(command);
 		result.insert(QStringLiteral("recoveryPath"), record.path);
@@ -15053,6 +15110,7 @@ int runModelRecoverCommand(const QString& path, const QStringList& args, CliOutp
 		result.insert(QStringLiteral("payloadVerified"), true);
 		result.insert(QStringLiteral("dryRun"), dryRun);
 		result.insert(QStringLiteral("written"), !dryRun);
+		if (!sessionOutputs.isEmpty()) { result.insert(QStringLiteral("sessions"), sessionOutputs); }
 		result.insert(QStringLiteral("model"), modelMeshJsonForCli(document.mesh()));
 		printJson(result);
 	} else {

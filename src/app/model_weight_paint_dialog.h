@@ -5,6 +5,7 @@
 #include <QDialog>
 #include <QMap>
 #include <QPointF>
+#include <algorithm>
 #include <functional>
 #include <memory>
 
@@ -49,6 +50,22 @@ class ModelWeightPaintDialog final : public QDialog
 	void undoStroke();
 	void redoStroke();
 	void reject() override;
+	// Recovery (app/model_session_drafts.cpp): the staged strokes, a callback
+	// after they change, and strokes recovered after a crash, staged again
+	// once the document is prepared.
+	const QVector<ModelWeightStroke> &stagedStrokes() const
+	{
+		return m_strokes;
+	}
+	int surfaceIndex() const
+	{
+		return std::max(0, m_originalSelection.surface);
+	}
+	std::function<void()> stagedChanged;
+	void restoreStrokes(QVector<ModelWeightStroke> strokes)
+	{
+		m_restore = std::move(strokes);
+	}
 
   protected:
 	bool eventFilter(QObject *watched, QEvent *event) override;
@@ -56,7 +73,7 @@ class ModelWeightPaintDialog final : public QDialog
   private:
 	ModelDocument m_document;
 	ModelSelection m_originalSelection;
-	QVector<ModelWeightStroke> m_strokes, m_redoStrokes;
+	QVector<ModelWeightStroke> m_strokes, m_redoStrokes, m_restore;
 	ModelWeightStroke m_pending;
 	QMap<int, double> m_coverage;
 	QSet<int> m_mask;
@@ -79,6 +96,7 @@ class ModelWeightPaintDialog final : public QDialog
 	ModelWeightStroke settings() const;
 	QSet<int> selectedVertices() const;
 	bool stage(const ModelWeightStroke &stroke);
+	void restageRecovered();
 	void changed(bool mesh = false);
 	void buttons();
 	void paintOverlay(QPainter &painter);

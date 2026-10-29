@@ -195,7 +195,10 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		ModelWeightPaintDialog dialog(m_document.mesh(), m_document.selection(), m_document.selection().joint, m_preview->frame(), this);
 		if (auto *preview = dialog.findChild<ModelViewport *>(QStringLiteral("weightPaintPreview")))
 			preview->setCameraControls(m_preview->cameraControls());
-		if (dialog.exec() != QDialog::Accepted) return;
+		watchSessionDraft(dialog);
+		const bool accepted = dialog.exec() == QDialog::Accepted;
+		endSessionDraft();
+		if (!accepted) return;
 		if (revision != m_document.revisionFingerprint()) {
 			m_status->setText(Text::tr("The model changed while painting weights. Reopen Paint Skin Weights.")); return;
 		}
@@ -261,7 +264,10 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		ModelAnimationCurvesDialog dialog(m_document.mesh(), selection.joint, m_preview->frame(), this);
 		if (auto *preview = dialog.findChild<ModelViewport *>(QStringLiteral("curvesPreview")))
 			preview->setCameraControls(m_preview->cameraControls());
-		if (dialog.exec() != QDialog::Accepted) return;
+		watchSessionDraft(dialog);
+		const bool accepted = dialog.exec() == QDialog::Accepted;
+		endSessionDraft();
+		if (!accepted) return;
 		if (revision != m_document.revisionFingerprint()) {
 			m_status->setText(Text::tr("The model changed while reviewing animation curves. Reopen Animation Curves.")); return;
 		}

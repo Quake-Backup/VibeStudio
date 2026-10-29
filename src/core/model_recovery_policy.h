@@ -61,6 +61,9 @@ struct ModelRecoveryPruneReport
 	int kept = 0;
 	// Over the policy but kept because the studio that wrote them is running.
 	int keptLive = 0;
+	// Staged-session sidecars whose copy is gone and whose studio is not
+	// running (removed, or that a dry run would remove).
+	int removedSessions = 0;
 	QString error;
 };
 

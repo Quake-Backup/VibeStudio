@@ -38,6 +38,12 @@ class ModelAnimationCurvesDialog final : public QDialog
 	void capture();
 	void review();
 	void reject() override;
+	// Recovery (app/model_session_drafts.cpp): the staged draft of the chosen
+	// clip and joint (false when nothing is staged), a callback after the
+	// staged state may have changed, and a draft recovered after a crash.
+	bool stagedDraft(int *clip, ModelPoseCurves *group, bool *bake) const;
+	bool restoreDraft(int clip, const ModelPoseCurves &group, bool bake, QString *error = nullptr);
+	std::function<void()> draftChanged;
 
   private:
 	struct Draft

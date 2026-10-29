@@ -480,7 +480,11 @@ vibestudio --cli model stage ./models/crate.mesh.json --package ./mymod.pk3 --as
 ```
 
 `model recoveries --json` says for each copy whether its source is `unchanged`,
-`changed`, `missing`, `unreadable` or `unsaved` (`sourceState`). `--prune`
+`changed`, `missing`, `unreadable` or `unsaved` (`sourceState`), and lists the
+weight strokes or curves staged but not applied when the studio stopped
+(`sessions`). `model recover <copy> --output new.mesh.json --strokes-output
+strokes.json` also writes those strokes for `model weight-paint --stroke-file`;
+`--curves-output` writes the staged curves for `model curves --operation replace`. `--prune`
 removes the oldest copies beyond 32 or 2 GiB, never one a running studio is
 writing; with `--dry-run` it only reports them (`pruned`).
 

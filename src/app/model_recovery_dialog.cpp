@@ -1,4 +1,5 @@
 #include "app/model_recovery_dialog.h"
+#include "core/model_session_draft.h"
 
 #include "app/dialog_screen_fit.h"
 #include "app/studio_accessibility.h"
@@ -235,7 +236,12 @@ class RecoveryDialog final : public QDialog
 			return;
 		}
 		const int row = m_list->currentItem() ? m_list->currentItem()->data(Qt::UserRole).toInt() : -1;
-		const QString state = row >= 0 && row < m_states.size() ? modelRecoverySourceStateText(m_states.at(row)) : QString();
+		QString state = row >= 0 && row < m_states.size() ? modelRecoverySourceStateText(m_states.at(row)) : QString();
+		// Weight strokes or curves staged when the studio stopped (core/model_session_draft.h).
+		for (const auto &draft : inspectModelSessionDrafts(QFileInfo(record->path).absolutePath(), record->id))
+			state += QLatin1Char('\n') + QCoreApplication::translate("VibeStudioModelRecovery",
+																	 "Staged but not applied: %1. Restoring offers it for review.")
+											  .arg(modelSessionDraftSummary(draft));
 		m_details->setPlainText(
 			record->isValid()
 				? QCoreApplication::translate(

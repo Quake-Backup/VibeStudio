@@ -1,4 +1,5 @@
 #include "core/model_recovery.h"
+#include "core/model_session_draft.h"
 #include "core/model_surface_selection.h"
 #include "core/model_collision.h"
 #include "core/model_tags.h"
@@ -581,6 +582,11 @@ bool removeModelRecovery(const QString &directory, const QString &id, QString *e
 	if (info.isSymLink() || info.isJunction() || (info.exists() && !info.isFile()))
 	{
 		return fail(error, QCoreApplication::translate("VibeStudioModelRecovery", "Only regular model recovery files may be discarded."));
+	}
+	// Staged-session sidecars go with their copy (core/model_session_draft.h).
+	if (!removeModelSessionDrafts(root, id, error))
+	{
+		return false;
 	}
 	if (!info.exists())
 	{

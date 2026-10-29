@@ -626,6 +626,14 @@ opens it unsaved. **Save** then offers the original source: when that file still
 holds what the copy started from, it is replaced; when it changed since, you
 choose **Save As…**, **Replace Changed File** or **Cancel**.
 
+Weight strokes staged in **Paint Skin Weights** and curves staged in
+**Animation Curves** are kept too, beside the copy of the model they were
+staged on. The chooser lists them as **Staged but not applied**; after
+**Restore as Draft** the editor asks whether to **Review Staged Work** (the
+dialog opens with the strokes or curves staged again, for you to apply or
+cancel) or **Discard Staged Work**. Work staged on another version of the model
+is not offered, as its strokes or keys would no longer match.
+
 The oldest mesh copies beyond 32, or beyond 2 GiB in all, are removed at
 startup, never one a running studio is still writing. Turn the notice off with
 **Offer mesh and assembly copies at startup** under **Settings → Getting

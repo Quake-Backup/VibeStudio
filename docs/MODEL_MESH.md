@@ -1232,6 +1232,22 @@ directory, shown by Recover. An explicit settings file keeps them beside that
 file. Disabling the preference stops pending writes and retains committed copies.
 Save, Discard on close, or undo back to the clean state retires the current copy.
 
+Staged sessions are kept with the copy (core/model_session_draft.h,
+app/model_session_drafts.cpp). While **Paint Skin Weights** or **Animation
+Curves** is open, the editor keeps a copy of the model it started from, even an
+unmodified one, and a background writer (app/model_session_draft_writer.h)
+writes the staged work beside it as `<copy id>.weight-paint.vsmeshsession` or
+`<copy id>.animation-curves.vsmeshsession`: a one-line JSON header (owner,
+base document fingerprint, stroke, sample or key counts, payload SHA-256)
+followed by the weight-paint stroke recipe (core/model_weight_stroke_recipe.h,
+the format `model weight-paint --stroke-file` reads) or one clip's joint curves.
+Closing the dialog removes the sidecar. The chooser lists a copy's sidecars;
+restoring the copy offers them for review, and Review restages the strokes, each
+as its own undo step, or the curve draft, in the dialog; a sidecar whose base
+fingerprint differs from the restored model is refused. Discarding a copy
+discards its sidecars, and the retention policy removes sidecars whose copy is
+gone once the studio that wrote them has stopped.
+
 Recover lists up to 128 small headers, including time and source provenance.
 Restore as Draft verifies the SHA-256 payload and complete mesh before replacing
 the editor document. Reading and validation run on a cancellable worker. A
@@ -1407,9 +1423,13 @@ vibestudio --cli model edit ./out/animated.mesh.json --operation add-clip --name
 vibestudio --cli model edit ./out/clipped.mesh.json --operation insert-inbetweens --frame 0 --insert-count 3 --name attack --output ./out/blended.mesh.json --dry-run --json
 ```
 
-`model recoveries [--directory <folder>]` reports headers; `payloadVerified` is
-false until restoration. `model recover <copy> --output <new.mesh.json>` verifies
-the payload and writes a new editable source. It supports dry-run and JSON, and
+`model recoveries [--directory <folder>]` reports headers, with each copy's
+staged `sessions`; `payloadVerified` is false until restoration. `model recover
+<copy> --output <new.mesh.json>` verifies the payload and writes a new editable
+source; `--strokes-output <strokes.json>` also writes the staged weight strokes
+for `model weight-paint --stroke-file`, and `--curves-output <curves.json>` the
+staged joint curves for `model curves --operation replace --curves` (exit 3 when
+the copy keeps none, 4 when they were staged on another version). It supports dry-run and JSON, and
 always protects existing files, the original source, and the recovery copy;
 `--overwrite` is rejected. Invalid recovery contents return exit code 4,
 destination/read/write failures 1, usage errors 2, and success 0.
