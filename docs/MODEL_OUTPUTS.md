@@ -103,8 +103,11 @@ part's source still has the SHA-256 the package was built from
   (for example `progs/player.mdl`) when that is a path a package can hold.
 - A release of the project reports each stale output as a `stale-model` problem
   (advisory, like `stale-map`).
-- The Models page lists the project's editable sources; choosing **Mesh Editor**
-  on a game model finds its source from the receipts first.
+- The Models page lists the project's editable sources, and marks one saved
+  after a receipt was delivered as **(outputs out of date)**: a file-time hint
+  (`modelSourceSavedAfterOutputs`), while **Check Outputs** compares content.
+  Choosing **Mesh Editor** on a game model finds its source from the receipts
+  first.
 
 ## Command line
 

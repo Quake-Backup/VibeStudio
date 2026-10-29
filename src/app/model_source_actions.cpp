@@ -200,6 +200,9 @@ void ApplicationShell::appendModelSourceItems()
 	}
 	if (sources.isEmpty())
 		return;
+	// Receipts say what each source delivered; a source saved after its newest
+	// receipt has outputs to refresh (checked by time here, by content in Outputs).
+	const auto receipts = manifest.rootPath.isEmpty() ? QVector<ModelOutputRecord>{} : projectModelOutputs(manifest);
 	auto *header = new QListWidgetItem(tr("Editable sources"));
 	header->setFlags(Qt::NoItemFlags);
 	m_modelEntries->addItem(header);
@@ -210,7 +213,12 @@ void ApplicationShell::appendModelSourceItems()
 									 : QFileInfo(path).fileName();
 		auto *item = new QListWidgetItem(relative);
 		item->setData(kModelSourceRole, path);
-		item->setToolTip(QDir::toNativeSeparators(path) + QLatin1Char('\n') + tr("Press Enter or double-click to open it in its editor."));
+		const bool stale = modelSourceSavedAfterOutputs(receipts, path);
+		if (stale)
+			item->setText(tr("%1 (outputs out of date)").arg(relative));
+		item->setToolTip(QDir::toNativeSeparators(path) + QLatin1Char('\n') +
+						 (stale ? tr("Saved after its exported or staged files; refresh them from the Mesh Editor's Outputs.") + QLatin1Char('\n') : QString()) +
+						 tr("Press Enter or double-click to open it in its editor."));
 		m_modelEntries->addItem(item);
 	}
 }

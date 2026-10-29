@@ -167,6 +167,20 @@ int main(int argc, char **argv)
 			clock.restart();
 			const bool finished = probe.edit(edit, &error, counting);
 			const double completeMs = clock.nsecsElapsed() / 1e6;
+			// Extrude adds vertices, so at the vertex limit it must refuse cleanly;
+			// the evidence then times the refusal rather than an edit.
+			const bool atLimit = operation == QStringLiteral("extrude") && document.mesh().vertexCount + 1 >= modelDocumentMaxVertices;
+			if (atLimit)
+			{
+				ok &= expect(!finished && !error.isEmpty() && probe.revisionFingerprint() == document.revisionFingerprint(),
+							 "Extrude at the vertex limit refuses and changes nothing");
+				evidence.append(QJsonObject{{QStringLiteral("fixture"), fixture.name},
+											{QStringLiteral("operation"), operation},
+											{QStringLiteral("refusedAtVertexLimit"), true},
+											{QStringLiteral("refusalMs"), completeMs},
+											{QStringLiteral("vertices"), document.mesh().vertexCount}});
+				continue;
+			}
 			ok &= expect(finished && validateEditableModel(probe.mesh()).isEmpty(), "a maximum-size edit finishes with a valid model");
 			// Cancelled early, half way and late: how long until edit() returns,
 			// and the document is exactly as it was.

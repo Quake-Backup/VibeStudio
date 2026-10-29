@@ -20,6 +20,7 @@
 #include <QProcess>
 #include <QTemporaryDir>
 #include <QThread>
+#include <QVector>
 
 #include <cstdlib>
 #include <iostream>
@@ -122,6 +123,21 @@ int main(int argc, char **argv)
 						 "a cancelled import exits 130 with cancelled JSON and no output; a finished one is complete");
 			ok &= expect(stagingFiles(temporary.path()) == 0, "no staging files remain");
 			std::cout << "cancel at report " << cancelAt.constData() << ": exit " << code << '\n';
+		}
+		// `model tool` and `model lod` take the same token.
+		const QVector<QStringList> others{
+			{QStringLiteral("model"), QStringLiteral("tool"), big, QStringLiteral("--tool"), QStringLiteral("add"), QStringLiteral("--primitive"),
+			 QStringLiteral("cube"), QStringLiteral("--at"), QStringLiteral("0,0,0"), QStringLiteral("--size"), QStringLiteral("4,4,4"),
+			 QStringLiteral("--output"), path(QStringLiteral("tool.mesh.json"))},
+			{QStringLiteral("model"), QStringLiteral("lod"), big, QStringLiteral("--output"), path(QStringLiteral("lod.md3"))}};
+		for (const auto &args : others)
+		{
+			int code = -1;
+			ok &= expect(run(args, QByteArray("1"), &code), "run the command");
+			ok &= expect(code == cliCancelledExitCode && output.value(QStringLiteral("cancelled")).toBool() &&
+							 !QFileInfo::exists(args.at(args.indexOf(QStringLiteral("--output")) + 1)) && stagingFiles(temporary.path()) == 0,
+						 "a cancelled model tool or model lod exits 130 and writes nothing");
+			std::cout << qPrintable(args.at(1)) << " cancelled: exit " << code << '\n';
 		}
 #ifdef Q_OS_WIN
 		// A real Ctrl+Break, when this test shares a console with the child.

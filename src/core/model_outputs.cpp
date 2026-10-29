@@ -429,6 +429,18 @@ QVector<ModelOutputRecord> modelOutputsForSource(const QVector<ModelOutputRecord
 	return result;
 }
 
+bool modelSourceSavedAfterOutputs(const QVector<ModelOutputRecord> &records, const QString &sourcePath)
+{
+	const QFileInfo info(sourcePath);
+	if (!info.exists())
+		return false;
+	const QDateTime saved = info.lastModified().toUTC();
+	const auto delivered = modelOutputsForSource(records, sourcePath);
+	// A second of slack: the receipt is stamped just after the source is read.
+	return std::any_of(delivered.cbegin(), delivered.cend(),
+					   [&](const ModelOutputRecord &record) { return record.deliveredUtc.isValid() && record.deliveredUtc.addSecs(1) < saved; });
+}
+
 QString modelOutputSourceFor(const QVector<ModelOutputRecord> &records, const QString &output)
 {
 	const QString wanted = QDir::fromNativeSeparators(output);

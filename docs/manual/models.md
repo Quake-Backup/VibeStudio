@@ -283,7 +283,9 @@ Editor, a `.model.json` in **Design Prop** and an `.assembly.json` in
 
 The **Models** list ends with **Editable sources**: the sources in a folder
 package and in the project's source folders. Press <kbd>Enter</kbd> or
-double-click one to open it.
+double-click one to open it. A source saved after its last export or staging
+reads **(outputs out of date)**; open it and use **Refresh Stale** under
+**Outputs**.
 
 When you choose **Mesh Editor** on a game model and its editable source is
 known (a `.mesh.json` of the same name at the same game path, beside the file in

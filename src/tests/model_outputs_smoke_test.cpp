@@ -116,6 +116,14 @@ int main(int argc, char **argv)
 	ok &= expect(modelOutputSourceFor(records, QStringLiteral("other.md3")).isEmpty() &&
 					 QFileInfo(modelOutputSourceFor(records, outputPath)) == QFileInfo(sourcePath),
 				 "an output finds the source it was made from");
+	// The Models list's file-time hint: saved after the receipt means out of date.
+	auto earlier = records;
+	earlier.first().deliveredUtc = QFileInfo(sourcePath).lastModified().toUTC().addSecs(-60);
+	auto later = records;
+	later.first().deliveredUtc = QFileInfo(sourcePath).lastModified().toUTC().addSecs(60);
+	ok &= expect(modelSourceSavedAfterOutputs(earlier, sourcePath) && !modelSourceSavedAfterOutputs(later, sourcePath) &&
+					 !modelSourceSavedAfterOutputs(earlier, QDir(project.path()).filePath(QStringLiteral("models/absent.mesh.json"))),
+				 "a source saved after its receipt is flagged; one saved before, or a missing one, is not");
 
 	// The source changes: stale; refresh reproduces the output from it.
 	ModelDocument edited;

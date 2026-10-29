@@ -718,8 +718,9 @@ Without `--json`, results go to standard output and errors to standard error.
 | 5 | `unavailable` | The workflow is recognised but no capable implementation or tool is available yet. |
 
 Model commands also stop cleanly when interrupted. <kbd>Ctrl</kbd>+<kbd>C</kbd> or
-<kbd>Ctrl</kbd>+<kbd>Break</kbd> (SIGINT or SIGTERM on macOS and Linux) asks a running `model`
-command to stop at its next checkpoint: it publishes nothing, removes its own temporary files and
+<kbd>Ctrl</kbd>+<kbd>Break</kbd> (SIGINT or SIGTERM on macOS and Linux) asks a running
+`model import`, `model edit`, `model build`, `model stage`, `model outputs`, `model tool` or
+`model lod` to stop at its next checkpoint: it publishes nothing, removes its own temporary files and
 exits with 130, with `"cancelled": true` in JSON. A second request ends the process at once.
 `--progress` prints each phase of a long model command as a JSON line on stderr, such as
 `{"progress": {"phase": "serializing", "completed": 1048576, "total": 4194304}}`.

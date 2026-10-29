@@ -2237,6 +2237,8 @@ Each resolved path may be a definition file or a folder of them.
   embedded receipt. `model build` and `model lod` record receipts for sources in a
   project. See [Model Outputs and Receipts](MODEL_OUTPUTS.md).
 - [x] Model commands share a cancellation token (core/cli_cancellation.h):
+  `model import`, `model edit`, `model build`, `model stage`, `model outputs`,
+  `model tool` and `model lod` take it.
   Ctrl+C/Ctrl+Break (SetConsoleCtrlHandler) or SIGINT/SIGTERM (sigaction) stop
   at the next ModelWorkControl checkpoint, publish nothing and exit 130 with
   `"cancelled": true`; a second request exits at once. `--progress` writes phase

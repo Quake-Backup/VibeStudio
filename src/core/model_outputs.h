@@ -139,6 +139,9 @@ bool forgetModelOutput(const QString &projectRoot, const QString &key, QString *
 												  const std::function<bool()> &cancelled = {});
 // The receipts made from `sourcePath`.
 [[nodiscard]] QVector<ModelOutputRecord> modelOutputsForSource(const QVector<ModelOutputRecord> &records, const QString &sourcePath);
+// True when `sourcePath` was saved after one of its receipts was delivered: a
+// cheap, file-time hint for lists (modelOutputStatus is the content check).
+[[nodiscard]] bool modelSourceSavedAfterOutputs(const QVector<ModelOutputRecord> &records, const QString &sourcePath);
 // The editable source a receipt names for an output file or package entry
 // (matched by entry path when `output` is a game path); empty when none.
 [[nodiscard]] QString modelOutputSourceFor(const QVector<ModelOutputRecord> &records, const QString &output);
