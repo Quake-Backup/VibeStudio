@@ -229,7 +229,7 @@ void ApplicationShell::showModelMaterial(const QString& reference)
 		// After the Materials page has shown, so Textures is the page left in view.
 		QTimer::singleShot(0, this, [this, image, missing] {
 			showAssetEntry(StudioMode::Textures, image);
-			statusBar()->showMessage(tr("No material declares %1; showing its image %2 in Textures.").arg(missing, image));
+			statusBar()->showMessage(tr("No material declares %1; Textures shows its image instead: %2.").arg(missing, image));
 		});
 		return true;
 	});

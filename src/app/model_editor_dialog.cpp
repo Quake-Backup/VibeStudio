@@ -2665,7 +2665,7 @@ void ModelEditorDialog::refreshContext()
 	m_stageSkins->setEnabled(suffix == QStringLiteral("md3"));
 	m_place->setToolTip(current.placeSuffixes.isEmpty()
 							? QCoreApplication::translate("VibeStudioModelEditor", "Open a Quake-family map to place the model.")
-							: QCoreApplication::translate("VibeStudioModelEditor", "This map places %1 models.")
+							: QCoreApplication::translate("VibeStudioModelEditor", "Model types this map places: %1.")
 								  .arg(current.placeSuffixes.join(QStringLiteral(", ")).toUpper()));
 	for (auto *field : m_placement)
 	{

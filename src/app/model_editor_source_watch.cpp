@@ -260,9 +260,11 @@ QString ModelEditorDialog::sourceComparisonText() const
 	const QLocale locale;
 	const auto summary = [&](const ModelMesh &mesh)
 	{
-		return QCoreApplication::translate("VibeStudioModelEditor", "%1 surfaces, %2 vertices, %3 triangles, %4 frames")
-			.arg(locale.toString(mesh.surfaceCount), locale.toString(mesh.vertexCount), locale.toString(mesh.triangleCount),
-				 locale.toString(mesh.frameCount));
+		return QStringList{QCoreApplication::translate("VibeStudioModelEditor", "%Ln surface(s)", nullptr, mesh.surfaceCount),
+					   QCoreApplication::translate("VibeStudioModelEditor", "%Ln vert(ex)(ices)", nullptr, mesh.vertexCount),
+					   QCoreApplication::translate("VibeStudioModelEditor", "%Ln triangle(s)", nullptr, mesh.triangleCount),
+					   QCoreApplication::translate("VibeStudioModelEditor", "%Ln frame(s)", nullptr, mesh.frameCount)}
+			.join(QStringLiteral(", "));
 	};
 	QStringList lines;
 	lines << QCoreApplication::translate("VibeStudioModelEditor", "This document: %1%2.")
@@ -284,7 +286,7 @@ QString ModelEditorDialog::sourceComparisonText() const
 	}
 	else
 	{
-		lines << QCoreApplication::translate("VibeStudioModelEditor", "On disk: %1 bytes, saved %2; the file was not read here.").arg(locale.toString(info.size()), when);
+		lines << QCoreApplication::translate("VibeStudioModelEditor", "On disk: %1, saved %2; the file was not read here.").arg(locale.formattedDataSize(info.size()), when);
 	}
 	return lines.join(QLatin1Char('\n'));
 }

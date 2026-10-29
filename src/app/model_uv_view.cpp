@@ -259,7 +259,7 @@ QString ModelUvView::healthLegend() const
 	switch (m_overlay)
 	{
 	case ModelUvHealthOverlay::Stretch:
-		return QCoreApplication::translate("VibeStudioModelUvView", "Dotted faces stretch texels more than %1 times: %Ln faces.", nullptr, count)
+		return QCoreApplication::translate("VibeStudioModelUvView", "Dotted faces stretch texels beyond a factor of %1: %Ln faces.", nullptr, count)
 			.arg(localeNumber(m_health->stretchLimit, 3));
 	case ModelUvHealthOverlay::Overlaps:
 		return QCoreApplication::translate("VibeStudioModelUvView", "Cross-hatched faces overlap other faces: %Ln faces.", nullptr, count);

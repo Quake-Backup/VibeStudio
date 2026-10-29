@@ -67,8 +67,8 @@ ModelUvLayoutDialog::ModelUvLayoutDialog(const ModelMesh &mesh, int surface, QSi
 	}
 	m_width->setObjectName(QStringLiteral("uvLayoutWidth"));
 	m_height->setObjectName(QStringLiteral("uvLayoutHeight"));
-	describe(m_width, Text::tr("Layout width in pixels"), Text::tr("Match the skin's original width; 1 to %L1 pixels.").arg(modelUvLayoutMaxSize));
-	describe(m_height, Text::tr("Layout height in pixels"), Text::tr("Match the skin's original height; 1 to %L1 pixels.").arg(modelUvLayoutMaxSize));
+	describe(m_width, Text::tr("Layout width in pixels"), Text::tr("Match the skin's original width, in pixels from 1 to %L1.").arg(modelUvLayoutMaxSize));
+	describe(m_height, Text::tr("Layout height in pixels"), Text::tr("Match the skin's original height, in pixels from 1 to %L1.").arg(modelUvLayoutMaxSize));
 	auto *useSkin = new QPushButton(Text::tr("Use Skin Size"));
 	useSkin->setObjectName(QStringLiteral("uvLayoutUseSkinSize"));
 	describe(useSkin, useSkin->text(), Text::tr("Set the size to the displayed material's original size, or the MDL or MD2 skin size: %L1 × %L2.")
@@ -287,7 +287,7 @@ void ModelEditorDialog::exportUvLayout()
 		m_status->setText(error, LiveStatus::Problem);
 		return;
 	}
-	m_status->setText(QCoreApplication::translate("ModelUvLayoutDialog", "Exported the UV layout of %Ln faces at %L1 × %L2 pixels to %3.", nullptr,
+	m_status->setText(QCoreApplication::translate("ModelUvLayoutDialog", "Exported the UV layout of %Ln faces as a %L1 × %L2 image to %3.", nullptr,
 												  report.faces)
 						  .arg(report.size.width())
 						  .arg(report.size.height())

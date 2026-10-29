@@ -734,17 +734,18 @@ bool ModelEditorDialog::layoutQuakeFrontBack(int axis, QString *error)
 	ModelTargetProfile target;
 	findModelTargetProfile(QStringLiteral("mdl"), deliveryTarget(QStringLiteral("mdl")), &target);
 	if (mesh.mdl.enabled && mesh.surfaces.size() == 1 && modelMdlVertexCounts(mesh, &stored, &render))
-		m_status->setText(QCoreApplication::translate("ModelUvOps", "Laid out front and back halves on %L1 × %L2 texels. The MDL stores %L3 "
-																	"vertices (%4 allows %L5), %L6 of them on the seam.")
-							  .arg(size.width())
-							  .arg(size.height())
-							  .arg(stored)
-							  .arg(target.label)
-							  .arg(target.limits.vertices)
-							  .arg(render - stored),
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "Laid out front and back halves on a %L1 × %L2 texel skin.")
+								  .arg(size.width())
+								  .arg(size.height()) +
+							  QLatin1Char(' ') +
+							  QCoreApplication::translate("ModelUvOps", "The MDL stores %Ln vert(ex)(ices) (the %1 limit is %L2), %L3 of them on the seam.",
+															  nullptr, stored)
+								  .arg(target.label)
+								  .arg(target.limits.vertices)
+								  .arg(render - stored),
 						  LiveStatus::Result);
 	else
-		m_status->setText(QCoreApplication::translate("ModelUvOps", "Laid out front and back halves on %L1 × %L2 texels.")
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "Laid out front and back halves on a %L1 × %L2 texel skin.")
 							  .arg(size.width())
 							  .arg(size.height()),
 						  LiveStatus::Result);
@@ -903,7 +904,7 @@ bool ModelEditorDialog::checkUvHealth(ModelUvHealthReport *result, QString *erro
 	const int overlapping = int(report.overlapping.size()), flipped = int(report.flipped.size()), outside = int(report.outside.size());
 	const int stretched = int(report.stretched.size()), collapsed = int(report.collapsedUv.size() + report.collapsedGeometry.size());
 	QStringList parts;
-	parts << QCoreApplication::translate("ModelUvHealth", "UV health for %1 against %L2 × %L3 texels. Faces overlapping: %L4; flipped: %L5; "
+	parts << QCoreApplication::translate("ModelUvHealth", "UV health for %1 against a %L2 × %L3 texel skin. Faces overlapping: %L4; flipped: %L5; "
 										 "stretched: %L6; collapsed: %L7; outside the tile: %L8.")
 				 .arg(m_document.mesh().surfaces[surface].name)
 				 .arg(report.textureSize.width())
@@ -920,16 +921,16 @@ bool ModelEditorDialog::checkUvHealth(ModelUvHealthReport *result, QString *erro
 		const int mirrored = report.mirroredIslands;
 		parts << QCoreApplication::translate("ModelUvHealth", "Mirrored islands: %L1.").arg(mirrored);
 	}
-	parts << QCoreApplication::translate("ModelUvHealth", "Largest texel-centre error %1 texels.").arg(localeNumber(report.maxTexelError, 3));
+	parts << QCoreApplication::translate("ModelUvHealth", "Largest texel-centre error, in texels: %1.").arg(localeNumber(report.maxTexelError, 3));
 	for (const auto &native : report.native)
 	{
 		if (!native.available)
 			continue;
 		const auto format = native.format.toUpper();
 		if (native.limit > 0)
-			parts << QCoreApplication::translate("ModelUvHealth", "%1 stores %L2 of %L3 vertices.").arg(format).arg(native.stored).arg(native.limit);
+			parts << QCoreApplication::translate("ModelUvHealth", "%1: %Ln stored vert(ex)(ices) (limit %L2).", nullptr, native.stored).arg(format).arg(native.limit);
 		else
-			parts << QCoreApplication::translate("ModelUvHealth", "%1 stores %L2 vertices.").arg(format).arg(native.stored);
+			parts << QCoreApplication::translate("ModelUvHealth", "%1: %Ln stored vert(ex)(ices).", nullptr, native.stored).arg(format);
 	}
 	if (report.floodFillHazard())
 		parts << QCoreApplication::translate("ModelUvHealth", "GLQuake's skin flood fill reaches %Ln used texels; keep the first texel's colour out "

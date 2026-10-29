@@ -242,7 +242,7 @@ bool ModelViewport::updateBrushAssemble(const QPointF& point)
 		}
 	}
 	if (!levelBrushAssembleAppend(&state.points, added) || !state.valid()) {
-		m_assembleMessage = tr("Assemble at most %1 points within ±32768 units.").arg(kLevelBrushPointsMaximum);
+		m_assembleMessage = tr("Assemble at most %n point(s) within ±32768 units.", nullptr, kLevelBrushPointsMaximum);
 		updateBrushAssembleReadout();
 		return false;
 	}
@@ -270,7 +270,7 @@ void ModelViewport::finishBrushAssemble(bool commit)
 		auto state = m_assembleBefore;
 		const auto point = levelBrushAssembleSurfacePoint(m_assembleAnchor, m_assembleSurface, m_moveGrid);
 		if (!levelBrushAssembleAppend(&state.points, {point}) || !state.valid()) {
-			m_assembleMessage = tr("Assemble at most %1 points within ±32768 units.").arg(kLevelBrushPointsMaximum);
+			m_assembleMessage = tr("Assemble at most %n point(s) within ±32768 units.", nullptr, kLevelBrushPointsMaximum);
 		} else {
 			setBrushAssembleState(state);
 		}
@@ -296,7 +296,7 @@ bool ModelViewport::addBrushAssembleFace(const QPointF& point)
 	// TB AssembleBrushToolController3D::mouseDoubleClick: the face's corners.
 	auto state = m_assembleState;
 	if (!levelBrushAssembleAppend(&state.points, surface.winding) || !state.valid()) {
-		m_assembleMessage = tr("Assemble at most %1 points within ±32768 units.").arg(kLevelBrushPointsMaximum);
+		m_assembleMessage = tr("Assemble at most %n point(s) within ±32768 units.", nullptr, kLevelBrushPointsMaximum);
 		updateBrushAssembleReadout();
 		return false;
 	}

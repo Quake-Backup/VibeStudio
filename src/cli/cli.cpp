@@ -735,6 +735,8 @@ QStringList commandTokens(const QStringList& args)
 	// the project path.
 	static const QSet<QString> booleanFlags = {
 			QStringLiteral("--choices"), QStringLiteral("--disable"),
+			// model import: accepted decode omissions; model pose import without curves or events.
+			QStringLiteral("--accept-omissions"), QStringLiteral("--no-curves"), QStringLiteral("--no-events"),
 			// model uv --health, UV operators, uv-layout and skin-transfer.
 			QStringLiteral("--health"), QStringLiteral("--no-pack"), QStringLiteral("--uv-allow-rotation"), QStringLiteral("--antialias"),
 			QStringLiteral("--wrap"), QStringLiteral("--no-tints"), QStringLiteral("--no-wrap"),
@@ -811,6 +813,8 @@ QStringList commandTokens(const QStringList& args)
 	};
 
 	static const QSet<QString> valueFlags = {
+			// model import: OBJ axis, scale, material libraries and loose data.
+			QStringLiteral("--obj-up"), QStringLiteral("--obj-scale"), QStringLiteral("--obj-materials"), QStringLiteral("--obj-loose"),
 			QStringLiteral("--choice"), QStringLiteral("--tags"), QStringLiteral("--face"),
 			// model uv --health and the UV operators of model edit.
 			QStringLiteral("--fail-on"), QStringLiteral("--stretch-limit"), QStringLiteral("--uv-weld-tolerance"), QStringLiteral("--uv-align"),

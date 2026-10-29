@@ -274,7 +274,7 @@ bool ModelEditorDialog::editSurfaceSkin(QString *error)
 	m_skinWatchTimer->start();
 	if (!editSkinFile(path, &problem))
 		return fail(problem.isEmpty() ? Text::tr("The skin could not be opened in Textures.") : problem);
-	m_status->setText(Text::tr("Opened %1 in Textures with a UV guide layer. Save the texture project there to bring the skin back to the model.")
+	m_status->setText(Text::tr("Opened the skin in Textures with a UV guide layer: %1. Save the texture project there to bring the skin back to the model.")
 						  .arg(QFileInfo(path).fileName()),
 					  LiveStatus::Result);
 	return true;
@@ -629,7 +629,7 @@ void ModelEditorDialog::transferSkin()
 		m_status->setText(error, LiveStatus::Problem);
 		return;
 	}
-	auto summary = Text::tr("Transferred the skin: %Ln faces repainted on %L1 × %L2 texels.", nullptr, report.faces).arg(size.width()).arg(size.height());
+	auto summary = Text::tr("Transferred the skin: %Ln faces repainted on a %L1 × %L2 texel skin.", nullptr, report.faces).arg(size.width()).arg(size.height());
 	const int projected = int(report.projectedFaces.size());
 	if (projected > 0)
 		summary += QLatin1Char(' ') + Text::tr("%Ln of them were found by projection onto the old surface.", nullptr, projected);

@@ -217,7 +217,7 @@ bool ModelFrameTimeline::event(QEvent *event)
 		if (const auto here = eventsAt(frame); !here.isEmpty())
 		{
 			QToolTip::showText(help->globalPos(),
-							   QCoreApplication::translate("VibeStudioModelEditor", "Frame %1 events: %2")
+							   QCoreApplication::translate("VibeStudioModelEditor", "Events at frame %1: %2")
 								   .arg(QLocale().toString(frame), here.join(QStringLiteral("; "))),
 							   this);
 			return true;

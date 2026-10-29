@@ -180,10 +180,10 @@ void ModelEditorTools::noteIntersections(const ModelEdit &edit, const ModelEditR
 	// A warning, not a refusal: intentional interpenetration is common.
 	const int count = report.introducedIntersections.size() + report.introducedCrossings.size();
 	const QString where = !report.introducedIntersections.isEmpty()
-							  ? Text::tr("Faces %1 and %2 cross, among others.")
+							  ? Text::tr("Faces %1 and %2 intersect, among others.")
 									.arg(report.introducedIntersections.first().first)
 									.arg(report.introducedIntersections.first().second)
-							  : Text::tr("Face %1 crosses face %2 of surface %3, among others.")
+							  : Text::tr("Face %1 and face %2 of surface %3 intersect, among others.")
 									.arg(report.introducedCrossings.first()[0])
 									.arg(report.introducedCrossings.first()[2])
 									.arg(report.introducedCrossings.first()[1]);

@@ -374,8 +374,10 @@ int main(int argc, char **argv)
 	QByteArray stagedBytes;
 	ok &= expect(PackageStagingArchive(staging).readEntryBytes("models/panel.md2", &stagedBytes, &error) && stagedBytes == bytes,
 				 "package preview consumes the same animated export bytes");
+	// Quake III maps place MD2 as misc_model since placement was unified; a
+	// Doom map places no models at all.
 	LevelMapDocument map;
-	map.format = LevelMapFormat::Quake3Map;
+	map.format = LevelMapFormat::DoomWad;
 	ok &= expect(!stageModelMesh(mesh, "models/another.md2", &staging, &map, {}, false, &error) &&
 					 !PackageStagingArchive(staging).readEntryBytes("models/another.md2", &stagedBytes, &error),
 				 "unsupported map placement leaves package unchanged");
