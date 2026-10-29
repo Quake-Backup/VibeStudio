@@ -1309,7 +1309,10 @@ It draws with the shared 3D renderer (OpenGL or Vulkan). **Model > Keep Local Re
 unsaved mesh changes every five seconds. The menu check persists under
 `model/recoveryEnabled`; turning it off retains existing copies. **Undo history
 limit** (16–4,096 MiB, 64 by default) persists under `model/historyBudgetMiB` and
-applies to every open mesh document. Recover shows
+applies to every open mesh document. **Apply Saved Skins Automatically** in the
+Mesh Editor's UV toolbar (off by default) persists under
+`model/skinRoundTripAutoApply`: when on, a skin saved in Textures after **Edit
+Skin…** is applied to the model at once instead of offered. Recover shows
 the local folder and restores a verified copy as an unsaved draft. Import,
 editing, saves, and exports run in the background with progress and cancellation
 for longer operations; controls unlock when the operation finishes. No connector

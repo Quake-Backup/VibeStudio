@@ -2,12 +2,16 @@
 #include "core/model_document.h"
 #include "core/model_mdl.h"
 #include "core/model_skin_handoff.h"
+#include "core/model_skin_roundtrip.h"
+#include "core/model_uv_layout.h"
+#include "core/texture_project.h"
 #include "tests/model_mdl_test_helpers.h"
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QProcess>
 #include <QTemporaryDir>
 #include <iostream>
@@ -115,6 +119,69 @@ int main(int argc, char **argv)
 			   "the CLI member keeps its indices", error);
 		expect(run({output}, &json) != 0, "an existing output needs --overwrite");
 		expect(run({input, "--overwrite"}, &json) != 0, "the source is protected");
+	}
+	// Edit Skin round trip (core/model_skin_roundtrip.h): the texture project
+	// keeps the member's indices, the UV guide never comes back, and edits map
+	// to the palette with unchanged texels keeping their index.
+	if (temp.isValid())
+	{
+		ModelSkinRoundTripLink link;
+		link.model = QStringLiteral("models/fixture.mdl");
+		link.mdlSkin = 0;
+		link.mdlMember = 0;
+		const auto skin = modelMdlSkinMemberImage(mesh, 0, 0, &error);
+		link.size = skin.size();
+		link.indexed = true;
+		expect(modelSkinRoundTripFileName(link) == QStringLiteral("fixture-skin0-0.vtexture"), "round-trip files are named after the skin");
+		ModelSkinRoundTripLink parsed;
+		expect(modelSkinRoundTripLinkFromJson(modelSkinRoundTripLinkJson(link), &parsed) && parsed == link, "the link survives its JSON");
+		QImage guide;
+		ModelUvLayoutOptions layout;
+		layout.edge = QColor(255, 255, 0);
+		expect(renderModelUvLayout(mesh, {0}, skin.size(), layout, &guide, nullptr, &error), "draw the UV guide", error);
+		const auto path = temp.filePath("fixture-skin0-0.vtexture");
+		expect(writeModelSkinRoundTrip(path, skin, guide, link, &error), "write the round-trip project", error);
+		TextureDocument project;
+		QJsonObject metadata;
+		expect(readTextureProject(path, &project, nullptr, &metadata, &error) && project.layers().size() == 2 && project.layers()[1].locked &&
+				   project.layers()[1].opacity == 50 && project.activeLayerIndex() == 0 && metadata.contains("palette"),
+			   "the project holds the skin under a locked guide layer with the skin's palette", error);
+		QImage back;
+		ModelSkinRoundTripLink readLink;
+		expect(readModelSkinRoundTrip(path, &back, &readLink, &error) && back.format() == QImage::Format_Indexed8 && back == skin && readLink == link,
+			   "an unedited project reads back as the exact member", error);
+		ModelMdlSkinInput roundTrip;
+		expect(modelSkinRoundTripMdlInput(mesh, 0, 0, back, &roundTrip, &error) && roundTrip.pixels == member,
+			   "an unedited skin gives back every index", error);
+		// Paint one texel on a new layer, as Textures would save it.
+		auto layers = project.layers();
+		QImage paint(skin.size(), QImage::Format_ARGB32);
+		paint.fill(Qt::transparent);
+		paint.setPixel(1, 1, qRgb(255, 0, 0));
+		layers.insert(1, TextureLayer{3, QStringLiteral("Paint"), paint, true, false, 100, TextureBlendMode::Normal});
+		TextureProjectSaveRequest save;
+		save.path = path;
+		save.overwrite = true;
+		expect(project.restoreLayers(project.size(), layers, 1, &error) && writeTextureProject(project, save, metadata).succeeded,
+			   "save the painted project", error);
+		expect(readModelSkinRoundTrip(path, &back, nullptr, &error) && back.format() == QImage::Format_ARGB32 && back.pixel(1, 1) == qRgb(255, 0, 0) &&
+				   back.pixel(0, 0) == skin.color(skin.pixelIndex(0, 0)),
+			   "painted layers composite without the guide", error);
+		expect(modelSkinRoundTripMdlInput(mesh, 0, 0, back, &roundTrip, &error), "map the painted skin", error);
+		int changed = 0;
+		for (int i = 0; i < member.size(); ++i)
+			changed += roundTrip.pixels[i] != member[i];
+		expect(changed <= 1 && roundTrip.pixels.size() == member.size(), "only the painted texel changes index");
+		expect(!modelSkinRoundTripMdlInput(mesh, 0, 0, back.scaled(4, 4), &roundTrip, &error), "another canvas size is refused");
+		// A project whose skin layers are all hidden is refused.
+		for (auto &layer : layers)
+			layer.visible = layer.id == 2;
+		expect(project.restoreLayers(project.size(), layers, 0, &error) && writeTextureProject(project, save, metadata).succeeded &&
+				   !readModelSkinRoundTrip(path, &back, nullptr, &error),
+			   "a project showing only the guide is refused");
+		metadata.remove("modelSkin");
+		expect(writeTextureProject(project, save, metadata).succeeded && !readModelSkinRoundTrip(path, &back, nullptr, &error),
+			   "a texture project Edit Skin did not write is refused");
 	}
 	std::cout << checks << " skin handoff checks; " << failures << " failures\n";
 	return failures ? 1 : 0;

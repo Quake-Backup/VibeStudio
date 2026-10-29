@@ -10,6 +10,7 @@
 #include "core/model_editor_controls.h"
 #include "core/model_skin_source.h"
 #include "core/model_skin_bindings.h"
+#include "core/model_skin_roundtrip.h"
 #include "core/model_topology_health.h"
 #include "core/model_intersections.h"
 #include "core/model_uv_health.h"
@@ -20,6 +21,7 @@
 #include <QPointer>
 
 #include <functional>
+#include <memory>
 
 class QAction;
 class QBoxLayout;
@@ -45,6 +47,7 @@ class QSpinBox;
 
 namespace vibestudio
 {
+class DocumentWatcher;
 class ModelComponentTable;
 class ModelEditorTools;
 class ModelIntersectionList;
@@ -170,15 +173,31 @@ class ModelEditorDialog final : public QDialog
 	// workbench; Show Material uses it when a surface's material resolves to
 	// a shader rather than an image.
 	std::function<void(const QString &)> showShader;
-	// Opens an image in the Textures workbench's editor at the package path
-	// staging it there replaces (Edit Skin…); set by the shell.
-	std::function<bool(const QImage &, const QString &, QString *)> editSkin;
+	// Opens a file in the Textures workbench's editor; Edit Skin… opens its
+	// round-trip texture project with it. Set by the shell.
+	std::function<bool(const QString &, QString *)> editSkinFile;
 	// Stages one file of any type in the open package as one package step
 	// (UV layouts, transferred skins); set by the shell.
 	std::function<bool(const QString &, const QByteArray &, bool, QString *)> stageFile;
-	// Edit Skin…: the active surface's skin (the displayed material image or
-	// the current MDL member) in the texture editor.
+	// Edit Skin… (model_editor_skin.cpp, core/model_skin_roundtrip.h): writes
+	// the active surface's skin (the displayed material image or the current
+	// MDL member) with a UV guide layer as a texture project in the project's
+	// .vibestudio/model-skins folder, opens it in Textures and watches it
+	// (core/document_watch.h). When Textures saves it, the skin is offered
+	// to the model, or applied at once with Apply Saved Skins Automatically.
 	bool editSurfaceSkin(QString *error = nullptr);
+	// Applies the skin Textures saved last: an MDL member is replaced as one
+	// undo step; an external skin is staged over its package path.
+	bool applySkinFromTextures(QString *error = nullptr);
+	void dismissSkinFromTextures();
+	// Checks the watched round-trip files now; `flush` skips the quiet period
+	// a save must hold still for.
+	void checkSkinRoundTrips(bool flush = false);
+	[[nodiscard]] bool hasPendingSkin() const { return !m_skinPending.isNull(); }
+	[[nodiscard]] QStringList skinRoundTripFiles() const { return m_skinLinks.keys(); }
+	// Where Edit Skin writes its texture projects: the open project's
+	// .vibestudio/model-skins folder, else the studio's local data folder.
+	[[nodiscard]] QString skinRoundTripDirectory() const;
 	// Shows `mesh` in the viewport in place of the document, changing nothing;
 	// nullptr shows the document again.
 	void previewTransientMesh(const ModelMesh *mesh);
@@ -319,7 +338,19 @@ class ModelEditorDialog final : public QDialog
 	QComboBox *m_uvAlignMode = nullptr, *m_uvSnapMode = nullptr, *m_uvUnwrapMethod = nullptr;
 	QCheckBox *m_uvPackRotate = nullptr, *m_uvUnwrapPack = nullptr, *m_uvPackShared = nullptr;
 	QLabel *m_md2SkinSizeWarning = nullptr;
-	// The active surface before the last UV edit, for Transfer Skin.
+	// Edit Skin… round trips (model_editor_skin.cpp).
+	std::unique_ptr<DocumentWatcher> m_skinWatch;
+	QTimer *m_skinWatchTimer = nullptr;
+	QHash<QString, ModelSkinRoundTripLink> m_skinLinks;
+	QString m_skinPendingPath;
+	QImage m_skinPending;
+	ModelSkinRoundTripLink m_skinPendingLink;
+	QWidget *m_skinOfferRow = nullptr;
+	StatusLineLabel *m_skinOfferStatus = nullptr;
+	QAction *m_skinAutoApply = nullptr;
+	void createSkinRoundTripRow(QBoxLayout *statusRow);
+	void showSkinOffer();
+	// The active surface before the last UV or face edit, for Transfer Skin.
 	ModelSurface m_uvTransferBefore;
 	int m_uvTransferSurface = -1;
 	QByteArray m_uvTransferRevision;

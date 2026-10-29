@@ -796,9 +796,6 @@ map to the nearest palette entry outside the fullbright range. **Show Material**
 opens a surface whose material resolves to a Quake III shader or Doom 3 material
 in the Materials workbench, and image materials in Textures. For MD2, the Export
 page warns when the resolved PCX skin's size differs from the MD2 skin size.
-The texture editor does not yet draw the UV layout as a guide over the canvas,
-and an MDL member edited in Textures comes back through Replace Member From
-Image, not automatically.
 
 UV chart analysis and drawing run on a cancellable worker with one active job
 and a replaceable pending request. The view reports when it is updating and
@@ -1686,9 +1683,12 @@ Usage errors return 2 and an unreadable source 1.
 `model edit` runs the [UV operators](#uv-operators) as `uv-weld`
 (`--uv-weld-tolerance` 0 to 1, default 0), `uv-stitch` (`--edges`),
 `uv-align` (`--uv-align u-min|u-centre|u-max|v-min|v-centre|v-max|straighten`)
-and `uv-snap-texels` (`--uv-snap centres|corners`, `--uv-snap-size N|WxH`).
-`uv-unwrap` takes `--uv-method automatic|conformal`; a conformal unwrap also
-takes `--uv-pins` (vertex indices) and `--no-pack`, and JSON adds `unwrap`.
+and `uv-snap-texels` (`--uv-snap centres|corners`, `--uv-snap-size N|WxH`);
+`uv-pin` and `uv-unpin` store or remove pins on the selected corners and take
+no UV settings. `uv-unwrap` takes `--uv-method automatic|conformal`; a
+conformal unwrap holds the stored pins, also takes `--uv-pins` (vertex indices
+pinned for that run) and `--no-pack`, and JSON adds `unwrap`. `model uv --json`
+lists each surface's `pins`, and `model inspect --json` counts `uvPins`.
 `uv-pack` (and a packed conformal unwrap) takes `--uv-allow-rotation`;
 `uv-pack` also takes `--uv-pack-surfaces N,N` for surfaces sharing the active
 surface's material. Options of another operation are usage errors (2).

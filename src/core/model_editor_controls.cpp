@@ -129,6 +129,7 @@ constexpr CommandEntry kCommands[] = {
 	{"meshUvExportLayout", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Export UV Layout"), ""},
 	{"meshUvTransferSkin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Transfer Skin to New UVs"), ""},
 	{"meshUvEditSkin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Edit Skin"), ""},
+	{"meshUvApplySkin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Apply Skin from Textures"), ""},
 	{"meshShowUvEditor", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Texture Coordinate Editor"), ""},
 	{"meshAssignMaterial", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Assign Material to Selection"), ""},
 	// View.

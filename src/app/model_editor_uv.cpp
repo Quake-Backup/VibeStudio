@@ -5,6 +5,7 @@
 #include "core/model_skin_handoff.h"
 #include "core/model_uv_atlas.h"
 #include "core/level_materials.h"
+#include "core/studio_settings.h"
 
 #include "app/model_uv_view.h"
 #include "app/model_uv_density_dialog.h"
@@ -133,8 +134,21 @@ QWidget *ModelEditorDialog::createUvView()
 	transfer->setToolTip(QCoreApplication::translate("ModelSkinHandoff", "After a UV edit, repaint the surface's skin for the new UVs by sampling it through the old ones."));
 	connect(transfer, &QAction::triggered, this, &ModelEditorDialog::transferSkin);
 	auto *edit = action(QCoreApplication::translate("ModelSkinHandoff", "Edit Skin…"), QStringLiteral("editMeshSkin"));
-	edit->setToolTip(QCoreApplication::translate("ModelSkinHandoff", "Open the surface's skin in the texture editor. Staging it there updates the model's preview."));
+	edit->setToolTip(QCoreApplication::translate("ModelSkinHandoff", "Open the surface's skin in Textures with a UV guide layer. Saving the "
+																	 "texture project there offers the skin back to the model."));
 	connect(edit, &QAction::triggered, this, [this] { editSurfaceSkin(); });
+	m_skinAutoApply = action(QCoreApplication::translate("ModelSkinHandoff", "Apply Saved Skins Automatically"), QStringLiteral("meshSkinAutoApply"));
+	m_skinAutoApply->setCheckable(true);
+	m_skinAutoApply->setChecked(StudioSettings(StudioSettings::AccessMode::ReadOnly).modelSkinAutoApply());
+	m_skinAutoApply->setToolTip(QCoreApplication::translate("ModelSkinHandoff", "When Textures saves a skin opened with Edit Skin, apply it to "
+																				"the model at once instead of offering it."));
+	connect(m_skinAutoApply, &QAction::toggled, this,
+			[](bool enabled)
+			{
+				StudioSettings settings;
+				settings.setModelSkinAutoApply(enabled);
+				settings.sync();
+			});
 	connect(m_uvHealthOverlay, &QComboBox::currentIndexChanged, this, [this] { refreshUv(); });
 	connect(m_uvHealthStretch, &QDoubleSpinBox::valueChanged, this, [this] { refreshUv(); });
 	layout->addWidget(tools);

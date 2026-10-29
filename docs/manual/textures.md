@@ -197,13 +197,15 @@ still needs a wall definition before a level can use it.
 
 ## Paint a model skin
 
-In the **Mesh Editor**, **Export UV Layout…** writes a template of the model's
-UVs (PNG, TGA or PCX, at the skin's size) to open here and paint over, and
-**Edit Skin…** opens a model's skin directly in this editor. Staging the edited
-skin over its package path updates the model's preview. The layout is a
-separate image: the editor does not draw it as a guide over the canvas, so add
-it as a layer and hide or delete that layer before exporting. See
-[Models](models.md#paint-a-skin-over-the-uvs).
+In the **Mesh Editor**, **Edit Skin…** opens a model's skin here as a texture
+project: the skin is the active layer and a locked **UV guide** layer above it
+shows the model's UVs; hide it in the Layers panel to see the skin alone. Choose
+**Save Project** when you are done, and the Mesh Editor offers the skin back to
+the model ([Paint the skin in Textures and bring it
+back](models.md#paint-the-skin-in-textures-and-bring-it-back)). Hide the guide
+before you export or stage from here yourself. **Export UV Layout…** writes the
+same template as a separate image (PNG, TGA or PCX, at the skin's size) for any
+paint program. See [Models](models.md#paint-a-skin-over-the-uvs).
 
 ## Work with sprites
 

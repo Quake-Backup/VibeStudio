@@ -433,6 +433,7 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshUvExportLayout"), Text::tr("Export UV Layout…"), {}, [this] { m_editor->exportUvLayout(); });
 	addAction(QStringLiteral("meshUvTransferSkin"), Text::tr("Transfer Skin to New UVs…"), {}, [this] { m_editor->transferSkin(); });
 	addAction(QStringLiteral("meshUvEditSkin"), Text::tr("Edit Skin…"), {}, [this] { m_editor->editSurfaceSkin(); });
+	addAction(QStringLiteral("meshUvApplySkin"), Text::tr("Apply Skin from Textures"), {}, [this] { m_editor->applySkinFromTextures(); });
 	// UV health (core/model_uv_health.h): read-only checks and selections.
 	addAction(QStringLiteral("meshUvCheckHealth"), Text::tr("Check UV Health"), {}, [this] { m_editor->checkUvHealth(); });
 	addAction(QStringLiteral("meshUvSelectOverlapping"), Text::tr("Select Overlapping UVs"), {},

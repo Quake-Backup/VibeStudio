@@ -484,6 +484,7 @@ core_sources = files(
   'core/model_uv_layout.cpp',
   'core/model_skin_transfer.cpp',
   'core/model_skin_handoff.cpp',
+  'core/model_skin_roundtrip.cpp',
   'core/model_uv_pins.cpp',
   'core/model_file_io.cpp',
   'core/model_work.cpp',
@@ -679,6 +680,7 @@ install_headers('core/model_uv_unwrap.h', subdir: 'vibestudio/core')
 install_headers('core/model_uv_layout.h', subdir: 'vibestudio/core')
 install_headers('core/model_skin_transfer.h', subdir: 'vibestudio/core')
 install_headers('core/model_skin_handoff.h', subdir: 'vibestudio/core')
+install_headers('core/model_skin_roundtrip.h', subdir: 'vibestudio/core')
 install_headers('core/model_uv_pins.h', subdir: 'vibestudio/core')
 install_headers('core/model_file_io.h', 'core/model_work.h', subdir: 'vibestudio/core')
 install_headers('core/package_validation.h', subdir: 'vibestudio/core')

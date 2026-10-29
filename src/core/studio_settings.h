@@ -392,6 +392,11 @@ public:
 	// (model/historyBudgetMiB), 16-4096 MiB, 64 by default.
 	int modelHistoryBudgetMiB() const;
 	void setModelHistoryBudgetMiB(int mib);
+	// Whether a skin saved in Textures after Edit Skin… is applied to the
+	// model at once (model/skinRoundTripAutoApply) rather than offered; off
+	// by default.
+	bool modelSkinAutoApply() const;
+	void setModelSkinAutoApply(bool enabled);
 	QStringList packagePublicationDirectories() const;
 	void rememberPackagePublicationDirectory(const QString& path);
 	bool packageRecoveryEnabled() const;

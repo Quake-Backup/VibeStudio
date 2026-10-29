@@ -3,6 +3,7 @@
 #include "app/dialog_screen_fit.h"
 #include "app/locale_number.h"
 #include "app/model_editor_tools.h"
+#include "core/document_watch.h"
 #include "app/studio_sidebar.h"
 #include "core/model_surfaces.h"
 
@@ -1059,6 +1060,7 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	m_status->setObjectName(QStringLiteral("meshStatus"));
 	m_status->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Mesh editor status"));
 	statusRow->addWidget(m_status, 3);
+	createSkinRoundTripRow(statusRow);
 	statusRow->addWidget(createDivider(Qt::Vertical));
 	statusRow->addWidget(m_context, 2);
 	statusRow->addWidget(createDivider(Qt::Vertical));
