@@ -515,6 +515,7 @@ core_sources = files(
   'core/model_format_ase.cpp',
   'core/model_format_fm.cpp',
   'core/model_format_kvx.cpp',
+  'core/model_format_gltf.cpp',
   # Decode issue severities and the editable gate (FMT-02).
   'core/model_decode_issues.cpp',
   # Modeller profiles (Blender, 3ds Max, MilkShape 3D) and sidebars, as data.
@@ -3816,6 +3817,13 @@ model_format_legacy_fuzz_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-format-legacy-fuzz-smoke', model_format_legacy_fuzz_smoke_test, timeout: 240)
+
+# glTF 2.0 import (FMT-05).
+model_format_gltf_smoke_test = executable(
+  'model_format_gltf_smoke_test', ['tests/model_format_gltf_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-format-gltf-smoke', model_format_gltf_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
 
 
 model_health_smoke_test = executable(

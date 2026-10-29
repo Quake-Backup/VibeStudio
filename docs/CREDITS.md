@@ -3546,6 +3546,20 @@ path of `rotateLevelMapSelection()` and `scaleLevelMapSelection()` in
 `map resize --factors` and the `level-arbitrary-transform` tests are original
 VibeStudio work.
 
+## Model Decode Issues, glTF Import And Legacy Fuzzing (2026-10-29)
+
+The decode issue severities (`src/core/model_decode_issues.*`,
+`src/app/model_import_review.*`), the glTF 2.0 reader
+(`src/core/model_format_gltf.cpp`) and the legacy model fuzz seeds
+(`src/tests/model_legacy_fuzz_seeds.h`, `model_format_legacy_fuzz_smoke_test.cpp`)
+are original VibeStudio code.
+
+| Reference | What it informed | Revision | Licence / use |
+|---|---|---|---|
+| [glTF 2.0 specification](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html) by the Khronos Group | GLB container, buffers, buffer views, accessors (component types, normalisation, strides, sparse storage), primitives and modes, morph targets, nodes, skins, animation samplers including the cubic Hermite spline of Appendix C, and materials' base colour textures | Version 2.0.1, read 2026-10-29 | Specification © The Khronos Group, published for implementers; format facts only, no code copied |
+| [Blender glTF importer documentation](https://docs.blender.org/manual/en/latest/addons/import_export/scene_gltf2.html) | The Y-up to Z-up axis mapping a Blender user expects, game (x, y, z) = glTF (x, -z, y) | Blender 4 manual, read 2026-10-29 | Manual CC-BY-SA-4.0; behaviour only |
+| Quake Specifications chapter 5, Quake II `qfiles.h`, Quake III `md3.h` (see [Native Model Formats And Modeller Profiles](#native-model-formats-and-modeller-profiles-2026-10-08)) | The byte layouts of the rich MDL, MD2 and MD3 fuzz seeds built by the tests | As recorded there | Layout only |
+
 ## Smart-tag authoring
 
 **Make &lt;tag&gt;** and **Make non-&lt;tag&gt;** follow the behavioural review of

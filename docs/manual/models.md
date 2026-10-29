@@ -58,7 +58,7 @@ files of skeletal models.
 | Return to Castle Wolfenstein, Enemy Territory | MDC, MDS, MDM with its MDX | Export as MD3, which both games load |
 | Jedi Outcast, Jedi Academy, Soldier of Fortune II | Ghoul 2 GLM with its GLA | Export as MD3 |
 | Doom 3, Quake 4, Prey, Quake Wars, The Dark Mod | MD5 mesh and animation, LightWave LWO, ASE | MD5 mesh, MD5 animation, ASE |
-| Any modeller | Wavefront OBJ | OBJ (one frame) |
+| Any modeller | Wavefront OBJ, glTF 2.0 (`.gltf`, `.glb`) | OBJ (one frame); glTF is read only |
 
 Some models need other files to be complete. VibeStudio looks for them in the
 same package, or in the folder of a loose file and the folders above it:
@@ -100,6 +100,7 @@ Run `vibestudio --cli model formats` for the same list with its notes. The
 | Half-Life MDL | `.mdl` | Bones, sequences, body parts, embedded textures, attachments |
 | KVX | `.kvx` | The first mip level, as coloured faces |
 | Wavefront OBJ | `.obj` | Polygons, UVs, normals, smoothing groups, `usemtl` paths |
+| glTF 2.0 | `.gltf`, `.glb` | Meshes, node transforms, skins, animations, morph targets, base colour image names |
 
 </details>
 
@@ -260,6 +261,22 @@ constraints remain planned. The
 3. Choose **Model > Save** (<kbd>Ctrl</kbd>+<kbd>S</kbd>) to keep an editable
    `.mesh.json` source. Game files are exported separately (see
    [Export and build game files](#export-and-build-game-files)).
+
+### Bring a model in from Blender
+
+Export **glTF 2.0** from Blender (either **glTF Binary (.glb)** or
+**glTF Separate (.gltf + .bin)**) and open it with **Model > Open / Import…**,
+or run `vibestudio --cli model import model.glb --output model.mesh.json`.
+
+- Armatures come in as a skeleton with every action that moves a bone as a
+  clip; shape key animation comes in as vertex frames.
+- Blender's numbers are kept: one Blender unit (one metre) becomes one game
+  unit, with Z up as in Blender.
+- Each material's **Base Color** image name becomes the surface's material.
+
+From there, export MD5 or IQM to keep the skeleton, or MDL, MD2 or MD3 for
+vertex animation. See [glTF 2.0 import](../MODEL_FORMATS.md#gltf-20-import)
+for what is read and left out.
 
 ### Review what the decoder reported
 

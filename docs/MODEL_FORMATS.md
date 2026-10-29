@@ -55,6 +55,7 @@ Doom's own sprites and Quake's sprite files are handled by the
 | Half-Life MDL | `.mdl` | `IDST` or `IDSQ`, version 10 | Yes | Bones, sequences, body parts, embedded textures, attachments | No |
 | KVX voxels | `.kvx` | Extension, then layout checks | No | The first mip level, meshed into coloured faces | No |
 | Wavefront OBJ | `.obj` | Extension | No | Polygons, UVs, normals, smoothing groups, `usemtl` paths | Yes (one frame) |
+| glTF 2.0 | `.gltf`, `.glb` | `glTF` magic, version 2, or the extension with `asset.version` 2.x | Yes | Meshes, node transforms, skins, animations, morph targets, base colour image names | No |
 
 Detection reads the file's magic first, then a leading text token for the text
 formats, and falls back to the extension. Three formats share `.mdl`; the magic
@@ -125,6 +126,48 @@ The Mesh Editor's **Open / Import…** dialog offers every suffix of every forma
 `model formats` lists with geometry; animation-only files (`.md5anim`, `.mdx`,
 `.gla`) open through their mesh.
 
+## glTF 2.0 Import
+
+`src/core/model_format_gltf.cpp` reads glTF 2.0 from Blender or any other
+modeller, following the [Khronos specification](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html)
+(format facts only; no glTF library is used or linked):
+
+- **Containers.** A `.gltf` with its buffers embedded as base64 `data:` URIs
+  or in `.bin` files beside it (read through the companion budget; a buffer
+  outside the model's folder is refused), or a binary `.glb` with its `BIN`
+  chunk. Required extensions other than `KHR_mesh_quantization` are refused
+  with their name.
+- **Accessors.** Every component type, normalised integers, byte strides and
+  sparse storage, each range-checked against its buffer view.
+- **Geometry.** Triangle lists, strips and fans become triangles; point and
+  line primitives are left out as an omission. `POSITION`, `NORMAL` and
+  `TEXCOORD_0` are read; missing normals are rebuilt from the faces. Each
+  primitive of each drawn node becomes a surface, named after the node (or
+  mesh), with its base colour image (else its material name) as the material.
+- **Axes and units.** glTF is Y-up with metres. Positions become Z-up as
+  Blender's importer maps them, game (x, y, z) = glTF (x, -z, y), one metre to
+  one game unit, so a model authored in Blender keeps its numbers. Faces stay
+  counter-clockwise; a mirrored node reverses them.
+- **Skins.** The joints of every skin a drawn node uses form one skeleton,
+  parents first; the inverse bind matrices give the bind pose; `JOINTS_0/1`
+  and `WEIGHTS_0/1` give up to eight weights per vertex, normalised to one.
+  A static mesh under a joint follows that joint rigidly.
+- **Animations.** `LINEAR`, `STEP` and `CUBICSPLINE` samplers are sampled at
+  24, 25, 30 or 60 frames per second (the first rate every key time lands on,
+  else 30). With a skin, each animation that moves a joint becomes a skeletal
+  clip and is baked like any skeletal model; animations that move only other
+  nodes or morph weights are left out as omissions. Without a skin, node
+  animation and morph target weights become vertex frames: the rest pose,
+  then each animation as a named clip, within 1,024 frames.
+
+From an imported glTF the native writers take over: MD5 and IQM keep the
+skeleton and clips, and MDL, MD2 and MD3 take the baked or morph frames.
+`model import x.glb --output x.mesh.json` and the Mesh Editor's
+**Open / Import…** both read it. Not read: cameras, lights, texture
+transforms, vertex colours, second UV sets, embedded image pixels (their
+names are kept, with an advisory), and Draco or meshopt compression. There is
+no glTF writer.
+
 ## Companion Files
 
 Some formats keep part of a model in other files. The decoder reads them from
@@ -135,6 +178,7 @@ the same package, or from the folders around a loose file:
 | MDM | The MDX it names, for bones and frames. |
 | Ghoul 2 GLM | The GLA it names, for the skeleton and frames. |
 | MD5 mesh | Every `.md5anim` beside it, and the animations named by any Doom 3 `.def` `model` declaration that uses the mesh, under their declared names. |
+| glTF | The `.bin` buffers its `buffers` name, relative to the `.gltf`. |
 | Half-Life MDL | `<name>T.mdl` for textures and `<name>01.mdl` onwards for sequence groups. |
 
 Inside a package, companions are looked up case-insensitively in the same
@@ -353,6 +397,10 @@ current frame.
 - No decoder has been run against real game files in bulk; malformed but
   loadable files may still be refused, and some valid variants may not be
   recognised.
+- The glTF importer has been checked against fixtures built from the
+  specification and VibeStudio's own writers, not yet against files exported
+  by Blender or other tools; it has no unit scale option yet (one metre is
+  one game unit), and skinned meshes lose their morph animation.
 - Decode issue severities were assigned by reading each decoder, not from
   real files; an advisory that hides real loss, or an omission that should be
   an advisory, needs a report. Import repair allows advisories but cannot

@@ -63,6 +63,7 @@ enum class ModelMeshFormat {
 	Ase,            // *3DSMAX_ASCIIEXPORT: ASCII scene export (Doom 3, q3map2 misc_model)
 	HereticFm,      // Heretic II flexible model (chunked "header" + "frames")
 	Kvx,            // Build-engine voxel model, used by ZDoom-family Doom ports
+	Gltf,           // glTF 2.0 (.gltf JSON or binary .glb): interchange with skins, animation and morph targets
 };
 
 struct ModelVec3 {

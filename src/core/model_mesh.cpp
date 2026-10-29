@@ -1781,6 +1781,7 @@ constexpr FormatRow kFormats[] = {
 	{ModelMeshFormat::Ase, "ase", "ASCII Scene Export", "ase", false, false},
 	{ModelMeshFormat::HereticFm, "fm", "Heretic II FM", "fm", false, false},
 	{ModelMeshFormat::Kvx, "kvx", "KVX voxels", "kvx", false, false},
+	{ModelMeshFormat::Gltf, "gltf", "glTF 2.0", "gltf|glb", true, false},
 };
 
 const FormatRow* formatRow(ModelMeshFormat format)
@@ -1915,6 +1916,8 @@ constexpr CatalogEntry kCatalog[] = {
 		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Voxel sprites meshed into faces, coloured from the palette in the file; read only.")},
 	{ModelMeshFormat::WavefrontObj, "interchange", "Any modeller", "", "obj",
 		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "One pose of polygon geometry with UVs, normals and material names; no MTL library.")},
+	{ModelMeshFormat::Gltf, "interchange", "Blender|Any modeller", "bin", "",
+		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Meshes, node transforms, skins, animations and morph targets from .gltf (embedded or .bin buffers) or .glb; triangles only; read only.")},
 };
 
 } // namespace
@@ -1969,6 +1972,10 @@ ModelMeshFormat detectModelMeshFormat(const QString& virtualPath, const QByteArr
 	}
 	if (bytes.size() >= 16 && bytes.startsWith(QByteArrayLiteral("INTERQUAKEMODEL"))) {
 		return ModelMeshFormat::Iqm;
+	}
+	// glTF 2.0: the GLB magic, or a .gltf JSON document.
+	if (bytes.startsWith(QByteArrayLiteral("glTF")) || suffix == QStringLiteral("gltf") || suffix == QStringLiteral("glb")) {
+		return ModelMeshFormat::Gltf;
 	}
 	if (bytes.size() >= 4) {
 		const QByteArray magic = bytes.left(4);
@@ -2129,6 +2136,9 @@ ModelMesh decodeModelMesh(const QString& virtualPath, const QByteArray& bytes, c
 		break;
 	case ModelMeshFormat::Kvx:
 		model_formats::decodeKvx(bytes, &mesh, control);
+		break;
+	case ModelMeshFormat::Gltf:
+		model_formats::decodeGltf(virtualPath, bytes, &mesh, control, companions);
 		break;
 	case ModelMeshFormat::Unknown:
 		break;
