@@ -163,11 +163,11 @@ int main(int argc, char **argv)
 		auto *scroll = panel ? panel->findChild<QScrollArea *>("meshLastOperationScroll") : nullptr;
 		if (!expect(panel && panel->isVisible() && scroll && view->rect().contains(panel->geometry()) &&
 						panel->height() < view->height() * .7,
-					"eleven-field adjustment remains inside the viewport"))
+					"twelve-field adjustment remains inside the viewport"))
 			return 1;
 		auto fields = panel->findChildren<QDoubleSpinBox *>();
 		auto toggles = panel->findChildren<QCheckBox *>();
-		if (!expect(fields.size() == 9 && toggles.size() == 2, "angle, steps, UV scale, centre, axis and two switches are adjustable"))
+		if (!expect(fields.size() == 10 && toggles.size() == 2, "angle, steps, UV scale, centre, axis, screw offset and two switches are adjustable"))
 			return 1;
 		for (auto *field : fields)
 		{

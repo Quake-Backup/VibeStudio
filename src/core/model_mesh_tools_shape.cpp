@@ -2,6 +2,7 @@
 
 #include "core/model_transform.h"
 #include "core/model_transform_axes.h"
+#include "core/model_transform_pieces.h"
 
 #include <algorithm>
 #include <cmath>
@@ -453,210 +454,37 @@ bool weightedTransform(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *s
 		return fail(error, Text::tr("Choose a valid transform pivot and reference frame."));
 	if (double(transform.scale.x) * transform.scale.y * transform.scale.z <= 0)
 		return fail(error, Text::tr("Weighted transforms keep positive scale; mirror the whole surface with Apply Transform instead."));
-	// Weight 1 for the selection; the proportional falloff for the rest.
-	QSet<int> selectedGroups;
-	for (int v : vertices)
-		selectedGroups.insert(topology.group(v));
-	QHash<int, double> weights;
-	for (int group : selectedGroups)
-		weights.insert(group, 1.0);
-	const double radius = options.proportionalRadius;
-	if (radius > 0)
-	{
-		QHash<int, double> distance;
-		if (options.connectedOnly)
-		{
-			// Geodesic distance along edges from any selected vertex.
-			QHash<int, QVector<int>> adjacency;
-			for (auto it = topology.edgeFaces.cbegin(); it != topology.edgeFaces.cend(); ++it)
-			{
-				adjacency[it.key().first].append(it.key().second);
-				adjacency[it.key().second].append(it.key().first);
-			}
-			using Entry = std::pair<double, int>;
-			std::priority_queue<Entry, std::vector<Entry>, std::greater<>> queue;
-			for (int group : selectedGroups)
-			{
-				distance.insert(group, 0);
-				queue.push({0, group});
-			}
-			while (!queue.empty())
-			{
-				if (!work.step())
-					return false;
-				const auto [d, group] = queue.top();
-				queue.pop();
-				if (d > distance.value(group, INFINITY) || d >= radius)
-					continue;
-				for (int other : adjacency.value(group))
-				{
-					const double next = d + length(position(surface, reference, other) - position(surface, reference, group));
-					if (next < distance.value(other, INFINITY) && next < radius)
-					{
-						distance.insert(other, next);
-						queue.push({next, other});
-					}
-				}
-			}
-		}
-		else
-		{
-			QVector<P3> sources;
-			for (int group : selectedGroups)
-				sources.append(position(surface, reference, group));
-			for (int v = 0; v < surface.vertexCount; ++v)
-			{
-				if (!work.step())
-					return false;
-				if (topology.group(v) != v || selectedGroups.contains(v))
-					continue;
-				const P3 p = position(surface, reference, v);
-				double nearest = INFINITY;
-				for (const auto &source : std::as_const(sources))
-					nearest = std::min(nearest, length(p - source));
-				if (nearest < radius)
-					distance.insert(v, nearest);
-			}
-		}
-		for (auto it = distance.cbegin(); it != distance.cend(); ++it)
-		{
-			if (!selectedGroups.contains(it.key()))
-			{
-				const double w = modelFalloffWeight(options.falloff, it.value() / radius);
-				if (w > 0)
-					weights.insert(it.key(), w);
-			}
-		}
-	}
-	// Mirror counterparts take the reflected transform with the same weight.
-	QHash<int, std::pair<int, double>> mirrored; // group -> (axes, weight)
-	if (options.mirrorAxes != 0)
-	{
-		double scale = 0;
-		for (const auto &p : surface.frames[reference].positions)
-			scale = std::max({scale, double(std::abs(p.x)), double(std::abs(p.y)), double(std::abs(p.z))});
-		const double tolerance = std::max(options.mergeThreshold, scale * 1e-6);
-		// Grid cells twice the tolerance wide; a match lies in a neighbouring cell.
-		const double cell = std::max(tolerance * 2, 1e-9);
-		const auto cellOf = [&](P3 p)
-		{ return std::array<qint64, 3>{qint64(std::floor(p.x / cell)), qint64(std::floor(p.y / cell)), qint64(std::floor(p.z / cell))}; };
-		std::map<std::array<qint64, 3>, QVector<int>> grid;
-		for (int v = 0; v < surface.vertexCount; ++v)
-		{
-			if (topology.group(v) == v)
-				grid[cellOf(position(surface, reference, v))].append(v);
-		}
-		const auto weighted = weights;
-		for (auto it = weighted.cbegin(); it != weighted.cend(); ++it)
-		{
-			for (int axes = 1; axes <= 7; ++axes)
-			{
-				if ((axes & ~options.mirrorAxes) != 0)
-					continue;
-				P3 target = position(surface, reference, it.key());
-				if (axes & 1)
-					target.x = -target.x;
-				if (axes & 2)
-					target.y = -target.y;
-				if (axes & 4)
-					target.z = -target.z;
-				int match = -1;
-				double best = tolerance;
-				const auto centre = cellOf(target);
-				for (qint64 dx = -1; dx <= 1; ++dx)
-				{
-					for (qint64 dy = -1; dy <= 1; ++dy)
-					{
-						for (qint64 dz = -1; dz <= 1; ++dz)
-						{
-							const auto found = grid.find({centre[0] + dx, centre[1] + dy, centre[2] + dz});
-							if (found == grid.end())
-								continue;
-							for (int candidate : found->second)
-							{
-								const double d = length(position(surface, reference, candidate) - target);
-								if (d < best || (d == best && match >= 0 && candidate < match) || (d == best && match < 0))
-								{
-									best = d;
-									match = candidate;
-								}
-							}
-						}
-					}
-				}
-				if (match < 0 || weights.contains(match) || mirrored.contains(match))
-					continue;
-				if (match == it.key())
-					continue;
-				mirrored.insert(match, {axes, it.value()});
-			}
-		}
-	}
-	const auto reflect = [](P3 p, int axes)
-	{
-		if (axes & 1)
-			p.x = -p.x;
-		if (axes & 2)
-			p.y = -p.y;
-		if (axes & 4)
-			p.z = -p.z;
-		return p;
-	};
-	const auto scaled = [&](double weight)
-	{
-		ModelTransform t = transform;
-		t.translation = {float(transform.translation.x * weight), float(transform.translation.y * weight),
-						 float(transform.translation.z * weight)};
-		t.rotation = {float(transform.rotation.x * weight), float(transform.rotation.y * weight), float(transform.rotation.z * weight)};
-		t.scale = {float(1 + (transform.scale.x - 1) * weight), float(1 + (transform.scale.y - 1) * weight),
-				   float(1 + (transform.scale.z - 1) * weight)};
-		return t;
-	};
-	// Vertices on an active mirror plane stay on it: average both reflections.
-	const auto onPlane = [&](P3 p, double tolerance)
-	{
-		int axes = 0;
-		if ((options.mirrorAxes & 1) && std::abs(p.x) <= tolerance)
-			axes |= 1;
-		if ((options.mirrorAxes & 2) && std::abs(p.y) <= tolerance)
-			axes |= 2;
-		if ((options.mirrorAxes & 4) && std::abs(p.z) <= tolerance)
-			axes |= 4;
-		return axes;
-	};
+	// Individual Origins: one transform per connected piece. Falloff vertices
+	// follow the piece of their nearest selected vertex, mirror counterparts
+	// the piece of their source.
+	QVector<ModelTransform> pieces;
+	QHash<int, int> pieceOf;
+	if (!modelPieceTransforms(surface, edit, transform, vertices, reference, &pieces, &pieceOf, error, control))
+		return false;
+	// The weights, counterparts and plane vertices are shared with the
+	// viewport's gizmo preview (modelWeightedTransformPieceMap), so the
+	// preview matches the result.
+	QHash<int, ModelTransformWeight> weights;
+	if (!modelTransformWeights(surface, topology, vertices, reference, options, pieceOf, &weights, work))
+		return false;
 	QSet<int> moved;
 	for (int frame = 0; frame < surface.frames.size(); ++frame)
 	{
 		if (edit.frame >= 0 && frame != edit.frame)
 			continue;
-		QHash<int, P3> results;
+		QHash<int, ModelVec3> results;
 		for (auto it = weights.cbegin(); it != weights.cend(); ++it)
 		{
 			if (!work.step())
 				return false;
-			const auto t = scaled(it.value());
-			const P3 p = position(surface, frame, it.key());
-			P3 result = point(transformModelPoint(vec(p), t));
-			const int plane = onPlane(position(surface, reference, it.key()), std::max(options.mergeThreshold, 1e-6));
-			if (plane != 0)
-			{
-				const P3 mirror = reflect(point(transformModelPoint(vec(reflect(p, plane)), t)), plane);
-				result = (result + mirror) * 0.5;
-			}
-			results.insert(it.key(), result);
-		}
-		for (auto it = mirrored.cbegin(); it != mirrored.cend(); ++it)
-		{
-			const auto t = scaled(it.value().second);
-			const int axes = it.value().first;
-			const P3 p = position(surface, frame, it.key());
-			results.insert(it.key(), reflect(point(transformModelPoint(vec(reflect(p, axes)), t)), axes));
+			results.insert(it.key(), modelWeightedTransformPoint(surface.frames[frame].positions[it.key()],
+																 pieces.value(it.value().piece, transform), it.value()));
 		}
 		for (auto it = results.cbegin(); it != results.cend(); ++it)
 		{
 			for (int copy : topology.copies[it.key()])
 			{
-				surface.frames[frame].positions[copy] = vec(it.value());
+				surface.frames[frame].positions[copy] = it.value();
 				moved.insert(copy);
 			}
 		}

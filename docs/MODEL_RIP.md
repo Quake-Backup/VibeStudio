@@ -1,14 +1,15 @@
 # Open and fill mesh rips
 
-**Available** — **Rip** opens a connected vertex or edge selection and moves
-one adjoining side. **Rip and Fill** adds faces across that gap. Both use the
+**Available** — **Rip** opens a connected vertex or edge selection, branched
+or not, and moves one adjoining side. **Rip and Fill** adds faces across that gap. Both use the
 shared Mesh Editor document and CLI service. VibeStudio is pre-alpha and
 largely untested in real projects; [production acceptance](MODELLER_RELEASE.md)
 remains open.
 
 ## Rip a vertex or edge chain
 
-1. Select a vertex or an unbranched, connected edge chain between faces.
+1. Select a vertex or a connected edge chain between faces. The chain may
+   branch: see [Branched rips](#branched-rips).
 2. Choose **Vertex → Rip** or **Edge → Rip**. **Rip and Fill** starts with the
    gap filled. The VibeStudio and Blender profiles also use **V** and **Alt+V**.
 3. The face under the starting pointer chooses the moving side. When the
@@ -39,10 +40,34 @@ an explicitly selected diagonal remains usable. Inspect the preview before
 confirming. Face-region detachment uses **Separate Faces** instead.
 
 Topology changes in every retained pose regardless of frame scope. Rip does
-not use proportional or mirror-transform settings. Source UV corners stay
+not use proportional editing; with the header's **Symmetry** on, the ripped
+part is mirrored to the other side afterwards. Source UV corners stay
 separate; every filled cut gets its own strip chart, measured in the reference
 pose. **Units per texture repeat** defaults to 64. Pack or edit generated UVs
 for the intended skin layout.
+
+## Branched rips
+
+Where three or more selected edges meet (a T, a Y, or a closed loop with a
+branch running off it), the faces around that vertex form one sector between
+each pair of neighbouring selected edges, and every sector gets its own copy
+of the vertex. The sector containing the side face moves, together with
+everything flooded from it without crossing a selected edge; **B** moves all
+the other sectors instead. Sectors that do not move still come apart: a branch
+between two unmoved sectors opens as a zero-width split, which keeps working
+like any other rip seam (move either side later, or **Merge** to rejoin it).
+
+A closed loop with a branch to the border is a common case: rip the inside of
+an eye socket or a hatch, and the branch opens the panel line running away from
+it, although the surrounding faces stay connected around the loop.
+
+**Rip and Fill** fills only between a moved and an unmoved sector, so a T whose
+upper side moves gets strips along the bar of the T and none along its unmoved
+stem. Fill strips keep their own corners and UVs, as for unbranched rips. Each
+new vertex copy gets its own connectivity identity, in every pose and on
+skinned surfaces, and the whole rip remains one undo step that F9 adjusts.
+A vertex whose faces do not form one connected fan before cutting (a bow tie)
+is refused, as are chain endpoints the rip cannot continue across.
 
 ## Preserve the rig and asset workflow
 
@@ -79,6 +104,7 @@ the separate connectivity of its input surfaces.
 ```sh
 vibestudio --cli model tool models/prop.mesh.json --tool rip --vertices 4 --side-face 3 --offset 2,0,0 --output models/ripped.mesh.json --dry-run --json
 vibestudio --cli model tool models/prop.mesh.json --tool rip --edges 4:7,7:10 --side-face 6 --offset 0,2,0 --fill --output models/filled.mesh.json --json
+vibestudio --cli model tool models/prop.mesh.json --tool rip --edges 3:4,4:5,1:4 --side-face 6 --offset 0,2,0 --output models/branched.mesh.json --json
 ```
 
 Use actual component indices from the source model. `--side-face` and
@@ -92,14 +118,17 @@ requires `--overwrite`. The shared writer protects source paths.
 
 ## Current limits
 
-Disconnected selections, branched junctions, ambiguous vertex fans,
+Disconnected selections, bow-tie vertex fans,
 non-manifold or inconsistently wound neighbourhoods, collapsed or reversed
 neighbouring faces, folded fills and document capacity overflow are refused
 without changing the source. Faces the rip makes cross other faces of the
 surface are reported, or refused, by the
 [intersection guard](MODEL_TOOLS.md#new-intersections).
 
-Richer rip junctions remain planned. Maximum-size
+Branch junctions need no cap: one movement applies to the whole rip, so
+sectors that move together (or stay together) meet along a zero-width split
+that stays open until moved or merged. Moving different sectors by different
+amounts in one rip is not offered. Maximum-size
 latency, original-engine and real-project checks, physical accessibility
 review and clean macOS/Linux acceptance also remain open.
 

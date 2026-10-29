@@ -268,7 +268,7 @@ bool ModelViewport::GeometryKey::matches(const GeometryKey& other) const
 	}
 	if (editMoveActive
 		&& (editSurface != other.editSurface || editTagEmpty != other.editTagEmpty || !sameTransform(editTransform, other.editTransform)
-			|| editJoint != other.editJoint || jointDescendants != other.jointDescendants
+			|| !(editPieces == other.editPieces) || editJoint != other.editJoint || jointDescendants != other.jointDescendants
 			|| editSurfaces != other.editSurfaces || editVertices != other.editVertices)) {
 		return false;
 	}
@@ -441,7 +441,7 @@ std::shared_ptr<const ModelViewport::GpuGeometry> ModelViewport::buildGpuGeometr
 						vertexNormal = {};
 					}
 				}
-				return transforming ? transformModelNormal(vertexNormal, work.editTransform) : vertexNormal;
+				return transforming ? work.editPieces.applyNormal(work.editTransform, currentSurface, vertex, vertexNormal) : vertexNormal;
 			};
 			const auto na = normalAt(source.a);
 			const auto nb = normalAt(source.b);

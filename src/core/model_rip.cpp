@@ -145,9 +145,9 @@ bool planModelRip(const ModelSurface &surface, const ModelSelection &selection, 
 			if (faces.size() == 2 && !plan.cuts.contains(edge) && !quads.diagonals.contains(edge))
 				candidates.append(edge);
 		}
+		// Junctions of three or more selected edges need no extension: their
+		// sectors become separate fans below.
 		const int degree = selectedNeighbours.value(v).size();
-		if (degree > 2)
-			return refuse(RipText::tr("A branched rip has multiple sides. Split it into unambiguous chains."));
 		const int needed = degree == 0 ? (boundary ? 1 : 2) : degree == 1 && !boundary ? 1 : 0;
 		auto direction =
 			degree == 1
@@ -205,55 +205,147 @@ bool planModelRip(const ModelSurface &surface, const ModelSelection &selection, 
 	}
 	if (options.ripOpposite)
 		plan.movingFaces = touched - plan.movingFaces;
-	// Each side at every moved vertex must remain one connected fan. A global
-	// side flood alone cannot detect a bow-tie vertex or a branch junction.
+	bool branched = false;
 	for (int v : groups)
-		for (bool moving : {false, true})
+		branched = branched || selectedNeighbours.value(v).size() > 2;
+	QSet<ModelEdge> actual;
+	if (!branched)
+	{
+		// Each side at every moved vertex must remain one connected fan. A global
+		// side flood alone cannot detect a bow-tie vertex.
+		for (int v : groups)
+			for (bool moving : {false, true})
+			{
+				QSet<int> side;
+				for (int f : g.groupFaces[v])
+					if (plan.movingFaces.contains(f) == moving)
+						side.insert(f);
+				if (side.isEmpty())
+					return refuse(RipText::tr("The chosen rip side does not divide every selected vertex."));
+				QHash<int, QVector<int>> fan;
+				for (auto edge : incident[v])
+				{
+					if (!work.step())
+						return false;
+					const auto faces = g.edgeFaces.value(edge);
+					if (faces.size() == 2 && side.contains(faces[0]) && side.contains(faces[1]))
+					{
+						fan[faces[0]].append(faces[1]);
+						fan[faces[1]].append(faces[0]);
+					}
+				}
+				QSet<int> visited;
+				pending = {ordered(side).first()};
+				while (!pending.isEmpty())
+				{
+					if (!work.step())
+						return false;
+					const int f = pending.takeLast();
+					if (visited.contains(f))
+						continue;
+					visited.insert(f);
+					for (int next : fan.value(f))
+						if (!visited.contains(next))
+							pending.append(next);
+				}
+				if (visited != side)
+					return refuse(
+						RipText::tr("The rip would leave a disconnected vertex fan. Repair the neighbourhood or choose another side."));
+			}
+		for (auto edge : ordered(plan.cuts))
 		{
-			QSet<int> side;
-			for (int f : g.groupFaces[v])
-				if (plan.movingFaces.contains(f) == moving)
-					side.insert(f);
-			if (side.isEmpty())
-				return refuse(RipText::tr("The chosen rip side does not divide every selected vertex."));
-			QHash<int, QVector<int>> fan;
-			for (auto edge : incident[v])
+			if (!work.step())
+				return false;
+			const auto faces = g.edgeFaces.value(edge);
+			if (faces.size() == 2 && plan.movingFaces.contains(faces[0]) != plan.movingFaces.contains(faces[1]))
+				actual.insert(edge);
+		}
+	}
+	else
+	{
+		// Branched rips: around every selected vertex, the faces between cut
+		// edges form fans (sectors); each fan gets its own copy of the vertex.
+		// The first unmoved fan keeps the original. A vertex whose faces are
+		// not one fan before cutting (a bow tie) is refused.
+		if (plan.movingFaces.isEmpty())
+			return refuse(RipText::tr("The chosen rip side does not divide every selected vertex."));
+		for (int v : groups)
+		{
+			QHash<int, QVector<int>> link, whole;
+			for (auto edge : incident.value(v))
 			{
 				if (!work.step())
 					return false;
 				const auto faces = g.edgeFaces.value(edge);
-				if (faces.size() == 2 && side.contains(faces[0]) && side.contains(faces[1]))
+				if (faces.size() != 2)
+					continue;
+				whole[faces[0]].append(faces[1]);
+				whole[faces[1]].append(faces[0]);
+				if (!plan.cuts.contains(edge))
 				{
-					fan[faces[0]].append(faces[1]);
-					fan[faces[1]].append(faces[0]);
+					link[faces[0]].append(faces[1]);
+					link[faces[1]].append(faces[0]);
 				}
 			}
-			QSet<int> visited;
-			pending = {ordered(side).first()};
-			while (!pending.isEmpty())
+			const auto flood = [&](const QHash<int, QVector<int>> &graph, int start, QSet<int> *visited)
 			{
-				if (!work.step())
-					return false;
-				const int f = pending.takeLast();
-				if (visited.contains(f))
-					continue;
-				visited.insert(f);
-				for (int next : fan.value(f))
-					if (!visited.contains(next))
-						pending.append(next);
-			}
-			if (visited != side)
+				pending = {start};
+				while (!pending.isEmpty())
+				{
+					const int f = pending.takeLast();
+					if (visited->contains(f))
+						continue;
+					visited->insert(f);
+					for (int next : graph.value(f))
+						if (!visited->contains(next))
+							pending.append(next);
+				}
+			};
+			const auto around = g.groupFaces[v];
+			QSet<int> all;
+			flood(whole, around.first(), &all);
+			if (all.size() != around.size())
 				return refuse(
 					RipText::tr("The rip would leave a disconnected vertex fan. Repair the neighbourhood or choose another side."));
+			QVector<QSet<int>> fans;
+			QSet<int> assigned;
+			for (int f : around)
+			{
+				if (assigned.contains(f))
+					continue;
+				QSet<int> fan;
+				flood(link, f, &fan);
+				assigned += fan;
+				fans.append(fan);
+			}
+			if (fans.size() < 2)
+				return refuse(RipText::tr("The chosen rip side does not divide every selected vertex."));
+			int base = 0;
+			for (int i = fans.size() - 1; i >= 0; --i)
+				if (!plan.movingFaces.contains(*fans[i].cbegin()))
+					base = i;
+			int next = 1;
+			for (int i = 0; i < fans.size(); ++i)
+			{
+				const int id = i == base ? 0 : next++;
+				for (int f : std::as_const(fans[i]))
+					plan.fans.insert(qMakePair(v, f), id);
+			}
 		}
-	QSet<ModelEdge> actual;
-	for (auto edge : ordered(plan.cuts))
-	{
-		if (!work.step())
-			return false;
-		const auto faces = g.edgeFaces.value(edge);
-		if (faces.size() == 2 && plan.movingFaces.contains(faces[0]) != plan.movingFaces.contains(faces[1]))
-			actual.insert(edge);
+		for (auto edge : ordered(plan.cuts))
+		{
+			if (!work.step())
+				return false;
+			const auto faces = g.edgeFaces.value(edge);
+			if (faces.size() != 2)
+				continue;
+			bool opens = true;
+			for (int v : {edge.first, edge.second})
+				if (plan.groups.contains(v))
+					opens = opens && plan.fans.value(qMakePair(v, faces[0])) != plan.fans.value(qMakePair(v, faces[1]));
+			if (opens)
+				actual.insert(edge);
+		}
 	}
 	if (actual.isEmpty() || !(plan.selectedEdges - actual).isEmpty())
 		return refuse(RipText::tr("The chosen side does not open every selected rip edge."));

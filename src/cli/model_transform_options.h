@@ -19,12 +19,13 @@ inline bool parseModelTransformAxesOptions(const QHash<QString, QString> &values
 	if (!values.contains("--transform-space") && !values.contains("--axis-rotation") && !values.contains("--axes-frame"))
 		return true;
 	if (edit->kind != ModelEditKind::Transform && edit->kind != ModelEditKind::TransformTag &&
-		edit->kind != ModelEditKind::TransformCollisionBox && edit->kind != ModelEditKind::Extrude && edit->kind != ModelEditKind::DuplicateFaces)
+		edit->kind != ModelEditKind::TransformCollisionBox && edit->kind != ModelEditKind::Extrude && edit->kind != ModelEditKind::DuplicateFaces &&
+		edit->kind != ModelEditKind::WeightedTransform)
 		return fail(QCoreApplication::translate("ModelTransformAxesCli", "Transform axes require a mesh, tag or collision transform, face extrusion or duplication."));
 	const auto mode = values.value("--transform-space", "world").toLower();
-	const int index = QStringList{"world", "selection", "custom"}.indexOf(mode);
+	const int index = QStringList{"world", "selection", "custom", "normal"}.indexOf(mode);
 	if (index < 0)
-		return fail(QCoreApplication::translate("ModelTransformAxesCli", "Use --transform-space world|selection|custom."));
+		return fail(QCoreApplication::translate("ModelTransformAxesCli", "Use --transform-space world|selection|custom|normal."));
 	edit->transformSpace = ModelTransformSpace(index);
 	if (values.contains("--axis-rotation"))
 	{
@@ -48,9 +49,9 @@ inline bool parseModelTransformAxesOptions(const QHash<QString, QString> &values
 		bool valid = false;
 		const auto text = values.value("--axes-frame");
 		edit->axesFrame = text.toInt(&valid);
-		if (edit->transformSpace != ModelTransformSpace::Selection || !valid || !digits.match(text).hasMatch() ||
-			edit->axesFrame < 0 || edit->axesFrame >= frameCount)
-			return fail(QCoreApplication::translate("ModelTransformAxesCli", "--axes-frame requires selection axes and an existing zero-based reference pose."));
+		if ((edit->transformSpace != ModelTransformSpace::Selection && edit->transformSpace != ModelTransformSpace::Normal) || !valid ||
+			!digits.match(text).hasMatch() || edit->axesFrame < 0 || edit->axesFrame >= frameCount)
+			return fail(QCoreApplication::translate("ModelTransformAxesCli", "--axes-frame requires selection or normal axes and an existing zero-based reference pose."));
 	}
 	return validModelTransformAxesOptions(*edit, error);
 }

@@ -475,6 +475,10 @@ Merge, Target Weld, Flatten and Transform Model follow the documented behaviour
 of Blender, 3ds Max and MilkShape 3D (reviewed 2026-10-28; behaviour only,
 original implementation); face snapping uses the published Möller–Trumbore
 ray–triangle test.
+Individual origins, normal axes, Array, Screw, the extrude variants, bridge
+options, mesh symmetry, Poly Build and Intersect follow the Blender 4.0 manual
+(CC-BY-SA-4.0, reviewed 2026-10-28; behaviour only), and Intersect uses Möller's
+published triangle-triangle and ray-triangle tests (1997).
 See [Blender-Style Mesh Editing](docs/CREDITS.md#blender-style-mesh-editing-2026-10-07).
 
 Automatic mesh UV charting and packing use Jonathan Young's

@@ -685,8 +685,10 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::Rip:
 	// Connect plans cuts that the knife's apply stage interpolates.
 	case ModelEditKind::ConnectVertices:
+	case ModelEditKind::IntersectCut:
 		return ModelEditSkinHandling::Authored;
 	case ModelEditKind::AddPrimitive:
+	case ModelEditKind::AddFace:
 		return ModelEditSkinHandling::Binding;
 	case ModelEditKind::DuplicateFrame:
 	case ModelEditKind::DeleteFrame:
@@ -811,6 +813,10 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::StitchUv:
 	case ModelEditKind::AlignUv:
 	case ModelEditKind::SnapUvTexels:
+	case ModelEditKind::Array:
+	case ModelEditKind::ExtrudeFaces:
+	case ModelEditKind::BridgeFaces:
+	case ModelEditKind::MirrorFaces:
 		return ModelEditSkinHandling::Provenance;
 	}
 	return ModelEditSkinHandling::Provenance;

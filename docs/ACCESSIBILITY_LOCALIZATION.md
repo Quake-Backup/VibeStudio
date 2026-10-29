@@ -25,6 +25,27 @@ under RTL layouts. Strings use `ModelSpin`, `VibeStudioModelTools` and
 themes and translation expansion; physical keyboard and screen-reader
 acceptance remains open. See [Spin](MODEL_SPIN.md).
 
+The polygon modelling tools added on 2026-10-28 (**Pivot at Individual
+Origins**, **Normal Transform Axes**, **Array**, **Screw**, the extrude
+variants, **Bridge Edge Chains**, **Bridge Faces**, **Mirror Faces**, **Poly
+Build** and **Intersect**) are named menu and search commands in every
+profile, with keys assignable in **Customise Controls…**. Their settings are
+labelled fields in **Adjust Last Operation**, numbers stay left to right in
+right-to-left layouts, and results, clamped widths and refusals reach the
+status line and its accessible description. **Poly Build** can be driven from
+the keyboard: the arrow keys move its crosshair (mirrored in right-to-left
+layouts), **Insert** places a corner, **N** starts a new face and Backspace
+takes one back; its corners and edges are drawn dashed with square markers, not
+by colour alone. Strings use `VibeStudioModelTools`, `VibeStudioModelControls`,
+`ModelToolsCli` and the tools' own contexts. The owned UI test runs them at
+200% text in both high-contrast themes, with expanded translations and right
+to left; physical keyboard and screen-reader acceptance remains open.
+Branched rips, gizmo drags with **Symmetry** or proportional editing, and
+**Intersect (Shared Volume)** with its **Cut with** surface choice (labelled by
+surface name, or "Surface N" for unnamed surfaces) follow the same rules: the
+gizmo's textual move/rotate/scale readout is unchanged, and counterparts are
+shown by the moving geometry rather than colour.
+
 **Edge Slide** uses the existing named menu/search/profile command, semantic
 modal preview, typed values and textual status. Rail guides supplement the
 signed fraction; axis constraints and proportional editing do not change the

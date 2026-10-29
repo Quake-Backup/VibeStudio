@@ -80,6 +80,9 @@ struct ModelEditReport
 	QVector<QPair<int, int>> introducedIntersections;
 	// The intersection check stopped at its work limits; the list may be short.
 	bool intersectionCheckLimited = false;
+	// What a tool adjusted on its own, in words for the status line and CLI,
+	// such as a bevel width clamped to fit.
+	QStringList notes{};
 };
 
 enum class ModelEditKind
@@ -269,6 +272,18 @@ enum class ModelEditKind
 	StitchUv,
 	AlignUv,
 	SnapUvTexels,
+	// Copies of the selected faces along a per-copy transform (core/model_array.cpp).
+	Array,
+	// Region, along-normal or individual face extrusion with UV walls (core/model_extrude.cpp).
+	ExtrudeFaces,
+	// Removes two face regions and bridges the holes (core/model_boundary_bridge.h).
+	BridgeFaces,
+	// Reflects a detached face selection across an axis plane (core/model_symmetry.h).
+	MirrorFaces,
+	// One triangle from selected vertices and new points (core/model_add_face.cpp).
+	AddFace,
+	// Cuts (and optionally unites or subtracts) where faces pass through each other (core/model_intersect_cut.cpp).
+	IntersectCut,
 };
 
 struct ModelEdit
@@ -304,6 +319,12 @@ struct ModelEdit
 	ModelVec3 tagOrigin;
 	int sourceFrame = 0;
 	int bridgeTwist = 0;
+	// Bridging (core/model_boundary_bridge.h): rings between the sides (0-64),
+	// open chains of exactly the selected edges, and a UV strip's units per
+	// texture repeat (0 reuses the boundary attributes).
+	int bridgeSegments = 0;
+	bool bridgeOpen = false;
+	double bridgeTileSize = 0;
 	int uvAtlasResolution = 512, uvAtlasPadding = 4;
 	int uvAtlasHeight = 0;
 	bool uvPreserveScale = false;

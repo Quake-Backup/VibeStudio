@@ -1652,6 +1652,7 @@ void ModelViewport::paintTriangles(QPainter &painter, const Palette &palette)
 		work->frameBlend = m_frameBlend;
 		work->editSurface = m_editSurface;
 		work->editTransform = m_editTransform;
+		work->editPieces = m_editPieces;
 		work->editVertices = m_editVertices; work->editSurfaces = m_editSurfaces;
 		work->vertexPicking = m_vertexPicking && !(m_playing && (m_interpolateAnimation || m_nativeMdl));
 		work->xrayVertices = m_xrayVertices;
@@ -1811,6 +1812,7 @@ ModelViewport::GeometryKey ModelViewport::currentGeometryKey(bool textured, bool
 		key.jointDescendants = m_jointDescendants;
 		key.editSurface = m_editSurface;
 		key.editTransform = m_editTransform;
+		key.editPieces = m_editPieces;
 		key.editSurfaces = m_editSurfaces;
 		key.editVertices = m_editVertices;
 	}

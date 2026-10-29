@@ -2,6 +2,7 @@
 #include "core/model_collision.h"
 #include "core/model_tags.h"
 #include "core/model_surface_selection.h"
+#include "core/model_mesh_tools.h"
 #include "core/model_joint_tools.h"
 #include "core/model_skeleton.h"
 
@@ -259,22 +260,34 @@ void ModelViewport::setTransformGizmo(bool enabled, ModelTransformTool tool, dou
 	setAccessibleDescription(accessibleSummary());
 	update();
 }
-void ModelViewport::setTransformPivot(ModelTransformPivot mode, ModelVec3 custom)
+void ModelViewport::setTransformPivot(ModelTransformPivot mode, ModelVec3 custom, bool pieceNormals)
 {
-	if (int(mode) < 0 || int(mode) > 2 || !std::isfinite(custom.x) || !std::isfinite(custom.y) || !std::isfinite(custom.z))
+	if (int(mode) < 0 || int(mode) > int(ModelTransformPivot::IndividualOrigins) || !std::isfinite(custom.x) || !std::isfinite(custom.y) ||
+		!std::isfinite(custom.z))
 	{
 		return;
 	}
 	if (mode == m_transformPivot && custom.x == m_customTransformPivot.x && custom.y == m_customTransformPivot.y &&
-		custom.z == m_customTransformPivot.z)
+		custom.z == m_customTransformPivot.z && pieceNormals == m_transformPieceNormals)
 	{
 		return;
 	}
 	finishEditTransform(false);
 	m_transformPivot = mode;
 	m_customTransformPivot = custom;
+	m_transformPieceNormals = pieceNormals;
 	setAccessibleDescription(accessibleSummary());
 	update();
+}
+void ModelViewport::setTransformWeighting(double radius, int falloff, bool connectedOnly, int mirrorAxes)
+{
+	if (!std::isfinite(radius) || radius < 0 || falloff < 0 || falloff > int(ModelFalloff::Constant) || mirrorAxes < 0 || mirrorAxes > 7)
+		return;
+	// A drag in progress keeps the weights it started with.
+	m_weightRadius = radius;
+	m_weightFalloff = falloff;
+	m_weightConnected = connectedOnly;
+	m_weightMirror = mirrorAxes;
 }
 void ModelViewport::setTransformAxes(const ModelTransformBasis &basis, const QString &name, bool available)
 {
@@ -302,8 +315,10 @@ ModelVec3 ModelViewport::editVertexPosition(int surface, int vertex) const
 	{
 		point = interpolateModelPosition(point, part.frames[m_blendFrame].positions[vertex], m_frameBlend);
 	}
-	return m_editMoveActive && (m_editSurfaces.contains(surface) || (surface == m_editSurface && m_editVertices.contains(vertex))) ? transformModelPoint(point, m_editTransform)
-																						   : point;
+	return m_editMoveActive &&
+				   (m_editSurfaces.contains(surface) || (surface == m_editSurface && (m_editVertices.contains(vertex) || m_editPieces.moves(vertex))))
+		? m_editPieces.apply(m_editTransform, surface, vertex, point)
+		: point;
 }
 QPointF ModelViewport::vertexScreenPosition(int surface, int vertex)
 {
@@ -719,6 +734,27 @@ bool ModelViewport::beginEditTransform(const QPointF &point)
 	m_editTransform = {};
 	m_editTransform.pivot = pivot;
 	m_editTransform.basis = m_transformBasis;
+	// Individual Origins: the same pieces, pivots and axes the committed
+	// Transform uses, so the preview matches the result.
+	m_editPieces = {};
+	const bool components = m_editTag.isEmpty() && m_editCollision.isEmpty() && m_editJoint.isEmpty();
+	if (components && m_editSurfaces.isEmpty() && !m_editVertices.isEmpty() && transformWeighted())
+	{
+		// Proportional editing and symmetry: the vertices, weights and
+		// counterparts the committed Weighted Transform moves.
+		ModelMeshToolOptions weighting;
+		weighting.proportionalRadius = m_weightRadius;
+		weighting.falloff = ModelFalloff(m_weightFalloff);
+		weighting.connectedOnly = m_weightConnected;
+		weighting.mirrorAxes = m_weightMirror;
+		if (!modelWeightedTransformPieceMap(m_mesh, m_editSurface, m_editVertices, m_frame,
+											m_transformPivot == ModelTransformPivot::IndividualOrigins, m_transformPieceNormals, weighting,
+											&m_editPieces))
+			m_editPieces = {};
+	}
+	else if (m_transformPivot == ModelTransformPivot::IndividualOrigins && components &&
+			 !modelTransformPieceMap(m_mesh, m_editSurface, m_editVertices, m_editSurfaces, m_frame, m_transformPieceNormals, &m_editPieces))
+		m_editPieces = {};
 	m_editMovePress = point;
 	setAccessibleDescription(accessibleSummary());
 	update();
@@ -861,6 +897,7 @@ void ModelViewport::finishEditTransform(bool commit)
 	m_editMoveActive = false;
 	m_editMoveTravelled = false;
 	m_editTransform = {};
+	m_editPieces = {};
 	m_pressButton = Qt::NoButton;
 	m_dragAction = DragAction::None;
 	m_dragStarted = false;

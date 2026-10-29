@@ -1600,6 +1600,11 @@ bool isModelMeshToolEdit(ModelEditKind kind)
 	case ModelEditKind::MarkSharp:
 	case ModelEditKind::ClearSharp:
 	case ModelEditKind::SetVertexPositions:
+	case ModelEditKind::Array:
+	case ModelEditKind::ExtrudeFaces:
+	case ModelEditKind::MirrorFaces:
+	case ModelEditKind::AddFace:
+	case ModelEditKind::IntersectCut:
 		return true;
 	default:
 		return false;
@@ -1669,13 +1674,23 @@ bool applyModelMeshToolEditUnguarded(ModelMesh *candidate, const ModelEdit &edit
 	const auto &options = edit.tool;
 	if (edit.kind != ModelEditKind::Rip && (options.ripFace != -1 || options.ripFill || options.ripOpposite))
 		return fail(error, Text::tr("Rip settings apply only to the rip tool."));
-	if (edit.kind != ModelEditKind::Spin && (options.spinAngle != 90 || options.spinSteps != 8 || options.spinDuplicate || !options.spinClose))
+	if (edit.kind != ModelEditKind::Spin && (options.spinAngle != 90 || options.spinSteps != 8 || options.spinDuplicate || !options.spinClose ||
+											 options.spinAxialOffset != 0))
 		return fail(error, Text::tr("Spin settings apply only to the spin tool."));
+	{
+		const ModelMeshToolOptions defaults;
+		if (edit.kind != ModelEditKind::Array &&
+			(options.arrayCount != defaults.arrayCount || options.arrayOffset != defaults.arrayOffset || options.arrayRelative != defaults.arrayRelative ||
+			 options.arrayRotation != defaults.arrayRotation || options.arrayScale != defaults.arrayScale || options.arrayMerge != defaults.arrayMerge))
+			return fail(error, Text::tr("Array settings apply only to the array tool."));
+		if (edit.kind != ModelEditKind::ExtrudeFaces && (options.extrudeMode != defaults.extrudeMode || options.extrudeTileSize != defaults.extrudeTileSize))
+			return fail(error, Text::tr("Extrusion settings apply only to Extrude Faces."));
+	}
 	if (edit.kind != ModelEditKind::Knife && !(options.knife == ModelKnifeOptions{}))
 		return fail(error, Text::tr("Knife settings apply only to the knife tool."));
 	if (edit.kind != ModelEditKind::SlideEdges && options.slideByDistance)
 		return fail(error, Text::tr("Slide distance mode applies only to edge sliding."));
-	if (edit.kind != ModelEditKind::Symmetrize && (!options.mirrorJoints.isEmpty() || options.keepJointNames))
+	if (edit.kind != ModelEditKind::Symmetrize && edit.kind != ModelEditKind::MirrorFaces && (!options.mirrorJoints.isEmpty() || options.keepJointNames))
 		return fail(error, Text::tr("Joint mirror maps apply only to Symmetrize."));
 	if (edit.kind != ModelEditKind::AlignVertices && !(options.align == ModelAlignOptions{}))
 		return fail(error, Text::tr("Alignment settings apply only to Align Vertices."));
@@ -1700,8 +1715,13 @@ bool applyModelMeshToolEditUnguarded(ModelMesh *candidate, const ModelEdit &edit
 			topology.autoMergeDistance > 1000)
 			return fail(error, Text::tr("A tool setting is outside its supported range."));
 	}
-	if (edit.kind != ModelEditKind::AddPrimitive &&
-		(options.newGeometryBinding != ModelNewGeometryBinding::None || !options.bindJoint.isEmpty() || !options.newSurface.isEmpty()))
+	if (edit.kind != ModelEditKind::AddFace && options.facePointCount != 0)
+		return fail(error, Text::tr("New face points apply only to Add Face."));
+	if (edit.kind != ModelEditKind::IntersectCut && (options.intersectMode != ModelIntersectMode::Cut || options.intersectSurface != -1))
+		return fail(error, Text::tr("Union, difference, intersection and the cutting surface apply only to Intersect."));
+	if ((edit.kind != ModelEditKind::AddPrimitive && edit.kind != ModelEditKind::AddFace &&
+		 (options.newGeometryBinding != ModelNewGeometryBinding::None || !options.bindJoint.isEmpty())) ||
+		(edit.kind != ModelEditKind::AddPrimitive && !options.newSurface.isEmpty()))
 		return fail(error, Text::tr("New geometry bindings and new surfaces apply only to Add Primitive."));
 	if (int(options.newGeometryBinding) < 0 || int(options.newGeometryBinding) > int(ModelNewGeometryBinding::NearestBones) ||
 		(options.newGeometryBinding == ModelNewGeometryBinding::Joint) == options.bindJoint.isEmpty())
@@ -1710,6 +1730,8 @@ bool applyModelMeshToolEditUnguarded(ModelMesh *candidate, const ModelEdit &edit
 		return fail(error, Text::tr("Binding new geometry needs a skeleton. This model has no joints."));
 	if (options.newGeometryBinding == ModelNewGeometryBinding::Joint && modelJointIndex(candidate->skeleton, options.bindJoint, Qt::CaseSensitive) < 0)
 		return fail(error, Text::tr("The skeleton has no joint named %1 to bind the new geometry to.").arg(options.bindJoint));
+	if (edit.kind != ModelEditKind::BevelEdges && options.bevelClamp)
+		return fail(error, Text::tr("Width clamping applies only to edge bevels."));
 	if (options.bevelSegments < 1 || options.bevelSegments > 32 || !std::isfinite(options.bevelRoundness) ||
 		options.bevelRoundness < 0 || options.bevelRoundness > 1 ||
 		(edit.kind != ModelEditKind::BevelEdges && (options.bevelSegments != 1 || options.bevelRoundness != 1)))
@@ -1800,7 +1822,7 @@ bool applyModelMeshToolEditUnguarded(ModelMesh *candidate, const ModelEdit &edit
 	case ModelEditKind::BevelVertices:
 		return bevelVertices(candidate, edit, selection, error, work);
 	case ModelEditKind::BevelEdges:
-		return authored(bevelEdges(candidate, edit, selection, error, control));
+		return authored(bevelEdges(candidate, edit, selection, error, control, report));
 	case ModelEditKind::Knife:
 		return authored(knifeFaces(candidate, edit, selection, error, control, report));
 	case ModelEditKind::Spin:
@@ -1830,6 +1852,27 @@ bool applyModelMeshToolEditUnguarded(ModelMesh *candidate, const ModelEdit &edit
 		return markModelSharpEdges(candidate, edit, selection, error, control);
 	case ModelEditKind::SetVertexPositions:
 		return setModelVertexPositions(candidate, edit, selection, error, control);
+	case ModelEditKind::Array:
+		return arrayFaces(candidate, edit, selection, error, control, report);
+	case ModelEditKind::ExtrudeFaces:
+		return extrudeFaces(candidate, edit, selection, error, control, report);
+	case ModelEditKind::MirrorFaces:
+		return mirrorFaces(candidate, edit, selection, error, work);
+	case ModelEditKind::AddFace:
+		return materialiseModelVertexIdentities(&candidate->surfaces[selection->surface], error, control) &&
+			addFace(candidate, edit, selection, error, work);
+	case ModelEditKind::IntersectCut:
+	{
+		// Cutting against another surface edits (and authors) that surface too.
+		const int other = edit.tool.intersectSurface;
+		const bool across = other >= 0 && other < candidate->surfaces.size() && other != selection->surface;
+		const bool applied = materialiseModelVertexIdentities(&candidate->surfaces[selection->surface], error, control) &&
+							 (!across || materialiseModelVertexIdentities(&candidate->surfaces[other], error, control)) &&
+							 intersectCut(candidate, edit, selection, error, control, report);
+		if (applied && across)
+			markModelSurfaceOriginsAuthored(&candidate->surfaces[other]);
+		return authored(applied);
+	}
 	default:
 		return fail(error, Text::tr("Unknown mesh tool."));
 	}

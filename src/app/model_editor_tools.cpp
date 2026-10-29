@@ -10,6 +10,7 @@
 #include "core/model_geometric_topology.h"
 #include "core/model_file_io.h"
 #include "core/model_lod.h"
+#include "core/model_symmetry.h"
 #include "core/model_targets.h"
 #include "core/model_transform_axes.h"
 
@@ -288,6 +289,10 @@ void ModelEditorTools::buildActions()
 			  QStringLiteral("extrude"));
 	addAction(QStringLiteral("meshInset"), Text::tr("Inset Faces"), QStringLiteral("I"), [this] { startModalAtPointer(ModelModalOperator::Inset); },
 			  QStringLiteral("inset"));
+	addAction(QStringLiteral("meshExtrudeNormals"), Text::tr("Extrude Faces Along Normals"), {},
+			  [this] { startModalAtPointer(ModelModalOperator::ExtrudeNormals); });
+	addAction(QStringLiteral("meshExtrudeIndividual"), Text::tr("Extrude Individual Faces"), {},
+			  [this] { startModalAtPointer(ModelModalOperator::ExtrudeIndividual); });
 	addAction(QStringLiteral("meshInsetIndividual"), Text::tr("Inset Faces Individually"), {},
 			  [this] { runKind(ModelEditKind::InsetFaces, [](ModelEdit &e) { e.tool.inset = ModelInsetMode::Individual; }); });
 	addAction(QStringLiteral("meshDuplicate"), Text::tr("Duplicate"), QStringLiteral("Shift+D"),
@@ -319,8 +324,57 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshDissolveVertices"), Text::tr("Dissolve Vertices"), {}, [this] { runKind(ModelEditKind::DissolveVertices); });
 	addAction(QStringLiteral("meshDissolveFaces"), Text::tr("Dissolve Faces"), {}, [this] { runKind(ModelEditKind::DissolveFaces); });
 	addAction(QStringLiteral("meshMakeFace"), Text::tr("Make Face"), QStringLiteral("F"), [this] { runKind(ModelEditKind::MakeFace); });
+	addAction(QStringLiteral("meshPolyBuild"), Text::tr("Poly Build"), {}, [this] { startModalAtPointer(ModelModalOperator::PolyBuild); },
+			  QStringLiteral("vertex-mode"));
+	// Intersect: cut where the selected faces pass through the rest of the
+	// surface, optionally keeping only the outer shell or the difference.
+	const auto intersect = [this](ModelIntersectMode mode)
+	{
+		runKind(ModelEditKind::IntersectCut,
+				[this, mode](ModelEdit &e)
+				{
+					e.selection = selectionFor(ModelEditKind::Extrude);
+					e.selection.vertices.clear();
+					e.selection.edges.clear();
+					e.tool.intersectMode = mode;
+				});
+	};
+	addAction(QStringLiteral("meshIntersectCut"), Text::tr("Intersect (Knife)"), {}, [intersect] { intersect(ModelIntersectMode::Cut); });
+	addAction(QStringLiteral("meshIntersectUnion"), Text::tr("Intersect (Union)"), {}, [intersect] { intersect(ModelIntersectMode::Union); });
+	addAction(QStringLiteral("meshIntersectDifference"), Text::tr("Intersect (Difference)"), {},
+			  [intersect] { intersect(ModelIntersectMode::Difference); });
+	addAction(QStringLiteral("meshIntersectShared"), Text::tr("Intersect (Shared Volume)"), {},
+			  [intersect] { intersect(ModelIntersectMode::Intersection); });
 	addAction(QStringLiteral("meshFillHoles"), Text::tr("Fill Boundary Loops"), {}, [this] { m_editor->execute(ModelEditKind::FillBoundaryLoops); });
-	addAction(QStringLiteral("meshBridge"), Text::tr("Bridge Edge Loops"), {}, [this] { m_editor->execute(ModelEditKind::BridgeBoundaryLoops); });
+	// Bridging runs as a tool so Adjust Last Operation can change its twist,
+	// segments, open chains and UV strip.
+	addAction(QStringLiteral("meshBridge"), Text::tr("Bridge Edge Loops"), {},
+			  [this]
+			  {
+				  QString error;
+				  runTool(m_editor->operation(ModelEditKind::BridgeBoundaryLoops), &error);
+			  });
+	addAction(QStringLiteral("meshBridgeChains"), Text::tr("Bridge Edge Chains"), {},
+			  [this]
+			  {
+				  auto edit = m_editor->operation(ModelEditKind::BridgeBoundaryLoops);
+				  edit.bridgeOpen = true;
+				  edit.bridgeTwist = 0;
+				  QString error;
+				  runTool(edit, &error);
+			  });
+	addAction(QStringLiteral("meshBridgeFaces"), Text::tr("Bridge Faces"), {},
+			  [this]
+			  {
+				  auto edit = m_editor->operation(ModelEditKind::BridgeFaces);
+				  edit.frame = -1;
+				  edit.sourceFrame = std::max(0, m_editor->m_frame->currentIndex());
+				  edit.selection = selectionFor(ModelEditKind::Extrude);
+				  edit.selection.vertices.clear();
+				  edit.selection.edges.clear();
+				  QString error;
+				  runTool(edit, &error);
+			  });
 	addAction(QStringLiteral("meshRotateEdge"), Text::tr("Rotate Edge"), {}, [this] { runKind(ModelEditKind::RotateEdges); },
 			  QStringLiteral("rotate"));
 	addAction(QStringLiteral("meshExtrudeEdges"), Text::tr("Extrude Edges"), {},
@@ -330,6 +384,46 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshRipFill"), Text::tr("Rip and Fill"), {}, [this] { startModalAtPointer(ModelModalOperator::RipFill); });
 	addAction(QStringLiteral("meshSpinDuplicate"), Text::tr("Spin Duplicates"), {},
 			  [this] { startModalAtPointer(ModelModalOperator::SpinDuplicate); });
+	// Screw: a full spin around the 3D cursor's Z axis that climbs as it turns;
+	// Adjust Last Operation sets the axis, turn, steps and climb.
+	addAction(QStringLiteral("meshScrew"), Text::tr("Screw"), {},
+			  [this]
+			  {
+				  runKind(ModelEditKind::Spin,
+						  [this](ModelEdit &e)
+						  {
+							  e.selection = selectionFor(ModelEditKind::Extrude);
+							  if (e.selection.faces.isEmpty())
+								  e.selection = selectionFor(ModelEditKind::ExtrudeEdges);
+							  else
+							  {
+								  e.selection.vertices.clear();
+								  e.selection.edges.clear();
+							  }
+							  e.tool.point = {m_cursor.x, m_cursor.y, m_cursor.z};
+							  e.tool.normal = {0, 0, 1};
+							  e.tool.spinAngle = 360;
+							  e.tool.spinSteps = 16;
+							  e.tool.spinAxialOffset = 16;
+						  });
+			  });
+	// Array: copies of the selected faces; Adjust Last Operation sets the
+	// count, offsets, rotation, scale and merging.
+	addAction(QStringLiteral("meshArray"), Text::tr("Array"), {},
+			  [this]
+			  {
+				  runKind(ModelEditKind::Array,
+						  [this](ModelEdit &e)
+						  {
+							  e.selection = selectionFor(ModelEditKind::Extrude);
+							  e.selection.vertices.clear();
+							  e.selection.edges.clear();
+							  ModelVec3 centre;
+							  if (selectionCentre(&centre))
+								  e.tool.point = {centre.x, centre.y, centre.z};
+							  e.tool.arrayCount = 3;
+						  });
+			  });
 	addAction(QStringLiteral("meshSubdivide"), Text::tr("Subdivide"), {}, [this] { m_editor->execute(ModelEditKind::Subdivide); });
 	addAction(QStringLiteral("meshSplitEdges"), Text::tr("Split Edges"), {}, [this] { m_editor->execute(ModelEditKind::SplitEdges); });
 	addAction(QStringLiteral("meshMarkSeam"), Text::tr("Mark Seam"), {}, [this] { m_editor->execute(ModelEditKind::MarkUvSeams); });
@@ -522,6 +616,18 @@ void ModelEditorTools::buildActions()
 			  });
 	addAction(QStringLiteral("meshPivotSelection"), Text::tr("Pivot at Selection Center"), {},
 			  [this] { m_editor->m_pivotMode->setCurrentIndex(1); });
+	addAction(QStringLiteral("meshPivotIndividual"), Text::tr("Pivot at Individual Origins"), {},
+			  [this]
+			  {
+				  m_editor->m_pivotMode->setCurrentIndex(int(ModelTransformPivot::IndividualOrigins));
+				  showBanner(Text::tr("Rotate and scale now turn each connected piece about its own centre."));
+			  });
+	addAction(QStringLiteral("meshAxesNormal"), Text::tr("Normal Transform Axes"), {},
+			  [this]
+			  {
+				  m_editor->m_transformSpace->setCurrentIndex(int(ModelTransformSpace::Normal));
+				  showBanner(Text::tr("Transform axes now follow the selection's normal: press an axis key twice in a transform to use them."));
+			  });
 	// View.
 	addAction(QStringLiteral("meshViewAll"), Text::tr("Frame All"), QStringLiteral("Home"), [this] { m_viewport->frameModel(); },
 			  QStringLiteral("frame"));
@@ -603,6 +709,25 @@ void ModelEditorTools::buildActions()
 			  },
 			  QStringLiteral("repeat"));
 	// Context menus opened from the keyboard.
+	// Mirror Faces: reflect a detached face selection across the 3D cursor's plane.
+	for (int axis = 0; axis < 3; ++axis)
+	{
+		const QString axisName = QStringLiteral("XYZ").mid(axis, 1);
+		addAction(QStringLiteral("meshMirrorFaces%1").arg(axisName), Text::tr("Mirror Faces Across %1").arg(axisName), {},
+				  [this, axis]
+				  {
+					  runKind(ModelEditKind::MirrorFaces,
+							  [this, axis](ModelEdit &e)
+							  {
+								  e.selection = selectionFor(ModelEditKind::Extrude);
+								  e.selection.vertices.clear();
+								  e.selection.edges.clear();
+								  e.tool.axis = axis;
+								  e.tool.point = {m_cursor.x, m_cursor.y, m_cursor.z};
+							  });
+				  },
+				  QStringLiteral("mirror"));
+	}
 	addAction(QStringLiteral("meshAddMenu"), Text::tr("Add Menu"), QStringLiteral("Shift+A"),
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuAdd"))->popup(QCursor::pos()); });
 	addAction(QStringLiteral("meshDeleteMenu"), Text::tr("Delete Menu"), QStringLiteral("X|Del"),
@@ -629,6 +754,8 @@ void ModelEditorTools::buildActions()
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuSimilar"))->popup(QCursor::pos()); });
 	addAction(QStringLiteral("meshShadingMenu"), Text::tr("Shading Menu"), QStringLiteral("Z"),
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuShading"))->popup(QCursor::pos()); });
+	addAction(QStringLiteral("meshExtrudeMenu"), Text::tr("Extrude Menu"), QStringLiteral("Alt+E"),
+			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuExtrude"))->popup(QCursor::pos()); });
 	addAction(QStringLiteral("meshUvMenu"), Text::tr("UV Mapping Menu"), QStringLiteral("U"),
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuUv"))->popup(QCursor::pos()); });
 	buildProfileActions();
@@ -700,7 +827,8 @@ void ModelEditorTools::buildMenus()
 	m_menuBar->addMenu(add);
 	auto *snap = named(menu(Text::tr("Snap"), {QStringLiteral("meshCursorToSelected"), QStringLiteral("meshCursorToOrigin"),
 											   QStringLiteral("meshCursorToGrid"), {}, QStringLiteral("meshSelectionToCursor"), {},
-											   QStringLiteral("meshPivotCursor"), QStringLiteral("meshPivotSelection")}),
+											   QStringLiteral("meshPivotCursor"), QStringLiteral("meshPivotSelection"),
+											   QStringLiteral("meshPivotIndividual"), QStringLiteral("meshAxesNormal")}),
 					   QStringLiteral("meshMenuSnap"));
 	auto *merge = named(menu(Text::tr("Merge"), {QStringLiteral("meshMergeCentre"), QStringLiteral("meshMergeCursor"),
 												 QStringLiteral("meshMergeCollapse"), QStringLiteral("meshMergeDistance")}),
@@ -713,7 +841,9 @@ void ModelEditorTools::buildMenus()
 						  QStringLiteral("meshMenuNormals"));
 	auto *symmetry = named(menu(Text::tr("Symmetrize"), {QStringLiteral("meshSymmetrizePositiveX"), QStringLiteral("meshSymmetrizeNegativeX"),
 														  QStringLiteral("meshSymmetrizePositiveY"), QStringLiteral("meshSymmetrizeNegativeY"),
-														  QStringLiteral("meshSymmetrizePositiveZ"), QStringLiteral("meshSymmetrizeNegativeZ")}),
+														  QStringLiteral("meshSymmetrizePositiveZ"), QStringLiteral("meshSymmetrizeNegativeZ"), {},
+														  QStringLiteral("meshMirrorFacesX"), QStringLiteral("meshMirrorFacesY"),
+														  QStringLiteral("meshMirrorFacesZ")}),
 						   QStringLiteral("meshMenuSymmetrize"));
 	auto *cleanup = named(menu(Text::tr("Clean Up"), {QStringLiteral("meshDecimate"), QStringLiteral("meshDecimateMd3"),
 													  QStringLiteral("meshBeautify"), QStringLiteral("meshMergeDistance"), {},
@@ -733,24 +863,31 @@ void ModelEditorTools::buildMenus()
 	mesh->addMenu(normals);
 	mesh->addMenu(cleanup);
 	m_menuBar->addMenu(mesh);
-	m_menuBar->addMenu(named(menu(Text::tr("&Vertex"), {QStringLiteral("meshMakeFace"), QStringLiteral("meshBevelVertices"), QStringLiteral("meshMergeCentre"),
+	m_menuBar->addMenu(named(menu(Text::tr("&Vertex"), {QStringLiteral("meshMakeFace"), QStringLiteral("meshPolyBuild"), QStringLiteral("meshBevelVertices"), QStringLiteral("meshMergeCentre"),
 														 QStringLiteral("meshRip"), QStringLiteral("meshRipFill"),
 														 QStringLiteral("meshMergeCursor"), QStringLiteral("meshDissolveVertices"),
 														 QStringLiteral("meshSmooth"), QStringLiteral("meshMergeDistance")}),
 							 QStringLiteral("meshMenuVertex")));
 	m_menuBar->addMenu(named(menu(Text::tr("&Edge"), {QStringLiteral("meshLoopCut"), QStringLiteral("meshRotateEdge"), QStringLiteral("meshExtrudeEdges"),
 													   QStringLiteral("meshRip"), QStringLiteral("meshRipFill"),
-													   QStringLiteral("meshSpin"), QStringLiteral("meshEdgeSlide"), QStringLiteral("meshBevelEdges"), QStringLiteral("meshSplitEdges"), QStringLiteral("meshBridge"), QStringLiteral("meshFillHoles"), {},
+													   QStringLiteral("meshSpin"), QStringLiteral("meshScrew"), QStringLiteral("meshEdgeSlide"), QStringLiteral("meshBevelEdges"), QStringLiteral("meshSplitEdges"), QStringLiteral("meshBridge"), QStringLiteral("meshBridgeChains"), QStringLiteral("meshFillHoles"), {},
 													   QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSeam"), {},
 													   QStringLiteral("meshSelectLoopPick"), QStringLiteral("meshSelectRingPick"),
 													   QStringLiteral("meshSelectLoop"), QStringLiteral("meshSelectRing")}),
 							 QStringLiteral("meshMenuEdge")));
-	m_menuBar->addMenu(named(menu(Text::tr("&Face"), {QStringLiteral("meshExtrude"), QStringLiteral("meshInset"), QStringLiteral("meshInsetIndividual"),
-													   QStringLiteral("meshSpin"), QStringLiteral("meshSpinDuplicate"), QStringLiteral("meshPoke"), QStringLiteral("meshSolidify"), QStringLiteral("meshSubdivide"), QStringLiteral("meshDissolveFaces"),
+	auto *extrude = named(menu(Text::tr("Extrude"), {QStringLiteral("meshExtrude"), QStringLiteral("meshExtrudeNormals"),
+													  QStringLiteral("meshExtrudeIndividual"), QStringLiteral("meshExtrudeEdges")}),
+						  QStringLiteral("meshMenuExtrude"));
+	auto *faceMenu = named(menu(Text::tr("&Face"), {QStringLiteral("meshExtrude"), QStringLiteral("meshExtrudeNormals"), QStringLiteral("meshExtrudeIndividual"), QStringLiteral("meshInset"), QStringLiteral("meshInsetIndividual"),
+													   QStringLiteral("meshSpin"), QStringLiteral("meshSpinDuplicate"), QStringLiteral("meshScrew"), QStringLiteral("meshArray"), QStringLiteral("meshBridgeFaces"), QStringLiteral("meshIntersectCut"),
+													   QStringLiteral("meshIntersectUnion"), QStringLiteral("meshIntersectDifference"), QStringLiteral("meshIntersectShared"), QStringLiteral("meshPoke"), QStringLiteral("meshSolidify"), QStringLiteral("meshSubdivide"), QStringLiteral("meshDissolveFaces"),
 													   QStringLiteral("meshBeautify"), QStringLiteral("meshMakeFace"), {}, QStringLiteral("meshFlip"),
 													   QStringLiteral("meshShadeSmooth"), QStringLiteral("meshShadeFlat"), QStringLiteral("meshAutoSmooth"), {},
 													   QStringLiteral("meshDeleteFaces")}),
-							 QStringLiteral("meshMenuFace")));
+							 QStringLiteral("meshMenuFace"));
+	m_menuBar->addMenu(faceMenu);
+	// Alt+E pops the extrude variants up at the pointer.
+	Q_UNUSED(extrude);
 	m_menuBar->addMenu(named(menu(Text::tr("&UV"), {QStringLiteral("meshUnwrap"), {}, QStringLiteral("meshUvCube"), QStringLiteral("meshUvCylinder"),
 													 QStringLiteral("meshUvSphere"), {}, QStringLiteral("meshUvView"), QStringLiteral("meshUvViewBounds"), {},
 													 QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSeam"), {}, QStringLiteral("meshUvDensity"), QStringLiteral("meshPackIslands"), {},
@@ -896,11 +1033,26 @@ void ModelEditorTools::buildHeader()
 		button->setText(name);
 		button->setCheckable(true);
 		button->setAutoRaise(true);
-		button->setToolTip(Text::tr("Mesh symmetry across %1: moving a vertex also moves its mirror counterpart.").arg(name));
+		button->setToolTip(Text::tr("Mesh symmetry across %1: moving a vertex also moves its mirror counterpart, and extrude, inset, loop cut, bevel, "
+									"dissolve and other topology tools mirror what they change from the selection's side.").arg(name));
 		button->setAccessibleName(Text::tr("Mirror editing across %1").arg(name));
 		row->addWidget(button);
 		m_mirror[axis] = button;
 	}
+	// Gizmo drags move nearby vertices and counterparts like G/R/S do.
+	const auto syncWeighting = [this]
+	{
+		ModelMeshToolOptions options;
+		transformWeighting(&options);
+		m_editor->m_preview->setTransformWeighting(options.proportionalRadius, int(options.falloff), options.connectedOnly, options.mirrorAxes);
+	};
+	connect(m_proportional, &QToolButton::toggled, this, syncWeighting);
+	connect(m_falloff, &QComboBox::currentIndexChanged, this, syncWeighting);
+	connect(m_radius, &QDoubleSpinBox::valueChanged, this, syncWeighting);
+	connect(m_connected, &QCheckBox::toggled, this, syncWeighting);
+	for (auto *button : m_mirror)
+		connect(button, &QToolButton::toggled, this, syncWeighting);
+	syncWeighting();
 	m_budget = new QToolButton;
 	m_budget->setObjectName(QStringLiteral("meshExportBudget"));
 	m_budget->setAccessibleName(Text::tr("Delivery targets"));
@@ -1279,7 +1431,34 @@ ModelEdit ModelEditorTools::toolEdit(ModelEditKind kind) const
 		edit.tool.pinBoundary = true;
 	if (isModelMeshToolEdit(kind))
 		edit.tool.topology.refuseIntersections = m_refuseIntersections;
+	// Live symmetry: the header's Symmetry buttons mirror topology and shape
+	// tools too, with the joint map last confirmed for Symmetrize.
+	if (modelSymmetrySupported(kind) && m_mirror[0])
+	{
+		edit.tool.symmetryAxes = (m_mirror[0]->isChecked() ? 1 : 0) | (m_mirror[1]->isChecked() ? 2 : 0) | (m_mirror[2]->isChecked() ? 4 : 0);
+		if (edit.tool.symmetryAxes != 0)
+		{
+			edit.tool.mirrorJoints = m_mirrorJoints;
+			edit.tool.keepJointNames = m_keepJointNames;
+		}
+	}
 	return edit;
+}
+
+bool ModelEditorTools::transformWeighting(ModelMeshToolOptions *options) const
+{
+	ModelMeshToolOptions result;
+	if (m_proportional && m_proportional->isChecked())
+	{
+		result.proportionalRadius = m_radius->value();
+		result.falloff = ModelFalloff(m_falloff->currentIndex());
+		result.connectedOnly = m_connected->isChecked();
+	}
+	if (m_mirror[0])
+		result.mirrorAxes = (m_mirror[0]->isChecked() ? 1 : 0) | (m_mirror[1]->isChecked() ? 2 : 0) | (m_mirror[2]->isChecked() ? 4 : 0);
+	if (options)
+		*options = result;
+	return result.proportionalRadius > 0 || result.mirrorAxes != 0;
 }
 
 bool ModelEditorTools::runTool(const ModelEdit &operation, QString *error)
@@ -1309,7 +1488,8 @@ bool ModelEditorTools::runTool(const ModelEdit &operation, QString *error)
 		m_lastSelect.active = false;
 	}
 	// Interpolated, mirrored, rebound, merged or bound skin weights are named.
-	showBanner(modelSkinProvenanceSummary(report.skin));
+	// What the tool adjusted itself (a clamped width) leads the summary.
+	showBanner((report.notes + QStringList{modelSkinProvenanceSummary(report.skin)}).join(QLatin1Char(' ')).trimmed());
 	noteIntersections(edit, report);
 	refreshLastPanel();
 	return true;
@@ -1320,7 +1500,7 @@ void ModelEditorTools::runKind(ModelEditKind kind, std::function<void(ModelEdit 
 	auto edit = toolEdit(kind);
 	if (configure)
 		configure(edit);
-	if (kind == ModelEditKind::Symmetrize && !confirmMirrorJoints(edit))
+	if ((kind == ModelEditKind::Symmetrize || kind == ModelEditKind::MirrorFaces) && !confirmMirrorJoints(edit))
 		return;
 	QString error;
 	runTool(edit, &error);
@@ -1909,7 +2089,7 @@ struct LastField
 	// Changing this field changes which other fields apply.
 	bool rebuild = false;
 };
-QVector<LastField> lastFields(const ModelEdit &edit)
+QVector<LastField> lastFields(const ModelEdit &edit, const ModelMesh *mesh = nullptr)
 {
 	using E = ModelEdit;
 	const auto kind = edit.kind;
@@ -1944,6 +2124,20 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 	case ModelEditKind::DuplicateFaces:
 	case ModelEditKind::ExtrudeEdges:
 		return vector3(Text::tr("Offset"), &E::translation, -100000, 100000);
+	case ModelEditKind::ExtrudeFaces:
+	{
+		QVector<LastField> fields{
+			{Text::tr("Distance"), -100000, 100000, 3, [](const E &e) { return e.tool.offset; }, [](E &e, double v) { e.tool.offset = v; }},
+			{Text::tr("Mode"), 0, 2, 0, [](const E &e) { return double(int(e.tool.extrudeMode)); },
+			 [](E &e, double v) { e.tool.extrudeMode = ModelExtrudeMode(int(v)); }, false,
+			 {Text::tr("Region"), Text::tr("Along normals"), Text::tr("Individual faces")}, true}};
+		if (edit.tool.extrudeMode == ModelExtrudeMode::AlongNormals)
+			fields.append({Text::tr("Even thickness"), 0, 1, 0, [](const E &e) { return double(e.tool.evenThickness); },
+						   [](E &e, double v) { e.tool.evenThickness = v > 0.5; }, true});
+		fields.append({Text::tr("Wall UV units per repeat (0 copies border UVs)"), 0, 100000, 3, [](const E &e) { return e.tool.extrudeTileSize; },
+					   [](E &e, double v) { e.tool.extrudeTileSize = v; }});
+		return fields;
+	}
 	case ModelEditKind::Spin:
 		return QVector<LastField>{
 			{Text::tr("Angle"), -360, 360, 3, [](const E &e) { return e.tool.spinAngle; }, [](E &e, double v) { e.tool.spinAngle = v; }},
@@ -1952,7 +2146,59 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 			{Text::tr("Close full turn"), 0, 1, 0, [](const E &e) { return double(e.tool.spinClose); }, [](E &e, double v) { e.tool.spinClose = v > .5; }, true},
 			{Text::tr("Units per texture repeat"), .001, 100000, 3, [](const E &e) { return e.tool.uvTileSize; }, [](E &e, double v) { e.tool.uvTileSize = v; }}}
 			+ array3(Text::tr("Centre"), &ModelMeshToolOptions::point, -100000, 100000)
-			+ array3(Text::tr("Axis"), &ModelMeshToolOptions::normal, -1, 1);
+			+ array3(Text::tr("Axis"), &ModelMeshToolOptions::normal, -1, 1)
+			+ QVector<LastField>{{Text::tr("Axial offset (screw)"), -100000, 100000, 3, [](const E &e) { return e.tool.spinAxialOffset; },
+								  [](E &e, double v) { e.tool.spinAxialOffset = v; }}};
+	case ModelEditKind::IntersectCut:
+	{
+		QVector<LastField> fields{{Text::tr("Keep"), 0, 3, 0, [](const E &e) { return double(int(e.tool.intersectMode)); },
+								   [](E &e, double v) { e.tool.intersectMode = ModelIntersectMode(int(v)); }, false,
+								   {Text::tr("Both parts, cut"), Text::tr("Outer shell (union)"), Text::tr("Selection less the rest (difference)"),
+									Text::tr("Shared volume (intersection)")}}};
+		// The other part: the rest of the selection's surface or another surface.
+		if (mesh && mesh->surfaces.size() > 1)
+		{
+			QStringList surfaces{Text::tr("The rest of this surface")};
+			for (int i = 0; i < mesh->surfaces.size(); ++i)
+				surfaces << (mesh->surfaces[i].name.isEmpty() ? Text::tr("Surface %1").arg(i) : mesh->surfaces[i].name);
+			fields.append({Text::tr("Cut with"), 0, double(mesh->surfaces.size()), 0, [](const E &e) { return double(e.tool.intersectSurface + 1); },
+						   [](E &e, double v) { e.tool.intersectSurface = int(v) - 1; }, false, surfaces});
+		}
+		return fields;
+	}
+	case ModelEditKind::MirrorFaces:
+		return QVector<LastField>{{Text::tr("Axis"), 0, 2, 0, [](const E &e) { return double(e.tool.axis); }, [](E &e, double v) { e.tool.axis = int(v); }, false,
+								   {QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")}}}
+			+ array3(Text::tr("Plane point"), &ModelMeshToolOptions::point, -100000, 100000);
+	case ModelEditKind::BridgeBoundaryLoops:
+	case ModelEditKind::BridgeFaces:
+	{
+		QVector<LastField> fields;
+		if (!edit.bridgeOpen)
+			fields.append({Text::tr("Twist"), -1023, 1023, 0, [](const E &e) { return double(e.bridgeTwist); }, [](E &e, double v) { e.bridgeTwist = int(v); }});
+		fields.append({Text::tr("Segments"), 0, 64, 0, [](const E &e) { return double(e.bridgeSegments); }, [](E &e, double v) { e.bridgeSegments = int(v); }});
+		if (edit.kind == ModelEditKind::BridgeBoundaryLoops)
+			fields.append({Text::tr("Selected edges only (open chains)"), 0, 1, 0, [](const E &e) { return double(e.bridgeOpen); },
+						   [](E &e, double v)
+						   {
+							   e.bridgeOpen = v > .5;
+							   if (e.bridgeOpen)
+								   e.bridgeTwist = 0;
+						   },
+						   true, {}, true});
+		fields.append({Text::tr("Strip UV units per repeat (0 reuses border UVs)"), 0, 1000000, 3, [](const E &e) { return e.bridgeTileSize; },
+					   [](E &e, double v) { e.bridgeTileSize = v > 0 ? std::max(v, .001) : 0; }});
+		return fields;
+	}
+	case ModelEditKind::Array:
+		return QVector<LastField>{
+				   {Text::tr("Count"), 2, 256, 0, [](const E &e) { return double(e.tool.arrayCount); }, [](E &e, double v) { e.tool.arrayCount = int(v); }}}
+			+ array3(Text::tr("Offset"), &ModelMeshToolOptions::arrayOffset, -100000, 100000)
+			+ array3(Text::tr("Relative offset"), &ModelMeshToolOptions::arrayRelative, -1000, 1000)
+			+ array3(Text::tr("Rotation"), &ModelMeshToolOptions::arrayRotation, -360, 360)
+			+ QVector<LastField>{{Text::tr("Scale"), .001, 1000, 3, [](const E &e) { return e.tool.arrayScale; }, [](E &e, double v) { e.tool.arrayScale = v; }}}
+			+ array3(Text::tr("Centre"), &ModelMeshToolOptions::point, -100000, 100000)
+			+ QVector<LastField>{{Text::tr("Merge distance"), 0, 1000, 4, [](const E &e) { return e.tool.arrayMerge; }, [](E &e, double v) { e.tool.arrayMerge = v; }}};
 	case ModelEditKind::Rip:
 		return vector3(Text::tr("Offset"), &E::translation, -100000, 100000) + QVector<LastField>{
 			{Text::tr("Side face"), 0, 131071, 0, [](const E &e) { return double(e.tool.ripFace); }, [](E &e, double v) { e.tool.ripFace = int(v); }},
@@ -2036,6 +2282,7 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 		return {{Text::tr("Width"), 0, 1000000, 4, [](const E &e) { return e.tool.bevelWidth; }, [](E &e, double v) { e.tool.bevelWidth = v; }},
 				{Text::tr("Segments"), 1, 32, 0, [](const E &e) { return double(e.tool.bevelSegments); }, [](E &e, double v) { e.tool.bevelSegments = int(v); }},
 				{Text::tr("Roundness"), 0, 1, 3, [](const E &e) { return e.tool.bevelRoundness; }, [](E &e, double v) { e.tool.bevelRoundness = v; }},
+				{Text::tr("Clamp width to fit"), 0, 1, 0, [](const E &e) { return double(e.tool.bevelClamp); }, [](E &e, double v) { e.tool.bevelClamp = v > .5; }, true},
 				{Text::tr("Units per texture repeat"), .001, 1000000, 3, [](const E &e) { return e.tool.uvTileSize; }, [](E &e, double v) { e.tool.uvTileSize = v; }},
 				{Text::tr("Quad pairing angle"), 0, 180, 1, [](const E &e) { return e.tool.maxAngle; }, [](E &e, double v) { e.tool.maxAngle = v; }}};
 	case ModelEditKind::Solidify:
@@ -2173,6 +2420,18 @@ QString kindTitle(ModelEditKind kind)
 		return Text::tr("Knife");
 	case ModelEditKind::Spin:
 		return Text::tr("Spin");
+	case ModelEditKind::Array:
+		return Text::tr("Array");
+	case ModelEditKind::ExtrudeFaces:
+		return Text::tr("Extrude Faces");
+	case ModelEditKind::BridgeBoundaryLoops:
+		return Text::tr("Bridge Edge Loops");
+	case ModelEditKind::BridgeFaces:
+		return Text::tr("Bridge Faces");
+	case ModelEditKind::MirrorFaces:
+		return Text::tr("Mirror Faces");
+	case ModelEditKind::IntersectCut:
+		return Text::tr("Intersect");
 	case ModelEditKind::Rip:
 		return Text::tr("Rip");
 	case ModelEditKind::Solidify:
@@ -2251,7 +2510,7 @@ void ModelEditorTools::refreshLastPanel()
 	m_lastTitle->setText(current ? kindTitle(m_last.edit.kind) : title);
 	m_lastTitle->setAccessibleName(title);
 	m_lastTitle->setToolTip(title);
-	const auto fields = lastFields(m_last.edit);
+	const auto fields = lastFields(m_last.edit, &m_editor->m_document.mesh());
 	if (fields.isEmpty())
 		form->addRow(new QLabel(Text::tr("This operation has no settings.")));
 	for (int index = 0; index < fields.size(); ++index)
@@ -2264,7 +2523,7 @@ void ModelEditorTools::refreshLastPanel()
 				return;
 			const QScopedValueRollback<bool> adjusting(m_adjustingLast, true);
 			auto edit = m_last.edit;
-			const auto changed = lastFields(edit)[index];
+			const auto changed = lastFields(edit, &m_editor->m_document.mesh())[index];
 			changed.set(edit, value);
 			// The joint mirror map was confirmed for the last plane. A new axis,
 			// or a merge distance that moves joints on or off the plane, needs it
@@ -2304,7 +2563,8 @@ void ModelEditorTools::refreshLastPanel()
 				showBanner(edit.kind == ModelEditKind::Rip ? Text::tr("Rip refused") : edit.kind == ModelEditKind::Spin ? Text::tr("Spin refused") : edit.kind == ModelEditKind::Knife ? Text::tr("Knife refused") : Text::tr("Bevel refused"), error,
 						   LiveStatus::Problem);
 			else
-				showBanner(applied ? modelSkinProvenanceSummary(report.skin) : error, {}, applied ? LiveStatus::Update : LiveStatus::Problem);
+				showBanner(applied ? (report.notes + QStringList{modelSkinProvenanceSummary(report.skin)}).join(QLatin1Char(' ')).trimmed() : error, {},
+						   applied ? LiveStatus::Update : LiveStatus::Problem);
 			// Rebuilt after this signal returns, since it deletes the sender.
 			if (changed.rebuild || !applied || !m_hasLast)
 				QMetaObject::invokeMethod(this, &ModelEditorTools::refreshLastPanel, Qt::QueuedConnection);

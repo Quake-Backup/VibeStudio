@@ -1,4 +1,5 @@
 #include "cli/model_tools.h"
+#include "cli/model_transform_options.h"
 
 #include "core/game_installation.h"
 #include "core/model_document.h"
@@ -7,6 +8,7 @@
 #include "core/model_mdl.h"
 #include "core/model_mesh_tools.h"
 #include "core/model_selection_tools.h"
+#include "core/model_symmetry.h"
 #include "core/model_target_prepare.h"
 #include "core/model_targets.h"
 #include "core/model_vertex_origins.h"
@@ -283,7 +285,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 							  QStringLiteral("--through"), QStringLiteral("--perspective"), QStringLiteral("--opposite"),
 							  QStringLiteral("--duplicate"), QStringLiteral("--no-close"), QStringLiteral("--fill"),
 							  QStringLiteral("--keep-joint-names"), QStringLiteral("--keep-vertices"), QStringLiteral("--inside"),
-								  QStringLiteral("--refuse-intersections")};
+								  QStringLiteral("--refuse-intersections"), QStringLiteral("--clamp")};
 	const QSet<QString> options{
 		QStringLiteral("--side-face"),
 		QStringLiteral("--input"),			 QStringLiteral("--output"),		 QStringLiteral("--tool"),		   QStringLiteral("--surface"),
@@ -303,7 +305,10 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		QStringLiteral("--steps"), QStringLiteral("--centre"), QStringLiteral("--axis-vector"), QStringLiteral("--joint-map"),
 		QStringLiteral("--bind"), QStringLiteral("--bind-joint"), QStringLiteral("--new-surface"),
 		QStringLiteral("--value"), QStringLiteral("--to"), QStringLiteral("--grid"), QStringLiteral("--mode"), QStringLiteral("--target-vertex"),
-		QStringLiteral("--auto-merge"), QStringLiteral("--positions")};
+		QStringLiteral("--auto-merge"), QStringLiteral("--positions"),
+		QStringLiteral("--transform-space"), QStringLiteral("--axis-rotation"), QStringLiteral("--axes-frame"),
+		QStringLiteral("--count"), QStringLiteral("--relative"), QStringLiteral("--axial-offset"), QStringLiteral("--mode"),
+		QStringLiteral("--symmetry"), QStringLiteral("--points"), QStringLiteral("--facing"), QStringLiteral("--with-surface")};
 	Arguments args;
 	QString error;
 	if (!parse(arguments, flags, options, &args, &error))
@@ -313,6 +318,11 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		return fail(2, error);
 	const QHash<QString, ModelEditKind> tools{
 		{QStringLiteral("spin"), ModelEditKind::Spin},
+		{QStringLiteral("array"), ModelEditKind::Array},
+		{QStringLiteral("extrude"), ModelEditKind::ExtrudeFaces},
+		{QStringLiteral("mirror"), ModelEditKind::MirrorFaces},
+		{QStringLiteral("add-face"), ModelEditKind::AddFace},
+		{QStringLiteral("intersect"), ModelEditKind::IntersectCut},
 		{QStringLiteral("rip"), ModelEditKind::Rip},
 		{QStringLiteral("knife"), ModelEditKind::Knife},
 		{QStringLiteral("bevel-edges"), ModelEditKind::BevelEdges},
@@ -352,7 +362,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("knife"), {QStringLiteral("--faces"), QStringLiteral("--path"), QStringLiteral("--path-file"), QStringLiteral("--view"),
 			QStringLiteral("--through"), QStringLiteral("--perspective"), QStringLiteral("--opposite"), QStringLiteral("--camera-origin"),
 			QStringLiteral("--camera-right"), QStringLiteral("--camera-up"), QStringLiteral("--camera-forward")}},
-		{QStringLiteral("bevel-edges"), {QStringLiteral("--edges"), QStringLiteral("--width"), QStringLiteral("--segments"), QStringLiteral("--roundness"), QStringLiteral("--tile-size"), QStringLiteral("--angle")}},
+		{QStringLiteral("bevel-edges"), {QStringLiteral("--edges"), QStringLiteral("--width"), QStringLiteral("--segments"), QStringLiteral("--roundness"), QStringLiteral("--tile-size"), QStringLiteral("--angle"),
+			QStringLiteral("--clamp")}},
 		{QStringLiteral("edge-slide"), {QStringLiteral("--edges"), QStringLiteral("--slide"), QStringLiteral("--distance"), QStringLiteral("--angle"), QStringLiteral("--frame")}},
 		{QStringLiteral("rotate-edges"), {QStringLiteral("--edges")}},
 		{QStringLiteral("merge"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--merge"), QStringLiteral("--point"),
@@ -365,13 +376,23 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("extrude-edges"), {QStringLiteral("--edges"), QStringLiteral("--offset")}},
 		{QStringLiteral("spin"), {QStringLiteral("--faces"), QStringLiteral("--edges"), QStringLiteral("--angle"), QStringLiteral("--steps"),
 			QStringLiteral("--centre"), QStringLiteral("--axis"), QStringLiteral("--axis-vector"), QStringLiteral("--duplicate"),
-			QStringLiteral("--no-close"), QStringLiteral("--tile-size")}},
+			QStringLiteral("--no-close"), QStringLiteral("--tile-size"), QStringLiteral("--axial-offset")}},
+		{QStringLiteral("intersect"), {QStringLiteral("--faces"), QStringLiteral("--mode"), QStringLiteral("--with-surface")}},
+		{QStringLiteral("add-face"), {QStringLiteral("--vertices"), QStringLiteral("--points"), QStringLiteral("--point"), QStringLiteral("--facing"),
+			QStringLiteral("--bind"), QStringLiteral("--bind-joint")}},
+		{QStringLiteral("mirror"), {QStringLiteral("--faces"), QStringLiteral("--axis"), QStringLiteral("--point"), QStringLiteral("--joint-map"),
+			QStringLiteral("--keep-joint-names")}},
+		{QStringLiteral("extrude"), {QStringLiteral("--faces"), QStringLiteral("--mode"), QStringLiteral("--distance"), QStringLiteral("--tile-size"),
+			QStringLiteral("--no-even")}},
+		{QStringLiteral("array"), {QStringLiteral("--faces"), QStringLiteral("--count"), QStringLiteral("--offset"), QStringLiteral("--relative"),
+			QStringLiteral("--rotate"), QStringLiteral("--scale"), QStringLiteral("--centre"), QStringLiteral("--merge")}},
 		{QStringLiteral("inset"), {QStringLiteral("--faces"), QStringLiteral("--thickness"), QStringLiteral("--depth"), QStringLiteral("--individual"), QStringLiteral("--no-even")}},
 		{QStringLiteral("shrink-fatten"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--distance"), QStringLiteral("--no-even"), QStringLiteral("--frame")}},
 		{QStringLiteral("smooth"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--factor"), QStringLiteral("--iterations"), QStringLiteral("--pin-boundary"), QStringLiteral("--frame")}},
 		{QStringLiteral("transform"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--offset"), QStringLiteral("--rotate"), QStringLiteral("--scale"),
 									   QStringLiteral("--pivot-mode"), QStringLiteral("--pivot"), QStringLiteral("--proportional-radius"), QStringLiteral("--falloff"), QStringLiteral("--connected"),
-									   QStringLiteral("--mirror"), QStringLiteral("--threshold"), QStringLiteral("--frame"), QStringLiteral("--auto-merge")}},
+									   QStringLiteral("--mirror"), QStringLiteral("--threshold"), QStringLiteral("--frame"), QStringLiteral("--auto-merge"),
+									   QStringLiteral("--transform-space"), QStringLiteral("--axis-rotation"), QStringLiteral("--axes-frame")}},
 		{QStringLiteral("shade-flat"), {QStringLiteral("--faces")}},
 		{QStringLiteral("shade-smooth"), {QStringLiteral("--faces")}},
 		{QStringLiteral("auto-smooth"), {QStringLiteral("--faces"), QStringLiteral("--angle")}},
@@ -407,7 +428,10 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 							   QStringLiteral("--input"),   QStringLiteral("--output"),		  QStringLiteral("--tool"),
 							   QStringLiteral("--surface"), QStringLiteral("--reference-frame"), QStringLiteral("--settings-file"),
 							   QStringLiteral("--locale"),  QStringLiteral("--catalog-root"), QStringLiteral("--refuse-intersections")};
-	const auto allowed = accepted.value(toolName);
+	auto allowed = accepted.value(toolName);
+	// Live symmetry on topology and shape tools, with a joint map for skinned surfaces.
+	if (modelSymmetrySupported(kind))
+		allowed << QStringLiteral("--symmetry") << QStringLiteral("--joint-map") << QStringLiteral("--keep-joint-names");
 	for (const auto &key : std::as_const(args.seen))
 	{
 		if (!shared.contains(key) && !allowed.contains(key))
@@ -555,6 +579,10 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			: kind == ModelEditKind::LimitedDissolve ? &tool.topology.dissolveAngle : &tool.maxAngle,
 			kind == ModelEditKind::Spin ? -360 : 0, kind == ModelEditKind::Spin ? 360 : 180) ||
 		!readInt(QStringLiteral("--steps"), &tool.spinSteps, 1, 256) ||
+		!readNumber(QStringLiteral("--axial-offset"), &tool.spinAxialOffset, -1000000, 1000000) ||
+		!readInt(QStringLiteral("--count"), &tool.arrayCount, 2, 256) ||
+		(kind == ModelEditKind::Array && (!readNumber(QStringLiteral("--scale"), &tool.arrayScale, 0.001, 1000) ||
+			!readNumber(QStringLiteral("--merge"), &tool.arrayMerge, 0, 1000))) ||
 		!readInt(QStringLiteral("--side-face"), &tool.ripFace, 0, 131071) ||
 		!readNumber(QStringLiteral("--threshold"), &tool.mergeThreshold, 0, 1000) || !readInt(QStringLiteral("--cuts"), &tool.cuts, 1, 64) ||
 		!readNumber(QStringLiteral("--slide"), &tool.slide, -1, 1) ||
@@ -574,6 +602,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	tool.ripFill = args.seen.contains(QStringLiteral("--fill"));
 	tool.ripOpposite = kind == ModelEditKind::Rip && args.seen.contains(QStringLiteral("--opposite"));
 	tool.keepJointNames = args.seen.contains(QStringLiteral("--keep-joint-names"));
+	tool.bevelClamp = args.seen.contains(QStringLiteral("--clamp"));
 	const bool detectJoints = args.values.value(QStringLiteral("--joint-map")) == QStringLiteral("detect");
 	if (args.values.contains(QStringLiteral("--joint-map")) && !detectJoints &&
 		!parseModelMirrorJointMap(args.values.value(QStringLiteral("--joint-map")), &tool.mirrorJoints, &error))
@@ -683,7 +712,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	// Quake front/back faces along +X by default, Quake's forward axis.
 	if (toolName == QStringLiteral("uv-quake-frontback") && !args.values.contains(QStringLiteral("--axis")))
 		tool.axis = 0;
-	if (args.values.contains(QStringLiteral("--merge")))
+	if (args.values.contains(QStringLiteral("--merge")) && kind != ModelEditKind::Array)
 	{
 		const auto text = args.values.value(QStringLiteral("--merge"));
 		if (text == QStringLiteral("centre") || text == QStringLiteral("center"))
@@ -710,11 +739,76 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		(args.values.contains(QStringLiteral("--size")) && !triple(args.values.value(QStringLiteral("--size")), &tool.size)) ||
 		(args.values.contains(QStringLiteral("--offset")) && !vector(args.values.value(QStringLiteral("--offset")), &edit.translation)) ||
 		(args.values.contains(QStringLiteral("--rotate")) && !vector(args.values.value(QStringLiteral("--rotate")), &edit.rotation)) ||
-		(args.values.contains(QStringLiteral("--scale")) && !vector(args.values.value(QStringLiteral("--scale")), &edit.scale)) ||
+		(args.values.contains(QStringLiteral("--scale")) && kind != ModelEditKind::Array && !vector(args.values.value(QStringLiteral("--scale")), &edit.scale)) ||
+		(args.values.contains(QStringLiteral("--relative")) && !triple(args.values.value(QStringLiteral("--relative")), &tool.arrayRelative)) ||
 		(args.values.contains(QStringLiteral("--pivot")) && !vector(args.values.value(QStringLiteral("--pivot")), &edit.pivot)) ||
 		(args.values.contains(QStringLiteral("--u-axis")) && !triple(args.values.value(QStringLiteral("--u-axis")), &tool.uvAxisU)) ||
 		(args.values.contains(QStringLiteral("--v-axis")) && !triple(args.values.value(QStringLiteral("--v-axis")), &tool.uvAxisV)))
 		return fail(2, Text::tr("Coordinates use three comma-separated finite numbers, such as 0,0,16."));
+	// Extrude Faces: the mode, and wall UV strips only when --tile-size is given.
+	if (kind == ModelEditKind::ExtrudeFaces)
+	{
+		const auto mode = args.values.value(QStringLiteral("--mode"), QStringLiteral("region"));
+		if (mode == QStringLiteral("region"))
+			tool.extrudeMode = ModelExtrudeMode::Region;
+		else if (mode == QStringLiteral("normals"))
+			tool.extrudeMode = ModelExtrudeMode::AlongNormals;
+		else if (mode == QStringLiteral("individual"))
+			tool.extrudeMode = ModelExtrudeMode::Individual;
+		else
+			return fail(2, Text::tr("Use --mode region|normals|individual."));
+		if (args.values.contains(QStringLiteral("--tile-size")))
+		{
+			tool.extrudeTileSize = tool.uvTileSize;
+			tool.uvTileSize = ModelMeshToolOptions{}.uvTileSize;
+		}
+	}
+	// Intersect: cut (default), union or difference.
+	if (kind == ModelEditKind::IntersectCut)
+	{
+		const auto mode = args.values.value(QStringLiteral("--mode"), QStringLiteral("cut"));
+		if (mode == QStringLiteral("cut"))
+			tool.intersectMode = ModelIntersectMode::Cut;
+		else if (mode == QStringLiteral("union"))
+			tool.intersectMode = ModelIntersectMode::Union;
+		else if (mode == QStringLiteral("difference"))
+			tool.intersectMode = ModelIntersectMode::Difference;
+		else if (mode == QStringLiteral("intersection"))
+			tool.intersectMode = ModelIntersectMode::Intersection;
+		else
+			return fail(2, Text::tr("Use --mode cut|union|difference|intersection."));
+		// --with-surface N: cut against (and cut) another surface.
+		if (args.values.contains(QStringLiteral("--with-surface")) && !readInt(QStringLiteral("--with-surface"), &tool.intersectSurface, 0, 4095))
+			return fail(2, Text::tr("Use --with-surface with a surface index."));
+	}
+	// Add Face: new corners from --points "x,y,z;x,y,z" or one --point, facing --facing.
+	if (kind == ModelEditKind::AddFace)
+	{
+		QStringList points;
+		if (args.values.contains(QStringLiteral("--points")))
+			points = args.values.value(QStringLiteral("--points")).split(QLatin1Char(';'));
+		if (args.values.contains(QStringLiteral("--point")))
+			points << args.values.value(QStringLiteral("--point"));
+		if (points.size() > 3)
+			return fail(2, Text::tr("Add Face takes at most three new points."));
+		for (int i = 0; i < points.size(); ++i)
+		{
+			if (!triple(points[i].trimmed(), &tool.facePoints[i]))
+				return fail(2, Text::tr("Use --points 'x,y,z;x,y,z;x,y,z' with three finite numbers per point."));
+		}
+		tool.facePointCount = int(points.size());
+		tool.point = {0, 0, 0};
+		if (args.values.contains(QStringLiteral("--facing")) && !triple(args.values.value(QStringLiteral("--facing")), &tool.normal))
+			return fail(2, Text::tr("--facing takes a direction x,y,z."));
+	}
+	// Array: the offset and rotation are per copy.
+	if (kind == ModelEditKind::Array)
+	{
+		tool.arrayOffset = {edit.translation.x, edit.translation.y, edit.translation.z};
+		tool.arrayRotation = {edit.rotation.x, edit.rotation.y, edit.rotation.z};
+		edit.translation = {};
+		edit.rotation = {};
+	}
 	if (toolName == QStringLiteral("merge") && tool.merge == ModelMergeMode::Point && !args.values.contains(QStringLiteral("--point")))
 		return fail(2, Text::tr("--merge point requires --point x,y,z."));
 	if (args.values.contains(QStringLiteral("--axis")) || args.values.contains(QStringLiteral("--up")))
@@ -764,6 +858,16 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			return fail(2, Text::tr("Use --falloff smooth|sphere|root|inverse-square|sharp|linear|constant."));
 		tool.falloff = falloffs.value(text);
 	}
+	if (args.values.contains(QStringLiteral("--symmetry")))
+	{
+		for (const QChar axis : args.values.value(QStringLiteral("--symmetry")).toLower())
+		{
+			const int value = axisFrom(QString(axis));
+			if (value < 0 || (tool.symmetryAxes & (1 << value)))
+				return fail(2, Text::tr("Use --symmetry with axes x, y and/or z, such as x or xy."));
+			tool.symmetryAxes |= 1 << value;
+		}
+	}
 	if (args.values.contains(QStringLiteral("--mirror")))
 	{
 		tool.mirrorAxes = 0;
@@ -784,8 +888,10 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			edit.pivotMode = ModelTransformPivot::SelectionCentre;
 		else if (text == QStringLiteral("custom"))
 			edit.pivotMode = ModelTransformPivot::Custom;
+		else if (text == QStringLiteral("individual"))
+			edit.pivotMode = ModelTransformPivot::IndividualOrigins;
 		else
-			return fail(2, Text::tr("Use --pivot-mode origin|selection|custom."));
+			return fail(2, Text::tr("Use --pivot-mode origin|selection|custom|individual."));
 	}
 	else if (kind == ModelEditKind::WeightedTransform)
 		edit.pivotMode = args.values.contains(QStringLiteral("--pivot")) ? ModelTransformPivot::Custom : ModelTransformPivot::SelectionCentre;
@@ -835,6 +941,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	if ((kind == ModelEditKind::ExtrudeEdges && !required(QStringLiteral("--offset"))) ||
 		(kind == ModelEditKind::Rip && (!required(QStringLiteral("--offset")) || !required(QStringLiteral("--side-face")))) ||
 		(kind == ModelEditKind::ShrinkFatten && !required(QStringLiteral("--distance"))) ||
+		(kind == ModelEditKind::ExtrudeFaces && !required(QStringLiteral("--distance"))) ||
 		(kind == ModelEditKind::Bisect && !required(QStringLiteral("--plane-normal"))) ||
 		(kind == ModelEditKind::Decimate && !required(QStringLiteral("--ratio")) && !required(QStringLiteral("--target-triangles"))) ||
 		(kind == ModelEditKind::WeightedTransform && !required(QStringLiteral("--offset")) && !required(QStringLiteral("--rotate")) &&
@@ -852,6 +959,34 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		return fail(4, Text::tr("The requested frame does not exist."));
 	edit.selection.surface = surfaceIndex;
 	if (!readSelection(args, mesh.surfaces[surfaceIndex], &edit.selection, &error))
+		return fail(2, error);
+	// An array turns and scales about the selection's centre unless --centre names one.
+	if (kind == ModelEditKind::Array && !args.values.contains(QStringLiteral("--centre")) && !edit.selection.faces.isEmpty() &&
+		referenceFrame < mesh.surfaces[surfaceIndex].frames.size())
+	{
+		const auto &part = mesh.surfaces[surfaceIndex];
+		double low[3]{INFINITY, INFINITY, INFINITY}, high[3]{-INFINITY, -INFINITY, -INFINITY};
+		for (int face : std::as_const(edit.selection.faces))
+		{
+			if (face < 0 || face >= part.triangles.size())
+				continue;
+			const auto &t = part.triangles[face];
+			for (int v : {t.a, t.b, t.c})
+			{
+				const auto p = part.frames[referenceFrame].positions[v];
+				const double values[3]{p.x, p.y, p.z};
+				for (int axis = 0; axis < 3; ++axis)
+				{
+					low[axis] = std::min(low[axis], values[axis]);
+					high[axis] = std::max(high[axis], values[axis]);
+				}
+			}
+		}
+		if (std::isfinite(low[0]))
+			tool.point = {(low[0] + high[0]) / 2, (low[1] + high[1]) / 2, (low[2] + high[2]) / 2};
+	}
+	// Transform axes (world, selection, custom or normal), as model edit takes them.
+	if (!parseModelTransformAxesOptions(args.values, int(mesh.frames.size()), &edit, &error))
 		return fail(2, error);
 	// The editor's Detect Pairs: the same name patterns, keeping only pairs
 	// that mirror across this plane and involve a joint of this surface.
@@ -950,6 +1085,12 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	result.lines << Text::tr("Surface %1 (%2): %3 vertices, %4 triangles.").arg(resultSurface).arg(surface.name).arg(surface.vertexCount).arg(surface.triangles.size());
 	if (kind == ModelEditKind::Symmetrize && !jointMap.isEmpty())
 		result.lines << Text::tr("Joint mirror map: %1.").arg(modelMirrorJointMapText(jointMap));
+	// What the tool adjusted on its own, such as a clamped bevel width.
+	if (!report.notes.isEmpty())
+	{
+		result.payload.insert(QStringLiteral("notes"), QJsonArray::fromStringList(report.notes));
+		result.lines += report.notes;
+	}
 	result.lines += modelSkinProvenanceLines(document.mesh(), report.skin);
 	result.lines += selectionLines(document.selection());
 	return result;

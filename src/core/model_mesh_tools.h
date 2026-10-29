@@ -93,6 +93,26 @@ enum class ModelUvProjection
 	// vertices (core/model_uv_frontback.cpp).
 	QuakeFrontBack
 };
+// Intersect (core/model_intersect_cut.cpp): cut along where the selection
+// passes through other faces, then keep both parts (Cut), their outer shell
+// (Union), the selection less the other part (Difference) or only the volume
+// they share (Intersection).
+enum class ModelIntersectMode
+{
+	Cut,
+	Union,
+	Difference,
+	Intersection
+};
+// Extrude Faces (core/model_extrude.cpp): the whole region along its averaged
+// normal, each vertex along the region's own vertex normal, or every face
+// along its own normal as a separate prism.
+enum class ModelExtrudeMode
+{
+	Region,
+	AlongNormals,
+	Individual
+};
 enum class ModelBisectKeep
 {
 	Both,
@@ -170,6 +190,10 @@ struct ModelMeshToolOptions
 	// quadratic roundness (0 straight chamfer, 1 rounded). New bands use tile size.
 	int bevelSegments = 1;
 	double bevelRoundness = 1;
+	// Edge bevel: a width that would reach a neighbour or fold is reduced to
+	// the widest that fits (reported in ModelEditReport::notes) instead of
+	// being refused.
+	bool bevelClamp = false;
 	// Solidify: shell thickness behind the faces (negative grows outward).
 	double solidifyThickness = 4;
 	// UV projection: model units per texture repeat (64 matches a 64-unit
@@ -185,6 +209,35 @@ struct ModelMeshToolOptions
 	double spinAngle = 90;
 	int spinSteps = 8;
 	bool spinDuplicate = false, spinClose = true;
+	// Screw: how far the last step advances along the spin axis (each step a
+	// share of it). A screw cannot close a turn.
+	double spinAxialOffset = 0;
+	// Array (core/model_array.cpp): copies including the selection (2-256).
+	// Each copy applies the per-copy transform to the one before: rotate and
+	// scale uniformly about `point`, then move by the offset plus the relative
+	// offset times the selection's bounds. Copies' border vertices this close
+	// together in every pose join (0 keeps copies separate).
+	int arrayCount = 2;
+	std::array<double, 3> arrayOffset{0, 0, 0}, arrayRelative{1, 0, 0}, arrayRotation{0, 0, 0};
+	double arrayScale = 1, arrayMerge = 0;
+	// Extrude Faces: the distance is `offset` (Along Normals keeps `evenThickness`).
+	// Side walls get their own UV strips at this many units per texture repeat;
+	// zero copies the border's UVs onto the walls, as Extrude does.
+	ModelExtrudeMode extrudeMode = ModelExtrudeMode::Region;
+	double extrudeTileSize = 0;
+	// Live symmetry (core/model_symmetry.h): after the tool, the edited part
+	// is mirrored across these model planes (bit mask X = 1, Y = 2, Z = 4),
+	// using mergeThreshold and, on skinned surfaces, mirrorJoints.
+	int symmetryAxes = 0;
+	// Add Face (core/model_add_face.cpp): new corners that, with the selected
+	// vertices, make three. Without a neighbouring face to follow, the face
+	// turns towards `normal`.
+	int facePointCount = 0;
+	std::array<std::array<double, 3>, 3> facePoints{};
+	ModelIntersectMode intersectMode = ModelIntersectMode::Cut;
+	// The other part for Intersect: -1 is the rest of the selection's surface;
+	// another surface index cuts against (and cuts) that surface.
+	int intersectSurface = -1;
 	// Rip selected vertices/edges toward the incident side face, optionally
 	// bridge the opening. The translation is carried by ModelEdit::translation.
 	int ripFace = -1;

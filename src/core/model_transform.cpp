@@ -138,7 +138,7 @@ ModelVec3 rotateModelTransformVector(ModelVec3 p, const ModelTransform &t)
 bool modelTransformPivot(const QVector<ModelVec3> &positions, const QSet<int> &vertices, ModelTransformPivot mode, ModelVec3 custom,
 						 ModelVec3 *result)
 {
-	if (!result || vertices.isEmpty() || int(mode) < 0 || int(mode) > 2 || !finite(vector(custom)))
+	if (!result || vertices.isEmpty() || int(mode) < 0 || int(mode) > int(ModelTransformPivot::IndividualOrigins) || !finite(vector(custom)))
 	{
 		return false;
 	}

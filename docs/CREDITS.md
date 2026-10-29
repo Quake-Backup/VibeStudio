@@ -757,6 +757,31 @@ Tomas Möller and Ben Trumbore, ["Fast, Minimum Storage Ray/Triangle
 Intersection"](https://doi.org/10.1080/10867651.1997.10487468) (Journal of
 Graphics Tools, 1997).
 
+The polygon modelling tools added on 2026-10-28 follow documented behaviour
+only (manual CC-BY-SA-4.0; application GPL-2.0-or-later, reviewed for GPL-3.0
+compatibility on 2026-10-28), with original implementations and no upstream
+source, prose, icons or assets: the
+[Individual Origins pivot](https://docs.blender.org/manual/en/4.0/editors/3dview/controls/pivot_point/individual_origins.html)
+and [Normal transform orientation](https://docs.blender.org/manual/en/4.0/editors/3dview/controls/orientation.html)
+(`src/core/model_transform_pieces.*`), the
+[Array modifier](https://docs.blender.org/manual/en/4.0/modeling/modifiers/generate/array.html)
+and 3ds Max's Array tool (`src/core/model_array.cpp`), the
+[Screw tool](https://docs.blender.org/manual/en/4.0/modeling/meshes/editing/edge/screw.html)
+(the axial offset in `src/core/model_spin.cpp`), the
+[extrude faces operators](https://docs.blender.org/manual/en/4.0/modeling/meshes/editing/face/extrude_faces.html)
+(`src/core/model_extrude.cpp`),
+[Bridge Edge Loops](https://docs.blender.org/manual/en/4.0/modeling/meshes/editing/edge/bridge_edge_loops.html)
+(`src/core/model_boundary_bridge.cpp`), [mesh symmetry](https://docs.blender.org/manual/en/4.0/modeling/meshes/tools/tool_settings.html#mesh-symmetry)
+(`src/core/model_symmetry.*`), [Poly Build](https://docs.blender.org/manual/en/4.0/modeling/meshes/tools/poly_build.html)
+and MilkShape 3D 1.8's vertex and face tools (`src/core/model_add_face.cpp`,
+`src/app/model_editor_poly_build.cpp`), and
+[Intersect (Knife) and Intersect (Boolean)](https://docs.blender.org/manual/en/4.0/modeling/meshes/editing/face/intersect_knife.html)
+(`src/core/model_intersect_cut.cpp`). Intersect's triangle crossing test follows
+Tomas Möller, ["A Fast Triangle-Triangle Intersection Test"](https://doi.org/10.1080/10867651.1997.10487472)
+(Journal of Graphics Tools 2(2), 1997), and its inside test uses ray parity
+with Möller and Trumbore's ["Fast, Minimum Storage Ray-Triangle Intersection"](https://doi.org/10.1080/10867651.1997.10487468)
+(1997); both are published algorithms implemented from the papers' descriptions.
+
 Decimation implements the quadric error metric published by Michael Garland and
 Paul S. Heckbert, ["Surface Simplification Using Quadric Error Metrics"](https://doi.org/10.1145/258734.258849)
 (SIGGRAPH 1997), as half-edge collapses with quadrics summed over sampled

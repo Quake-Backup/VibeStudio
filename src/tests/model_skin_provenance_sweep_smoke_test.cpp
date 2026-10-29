@@ -647,6 +647,13 @@ void checkSweep()
 		// Bridged in the bind pose only: the posed loops would cross.
 		on(QStringLiteral("Bridge Boundary Loops"), bindOnly(facingLoops()),
 			kindEdit(ModelEditKind::BridgeBoundaryLoops, {3, {}, {}, {modelEdge(0, 1), modelEdge(7, 8)}}));
+		{
+			// Rings between the loops interpolate weights; a UV strip copies them.
+			auto rings = kindEdit(ModelEditKind::BridgeBoundaryLoops, {3, {}, {}, {modelEdge(0, 1), modelEdge(7, 8)}});
+			rings.bridgeSegments = 2;
+			rings.bridgeTileSize = 8;
+			on(QStringLiteral("Bridge Boundary Loops with segments and a UV strip"), bindOnly(facingLoops()), rings);
+		}
 		on(QStringLiteral("Fill Boundary Loops"), openGem(), kindEdit(ModelEditKind::FillBoundaryLoops, {3, {}, {}, {modelEdge(4, 5)}}));
 	}
 	// Surfaces.
@@ -772,6 +779,21 @@ void checkSweep()
 		e.tool.point = {-20, 0, 0};
 		e.tool.normal = {0, 1, 0};
 		add(QStringLiteral("Spin"), e);
+		e.tool.spinAxialOffset = 3;
+		add(QStringLiteral("Screw"), e);
+		// Polygon modelling tools that copy vertices with provenance.
+		e = kindEdit(ModelEditKind::Array, {0, {}, {0, 1}});
+		e.tool.arrayCount = 3;
+		e.tool.arrayOffset = {0, 0, 4};
+		e.tool.arrayRelative = {0, 0, 0};
+		add(QStringLiteral("Array"), e);
+		e = kindEdit(ModelEditKind::ExtrudeFaces, {0, {}, {0, 1}});
+		e.tool.offset = 2;
+		e.tool.extrudeMode = ModelExtrudeMode::AlongNormals;
+		e.tool.extrudeTileSize = 8;
+		add(QStringLiteral("Extrude Faces along normals with UV walls"), e);
+		e.tool.extrudeMode = ModelExtrudeMode::Individual;
+		add(QStringLiteral("Extrude Individual Faces"), e);
 	}
 	for (const auto &item : cases)
 		runCase(item);

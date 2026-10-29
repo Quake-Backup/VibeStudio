@@ -175,6 +175,16 @@ Isolated vertices and wholly degenerate selections require World or Custom axes.
 Custom reveals three XYZ orientation angles in degrees. Pivots remain in model
 coordinates. Extrude and Duplicate Faces also interpret Offset in the chosen axes.
 
+**Normal** orients the axes by the selection's surface rather than one face. Z is
+the area-weighted normal of the faces whose three corners are all selected, or the
+average vertex normal when there are no such faces (a lone vertex or an edge). X
+follows the longest border edge of those faces projected onto the plane (the
+longest edge between selected vertices when there are no faces), so a quad's
+diagonal never decides it; when no edge gives a direction X is the world axis least
+aligned with Z. Y completes a right-handed basis. A selection whose faces cancel
+out, such as a closed box, has no facing direction and keeps world axes. The
+displayed pose supplies the axes, as it does for Selection.
+
 **Gizmo** provides Move, Rotate, and Scale tools in those axes. Move uses labelled
 X/Y/Z arrows and a centre square for view-plane movement. Rotate uses labelled
 rings; an edge-on ring follows the tangent at the grabbed point. Scale uses axis
@@ -182,8 +192,25 @@ boxes and a centre box for uniform scaling; dragging the centre right or up
 increases the scale. Scale gestures remain positive; use numeric transforms for
 explicit mirroring. Move/scale axes too closely aligned with the view are hidden.
 Geometry's **Pivot** selects the model origin, selection bounds centre (the GUI
-default), or custom coordinates. The displayed pose supplies the selection pivot,
-which stays fixed for every affected frame. Numeric transforms scale about that
+default), custom coordinates, or **Individual origins**. The displayed pose supplies
+the selection pivot, which stays fixed for every affected frame.
+
+**Individual origins** transforms each connected piece of the selection about the
+centre of its own bounds, so scaling a row of separate teeth or panels shrinks each
+in place and rotating two bolts turns each on its own axis. Selected vertices that a
+triangle edge joins, or that are seam copies at one position, belong to one piece;
+pieces that touch only at a shared vertex therefore move as one piece. With
+**Normal** axes every piece also uses its own normal axes, so a move along local Z
+pushes each panel out along its own normal. A piece without one facing direction
+(a closed shape) keeps the selection's axes. Proportional editing measures each
+falloff vertex to the selection as before and moves it with the piece of its
+nearest selected vertex; symmetry counterparts follow their source's piece. Whole
+surfaces each pivot on their own bounds centre. Tags, collision boxes and joints
+are single items and pivot on their own centre. The modal G/R/S keys, the gizmo
+(whose preview shows every piece turning about its own centre) and numeric
+transforms all use the same pieces; `model edit --operation transform` and
+`model tool --tool transform` take `--pivot-mode individual` and
+`--transform-space normal`. Numeric transforms scale about that
 pivot, rotate in X/Y/Z order, then translate, all in the chosen basis. Normals use
 the corresponding inverse transpose. Collision sizing always uses each box's
 intrinsic axes to keep boxes rectangular; its movement and rotation follow the
@@ -294,17 +321,45 @@ tolerances, 1,024-vertex loop limit and 16,777,216-work-check budget; it is not 
 whole-model collision certificate. Cancel or failure changes no pose or history.
 
 Original positions, UVs, normals, seam marks and material slots remain exact;
-tags, collision, clip timing and other surfaces are retained. The new faces reuse
-boundary attributes. Detach/Unwrap, UV projection and Recalculate Normals provide
-the finishing handoff. No intermediate rings are inserted; use Subdivide as a
-separate edit when needed. Undo, recovery, native export and package/level handoff
-use the ordinary document services, with no new dependency or setup preference.
+tags, collision, clip timing and other surfaces are retained. Without the options
+below, the new faces reuse boundary attributes. Detach/Unwrap, UV projection and
+Recalculate Normals provide the finishing handoff. Undo, recovery, native export
+and package/level handoff use the ordinary document services, with no new
+dependency or setup preference.
+
+**Edge > Bridge Edge Loops** in the Mesh Editor runs the same bridge, and
+**Adjust Last Operation** (F9) changes it afterwards:
+
+- **Segments** (0–64) inserts that many rings of new vertices between the two
+  sides. Each ring vertex sits on one bridge edge at an equal fraction in every
+  pose, and blends its two ends' UVs, normals and skin weights, so a limb
+  joined to a torso can bend. Each original strip triangle becomes a stack of
+  quads with one triangle at its apex.
+- **Strip UV units per repeat** gives the bridge its own UV strip: the strip
+  gets its own copies of both sides' vertices (same positions and connectivity)
+  with U running along the sides, scaled to their average length, and V across
+  the gap; both sides and, for loops, the column where U wraps are marked as
+  seams. Zero reuses the border UVs as before.
+- **Selected edges only (open chains)**, or **Edge > Bridge Edge Chains**,
+  bridges exactly the selected edges as two open, unbranched boundary chains
+  instead of the loops they seed: gaps between parts, slits and partial
+  borders. Each chain runs opposite to its faces, so the strip winds with both
+  neighbours, and the chains' first vertices pair up. Twist does not apply.
+
+**Face > Bridge Faces** removes two selected face regions and bridges the two
+holes in one undo step, the way limbs are joined to a body or two boxes are
+joined by a tube. Each region must be surrounded by other faces so that removing
+it leaves one hole; vertices only the regions used are removed. Segments, twist
+and the UV strip apply as above.
 
 `model edit <source> --operation bridge-boundary-loops --edges 0:1,4:5 --bridge-twist 1 --source-frame 0 --output <new.mesh.json>`
 uses the same service. Twist and reference frame default to 0. `--surface N`
 chooses the active surface; `--frame all` is the only supported frame scope.
 Faces/vertices, repeated twist/reference options and malformed values are usage
-errors. `--bridge-twist` is exclusive to this operation. Dry-run and output
+errors. `--bridge-twist` is exclusive to bridging. `--bridge-segments N`,
+`--tile-size T` and `--bridge-open` (open chains; no twist) add the options above,
+and `--operation bridge-faces --faces …` bridges two face regions with the same
+segments, twist and tile size. Dry-run and output
 protection follow filling's rules and exit codes. Existing outputs require
 `--overwrite`; explicitly saving back to the loaded editable source is supported
 through its ordinary fingerprint check. Native exports protect their inputs.
@@ -1510,7 +1565,7 @@ vibestudio --cli model recover ./copy.vsmeshrecovery --output ./out/recovered.me
 
 `model import` accepts an MD2, MD3, primitive `.model.json`, or existing mesh
 source. `model edit` accepts a mesh source and one operation: `transform`,
-`extrude`, `subdivide`, `split-edges`, `weld`, `fill-boundary-loops`, `bridge-boundary-loops`,
+`extrude`, `subdivide`, `split-edges`, `weld`, `fill-boundary-loops`, `bridge-boundary-loops`, `bridge-faces`,
 `duplicate-faces`, `delete-faces`, `flip-faces`, `normals`,
 `remove-duplicate-faces`, `remove-unused-vertices`, `split-disconnected-fans`, `split-nonmanifold-edges`, `orient-faces`,
 `uv-transform`, `uv-project`, `uv-mark-seams`, `uv-clear-seams`, `uv-detach`, `uv-unwrap`, `uv-pack`, `uv-pack-around`,

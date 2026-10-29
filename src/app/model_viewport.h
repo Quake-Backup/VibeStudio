@@ -27,6 +27,7 @@
 #include "core/model_mdl.h"
 #include "core/model_pose.h"
 #include "core/model_transform.h"
+#include "core/model_transform_pieces.h"
 #include "app/level_component_gizmo.h"
 #include "app/level_linked_group_boxes.h"
 #include "app/level_vertex_insertion.h"
@@ -211,7 +212,15 @@ public:
 	void setVertexPicking(bool enabled);
 	void setXrayVertices(bool enabled);
 	void setTransformGizmo(bool enabled, ModelTransformTool tool, double moveGrid = 0, double angleGrid = 0, double scaleGrid = 0);
-	void setTransformPivot(ModelTransformPivot mode, ModelVec3 custom = {});
+	// Individual Origins previews each connected piece about its own centre,
+	// and with pieceNormals in its own normal axes (core/model_transform_pieces.h).
+	void setTransformPivot(ModelTransformPivot mode, ModelVec3 custom = {}, bool pieceNormals = false);
+	// Proportional editing (radius > 0, a ModelFalloff, connected-only) and
+	// symmetry (mirror axes bits X=1, Y=2, Z=4) for gizmo drags of vertices,
+	// edges and faces: the preview moves nearby vertices and counterparts as the
+	// committed Weighted Transform does. Takes effect from the next drag.
+	void setTransformWeighting(double radius, int falloff, bool connectedOnly, int mirrorAxes);
+	[[nodiscard]] bool transformWeighted() const { return m_weightRadius > 0 || m_weightMirror != 0; }
 	void setTransformAxes(const ModelTransformBasis& basis, const QString& name = {}, bool available = true);
 	[[nodiscard]] std::array<QPointF, 4> transformGizmoPoints();
 	[[nodiscard]] std::array<QPolygonF, 3> rotationGizmoRings();
@@ -1043,6 +1052,12 @@ private:
 	ModelTransformTool m_transformTool = ModelTransformTool::Move;
 	ModelTransformPivot m_transformPivot = ModelTransformPivot::SelectionCentre;
 	ModelVec3 m_customTransformPivot;
+	bool m_transformPieceNormals = false;
+	double m_weightRadius = 0;
+	int m_weightFalloff = 0;
+	bool m_weightConnected = false;
+	int m_weightMirror = 0;
+	ModelTransformPieceMap m_editPieces;
 	ModelTransformBasis m_transformBasis;
 	QString m_transformAxesName;
 	bool m_transformAxesAvailable = true;

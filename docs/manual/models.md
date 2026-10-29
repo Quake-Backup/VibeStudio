@@ -626,6 +626,34 @@ selection instead. Every change is one undo step. Changes to the mesh's
 structure, such as extrusions and cuts, apply to every animation frame; moves
 can apply to **All frames** or the **Current frame**.
 
+To scale or turn several separate pieces in place, such as a row of teeth or
+bolts, choose **Mesh > Snap > Pivot at Individual Origins** (or **Pivot >
+Individual origins** on the **Item** page): each connected piece then rotates
+and scales about its own centre, in the view, with the gizmo and in the numeric
+fields. **Mesh > Snap > Normal Transform Axes** (**Transform axes > Normal**)
+lines the axes up with the selection's surface; press an axis key twice while a
+transform runs to use them, so <kbd>G</kbd> <kbd>Z</kbd> <kbd>Z</kbd> moves along
+the normal. With both, each piece uses its own normal. See
+[Editable Meshes](../MODEL_MESH.md) for the exact rules.
+
+To build half a model and mirror it as you go, turn on **Symmetry X** (or Y or
+Z) in the editing header. Extrusions, insets, loop cuts, bevels, dissolves and
+the other topology tools then change the other side too, from the side you
+selected, in one undo step; moving vertices with <kbd>G</kbd>, <kbd>R</kbd> and
+<kbd>S</kbd> or with the gizmo moves their mirror counterparts, and with
+proportional editing on, nearby vertices follow with the falloff. **Mesh > Symmetrize > Mirror Faces
+Across X** flips a separate piece, such as an ear or a pauldron, to the other
+side. See [modelling tools](../MODEL_TOOLS.md#proportional-editing-and-symmetry).
+
+To build a low-poly model vertex by vertex over a reference image, as in
+MilkShape 3D, choose **Vertex > Poly Build** in a front, side or top view.
+Click to place each corner, or click near an existing vertex to reuse it; every
+third corner makes a face, and clicking on keeps building a strip. Press
+<kbd>N</kbd> for a new face, <kbd>Backspace</kbd> to take back a corner and
+<kbd>Enter</kbd> when you are done. Each face is one undo step. With the
+MilkShape 3D controls you can put **Poly Build** on <kbd>F6</kbd> in
+**Customise Controls…**.
+
 The mesh menus (**View**, **Select**, **Add**, **Mesh**, **Vertex**, **Edge**,
 **Face** and **UV**) hold the rest: primitives, merging, dissolving, bisecting,
 symmetrising, smoothing, solidify, decimation, normals, UV projections, seams
@@ -665,7 +693,8 @@ for rail direction, selection requirements and limits.
 **Edge → Bevel Edges** (**Ctrl+B** in VibeStudio/Blender) creates chamfers or
 rounded edge bands. Type a width and change segments with the wheel or
 **Page Up/Down**, then confirm or cancel. **Adjust Last Operation** adds
-roundness and UV tile size. Closed corners receive caps; new skin weights
+roundness, UV tile size and **Clamp width to fit**, which narrows a bevel that
+would run into its neighbours instead of refusing it. Closed corners receive caps; new skin weights
 follow the cut geometry across all retained poses. Original face UVs stay
 separate, while new bands/caps need atlas packing where appropriate. See
 [edge bevel](../MODEL_EDGE_BEVEL.md) for width semantics and refusal conditions.
@@ -681,6 +710,14 @@ their visibility when subdivided. Every pose, UV seam and skin influence uses
 the same cut interpolation. F9 adjusts visibility/selection scope. See
 [knife cutting](../MODEL_KNIFE.md) for projection, snapping and refusal limits.
 
+When two parts pass through each other, select one of them and choose **Face →
+Intersect (Knife)** to cut both where they meet, or **Intersect (Union)** to
+remove the hidden faces as well and save triangles. **Intersect (Difference)**
+carves the other part out of the selection, and **Intersect (Shared Volume)**
+keeps only what both parts enclose. When the parts are separate surfaces,
+choose the other surface in **F9 > Cut with**. Union, difference and shared
+volume need closed parts.
+
 **Face → Spin** and **Edge → Spin** make curved extrusions around the **3D
 Cursor**. Type degrees, choose an axis with **X/Y/Z**, and set steps with the
 wheel or **Page Up/Down**. **Face → Spin Duplicates** makes radial face copies.
@@ -689,14 +726,37 @@ steps, closure, duplication and UV scale. Detached face profiles can close a
 full turn. Review every pose, face orientation and UV packing before exporting;
 see [Spin](../MODEL_SPIN.md) for skinning behaviour, limits and CLI examples.
 
+**Edge → Screw** and **Face → Screw** turn the selection once around the **3D
+Cursor**'s Z axis while climbing, for springs, threads and spiral horns; **F9**
+sets the **Axial offset (screw)**, steps and axis. **Face → Array** copies the
+selected faces in a row in one step, for chains, railings, ammunition belts and
+teeth: **F9** sets the **Count**, the **Offset** and **Relative offset**, a
+per-copy **Rotation** and **Scale** about the **Centre**, and a **Merge
+distance** that joins neighbouring copies into one piece. Each is one undo step.
+
+<kbd>Alt</kbd>+<kbd>E</kbd> opens the extrude variants. **Extrude Faces Along
+Normals** pushes panels and armour plates out along their own normals, keeping
+an even thickness at corners; **Extrude Individual Faces** turns each face into
+its own spike or block. Move the pointer or type a distance, then press
+<kbd>Enter</kbd>. Their side walls get their own UV strips, so they do not smear
+the skin; **F9** changes the mode and the wall UV scale (0 keeps the old copied
+UVs).
+
+**Edge → Bridge Edge Loops** joins two open loops, **Edge → Bridge Edge Chains**
+joins exactly the selected edges of two open borders, and **Face → Bridge Faces**
+removes two selected face regions and joins the holes, for joining limbs to a
+torso or closing gaps between parts. **F9** adds **Segments** (rings that bend
+with the animation) and a **Strip UV** scale that gives the bridge its own UVs.
+
 **Vertex → Rip** and **Edge → Rip** open a selected vertex or connected edge
-chain; **Rip and Fill** bridges the gap. **V/Alt+V** start these in the studio
+chain, which may branch into a T, a Y or a loop with a branch; **Rip and Fill**
+bridges the gap. **V/Alt+V** start these in the studio
 and Blender profiles. The starting pointer chooses the side; **B** swaps it
 and **F** toggles filling. Type a distance, constrain with **X/Y/Z**, confirm
 with **Enter**, or cancel the whole preview with **Esc**. **F9** adjusts the
 offset, side face, fill and UV scale. Every retained pose is updated through
-the shared service. See [Rip](../MODEL_RIP.md) for rig behaviour, CLI examples
-and the current unbranched-selection limits. Confirm **Rip** immediately or
+the shared service. See [Rip](../MODEL_RIP.md) for rig behaviour, branched
+junctions, CLI examples and the current limits. Confirm **Rip** immediately or
 enter a zero offset to split without moving; the split survives coincident
 positions, other mesh/UV tools and source reopening. **Rip and Fill** requires
 movement to create gap faces. **Esc** restores the original connectivity.
@@ -1300,8 +1360,8 @@ limits and the `model frames` command.
   distance, position tools make the frames they edit independent of the
   skeleton, and an unskinned surface must be bound before it can join a skinned
   one. See [Skin weights through mesh edits](../MODEL_SKIN_PROVENANCE.md#limits).
-- Modifier stacks and branched rip
-  junctions remain planned. [Spin](../MODEL_SPIN.md) and [Rip](../MODEL_RIP.md)
+- Modifier stacks, including a live mirror modifier, remain planned.
+  [Spin](../MODEL_SPIN.md) and [Rip](../MODEL_RIP.md)
   provide bounded shared GUI/CLI workflows. [Knife](../MODEL_KNIFE.md)
   cuts projected paths; [Bevel Edges](../MODEL_EDGE_BEVEL.md) provides chamfers
   and rounded bands with joined corners. Both share GUI/CLI validation.

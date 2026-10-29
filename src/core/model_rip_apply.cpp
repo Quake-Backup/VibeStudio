@@ -47,17 +47,46 @@ class RipBuilder
 		m_delta = point(modelBasisToWorld(m_edit.translation, axes));
 		if (m_edit.tool.ripFill && length(m_delta) < 1e-9)
 			return refuse(RipText::tr("Rip and Fill needs a nonzero movement to make faces. Use Rip to split without moving."));
-		QSet<int> moving, stationary;
+		// Fans: an unbranched rip has the unmoved side (fan 0, keeping the
+		// original vertices) and the moving side (fan 1) at every selected
+		// vertex; a branched rip has one fan per sector (core/model_rip.h).
+		const auto fanOf = [&](int vertex, int face)
+		{
+			return m_plan.fans.isEmpty() ? (m_plan.movingFaces.contains(face) ? 1 : 0)
+										 : m_plan.fans.value(qMakePair(m_plan.geometry.group(vertex), face), 0);
+		};
+		const auto selected = [&](int vertex) { return m_plan.groups.contains(m_plan.geometry.group(vertex)); };
+		// The fans using each indexed vertex of the selected groups, and the
+		// (vertex, fan) pairs that move.
+		QHash<int, QSet<int>> users;
+		QSet<QPair<int, int>> movingFans;
 		for (int f = 0; f < m_before.triangles.size(); ++f)
 		{
 			if (!m_work.step())
 				return false;
 			const auto t = m_before.triangles[f];
 			for (int v : {t.a, t.b, t.c})
-				if (m_plan.groups.contains(m_plan.geometry.group(v)))
-					(m_plan.movingFaces.contains(f) ? moving : stationary).insert(v);
+				if (selected(v))
+				{
+					users[v].insert(fanOf(v, f));
+					if (m_plan.movingFaces.contains(f))
+						movingFans.insert(qMakePair(v, fanOf(v, f)));
+				}
 		}
-		if (!reserveCapacity(m_mesh, m_selection.surface, (moving & stationary).size() + (m_edit.tool.ripFill ? m_plan.cuts.size() * 4 : 0),
+		QVector<QPair<int, int>> split;
+		qsizetype copies = 0;
+		for (auto i = users.cbegin(); i != users.cend(); ++i)
+		{
+			const int lowest = *std::min_element(i.value().cbegin(), i.value().cend());
+			for (int fan : i.value())
+				if (fan != 0)
+				{
+					split.append(qMakePair(i.key(), fan));
+					copies += i.value().contains(0) || fan != lowest;
+				}
+		}
+		std::sort(split.begin(), split.end());
+		if (!reserveCapacity(m_mesh, m_selection.surface, copies + (m_edit.tool.ripFill ? m_plan.cuts.size() * 4 : 0),
 							 m_edit.tool.ripFill ? m_plan.cuts.size() * 2 : 0, m_error))
 			return false;
 		m_skinned = !m_before.skinning.isEmpty();
@@ -84,46 +113,68 @@ class RipBuilder
 		}
 		for (int v = 0; v < m_before.vertexCount; ++v)
 			m_origins.append(v);
-		QHash<int, int> movedIdentities;
 		int nextIdentity = *std::max_element(m_before.topologyVertices.cbegin(), m_before.topologyVertices.cend()) + 1;
-		for (int v : ordered(moving))
+		QHash<QPair<int, int>, int> identities;
+		for (const auto &key : std::as_const(split))
 		{
 			if (!m_work.step())
 				return false;
-			const int target = stationary.contains(v) ? copyVertex(v) : v;
-			if (target < 0 || !displace(target))
+			const int v = key.first, fan = key.second;
+			// A vertex used only by this fan (and no lower one) keeps its index.
+			const auto &used = users[v];
+			const bool keeps = !used.contains(0) && fan == *std::min_element(used.cbegin(), used.cend());
+			const int target = keeps ? v : copyVertex(v);
+			if (target < 0 || (movingFans.contains(key) && !displace(target)))
 				return false;
-			const int group = m_plan.geometry.group(v);
-			if (!movedIdentities.contains(group)) movedIdentities.insert(group, nextIdentity++);
-			m_surface.topologyVertices[target] = movedIdentities.value(group);
-			m_mapping.insert(v, target);
+			const auto identity = qMakePair(m_plan.geometry.group(v), fan);
+			if (!identities.contains(identity))
+				identities.insert(identity, nextIdentity++);
+			m_surface.topologyVertices[target] = identities.value(identity);
+			m_mapping.insert(key, target);
 		}
+		// A branched rip may move every fan at a vertex; the first keeps its index.
+		for (auto i = users.cbegin(); i != users.cend(); ++i)
+			if (movingFans.contains(qMakePair(i.key(), 0)) && !displace(i.key()))
+				return false;
+		const auto target = [&](int vertex, int face)
+		{
+			if (!selected(vertex))
+				return vertex;
+			const int fan = fanOf(vertex, face);
+			return fan == 0 ? vertex : m_mapping.value(qMakePair(vertex, fan), vertex);
+		};
 		// Do not silently weld or reassign weights when seam copies diverge.
 		for (int group : ordered(m_plan.groups))
 		{
-			int first = -1;
+			QHash<int, int> first;
 			for (int source : m_plan.geometry.copies[group])
-			{
-				if (!m_mapping.contains(source))
-					continue;
-				const int v = m_mapping[source];
-				if (first < 0)
-					first = v;
-				else if (!samePoint(first, v))
-					return refuse(
-						RipText::tr("Skin bindings separate copies of a rip seam in another pose. Repair the binding before ripping."));
-			}
+				for (int fan : users.value(source))
+				{
+					if (fan == 0)
+						continue;
+					const int v = m_mapping.value(qMakePair(source, fan));
+					if (!first.contains(fan))
+						first.insert(fan, v);
+					else if (!samePoint(first.value(fan), v))
+						return refuse(
+							RipText::tr("Skin bindings separate copies of a rip seam in another pose. Repair the binding before ripping."));
+				}
 		}
 		for (int f = 0; f < m_surface.triangles.size(); ++f)
 		{
 			if (!m_work.step())
 				return false;
 			m_faceSources.append(f);
-			if (!m_plan.movingFaces.contains(f))
+			const auto before = m_before.triangles[f];
+			const ModelTriangle after{target(before.a, f), target(before.b, f), target(before.c, f)};
+			const bool moving = m_plan.movingFaces.contains(f);
+			if (!moving && after.a == before.a && after.b == before.b && after.c == before.c)
 				continue;
 			auto &t = m_surface.triangles[f];
-			t = {m_mapping.value(t.a, t.a), m_mapping.value(t.b, t.b), m_mapping.value(t.c, t.c)};
+			t = after;
 			m_affected << t.a << t.b << t.c;
+			if (!moving)
+				continue;
 			for (int frame = 0; frame < m_surface.frames.size(); ++frame)
 			{
 				if (!m_work.step())
@@ -135,40 +186,71 @@ class RipBuilder
 						RipText::tr("Rip collapses or reverses a neighbouring face in a retained pose. Reduce or change the movement."));
 			}
 		}
-		for (auto edge : ordered(m_before.uvSeams))
+		if (m_plan.fans.isEmpty())
 		{
-			if (!m_work.step())
-				return false;
-			m_surface.uvSeams.insert(modelEdge(m_mapping.value(edge.first, edge.first), m_mapping.value(edge.second, edge.second)));
+			for (auto edge : ordered(m_before.uvSeams))
+			{
+				if (!m_work.step())
+					return false;
+				m_surface.uvSeams.insert(modelEdge(m_mapping.value(qMakePair(edge.first, 1), edge.first),
+												   m_mapping.value(qMakePair(edge.second, 1), edge.second)));
+			}
+		}
+		else
+		{
+			// Seam marks follow each face's own copies.
+			for (int f = 0; f < m_before.triangles.size(); ++f)
+			{
+				if (!m_work.step())
+					return false;
+				const auto t = m_before.triangles[f];
+				for (const auto pair : {qMakePair(t.a, t.b), qMakePair(t.b, t.c), qMakePair(t.c, t.a)})
+					if (m_before.uvSeams.contains(modelEdge(pair.first, pair.second)))
+						m_surface.uvSeams.insert(modelEdge(target(pair.first, f), target(pair.second, f)));
+			}
 		}
 		m_selection.vertices.clear();
 		m_selection.edges.clear();
 		m_selection.faces.clear();
 		if (m_plan.vertexSelection)
-			for (int v : ordered(moving))
-				m_selection.vertices.insert(m_mapping[v]);
+			for (const auto &key : std::as_const(movingFans))
+				m_selection.vertices.insert(key.second == 0 ? key.first : m_mapping.value(key));
 		for (auto edge : ordered(m_plan.cuts))
 		{
 			if (!m_work.step())
 				return false;
 			const auto faces = m_plan.geometry.edgeFaces.value(edge);
-			const int movedFace = m_plan.movingFaces.contains(faces[0]) ? faces[0] : faces[1];
+			const bool firstMoves = m_plan.movingFaces.contains(faces[0]), secondMoves = m_plan.movingFaces.contains(faces[1]);
+			// The moving side; between two unmoved (or two moving) fans of a
+			// branched rip, the side with the later fans.
+			const auto fans = [&](int face)
+			{
+				int sum = 0;
+				for (int v : {edge.first, edge.second})
+					if (m_plan.groups.contains(v))
+						sum += m_plan.fans.value(qMakePair(v, face), 0);
+				return sum;
+			};
+			const int movedFace = firstMoves != secondMoves ? (firstMoves ? faces[0] : faces[1]) : (fans(faces[0]) > fans(faces[1]) ? faces[0] : faces[1]);
 			const int fixedFace = faces[0] == movedFace ? faces[1] : faces[0];
 			const auto fixed = m_before.triangles[fixedFace], moved = m_before.triangles[movedFace];
 			int a = corner(m_plan.geometry, fixed, edge.first), b = corner(m_plan.geometry, fixed, edge.second);
 			int ma = corner(m_plan.geometry, moved, edge.first), mb = corner(m_plan.geometry, moved, edge.second);
-			ma = m_mapping.value(ma, ma);
-			mb = m_mapping.value(mb, mb);
 			if (!follows(fixed, a, b))
 			{
 				std::swap(a, b);
 				std::swap(ma, mb);
 			}
+			a = target(a, fixedFace);
+			b = target(b, fixedFace);
+			ma = target(ma, movedFace);
+			mb = target(mb, movedFace);
 			m_surface.uvSeams.insert(modelEdge(a, b));
 			m_surface.uvSeams.insert(modelEdge(ma, mb));
-			if (!m_plan.vertexSelection && m_plan.selectedEdges.contains(edge))
+			const bool opens = firstMoves != secondMoves;
+			if (opens && !m_plan.vertexSelection && m_plan.selectedEdges.contains(edge))
 				m_selection.edges.insert(modelEdge(ma, mb));
-			if (m_edit.tool.ripFill && !fillGap(a, b, ma, mb, movedFace))
+			if (opens && m_edit.tool.ripFill && !fillGap(a, b, ma, mb, movedFace))
 				return false;
 		}
 		if (!normalise())
@@ -446,7 +528,8 @@ class RipBuilder
 	ModelMeshPoseBinding m_binding;
 	P3 m_delta{};
 	bool m_skinned = false;
-	QHash<int, int> m_mapping;
+	// (original index, fan) -> the index that fan's faces use.
+	QHash<QPair<int, int>, int> m_mapping;
 	QVector<int> m_origins, m_faceSources;
 	QSet<int> m_affected, m_strip;
 };

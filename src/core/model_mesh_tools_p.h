@@ -129,7 +129,8 @@ bool slideEdges(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 bool addPrimitive(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
 bool decimate(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
 bool bevelVertices(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
-bool bevelEdges(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control);
+bool bevelEdges(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control,
+				ModelEditReport *report = nullptr);
 bool knifeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
 // The knife's apply stage for precomputed cuts on the selection's surface:
 // straight segments across faces in barycentric coordinates, meeting on
@@ -152,5 +153,14 @@ bool introducedModelIntersections(const ModelMesh &before, const ModelMesh &afte
 bool spinGeometry(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
 bool ripGeometry(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
 bool solidify(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
+bool arrayFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
+bool extrudeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
+bool mirrorFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
+bool addFace(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
+// The knife's apply stage with ready cuts on the reference pose's faces.
+bool applyModelKnifeCuts(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, const QVector<ModelKnifeCut> &cuts, QString *error,
+						 const ModelWorkControl &control, ModelEditReport *report);
+bool intersectCut(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control,
+				  ModelEditReport *report);
 bool projectUvs(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
 } // namespace vibestudio::model_tools

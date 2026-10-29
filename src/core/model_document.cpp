@@ -9,6 +9,7 @@
 #include "core/model_source_decode.h"
 #include "core/model_geometry_helpers.h"
 #include "core/model_surface_selection.h"
+#include "core/model_symmetry.h"
 #include "core/model_material_slots.h"
 #include "core/model_surfaces.h"
 #include "core/model_skin_bindings.h"
@@ -22,6 +23,7 @@
 #include "core/model_boundary_bridge.h"
 #include "core/model_transform.h"
 #include "core/model_transform_axes.h"
+#include "core/model_transform_pieces.h"
 #include "core/model_uv_atlas.h"
 #include "core/model_uv_obstacles.h"
 #include "core/model_whole_transform.h"
@@ -1793,6 +1795,9 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	{
 		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "No editable model is open."));
 	}
+	// Live symmetry: the tool, then Symmetrize on the edited part (core/model_symmetry.h).
+	if (edit.tool.symmetryAxes != 0)
+		return applySymmetricModelEdit(mesh, edit, resultingSelection, error, control, report, applyModelEditUnreconciled);
 	const auto originalErrors = validateEditableModel(*mesh, control);
 	if (!originalErrors.isEmpty())
 	{
@@ -1843,8 +1848,9 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	const bool frameOperation = edit.kind == ModelEditKind::DuplicateFrame || edit.kind == ModelEditKind::DeleteFrame ||
 								edit.kind == ModelEditKind::RenameFrame || edit.kind == ModelEditKind::InsertInbetweens ||
 								edit.kind == ModelEditKind::CopyFramePose;
-	if (edit.kind != ModelEditKind::BridgeBoundaryLoops && edit.bridgeTwist != 0)
-		return fail(error, QCoreApplication::translate("ModelBoundaryBridge", "Bridge twist applies only to boundary bridging."));
+	if (edit.kind != ModelEditKind::BridgeBoundaryLoops && edit.kind != ModelEditKind::BridgeFaces &&
+		(edit.bridgeTwist != 0 || edit.bridgeSegments != 0 || edit.bridgeOpen || edit.bridgeTileSize != 0))
+		return fail(error, QCoreApplication::translate("ModelBoundaryBridge", "Bridge twist, segments, open chains and UV strips apply only to bridging."));
 	if (edit.kind != ModelEditKind::SetMaterialSlots && !edit.materialSlots.isEmpty())
 		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Material slot lists apply only to material slot edits."));
 	if (!isModelSurfaceEdit(edit.kind) && (!edit.surfaces.isEmpty() || edit.targetSurface != -1 || edit.adoptTargetMaterials))
@@ -2118,6 +2124,11 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Mirroring requires the whole surface and all "
 																					  "frames so winding remains consistent."));
 		}
+		// Individual Origins: one transform per connected piece.
+		QVector<ModelTransform> pieces;
+		QHash<int, int> pieceOf;
+		if (!modelPieceTransforms(surface, edit, transform, vertices, reference, &pieces, &pieceOf, error, control))
+			return false;
 		for (int f = 0; f < surface.frames.size(); ++f)
 		{
 			if (!work.step())
@@ -2135,8 +2146,9 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 				{
 					return false;
 				}
-				frame.positions[i] = transformModelPoint(frame.positions[i], transform);
-				frame.normals[i] = transformModelNormal(frame.normals[i], transform);
+				const auto &own = pieces[pieceOf.value(i)];
+				frame.positions[i] = transformModelPoint(frame.positions[i], own);
+				frame.normals[i] = transformModelNormal(frame.normals[i], own);
 			}
 			if (vertices.size() != surface.vertexCount)
 			{
@@ -2544,8 +2556,11 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		if (edit.kind == ModelEditKind::BridgeBoundaryLoops)
 		{
 			ModelBoundaryBridgeReport bridge;
-			if (!bridgeModelBoundaryLoops(surface, selection.edges, edit.sourceFrame, edit.bridgeTwist,
-				int(modelDocumentMaxTriangles - otherTriangles), &filled, &bridge, error, control))
+			ModelBoundaryBridgeOptions options{edit.sourceFrame, edit.bridgeTwist, edit.bridgeSegments, edit.bridgeOpen, edit.bridgeTileSize};
+			const int vertexLimit = int(std::min<qint64>(modelDocumentMaxVertices, modelDocumentMaxFrameVertices / candidate.frames.size()) -
+										(originalVertices - source.vertexCount));
+			if (!bridgeModelBoundaries(surface, selection.edges, options, int(modelDocumentMaxTriangles - otherTriangles), vertexLimit, &filled,
+				&bridge, error, control))
 				return false;
 			report.faces = std::move(bridge.faces);
 		}
@@ -2556,6 +2571,24 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		}
 		surface = std::move(filled);
 		selection = {selection.surface, {}, QSet<int>(report.faces.cbegin(), report.faces.cend())};
+		break;
+	}
+	case ModelEditKind::BridgeFaces:
+	{
+		if (edit.frame != -1 || selection.faces.isEmpty() || !selection.edges.isEmpty() || edit.bridgeOpen)
+			return fail(error, QCoreApplication::translate("ModelBoundaryBridge", "Bridge Faces needs two selected face regions and applies to every frame."));
+		ModelSurface bridged;
+		ModelBoundaryBridgeReport bridge;
+		ModelBoundaryBridgeOptions options{edit.sourceFrame, edit.bridgeTwist, edit.bridgeSegments, false, edit.bridgeTileSize};
+		const int vertexLimit = int(std::min<qint64>(modelDocumentMaxVertices, modelDocumentMaxFrameVertices / candidate.frames.size()) -
+									(originalVertices - source.vertexCount));
+		if (!bridgeModelFaceRegions(surface, selection.faces, options, int(modelDocumentMaxTriangles - otherTriangles), vertexLimit, &bridged,
+			&bridge, error, control))
+			return false;
+		surface = std::move(bridged);
+		selection = {selection.surface, {}, QSet<int>(bridge.faces.cbegin(), bridge.faces.cend())};
+		if (!compact(&surface, &selection, work))
+			return false;
 		break;
 	}
 	case ModelEditKind::RemoveDuplicateFaces:

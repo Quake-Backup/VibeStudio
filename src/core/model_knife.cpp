@@ -247,8 +247,11 @@ class KnifeBuilder
 		  surface(mesh.surfaces[selection.surface]), before(surface)
 	{
 	}
-	bool run(ModelEditReport *report)
+	// `given` replaces the projected path's plan with ready cuts (Intersect).
+	bool run(ModelEditReport *report, const QVector<ModelKnifeCut> *given = nullptr)
 	{
+		if (given)
+			return apply(*given, report);
 		QVector<ModelKnifeCut> plan;
 		return planModelKnife(mesh, selection.surface, edit.tool.referenceFrame, selection.faces, edit.tool.knife, &plan, error, control) &&
 			   apply(plan, report);
@@ -492,5 +495,11 @@ bool applyKnifeCuts(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *sele
 					const ModelWorkControl &control, ModelEditReport *report)
 {
 	return KnifeBuilder(*mesh, edit, *selection, error, control).apply(cuts, report);
+}
+
+bool applyModelKnifeCuts(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, const QVector<ModelKnifeCut> &cuts, QString *error,
+						 const ModelWorkControl &control, ModelEditReport *report)
+{
+	return KnifeBuilder(*mesh, edit, *selection, error, control).run(report, &cuts);
 }
 } // namespace vibestudio::model_tools

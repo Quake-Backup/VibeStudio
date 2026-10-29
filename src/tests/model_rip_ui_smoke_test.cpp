@@ -275,6 +275,40 @@ int main(int argc, char **argv)
 		expect(settleModelViewport(*view) && render(editor, QString("zero-%1").arg(scenario)), "render zero-distance source state");
 		editor.findChild<QAction *>("undoMesh")->trigger(); app.processEvents();
 		expect(ripBytes(editor.document().mesh()) == bytes && !editor.document().canUndo(), "zero-distance F9 remains one undo step");
+		// A branched (T) edge rip: the modal preview and commit match the
+		// shared service, as one undo step.
+		expect(editor.setMesh(source, &error), "reload branched rip fixture", error);
+		auto branched = ripEdit(source, true, true);
+		const int centre = ripVertex(source, 0, 0);
+		branched.selection.edges = {modelEdge(ripVertex(source, -16, 0), centre), modelEdge(centre, ripVertex(source, 16, 0)),
+									modelEdge(centre, ripVertex(source, 0, -16))};
+		// The upper side rises along Y; the stem below stays split in place.
+		branched.translation = {0, 4, 0};
+		for (int f = 0; f < source.surfaces[0].triangles.size(); ++f)
+		{
+			const auto t = source.surfaces[0].triangles[f];
+			const auto &p = source.surfaces[0].frames[0].positions;
+			if ((t.a == centre || t.b == centre || t.c == centre) && p[t.a].y + p[t.b].y + p[t.c].y > 0)
+			{
+				branched.tool.ripFace = f;
+				break;
+			}
+		}
+		tools->applySelection(branched.selection);
+		view->frameModel();
+		settleModelViewport(*view);
+		expected = source;
+		expect(applyModelEdit(&expected, branched, nullptr, &error), "prepare the shared branched rip", error);
+		expect(tools->beginModal(ModelModalOperator::RipFill, sidePoint(*view, source, branched.tool.ripFace)), "start a branched rip");
+		tools->constrainModal(1, false);
+		tools->typeModal("4");
+		expect(tools->modalPreviewValid() && tools->modalPreview() && ripBytes(*tools->modalPreview()) == ripBytes(expected),
+			   "the branched rip preview matches the shared service", tools->modalText());
+		expect(tools->finishModal(true, &error) && ripBytes(editor.document().mesh()) == ripBytes(expected), "the branched rip commits",
+			   error);
+		editor.findChild<QAction *>("undoMesh")->trigger();
+		app.processEvents();
+		expect(ripBytes(editor.document().mesh()) == bytes && !editor.document().canUndo(), "the branched rip is one undo step");
 		editor.setMesh(source, &error);
 		editor.close();
 		app.processEvents();

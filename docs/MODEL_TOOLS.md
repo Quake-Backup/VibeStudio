@@ -13,7 +13,8 @@ export unchanged. A tool's preview applies the same core edit to a copy of the
 mesh, so what you see before confirming is exactly what is committed. The CLI
 commands `model tool` and `model select` use the same services.
 
-**Vertex/Edge → Rip** opens vertices or connected edge chains;
+**Vertex/Edge → Rip** opens vertices or connected edge chains, branched ones
+(T, Y, a loop with a branch) included;
 **Rip and Fill** adds gap faces. Both support side selection, constrained
 movement, typed offsets, worker preview and F9 adjustment. See [Rip](MODEL_RIP.md)
 for the shared CLI, retained pose/rig rules and current topology limits.
@@ -117,6 +118,7 @@ right-click to start another path; **Enter/Space** confirms and **Esc** cancels.
 | **R** | Rotate (around the view axis unless constrained) |
 | **S** | Scale |
 | **E** | Extrude faces along their normal, or open border edges |
+| Alt+**E** | Extrude menu: along normals, individual faces, edges |
 | **I** | Inset faces (press **I** again for individual faces) |
 | Alt+**S** | Shrink/Fatten along vertex normals |
 | Shift+**D** | Duplicate faces and move them |
@@ -170,8 +172,8 @@ edge counts are separate messages.
 
 ### Proportional editing and symmetry
 
-**O** or the header's proportional button makes Move, Rotate and Scale affect
-nearby vertices with a falloff: Smooth, Sphere, Root, Inverse Square, Sharp,
+**O** or the header's proportional button makes Move, Rotate and Scale (the
+G, R and S keys and gizmo drags alike) affect nearby vertices with a falloff: Smooth, Sphere, Root, Inverse Square, Sharp,
 Linear or Constant (Shift+**O** cycles them). The radius is in model units;
 **Connected** measures distance along the mesh instead of straight through
 space. A dotted circle shows the radius during the tool.
@@ -180,6 +182,48 @@ The header's **Symmetry X/Y/Z** buttons mirror edits across the model's axes:
 moving a vertex also moves its counterpart on the other side, and vertices on
 the mirror plane stay on it. Counterparts are matched by position in the
 displayed pose.
+
+The same buttons make topology and shape tools symmetric, for models built
+half-and-mirror: extrude (all variants), duplicate, inset, loop cut, edge slide,
+bevel, knife, merge, dissolve, poke, make face, rotate edge, beautify,
+shrink/fatten, smooth, solidify, spin, rip, array, subdivide and delete. The tool
+runs on the side you selected, then the connected part it changed is made
+symmetric with Symmetrize from that side, in every pose and as one undo step;
+the tool's result stays selected on both sides, and F9 replays both. Other
+pieces of the surface keep any deliberate asymmetry, but the edited piece as a
+whole becomes symmetric. Select one side of each active plane: a selection that
+mirrors itself (such as a centre loop) needs no mirroring, and one that spreads
+unevenly across a plane is refused with the plane named. Vertices within the
+merge distance of the plane join both halves. Symmetric edits need the **All
+frames** scope. On a skinned surface the joint mirror map last confirmed for
+**Symmetrize** is used; run Symmetrize once first when joints sit off the plane.
+`model tool` takes `--symmetry x|y|z|xy…` (with `--joint-map`) on these tools.
+Gizmo drags of vertices, edges and faces follow proportional editing and
+Symmetry too: the preview moves the falloff vertices and the counterparts, and
+releasing commits the same weighted transform the G, R and S keys make, as one
+undo step. The CLI form is `model tool --tool transform` with
+`--proportional-radius`, `--falloff`, `--connected` and `--mirror x|y|z`.
+
+**Mesh > Symmetrize > Mirror Faces Across X/Y/Z** reflects the selected faces
+across the plane through the 3D cursor, flipping their winding so they keep
+facing outward, in every pose. The faces must form a detached piece: a face
+outside the selection that shares a corner would tear, so it is refused. On a
+skinned surface the plane must pass through the origin and the joints follow
+the confirmed joint mirror map. F9 sets the axis and the plane point;
+`model tool --tool mirror --axis x --point x,y,z` is the CLI form.
+
+### Individual origins and normal axes
+
+**Shift+S > Pivot at Individual Origins** (or **Pivot > Individual origins** in
+Geometry) makes Rotate and Scale turn each connected piece of the selection about
+its own centre: separate teeth, bolts or panels shrink or spin in place instead of
+gathering towards the middle. **Shift+S > Normal Transform Axes** (or **Transform
+axes > Normal**) orients the axes by the selection's averaged normal, with X along
+its longest border edge; pressing an axis key twice during G, R or S then uses
+these axes, so G **Z** **Z** moves along the normal. With both, every piece uses its
+own normal. The modal keys, the gizmo and the numeric Geometry fields share one
+definition, described in [Transform axes and pivots](MODEL_MESH.md); the gizmo's
+preview shows each piece turning about its own centre.
 
 ## The 3D Cursor
 
@@ -340,10 +384,15 @@ weights. See [skin weights through mesh edits](MODEL_SKIN_PROVENANCE.md) and the
 | Dissolve Edges | Merges the faces on each side of the selected edges into one polygon and fills it again; vertices left between two edges along the dissolved chains go too (**Dissolve vertices** in Adjust Last Operation). Ctrl+Backspace in the 3ds Max profile. See [Delete and dissolve](#delete-and-dissolve). |
 | Limited Dissolve | Merges neighbouring faces within an angle (5° by default) and removes border vertices on a straight line. See [Delete and dissolve](#delete-and-dissolve). |
 | Make Face (**F**) | Builds a triangle or quad from three or four vertices (or two edges), wound to match its neighbours. |
+| Poly Build | **Vertex > Poly Build** builds faces corner by corner, the way models were built over reference images in MilkShape 3D and QME. Click in any view to place a corner: within 12 pixels of a vertex of the active surface it reuses that vertex, otherwise it places a new point on the view plane through the 3D cursor (in the Front view, the plane at the cursor's depth). Every third corner makes a triangle as one undo step, and its last two corners start the next face, so clicking on builds a strip; **N** or a right-click starts a new face and Backspace removes a corner. Ctrl+click extrudes the selected open border edges to the pointer. The arrow keys move the crosshair and Insert places a corner, so it works from the keyboard. The wheel and middle button still navigate; Enter or Esc ends. New corners sit at the same place in every pose with planar UVs and their own identity; a face with no neighbour turns towards the viewer, otherwise it is wound with its neighbour. On a skinned surface the new corners need a binding, chosen as for **Add**. |
 | Poke Faces | Adds a centre vertex to each face, optionally lifted along the face normal. |
 | Beautify Faces | Flips diagonals inside the selection to make triangles more even. |
 | Extrude Edges | Pulls open border edges out into a new strip. |
-| Spin / Spin Duplicates | Curved face/open-border extrusion or radial face copies around the 3D cursor. Type degrees, choose X/Y/Z, adjust steps with Page Up/Down, then confirm or cancel. F9 exposes centre, axis, closure, copies and UV scale. See [Spin](MODEL_SPIN.md) for all-pose and skinning semantics. |
+| Bridge Edge Loops / Bridge Edge Chains / Bridge Faces | Joins two boundary loops, two open chains of exactly the selected edges, or two face regions (removed, then their holes joined). **F9** sets the twist, **Segments** (interpolated rings in every pose, with blended UVs, normals and skin weights) and **Strip UV units per repeat** (the bridge's own UV strip with seams). See [boundary bridging](MODEL_MESH.md). |
+| Extrude Faces Along Normals / Extrude Individual Faces | **Alt+E** or the **Face** menu. Along normals moves each vertex along the selected region's own vertex normal; with **Even thickness** (on by default) every face moves the whole distance along its own normal, so panels on a box corner stay parallel to their faces. Individual faces turns every selected face into its own prism with new vertex identities. Move along the averaged normal or type a distance; X/Y/Z do not apply. **F9** switches between **Region**, **Along normals** and **Individual faces** and sets **Wall UV units per repeat**: from the menu the side walls get their own UV strips at 64 units per repeat, marked as seams at their rows and closing column, instead of the zero-area walls that copy the border's UVs (enter 0 for those). Hard edges stay between the walls, the cap and the base; the walls stay smooth around each loop. Every pose moves along that pose's own normals, and copies keep their source's skin weights. A closed region has no direction to extrude in Region mode; extrude it along normals. |
+| Spin / Spin Duplicates | Curved face/open-border extrusion or radial face copies around the 3D cursor. Type degrees, choose X/Y/Z, adjust steps with Page Up/Down, then confirm or cancel. F9 exposes centre, axis, closure, copies, UV scale and the screw's axial offset. See [Spin](MODEL_SPIN.md) for all-pose and skinning semantics. |
+| Screw | A spin that climbs: one full turn around the 3D cursor's Z axis, 16 steps, 16 units of climb; F9 sets the climb (**Axial offset**), turn, steps, centre and axis. Springs, threads and spiral horns. See [Spin](MODEL_SPIN.md#make-a-screw-spring-or-spiral). |
+| Array | Copies the selected faces in a row in one step: each copy repeats the per-copy rotation and uniform scale (about the selection's centre, or F9's **Centre**) and moves by the **Offset** plus the **Relative offset** times the selection's size (one width along X by default). **Merge distance** joins each copy's border vertices to the copy before it when they lie that close in every pose, so chains of segments become one strip; joined vertices share a position and connectivity and keep their own UVs. Copies get their own vertex identities, keep their source's UVs, seams and skin weights (rebound where they land) and follow every pose. 2–256 copies; capacity is checked first. |
 | Inset Faces | Insets a region (or each face) by a thickness with optional depth. Even thickness keeps a constant border at corners; a thickness that would fold the border over is refused. |
 | Shrink/Fatten | Moves vertices along their normals; even thickness keeps faces parallel. |
 | Smooth Vertices | Averages selected vertices toward their neighbours (factor, repeat, keep borders). |
@@ -354,9 +403,10 @@ weights. See [skin weights through mesh edits](MODEL_SKIN_PROVENANCE.md) and the
 | Symmetrize | Replaces one half of the selection with a mirror of the other, joining vertices within the merge distance of the plane. Mirrored halves share their UV layout, the usual way to save texture space. On a skinned surface, **Symmetrize Skin Weights** first confirms each off-centre joint's mirror partner on the other side of the plane (**Detect Pairs** reads left and right names), or keeps the joint names; joints on the plane always keep theirs. **Adjust Last Operation** asks again for a new axis, and **Repeat Last** for its target surface. |
 | Loop Cut | Adds 1–64 edge loops across a ring of quads; one cut can slide between the sides. Triangles at the ends of an open ring are split too, so no T-junctions remain. |
 | Bevel Vertices | Replaces each selected vertex with a cap whose corners sit the bevel width along every edge it had. Bevelling both ends of an edge keeps a point on that edge where it folds. A width that reaches past a neighbouring vertex is refused. |
-| Bevel Edges | Builds chamfer/rounded bands and joined corner caps with width, 1–32 segments and roundness. Retains face-side UVs, interpolates skin influences and checks every stored pose. See [edge bevel](MODEL_EDGE_BEVEL.md). |
+| Bevel Edges | Builds chamfer/rounded bands and joined corner caps with width, 1–32 segments and roundness; **Clamp width to fit** narrows a width that would reach a neighbour instead of refusing it. Retains face-side UVs, interpolates skin influences and checks every stored pose. See [edge bevel](MODEL_EDGE_BEVEL.md). |
 | Connect Vertex Path (**J**) | Joins two selected vertices, a CLI path, or the selected opposite corners of quads with new edges. See [Connect vertices and edges](#connect-vertices-and-edges). |
 | Connect Edges | Adds 1–64 evenly spaced edges between the selected opposite sides of quads, as 3ds Max's Connect does, with a slide along the ring. See [Connect vertices and edges](#connect-vertices-and-edges). |
+| Intersect (Knife / Union / Difference / Shared Volume) | Cuts where the selected faces pass through the rest of the surface or another surface (F9 **Cut with**), on both parts, and optionally deletes the hidden faces (union), keeps the selection less the other part (difference) or keeps only the shared volume. See [Intersect](MODEL_KNIFE.md#cut-where-parts-meet-intersect). |
 | Knife | Cuts finite, crossing, closed or disconnected paths, with visible/through and selected-face scope. Interpolates every pose, UVs and skinning, preserves hidden child faces and selects path edges. See [knife controls and CLI](MODEL_KNIFE.md). |
 | Solidify | Gives selected faces a thickness: flipped back faces sit behind along the angle-weighted normals (even thickness by default) and a rim with its own hard-edged corners closes open borders. Single-sided sheets such as capes and banners render from both sides in every idTech renderer. |
 | Transform Model | Moves, turns or scales the whole model with its tags, collision boxes, skeleton and MDL eye position; origin presets put the bounds centre, the feet, the cursor or the selection on the origin. See [Transform Model](MODEL_MESH.md#transform-model). |
@@ -694,9 +744,15 @@ its `binding`.
 | `make-face` | `--vertices` or `--edges` |
 | `extrude-edges` | `--edges`, `--offset x,y,z` |
 | `inset` | `--faces`, `--thickness`, `--depth`, `--individual`, `--no-even` |
+| `intersect` | `--faces`, `--mode cut\|union\|difference\|intersection` (default cut), `--with-surface N` (cut against another surface) |
+| `add-face` | `--vertices` and `--points 'x,y,z;…'` or `--point x,y,z` (three corners in all), `--facing x,y,z` (default 0,0,1), `--bind-joint` or `--bind nearest-bones` on skinned surfaces |
+| `mirror` | `--faces`, `--axis x\|y\|z`, `--point x,y,z` (default the origin), `--joint-map`, `--keep-joint-names` |
+| any symmetric tool | `--symmetry x\|y\|z\|xy…` (with `--joint-map`/`--keep-joint-names` on skinned surfaces) |
+| `extrude` | `--faces`, `--mode region\|normals\|individual`, `--distance` (required), `--tile-size` (side-wall UV strips; omitted copies the border's UVs), `--no-even` |
+| `array` | `--faces`, `--count 2..256`, `--offset x,y,z`, `--relative x,y,z` (default 1,0,0), `--rotate x,y,z`, `--scale`, `--centre x,y,z` (default the selection's centre), `--merge distance` |
 | `shrink-fatten` | selection, `--distance`, `--no-even`, `--frame all\|N` |
 | `smooth` | selection, `--factor`, `--iterations`, `--pin-boundary`, `--frame` |
-| `transform` | selection, `--offset`/`--rotate`/`--scale`, `--pivot-mode`, `--pivot`, `--proportional-radius`, `--falloff`, `--connected`, `--mirror x\|y\|z\|xy…`, `--threshold`, `--frame`, `--auto-merge D` (weld moved vertices within D; all frames) |
+| `transform` | selection, `--offset`/`--rotate`/`--scale`, `--pivot-mode origin\|selection\|custom\|individual`, `--pivot`, `--transform-space world\|selection\|custom\|normal` (with `--axis-rotation` or `--axes-frame`), `--proportional-radius`, `--falloff`, `--connected`, `--mirror x\|y\|z\|xy…`, `--threshold`, `--frame`, `--auto-merge D` (weld moved vertices within D; all frames) |
 | `shade-flat`, `shade-smooth` | `--faces` |
 | `auto-smooth` | `--faces`, `--angle` (default 30) |
 | `bisect` | `--faces`, `--plane-point`, `--plane-normal`, `--keep both\|front\|back` |
