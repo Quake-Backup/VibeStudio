@@ -212,7 +212,7 @@ void checkAnchors(const QDir &dir)
 		   QStringLiteral("refitting moves the tag with its components again"));
 	expect(document.undo() && near(findModelTag(document.mesh(), "tag_mount", 2)->origin, before), QStringLiteral("a refit undoes in one step"));
 	document.redo();
-	// Anchors are saved in the editable source (version 15).
+	// Anchors are saved in the editable source (version 19).
 	const auto path = dir.filePath("anchored.mesh.json");
 	ModelDocument reloaded;
 	QFile saved(path);

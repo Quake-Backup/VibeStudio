@@ -447,7 +447,7 @@ struct ModelMesh {
 	// empty for decoded game models.
 	QVector<ModelSkinVariant> skinVariants{};
 	// Tags fitted to mesh components, for Refit Anchored Tags; editable
-	// sources only (source version 15).
+	// sources only (source version 19).
 	QVector<ModelTagAnchor> tagAnchors{};
 
 	[[nodiscard]] bool isValid() const;

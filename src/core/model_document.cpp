@@ -1674,7 +1674,7 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 			return variantError.isEmpty() ? malformed() : fail(error, variantError);
 		}
 	}
-	// Version 15 adds tag anchors (core/model_tag_follow.h).
+	// Version 19 adds tag anchors (core/model_tag_follow.h).
 	if (root.contains(QStringLiteral("tagAnchors")))
 	{
 		QString anchorError;

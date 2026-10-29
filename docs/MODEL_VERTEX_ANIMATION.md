@@ -211,7 +211,7 @@ lost vertices or faces, was renamed or removed, or whose frames no longer
 exist cannot be refitted, and the line and the disabled button say why:
 select the components and choose **Follow Selection** again. Renaming a tag
 keeps its anchor and deleting it removes the anchor. Sources with anchors are
-saved as editable source version 15.
+saved as editable source version 19.
 
 Assemblies read the fitted tags like any other: a part attached at the tag
 follows it frame by frame (checked with a synthetic assembly; not yet in a

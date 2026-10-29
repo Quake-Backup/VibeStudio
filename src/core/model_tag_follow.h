@@ -62,7 +62,7 @@ struct ModelTagFollowOptions
 };
 
 // The editable source version that first stores tag anchors.
-inline constexpr int modelSourceTagAnchorVersion = 15;
+inline constexpr int modelSourceTagAnchorVersion = 19;
 
 struct ModelTagFollowResult
 {
