@@ -1391,7 +1391,8 @@ bool ModelEditorTools::runTool(const ModelEdit &operation, QString *error)
 		m_hasLast = true;
 	}
 	// Interpolated, mirrored, rebound, merged or bound skin weights are named.
-	showBanner(modelSkinProvenanceSummary(report.skin));
+	// What the tool adjusted itself (a clamped width) leads the summary.
+	showBanner((report.notes + QStringList{modelSkinProvenanceSummary(report.skin)}).join(QLatin1Char(' ')).trimmed());
 	refreshLastPanel();
 	return true;
 }
@@ -2160,6 +2161,7 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 		return {{Text::tr("Width"), 0, 1000000, 4, [](const E &e) { return e.tool.bevelWidth; }, [](E &e, double v) { e.tool.bevelWidth = v; }},
 				{Text::tr("Segments"), 1, 32, 0, [](const E &e) { return double(e.tool.bevelSegments); }, [](E &e, double v) { e.tool.bevelSegments = int(v); }},
 				{Text::tr("Roundness"), 0, 1, 3, [](const E &e) { return e.tool.bevelRoundness; }, [](E &e, double v) { e.tool.bevelRoundness = v; }},
+				{Text::tr("Clamp width to fit"), 0, 1, 0, [](const E &e) { return double(e.tool.bevelClamp); }, [](E &e, double v) { e.tool.bevelClamp = v > .5; }, true},
 				{Text::tr("Units per texture repeat"), .001, 1000000, 3, [](const E &e) { return e.tool.uvTileSize; }, [](E &e, double v) { e.tool.uvTileSize = v; }},
 				{Text::tr("Quad pairing angle"), 0, 180, 1, [](const E &e) { return e.tool.maxAngle; }, [](E &e, double v) { e.tool.maxAngle = v; }}};
 	case ModelEditKind::Solidify:
@@ -2369,7 +2371,8 @@ void ModelEditorTools::refreshLastPanel()
 				showBanner(edit.kind == ModelEditKind::Rip ? Text::tr("Rip refused") : edit.kind == ModelEditKind::Spin ? Text::tr("Spin refused") : edit.kind == ModelEditKind::Knife ? Text::tr("Knife refused") : Text::tr("Bevel refused"), error,
 						   LiveStatus::Problem);
 			else
-				showBanner(applied ? modelSkinProvenanceSummary(report.skin) : error, {}, applied ? LiveStatus::Update : LiveStatus::Problem);
+				showBanner(applied ? (report.notes + QStringList{modelSkinProvenanceSummary(report.skin)}).join(QLatin1Char(' ')).trimmed() : error, {},
+						   applied ? LiveStatus::Update : LiveStatus::Problem);
 			// Rebuilt after this signal returns, since it deletes the sender.
 			if (changed.rebuild || !applied || !m_hasLast)
 				QMetaObject::invokeMethod(this, &ModelEditorTools::refreshLastPanel, Qt::QueuedConnection);

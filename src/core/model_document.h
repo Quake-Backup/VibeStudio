@@ -67,6 +67,9 @@ struct ModelEditReport
 	// (core/model_vertex_origins.h). Empty for models without a skeleton and
 	// for skeleton, skin and weight edits, which write influences directly.
 	QMap<int, ModelSkinProvenance> skin;
+	// What a tool adjusted on its own, in words for the status line and CLI,
+	// such as a bevel width clamped to fit.
+	QStringList notes{};
 };
 
 enum class ModelEditKind

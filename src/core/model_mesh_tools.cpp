@@ -1650,6 +1650,8 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 		return fail(error, Text::tr("Binding new geometry needs a skeleton. This model has no joints."));
 	if (options.newGeometryBinding == ModelNewGeometryBinding::Joint && modelJointIndex(candidate->skeleton, options.bindJoint, Qt::CaseSensitive) < 0)
 		return fail(error, Text::tr("The skeleton has no joint named %1 to bind the new geometry to.").arg(options.bindJoint));
+	if (edit.kind != ModelEditKind::BevelEdges && options.bevelClamp)
+		return fail(error, Text::tr("Width clamping applies only to edge bevels."));
 	if (options.bevelSegments < 1 || options.bevelSegments > 32 || !std::isfinite(options.bevelRoundness) ||
 		options.bevelRoundness < 0 || options.bevelRoundness > 1 ||
 		(edit.kind != ModelEditKind::BevelEdges && (options.bevelSegments != 1 || options.bevelRoundness != 1)))
@@ -1732,7 +1734,7 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 	case ModelEditKind::BevelVertices:
 		return bevelVertices(candidate, edit, selection, error, work);
 	case ModelEditKind::BevelEdges:
-		return authored(bevelEdges(candidate, edit, selection, error, control));
+		return authored(bevelEdges(candidate, edit, selection, error, control, report));
 	case ModelEditKind::Knife:
 		return authored(knifeFaces(candidate, edit, selection, error, control, report));
 	case ModelEditKind::Spin:

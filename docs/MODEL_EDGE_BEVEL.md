@@ -19,9 +19,10 @@ not establish the wider [modeller release gate](MODELLER_RELEASE.md).
    Preparation runs through the cancellable model worker and leaves the source
    and undo history untouched until confirmation.
 5. Use **Adjust Last Operation** (**F9** in the VibeStudio/Blender profile) to
-   change **Width**, **Segments**, **Roundness**, **Units per texture repeat**
-   or **Quad pairing angle**. Accepted adjustments replace the original edit
-   as one undo step. Invalid adjustments restore the accepted values.
+   change **Width**, **Segments**, **Roundness**, **Units per texture repeat**,
+   **Quad pairing angle** or **Clamp width to fit**. Accepted adjustments
+   replace the original edit as one undo step. Invalid adjustments restore the
+   accepted values.
 
 Starting a new modal preview hides the previous adjustment panel; F9 can reopen
 it. A compact refusal banner leaves the model visible, with the full reason in
@@ -51,7 +52,12 @@ a sheet border can be, and its new end remains open. Closed fans get junction
 caps. Collinear chamfer junctions are stitched without zero-area caps.
 
 Cuts must stop before neighbours. Mitre offsets at a corner must fit inside
-its neighbouring edge lengths. Retained faces, bands and caps are checked for
+its neighbouring edge lengths. With **Clamp width to fit** (`--clamp`), a width
+that would reach a neighbour, overlap or fold is reduced to the widest width
+that fits, found by halving the interval to within a ten-thousandth of the
+request, and the status line (and the CLI's `notes`) says so; a width that
+already fits is used unchanged. Three or more bevelled edges meeting at a corner,
+such as a box corner, close with a junction patch at every segment count. Retained faces, bands and caps are checked for
 collapse and local winding changes in every stored pose; the result must
 preserve closed neighbourhoods. Ambiguous, over-wide or folded results are
 refused as a whole. These are local topology checks; use **Health** to review
@@ -83,6 +89,7 @@ existing limits and skin requirements; the authoring source remains `.mesh.json`
 ```sh
 vibestudio --cli model tool models/prop.mesh.json --tool bevel-edges --edges 0:1,1:2 --width 2 --segments 4 --roundness 1 --output models/bevelled.mesh.json --dry-run --json
 vibestudio --cli model tool models/prop.mesh.json --tool bevel-edges --edges 0:1,1:2 --width 2 --segments 4 --roundness 0.5 --tile-size 64 --angle 40 --reference-frame 0 --output models/bevelled.mesh.json --json
+vibestudio --cli model tool models/prop.mesh.json --tool bevel-edges --edges 0:1,1:2 --width 40 --clamp --output models/clamped.mesh.json --json
 ```
 
 Use existing indexed edge pairs; the example indices are placeholders for your
@@ -96,6 +103,7 @@ source is protected by the shared writer.
 GUI, CLI, undo, source save and recovery use the same document transaction and
 existing source schema. No dependency, connector or setup step is added.
 [Knife paths](MODEL_KNIFE.md) and [Spin](MODEL_SPIN.md) share these document services.
-Richer junction profiles, automatic overlap limiting, global
-intersection prevention, maximum-size bevel latency, real-project/engine
+Per-edge clamping (each edge to its own limit rather than one width for the
+whole selection), richer junction profiles such as Blender's patch and cutoff
+miters, global intersection prevention, maximum-size bevel latency, real-project/engine
 acceptance and physical accessibility/cross-platform review remain open.

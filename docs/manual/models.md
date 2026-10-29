@@ -599,7 +599,8 @@ for rail direction, selection requirements and limits.
 **Edge → Bevel Edges** (**Ctrl+B** in VibeStudio/Blender) creates chamfers or
 rounded edge bands. Type a width and change segments with the wheel or
 **Page Up/Down**, then confirm or cancel. **Adjust Last Operation** adds
-roundness and UV tile size. Closed corners receive caps; new skin weights
+roundness, UV tile size and **Clamp width to fit**, which narrows a bevel that
+would run into its neighbours instead of refusing it. Closed corners receive caps; new skin weights
 follow the cut geometry across all retained poses. Original face UVs stay
 separate, while new bands/caps need atlas packing where appropriate. See
 [edge bevel](../MODEL_EDGE_BEVEL.md) for width semantics and refusal conditions.

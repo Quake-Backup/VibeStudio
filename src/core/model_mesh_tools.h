@@ -169,6 +169,10 @@ struct ModelMeshToolOptions
 	// quadratic roundness (0 straight chamfer, 1 rounded). New bands use tile size.
 	int bevelSegments = 1;
 	double bevelRoundness = 1;
+	// Edge bevel: a width that would reach a neighbour or fold is reduced to
+	// the widest that fits (reported in ModelEditReport::notes) instead of
+	// being refused.
+	bool bevelClamp = false;
 	// Solidify: shell thickness behind the faces (negative grows outward).
 	double solidifyThickness = 4;
 	// UV projection: model units per texture repeat (64 matches a 64-unit

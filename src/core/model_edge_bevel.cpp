@@ -929,8 +929,67 @@ class BevelBuilder
 };
 } // namespace
 
-bool bevelEdges(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control)
+bool bevelEdges(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control,
+				ModelEditReport *report)
 {
-	return BevelBuilder(*mesh, edit, *selection, error, control).run();
+	if (!edit.tool.bevelClamp || edit.tool.bevelWidth <= 0)
+		return BevelBuilder(*mesh, edit, *selection, error, control).run();
+	// Clamp: the requested width when it fits, else the widest width that
+	// does, found by halving the interval between them (overlap limiting, as
+	// Blender's Clamp Overlap does; behaviour only).
+	const auto attempt = [&](double width, ModelMesh *result, ModelSelection *chosen, QString *why)
+	{
+		ModelMesh candidate = *mesh;
+		ModelSelection selected = *selection;
+		ModelEdit trial = edit;
+		trial.tool.bevelWidth = width;
+		trial.tool.bevelClamp = false;
+		if (!BevelBuilder(candidate, trial, selected, why, control).run())
+			return false;
+		*result = std::move(candidate);
+		*chosen = std::move(selected);
+		return true;
+	};
+	const auto cancelled = [&] { return control.cancelled && control.cancelled(); };
+	ModelMesh best;
+	ModelSelection bestSelection;
+	QString refusal;
+	if (attempt(edit.tool.bevelWidth, &best, &bestSelection, &refusal))
+	{
+		*mesh = std::move(best);
+		*selection = std::move(bestSelection);
+		return true;
+	}
+	if (cancelled())
+		return fail(error, refusal);
+	double low = 0, high = edit.tool.bevelWidth, found = 0;
+	for (int step = 0; step < 24 && high - low > edit.tool.bevelWidth * 1e-4; ++step)
+	{
+		const double middle = (low + high) / 2;
+		ModelMesh trial;
+		ModelSelection trialSelection;
+		QString why;
+		if (attempt(middle, &trial, &trialSelection, &why))
+		{
+			low = found = middle;
+			best = std::move(trial);
+			bestSelection = std::move(trialSelection);
+		}
+		else
+		{
+			if (cancelled())
+				return fail(error, why);
+			high = middle;
+		}
+	}
+	if (found <= 0)
+		return fail(error, refusal);
+	*mesh = std::move(best);
+	*selection = std::move(bestSelection);
+	if (report)
+		report->notes << BevelText::tr("Bevel width clamped from %1 to %2 so the bevel fits its neighbours.")
+							 .arg(edit.tool.bevelWidth, 0, 'g', 6)
+							 .arg(found, 0, 'g', 6);
+	return true;
 }
 } // namespace vibestudio::model_tools

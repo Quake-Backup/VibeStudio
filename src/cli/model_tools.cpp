@@ -283,7 +283,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 							  QStringLiteral("--connected"),   QStringLiteral("--allow-boundary"), QStringLiteral("--fit"),
 							  QStringLiteral("--through"), QStringLiteral("--perspective"), QStringLiteral("--opposite"),
 							  QStringLiteral("--duplicate"), QStringLiteral("--no-close"), QStringLiteral("--fill"),
-							  QStringLiteral("--keep-joint-names")};
+							  QStringLiteral("--keep-joint-names"), QStringLiteral("--clamp")};
 	const QSet<QString> options{
 		QStringLiteral("--side-face"),
 		QStringLiteral("--input"),			 QStringLiteral("--output"),		 QStringLiteral("--tool"),		   QStringLiteral("--surface"),
@@ -350,7 +350,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("knife"), {QStringLiteral("--faces"), QStringLiteral("--path"), QStringLiteral("--path-file"), QStringLiteral("--view"),
 			QStringLiteral("--through"), QStringLiteral("--perspective"), QStringLiteral("--opposite"), QStringLiteral("--camera-origin"),
 			QStringLiteral("--camera-right"), QStringLiteral("--camera-up"), QStringLiteral("--camera-forward")}},
-		{QStringLiteral("bevel-edges"), {QStringLiteral("--edges"), QStringLiteral("--width"), QStringLiteral("--segments"), QStringLiteral("--roundness"), QStringLiteral("--tile-size"), QStringLiteral("--angle")}},
+		{QStringLiteral("bevel-edges"), {QStringLiteral("--edges"), QStringLiteral("--width"), QStringLiteral("--segments"), QStringLiteral("--roundness"), QStringLiteral("--tile-size"), QStringLiteral("--angle"),
+			QStringLiteral("--clamp")}},
 		{QStringLiteral("edge-slide"), {QStringLiteral("--edges"), QStringLiteral("--slide"), QStringLiteral("--distance"), QStringLiteral("--angle"), QStringLiteral("--frame")}},
 		{QStringLiteral("rotate-edges"), {QStringLiteral("--edges")}},
 		{QStringLiteral("merge"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--merge"), QStringLiteral("--point")}},
@@ -572,6 +573,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	tool.ripFill = args.seen.contains(QStringLiteral("--fill"));
 	tool.ripOpposite = kind == ModelEditKind::Rip && args.seen.contains(QStringLiteral("--opposite"));
 	tool.keepJointNames = args.seen.contains(QStringLiteral("--keep-joint-names"));
+	tool.bevelClamp = args.seen.contains(QStringLiteral("--clamp"));
 	const bool detectJoints = args.values.value(QStringLiteral("--joint-map")) == QStringLiteral("detect");
 	if (args.values.contains(QStringLiteral("--joint-map")) && !detectJoints &&
 		!parseModelMirrorJointMap(args.values.value(QStringLiteral("--joint-map")), &tool.mirrorJoints, &error))
@@ -887,6 +889,12 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	result.lines << Text::tr("Surface %1 (%2): %3 vertices, %4 triangles.").arg(resultSurface).arg(surface.name).arg(surface.vertexCount).arg(surface.triangles.size());
 	if (kind == ModelEditKind::Symmetrize && !jointMap.isEmpty())
 		result.lines << Text::tr("Joint mirror map: %1.").arg(modelMirrorJointMapText(jointMap));
+	// What the tool adjusted on its own, such as a clamped bevel width.
+	if (!report.notes.isEmpty())
+	{
+		result.payload.insert(QStringLiteral("notes"), QJsonArray::fromStringList(report.notes));
+		result.lines += report.notes;
+	}
 	result.lines += modelSkinProvenanceLines(document.mesh(), report.skin);
 	result.lines += selectionLines(document.selection());
 	return result;
