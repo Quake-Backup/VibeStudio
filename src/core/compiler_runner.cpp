@@ -949,6 +949,90 @@ CompilerRunResult rerunCompilerCommandManifest(const CompilerCommandManifest& ma
 	return result;
 }
 
+QString compilerRunManifestDirectory(const QString& rootPath)
+{
+	if (rootPath.trimmed().isEmpty()) {
+		return {};
+	}
+	return QDir::cleanPath(QDir(rootPath.trimmed()).filePath(QStringLiteral(".vibestudio/compiler-runs")));
+}
+
+QString newCompilerRunManifestPath(const QString& rootPath, const QString& profileId)
+{
+	const QString directory = compilerRunManifestDirectory(rootPath);
+	if (directory.isEmpty()) {
+		return {};
+	}
+	const QString stamp = QDateTime::currentDateTimeUtc().toString(QStringLiteral("yyyyMMddTHHmmssZ"));
+	QString path = QDir(directory).filePath(QStringLiteral("%1-%2.json").arg(profileId.trimmed(), stamp));
+	// Two runs in one second keep both manifests.
+	for (int copy = 2; QFileInfo::exists(path) && copy < 100; ++copy) {
+		path = QDir(directory).filePath(QStringLiteral("%1-%2-%3.json").arg(profileId.trimmed(), stamp).arg(copy));
+	}
+	return path;
+}
+
+bool findNewestCompilerRunManifest(const QStringList& rootPaths, const QString& inputPath, CompilerRunManifestMatch* out, int scanLimit)
+{
+	// Workflow reference: TrenchBroom MapWindow::rerunLastCompilation at
+	// 4c756be1 (GPL-3.0-or-later) remembers the last profile; VibeStudio
+	// replays the saved run instead. Original Qt implementation; see
+	// docs/CREDITS.md.
+	const auto samePath = [](const QString& left, const QString& right) {
+		const QFileInfo leftInfo(left);
+		const QFileInfo rightInfo(right);
+		QString a = leftInfo.canonicalFilePath();
+		QString b = rightInfo.canonicalFilePath();
+		if (a.isEmpty() || b.isEmpty()) {
+			a = QDir::cleanPath(leftInfo.absoluteFilePath());
+			b = QDir::cleanPath(rightInfo.absoluteFilePath());
+		}
+#ifdef Q_OS_WIN
+		return a.compare(b, Qt::CaseInsensitive) == 0;
+#else
+		return a == b;
+#endif
+	};
+	QVector<QFileInfo> files;
+	QStringList seenDirectories;
+	for (const QString& root : rootPaths) {
+		const QString directory = compilerRunManifestDirectory(root);
+		if (directory.isEmpty() || seenDirectories.contains(directory, Qt::CaseInsensitive)) {
+			continue;
+		}
+		seenDirectories << directory;
+		const QFileInfoList entries = QDir(directory).entryInfoList({QStringLiteral("*.json")}, QDir::Files, QDir::Time);
+		for (qsizetype index = 0; index < entries.size() && index < scanLimit; ++index) {
+			files << entries.at(index);
+		}
+	}
+	// Newest first across the folders; the file name breaks a tie in time.
+	std::stable_sort(files.begin(), files.end(), [](const QFileInfo& left, const QFileInfo& right) {
+		const QDateTime leftTime = left.lastModified();
+		const QDateTime rightTime = right.lastModified();
+		return leftTime != rightTime ? leftTime > rightTime : left.fileName() > right.fileName();
+	});
+	for (const QFileInfo& file : std::as_const(files)) {
+		CompilerCommandManifest manifest;
+		if (!loadCompilerCommandManifest(file.absoluteFilePath(), &manifest) || manifest.program.trimmed().isEmpty()) {
+			continue;
+		}
+		bool matches = inputPath.trimmed().isEmpty();
+		for (const QString& input : std::as_const(manifest.inputPaths)) {
+			matches = matches || samePath(input, inputPath);
+		}
+		if (!matches) {
+			continue;
+		}
+		if (out) {
+			out->path = file.absoluteFilePath();
+			out->manifest = manifest;
+		}
+		return true;
+	}
+	return false;
+}
+
 QString compilerRunResultText(const CompilerRunResult& result)
 {
 	QStringList lines;

@@ -1,15 +1,18 @@
-// View > Camera: Level Camera, Focus Camera on Selection and Reset Camera
-// Zoom, and the held free-focus key. They move only the level camera: the
-// plan views, the map and its undo history stay as they are, so scene locks
-// do not apply, while hidden objects never count towards the focused box and
-// the selection already respects the open group.
+// View > Camera: Level Camera, Focus Camera on Selection, Reset Camera Zoom,
+// Camera Floor Up and Camera Floor Down, and the held free-focus key. They
+// move only the level camera: the map and its undo history stay as they are,
+// so scene locks do not apply, while hidden and filtered objects never count
+// and the selection already respects the open group. Plan views that follow
+// the camera follow a floor step, as they follow any camera move.
 //
 // Workflow reference: NRC camwindow.cpp GlobalCamera_ResetAngles,
-// GlobalCamera_FocusOnSelected and CameraFreeFocus at 449778b3
-// (GPL-2.0-or-later) / TB MapViewBase::resetCameraZoom at 4c756be1
-// (GPL-3.0-or-later). Original Qt implementation; see docs/CREDITS.md.
+// GlobalCamera_FocusOnSelected, CameraFreeFocus, Camera_ChangeFloorUp and
+// Camera_ChangeFloorDown at 449778b3 (GPL-2.0-or-later) / TB
+// MapViewBase::resetCameraZoom at 4c756be1 (GPL-3.0-or-later). Original Qt
+// implementation; see docs/CREDITS.md.
 
 #include "app/application_shell.h"
+#include "app/map_viewport.h"
 #include "app/model_viewport.h"
 #include "app/studio_actions.h"
 #include "core/level_camera_focus.h"
@@ -21,6 +24,7 @@
 #include <QGuiApplication>
 #include <QKeyEvent>
 #include <QKeySequence>
+#include <QLocale>
 #include <QScopedValueRollback>
 #include <QStatusBar>
 #include <QWheelEvent>
@@ -91,6 +95,14 @@ void ApplicationShell::registerLevelCameraFocusCommands()
 	add(QStringLiteral("map.resetCameraZoom"), tr("Reset Camera Zoom"),
 		tr("Return the 3D camera's field of view to the editor profile's, undoing field-of-view zoom. The camera keeps its place."),
 		QStringLiteral("fit"), [this]() { resetLevelCameraZoom(); });
+	add(QStringLiteral("map.cameraFloorUp"), tr("Camera Floor Up"),
+		tr("Lift the 3D camera to the next floor above it: 32 units over the next top among the visible brushes, patches and entities under it or "
+		   "selected, or eye height over a Doom sector floor. The map is unchanged."),
+		QStringLiteral("chevron-up"), [this]() { stepLevelCameraFloor(true); });
+	add(QStringLiteral("map.cameraFloorDown"), tr("Camera Floor Down"),
+		tr("Drop the 3D camera to the next floor below it: 32 units over the next lower top among the visible brushes, patches and entities under "
+		   "it or selected, or eye height over a Doom sector floor. The map is unchanged."),
+		QStringLiteral("chevron-down"), [this]() { stepLevelCameraFloor(false); });
 }
 
 bool ApplicationShell::levelCameraFocusReady() const
@@ -117,6 +129,8 @@ void ApplicationShell::refreshLevelCameraFocusCommands()
 	m_commands->setEnabled(QStringLiteral("map.levelCamera"), ready);
 	m_commands->setEnabled(QStringLiteral("map.focusCameraOnSelection"), ready && something);
 	m_commands->setEnabled(QStringLiteral("map.resetCameraZoom"), ready && m_levelMap3D->isPerspective());
+	m_commands->setEnabled(QStringLiteral("map.cameraFloorUp"), ready && m_levelMap3D->isPerspective());
+	m_commands->setEnabled(QStringLiteral("map.cameraFloorDown"), ready && m_levelMap3D->isPerspective());
 	if (!ready) {
 		endLevelCameraFreeFocus();
 	}
@@ -227,6 +241,152 @@ void ApplicationShell::resetLevelCameraZoom()
 		m_levelMap3D->setLooking(true);
 	}
 	statusBar()->showMessage(tr("Camera zoom reset to the profile's %1 degree field of view.").arg(degrees), 4000);
+}
+
+void ApplicationShell::stepLevelCameraFloor(bool up)
+{
+	if (!levelCameraFocusReady() || !m_levelMap3D->isPerspective()) {
+		statusBar()->showMessage(tr("Camera Floor Up and Down need the first-person 3D camera showing the map."), 4000);
+		return;
+	}
+	LevelCameraFloorRequest request;
+	const ModelVec3 at = m_levelMap3D->cameraPosition();
+	request.position = {at.x, at.y, at.z, true};
+	request.direction = up ? LevelCameraFloorDirection::Up : LevelCameraFloorDirection::Down;
+	// What the views hide, through filters or a region as well as Hide,
+	// never counts, as the camera does not draw it.
+	if (m_levelMapViewport) {
+		for (const QString& key : levelSceneObjects(m_levelMapDocument)) {
+			const auto colon = key.indexOf(QLatin1Char(':'));
+			if (m_levelMapViewport->isHidden(levelMapSelectionKindFromId(key.left(colon)), key.mid(colon + 1).toInt())) {
+				request.excludedObjects.insert(key);
+			}
+		}
+	}
+	for (const EntityClassDefinition& definition : m_entityDefinitions.classes) {
+		if (definition.kind == EntityClassKind::Point && definition.hasSize) {
+			request.entityBounds.insert(definition.className.toCaseFolded(),
+				{{definition.mins[0], definition.mins[1], definition.mins[2]}, {definition.maxs[0], definition.maxs[1], definition.maxs[2]}});
+		}
+	}
+	const LevelCameraFloorStep step = levelCameraFloorStep(m_levelMapDocument, request);
+	if (!step.valid) {
+		statusBar()->showMessage(step.error, 4000);
+		return;
+	}
+	const auto heightText = [](double height) {
+		return QLocale().toString(height, 'f', std::abs(height - std::round(height)) < 1.0e-6 ? 0 : 2);
+	};
+	if (!step.moved) {
+		const QString height = heightText(at.z);
+		if (step.candidates == 0) {
+			statusBar()->showMessage(tr("Nothing visible is under the camera or selected to stand on; it stays at height %1.").arg(height), 4000);
+		} else {
+			statusBar()->showMessage(up ? tr("No higher floor under the camera; it stays at height %1.").arg(height)
+										: tr("No lower floor under the camera; it stays at height %1.").arg(height), 4000);
+		}
+		return;
+	}
+	// Moving the camera moves its marker and the plan views that follow it.
+	m_levelMap3D->setCameraView(modelPoint(step.position), m_levelMap3D->cameraYaw(), m_levelMap3D->cameraPitch());
+	const QString height = heightText(step.position.z);
+	const QString object = levelMapSelectionRefId(step.object);
+	switch (step.source) {
+	case LevelCameraFloorSource::Underside:
+		statusBar()->showMessage(up ? tr("Camera up to height %1, 16 units under %2, the lowest object under it.").arg(height, object)
+									: tr("Camera down to height %1, 16 units under %2, the lowest object under it.").arg(height, object), 4000);
+		break;
+	case LevelCameraFloorSource::SectorEyeHeight:
+		statusBar()->showMessage(up ? tr("Camera up to height %1, at eye height over %2.").arg(height, object)
+									: tr("Camera down to height %1, at eye height over %2.").arg(height, object), 4000);
+		break;
+	case LevelCameraFloorSource::StandingHeight:
+	case LevelCameraFloorSource::None:
+		statusBar()->showMessage(up ? tr("Camera up to height %1, standing on %2.").arg(height, object)
+									: tr("Camera down to height %1, standing on %2.").arg(height, object), 4000);
+		break;
+	}
+}
+
+bool ApplicationShell::handleLevelCameraFloorKey(QObject* watched, QEvent* event)
+{
+	if ((event->type() != QEvent::ShortcutOverride && event->type() != QEvent::KeyPress) || !m_commands) {
+		return false;
+	}
+	const bool camera = m_levelMap3D && watched == m_levelMap3D;
+	MapViewport* plan = nullptr;
+	for (auto* view : std::as_const(m_levelPlanViews)) {
+		if (view == watched) {
+			plan = view;
+			break;
+		}
+	}
+	if (!plan && !camera) {
+		return false;
+	}
+	auto* key = static_cast<QKeyEvent*>(event);
+	// Page keys can arrive with the keypad flag; they match their plain binding.
+	const QKeySequence pressed(QKeyCombination(key->modifiers() & ~Qt::KeypadModifier, static_cast<Qt::Key>(key->key())));
+	QString commandId;
+	for (const QString& id : {QStringLiteral("map.cameraFloorUp"), QStringLiteral("map.cameraFloorDown")}) {
+		if (m_commands->shortcutSequences(id).contains(pressed)) {
+			commandId = id;
+			break;
+		}
+	}
+	if (commandId.isEmpty()) {
+		return false;
+	}
+	if (event->type() == QEvent::ShortcutOverride) {
+		// Read availability fresh, so the claim never lags a camera change.
+		refreshLevelCameraFocusCommands();
+	}
+	QAction* action = m_commands->action(commandId);
+	if (!action || !action->isEnabled()) {
+		// The key goes on to its other owner, such as Raise Floor.
+		return false;
+	}
+	// In a plan view another command the key reaches there, and that can act,
+	// keeps it: a Doom map's Raise and Lower Floor on the selected sectors.
+	QAction* other = nullptr;
+	if (plan) {
+		const QString text = pressed.toString(QKeySequence::PortableText);
+		for (const QString& id : m_commands->commandsUsingShortcut(text, commandId)) {
+			QAction* candidate = m_commands->action(id);
+			if (!candidate || !candidate->isEnabled()) {
+				continue;
+			}
+			bool reaches = candidate->shortcutContext() == Qt::WindowShortcut || candidate->shortcutContext() == Qt::ApplicationShortcut;
+			for (const QWidget* scope = plan; scope && !reaches; scope = scope->parentWidget()) {
+				reaches = scope->actions().contains(candidate);
+			}
+			if (reaches) {
+				other = candidate;
+				break;
+			}
+		}
+	}
+	bool keeps = false;
+	if (camera) {
+		// The camera's own flying and driving keys stay its own.
+		const CameraViewControls& controls = m_levelMap3D->cameraControls();
+		const bool looking = m_levelMap3D->isLooking();
+		const bool plain = (key->modifiers() & ~Qt::KeypadModifier) == Qt::NoModifier;
+		keeps = ((plain || looking) && cameraKeyMotions(controls, looking, Qt::NoButton, Qt::NoModifier, key->modifiers()).contains(key->key()))
+			|| cameraLookToggleMatches(controls, key->key(), key->modifiers())
+			|| navigationHoldKeyMatches(controls.lookHoldKey, key->key(), key->modifiers());
+	}
+	// Claiming the key keeps it from reaching two owners at once; the press
+	// then decides who acts on it.
+	event->accept();
+	if (event->type() == QEvent::ShortcutOverride) {
+		return true;
+	}
+	if (keeps) {
+		return false;
+	}
+	(other ? other : action)->trigger();
+	return true;
 }
 
 bool ApplicationShell::handleLevelCameraFocusEvent(QObject* watched, QEvent* event)

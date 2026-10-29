@@ -99,4 +99,26 @@ bool applyLevelMapPatchMatrixOperation(LevelMapDocument* document, const QVector
 bool thickenLevelMapPatches(LevelMapDocument* document, const QVector<int>& patchIds, const LevelPatchThickenRequest& request,
 	QVector<int>* created = nullptr, QString* error = nullptr);
 
+// NetRadiant Custom's Deform: every control point of each patch moves along
+// one world axis by a whole number of units from 0 to `maximum` (towards the
+// negative side for a negative maximum), each drawn on its own. The draws
+// come from a generator seeded with `seed`, so the same seed, patches and
+// order repeat a run exactly. Texture coordinates stay.
+struct LevelPatchDeformRequest {
+	// Map units, -9999 to 9999; NetRadiant Custom starts at 64.
+	int maximum = 64;
+	// 0 x, 1 y, 2 z; NetRadiant Custom starts on Z.
+	int axis = 2;
+	quint32 seed = 0;
+};
+// The first `count` offsets a seed draws, in order: the same on every
+// platform (a 32-bit Mersenne Twister, each draw scaled to 0..maximum and
+// truncated towards zero, as upstream scales rand()).
+[[nodiscard]] QVector<int> levelPatchDeformOffsets(quint32 seed, int maximum, int count);
+// Deforms each patch, in document order, as one undo step. Hidden patches,
+// and patches outside the open group, are left as they were and counted in
+// `skipped`; a locked one refuses the whole edit.
+bool deformLevelMapPatches(LevelMapDocument* document, const QVector<int>& patchIds, const LevelPatchDeformRequest& request,
+	int* changed = nullptr, int* skipped = nullptr, QString* error = nullptr);
+
 } // namespace vibestudio

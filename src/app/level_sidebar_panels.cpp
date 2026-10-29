@@ -15,6 +15,7 @@
 #include "app/studio_theme.h"
 #include "core/entity_builtin_catalogue.h"
 #include "core/level_filter_tags.h"
+#include "core/level_map_inspector.h"
 #include "core/level_placement.h"
 #include "core/level_view_filters.h"
 #include "core/model_collision_placement.h"
@@ -220,7 +221,11 @@ void ApplicationShell::buildLevelMapSettings(SidebarPage* page)
 			return;
 		}
 		QString error;
-		if (!setLevelMapEntityProperty(&m_levelMapDocument, world, key, item->text(1), &error)) {
+		// A map setting: it applies with a group open (core/level_map_inspector.h).
+		const QString value = item->text(1);
+		if (!editLevelMapWorldSettings(&m_levelMapDocument, [&](LevelMapDocument* document) {
+				return setLevelMapEntityProperty(document, world, key, value, &error);
+			})) {
 			statusBar()->showMessage(tr("Could not change %1: %2").arg(key, error));
 			refreshLevelMapSettings();
 			return;
@@ -315,7 +320,11 @@ void ApplicationShell::addLevelWorldspawnKey()
 		return;
 	}
 	QString error;
-	if (!setLevelMapEntityProperty(&m_levelMapDocument, world, key->currentText().trimmed(), value->text(), &error)) {
+	const QString newKey = key->currentText().trimmed();
+	const QString newValue = value->text();
+	if (!editLevelMapWorldSettings(&m_levelMapDocument, [&](LevelMapDocument* document) {
+			return setLevelMapEntityProperty(document, world, newKey, newValue, &error);
+		})) {
 		statusBar()->showMessage(tr("Could not add the key: %1").arg(error));
 		return;
 	}
@@ -336,6 +345,9 @@ void ApplicationShell::refreshLevelMapSettings()
 	}
 	m_levelMapSettingsSource = source;
 	m_levelMapSettingsRevision = m_levelMapDocument.revision;
+	// The layer summary, Map Properties and Mods follow the same map changes
+	// (level_map_inspector_actions.cpp).
+	refreshLevelMapInspector();
 
 	{
 		const QScopedValueRollback<bool> filling(m_fillingLevelWorldspawn, true);

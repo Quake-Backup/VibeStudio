@@ -42,6 +42,20 @@ struct LevelShapeRequest {
 	// How a cylinder, cone or sphere sits in the box (core/level_primitive.h):
 	// filling it, or round on its larger extent as NetRadiant Custom builds them.
 	LevelBrushPrimitiveFit fit = LevelBrushPrimitiveFit::Box;
+	// Patch shapes: the texture layout (NetRadiant Custom's on creation by
+	// default), the material image's size for it (empty counts as 64 by 64)
+	// and map units per texel, a patch plane's control columns and rows, and
+	// the control rows along a patch cylinder or cone.
+	LevelPatchCreateMapping patchMapping = LevelPatchCreateMapping::Radiant;
+	QSize patchImageSize;
+	double patchTextureScale = 0.5;
+	int columns = 3;
+	int rows = 3;
+	// Round patch shapes: where the ring starts (Exact for NetRadiant Custom's
+	// Exact Cylinder, Cone and Sphere) and its Square box (re-disperse every
+	// span once mapped; see LevelPatchCreateRequest::square).
+	LevelPatchRingStart patchRingStart = LevelPatchRingStart::Auto;
+	bool patchSquare = false;
 };
 
 [[nodiscard]] QStringList levelShapeIds();
@@ -59,7 +73,9 @@ struct LevelShapeRequest {
 // The patch a patch shape makes filling the request's box.
 bool levelShapePatchRequest(const LevelShapeRequest& request, LevelPatchCreateRequest* patch, QString* error = nullptr);
 // The settings a shape reads: any of "axis", "sides", "bands", "fit",
-// "thickness", "arc", "start", "steps" and "rise".
+// "thickness", "arc", "start", "steps", "rise", "columns" and "rows" (a patch
+// plane's control grid; the control rows along a round patch), and for round
+// patch shapes "square" and "ringStart".
 [[nodiscard]] QStringList levelShapeParameters(const QString& shape);
 [[nodiscard]] QStringList levelShapeRiseIds();
 
@@ -82,6 +98,23 @@ bool levelMapBrushesBounds(const LevelMapDocument& document, const QVector<int>&
 // that selects the new brushes. The request's own bounds are ignored.
 bool replaceLevelMapBrushesWithShape(LevelMapDocument* document, const QVector<int>& brushIds, const LevelShapeRequest& request,
 	QVector<int>* newBrushIds = nullptr, QString* error = nullptr);
+
+// NetRadiant Custom's patch creation bounds (PatchCreator_getBounds): the
+// selection's bounds, with any side thinner than a unit widened to `grid`
+// either side of its middle. False with nothing selected.
+bool levelMapPatchShapeBounds(const LevelMapDocument& document, double grid, LevelMapVec3* mins, LevelMapVec3* maxs);
+// NetRadiant Custom's Patch menu prefabs (Scene_PatchConstructPrefab): the
+// patch replaces the selected brushes and patches as one undo step and is
+// selected. It joins the brush entity the last selected brush or patch
+// belongs to, or else the world; selected entities stay where they are. With
+// no brush or patch selected it is simply added. Scene locks, hidden objects
+// and the open group are respected; failure leaves the map unchanged.
+// `replaced` lists the brushes and patches it took the place of.
+bool replaceLevelMapSelectionWithPatch(LevelMapDocument* document, const LevelMapPatch& patch, int* patchId = nullptr, QString* error = nullptr,
+	QVector<LevelMapSelectionRef>* replaced = nullptr);
+// The same with a patch shape filling the request's box.
+bool replaceLevelMapSelectionWithPatchShape(LevelMapDocument* document, const LevelShapeRequest& request, int* patchId = nullptr,
+	QString* error = nullptr, QVector<LevelMapSelectionRef>* replaced = nullptr);
 
 // The Make 3- to 9-Sided Prism commands, NetRadiant Custom's Brush3Sided to
 // Brush9Sided: "map.make3SidedPrism" to "map.make9SidedPrism", or an empty

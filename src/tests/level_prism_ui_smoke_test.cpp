@@ -275,11 +275,19 @@ int main(int argc, char** argv)
 						&& keys(QStringLiteral("shell.mode.build")).contains(QKeySequence(QStringLiteral("Ctrl+9"))),
 					"the mode keys keep Ctrl+3 and Ctrl+9");
 
-				// With nothing selected, Ctrl+3 in a view still opens Models.
+				// With nothing selected, Ctrl+3 in a view still opens Models;
+				// TrenchBroom's Ctrl+3 shows its Face inspector there instead
+				// (app/level_face_inspector_actions.cpp).
 				press(top, Qt::Key_3, Qt::ControlModifier);
-				expect(until([&] { return mode() == StudioMode::Models; }, 5000) && bytes() == baseline, "Ctrl+3 switches modes with no brush");
-				action(QStringLiteral("shell.mode.levels"))->trigger();
-				expect(until([&] { return mode() == StudioMode::Levels && top->isVisible(); }), "back to Levels");
+				if (QLatin1String(profile) == QLatin1String("trenchbroom")) {
+					expect(until([&] { return action(QStringLiteral("map.sidebar.surfaces"))->isChecked(); }, 5000) && mode() == StudioMode::Levels
+							&& bytes() == baseline,
+						"TrenchBroom's Ctrl+3 shows the Face inspector and stays in Levels");
+				} else {
+					expect(until([&] { return mode() == StudioMode::Models; }, 5000) && bytes() == baseline, "Ctrl+3 switches modes with no brush");
+					action(QStringLiteral("shell.mode.levels"))->trigger();
+					expect(until([&] { return mode() == StudioMode::Levels && top->isVisible(); }), "back to Levels");
+				}
 
 				// A selected brush: Radiant's Ctrl+6 rebuilds it in the view; the
 				// other profiles keep the mode key.

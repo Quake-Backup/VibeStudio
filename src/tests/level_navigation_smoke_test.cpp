@@ -11,6 +11,7 @@
 #include <QSettings>
 #include <QTemporaryDir>
 #include <QUuid>
+#include <cmath>
 #include <iostream>
 #include <limits>
 
@@ -78,6 +79,45 @@ int main(int argc, char** argv)
 		plans[2].zoom = 0;
 		ok &= expect(!linkLevelPlanNavigation(&plans, 0, {true, true, false}) && plans[2].zoom == 0
 			&& plans[1].center == before[1].center, "invalid target pane is not partially linked");
+	}
+	{
+		// TrenchBroom's Reset 2D Cameras: the source's zoom and its centre on the
+		// shared axes only; no value comes from a third pane.
+		ok &= expect(levelPlanCentreFor(0, {1, 2, 3}) == QPointF(1, 2) && levelPlanCentreFor(1, {1, 2, 3}) == QPointF(1, 3)
+			&& levelPlanCentreFor(2, {1, 2, 3}) == QPointF(2, 3), "plan centres for a point use XY, XZ and YZ");
+		auto plans = std::array<PlanViewState, 3> {{{0, {10, 20}, 2}, {1, {-40, 30}, 5}, {2, {70, -80}, 0.5}}};
+		ok &= expect(resetLevelPlanNavigation(&plans, 0, &error) && plans[0].center == QPointF(10, 20) && plans[0].zoom == 2
+			&& plans[1].center == QPointF(10, 30) && plans[2].center == QPointF(20, -80) && plans[1].zoom == 2 && plans[2].zoom == 2,
+			"a top reset gives front its X and side its Y, each keeping its own Z, and its zoom", error);
+		plans = {{{0, {10, 20}, 2}, {1, {-40, 30}, 5}, {2, {70, -80}, 0.5}}};
+		ok &= expect(resetLevelPlanNavigation(&plans, 1, &error) && plans[0].center == QPointF(-40, 20) && plans[2].center == QPointF(70, 30)
+			&& plans[0].zoom == 5 && plans[2].zoom == 5 && plans[1].center == QPointF(-40, 30), "a front reset gives X and Z, keeping Y", error);
+		plans = {{{0, {10, 20}, 2}, {0, {5, 6}, 3}, {2, {70, -80}, 0.5}}};
+		ok &= expect(resetLevelPlanNavigation(&plans, 0) && plans[1].center == QPointF(10, 20) && plans[1].zoom == 2,
+			"a repeated projection takes the whole centre");
+		const auto before = plans;
+		ok &= expect(!resetLevelPlanNavigation(&plans, 3) && plans[1].center == before[1].center && !resetLevelPlanNavigation(nullptr, 0),
+			"an invalid source is refused");
+		plans[2].zoom = 0;
+		ok &= expect(!resetLevelPlanNavigation(&plans, 0) && plans[1].zoom == before[1].zoom && plans[2].zoom == 0,
+			"an invalid pane leaves every pane as it was");
+
+		// Radiant's focus: the box in two-thirds of the pane, never closer
+		// than 384 units across, clamped to the plan zoom range.
+		PlanViewState focus;
+		ok &= expect(levelPlanFocusState(0, {-64, -64, -16}, {64, 64, 0}, QSizeF(768, 576), &focus, &error) && focus.projection == 0
+			&& focus.center == QPointF(0, 0) && std::abs(focus.zoom - 1.5) < 1e-12, "a small box frames a 384-unit span", error);
+		ok &= expect(levelPlanFocusState(1, {0, 0, 0}, {1024, 512, 256}, QSizeF(900, 600), &focus, &error) && focus.center == QPointF(512, 128)
+			&& std::abs(focus.zoom - 900.0 / 1536.0) < 1e-12 && std::abs(1024 * focus.zoom - 600) < 1e-9, "a wide box fills two-thirds of the front view", error);
+		ok &= expect(levelPlanFocusState(2, {0, 0, 0}, {1024, 512, 2048}, QSizeF(900, 600), &focus, &error) && focus.center == QPointF(256, 1024)
+			&& std::abs(focus.zoom - 600.0 / 3072.0) < 1e-12, "the side view uses Y and Z, and the taller axis decides", error);
+		ok &= expect(levelPlanFocusState(0, {-5.0e6, -5.0e6, 0}, {5.0e6, 5.0e6, 0}, QSizeF(900, 600), &focus) && focus.zoom == 0.0025,
+			"a huge box clamps to the farthest zoom");
+		const PlanViewState kept = focus;
+		ok &= expect(!levelPlanFocusState(0, {0, 0, 0}, {1, 1, 1}, QSizeF(0, 600), &focus) && !levelPlanFocusState(3, {0, 0, 0}, {1, 1, 1}, QSizeF(9, 9), &focus)
+			&& !levelPlanFocusState(0, {0, std::numeric_limits<double>::quiet_NaN(), 0}, {1, 1, 1}, QSizeF(9, 9), &focus)
+			&& focus.zoom == kept.zoom && focus.center == kept.center, "an empty pane, a bad projection or a bad box is refused, atomically");
+		ok &= expect(kLevelPlanFocusCameraHalfExtent == 128.0 && kLevelPlanFocusMinimumHalfExtent == 128.0, "Radiant's 256-unit camera box and 384-unit span");
 	}
 	{
 		StudioSettings settings;

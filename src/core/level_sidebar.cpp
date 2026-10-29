@@ -42,7 +42,7 @@ constexpr TabEntry kTabs[] = {
 	{"surfaces", "uv", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Surfaces"),
 		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Texture alignment and face flags for the targeted faces: shift, scale, rotate, fit, project, copy and paste.")},
 	{"map", "map", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Map"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Worldspawn keys, a pre-build checklist, statistics and the entity definitions in use.")},
+		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Worldspawn keys, a pre-build checklist, the layers, soft bounds and mods, statistics and the entity definitions in use.")},
 	{"view", "eye", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "View"),
 		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "What the views draw, filters by kind, grid and snapping, the camera and the view layout.")},
 	{"health", "validate", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Health"),

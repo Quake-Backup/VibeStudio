@@ -9,6 +9,7 @@
 #include "core/level_materials.h"
 #include "core/level_scene.h"
 #include "core/level_uv_edit.h"
+#include "core/level_uv_tool.h"
 #include "core/package_archive.h"
 
 #include <QCoreApplication>
@@ -102,7 +103,8 @@ LevelUvEditCliResult runLevelUvEdit(const QStringList& arguments)
 	};
 	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--overwrite", "--dry-run", "--allow-valve220"};
 	const QSet<QString> options{"--input", "--target", "--move-point", "--to", "--offset", "--rotate", "--anchor", "--points", "--texture-size",
-		"--package", "--palette", "--context", "--output", "--engine", "--map-name", "--settings-file", "--locale", "--catalog-root"};
+		"--package", "--palette", "--context", "--output", "--engine", "--map-name", "--settings-file", "--locale", "--catalog-root", "--stretch",
+		"--skew-u", "--skew-v", "--pivot", "--rows", "--columns"};
 	QSet<QString> seen;
 	QHash<QString, QString> values;
 	QStringList positional;
@@ -150,10 +152,12 @@ LevelUvEditCliResult runLevelUvEdit(const QStringList& arguments)
 		|| (target.kind != LevelMaterialKind::BrushFace && target.kind != LevelMaterialKind::Patch)) {
 		return fail(2, Text::tr("--target takes face:brushId:faceNumber (face numbers start at one) or patch:id."));
 	}
-	const int changes = static_cast<int>(seen.contains(QStringLiteral("--move-point"))) + static_cast<int>(seen.contains(QStringLiteral("--offset")))
-		+ static_cast<int>(seen.contains(QStringLiteral("--rotate")));
+	int changes = 0;
+	for (const char* change : {"--move-point", "--offset", "--rotate", "--stretch", "--skew-u", "--skew-v"}) {
+		changes += static_cast<int>(seen.contains(QString::fromLatin1(change)));
+	}
 	if (changes > 1) {
-		return fail(2, Text::tr("Give one change: --move-point with --to, --offset or --rotate."));
+		return fail(2, Text::tr("Give one change: --move-point with --to, --offset, --rotate, --stretch, --skew-u or --skew-v."));
 	}
 	const bool changing = changes == 1;
 	const QString output = values.value(QStringLiteral("--output"));
@@ -163,9 +167,21 @@ LevelUvEditCliResult runLevelUvEdit(const QStringList& arguments)
 	if (!changing
 		&& (!output.isEmpty() || seen.contains(QStringLiteral("--dry-run")) || seen.contains(QStringLiteral("--overwrite"))
 			|| seen.contains(QStringLiteral("--allow-valve220")) || seen.contains(QStringLiteral("--to")) || seen.contains(QStringLiteral("--anchor"))
-			|| seen.contains(QStringLiteral("--points")))) {
-		return fail(2, Text::tr("--output, --dry-run, --overwrite, --allow-valve220, --to, --anchor and --points go with a change: --move-point, "
-								"--offset or --rotate."));
+			|| seen.contains(QStringLiteral("--points")) || seen.contains(QStringLiteral("--pivot")) || seen.contains(QStringLiteral("--rows"))
+			|| seen.contains(QStringLiteral("--columns")))) {
+		return fail(2, Text::tr("--output, --dry-run, --overwrite, --allow-valve220, --to, --anchor, --points, --rows, --columns and --pivot go with "
+								"a change: --move-point, --offset, --rotate, --stretch, --skew-u or --skew-v."));
+	}
+	// The UV tool's stretches and skews turn about --pivot U,V.
+	const bool toolChange = seen.contains(QStringLiteral("--stretch")) || seen.contains(QStringLiteral("--skew-u")) || seen.contains(QStringLiteral("--skew-v"));
+	if (seen.contains(QStringLiteral("--pivot")) && !toolChange) {
+		return fail(2, Text::tr("--pivot U,V is the point --stretch, --skew-u and --skew-v keep in place."));
+	}
+	if (target.kind == LevelMaterialKind::BrushFace && (seen.contains(QStringLiteral("--rows")) || seen.contains(QStringLiteral("--columns")))) {
+		return fail(2, Text::tr("--rows and --columns choose patch control points; a face's texture moves as a whole."));
+	}
+	if ((seen.contains(QStringLiteral("--rows")) || seen.contains(QStringLiteral("--columns"))) && seen.contains(QStringLiteral("--move-point"))) {
+		return fail(2, Text::tr("--rows and --columns go with --offset, --rotate, --stretch or a skew; --move-point moves one point."));
 	}
 	if (seen.contains(QStringLiteral("--move-point")) != seen.contains(QStringLiteral("--to"))) {
 		return fail(2, Text::tr("--move-point N and --to U,V go together."));
@@ -280,8 +296,32 @@ LevelUvEditCliResult runLevelUvEdit(const QStringList& arguments)
 			}
 		}
 	}
+	// Whole rows and columns of a patch's control points, as the UV tool's
+	// row and column handles take them.
+	for (const bool rows : {true, false}) {
+		const QString option = rows ? QStringLiteral("--rows") : QStringLiteral("--columns");
+		if (!seen.contains(option)) {
+			continue;
+		}
+		const int limit = rows ? layout.rows : layout.columns;
+		for (const QString& token : values.value(option).split(QLatin1Char(','), Qt::KeepEmptyParts)) {
+			bool ok = false;
+			const int number = token.trimmed().toInt(&ok);
+			if (!ok || number < 1 || number > limit) {
+				return fail(2, rows ? Text::tr("--rows takes row numbers from 1 to %1, separated by commas.").arg(limit)
+									: Text::tr("--columns takes column numbers from 1 to %1, separated by commas.").arg(limit));
+			}
+			for (const int index : levelUvToolPatchPoints(layout, rows ? LevelUvToolHandle::PatchRow : LevelUvToolHandle::PatchColumn, number - 1)) {
+				if (!chosen.contains(index)) {
+					chosen.append(index);
+				}
+			}
+		}
+	}
 	LevelUvEdit edit;
 	edit.allowValve220 = seen.contains(QStringLiteral("--allow-valve220"));
+	LevelUvToolEdit toolEdit;
+	toolEdit.allowValve220 = edit.allowValve220;
 	QString operation;
 	if (seen.contains(QStringLiteral("--move-point"))) {
 		operation = QStringLiteral("move-point");
@@ -310,6 +350,46 @@ LevelUvEditCliResult runLevelUvEdit(const QStringList& arguments)
 		} else {
 			edit.transform = move;
 		}
+	} else if (toolChange) {
+		// The camera UV tool's stretch or skew, through its own service: a
+		// face's stretch sets its scale values, so a classic face stays classic.
+		QPointF pivot = layout.centre();
+		if (seen.contains(QStringLiteral("--pivot"))) {
+			if (!parsePair(values.value(QStringLiteral("--pivot")), &pivot)) {
+				return fail(2, Text::tr("--pivot takes the texel the change keeps in place, as U,V."));
+			}
+		} else if (!chosen.isEmpty()) {
+			pivot = {};
+			for (const int index : std::as_const(chosen)) {
+				pivot += layout.uv[index];
+			}
+			pivot /= static_cast<double>(chosen.size());
+		}
+		toolEdit.pivot = pivot;
+		toolEdit.points = chosen;
+		if (seen.contains(QStringLiteral("--stretch"))) {
+			operation = QStringLiteral("stretch");
+			QPointF factors;
+			if (!parsePair(values.value(QStringLiteral("--stretch")), &factors) || factors.x() < 1.0 / 4096.0 || factors.y() < 1.0 / 4096.0
+				|| factors.x() > 4096.0 || factors.y() > 4096.0) {
+				return fail(2, Text::tr("--stretch takes factors along U and V from 1/4096 to 4096, as U,V; 2 doubles the texels across the surface."));
+			}
+			toolEdit.handle = LevelUvToolHandle::StretchBoth;
+			toolEdit.stretch = factors;
+			result.payload.insert(QStringLiteral("stretch"), QJsonArray{factors.x(), factors.y()});
+		} else {
+			const bool alongU = seen.contains(QStringLiteral("--skew-u"));
+			operation = alongU ? QStringLiteral("skew-u") : QStringLiteral("skew-v");
+			bool ok = false;
+			const double factor = QLocale::c().toDouble(values.value(alongU ? QStringLiteral("--skew-u") : QStringLiteral("--skew-v")), &ok);
+			if (!ok || !std::isfinite(factor) || std::abs(factor) > 4096.0) {
+				return fail(2, Text::tr("--skew-u and --skew-v take texels gained per texel away from the pivot, within 4096."));
+			}
+			toolEdit.handle = alongU ? LevelUvToolHandle::SkewS : LevelUvToolHandle::SkewT;
+			toolEdit.skew = alongU ? QPointF(factor, 0) : QPointF(0, factor);
+			result.payload.insert(QStringLiteral("skew"), factor);
+		}
+		result.payload.insert(QStringLiteral("pivot"), QJsonArray{pivot.x(), pivot.y()});
 	} else {
 		operation = QStringLiteral("rotate");
 		bool ok = false;
@@ -343,7 +423,15 @@ LevelUvEditCliResult runLevelUvEdit(const QStringList& arguments)
 	}
 	LevelSurfaceEditPlan plan;
 	LevelUvFit fit = LevelUvFit::Unchanged;
-	if (!prepareLevelUvEdit(document, layout, edit, &plan, &error, &fit) || !commitLevelSurfaceEdit(&document, plan, &error)) {
+	bool prepared = false;
+	if (toolChange) {
+		LevelUvToolResult toolResult;
+		prepared = prepareLevelUvToolEdit(document, layout, toolEdit, &plan, &toolResult, &error);
+		fit = toolResult.fit;
+	} else {
+		prepared = prepareLevelUvEdit(document, layout, edit, &plan, &error, &fit);
+	}
+	if (!prepared || !commitLevelSurfaceEdit(&document, plan, &error)) {
 		return fail(4, error);
 	}
 	LevelUvLayout after;
@@ -371,7 +459,10 @@ LevelUvEditCliResult runLevelUvEdit(const QStringList& arguments)
 		result.lines << Text::tr("Edited the texture coordinates of %1 in one undo step.").arg(levelMaterialTargetId(target));
 		break;
 	case LevelUvFit::Converted:
-		result.lines << Text::tr("Edited the texture coordinates of %1 in one undo step; the classic face became a Valve 220 face to hold the turn.")
+		result.lines << (toolChange ? Text::tr("Edited the texture coordinates of %1 in one undo step; the classic face became a Valve 220 face to "
+											   "hold the skew.")
+									: Text::tr("Edited the texture coordinates of %1 in one undo step; the classic face became a Valve 220 face to "
+											   "hold the turn."))
 							.arg(levelMaterialTargetId(target));
 		break;
 	case LevelUvFit::Approximated:

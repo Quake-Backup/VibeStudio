@@ -273,49 +273,38 @@ bool createLevelMap(const LevelMapCreateRequest& request, LevelMapDocument* docu
 	return true;
 }
 
-LevelMapSaveReport writeLevelDocument(const LevelMapDocument& document, const LevelDocumentSaveRequest& request)
+namespace
 {
-	LevelMapSaveReport report;
-	report.sourcePath = document.sourcePath;
-	report.mapName = document.mapName;
-	report.format = document.format;
-	report.outputPath = QFileInfo(request.path).absoluteFilePath();
-	report.dryRun = request.dryRun;
-	report.editState = document.editState;
-	report.summaryLines = levelMapStatisticsLines(document);
+// Publishes serialized map bytes: refuses links, directories and `protectedPath`,
+// checks a replaced source against its loaded hash, backs up replaced content
+// and commits atomically. Nothing changes on failure or cancellation.
+LevelMapSaveReport publishLevelMapBytes(LevelMapSaveReport report, const QByteArray& bytes, const LevelDocumentSaveRequest& request,
+										const QString& sourcePath, const QByteArray& sourceContentHash, const QString& protectedPath)
+{
 	QString error;
 	const auto stop = [&report, &error](const QString& message) {
 		report.errors << (message.isEmpty() ? error : message);
 		return report;
 	};
-	if (request.path.trimmed().isEmpty()) {
-		return stop(QCoreApplication::translate("VibeStudioLevelDocument", "Choose an output file for the map."));
-	}
 	const QFileInfo target(report.outputPath);
 	const bool existed = target.exists();
 	if (target.isSymLink() || target.isDir()) {
 		return stop(QCoreApplication::translate("VibeStudioLevelDocument", "A map output cannot be a directory or symbolic link."));
 	}
+	if (samePath(report.outputPath, protectedPath)) {
+		return stop(QCoreApplication::translate("VibeStudioLevelDocument",
+												"An export cannot replace the open map. Choose a different file name to export to."));
+	}
 	if (cancelled(request.isCancelled, &error)) {
 		return stop(error);
 	}
-	if (document.format != LevelMapFormat::DoomWad) {
-		report.sceneStorage = request.sceneStorage.value_or(document.sceneStorage);
-	}
-	const auto serialized = serializeLevelMap(document, report.sceneStorage);
-	report.warnings = serialized.warnings;
-	report.staleLumps = serialized.staleLumps;
-	if (!serialized.succeeded()) {
-		report.errors = serialized.errors;
-		return report;
-	}
-	report.contentHash = QCryptographicHash::hash(serialized.bytes, QCryptographicHash::Sha256);
-	const bool replacesSource = samePath(report.outputPath, document.sourcePath);
+	report.contentHash = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256);
+	const bool replacesSource = samePath(report.outputPath, sourcePath);
 	const QByteArray before = existed ? fileHash(report.outputPath, &error) : QByteArray();
 	if (existed && before.isEmpty()) {
 		return stop(error);
 	}
-	if (replacesSource && !document.sourceContentHash.isEmpty() && before != document.sourceContentHash) {
+	if (replacesSource && !sourceContentHash.isEmpty() && before != sourceContentHash) {
 		return stop(QCoreApplication::translate(
 			"VibeStudioLevelDocument",
 			"The map changed or was removed outside the editor. Save As to preserve these edits, or reload the changed file."));
@@ -336,7 +325,7 @@ LevelMapSaveReport writeLevelDocument(const LevelMapDocument& document, const Le
 	}
 	QSaveFile output(report.outputPath);
 	output.setDirectWriteFallback(false);
-	if (!output.open(QIODevice::WriteOnly) || !writeChunks(&output, serialized.bytes, &error, request.isCancelled)) {
+	if (!output.open(QIODevice::WriteOnly) || !writeChunks(&output, bytes, &error, request.isCancelled)) {
 		return stop(error.isEmpty() ? output.errorString() : error);
 	}
 	if (existed && request.keepBackup) {
@@ -387,6 +376,61 @@ LevelMapSaveReport writeLevelDocument(const LevelMapDocument& document, const Le
 	report.written = true;
 	report.editState = QStringLiteral("saved");
 	return report;
+}
+} // namespace
+
+LevelMapSaveReport writeLevelDocument(const LevelMapDocument& document, const LevelDocumentSaveRequest& request)
+{
+	LevelMapSaveReport report;
+	report.sourcePath = document.sourcePath;
+	report.mapName = document.mapName;
+	report.format = document.format;
+	report.outputPath = QFileInfo(request.path).absoluteFilePath();
+	report.dryRun = request.dryRun;
+	report.editState = document.editState;
+	report.summaryLines = levelMapStatisticsLines(document);
+	QString error;
+	const auto stop = [&report, &error](const QString& message) {
+		report.errors << (message.isEmpty() ? error : message);
+		return report;
+	};
+	if (request.path.trimmed().isEmpty()) {
+		return stop(QCoreApplication::translate("VibeStudioLevelDocument", "Choose an output file for the map."));
+	}
+	const QFileInfo target(report.outputPath);
+	if (target.isSymLink() || target.isDir()) {
+		return stop(QCoreApplication::translate("VibeStudioLevelDocument", "A map output cannot be a directory or symbolic link."));
+	}
+	if (cancelled(request.isCancelled, &error)) {
+		return stop(error);
+	}
+	if (document.format != LevelMapFormat::DoomWad) {
+		report.sceneStorage = request.sceneStorage.value_or(document.sceneStorage);
+	}
+	const auto serialized = serializeLevelMap(document, report.sceneStorage);
+	report.warnings = serialized.warnings;
+	report.staleLumps = serialized.staleLumps;
+	if (!serialized.succeeded()) {
+		report.errors = serialized.errors;
+		return report;
+	}
+	return publishLevelMapBytes(std::move(report), serialized.bytes, request, document.sourcePath, document.sourceContentHash, QString());
+}
+
+LevelMapSaveReport writeLevelMapBytes(const QByteArray& bytes, const LevelDocumentSaveRequest& request, const QString& protectedPath)
+{
+	LevelMapSaveReport report;
+	report.outputPath = QFileInfo(request.path).absoluteFilePath();
+	report.dryRun = request.dryRun;
+	if (request.path.trimmed().isEmpty()) {
+		report.errors << QCoreApplication::translate("VibeStudioLevelDocument", "Choose an output file for the map.");
+		return report;
+	}
+	if (bytes.isEmpty() || bytes.size() > kLevelMapMaxDocumentBytes) {
+		report.errors << QCoreApplication::translate("VibeStudioLevelDocument", "The map to write is empty or larger than 512 MiB.");
+		return report;
+	}
+	return publishLevelMapBytes(std::move(report), bytes, request, QString(), QByteArray(), protectedPath);
 }
 
 void adoptLevelDocumentSave(LevelMapDocument* document, const LevelMapSaveReport& report)

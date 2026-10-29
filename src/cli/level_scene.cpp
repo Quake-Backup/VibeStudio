@@ -18,7 +18,7 @@ LevelSceneCliResult runLevelScene(const QStringList& arguments) {
 	const auto failure = [](int code, const QString& message) { return LevelSceneCliResult{code, message, {}, {}}; };
 	const QSet<QString> globals{"--settings-file", "--locale", "--catalog-root"};
 	const QSet<QString> switches{"--cli", "--json", "--quiet", "--verbose", "--overwrite", "--dry-run", "--expand-layers"};
-	const QSet<QString> options{"--map-name", "--output", "--id", "--name", "--parent", "--objects", "--kind", "--visible", "--locked", "--offset", "--context", "--selection", "--mode", "--keys", "--protected", "--key", "--value", "--scene-format"};
+	const QSet<QString> options{"--map-name", "--output", "--id", "--name", "--parent", "--objects", "--kind", "--visible", "--locked", "--omit", "--offset", "--context", "--selection", "--mode", "--keys", "--protected", "--key", "--value", "--scene-format"};
 	QSet<QString> seen;
 	QHash<QString, QString> values;
 	QStringList positional;
@@ -57,7 +57,7 @@ LevelSceneCliResult runLevelScene(const QStringList& arguments) {
 		return failure(2,
 					   QCoreApplication::translate(
 						   "LevelSceneCli",
-						   "Expected editor scene list|select|translate|create|rename|move|assign|move-to-layer|visibility|lock|remove|reset|save|create-linked-duplicate|select-linked-groups|update-linked-groups|separate-linked-groups|extract-linked-groups|protect-properties|clear-protected-properties|set-protected-property <map> with "
+						   "Expected editor scene list|select|translate|create|rename|move|assign|move-to-layer|visibility|lock|omit-from-export|remove|reset|save|create-linked-duplicate|select-linked-groups|update-linked-groups|separate-linked-groups|extract-linked-groups|protect-properties|clear-protected-properties|set-protected-property <map> with "
 						   "operation options."));
 	}
 	// Linked group operations take TrenchBroom's names; the earlier short
@@ -107,6 +107,9 @@ LevelSceneCliResult runLevelScene(const QStringList& arguments) {
 	} else if (action == QStringLiteral("lock")) {
 		allowed << "--id" << "--locked";
 		required << "--id" << "--locked";
+	} else if (action == QStringLiteral("omit-from-export")) {
+		allowed << "--id" << "--omit";
+		required << "--id" << "--omit";
 	} else if (action == QStringLiteral("remove") || action == QStringLiteral("update-linked-groups") || action == QStringLiteral("separate-linked-groups")
 		|| action == QStringLiteral("select-linked-groups")) {
 		allowed << "--id";
@@ -278,6 +281,12 @@ LevelSceneCliResult runLevelScene(const QStringList& arguments) {
 			return failure(2, QCoreApplication::translate("LevelSceneCli", "Lock state must be true or false."));
 		}
 		applied = setLevelSceneLocked(&document, id, locked == QStringLiteral("true"), &error);
+	} else if (action == QStringLiteral("omit-from-export")) {
+		const auto omit = values.value(QStringLiteral("--omit"));
+		if (omit != QStringLiteral("true") && omit != QStringLiteral("false")) {
+			return failure(2, QCoreApplication::translate("LevelSceneCli", "Omit From Export must be true or false."));
+		}
+		applied = setLevelSceneOmitFromExport(&document, id, omit == QStringLiteral("true"), &error);
 	} else if (action == QStringLiteral("remove")) {
 		applied = removeLevelSceneNode(&document, id, &error);
 	} else if (action == QStringLiteral("reset")) {

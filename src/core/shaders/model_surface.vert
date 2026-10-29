@@ -15,7 +15,7 @@ VIBE_ATTRIBUTE(3) vec4 aColor;
 // Bit 0: the corner has finite texture coordinates on a textured surface.
 // Bit 1: the triangle is degenerate or not finite and draws nothing.
 // Bits 2..4: the edge opposite corner 0, 1 or 2 is a polygon diagonal, which
-// the edge overlay leaves out.
+// the edge overlay leaves out. Bit 5: the face grid is drawn on it.
 VIBE_ATTRIBUTE(4) uint aInfo;
 // Bit 0: highlighted (selected or stroked). Bits 2..4: the edge opposite
 // corner 0, 1 or 2 is selected.
@@ -37,6 +37,14 @@ VIBE_UNIFORMS {
 	// x: hovered triangle; y: first triangle of this draw; z: 1 culls back
 	// faces; w: 0 opaque pass, 1 first translucent layer, 2 a deeper layer.
 	ivec4 iparams;
+	// x, y: fog start and end, distances from the eye; z: face grid spacing
+	// in world units (0 draws none); w: 1 shades faces by their direction.
+	vec4 view;
+	// rgb: fog colour; a: the most of it a face takes (0: no fog).
+	vec4 fogColor;
+	// x: face grid line opacity; y: line width in logical pixels; z: in
+	// orthographic views, the view depth fog distances count from.
+	vec4 gridParams;
 };
 
 VIBE_VARYING_OUT(0) vec2 vUv;
@@ -45,8 +53,11 @@ VIBE_VARYING_OUT(1) vec3 vBarycentricW;
 VIBE_FLAT_OUT(2) vec4 vShade;
 VIBE_FLAT_OUT(3) int vTriangle;
 // Bit 0 highlighted, 1 hovered, 2..4 selected edges, 5 textured, 6..8
-// polygon diagonals.
+// polygon diagonals, 9..10 the axis the face is most nearly square to, 11
+// face grid.
 VIBE_FLAT_OUT(4) uint vFlags;
+// World position, for fog and the face grid.
+VIBE_VARYING_OUT(5) vec3 vWorld;
 
 void main()
 {
@@ -58,6 +69,7 @@ void main()
 	bool front = facing > 0.0;
 	vUv = aUv;
 	vTriangle = triangle;
+	vWorld = aPosition;
 	if ((aInfo & 2u) != 0u || (iparams.z != 0 && !front)) {
 		gl_Position = VIBE_DISCARDED_POSITION;
 		vBarycentricW = vec3(0.0);
@@ -71,7 +83,8 @@ void main()
 	if (!front) {
 		lambert = -lambert;
 	}
-	float shade = clamp(lambert, 0.0, 1.0);
+	// Unshaded faces show their full colour, whichever way they face.
+	float shade = view.w > 0.5 ? clamp(lambert, 0.0, 1.0) : 1.0;
 	// 24 shade steps, as the studio has always drawn flat faces.
 	float t = floor(shade * 23.0 + 0.5) / 23.0;
 	bool highlighted = (aFlags & 1u) != 0u;
@@ -83,7 +96,10 @@ void main()
 	} else {
 		vShade = vec4(floor(aColor.rgb * 255.0 * (0.22 + 0.78 * t) + 0.5) / 255.0, 1.0);
 	}
-	uint flags = (aFlags & 29u) | (textured ? 32u : 0u) | (triangle == iparams.x ? 2u : 0u) | (((aInfo >> 2u) & 7u) << 6u);
+	vec3 across = abs(normal);
+	uint axis = across.x >= across.y && across.x >= across.z ? 0u : (across.y >= across.z ? 1u : 2u);
+	uint flags = (aFlags & 29u) | (textured ? 32u : 0u) | (triangle == iparams.x ? 2u : 0u) | (((aInfo >> 2u) & 7u) << 6u) | (axis << 9u)
+		| ((aInfo & 32u) != 0u ? 2048u : 0u);
 	vFlags = flags;
 	vec4 clip = viewProjection * vec4(aPosition, 1.0);
 	// Screen-linear barycentrics: the fragment multiplies by gl_FragCoord.w,

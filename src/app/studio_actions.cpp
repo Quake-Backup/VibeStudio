@@ -10,8 +10,10 @@
 
 #include <QAbstractItemView>
 #include <QAbstractButton>
+#include <QAbstractSpinBox>
 #include <QApplication>
 #include <QColor>
+#include <QComboBox>
 #include <QCoreApplication>
 #include <QEvent>
 #include <QElapsedTimer>
@@ -20,6 +22,7 @@
 #include <QFontMetrics>
 #include <QKeyEvent>
 #include <QKeySequence>
+#include <QKeySequenceEdit>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -28,6 +31,7 @@
 #include <QMenuBar>
 #include <QPainter>
 #include <QPalette>
+#include <QPlainTextEdit>
 #include <QPoint>
 #include <QProgressBar>
 #include <QPushButton>
@@ -37,6 +41,7 @@
 #include <QStyle>
 #include <QStyleOptionViewItem>
 #include <QStyledItemDelegate>
+#include <QTextEdit>
 #include <QToolBar>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -673,6 +678,7 @@ void StudioCommandRegistry::installShortcuts()
 	m_conflicts.clear();
 	m_shortcuts.clear();
 	m_sequences.clear();
+	m_typingGuardKeys.clear();
 	const QHash<QString, QStringList> overrides = profileOverrides();
 
 	// A sequence belongs to one window-wide command, or is shared by commands
@@ -796,7 +802,16 @@ void StudioCommandRegistry::installShortcuts()
 				scope->addAction(action);
 			}
 		}
-		action->setShortcutContext(scopes.isEmpty() ? Qt::WindowShortcut : Qt::WidgetWithChildrenShortcut);
+		// The focus layer's filter runs its claims itself, so Qt's own map
+		// matches them only on the surface widget, never in a field inside it
+		// that the filter leaves to the key's other owner.
+		const bool focusClaim = claims && layer == QLatin1String(kShortcutFocusClaims);
+		action->setShortcutContext(scopes.isEmpty() ? Qt::WindowShortcut : (focusClaim ? Qt::WidgetShortcut : Qt::WidgetWithChildrenShortcut));
+		if (registration->group == StudioCommandGroup::Edit && !scopes.isEmpty() && !focusClaim) {
+			for (const QKeySequence& sequence : std::as_const(accepted)) {
+				m_typingGuardKeys[normalizedSequenceKey(sequence)] << registration->commandId;
+			}
+		}
 		// Qt's own list form: "; " between keys, so a chord ("Ctrl+K, Ctrl+P")
 		// never reads as two keys.
 		const QString shortcutText = QKeySequence::listToString(accepted, QKeySequence::PortableText);
@@ -828,6 +843,156 @@ void StudioCommandRegistry::refreshShortcutFocus()
 		keys.removeIf([&documentKeys](const QKeySequence& key) { return documentKeys.contains(key); });
 		if (it.value()->shortcuts() != keys) { it.value()->setShortcuts(keys); }
 	}
+}
+
+namespace {
+
+// Widgets that type: a key they take for themselves is never claimed.
+bool takesTyping(const QWidget* widget)
+{
+	if (qobject_cast<const QLineEdit*>(widget) || qobject_cast<const QAbstractSpinBox*>(widget) || qobject_cast<const QTextEdit*>(widget)
+		|| qobject_cast<const QPlainTextEdit*>(widget) || qobject_cast<const QKeySequenceEdit*>(widget)) {
+		return true;
+	}
+	const auto* combo = qobject_cast<const QComboBox*>(widget);
+	return combo && combo->isEditable();
+}
+
+// Runs the focus-layer claims (StudioCommandRegistry::kShortcutFocusClaims):
+// with the keyboard focus inside a claiming command's surface, its key is
+// taken ahead of any window-wide command's, which keeps it everywhere else.
+// It also runs the typing guards (setShortcutTypingGuards): a key an editing
+// command would take from a field that types goes to the field instead.
+class FocusClaimFilter final : public QObject {
+public:
+	FocusClaimFilter(std::function<QAction*(const QWidget*, const QKeySequence&, bool)> find,
+		std::function<bool(const QWidget*, const QKeySequence&)> guarded)
+		: m_find(std::move(find))
+		, m_guarded(std::move(guarded))
+	{
+	}
+
+protected:
+	bool eventFilter(QObject* watched, QEvent* event) override
+	{
+		if (m_probing || (event->type() != QEvent::ShortcutOverride && event->type() != QEvent::KeyPress)) {
+			return false;
+		}
+		auto* widget = qobject_cast<QWidget*>(watched);
+		if (!widget || widget != QApplication::focusWidget()) {
+			return false;
+		}
+		auto* key = static_cast<QKeyEvent*>(event);
+		const int code = key->key();
+		if (code == 0 || code == Qt::Key_unknown || code == Qt::Key_Control || code == Qt::Key_Shift || code == Qt::Key_Alt || code == Qt::Key_Meta) {
+			return false;
+		}
+		const QKeySequence pressed(QKeyCombination(key->modifiers() & ~Qt::KeypadModifier, Qt::Key(code)));
+		const bool typing = takesTyping(widget);
+		// Editing commands never claim a key from a field that types: the
+		// field keeps it, and so does the key's window-wide owner.
+		QAction* action = m_find(widget, pressed, typing);
+		// Only the override decides whether a shortcut runs; the key press
+		// that follows goes to the field as usual.
+		const bool guarded = !action && typing && event->type() == QEvent::ShortcutOverride && m_guarded(widget, pressed);
+		if (!action && !guarded) {
+			return false;
+		}
+		// A field keeps a key it would type or edit with, as Qt's own
+		// shortcut map lets it: a claim remapped to a printable key still
+		// types into the line edits and spin boxes inside the surface.
+		if (typing) {
+			QKeyEvent probe(QEvent::ShortcutOverride, key->key(), key->modifiers(), key->text(), key->isAutoRepeat(), key->count());
+			probe.ignore();
+			m_probing = true;
+			QCoreApplication::sendEvent(widget, &probe);
+			m_probing = false;
+			if (probe.isAccepted()) {
+				return false;
+			}
+		}
+		// A guarded key goes to the field as a plain key press, which it may
+		// use or ignore; no shortcut runs from it.
+		event->accept();
+		if (action && event->type() == QEvent::KeyPress && !key->isAutoRepeat()) {
+			action->trigger();
+		}
+		return true;
+	}
+
+private:
+	std::function<QAction*(const QWidget*, const QKeySequence&, bool)> m_find;
+	std::function<bool(const QWidget*, const QKeySequence&)> m_guarded;
+	bool m_probing = false;
+};
+
+bool holdsFocus(const QList<QPointer<QWidget>>& scopes, const QWidget* focus)
+{
+	return std::any_of(scopes.cbegin(), scopes.cend(), [focus](const QPointer<QWidget>& scope) {
+		return scope && (scope == focus || scope->isAncestorOf(focus));
+	});
+}
+
+} // namespace
+
+QAction* StudioCommandRegistry::focusClaimFor(const QWidget* focus, const QKeySequence& pressed, bool typing) const
+{
+	for (auto it = m_scopeClaims.cbegin(); it != m_scopeClaims.cend(); ++it) {
+		if (it.value() != QLatin1String(kShortcutFocusClaims) || !holdsFocus(m_shortcutScopes.value(it.key()), focus)) {
+			continue;
+		}
+		for (auto action = m_actions.cbegin(); action != m_actions.cend(); ++action) {
+			if (normalizedToken(action.key()) != it.key() || !action.value()->isEnabled() || !m_sequences.value(action.key()).contains(pressed)) {
+				continue;
+			}
+			if (typing) {
+				const auto registration = std::find_if(m_registrations.cbegin(), m_registrations.cend(),
+					[&action](const StudioCommandRegistration& candidate) { return candidate.commandId == action.key(); });
+				if (registration != m_registrations.cend() && registration->group == StudioCommandGroup::Edit) {
+					continue;
+				}
+			}
+			return action.value();
+		}
+	}
+	return nullptr;
+}
+
+bool StudioCommandRegistry::typingGuardTakes(const QWidget* focus, const QKeySequence& pressed) const
+{
+	const auto ids = m_typingGuardKeys.constFind(normalizedSequenceKey(pressed));
+	if (ids == m_typingGuardKeys.constEnd() || !holdsFocus(m_typingGuards, focus)) {
+		return false;
+	}
+	return std::any_of(ids->cbegin(), ids->cend(), [this, focus](const QString& id) {
+		const QAction* action = m_actions.value(id, nullptr);
+		return action && action->isEnabled() && holdsFocus(m_shortcutScopes.value(normalizedToken(id)), focus);
+	});
+}
+
+void StudioCommandRegistry::setShortcutTypingGuards(const QList<QWidget*>& surfaces)
+{
+	m_typingGuards.clear();
+	for (QWidget* surface : surfaces) {
+		if (surface) {
+			m_typingGuards.push_back(surface);
+		}
+	}
+	if (!m_typingGuards.isEmpty()) {
+		ensureFocusWatcher();
+	}
+}
+
+void StudioCommandRegistry::ensureFocusWatcher()
+{
+	if (m_focusWatcher || !qApp) {
+		return;
+	}
+	// Keys reach the application's filters before any shortcut.
+	m_focusWatcher = std::make_unique<FocusClaimFilter>(
+		[this](const QWidget* focus, const QKeySequence& pressed, bool typing) { return focusClaimFor(focus, pressed, typing); },
+		[this](const QWidget* focus, const QKeySequence& pressed) { return typingGuardTakes(focus, pressed); });
+	qApp->installEventFilter(m_focusWatcher.get());
 }
 
 void StudioCommandRegistry::setUserShortcuts(const QHash<QString, QStringList>& shortcuts)
@@ -982,6 +1147,9 @@ void StudioCommandRegistry::setShortcutScopeClaims(const QString& commandId, boo
 		m_scopeClaims.insert(token, layer);
 	} else {
 		m_scopeClaims.remove(token);
+	}
+	if (claims && layer == QLatin1String(kShortcutFocusClaims)) {
+		ensureFocusWatcher();
 	}
 	installShortcuts();
 }

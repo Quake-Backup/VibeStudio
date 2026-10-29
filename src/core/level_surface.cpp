@@ -788,24 +788,13 @@ bool assignTextureValues(LevelMapBrushFace *face, const LevelTextureResetRequest
 		return true;
 	}
 	if (face->explicitTextureMatrix) {
-		if (imageSize.width() <= 0 || imageSize.height() <= 0) {
-			return fail(error, SurfaceText::tr("Material %1 needs a known image size. Open its package or provide an explicit texture size.")
-								   .arg(face->textureName));
+		// Radiant's reading of the matrix (levelTextureValues), rewritten.
+		LevelTextureValues current;
+		if (!levelTextureValues(*face, imageSize, &current, error)) {
+			return false;
 		}
 		auto &m = face->textureMatrix;
 		const double width = imageSize.width(), height = imageSize.height();
-		// Radiant reads a matrix in texels as a scale from each row's length,
-		// negative where the row's own axis runs backwards, a turn from the
-		// first row and a shift from the offsets.
-		const double lengthU = std::hypot(m[0], m[1]) * width, lengthV = std::hypot(m[3], m[4]) * height;
-		if (!std::isfinite(lengthU) || !std::isfinite(lengthV) || lengthU < 1e-12 || lengthV < 1e-12) {
-			return fail(error, SurfaceText::tr("The face's texture matrix is collapsed. Reset its mapping before setting its values."));
-		}
-		const double scaleU = (m[0] < 0 ? -1.0 : 1.0) / lengthU, scaleV = (m[4] < 0 ? -1.0 : 1.0) / lengthV;
-		double rotation = std::acos(std::clamp(m[0] * width / lengthU, -1.0, 1.0)) * 180.0 / 3.14159265358979323846;
-		if (m[1] > 0) {
-			rotation = -rotation;
-		}
 		if (request.setShiftU) {
 			m[2] = -request.shiftU / width;
 		}
@@ -813,14 +802,14 @@ bool assignTextureValues(LevelMapBrushFace *face, const LevelTextureResetRequest
 			m[5] = request.shiftV / height;
 		}
 		if (request.setScaleU) {
-			m[0] *= scaleU / request.scaleU;
-			m[1] *= scaleU / request.scaleU;
+			m[0] *= current.scaleU / request.scaleU;
+			m[1] *= current.scaleU / request.scaleU;
 		}
 		if (request.setScaleV) {
-			m[3] *= scaleV / request.scaleV;
-			m[4] *= scaleV / request.scaleV;
+			m[3] *= current.scaleV / request.scaleV;
+			m[4] *= current.scaleV / request.scaleV;
 		}
-		return !request.setRotation || turn(face, request.rotation - rotation, true, error);
+		return !request.setRotation || turn(face, request.rotation - current.rotation, true, error);
 	}
 	if (request.setRotation) {
 		// Valve 220 axes carry the orientation, so they turn by the change.
@@ -844,6 +833,64 @@ bool assignTextureValues(LevelMapBrushFace *face, const LevelTextureResetRequest
 	return true;
 }
 } // namespace
+
+// Workflow reference: NRC radiant/brush_primit.cpp TexMatToFakeTexCoords at
+// 449778b3 (GPL-2.0-or-later), and TB FaceAttribsEditor's offset, scale and
+// angle fields at 4c756be1 (GPL-3.0-or-later). Original code; see
+// docs/CREDITS.md.
+bool levelTextureValues(const LevelMapBrushFace &face, QSize imageSize, LevelTextureValues *values, QString *error)
+{
+	if (error) {
+		error->clear();
+	}
+	LevelTextureValues result;
+	if (face.explicitTextureMatrix) {
+		if (imageSize.width() <= 0 || imageSize.height() <= 0) {
+			return fail(error, SurfaceText::tr("Material %1 needs a known image size. Open its package or provide an explicit texture size.")
+								   .arg(face.textureName));
+		}
+		const auto &m = face.textureMatrix;
+		const double width = imageSize.width(), height = imageSize.height();
+		// Radiant reads a matrix in texels as a scale from each row's length,
+		// negative where the row's own axis runs backwards, a turn from the
+		// first row and a shift from the offsets.
+		const double lengthU = std::hypot(m[0], m[1]) * width, lengthV = std::hypot(m[3], m[4]) * height;
+		if (!std::isfinite(lengthU) || !std::isfinite(lengthV) || lengthU < 1e-12 || lengthV < 1e-12) {
+			return fail(error, SurfaceText::tr("The face's texture matrix is collapsed. Reset its mapping before setting its values."));
+		}
+		result.scaleU = (m[0] < 0 ? -1.0 : 1.0) / lengthU;
+		result.scaleV = (m[4] < 0 ? -1.0 : 1.0) / lengthV;
+		result.rotation = std::acos(std::clamp(m[0] * width / lengthU, -1.0, 1.0)) * 180.0 / 3.14159265358979323846;
+		if (m[1] > 0) {
+			result.rotation = -result.rotation;
+		}
+		result.shiftU = -m[2] * width;
+		result.shiftV = m[5] * height;
+	} else if (face.explicitTextureAxes) {
+		result = {face.uOffset, face.vOffset, face.scaleX, face.scaleY, face.rotation};
+	} else {
+		result = {face.shiftX, face.shiftY, face.scaleX, face.scaleY, face.rotation};
+	}
+	if (!std::isfinite(result.shiftU) || !std::isfinite(result.shiftV) || !std::isfinite(result.scaleU) || !std::isfinite(result.scaleV)
+		|| !std::isfinite(result.rotation)) {
+		return fail(error, SurfaceText::tr("The face's texture values are not finite. Reset its mapping first."));
+	}
+	if (values) {
+		*values = result;
+	}
+	return true;
+}
+
+bool assignLevelTextureValues(LevelMapBrushFace *face, const LevelTextureResetRequest &values, QSize imageSize, QString *error)
+{
+	if (error) {
+		error->clear();
+	}
+	if (!face) {
+		return fail(error, SurfaceText::tr("Missing brush face."));
+	}
+	return assignTextureValues(face, values, imageSize, error);
+}
 
 bool levelSurfaceOperationNeedsSize(LevelSurfaceOperation operation, bool repeatsCoordinates)
 {

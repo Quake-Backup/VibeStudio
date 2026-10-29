@@ -143,7 +143,10 @@ int main(int argc, char** argv)
 		{"camera.driveKeys.up", "PgUp"}, {"camera.lookToggleKey", "Ctrl+Space"}};
 	EditorProfileDescriptor hammer; editorProfileForId("hammer", &hammer);
 	LevelEditorControls keyed; QJsonObject normalizedKeys;
-	ok &= expect(levelGestureFields().size() == 102, "102 shared pointer, editing (incl. grid snap, quick-turn and flip pivot policies), clipper (incl. camera clip-point drag style), component insertion, movement, selection and key preferences");
+	ok &= expect(levelGestureFields().size() == 110, "110 shared pointer, editing (incl. grid snap, quick-turn and flip pivot policies and the Rotate tool's free turn), clipper (incl. camera clip-point drag style), component insertion, movement, selection, Radiant framing, camera speed and drive keys, plane and extrude drag, and key preferences");
+	ok &= expect(netRadiantCustomLevelControls().plan.radiantFraming && !trenchBroomLevelControls().plan.radiantFraming && !vibeStudioLevelControls().plan.radiantFraming
+		&& levelGestureValues(netRadiantCustomLevelControls()).value(QStringLiteral("plan.radiantFraming")).toString() == QStringLiteral("on"),
+		"Radiant framing is a NetRadiant Custom default and a plan gesture field");
 	ok &= expect(trenchBroomLevelControls().plan.componentAxisDrag && trenchBroomLevelControls().camera.componentAxisDrag
 		&& !base.plan.componentAxisDrag && !base.camera.componentAxisDrag,"native world-axis dragging is a TB profile default");
 	ok &= expect(trenchBroomLevelControls().plan.componentInsertModifiers == Qt::ShiftModifier
@@ -381,7 +384,7 @@ int main(int argc, char** argv)
 		ok &= expect(clipMovement.value("camera.clipDragStyle") == "view", "CLI persists view-axis clip movement");
 		cli({"gestures", "netradiant-custom", "--reset"},0);
 		for (const auto& field : keyResult.value("fields").toArray()) { const auto item = field.toObject(); fieldTypes.insert(item.value("id").toString(), item.value("type").toString()); }
-		ok &= expect(fieldTypes.size() == 102 && fieldTypes.value("plan.panButtons") == "choice"
+		ok &= expect(fieldTypes.size() == 110 && fieldTypes.value("plan.panButtons") == "choice"
 			&& fieldTypes.value("camera.flyKeys.forward") == "motion-key" && fieldTypes.value("camera.lookToggleKey") == "toggle-key"
 			&& fieldTypes.value("plan.panHoldKey") == "hold-key" && fieldTypes.value("camera.lookHoldKey") == "hold-key", "CLI describes all field types");
 		const auto lasso = cli({"gestures", "trenchbroom", "--set", "plan.componentBandToggles=off", "--set", "camera.componentBandToggles=off"}, 0).value("values").toObject();

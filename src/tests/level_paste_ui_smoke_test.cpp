@@ -8,6 +8,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QClipboard>
+#include <QComboBox>
 #include <QDialog>
 #include <QDir>
 #include <QElapsedTimer>
@@ -231,6 +232,51 @@ int main(int argc, char** argv)
 				expect(settle(camera), "aim camera at original brush");
 				paste("map.pasteAtCursor");
 				checkAndUndo({16, 32, 64, true}, "camera cursor lands on existing brush top");
+				if (camera->isPerspective()) {
+					// The camera's far clip reaches the paste (camera-far-clip): 64
+					// units ahead of a camera 96 units over the brush top, the top is
+					// out of reach, so the copy lands where the paste service puts a
+					// miss pulled in to the clip plane the camera hands over.
+					auto* farClip = action("map.previewFarClip");
+					auto* distance = shell.findChild<QComboBox*>("levelViewFarClipDistance");
+					if (expect(farClip && distance && distance->findData(5) >= 0, "far clip controls")) {
+						distance->setCurrentIndex(distance->findData(5));
+						if (!farClip->isChecked()) {
+							farClip->trigger();
+						}
+						expect(settle(camera) && camera->farClip() == 64.0, "a 64-unit far clip", QString::number(camera->farClip()));
+						focus(camera);
+						camera->rememberCommandPointer({camera->width() * 0.5, camera->height() * 0.5});
+						LevelPastePlacement placement;
+						placement.mode = LevelPasteMode::ViewRay;
+						placement.grid = plan->snapToGrid() ? plan->gridSize() : 0;
+						const ModelPickRay ray = camera->viewRay(camera->commandPosition());
+						const ModelVec3 forward = camera->viewForward();
+						placement.rayOrigin = {ray.origin.x, ray.origin.y, ray.origin.z, true};
+						placement.rayForwardOnly = ray.forwardOnly;
+						placement.direction = {ray.direction.x, ray.direction.y, ray.direction.z, true};
+						placement.viewDirection = {forward.x, forward.y, forward.z, true};
+						ModelVec3 clipPoint;
+						ModelVec3 clipNormal;
+						expect(camera->farClipPlane(&clipPoint, &clipNormal), "the camera hands over its far clip plane");
+						placement.farClipPoint = {clipPoint.x, clipPoint.y, clipPoint.z, true};
+						placement.farClipNormal = {clipNormal.x, clipNormal.y, clipNormal.z, true};
+						placement.filterBrushes = true;
+						placement.visibleBrushes = {0};
+						LevelMapDocument clipped = shell.levelDocument();
+						QString problem;
+						LevelMapVec3 low;
+						LevelMapVec3 high;
+						if (expect(pasteLevelMapTextAt(&clipped, clipboard, placement, {}, &problem) && levelMapSelectionBounds(clipped, &low, &high),
+								"the paste service places the copy at the clip", problem)) {
+							expect(low.z > 64.5, "the clipped placement stays off the brush beyond the clip", QString::number(low.z));
+							paste("map.pasteAtCursor");
+							checkAndUndo(low, "camera cursor paste stops at the far clip");
+						}
+						farClip->trigger();
+						expect(!farClip->isChecked() && settle(camera) && camera->farClip() == 0.0, "the far clip is off again");
+					}
+				}
 				if (!camera->isPerspective()) {
 					// Pan the orbit focus into empty space and keep its depth.
 					camera->frameBounds({184, 284, 144}, {216, 316, 176});

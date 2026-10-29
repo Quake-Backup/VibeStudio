@@ -90,6 +90,16 @@ LevelScenePanel::LevelScenePanel(LevelMapDocument* document, QWidget* parent) : 
 	connect(m_lock, &QCheckBox::clicked, this, [this](bool locked) {
 		edit([&](QString* error) { return setLevelSceneLocked(m_document, currentId(), locked, error); });
 	});
+	// TrenchBroom's Omit From Export (LayerEditor at 4c756be1, GPL-3.0-or-later;
+	// workflow reference only): Export Map leaves the layer out.
+	m_omit = new QCheckBox(tr("Omit from export"), this);
+	m_omit->setObjectName(QStringLiteral("levelSceneOmitFromExport"));
+	m_omit->setAccessibleName(tr("Omit layer from export"));
+	m_omit->setToolTip(tr("Export Map leaves this layer, its groups and its objects out of the copy it writes. Saving, builds and packages still include them."));
+	form->addRow(m_omit);
+	connect(m_omit, &QCheckBox::clicked, this, [this](bool omit) {
+		edit([&](QString* error) { return setLevelSceneOmitFromExport(m_document, currentId(), omit, error); });
+	});
 	auto* actions = new QWidget(this);
 	auto* grid = new QGridLayout(actions);
 	grid->setContentsMargins(0, 0, 0, 0);
@@ -228,6 +238,18 @@ LevelScenePanel::LevelScenePanel(LevelMapDocument* document, QWidget* parent) : 
 QString LevelScenePanel::currentId() const {
 	return m_tree->currentItem() ? m_tree->currentItem()->data(0, Qt::UserRole).toString() : QString();
 }
+bool LevelScenePanel::showNode(const QString& id) {
+	for (QTreeWidgetItemIterator it(m_tree); *it; ++it) {
+		if ((*it)->data(0, Qt::UserRole).toString() == id) {
+			m_tree->setCurrentItem(*it);
+			m_tree->scrollToItem(*it);
+			m_tree->setFocus(Qt::OtherFocusReason);
+			return true;
+		}
+	}
+	m_tree->setFocus(Qt::OtherFocusReason);
+	return false;
+}
 bool LevelScenePanel::current() const {
 	return m_document && m_document->revision == m_revision && m_document->sourcePath == m_source && m_document->mapName == m_mapName &&
 		   m_document->sourceContentHash == m_hash;
@@ -264,6 +286,10 @@ void LevelScenePanel::updateControls() {
 	m_lock->setEnabled(node && !inherited);
 	m_lock->setChecked(node && (node->locked || inherited));
 	m_lock->setText(inherited ? tr("Locked by parent") : tr("Lock editing"));
+	const QSignalBlocker omitSignals(m_omit);
+	m_omit->setEnabled(node && node->kind == LevelSceneNodeKind::Layer
+		&& (m_document->format == LevelMapFormat::QuakeMap || m_document->format == LevelMapFormat::Quake3Map));
+	m_omit->setChecked(node && levelSceneOmittedFromExport(*node));
 	m_rename->setEnabled(node);
 	m_move->setEnabled(node && node->kind == LevelSceneNodeKind::Group && !locked.contains(node->id));
 	m_remove->setEnabled(node && !locked.contains(node->id));
@@ -334,6 +360,9 @@ void LevelScenePanel::refresh() {
 		}
 		if (lockedNodes.contains(node.id)) {
 			kind += tr(" · Locked");
+		}
+		if (levelSceneOmittedFromExport(node)) {
+			kind += tr(" · Omitted from export");
 		}
 		if (!node.linkId.isEmpty()) {
 			kind += node.linkOutOfSync ? tr(" · Linked, out of sync") : tr(" · Linked");

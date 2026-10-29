@@ -12,6 +12,7 @@
 #include <QSet>
 #include <QStandardPaths>
 #include <QUuid>
+#include <algorithm>
 #include <cmath>
 
 namespace vibestudio {
@@ -139,6 +140,62 @@ bool linkLevelPlanNavigation(std::array<PlanViewState, 3>* plans, int source, co
 	}
 	if (links.zoom) { for (auto& plan : candidate) { plan.zoom = (*plans)[source].zoom; } }
 	*plans = candidate;
+	return true;
+}
+
+QPointF levelPlanCentreFor(int projection, const std::array<double, 3>& point)
+{
+	const auto axes = planAxes[static_cast<std::size_t>(std::clamp(projection, 0, 2))];
+	return QPointF(point[static_cast<std::size_t>(axes[0])], point[static_cast<std::size_t>(axes[1])]);
+}
+
+// Workflow reference: TB MapView2D::reset2dCameras at 4c756be1
+// (GPL-3.0-or-later): each other camera keeps its position along its own
+// view axis and along the source's, and takes the rest and the zoom.
+// Original Qt implementation; see docs/CREDITS.md.
+bool resetLevelPlanNavigation(std::array<PlanViewState, 3>* plans, int source, QString* error)
+{
+	if (!plans || source < 0 || source >= 3) { return fail(error, QCoreApplication::translate("LevelNavigation", "Choose an existing plan pane as the navigation source.")); }
+	for (const auto& plan : *plans) { if (!validatePlanViewState(plan, error)) { return false; } }
+	auto candidate = *plans;
+	const PlanViewState& from = (*plans)[static_cast<std::size_t>(source)];
+	const auto fromAxes = planAxes[static_cast<std::size_t>(from.projection)];
+	for (int index = 0; index < 3; ++index) {
+		if (index == source) { continue; }
+		PlanViewState& plan = candidate[static_cast<std::size_t>(index)];
+		const auto axes = planAxes[static_cast<std::size_t>(plan.projection)];
+		std::array<double, 2> centre {plan.center.x(), plan.center.y()};
+		for (std::size_t k = 0; k < 2; ++k) {
+			if (axes[k] == fromAxes[0]) { centre[k] = from.center.x(); }
+			else if (axes[k] == fromAxes[1]) { centre[k] = from.center.y(); }
+		}
+		plan.center = QPointF(centre[0], centre[1]);
+		plan.zoom = from.zoom;
+	}
+	*plans = candidate;
+	return true;
+}
+
+// Workflow reference: NRC XYWnd::FocusOnBounds at 449778b3
+// (GPL-2.0-or-later). Original Qt implementation; see docs/CREDITS.md.
+bool levelPlanFocusState(int projection, const std::array<double, 3>& mins, const std::array<double, 3>& maxs, const QSizeF& viewSize,
+	PlanViewState* state, QString* error)
+{
+	if (!state || projection < 0 || projection > 2 || !vectorValid(mins) || !vectorValid(maxs)) {
+		return fail(error, QCoreApplication::translate("LevelNavigation", "The plan view has an invalid projection, centre or zoom."));
+	}
+	if (!std::isfinite(viewSize.width()) || !std::isfinite(viewSize.height()) || viewSize.width() <= 0.0 || viewSize.height() <= 0.0) {
+		return fail(error, QCoreApplication::translate("LevelNavigation", "The plan view has no size to frame in."));
+	}
+	const auto axes = planAxes[static_cast<std::size_t>(projection)];
+	const auto a = static_cast<std::size_t>(axes[0]);
+	const auto b = static_cast<std::size_t>(axes[1]);
+	const double halfWidth = std::max(kLevelPlanFocusMinimumHalfExtent, std::abs(maxs[a] - mins[a]) * 0.5);
+	const double halfHeight = std::max(kLevelPlanFocusMinimumHalfExtent, std::abs(maxs[b] - mins[b]) * 0.5);
+	const double zoom = std::clamp(std::min(viewSize.width() / (3.0 * halfWidth), viewSize.height() / (3.0 * halfHeight)), 0.0025, 64.0);
+	const PlanViewState candidate {projection, QPointF((mins[a] + maxs[a]) * 0.5, (mins[b] + maxs[b]) * 0.5), zoom};
+	if (!validatePlanViewState(candidate, error)) { return false; }
+	*state = candidate;
 	return true;
 }
 

@@ -1,5 +1,7 @@
 #include "app/application_shell.h"
+#include "app/map_viewport.h"
 #include "app/model_viewport.h"
+#include "core/level_object_manipulator.h"
 #include "core/level_scene_locks.h"
 #include <QStatusBar>
 #include <algorithm>
@@ -18,6 +20,19 @@ void ApplicationShell::connectLevelCameraResize()
 		if (!active) { return; }
 		source->revision = m_levelMapDocument.revision; source->loadSerial = m_levelMapLoadSerial;
 		source->selection = m_levelMapDocument.selection;
+		// The Shear Tool previews the selection's wire, measured once as it begins.
+		if (m_levelMap3D->selectionShearMode()) {
+			m_levelMap3D->setSelectionShearPreviewEdges(levelObjectManipulatorEdges(m_levelMapDocument,m_levelMapDocument.selection));
+		}
+	});
+	// TrenchBroom's Shear Tool in the camera: the side slid, the opposite one kept.
+	connect(m_levelMap3D,&ModelViewport::selectionShearRequested,this,[this,source](int axis,int side,double dx,double dy,double dz) {
+		if (source->revision != m_levelMapDocument.revision || source->loadSerial != m_levelMapLoadSerial
+			|| source->selection != m_levelMapDocument.selection) {
+			statusBar()->showMessage(tr("The map or selection changed. The shear was cancelled."));
+			refreshLevelCameraResize(); return;
+		}
+		shearLevelObjectsFromView(axis,side,{dx,dy,dz,true},{},nullptr);
 	});
 	connect(m_levelMap3D,&ModelViewport::selectionResizeRequested,this,[this,source](const ResizeBox& box) {
 		if (source->revision != m_levelMapDocument.revision || source->loadSerial != m_levelMapLoadSerial
@@ -34,8 +49,15 @@ void ApplicationShell::refreshLevelCameraResize()
 {
 	if (!m_levelMap3D) { return; }
 	LevelMapVec3 low,high;
+	// The Translate, Rotate and UV tools replace the resize box, as NetRadiant
+	// Custom's do; the Scale tool adds TrenchBroom's edge and corner handles.
+	const bool scaleTool = m_levelObjectTool == static_cast<int>(LevelObjectTool::Scale);
+	m_levelMap3D->setSelectionResizeBoxHandles(scaleTool);
+	// The Shear Tool turns the faces into TrenchBroom's shear handles.
+	const bool quake = m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map;
+	m_levelMap3D->setSelectionShearMode(quake && m_levelMapViewport && m_levelMapViewport->shearMode());
 	if (!levelMap3DShowing() || !m_levelMap3D->isEnabled() || !m_levelMap3D->hasMesh() || m_levelMap3D->componentMode() || m_levelMap3D->clipMode()
-		|| !levelMapSelectionResizable() || !levelMapSelectionBounds(m_levelMapDocument,&low,&high)) {
+		|| (levelObjectToolActive() && !scaleTool) || m_levelUvToolOn || levelBuildToolActive() || !levelMapSelectionResizable() || !levelMapSelectionBounds(m_levelMapDocument,&low,&high)) {
 		m_levelMap3D->clearSelectionResizeBox(); return;
 	}
 	// Doom geometry can share vertices with unselected walls and sectors.

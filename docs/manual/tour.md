@@ -167,7 +167,7 @@ opens **Packages**, the compilers item opens the **Build** page's
 | Go back or forward | <kbd>Alt</kbd>+<kbd>Left</kbd>, <kbd>Alt</kbd>+<kbd>Right</kbd> |
 | Preferences (**Appearance and Language**) | <kbd>Ctrl</kbd>+<kbd>,</kbd> |
 | Run Build Pipeline | <kbd>F7</kbd> |
-| Build and Launch | <kbd>F5</kbd> |
+| Build and Launch | <kbd>F5</kbd> (in the NetRadiant Custom and NetRadiant profiles, <kbd>F5</kbd> is Run Last Build) |
 | Next or previous build problem | <kbd>F4</kbd>, <kbd>Shift</kbd>+<kbd>F4</kbd> |
 | Read aloud, or stop reading | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> |
 | About VibeStudio | <kbd>Shift</kbd>+<kbd>F1</kbd> |

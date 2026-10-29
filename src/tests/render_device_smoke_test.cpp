@@ -2,14 +2,17 @@
 // the results are checked against known pixels, and OpenGL and Vulkan are
 // compared with each other when both run. Covers clears, depth testing,
 // triangle ids, culling and winding, flat shading, translucency peeling,
-// wireframe coverage, textures with mip levels and cached uploads, and
-// read-back of every target format.
+// wireframe coverage, textures with mip levels and cached uploads,
+// read-back of every target format, and the Levels camera's choices (shading
+// off, the face grid, fog from the eye or an orthographic origin, and the far
+// clip's reversed depth), which OpenGL and Vulkan must also draw alike.
 //
 // The offscreen test platform has no OpenGL, so there only Vulkan renders;
 // a backend that cannot start is reported, not failed. With no backend at
 // all the test exits 77 (skipped). VIBESTUDIO_RENDER_REQUIRE=opengl,vulkan
 // turns a missing backend into a failure, for machines that must have it.
 
+#include "core/level_camera_render.h"
 #include "core/render_device.h"
 #include "core/render_shaders.h"
 
@@ -112,6 +115,30 @@ QMatrix4x4 pixelProjection(QSize size)
 	return matrix;
 }
 
+// The camera choices at the end of the model-surface block
+// (model_surface.vert): view (fog start and end, face-grid spacing, 1 to
+// shade faces), the fog colour with the most of it a face takes, and the grid
+// line opacity and width with the orthographic fog origin. The defaults are
+// the Levels camera's: shaded, no fog, no face grid.
+struct CameraUniforms {
+	float fogStart = 0.0f;
+	float fogEnd = 0.0f;
+	float gridSpacing = 0.0f;
+	bool shade = true;
+	QRgb fogColor = qRgb(0, 0, 0);
+	float fogStrength = 0.0f;
+	float gridOpacity = 0.32f;
+	float gridWidth = 1.0f;
+	float fogOrigin = 0.0f;
+};
+
+void appendCameraUniforms(QByteArray* bytes, const CameraUniforms& camera)
+{
+	appendVec4(bytes, camera.fogStart, camera.fogEnd, camera.gridSpacing, camera.shade ? 1.0f : 0.0f);
+	appendVec4(bytes, qRed(camera.fogColor) / 255.0f, qGreen(camera.fogColor) / 255.0f, qBlue(camera.fogColor) / 255.0f, camera.fogStrength);
+	appendVec4(bytes, camera.gridOpacity, camera.gridWidth, camera.fogOrigin, 0.0f);
+}
+
 QByteArray surfaceUniforms(const QMatrix4x4& projection, bool textured, int pass = 0, int hovered = -1, bool showEdges = false, bool cull = false,
 	int firstTriangle = 0)
 {
@@ -126,6 +153,7 @@ QByteArray surfaceUniforms(const QMatrix4x4& projection, bool textured, int pass
 	appendVec4(&bytes, 1.0f, 170.0f / 255.0f, 60.0f / 255.0f, 1.0f);
 	appendVec4(&bytes, 1.0f, showEdges ? 1.0f : 0.0f, textured ? 1.0f : 0.0f, 0.0f);
 	appendIvec4(&bytes, hovered, firstTriangle, cull ? 1 : 0, pass);
+	appendCameraUniforms(&bytes, CameraUniforms {});
 	return bytes;
 }
 
@@ -229,6 +257,197 @@ void checkSurfaceScene(const QString& name, const FrameOutput& output)
 		expect(output.ids.at(24 * 64 + 30) == 1, name + QStringLiteral(": id under the green triangle is %1").arg(output.ids.at(24 * 64 + 30)));
 		expect(output.ids.at(40 * 64 + 52) == -1, name + QStringLiteral(": id under the culled triangle is %1").arg(output.ids.at(40 * 64 + 52)));
 		expect(output.ids.at(0 * 64 + 63) == -1, name + QStringLiteral(": background id is %1").arg(output.ids.at(63)));
+	}
+}
+
+// The Levels camera's choices through the model-surface program, as
+// model_viewport_render.cpp sets them: a perspective camera at the origin
+// looking along +z (40 pixels' focal length) with the far clip's reversed
+// depth (core/level_camera_render.h), shading off, the face grid on marked
+// triangles, and fog from the eye or, for orthographic views, from an origin
+// depth. Three quads: a near red one on the left (gridded), a green one 600
+// units ahead on the right, and a blue one 3000 units ahead along the bottom
+// (gridded).
+enum class CameraVariant {
+	// Unshaded, face grid every 32 units (13 pixels on the red quad), far
+	// clip at 2000 units.
+	UnshadedGridClip,
+	// Shaded, fog from the eye between 0 and 1000 units, no far clip.
+	PerspectiveFog,
+	// Fog counted as an orthographic view does, from a depth 50 units in
+	// front of z = 0.
+	OrthographicFog,
+	// All of them: unshaded, grid every 16 units, fog to 2000, far clip at
+	// 2500.
+	Combined,
+};
+
+const QRgb kCameraFog = qRgb(20, 22, 27);
+const QRgb kCameraRed = qRgb(200, 60, 40);
+const QRgb kCameraGreen = qRgb(40, 160, 90);
+const QRgb kCameraBlue = qRgb(50, 80, 220);
+
+FrameOutput cameraScene(RenderDevice& device, CameraVariant variant)
+{
+	const QSize size(64, 48);
+	GpuFrame frame;
+	frame.size = size;
+	frame.owner = 5;
+	frame.targets = {{GpuFormat::Rgba8, {}}, {GpuFormat::R32Int, {}}, {GpuFormat::R32Float, {}}, {GpuFormat::Depth32, {}}};
+	QByteArray vertices;
+	QByteArray flags;
+	// A quad facing the camera at depth z, wound so its normal points at it.
+	const auto quad = [&](float x0, float x1, float y0, float y1, float z, QRgb color, quint32 info) {
+		appendTriangle(&vertices, &flags, {QVector3D(x0, y0, z), QVector3D(x0, y1, z), QVector3D(x1, y0, z)}, color, 0,
+			{QPointF(0, 0), QPointF(0, 0), QPointF(0, 0)}, info);
+		appendTriangle(&vertices, &flags, {QVector3D(x1, y0, z), QVector3D(x0, y1, z), QVector3D(x1, y1, z)}, color, 0,
+			{QPointF(0, 0), QPointF(0, 0), QPointF(0, 0)}, info);
+	};
+	// Info bit 5: the face grid is drawn on the triangle.
+	quad(-60, -10, -30, 30, 100, kCameraRed, 32u);
+	quad(60, 240, -150, 150, 600, kCameraGreen, 0u);
+	quad(-1500, 1500, -2600, -1000, 3000, kCameraBlue, 32u);
+	frame.buffers = {{vertices, 0}, {flags, 0}};
+
+	CameraUniforms camera;
+	double farClip = 0.0;
+	bool orthographic = false;
+	switch (variant) {
+	case CameraVariant::UnshadedGridClip:
+		camera.shade = false;
+		camera.gridSpacing = 32.0f;
+		farClip = 2000.0;
+		break;
+	case CameraVariant::PerspectiveFog:
+		camera.fogEnd = 1000.0f;
+		camera.fogColor = kCameraFog;
+		camera.fogStrength = 0.8f;
+		break;
+	case CameraVariant::OrthographicFog:
+		orthographic = true;
+		camera.fogEnd = 1000.0f;
+		camera.fogColor = kCameraFog;
+		camera.fogStrength = 0.8f;
+		camera.fogOrigin = 50.0f;
+		break;
+	case CameraVariant::Combined:
+		camera.shade = false;
+		camera.gridSpacing = 16.0f;
+		camera.fogEnd = 2000.0f;
+		camera.fogColor = kCameraFog;
+		camera.fogStrength = 0.8f;
+		farClip = 2500.0;
+		break;
+	}
+	const LevelCameraDepthMapping depth = levelCameraPerspectiveDepth(1.0, farClip);
+	const float focal = 40.0f;
+	const QMatrix4x4 projection(2.0f * focal / size.width(), 0.0f, 0.0f, 0.0f, //
+		0.0f, -2.0f * focal / size.height(), 0.0f, 0.0f, //
+		0.0f, 0.0f, float(depth.scale), float(depth.offset), //
+		0.0f, 0.0f, 1.0f, 0.0f);
+	QByteArray uniforms;
+	appendMatrix(&uniforms, projection);
+	// The eye at the origin (w = 1), or for the orthographic fog the
+	// direction toward the viewer (w = 0), which also settles facing.
+	if (orthographic) {
+		appendVec4(&uniforms, 0.0f, 0.0f, -1.0f, 0.0f);
+	} else {
+		appendVec4(&uniforms, 0.0f, 0.0f, 0.0f, 1.0f);
+	}
+	appendVec4(&uniforms, 0.0f, 0.0f, -1.0f, 0.0f); // light along the eye: full shade
+	appendVec4(&uniforms, 0.0f, 0.0f, 0.0f, 110.0f / 255.0f);
+	appendVec4(&uniforms, 24.0f / 255.0f, 26.0f / 255.0f, 32.0f / 255.0f, 150.0f / 255.0f);
+	appendVec4(&uniforms, 1.0f, 210.0f / 255.0f, 90.0f / 255.0f, 1.0f);
+	appendVec4(&uniforms, 1.0f, 170.0f / 255.0f, 60.0f / 255.0f, 1.0f);
+	appendVec4(&uniforms, 1.0f, 170.0f / 255.0f, 60.0f / 255.0f, 1.0f);
+	appendVec4(&uniforms, 1.0f, 0.0f, 0.0f, 0.0f);
+	appendIvec4(&uniforms, -1, 0, 0, 0);
+	appendCameraUniforms(&uniforms, camera);
+
+	GpuPass pass;
+	pass.colors = {0, 1, 2, -1};
+	pass.clear[0].color = {0.0f, 0.0f, 0.0f, 0.0f};
+	pass.clear[1].integer = -1;
+	pass.depth = 3;
+	pass.clearDepth = 0.0f;
+	GpuDraw draw;
+	draw.program = int(GpuProgram::ModelSurface);
+	draw.state.depthTest = true;
+	draw.state.depthWrite = true;
+	draw.state.depthCompare = GpuCompare::Greater;
+	draw.vertexBuffers[0] = {0, 0};
+	draw.vertexBuffers[1] = {1, 0};
+	draw.count = 18;
+	draw.uniforms = uniforms;
+	pass.draws = {draw};
+	frame.passes = {pass};
+	frame.readbacks = {0, 1};
+	return run(device, frame, 0, 1);
+}
+
+// `color` blended `amount` of the way to the fog colour.
+QRgb fogged(QRgb color, double amount)
+{
+	const auto channel = [amount](int from, int to) { return int(std::lround(from + (to - from) * amount)); };
+	return qRgb(channel(qRed(color), qRed(kCameraFog)), channel(qGreen(color), qGreen(kCameraFog)), channel(qBlue(color), qBlue(kCameraFog)));
+}
+
+void checkCameraScene(const QString& name, CameraVariant variant, const FrameOutput& output)
+{
+	if (!expect(output.ok && output.ids.size() == 64 * 48, name + QStringLiteral(": camera frame failed: ") + output.error)) {
+		return;
+	}
+	const QImage& image = output.color;
+	const auto id = [&](int x, int y) { return output.ids.at(y * 64 + x); };
+	// Sample points: the red quad's left part (8..28, 12..36), the green
+	// quad (36..48, 14..34) and the blue one (12..52, 37..47).
+	const QPoint red(10, 24), green(42, 24), blue(32, 42);
+	expect((id(red.x(), red.y()) == 0 || id(red.x(), red.y()) == 1) && (id(green.x(), green.y()) == 2 || id(green.x(), green.y()) == 3),
+		name + QStringLiteral(": the near and middle quads are drawn and picked"));
+	const bool clipped = variant == CameraVariant::UnshadedGridClip || variant == CameraVariant::Combined;
+	int blueIds = 0;
+	for (int y = 37; y < 48; ++y) {
+		for (int x = 0; x < 64; ++x) {
+			blueIds += id(x, y) == 4 || id(x, y) == 5 ? 1 : 0;
+		}
+	}
+	if (clipped) {
+		expect(blueIds == 0 && qAlpha(image.pixel(blue)) == 0, name + QStringLiteral(": the far clip leaves the quad beyond it out (%1 ids, %2)").arg(blueIds).arg(hex(image.pixel(blue))));
+	} else {
+		expect(blueIds > 100, name + QStringLiteral(": without a far clip the far quad is drawn (%1 ids)").arg(blueIds));
+	}
+	switch (variant) {
+	case CameraVariant::UnshadedGridClip: {
+		expect(near(image.pixel(green), kCameraGreen), name + QStringLiteral(": an unshaded face shows its colour, not ") + hex(image.pixel(green)));
+		// The face grid draws lines on the red quad only.
+		int lines = 0;
+		for (int y = 13; y < 36; ++y) {
+			for (int x = 9; x < 28; ++x) {
+				lines += near(image.pixel(x, y), kCameraRed, 2) ? 0 : 1;
+			}
+		}
+		expect(lines > 0 && lines < 19 * 23, name + QStringLiteral(": the face grid crosses the red quad in %1 pixels").arg(lines));
+		int greenOff = 0;
+		for (int y = 15; y < 34; ++y) {
+			for (int x = 37; x < 47; ++x) {
+				greenOff += near(image.pixel(x, y), kCameraGreen, 2) ? 0 : 1;
+			}
+		}
+		expect(greenOff == 0, name + QStringLiteral(": an unmarked face has no grid (%1 pixels)").arg(greenOff));
+		break;
+	}
+	case CameraVariant::PerspectiveFog:
+		// The blue quad is 3000 units away, past the fog's end: 80% fog.
+		expect(near(image.pixel(blue), fogged(kCameraBlue, 0.8), 3), name + QStringLiteral(": fog beyond its end is ") + hex(image.pixel(blue)));
+		break;
+	case CameraVariant::OrthographicFog: {
+		// Depth 600 plus the origin's 50 of 1000 units: 65% of the ramp.
+		const QRgb wanted = fogged(kCameraGreen, 0.8 * 0.65);
+		expect(near(image.pixel(green), wanted, 3), name + QStringLiteral(": orthographic fog is ") + hex(image.pixel(green)) + QStringLiteral(", not ") + hex(wanted));
+		break;
+	}
+	case CameraVariant::Combined:
+		break;
 	}
 }
 
@@ -590,7 +809,11 @@ int main(int argc, char** argv)
 		FrameOutput surfaceCulled;
 		FrameOutput translucent;
 		FrameOutput wire;
+		QVector<FrameOutput> camera;
 	};
+	const std::pair<CameraVariant, const char*> cameraVariants[] = {{CameraVariant::UnshadedGridClip, "unshaded with face grid and far clip"},
+		{CameraVariant::PerspectiveFog, "perspective fog"}, {CameraVariant::OrthographicFog, "orthographic fog"},
+		{CameraVariant::Combined, "fog, face grid and far clip together"}};
 	QVector<Run> runs;
 	for (RenderBackend backend : renderBackends()) {
 		const auto device = renderDevice(backend);
@@ -617,6 +840,11 @@ int main(int argc, char** argv)
 		checkTranslucentScene(name, run.translucent);
 		run.wire = wireScene(*device);
 		checkWireScene(name, run.wire);
+		for (const auto& [variant, label] : cameraVariants) {
+			run.camera.append(cameraScene(*device, variant));
+			checkCameraScene(name + QStringLiteral(" camera, ") + QLatin1String(label), variant, run.camera.constLast());
+		}
+		device->releaseOwner(5);
 		const FrameOutput mipFirst = mipScene(*device, 900);
 		const FrameOutput mipSecond = mipScene(*device, 900);
 		checkMipScene(name, mipFirst, mipSecond);
@@ -643,6 +871,15 @@ int main(int argc, char** argv)
 		compare(runs[0].translucent.color, runs[1].translucent.color, QStringLiteral("translucency"));
 		compare(runs[0].wire.color, runs[1].wire.color, QStringLiteral("wireframe"));
 		expect(runs[0].surface.ids == runs[1].surface.ids, QStringLiteral("triangle ids match between OpenGL and Vulkan"));
+		// The Levels camera's shading, face grid, fog and far clip.
+		for (qsizetype index = 0; index < runs[0].camera.size() && index < runs[1].camera.size(); ++index) {
+			const QString what = QStringLiteral("camera, ") + QLatin1String(cameraVariants[index].second);
+			compare(runs[0].camera.at(index).color, runs[1].camera.at(index).color, what);
+			expect(runs[0].camera.at(index).ids == runs[1].camera.at(index).ids, what + QStringLiteral(": triangle ids differ between OpenGL and Vulkan"));
+		}
+		std::printf("OpenGL and Vulkan agree on %lld camera frames (shading, face grid, fog, far clip)\n", qlonglong(runs[0].camera.size()));
+	} else if (!runs.isEmpty()) {
+		std::printf("Only %s starts here, so OpenGL and Vulkan are not compared\n", qPrintable(renderBackendDisplayName(runs[0].backend)));
 	}
 	RenderDeviceInfo failure;
 	const auto active = activeRenderDevice(&failure);

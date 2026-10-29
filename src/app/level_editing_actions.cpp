@@ -318,8 +318,9 @@ void ApplicationShell::registerLevelEditingCommands()
 		tr("Move the selected point entities straight down onto the surface beneath them, keeping each class's height above it."),
 		QStringLiteral("move"), geometry, [this]() { dropLevelMapSelectionToFloorFromUi(); });
 	add(QStringLiteral("map.shearTool"), tr("Shear Tool"),
-		tr("Drag the handle in the middle of a side of the selection in a 2D view to slant the selection about the opposite side, "
-		   "as TrenchBroom's shear tool does. Escape or the command again turns it off."),
+		tr("Drag the handle in the middle of a side of the selection in a 2D view, or on Quake-family maps a labelled face of its box in the "
+		   "camera (Alt: up and down), to slant the selection about the opposite side, as TrenchBroom's shear tool does. Escape or the command "
+		   "again turns it off."),
 		QStringLiteral("resize"), geometry, [this]() {
 			QAction* tool = m_commands ? m_commands->action(QStringLiteral("map.shearTool")) : nullptr;
 			setLevelShearMode(tool && tool->isChecked());
@@ -549,11 +550,25 @@ void ApplicationShell::setLevelShearMode(bool enabled)
 		statusBar()->showMessage(tr("Open a map to shear its objects."));
 		enabled = false;
 	}
-	if (enabled && !levelMap2DShowing()) {
+	// The camera's shear handles are for Quake-family maps; a Doom map
+	// shears in the 2D views, so a 3D-only layout shows one.
+	const bool quake = m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map;
+	if (enabled && !quake && !levelMap2DShowing()) {
 		setLevelMap3D(false);
 	}
 	if (enabled) {
 		setLevelBrushAssembleTool(false);
+		// One tool at a time: the Shear Tool replaces an object tool, as in
+		// TrenchBroom's tool box.
+		if (m_levelObjectTool != 0) {
+			setLevelObjectTool(0);
+			refreshLevelToolShelf();
+		}
+		// And the Build tool.
+		if (m_levelBuildToolOn) {
+			setLevelBuildTool(false);
+			refreshLevelToolShelf();
+		}
 	}
 	for (MapViewport* view : std::as_const(m_levelPlanViews)) {
 		const QSignalBlocker blocker(view);
@@ -563,8 +578,12 @@ void ApplicationShell::setLevelShearMode(bool enabled)
 		const QSignalBlocker blocker(tool);
 		tool->setChecked(enabled);
 	}
+	// The camera's box takes TrenchBroom's shear handles on its faces.
+	refreshLevelCameraResize();
 	if (enabled) {
-		statusBar()->showMessage(tr("Shear Tool on: drag the handle in the middle of a side of the selection in a 2D view. Escape turns it off."),
+		statusBar()->showMessage(quake ? tr("Shear Tool on: drag the handle in the middle of a side of the selection in a 2D view, or a labelled "
+											"face in the camera (Alt slides a side face up and down). Escape turns it off.")
+									   : tr("Shear Tool on: drag the handle in the middle of a side of the selection in a 2D view. Escape turns it off."),
 			6000);
 	}
 }

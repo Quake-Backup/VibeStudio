@@ -110,15 +110,18 @@ LevelMapDocument withPatches(const QVector<LevelMapPatch>& patches)
 void checkShapes()
 {
 	QString error;
-	// The default cylinder keeps the nine-column ring it always had.
+	// The default cylinder is NetRadiant Custom's nine-column Cylinder prefab,
+	// starting on the negative side of X (Patch::ConstructPrefab's pCylIndex
+	// order); other densities start on the positive side, as its Exact
+	// Cylinder does (level-patch-prefab-smoke checks both against NRC).
 	LevelPatchCreateRequest legacy;
 	legacy.shape = QStringLiteral("cylinder");
 	legacy.center = {16, -8, 32, true};
 	legacy.size = {64, 128, 96, true};
 	LevelMapPatch cylinder;
 	expect(createLevelPatch(legacy, &cylinder, &error), "default cylinder", error);
-	const double ringX[9] {1, 1, 0, -1, -1, -1, 0, 1, 1};
-	const double ringY[9] {0, 1, 1, 1, 0, -1, -1, -1, 0};
+	const double ringX[9] {-1, -1, 0, 1, 1, 1, 0, -1, -1};
+	const double ringY[9] {0, -1, -1, -1, 0, 1, 1, 1, 0};
 	bool same = cylinder.width == 9 && cylinder.height == 3;
 	for (int row = 0; same && row < 3; ++row) {
 		for (int column = 0; column < 9; ++column) {
@@ -126,7 +129,7 @@ void checkShapes()
 			same &= p.x == 16 + ringX[column] * 64 * 0.5 && p.y == -8 + ringY[column] * 128 * 0.5 && p.z == 32 + (row / 2.0 - 0.5) * 96;
 		}
 	}
-	expect(same, "the four-segment cylinder lands on the same control points as before");
+	expect(same, "the four-segment cylinder lands on NetRadiant Custom's control points");
 
 	for (const QString& shape : levelPatchShapeIds()) {
 		for (int axis = 0; axis < 3; ++axis) {
@@ -147,11 +150,12 @@ void checkShapes()
 			for (const auto& p : patch.controlPoints) {
 				inside &= std::abs(p.x) <= 32 + 1e-9 && std::abs(p.y) <= 48 + 1e-9 && std::abs(p.z) <= 64 + 1e-9;
 			}
-			if (shape != QStringLiteral("cylinder") && shape != QStringLiteral("cone") && shape != QStringLiteral("sphere")) {
+			const bool roundShape = shape == QStringLiteral("cylinder") || shape == QStringLiteral("cone") || shape == QStringLiteral("classic-cone")
+				|| shape == QStringLiteral("sphere");
+			if (!roundShape) {
 				expect(inside, "straight patch shapes keep their control points in the box", shape);
 			}
-			const bool closed = shape == QStringLiteral("cylinder") || shape == QStringLiteral("square-cylinder")
-				|| shape == QStringLiteral("cone") || shape == QStringLiteral("sphere");
+			const bool closed = roundShape || shape == QStringLiteral("square-cylinder");
 			if (closed) {
 				// Each closed shape faces outwards, the way Radiant's cylinder does.
 				const int row = patch.height / 2 - (shape == QStringLiteral("cone") ? 1 : 0);
@@ -164,7 +168,7 @@ void checkShapes()
 					expect(samePoint(at(patch, r, 0), at(patch, r, patch.width - 1)), "closed shapes close their rows", shape);
 				}
 			}
-			if (shape == QStringLiteral("cylinder") || shape == QStringLiteral("cone")) {
+			if (shape == QStringLiteral("cylinder") || shape == QStringLiteral("cone") || shape == QStringLiteral("classic-cone")) {
 				expect(patch.width == 13, "segments set the columns round a cylinder or cone", shape);
 				// On-curve points lie on the ellipse.
 				for (int column = 0; column < patch.width; column += 2) {

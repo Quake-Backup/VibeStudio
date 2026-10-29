@@ -2,6 +2,7 @@
 #include "core/level_editor_controls.h"
 #include <QHash>
 #include <QPointF>
+#include <QVector>
 
 namespace vibestudio {
 struct EditorProfileDescriptor;
@@ -42,6 +43,29 @@ bool navigationHoldKeyMatches(const QString& binding, int key, Qt::KeyboardModif
 // Reports camera and temporary-plan-navigation overlaps with command bindings.
 // Existing built-in navigation overlaps are omitted unless the command was
 // explicitly rebound by the user. Command registration/scopes stay unchanged.
+// A camera drive key a 2D view passes on (planRoutedCameraDriveKeys()) is
+// reported the other way round: there the command keeps the key while it can
+// act.
 QStringList levelCameraShortcutWarnings(const EditorProfileDescriptor& profile, const LevelEditorControls& controls,
 	const QHash<QString, QStringList>& userShortcuts = {});
+
+// The motion a key pressed in a 2D view drives the camera by: one of
+// planRoutedCameraDriveKeys(), pressed without modifiers (the keypad flag
+// aside). Whether a command takes the key first is the shell's to decide.
+bool levelPlanCameraDriveKey(const LevelEditorControls& controls, int key, Qt::KeyboardModifiers modifiers,
+	CameraKeyMotion* motion = nullptr);
+
+// The saved camera speeds, in units per second, that held camera keys fly and
+// drive at: NetRadiant Custom's CamMoveSpeed steps, 50, then 250 to 9750 in
+// steps of 250, then 9999 (camwindow.cpp CAM_MIN_SPEED, CAM_SPEED_STEP and
+// CAM_MAX_SPEED at 449778b3). CameraViewControls::moveSpeed 0 instead scales
+// the speed with the map.
+inline constexpr int kLevelCameraMinMoveSpeed = 50;
+inline constexpr int kLevelCameraMaxMoveSpeed = 9999;
+inline constexpr int kLevelCameraMoveSpeedStep = 250;
+[[nodiscard]] const QVector<int>& levelCameraMoveSpeeds();
+// The listed speed one step faster (direction > 0) or slower than `speed`,
+// or than `automaticSpeed`, the map-scaled speed in use, when `speed` is 0.
+// Returns `speed` unchanged when no listed speed lies that way.
+[[nodiscard]] int levelCameraSteppedMoveSpeed(int speed, int direction, double automaticSpeed);
 } // namespace vibestudio

@@ -4,6 +4,7 @@
 #include "core/operation_state.h"
 
 #include <QDateTime>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QString>
 #include <QStringList>
@@ -68,7 +69,9 @@ struct ProjectSettingsOverride {
 struct ProjectManifest {
 	// Schema history:
 	//   1  folders, installation, compilers and settings overrides
-	//   2  adds `game`, the `release` object, and keeps unknown top-level keys
+	//   2  adds `game`, the `release` object, and keeps unknown top-level keys;
+	//      the optional `buildPipelines` array came later within version 2 (an
+	//      older reader keeps it as an unknown key)
 	static constexpr int kSchemaVersion = 2;
 
 	int schemaVersion = kSchemaVersion;
@@ -88,6 +91,9 @@ struct ProjectManifest {
 	QStringList registeredOutputPaths;
 	ProjectSettingsOverride settingsOverrides;
 	ProjectReleaseSettings release;
+	// The project's own build pipelines, as stored. core/build_pipeline.h reads
+	// and writes them (projectBuildPipelines, setProjectBuildPipelines).
+	QJsonArray buildPipelines;
 	QDateTime createdUtc;
 	QDateTime updatedUtc;
 	// Top-level keys this version does not know, written back unchanged so a

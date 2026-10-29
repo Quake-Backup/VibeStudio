@@ -23,6 +23,13 @@ struct LevelPastePlacement {
 	// Orthographic rays span both sides of their focus plane. A miss stays on
 	// that plane rather than applying a perspective camera distance.
 	bool rayForwardOnly = true;
+	// The camera's far clip as a plane whose normal points away from the
+	// camera: past it (dot(p - farClipPoint, farClipNormal) > 0) the camera
+	// draws nothing, so a view ray takes no brush hit there and its miss
+	// plane stays this side of it, as the camera's own picks do. Invalid
+	// fields mean no far clip.
+	LevelMapVec3 farClipPoint;
+	LevelMapVec3 farClipNormal;
 	double grid = 0;
 	// Plan-view paste uses the selected assembly's far depth, with point's
 	// existing hidden coordinate as the remembered-selection fallback.
@@ -45,6 +52,15 @@ bool levelPasteOffset(const LevelMapDocument& destination, const LevelMapDocumen
 
 bool pasteLevelMapTextAt(LevelMapDocument* document, const QString& text, const LevelPastePlacement& placement,
                          const LevelMapTextureLockOptions& textures, QString* error = nullptr, LevelMapVec3* appliedOffset = nullptr);
+// The same insertion for `source`, a whole Quake-family map read on its own
+// (loadLevelMap), as Import Map adds it: its worldspawn's brushes and patches
+// join the open map's worldspawn and its other entities are added, complete
+// closed groups keep their structure, and everything lands in the creation
+// context and is selected, as one undo command. The clipboard's text, block
+// and parser limits do not apply; the loader's do. Worldspawn keys are left
+// out. Scene locks and an open group apply as for any paste.
+bool pasteLevelMapDocumentAt(LevelMapDocument* document, const LevelMapDocument& source, const LevelPastePlacement& placement,
+                             const LevelMapTextureLockOptions& textures, QString* error = nullptr, LevelMapVec3* appliedOffset = nullptr);
 
 // Move to Camera: Paste to Camera's centre rule for the live selection. The
 // centre of the selection's bounds (levelPasteBounds(), with point entities

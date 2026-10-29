@@ -29,6 +29,7 @@ void ModelViewport::mirrorDisplayFrom(const ModelViewport& source)
 	const bool hadMesh = m_hasMesh;
 	if (meshChanged) {
 		m_mesh = source.m_mesh;
+		m_texCoordBackup.clear();
 		++m_meshRevision;
 		m_hasMesh = source.m_hasMesh;
 		m_frameTotal = source.m_frameTotal;
@@ -49,6 +50,16 @@ void ModelViewport::mirrorDisplayFrom(const ModelViewport& source)
 	m_showAxes = source.m_showAxes;
 	m_showEdges = source.m_showEdges;
 	m_polygonEdges = source.m_polygonEdges;
+	m_faceShading = source.m_faceShading;
+	m_fog = source.m_fog;
+	m_fogStart = source.m_fogStart;
+	m_fogEnd = source.m_fogEnd;
+	m_fogStrength = source.m_fogStrength;
+	m_faceGrid = source.m_faceGrid;
+	if (m_faceGridTriangles != source.m_faceGridTriangles) {
+		m_faceGridTriangles = source.m_faceGridTriangles;
+		++m_faceGridRevision;
+	}
 	m_highContrast = source.m_highContrast;
 	m_reducedMotion = source.m_reducedMotion;
 	m_frame = source.m_frame;

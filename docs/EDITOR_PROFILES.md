@@ -363,8 +363,12 @@ Ctrl+Shift+H isolates, 0 toggles the grid and Home or Ctrl+Tab changes the plan
 projection. Ctrl+U and Shift+U remain unassigned because DoomEdit uses them for
 axial texture operations. Surface and patch inspectors use S and Shift+S.
 `doom3-radiant`, `doom-edit` and `d3radiant` are aliases. This is an adaptation
-for supported map formats: Doom 3 rendering, lights, material editing, floor
-stepping and native texture gestures remain unsupported.
+for supported map formats: Doom 3 rendering, lights, material editing and
+native texture gestures remain unsupported. Page Up and Page Down step the
+camera between floors and Ctrl+\ toggles the far clip, as `MainFrm.cpp`
+Camera_UpFloor, Camera_DownFloor and CameraClip_Toggle have them; its
+CameraClip_ZoomOut (longer) is Ctrl+[ and CameraClip_ZoomIn (shorter) Ctrl+],
+as in Q3Radiant.
 It does not claim idStudio or idTech4 format support.
 
 `bsp` follows the [BSP 0.97q7 release settings](https://www.bspquakeeditor.com/downloads.php)
@@ -407,8 +411,12 @@ editing, Shift+C to caps, Shift+T to texture lock and Shift+B to texture fitting
 Shift+arrows and Shift+Page Up/Down use the shared Surfaces target and step
 settings, with centre-anchored rotation. These are independent studio
 adaptations: 1.5 area selection adds rather than toggles members; native
-replacement-area selection, component manipulators, floor
-stepping, Z-checker and preference imports are not emulated. Selecting a
+replacement-area selection, component manipulators, Z-checker and preference
+imports are not emulated. Page Up and Page Down step the camera between floors
+(**Camera Floor Up** and **Down**) and Ctrl+\, Ctrl+[ and Ctrl+] toggle and
+step the far clip, as the 1.4 `mainframe.cpp` g_Commands[] table and the 1.5
+`camwindow.cpp` CamWnd_Construct bind UpFloor, DownFloor, ToggleCubicClip,
+CubicClipZoomIn and CubicClipZoomOut. Selecting a
 profile does not add another game format or engine.
 
 ### Classic QeRadiant
@@ -436,6 +444,25 @@ viewport. User command overrides replace those local keys. See the
 the tool is on, so no window-wide Return shortcut is bound. Other profiles
 leave the tool unbound; it stays in menus, the Tools tab and command search. See
 [Assemble a brush from clicked points](manual/levels.md#assemble-a-brush-from-clicked-points).
+**R** turns the object **Rotate** tool on, or back to **Select** (TB's "Rotate
+Tool", `ActionManager` at `4c756be1`); the camera flies on W, S, A, D, Q and X,
+so R is free. See
+[Turn the selection with the Rotate tool](manual/levels.md#turn-the-selection-with-the-rotate-tool).
+The profile turns the Rotate tool's free turn off (`objectRotateFreeTurn`,
+gesture `editing.objectRotateFreeTurn`): TB's `RotateToolController` takes only
+drags on its rings and centre, so a click or drag inside the rings reaches the
+selection tools there.
+**T** turns the object **Scale** tool on, or back to **Select** (TB's "Scale
+Tool", `ActionManager` at `4c756be1`). Its box handles are TB's: faces in every
+view, plus edge and corner handles in the camera, with Shift keeping
+proportions and Alt scaling about the centre (`ScaleToolController` at
+`4c756be1`). See
+[Scale the selection with the Scale tool](manual/levels.md#scale-the-selection-with-the-scale-tool).
+**G** turns the **Shear Tool** on and off (TB's "Shear Tool", `ActionManager`
+at `4c756be1`). Its handles are the selection box's side handles in the 2D
+views and its faces in the camera, where a side face slides sideways, or up
+and down with Alt, and the top or bottom slides within its plane
+(`ShearToolController` at `4c756be1`).
 Reference: [TrenchBroom](https://trenchbroom.github.io/). The values follow its
 defaults as of `master` `90de03c`, September 2026 (see docs/CREDITS.md).
 
@@ -467,7 +494,16 @@ defaults as of `master` `90de03c`, September 2026 (see docs/CREDITS.md).
   - Grid: + and - resize it (0.125 to 1024 units), 1 to 9 set it (1 to 256
     units), 0 shows it, and Alt+0 snaps. TrenchBroom itself stops at 256 and
     gives its 0.125 to 0.5 grids no key, as here.
-  - View: Ctrl+U frames the selection.
+  - View: Ctrl+U frames the selection. **Reset 2D Views** is TrenchBroom's
+    Reset 2D Cameras (`ActionManager.cpp` and `MapView2D::reset2dCameras` at
+    `4c756be1`): the other 2D views take the focused one's zoom and its
+    position on the axes they share. Adaptation: TrenchBroom's Ctrl+Shift+U is
+    VibeStudio's Read Aloud, which must work in every view, so this profile
+    leaves Reset 2D Views without a key, as the NetRadiant Custom profile does
+    for CSG Intersect. Users may opt in by giving it Ctrl+Shift+U in Keyboard
+    Shortcuts; a 2D view then claims the key only while the command can act
+    (a three-plan layout with two or more panes, centres and zoom not both
+    linked) and Read Aloud keeps it everywhere else.
   - CSG: Ctrl+K carves (CSG subtract) and Ctrl+Shift+K hollows.
   - Tags: Alt+S is Make Structural, which here also moves the selected brushes
     out of brush entities to the world or current group, as TrenchBroom's
@@ -533,7 +569,17 @@ plans a VibeMap3 build.
 
 - **Layout:** the 3D camera beside a 2D view, with a 16-unit grid.
   - Ctrl+Tab steps the 2D view through Top, Front, and Side, and keypad 7, 1,
-    and 3 pick one.
+    and 3 pick one, keeping the zoom and centring on the selection or the
+    camera (NRC `xywindow.cpp` `XY_SetViewType`); in the three-plan layouts
+    they focus the pane and recentre every 2D view (`XY_Centralize`). The
+    profile's Ctrl+Tab takes the plan view's own Ctrl+Tab (add the next object),
+    which the view gives up while a command holds the key.
+  - Frame Selection (backtick) frames only the 2D views, the selection in
+    two-thirds of each and never closer than 384 units across, or a 256-unit
+    box round the camera with nothing selected (`XY_Focus`,
+    `XYWnd::FocusOnBounds`, `GetCenterBbox`); gesture `plan.radiantFraming`,
+    on here and in NetRadiant (b4b295d7 `XY_Focus`). Zoom 100% (`Zoom100`)
+    has no default key.
   - Ctrl+Shift+C shows or hides the camera.
   - The 2D view draws where the camera stands and looks.
 - **3D camera:** first-person, with a 100 degree view.
@@ -543,7 +589,19 @@ plans a VibeMap3 build.
   - Right drag strafes, and Alt+right drag orbits.
   - The wheel moves toward the pointer.
   - When not looking, the arrows drive: Up and Down move, and Left and Right
-    turn.
+    turn; A and D strafe. Each press or repeat steps 32 units or 22.5
+    degrees, as NRC's default discrete camera does (`camwindow.cpp`
+    m_bCamDiscrete at `449778b3`), and looking up or down stops 1 degree
+    short of its 90 (`camera.discreteDriveKeys`,
+    `CameraViewControls::drivePitchLimitDegrees`).
+  - A and D, and any up, down or pitch drive key the user binds, also work
+    from the 2D views while no command there can act on the key, as NRC's
+    camera accelerators do (`plan.cameraDriveKeys`).
+  - Held keys fly at 500 units per second (CamMoveSpeed); Increase and
+    Decrease Camera Speed (Shift+keypad + and -, CameraSpeedInc and
+    CameraSpeedDec) step it through 50, 250 to 9750 by 250, and 9999 (NRC
+    adds or takes 250, so it goes 50 to 300 and 9999 to 9749) and keep it with the
+    profile's gestures (`camera.moveSpeed`).
   - Holding Tab while looking keeps the selection in view along the camera's
     heading, and the wheel moves nearer or farther (NRC `camwindow.cpp`
     CameraFreeFocus at `449778b3`; `camera.focusHoldKey`). Outside mouse look
@@ -578,6 +636,37 @@ plans a VibeMap3 build.
     `"MoveToCamera"` in `radiant/select.cpp` at `449778b3`). Its Alt+R (Reset
     Transforms) is left to the menu bar; **Reset Repeat Transforms** is in
     **Edit** > **Repeat** and command search.
+  - Translate tool: W turns the object **Translate** tool on, or back to
+    **Select** (`"MouseTranslate"` in `radiant/tools.cpp` at `449778b3`). The
+    camera keeps W for flying in mouse look. The NetRadiant baseline leaves it
+    unbound.
+  - Rotate tool: R turns the object **Rotate** tool on, or back to **Select**
+    (`"MouseRotate"` in `radiant/tools.cpp` at `449778b3`). The NetRadiant
+    baseline leaves it unbound.
+  - Scale tool: `"MouseScale"` and `"MouseRotateOrScale"` in
+    `radiant/tools.cpp` at `449778b3` have no default key, so the profile lists
+    **Scale Tool** and **Rotate or Scale Tool** without one. Rotate or Scale
+    Tool goes to Scale from Rotate and to Rotate otherwise, or between Rotate
+    and Scale Components in a component mode.
+  - Transform tool: `"MouseTransform"` in `radiant/tools.cpp` at `449778b3`
+    has no default key, so **Transform Tool** is listed without one; Q is
+    `"MouseDragOrTransform"`, which **Select or Transform Tool** follows:
+    Transform from Select, Select from any other tool, and Move or Shear
+    Components in a component mode. The NetRadiant baseline leaves Q unbound.
+  - UV tool: G turns the camera's **UV** tool on, or back to **Select**
+    (`"MouseUV"` in `radiant/tools.cpp` at `449778b3`). The NetRadiant
+    baseline, which has no UV tool, leaves it unbound.
+  - Drag and Build tools: **Select** drags the brush planes facing a press
+    beside the selection, Alt drags vertices in a 2D view and one plane in
+    the camera, and Ctrl+Alt extrudes (`DragManipulatorImpl::testSelect` in
+    `radiant/selection_mtor_drag.cpp` at `449778b3`); B turns the **Build**
+    tool on, or back to **Select** (`"MouseBuild"`). The NetRadiant and
+    GtkRadiant profiles keep the plane drag, every Radiant's QE4 drag, but
+    leave the modifier drags and B unbound.
+  - Simple Patch Mesh: Shift+P opens **Add Patch…** (`"SimplePatchMesh"` in
+    `radiant/patchmanip.cpp` at `449778b3`). It was audited against NRC only,
+    so the NetRadiant baseline leaves it unbound. The other Patch menu prefabs
+    (**Patch Cylinder** and the rest) have no default key there either.
   - Exact transforms: Shift+R opens **Rotate Selection…** and Ctrl+Shift+S
     **Scale Selection…**, NRC's modeless Arbitrary Rotation and Arbitrary
     Scale windows (`"ArbitraryRotation"` and `"ArbitraryScale"` in
@@ -602,7 +691,15 @@ plans a VibeMap3 build.
     Textured with Edges (**Next Camera Mode** and **Previous Camera Mode**,
     NRC `camwindow.cpp` CameraModeNext and CameraModePrev at `449778b3`); the
     NetRadiant baseline leaves them unbound, as its `camwindow.cpp` has no
-    such commands.
+    such commands. Ctrl+\ turns **Far Clip in Camera** on and off, and Ctrl+[
+    and Ctrl+] give **Shorter Draw Distance** and **Longer Draw Distance**
+    (NRC `camwindow.cpp` ToggleCubicClip, CubicClipZoomIn and CubicClipZoomOut
+    at `449778b3`); the NetRadiant baseline keeps them, as `b4b295d7` binds
+    the same keys. Page Up and Page Down step the camera between floors
+    (**Camera Floor Up** and **Down**, NRC `camwindow.cpp` UpFloor and
+    DownFloor at `449778b3`, also bound by `b4b295d7`). The camera and the
+    plan views claim the keys; in a plan view a Doom map's **Raise Floor**
+    and **Lower Floor** keep them while they can act.
   - CSG and entities: Shift+U carves (CSG subtract), Ctrl+U wraps/merges
     selected brushes or picked components, Ctrl+G rounds every brush vertex,
     patch control point and point-entity origin of the selection (or only the
@@ -684,6 +781,11 @@ editor is the classic QERadiant line (see docs/CREDITS.md).
   - Tools: X is the clipper. Enter clips, Shift+Enter keeps both halves, and
     Ctrl+Enter flips which half stays.
   - Grid: [ and ] step it, 1 to 9 set it, and 0 shows it.
+  - Camera: End levels it, Page Up and Page Down step it between floors
+    (**Camera Floor Up** and **Down**), Ctrl+\ turns **Far Clip in Camera**
+    on and off, and Ctrl+[ and Ctrl+] give **Shorter Draw Distance** and
+    **Longer Draw Distance** (`mainframe.cpp` g_Commands[] UpFloor,
+    DownFloor, ToggleCubicClip, CubicClipZoomIn and CubicClipZoomOut).
   - CSG and entities: Shift+U carves (CSG subtract), Ctrl+G snaps to the
     grid, Ctrl+K connects entities, and Shift+L loads a leak trail.
 - **Materials:** middle click samples the material name and Shift+middle paints
@@ -731,7 +833,9 @@ RMF/VMF/JMF, Source 2 and Hammer++-specific tooling are not emulated.
 `darkradiant` follows the Radiant camera/plan arrangement, Shift selection,
 Shift+right plan zoom and toggled right-button free look. Existing Scene layers,
 groups, patches and prefabs are shared. Choosing it does not add Doom 3/Quake 4
-formats or Dark Mod game connection.
+formats or Dark Mod game connection. The GtkRadiant keys it would inherit for
+**Level Camera**, **Camera Floor Up** and **Down** and the far clip are left
+unbound until DarkRadiant's own bindings are audited.
 
 `doom-builder` accepts Doom Builder 2/X and `db2`/`dbx` names. W switches the
 visual view; ESDF flies, C deselects, Ctrl+D draws sectors, and F9 uses the normal
@@ -781,8 +885,9 @@ for camera driving. The plan uses right pan, Alt+right zoom and middle-button
 camera positioning/aiming. Delete/Insert zoom; Backspace/Z delete; Escape/C
 deselect; Space clones; Shift+A selects similar; Ctrl+Y redoes; F12 maximizes.
 K opens **Set Entity Colour**, as NetRadiant's `entity.cpp` EntityColor does.
-Backtick/Ctrl+Shift+Tab frame the focused view. Camera Tab focus, discrete
-movement, floor stepping, right-button selection painting, selection-box
+Backtick/Ctrl+Shift+Tab frame the focused view. Page Up and Page Down step the
+camera between floors. Camera Tab focus, discrete
+movement, right-button selection painting, selection-box
 semantics and clone-with-unique-targets remain adaptations/gaps.
 
 `sledge` (`sledge-editor`, `sledge2`, `sledge-2`) follows the released 2.0.7.2
@@ -851,7 +956,14 @@ gesture files remain valid. New fields can also be used with other perspective
 profiles; default-off fields preserve their existing behavior. Fixed drive steps
 leave active fly bindings continuous, including a held mouse-look gesture.
 
-Native preferences, Z-checker, floor stepping, terrain,
+Page Up and Page Down step the camera between floors (`MainFrm.cpp` UpFloor
+and DownFloor) and Ctrl+\ toggles the far clip (ToggleCubicClip); its
+CubicClipZoomOut (longer) is Ctrl+[ and CubicClipZoomIn (shorter) Ctrl+], the
+other way round from GtkRadiant, and the profile keeps that. The QeRadiant
+profile keeps the floor and step keys but not Ctrl+\, which Eutectic's manual
+says works only in Q3Radiant.
+
+Native preferences, Z-checker, terrain,
 bend/rotation modes, Ctrl+right plan clip-point placement and UV-copying texture
 gestures remain unsupported. Middle samples the material name; Shift+middle
 paints one hit surface while preserving its UVs. Ctrl+middle brush copying and
@@ -1146,6 +1258,74 @@ Alignment** (`map.surfaceReset`) and **Natural Texture Mapping**
 (`map.surfaceNatural`). Both resets act on the picked faces first, then the
 Surfaces target (`LevelSurfaceOperation::Reset` and `RadiantReset`). Other
 profiles leave them without keys; NRC's Shift+R stays on **Rotate Precisely…**.
+
+### Face inspector key
+
+TB's "Menu/View/Switch to Face Inspector" in lib/TbUiLib/src/ActionManager.cpp
+at `4c756be1` has Ctrl+3. `trenchbroom` binds it to **Show Face Inspector**
+(`map.showFaceInspector`), which shows the Surfaces tab at its Face section and
+never hides it. The studio's Ctrl+1 to Ctrl+9 select modes, so the command is
+scoped to the Levels page and claims its key in the registry's focus layer
+(`StudioCommandRegistry::kShortcutFocusClaims`): an application event filter
+takes Ctrl+3 for it while the keyboard focus is anywhere inside Levels, and
+**Models** keeps Ctrl+3 everywhere else, in menus and in the Keyboard settings.
+Other profiles leave it without a key; NRC keeps Ctrl+3 for its prisms.
+
+TB's "Menu/View/Switch to Map Inspector" at the same revision has Ctrl+1.
+`trenchbroom` binds it to **Show Map** (`map.sidebar.map`) in the same focus
+layer, so Ctrl+1 shows the Map tab while the keyboard is inside Levels and
+**Workspace** keeps Ctrl+1 everywhere else. Other profiles leave Show Map
+without a key.
+
+TB's "Menu/Edit/Convert Selection to Patches" at the same revision has
+Ctrl+P. `trenchbroom` binds it to **Convert Selection to Patches**
+(`map.convertToPatches`) in the same focus layer: Ctrl+P converts the selected
+brushes or picked faces while the keyboard is inside Levels and the command
+can act, and **Go to File** keeps Ctrl+P everywhere else. Other profiles leave
+it without a key.
+
+Editing keys never act from a field that types on the Levels page
+(`StudioCommandRegistry::setShortcutTypingGuards`, set on the Levels page):
+while a line edit, spin box, text edit or editable combo box there has the
+focus, a focus-layer claim of a `StudioCommandGroup::Edit` command claims
+nothing, and the registry gives such claims Qt's `WidgetShortcut` context so
+Qt's own map cannot run them there either; Ctrl+P in the map path field is
+**Go to File**. The same filter accepts the shortcut override for any other
+key an enabled, Levels-scoped editing command would take there, such as
+TrenchBroom's Ctrl+D or a profile's single-key or Return binding, so the key
+reaches the field as a plain key press and no edit runs. Claims of other
+groups, such as Ctrl+3 and Ctrl+1 for the inspectors, still act from a field,
+and keys the field takes itself (letters, Delete, Ctrl+Z) stay the field's as
+before.
+
+### Patch cap key
+
+NRC's "CapCurrentCurve" in radiant/patchmanip.cpp at `449778b3` is bound to
+Shift+C. `netradiant-custom` binds it to **Cap Patch…** (`map.capPatch`), as
+the GtkRadiant 1.4/1.5 and Q3Radiant profiles already did. It was audited
+against NRC only, so the NetRadiant baseline leaves it unbound. **Deform
+Patch…** has no default key, as upstream's PatchDeform has none.
+
+### Map Info key
+
+NRC's "MapInfo" in radiant/map.cpp `Map_Construct` at `449778b3` is bound to
+M. `netradiant-custom` binds M to **Map Info** (`map.mapInfo`), which opens the
+Map tab's Statistics section with the keyboard in its class table, scoped to
+the Levels page like the profile's other single-letter keys, so M still types
+into fields. `netradiant` inherits the key, as NetRadiant `b4b295d7`
+radiant/mainframe.cpp binds "MapInfo" to M too; the other profiles leave it
+without a key (the GtkRadiant 1.6 source was not at hand to confirm its key).
+
+### Run Last Build key
+
+NRC's "Build_runRecentExecutedBuild" in radiant/mainframe.cpp at `449778b3`
+runs the build menu entry executed last on F5, as NetRadiant `b4b295d7` does.
+`netradiant-custom` binds F5 to **Run Last Build** (`build.runLast`), which runs
+the last build pipeline (with its launch) or Levels compiler profile again on the
+open map, and gives **Build and Launch** no key there; `netradiant` inherits
+both. Elsewhere F5 stays **Build and Launch** and Run Last Build has no key.
+TrenchBroom's "Menu/Run/Rerun..." has no default key, so **Re-run Last Compile**
+(`compiler.rerunLast`) has none either.
 
 ### Surface inspector key
 

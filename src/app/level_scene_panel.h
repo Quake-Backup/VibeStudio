@@ -19,6 +19,9 @@ class LevelScenePanel final : public QWidget {
 	void refresh();
 	void refreshSelection();
 	void setSelectionUndoEnabled(bool enabled) { m_selectionUndo = enabled; }
+	// Makes the layer or group `id` (empty for Default) current and gives the
+	// tree the keyboard; false when the tree has no such node.
+	bool showNode(const QString& id);
   Q_SIGNALS:
 	void sceneChanged();
 	void selectionChanged();
@@ -40,6 +43,8 @@ class LevelScenePanel final : public QWidget {
 	QComboBox* m_parent = nullptr;
 	QComboBox* m_creation = nullptr;
 	QCheckBox* m_lock = nullptr;
+	// Omit From Export, for layers (core/level_scene.h).
+	QCheckBox* m_omit = nullptr;
 	QLabel* m_status = nullptr;
 	QWidget* m_editControls = nullptr;
 	QPushButton* m_rename = nullptr;

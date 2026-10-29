@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 #include <QDialog>
 #include <QPointF>
+#include <QSize>
 #include <QWidget>
 #include <functional>
 
@@ -64,13 +65,31 @@ class PatchControlView final : public QWidget {
 	QPointF m_press, m_last, m_previewDelta;
 };
 
+// What Add Patch… starts from: the box its shapes fill (the selection's
+// bounds, as NetRadiant Custom fits its Simple Patch Mesh, or a box at the
+// view's centre), the axis, and whether the patch can replace the selection.
+struct PatchEditorCreateOptions {
+	LevelMapVec3 mins {0, 0, 0, false};
+	LevelMapVec3 maxs {0, 0, 0, false};
+	int axis = 2;
+	bool canReplace = false;
+	// The material image's size for Natural and Cap mapping; empty when unknown.
+	std::function<QSize(const QString&)> imageSize;
+};
+
 class PatchEditorDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(PatchEditorDialog)
   public:
-	explicit PatchEditorDialog(const LevelMapPatch& patch, bool creating, double grid, QWidget* parent = nullptr);
+	explicit PatchEditorDialog(const LevelMapPatch& patch, bool creating, double grid, QWidget* parent = nullptr,
+		const PatchEditorCreateOptions& create = {});
 	const LevelMapPatch& patch() const
 	{
 		return m_patch;
+	}
+	// Add Patch…: whether the patch replaces the selected brushes and patches.
+	bool replaceSelection() const
+	{
+		return m_replaceSelection;
 	}
 	bool applyPatch(const LevelMapPatch& patch, QString* error = nullptr);
 	void selectPoints(const QVector<int>& points);
@@ -97,5 +116,6 @@ class PatchEditorDialog final : public QDialog {
 	QAction* m_redoAction = nullptr;
 	bool m_refreshing = false;
 	bool m_firstShow = true;
+	bool m_replaceSelection = false;
 };
 } // namespace vibestudio

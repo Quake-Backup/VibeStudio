@@ -10,8 +10,10 @@
  */
 #include "core/level_patch_tools.h"
 
+#include "core/level_scene.h"
 #include "core/level_scene_locks.h"
 #include "core/level_texture_mapping.h"
+#include "core/level_visibility.h"
 
 #include <QCoreApplication>
 #include <QMap>
@@ -21,6 +23,8 @@
 #include <cmath>
 #include <functional>
 #include <limits>
+#include <optional>
+#include <random>
 
 namespace vibestudio {
 namespace {
@@ -814,6 +818,127 @@ bool thickenLevelMapPatches(LevelMapDocument* document, const QVector<int>& patc
 	*document = std::move(working);
 	if (created) {
 		*created = ids;
+	}
+	return true;
+}
+
+// Workflow reference: NRC radiant/patchmanip.cpp Patch_deform,
+// Scene_PatchDeform and DoPatchDeformDlg at 449778b3 (GPL-2.0-or-later):
+// a random whole-unit offset from 0 to the maximum per control point, along
+// one axis, for every visible selected patch. Original implementation, with
+// a seeded, portable generator in place of rand(); see docs/CREDITS.md.
+QVector<int> levelPatchDeformOffsets(quint32 seed, int maximum, int count)
+{
+	QVector<int> offsets;
+	if (count <= 0) {
+		return offsets;
+	}
+	offsets.reserve(count);
+	std::mt19937 generator(seed);
+	for (int i = 0; i < count; ++i) {
+		// mt19937's 32-bit output is fixed by the standard, unlike the
+		// library distributions; scale it to 0..1 and truncate as upstream
+		// truncates `deform * rand() / RAND_MAX`.
+		const double unit = static_cast<double>(generator()) / 4294967295.0;
+		offsets << static_cast<int>(static_cast<double>(maximum) * unit);
+	}
+	return offsets;
+}
+
+bool deformLevelMapPatches(LevelMapDocument* document, const QVector<int>& patchIds, const LevelPatchDeformRequest& request, int* changed,
+	int* skipped, QString* error)
+{
+	int stagedChanged = 0;
+	int stagedSkipped = 0;
+	if (const auto guarded = guardLevelSceneEdit(document, error, [&](LevelMapDocument* candidate) {
+			return deformLevelMapPatches(candidate, patchIds, request, &stagedChanged, &stagedSkipped, error);
+		});
+		guarded.has_value()) {
+		if (*guarded) {
+			if (changed) {
+				*changed = stagedChanged;
+			}
+			if (skipped) {
+				*skipped = stagedSkipped;
+			}
+		}
+		return *guarded;
+	}
+	if (error) {
+		error->clear();
+	}
+	if (!document || document->format != LevelMapFormat::Quake3Map) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Open a Quake III-family map to edit a patch."));
+	}
+	if (patchIds.isEmpty() || patchIds.size() > 256) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Select between 1 and 256 patches."));
+	}
+	if (request.axis < 0 || request.axis > 2) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The deform axis must be X, Y or Z."));
+	}
+	if (request.maximum < -9999 || request.maximum > 9999) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The maximum deform must be a whole number of units from -9999 to 9999."));
+	}
+	const QSet<int> wanted(patchIds.cbegin(), patchIds.cend());
+	const QSet<QString> hidden = levelMapHiddenObjects(*document);
+	std::optional<LevelSceneSelectionContext> context;
+	if (!document->openSceneGroups.isEmpty()) {
+		context = levelSceneSelectionContext(*document);
+	}
+	QVector<const LevelMapPatch*> targets;
+	int found = 0;
+	int left = 0;
+	int points = 0;
+	for (const auto& patch : std::as_const(document->patches)) {
+		if (!wanted.contains(patch.id)) {
+			continue;
+		}
+		++found;
+		const QString self = levelMapSelectionRefId({LevelMapSelectionKind::QuakePatch, patch.id});
+		if (hidden.contains(self) || (context && !context->openGroup.isEmpty() && !context->allowedObjects.contains(self))) {
+			++left;
+			continue;
+		}
+		targets << &patch;
+		points += static_cast<int>(patch.controlPoints.size());
+	}
+	if (found != wanted.size()) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch no longer exists."));
+	}
+	if (targets.isEmpty()) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Every chosen patch is hidden or outside the open group."));
+	}
+	// One draw per control point, patch after patch, as upstream's single
+	// rand() stream runs through them.
+	const QVector<int> offsets = levelPatchDeformOffsets(request.seed, request.maximum, points);
+	QMap<int, LevelMapPatch> replacements;
+	int next = 0;
+	for (const LevelMapPatch* patch : std::as_const(targets)) {
+		LevelMapPatch after = *patch;
+		bool moved = false;
+		for (auto& point : after.controlPoints) {
+			const int offset = offsets.value(next++);
+			double& component = request.axis == 0 ? point.x : (request.axis == 1 ? point.y : point.z);
+			component += offset;
+			moved = moved || offset != 0;
+			if (std::abs(component) > 1048576) {
+				return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Deforming would move a control point beyond ±1048576 units."));
+			}
+		}
+		if (moved) {
+			refreshLevelPatchBounds(&after);
+			after.geometryDirty = true;
+			replacements.insert(patch->id, after);
+		}
+	}
+	if (!replacements.isEmpty() && !replaceLevelMapPatches(document, replacements, error)) {
+		return false;
+	}
+	if (changed) {
+		*changed = static_cast<int>(replacements.size());
+	}
+	if (skipped) {
+		*skipped = left;
 	}
 	return true;
 }

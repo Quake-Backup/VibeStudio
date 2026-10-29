@@ -17,6 +17,7 @@
 #include "core/level_build_workspace.h"
 #include "core/level_build_deployment.h"
 #include "app/level_scene_panel.h"
+#include "app/level_map_inspector.h"
 #include "app/level_object_list.h"
 #include "app/level_load_dialog.h"
 #include "app/game_launch_task_dialog.h"
@@ -2860,7 +2861,7 @@ QWidget* ApplicationShell::buildLevelsPage()
 	zoomSelection->setObjectName(QStringLiteral("levelMapZoomSelection"));
 	zoomSelection->setAccessibleName(tr("Zoom map viewport to the selection"));
 	connect(zoomSelection, &QToolButton::clicked, this, [this]() {
-		frameLevelMapSelection();
+		frameLevelMapSelectionFromUi();
 	});
 	viewportBar->addWidget(zoomSelection);
 
@@ -2964,6 +2965,14 @@ QWidget* ApplicationShell::buildLevelsPage()
 	m_levelMap3D->setMinimumSize(320, 260);
 	// The saved camera display: faces textured, flat or hidden, and edges.
 	applyLevelCameraRender();
+	// The camera's ground and face grids follow Show Grid and the grid size,
+	// and so does Show Grid's check mark (level_camera_render_actions.cpp).
+	const auto followGrid = [this]() {
+		applyLevelCameraShading();
+		refreshLevelCameraRenderCommands();
+	};
+	connect(m_levelMapShowGrid, &QAction::toggled, this, followGrid);
+	connect(m_levelMapGrid, &QComboBox::currentIndexChanged, this, followGrid);
 	connect(m_levelMap3D, &ModelViewport::hoverChanged, this, [this](const QString& summary) {
 		if (m_levelMapHover && levelMap3DShowing()) {
 			m_levelMapHover->setText(levelSweepReadout(summary.isEmpty() ? m_levelMap3D->hoverSummary() : summary));
@@ -2983,6 +2992,10 @@ QWidget* ApplicationShell::buildLevelsPage()
 	// A selection dragged in the camera moves as one undo step, as a drag in
 	// the 2D view does.
 	connect(m_levelMap3D, &ModelViewport::moveRequested, this, &ApplicationShell::moveLevelMapSelectionFromViewport);
+	// The Translate tool's drags and pivot (level_object_gizmo_actions.cpp).
+	connectLevelObjectGizmo(m_levelMap3D->objectGizmo(), nullptr);
+	// The drag-tool gestures and Build tool (level_plane_drag_actions.cpp).
+	connectLevelPlaneDrag(m_levelMap3D->planeDrag(), nullptr);
 	connectLevelCameraResize();
 	connectLevelCameraComponents();
 	connectLevelClipper();
@@ -3310,6 +3323,11 @@ QWidget* ApplicationShell::buildLevelsPage()
 			}
 			activateLevelPlanViewport(m_levelPlanViews.value(index));
 			m_levelMapViewport->setFocus(Qt::OtherFocusReason);
+		} else {
+			// One plan view changes plane, keeping its zoom and centring on the
+			// selection or the camera (level_plan_framing_actions.cpp); with
+			// neither it fits the map, as before.
+			recentreLevelPlanForProjection(m_levelMapViewport, m_levelMapProjection->currentData().toInt());
 		}
 		refreshLevelMapViewport();
 	});
@@ -3913,7 +3931,9 @@ QWidget* ApplicationShell::buildBuildPage()
 	m_buildAndLaunch = createButton(tr("Build and Launch"), QStringLiteral("launch"));
 	m_buildAndLaunch->setObjectName(QStringLiteral("buildAndLaunch"));
 	m_buildAndLaunch->setAccessibleName(tr("Build, then launch the game"));
-	m_buildAndLaunch->setToolTip(tr("Run the pipeline, then launch the game with the built map once it succeeds (F5)."));
+	// The key is the action's, which differs between editor profiles
+	// (refreshBuildSurface adds it).
+	m_buildAndLaunch->setToolTip(tr("Run the pipeline, then launch the game with the built map once it succeeds."));
 	connect(m_buildAndLaunch, &QPushButton::clicked, this, [this]() {
 		buildAndLaunch();
 	});
@@ -3939,6 +3959,12 @@ QWidget* ApplicationShell::buildBuildPage()
 	m_buildPipelineChoice->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
 	pipelineLabel->setBuddy(m_buildPipelineChoice);
 	toolBar->addWidget(m_buildPipelineChoice);
+	// The project's own pipelines (build_pipeline_actions.cpp).
+	auto* editPipelines = createToolButton(QStringLiteral("edit"), tr("Pipelines…"), tr("Make the project's own build pipelines: stages, arguments and variables, kept in the project."), false);
+	editPipelines->setObjectName(QStringLiteral("buildEditPipelines"));
+	editPipelines->setAccessibleName(tr("Edit the project's build pipelines"));
+	connect(editPipelines, &QToolButton::clicked, this, [this]() { editBuildPipelines(); });
+	toolBar->addWidget(editPipelines);
 	auto* inputLabel = new QLabel(tr("Input"));
 	toolBar->addWidget(inputLabel);
 	m_buildPipelineInput = new QLineEdit;
@@ -4205,6 +4231,18 @@ QWidget* ApplicationShell::buildBuildPage()
 	m_launchGameDirectory->setToolTip(tr("The folder inside the installation the game loads, such as your mod's folder. Empty uses the base game."));
 	m_launchGameDirectory->setMinimumWidth(280);
 	launchForm->addRow(tr("Game folder"), m_launchGameDirectory);
+	// Engine switches of the user's own, after the profile's (TrenchBroom's
+	// engine parameters); kept for each installation.
+	m_launchExtraArguments = new QLineEdit;
+	m_launchExtraArguments->setObjectName(QStringLiteral("launchExtraArguments"));
+	m_launchExtraArguments->setAccessibleName(tr("Extra arguments"));
+	m_launchExtraArguments->setAccessibleDescription(tr("Engine arguments added after the launch profile's, such as +set developer 1. Quotes keep spaces. Kept for each installation."));
+	m_launchExtraArguments->setToolTip(m_launchExtraArguments->accessibleDescription());
+	m_launchExtraArguments->setPlaceholderText(tr("For example +set developer 1"));
+	m_launchExtraArguments->setMinimumWidth(280);
+	// Arguments are typed left to right in every language.
+	m_launchExtraArguments->setLayoutDirection(Qt::LeftToRight);
+	launchForm->addRow(tr("Extra arguments"), m_launchExtraArguments);
 	m_launchDeploy = new QCheckBox(tr("Copy build to game"));
 	m_launchDeploy->setObjectName(QStringLiteral("launchDeploy"));
 	m_launchDeploy->setAccessibleName(tr("Copy the built map into the game before launching"));
@@ -4233,6 +4271,14 @@ QWidget* ApplicationShell::buildBuildPage()
 		statusBar()->showMessage(tr("Launch command line copied."));
 	});
 	launchActions->addWidget(m_launchCopyCommand);
+	auto* editLaunchProfiles = createButton(tr("Launch Profiles…"), QStringLiteral("edit"));
+	editLaunchProfiles->setObjectName(QStringLiteral("launchEditProfiles"));
+	editLaunchProfiles->setAccessibleName(tr("Edit your launch profiles"));
+	editLaunchProfiles->setToolTip(tr("Make your own launch profiles: a name and the engine arguments, with {map}, {mod}, {basedir} and {bsp} filled in at launch."));
+	connect(editLaunchProfiles, &QPushButton::clicked, this, [this]() {
+		editGameLaunchProfiles();
+	});
+	launchActions->addWidget(editLaunchProfiles);
 	launchActions->addStretch(1);
 	launchLayout->addLayout(launchActions);
 	m_launchSummary = createPropertyGrid(tr("Launch plan"),
@@ -4268,6 +4314,22 @@ QWidget* ApplicationShell::buildBuildPage()
 	connect(m_launchGameDirectory, &QLineEdit::editingFinished, this, [this]() {
 		if (!m_launchGameDirectoryInstallation.isEmpty()) {
 			m_settings.setLaunchGameDirectory(m_launchGameDirectoryInstallation, m_launchGameDirectory->text());
+		}
+		refreshBuildSurface();
+	});
+	connect(m_launchExtraArguments, &QLineEdit::editingFinished, this, [this]() {
+		// An unclosed quote would swallow the rest of the line into one
+		// argument, so it is not kept, as `launch extra-args` refuses it.
+		const bool unclosed = m_launchExtraArguments->text().count(QLatin1Char('"')) % 2 != 0;
+		m_launchExtraArguments->setToolTip(unclosed ? tr("The extra arguments have an unclosed quote, so they are not kept or used until it is closed.")
+													: m_launchExtraArguments->accessibleDescription());
+		if (unclosed) {
+			statusBar()->showMessage(m_launchExtraArguments->toolTip());
+			refreshBuildSurface();
+			return;
+		}
+		if (!m_launchGameDirectoryInstallation.isEmpty()) {
+			m_settings.setLaunchExtraArguments(m_launchGameDirectoryInstallation, m_launchExtraArguments->text());
 		}
 		refreshBuildSurface();
 	});
@@ -6653,6 +6715,9 @@ void ApplicationShell::fitWorkspaceLists()
 
 void ApplicationShell::refreshGameInstallations()
 {
+	// The Levels Map tab's Mods list offers the selected installation's
+	// folders, so it follows a change of installation at once.
+	refreshLevelMapInspector();
 	if (!m_gameInstallations || !m_installSummary) {
 		return;
 	}
@@ -7622,13 +7687,8 @@ void ApplicationShell::loadLevelMapPath(const QString& path)
 		const QSignalBlocker blocker(m_levelMapName);
 		m_levelMapName->setEditText(document.mapName);
 	}
-	const QString defaultProfile = compilerRequestForLevelMap(document, QString()).profileId;
-	if (m_levelMapCompilerProfile) {
-		const int index = m_levelMapCompilerProfile->findData(defaultProfile);
-		if (index >= 0) {
-			m_levelMapCompilerProfile->setCurrentIndex(index);
-		}
-	}
+	// The profile last run from Levels for this game, else the format's own.
+	selectLevelCompilerProfileForMap();
 	registerWatchedDocument(document.sourcePath, DocumentWatchRole::LevelMap, document.mapName);
 	if (!m_sessionCopies || !QDir::cleanPath(document.sourcePath).startsWith(QDir::cleanPath(m_sessionCopies->path()))) {
 		m_settings.recordRecentFile(QStringLiteral("map"), document.sourcePath);
@@ -8068,6 +8128,9 @@ void ApplicationShell::refreshLevelMapWorkbench()
 		m_levelMapState->setState(OperationState::Idle, tr("Idle"));
 		m_levelMapState->setProgress({0, 1});
 		m_levelMapStatistics->addItem(disabledListItem(tr("Map statistics will appear after inspection.")));
+		if (m_levelMapClassTable) {
+			m_levelMapClassTable->clearStatistics();
+		}
 		m_levelMapView->addItem(disabledListItem(tr("2D or orthographic preview lines will appear after inspection.")));
 		m_levelMapValidation->addItem(disabledListItem(tr("Map validation and health overlay will appear after inspection.")));
 		m_levelMapDrawer->setTitle(tr("Level Map Details"));
@@ -8086,6 +8149,10 @@ void ApplicationShell::refreshLevelMapWorkbench()
 
 		for (const QString& line : levelMapStatisticsLines(m_levelMapDocument, stats)) {
 			m_levelMapStatistics->addItem(line);
+		}
+		// Map Info's class table (app/level_map_inspector.h).
+		if (m_levelMapClassTable) {
+			m_levelMapClassTable->setStatistics(m_levelMapDocument, stats);
 		}
 		for (const QString& line : levelMapViewLines(m_levelMapDocument)) {
 			m_levelMapView->addItem(line);
@@ -8271,6 +8338,8 @@ void ApplicationShell::refreshLevelMapSelection(const LevelMapInspectionSummary*
 	// and so do the commands that act on it (Delete, Duplicate, Snap...).
 	refreshEntityInspector(&summary.textureNames);
 	refreshLevelTransformPanel();
+	// The Shapes tab's Replace Selected Brushes follows the selection too.
+	refreshLevelShapesPanel();
 	refreshCommandEnablement();
 }
 
@@ -10244,7 +10313,7 @@ void ApplicationShell::applyLevelEditorProfile(bool profileChanged, bool preserv
 	}
 	if (m_levelMap3D) {
 		m_levelMap3D->setCameraControls(m_levelControls.camera, preserveWorkspace);
-		m_levelMap3D->setControlsHelp(levelControlsAccessibleText(QStringLiteral("camera"), tr("3D view")));
+		m_levelMap3D->setControlsHelp(levelCameraControlsHelp());
 		refreshLevelCameraBrush();
 	}
 	if (layoutChanged && !preserveWorkspace) {
@@ -10277,6 +10346,8 @@ void ApplicationShell::applyLevelEditorProfile(bool profileChanged, bool preserv
 	}
 	refreshLevelCameraMarker();
 	applyLevelSidebarProfile();
+	// The profile's camera speed and the commands that step it.
+	refreshLevelCameraDriveCommands();
 	if (!gestureError.isEmpty()) {
 		statusBar()->showMessage(tr("Gesture preferences could not be applied: %1. Profile defaults are in use.").arg(gestureError), 12000);
 	}
@@ -10352,10 +10423,20 @@ void ApplicationShell::showLevelMapProjection(int index)
 		&& !m_levelPlanPanes.shown[static_cast<std::size_t>(index)] && !showLevelPlanPane(index, true)) {
 		return;
 	}
+	const bool samePlane = m_levelMapProjection->currentIndex() == index;
 	m_levelMapProjection->setCurrentIndex(index);
 	if (levelViewLayoutHasThreePlans(m_levelViewLayout)) {
 		activateLevelPlanViewport(m_levelPlanViews.value(index));
 		m_levelMapViewport->setFocus(Qt::OtherFocusReason);
+		// Radiant's split layout recentres every 2D view on the selection or
+		// the camera instead (level_plan_framing_actions.cpp).
+		if (m_levelControls.plan.radiantFraming) {
+			centreLevelPlanViewsOnFocus();
+		}
+	} else if (samePlane) {
+		// The plane it already shows recentres there, keeping the zoom, as a
+		// change of plane does (the projection list's handler).
+		recentreLevelPlanForProjection(m_levelMapViewport, index);
 	}
 	// A single view shows the plane asked for instead of the 3D view.
 	if (!levelMap2DShowing()) {
@@ -11366,12 +11447,22 @@ void ApplicationShell::runLevelMapCompile(const LevelMapDocument& document)
 		statusBar()->showMessage(tr("Compiler plan needs review."));
 		return;
 	}
+	// A program the project's compiler paths name runs only once trusted.
+	if (!confirmBuildProgramsTrusted({compilerPlanProgramUse(plan)}, buildProgramScopeFor(request.inputPath))) {
+		return;
+	}
 
 	CompilerRunRequest runRequest;
 	runRequest.command = request;
 	runRequest.registerOutputs = true;
 	const QString manifestRoot = request.workspaceRootPath.trimmed().isEmpty() ? QFileInfo(request.inputPath).absolutePath() : request.workspaceRootPath;
-	runRequest.manifestPath = QDir(manifestRoot).filePath(QStringLiteral(".vibestudio/compiler-runs/%1-%2.json").arg(request.profileId, QDateTime::currentDateTimeUtc().toString(QStringLiteral("yyyyMMddTHHmmssZ"))));
+	runRequest.manifestPath = newCompilerRunManifestPath(manifestRoot, request.profileId);
+	// Run Last Build repeats this profile on the open map, and the next map
+	// of this game starts with it selected (build_rerun_actions.cpp). A
+	// region's compile is not a run of the map.
+	if (sameFilePath(request.inputPath, openLevelMapBuildPath())) {
+		noteBuildRunStarted(QStringLiteral("profile"), request.profileId, false, request.inputPath);
+	}
 
 	m_compilerRunCancelRequested.store(false);
 	m_compilerRunActivityId = m_activity.createTask(tr("Level Compile"), request.profileId, tr("level-map"), OperationState::Running, true);
@@ -11404,6 +11495,8 @@ void ApplicationShell::runLevelMapCompile(const LevelMapDocument& document)
 	m_compilerRunThread = thread;
 	connect(thread, &QThread::finished, thread, &QObject::deleteLater);
 	thread->start();
+	// The compiler commands wait for this run (finishCompilerRun frees them).
+	refreshCommandEnablement();
 }
 
 void ApplicationShell::copyLevelMapCliEquivalent()
@@ -12594,6 +12687,10 @@ void ApplicationShell::runSelectedCompilerProfile()
 		statusBar()->showMessage(tr("Compiler input file not found"));
 		return;
 	}
+	// A program the project's compiler paths name runs only once trusted.
+	if (!confirmBuildProgramsTrusted({compilerPlanProgramUse(buildCompilerCommandPlan(runRequest.command))}, manifest.rootPath)) {
+		return;
+	}
 
 	m_compilerRunCancelRequested.store(false);
 	m_compilerRunActivityId = m_activity.createTask(tr("Compiler Run"), profile.displayName, tr("compiler"), OperationState::Running, true);
@@ -12634,6 +12731,8 @@ void ApplicationShell::finishCompilerRun(const CompilerRunResult& result, const 
 	}
 	m_compilerRunActivityId.clear();
 	m_compilerRunCancelRequested.store(false);
+	// A new saved run may now be the open map's newest (Re-run Last Compile).
+	++m_compilerRunsFinished;
 
 	m_activity.setProgress(taskId, 4, 4, tr("Compiler run finished."));
 	for (const QString& warning : result.manifest.warnings) {
@@ -12673,6 +12772,9 @@ void ApplicationShell::finishCompilerRun(const CompilerRunResult& result, const 
 	refreshWorkspaceContextPanels();
 	refreshWorkspaceDashboard();
 	refreshActivityCenter(taskId);
+	// Run Compiler Profile, Run Last Build and Re-run Last Compile are free
+	// again, and a new saved run may now be the open map's newest.
+	refreshCommandEnablement();
 	statusBar()->showMessage(summary);
 }
 
@@ -14794,7 +14896,7 @@ void ApplicationShell::buildCommands()
 		m_commands->endBatch();
 	});
 
-	auto add = [this](const QString& commandId, StudioCommandGroup group, const QString& label, const QString& statusTip, const QString& iconName, bool toolbar, bool requiresProject, bool destructive, std::function<void()> handler, bool separatorBefore = false) {
+	auto add = [this](const QString& commandId, StudioCommandGroup group, const QString& label, const QString& statusTip, const QString& iconName, bool toolbar, bool requiresProject, bool destructive, std::function<void()> handler, bool separatorBefore = false, bool checkable = false) {
 		StudioCommandRegistration registration;
 		registration.commandId = commandId;
 		registration.group = group;
@@ -14805,6 +14907,7 @@ void ApplicationShell::buildCommands()
 		registration.requiresProject = requiresProject;
 		registration.destructive = destructive;
 		registration.separatorBefore = separatorBefore;
+		registration.checkable = checkable;
 		registration.handler = std::move(handler);
 		m_commands->registerCommand(registration);
 	};
@@ -14875,6 +14978,8 @@ void ApplicationShell::buildCommands()
 	add(QStringLiteral("map.exportImage"), StudioCommandGroup::File, tr("&Export Map Image…"),
 		tr("Write a deterministic SVG picture of the current map."), QStringLiteral("image"), false, false, false,
 		[this]() { exportLevelMapImage(); });
+	// Import Map, Export Selection as Map and Export Map (app/level_map_transfer_actions.cpp).
+	registerLevelMapTransferCommands();
 	add(QStringLiteral("package.saveAs"), StudioCommandGroup::File, tr("Save Pac&kage As…"),
 		tr("Write the staged package to a new archive."), QStringLiteral("save"), false, false, false,
 		[this]() { saveStagedPackageAs(); });
@@ -15005,8 +15110,10 @@ void ApplicationShell::buildCommands()
 		tr("Preview, position and rotate a prefab with unique internal target links."), QStringLiteral("cube"), false, false, false,
 		[this]() { showLevelPrefab(false); });
 	add(QStringLiteral("map.addPatch"), StudioCommandGroup::Edit, tr("Add &Patch…"),
-		tr("Create a Quake III curved surface with editable control points and UV coordinates."), QStringLiteral("cube"), false, false, false,
+		tr("Create a Quake III patch of any Radiant shape fitted to the selection's bounds, mapped as Radiant maps a new patch, with editable control "
+		   "points and UV coordinates; it can replace the selected brushes and patches."), QStringLiteral("cube"), false, false, false,
 		[this]() { editLevelMapPatchFromUi(true); });
+	registerLevelPatchPrefabCommands();
 	add(QStringLiteral("map.editBrushComponents"), StudioCommandGroup::Edit, tr("Edit Brush Components…"),
 		tr("Reshape the selected brush's vertices, edges and faces."), QStringLiteral("edit"), false, false, false,
 		[this]() { editLevelMapBrushComponentsFromUi(); });
@@ -15025,7 +15132,9 @@ void ApplicationShell::buildCommands()
 		tr("Join two patch boundaries with exact grid refinement and optional tangent or UV matching."), QStringLiteral("edit"), false, false, false,
 		[this]() { stitchLevelMapPatchesFromUi(); });
 	add(QStringLiteral("map.capPatch"), StudioCommandGroup::Edit, tr("Cap Patch…"),
-		tr("Close curved patch boundaries with planar caps and review their material mapping."), QStringLiteral("edit"), false, false, false,
+		tr("Close the boundaries of the selected patches with radial caps or NetRadiant Custom's bevel, endcap and cylinder seams, and review "
+		   "their material mapping."),
+		QStringLiteral("edit"), false, false, false,
 		[this]() { capLevelMapPatchFromUi(); });
 	add(QStringLiteral("map.addThing"), StudioCommandGroup::Edit, tr("Add &Thing…"),
 		tr("Add a thing to the open Doom or Hexen map at the centre of the view."), QStringLiteral("plus"), false, false, false,
@@ -15059,6 +15168,8 @@ void ApplicationShell::buildCommands()
 	registerLevelBrushPointsCommands();
 	registerLevelBrushAssembleCommands();
 	registerLevelNudgeCommands();
+	registerLevelObjectGizmoCommands();
+	registerLevelPlaneDragCommands();
 	add(QStringLiteral("map.resizeSelection"), StudioCommandGroup::Edit, tr("Resi&ze Selection…"),
 		tr("Fit the selection to a new size. Texture Scale Lock stretches brush textures with it; otherwise their source parameters stay fixed. Viewport handles use the same setting."),
 		QStringLiteral("resize"), false, false, false, [this]() { resizeLevelMapSelectionFromUi(); });
@@ -15233,6 +15344,8 @@ void ApplicationShell::buildCommands()
 				m_levelMapViewport->zoomOut();
 			}
 		});
+	// Zoom 100% and Reset 2D Views (level_plan_framing_actions.cpp).
+	registerLevelPlanFramingCommands();
 	add(QStringLiteral("map.carve"), StudioCommandGroup::Edit, tr("Car&ve"),
 		tr("Carve the selected brushes out of every brush they overlap, as CSG subtraction does; the carving brushes stay selected."),
 		QStringLiteral("clip"), false, false, false, [this]() { carveLevelMapSelectionFromUi(); });
@@ -15310,10 +15423,8 @@ void ApplicationShell::buildCommands()
 			LevelCameraRenderState state = m_levelCameraRender;
 			state.facesHidden = !state.facesHidden;
 			setLevelCameraRender(state, levelCameraRenderSummary(state));
-		});
-	if (QAction* wireframe = m_commands->action(QStringLiteral("map.previewWireframe"))) {
-		wireframe->setCheckable(true);
-	}
+		},
+		false, true);
 	registerLevelCameraRenderCommands();
 	add(QStringLiteral("map.gridSmaller"), StudioCommandGroup::View, tr("S&maller Grid"),
 		tr("Halve the Levels grid, so drags, nudges, and new objects land on finer steps."), QStringLiteral("grid"), false, false, false,
@@ -15337,16 +15448,23 @@ void ApplicationShell::buildCommands()
 		tr("Show the map from the side in the 2D view."), QStringLiteral("map"), false, false, false,
 		[this]() { showLevelMapProjection(2); });
 	add(QStringLiteral("map.frameSelection"), StudioCommandGroup::View, tr("&Frame Selection"),
-		tr("Frame the selection in the 2D view and turn the 3D camera to it."), QStringLiteral("crosshair"), false, false, false,
-		[this]() { frameLevelMapSelection(); });
+		tr("Frame the selection in the 2D view and turn the 3D camera to it; with Radiant framing (the NetRadiant Custom and NetRadiant profiles) only the 2D views move."), QStringLiteral("crosshair"), false, false, false,
+		[this]() { frameLevelMapSelectionFromUi(); });
 	registerLevelCameraFocusCommands();
+	registerLevelCameraDriveCommands();
 	add(QStringLiteral("map.toggleGrid"), StudioCommandGroup::View, tr("Show &Grid"),
-		tr("Show or hide the grid lines in the 2D view."), QStringLiteral("grid"), false, false, false,
+		tr("Show or hide the grid lines in the 2D views and the camera's ground grid and Grid on Camera Faces."), QStringLiteral("grid"), false, false, false,
 		[this]() {
 			if (m_levelMapShowGrid) {
 				m_levelMapShowGrid->trigger();
 			}
-		});
+		},
+		false, true);
+	// Checkable and checked while the grid shows, as TrenchBroom's Show Grid
+	// is (refreshLevelCameraRenderCommands).
+	if (QAction* showGrid = m_commands->action(QStringLiteral("map.toggleGrid"))) {
+		showGrid->setChecked(true);
+	}
 	add(QStringLiteral("map.toggleSnap"), StudioCommandGroup::View, tr("S&nap to Grid"),
 		tr("Turn grid snapping for drags, nudges, and drawn brushes on or off."), QStringLiteral("grid"), false, false, false,
 		[this]() {
@@ -15694,9 +15812,22 @@ void ApplicationShell::buildCommands()
 	add(QStringLiteral("game.launch"), StudioCommandGroup::Build, tr("&Launch Game"),
 		tr("Start the configured game installation with the planned command line."), QStringLiteral("play"), true, false, false,
 		[this]() {
-			setMode(StudioMode::Build);
+			// From Levels the launch review opens over the map; elsewhere the
+			// Build page shows the Launch and Test settings it uses.
+			if (currentMode() != StudioMode::Levels) {
+				setMode(StudioMode::Build);
+			}
 			launchConfiguredGame();
 		}, true);
+	add(QStringLiteral("game.editLaunchProfiles"), StudioCommandGroup::Build, tr("Lau&nch Profiles…"),
+		tr("Make your own launch profiles: a name and the engine arguments, with {map}, {mod}, {basedir} and {bsp} filled in at launch."),
+		QStringLiteral("edit"), false, false, false, [this]() { editGameLaunchProfiles(); });
+	add(QStringLiteral("build.runLast"), StudioCommandGroup::Build, tr("Run Last B&uild"),
+		tr("Run again the build you ran last for this project, on the open map: the build pipeline, with its launch, or the Levels compiler profile."),
+		QStringLiteral("refresh"), false, false, false, [this]() { runLastBuild(); });
+	add(QStringLiteral("compiler.rerunLast"), StudioCommandGroup::Build, tr("Re-run Last C&ompile"),
+		tr("Replay the open map's newest saved compiler run exactly as it ran: the same program, arguments and folder."),
+		QStringLiteral("refresh"), false, false, false, [this]() { rerunLastCompile(); });
 	add(QStringLiteral("activity.cancel"), StudioCommandGroup::Build, tr("&Cancel Running Task"),
 		tr("Ask the selected running task to stop."), QStringLiteral("stop"), false, false, false,
 		[this]() { cancelSelectedActivityTask(); }, true);
@@ -15709,6 +15840,13 @@ void ApplicationShell::buildCommands()
 	add(QStringLiteral("build.copyCommands"), StudioCommandGroup::Build, tr("Copy &Pipeline Commands"),
 		tr("Copy every stage command line of the selected build pipeline."), QStringLiteral("copy"), false, false, false,
 		[this]() { copyBuildPipelineCommands(); });
+	// NetRadiant Custom's Build > Customize… (build_pipeline_actions.cpp).
+	add(QStringLiteral("build.editPipelines"), StudioCommandGroup::Build, tr("Buil&d Pipelines…"),
+		tr("Make the project's own build pipelines: compiler stages with your arguments, on/off switches and variables, kept in the project."),
+		QStringLiteral("edit"), false, true, false, [this]() {
+			setMode(StudioMode::Build);
+			editBuildPipelines();
+		});
 
 	add(QStringLiteral("code.index"), StudioCommandGroup::Tools, tr("&Index Code Workspace"),
 		tr("Scan the project for languages, symbols, build tasks, and launch profiles."), QStringLiteral("search"), false, true, false,
@@ -17374,6 +17512,11 @@ void ApplicationShell::installShortcutScopes()
 			m_commands->setShortcutScopes(descriptor.commandId, scopes);
 		}
 	}
+	// Map editing keys never act from a field that types in Levels, such as
+	// the map path or an inspector value: TrenchBroom's Ctrl+P there keeps
+	// Go to File instead of converting the selection, and Ctrl+D does not
+	// duplicate it (StudioCommandRegistry::setShortcutTypingGuards).
+	m_commands->setShortcutTypingGuards({page(StudioMode::Levels)});
 	// A map command with no key of its own takes one only from an editor
 	// profile or the user, and that key acts on the Levels page: TrenchBroom's
 	// Space cycles the map views there and nowhere else.
@@ -17409,9 +17552,43 @@ void ApplicationShell::installShortcutScopes()
 				m_commands->setShortcutScopeClaims(registration.commandId, m_levelMap3D != nullptr, QStringLiteral("camera-faces"));
 				continue;
 			}
+			// Camera Floor Up and Down (NRC's Page Up and Page Down) act in the
+			// views, which claim their keys while the camera can step; in a plan
+			// view a Doom map's Raise and Lower Floor keep them while they can
+			// act (app/level_camera_focus_actions.cpp).
+			if (registration.commandId == QLatin1String("map.cameraFloorUp") || registration.commandId == QLatin1String("map.cameraFloorDown")) {
+				m_commands->setShortcutScopes(registration.commandId, levelViews.isEmpty() ? QList<QWidget*>{page(StudioMode::Levels)} : levelViews);
+				m_commands->setShortcutScopeClaims(registration.commandId, !levelViews.isEmpty(), QStringLiteral("camera-floor"));
+				continue;
+			}
+			// Reset 2D Views acts from a 2D view. No profile gives it a key
+			// (TrenchBroom's Ctrl+Shift+U is Read Aloud's), but a key the user
+			// gives it is taken only in a 2D view while it can act, so a shared
+			// key keeps its window-wide command everywhere else
+			// (app/level_plan_framing_actions.cpp).
+			if (registration.commandId == QLatin1String("map.resetPlanViews")) {
+				QList<QWidget*> planViews;
+				for (auto* view : m_levelPlanViews) { if (view) { planViews << view; } }
+				m_commands->setShortcutScopes(registration.commandId, planViews.isEmpty() ? QList<QWidget*>{page(StudioMode::Levels)} : planViews);
+				m_commands->setShortcutScopeClaims(registration.commandId, !planViews.isEmpty(), QString::fromLatin1(StudioCommandRegistry::kShortcutFocusClaims));
+				continue;
+			}
 			m_commands->setShortcutScopes(registration.commandId, (viewNavigation || nudge) && !levelViews.isEmpty()
 				? levelViews : QList<QWidget*>{page(StudioMode::Levels)});
 			if (nudge) { m_commands->setShortcutScopeClaims(registration.commandId, !levelViews.isEmpty()); }
+			// TrenchBroom's Ctrl+3 shows the Face inspector wherever focus is in
+			// Levels and keeps switching to Models elsewhere
+			// (app/level_face_inspector_actions.cpp).
+			// Its Ctrl+1 shows the Map inspector the same way and keeps the
+			// Workspace mode key elsewhere (app/level_map_inspector_actions.cpp).
+			// Its Ctrl+P converts the selection to patches in Levels while it
+			// can, and keeps Go to File elsewhere and in the page's fields,
+			// as editing claims never act from a field that types
+			// (app/level_patch_convert_deform_actions.cpp).
+			if (registration.commandId == QLatin1String("map.showFaceInspector") || registration.commandId == QLatin1String("map.sidebar.map")
+				|| registration.commandId == QLatin1String("map.convertToPatches")) {
+				m_commands->setShortcutScopeClaims(registration.commandId, true, QString::fromLatin1(StudioCommandRegistry::kShortcutFocusClaims));
+			}
 		}
 	}
 }
@@ -19237,6 +19414,7 @@ void ApplicationShell::refreshCommandEnablement()
 	m_commands->setEnabled(QStringLiteral("map.addBrush"), m_levelMapDocument.format == LevelMapFormat::QuakeMap
 		|| m_levelMapDocument.format == LevelMapFormat::Quake3Map);
 	m_commands->setEnabled(QStringLiteral("map.addPatch"), m_levelMapDocument.format == LevelMapFormat::Quake3Map);
+	refreshLevelPatchPrefabCommands();
 	m_commands->setEnabled(QStringLiteral("map.stitchPatches"), m_levelMapDocument.format == LevelMapFormat::Quake3Map && m_levelMapDocument.patches.size() >= 2);
 	m_commands->setEnabled(QStringLiteral("map.capPatch"), m_levelMapDocument.format == LevelMapFormat::Quake3Map && !m_levelMapDocument.patches.isEmpty());
 	const auto groupContext = m_levelMapViewport ? m_levelMapViewport->sceneSelectionContext() : LevelSceneSelectionContext{};
@@ -19253,6 +19431,7 @@ void ApplicationShell::refreshCommandEnablement()
 	m_commands->setEnabled(QStringLiteral("map.snapToGrid"), hasMap && hasSelection);
 	const bool textMapOpen = m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map;
 	m_commands->setEnabled(QStringLiteral("map.exportPrefab"), textMapOpen && hasSelection);
+	refreshLevelMapTransferCommands();
 	m_commands->setEnabled(QStringLiteral("map.stagePrefab"), textMapOpen && hasSelection && m_packageStaging.isLoaded()
 		&& m_packageStaging.sourceFormat() != PackageArchiveFormat::Wad && !m_packageSaveRunning && !m_packageReadRunning && !m_packageExtractionRunning);
 	m_commands->setEnabled(QStringLiteral("map.insertPrefab"), textMapOpen);
@@ -19282,7 +19461,10 @@ void ApplicationShell::refreshCommandEnablement()
 	refreshLevelBrushAssembleCommands();
 	refreshLevelArbitraryTransformDialogs();
 	refreshLevelNudgeCommands();
+	refreshLevelObjectGizmoCommands();
 	refreshLevelCameraFocusCommands();
+	refreshLevelCameraDriveCommands();
+	refreshLevelPlanFramingCommands();
 	m_commands->setEnabled(QStringLiteral("map.selectConnectedGeometry"), hasMap && m_levelMapDocument.format == LevelMapFormat::DoomWad &&
 		std::any_of(m_levelMapDocument.selection.cbegin(), m_levelMapDocument.selection.cend(), [](const auto& ref) {
 			return ref.kind == LevelMapSelectionKind::DoomVertex || ref.kind == LevelMapSelectionKind::DoomLinedef || ref.kind == LevelMapSelectionKind::DoomSector;
@@ -19426,6 +19608,7 @@ void ApplicationShell::refreshCommandEnablement()
 	m_commands->setEnabled(QStringLiteral("build.deployPrepared"), preparedLevelBuildWorkspaceActive() && !m_buildPipelineThread && preparedLevelBuildCanLaunch());
 	if (auto* button = findChild<QToolButton*>(QStringLiteral("buildPrepareWorkspace"))) { button->setEnabled(canPrepareBuild); }
 	m_commands->setEnabled(QStringLiteral("compiler.run"), m_compilerRunThread == nullptr);
+	refreshBuildRerunCommands();
 	refreshLevelCameraPlacementTools();
 	refreshSurfaceStates();
 	scheduleStatusChipRefresh();
@@ -19625,10 +19808,19 @@ bool ApplicationShell::eventFilter(QObject* watched, QEvent* event)
 	if (watched == m_levelMap3D && m_levelTextureDragMode && handleLevelTextureDragEvent(event)) {
 		return true;
 	}
+	if (watched == m_levelMap3D && handleLevelCameraUvToolEvent(event)) {
+		return true;
+	}
 	if (handleLevelCameraFocusEvent(watched, event)) {
 		return true;
 	}
 	if (handleLevelNudgeKey(watched, event)) {
+		return true;
+	}
+	if (handleLevelCameraFloorKey(watched, event)) {
+		return true;
+	}
+	if (handleLevelCameraDriveKey(watched, event)) {
 		return true;
 	}
 	if (handleLevelPrismKey(watched, event)) {
@@ -24849,7 +25041,10 @@ void ApplicationShell::showLevelMapContextMenu(const QPoint& globalPosition, boo
 				}
 			}
 			menu.addAction(thicken);
+			if (auto* deform = m_commands->action(QStringLiteral("map.deformPatch")); deform && deform->isEnabled()) { menu.addAction(deform); }
 		}
+		// TrenchBroom's Convert Selection to Patches, for brushes or picked faces.
+		if (auto* convert = m_commands->action(QStringLiteral("map.convertToPatches")); convert && convert->isEnabled()) { menu.addAction(convert); }
 	}
 	if (textMap) {
 		addBrush = menu.addAction(studioIcon(QStringLiteral("cube")), fromViewport ? tr("Add Brush Here…") : tr("Add Brush…"));
@@ -25076,7 +25271,7 @@ void ApplicationShell::showLevelMapContextMenu(const QPoint& globalPosition, boo
 	} else if (chosen == deleteSelection) {
 		deleteLevelMapSelectionFromUi();
 	} else if (chosen == zoomSelection) {
-		frameLevelMapSelection();
+		frameLevelMapSelectionFromUi();
 	} else if (chosen == zoomFit) {
 		frameLevelPlanViews(false);
 	} else if (chosen == editKey) {
@@ -25388,21 +25583,18 @@ void ApplicationShell::refreshBuildSurface()
 		return;
 	}
 
-	if (m_buildPipelineChoice->count() == 0) {
-		const QSignalBlocker blocker(m_buildPipelineChoice);
-		for (const BuildPipelineDescriptor& descriptor : buildPipelineDescriptors()) {
-			m_buildPipelineChoice->addItem(descriptor.displayName, descriptor.id);
-		}
+	// The built-in pipelines and the project's own (build_pipeline_actions.cpp).
+	refreshBuildPipelineChoices();
+	if (m_buildAndLaunch && m_commands) {
+		// The key, when the editor profile gives Build and Launch one.
+		const QAction* buildAndLaunchAction = m_commands->action(QStringLiteral("build.runAndLaunch"));
+		const QString key = buildAndLaunchAction ? buildAndLaunchAction->shortcut().toString(QKeySequence::NativeText) : QString();
+		const QString tip = tr("Run the pipeline, then launch the game with the built map once it succeeds.");
+		m_buildAndLaunch->setToolTip(key.isEmpty() ? tip : tr("%1 (%2)").arg(tip, key));
 	}
-	if (m_launchProfileChoice && m_launchProfileChoice->count() == 0) {
-		const QSignalBlocker blocker(m_launchProfileChoice);
-		// Automatic uses the profile made for the installation's engine, so a
-		// Quake III installation is not started with Quake's switches.
-		m_launchProfileChoice->addItem(tr("Automatic (matches the installation)"), QString());
-		for (const GameLaunchProfile& profile : gameLaunchProfiles()) {
-			m_launchProfileChoice->addItem(profile.displayName, profile.id);
-		}
-	}
+	// Automatic, the built-in profiles and the user's own for the selected
+	// installation's engine (build_rerun_actions.cpp).
+	refreshLaunchProfileChoices();
 
 	followOpenMapInBuild();
 	const BuildPipelineRequest request = currentBuildPipelineRequest(true);
@@ -25746,6 +25938,11 @@ void ApplicationShell::runSelectedBuildPipeline()
 		QString error;
 		if (!configureLevelBuildPipeline(*prepared, &request, &error)) { statusBar()->showMessage(error); return; }
 	}
+	// Every stage's program: one the project's compiler paths or pipelines
+	// name runs only once trusted (build_pipeline_actions.cpp).
+	if (!confirmBuildProgramsTrusted(buildPipelineProgramUses(planBuildPipeline(request)), buildProgramScopeFor(inputPath))) {
+		return;
+	}
 	const QString taskId = m_activity.createTask(tr("Build Pipeline"), nativePath(inputPath), tr("build"), OperationState::Queued, true);
 	m_buildPipelineActivityId = taskId;
 	m_activity.transitionTask(taskId, OperationState::Running, tr("Running build pipeline."));
@@ -25830,6 +26027,8 @@ void ApplicationShell::runSelectedBuildPipeline()
 		}
 	});
 	thread->start();
+	// Run Last Build repeats this run, with its launch when it has one.
+	noteBuildRunStarted(QStringLiteral("pipeline"), request.pipelineId, m_launchAfterBuild, inputPath);
 	refreshCommandEnablement();
 	if (m_buildPipelineCancel) {
 		m_buildPipelineCancel->setEnabled(true);
@@ -26086,6 +26285,16 @@ BuildPipelineRequest ApplicationShell::currentBuildPipelineRequest(bool dryRun) 
 	const CompilerRegistryOptions registryOptions = compilerRegistryOptionsForProject(request.workspaceRootPath, m_settings);
 	request.extraSearchPaths = registryOptions.extraSearchPaths;
 	request.executableOverrides = registryOptions.executableOverrides;
+	// The project's own pipelines, and the game folder and mod their
+	// ${GAME_DIR} and ${MOD} stand for.
+	request.projectPipelines = projectBuildPipelinesForBuild();
+	GameInstallationProfile installation;
+	if (selectedGameInstallation(&installation)) {
+		request.variables.insert(QStringLiteral("GAME_DIR"), installation.rootPath);
+	}
+	if (m_launchGameDirectory && !m_launchGameDirectory->text().trimmed().isEmpty()) {
+		request.variables.insert(QStringLiteral("MOD"), m_launchGameDirectory->text().trimmed());
+	}
 	if (preparedLevelBuildWorkspaceActive()) { configureLevelBuildPipeline(*m_levelBuildWorkspace, &request); }
 	return request;
 }
@@ -26128,13 +26337,14 @@ bool ApplicationShell::followOpenMapInBuild()
 		break;
 	}
 	BuildPipelineDescriptor current;
+	const QVector<BuildPipelineDescriptor> projectPipelines = projectBuildPipelinesForBuild();
 	if (!m_buildPipelineChoice || family.isEmpty()
-		|| (buildPipelineForId(m_buildPipelineChoice->currentData().toString(), &current) && current.engineFamily == family)) {
+		|| (buildPipelineForId(m_buildPipelineChoice->currentData().toString(), projectPipelines, &current) && current.engineFamily == family)) {
 		return true;
 	}
 	for (int index = 0; index < m_buildPipelineChoice->count(); ++index) {
 		BuildPipelineDescriptor candidate;
-		if (buildPipelineForId(m_buildPipelineChoice->itemData(index).toString(), &candidate) && candidate.engineFamily == family) {
+		if (buildPipelineForId(m_buildPipelineChoice->itemData(index).toString(), projectPipelines, &candidate) && candidate.engineFamily == family) {
 			const QSignalBlocker blocker(m_buildPipelineChoice);
 			m_buildPipelineChoice->setCurrentIndex(index);
 			break;
@@ -26187,6 +26397,11 @@ GameLaunchRequest ApplicationShell::currentGameLaunchRequest(const GameInstallat
 	request.modDirectory = m_launchGameDirectory ? m_launchGameDirectory->text().trimmed() : QString();
 	request.bspPath = bspPath;
 	request.baseDirectory = installation.rootPath;
+	// Text with an unclosed quote is left out until it is closed (see the
+	// field's editingFinished).
+	const QString extra = m_launchExtraArguments ? m_launchExtraArguments->text() : QString();
+	request.extraArguments = extra.count(QLatin1Char('"')) % 2 == 0 ? splitGameLaunchArguments(extra) : QStringList();
+	request.userProfiles = m_settings.userGameLaunchProfiles();
 	return request;
 }
 
@@ -26753,6 +26968,10 @@ void ApplicationShell::syncLaunchGameDirectory(const GameInstallationProfile& in
 	m_launchGameDirectoryInstallation = installation.id;
 	const QSignalBlocker blocker(m_launchGameDirectory);
 	m_launchGameDirectory->setText(m_settings.launchGameDirectory(installation.id));
+	if (m_launchExtraArguments) {
+		const QSignalBlocker extraBlocker(m_launchExtraArguments);
+		m_launchExtraArguments->setText(m_settings.launchExtraArguments(installation.id));
+	}
 }
 
 // ---------------------------------------------------------------------------

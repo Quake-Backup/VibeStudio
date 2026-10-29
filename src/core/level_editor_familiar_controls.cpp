@@ -1,4 +1,6 @@
 #include "core/level_editor_controls.h"
+#include "core/level_camera_keys.h"
+#include <QKeySequence>
 #include <algorithm>
 #include <cmath>
 
@@ -209,6 +211,10 @@ static LevelEditorControls familiarLevelControlsWithoutNudges(const QString& id)
 		key(controls, "map.selectSimilar", {});
 		// Q3Radiant's End levelling is not confirmed by the QeRadiant manual.
 		unbind(controls, "map.levelCamera");
+		// The manual lists Page Up and Page Down floor steps and the Ctrl+] and
+		// Ctrl+[ cubic clip steps, but says Ctrl+\ toggles the clip only in
+		// Q3Radiant.
+		unbind(controls, "map.previewFarClip");
 		return controls;
 	}
 	if (id == QLatin1String("q3radiant")) {
@@ -248,6 +254,12 @@ static LevelEditorControls familiarLevelControlsWithoutNudges(const QString& id)
 		key(controls, "map.surfaceRotateLeft", {QStringLiteral("Shift+PgUp")});
 		key(controls, "map.surfaceRotateRight", {QStringLiteral("Shift+PgDown")});
 		key(controls, "map.surfaceFit", {QStringLiteral("Shift+5")});
+		// MainFrm.cpp g_Commands: UpFloor and DownFloor on Page Up and Page
+		// Down (inherited) and ToggleCubicClip on Ctrl+\, but CubicClipZoomOut
+		// (longer) on Ctrl+[ and CubicClipZoomIn (shorter) on Ctrl+], the other
+		// way round from GtkRadiant. DoomEdit's CameraClip keys match.
+		key(controls, "map.shorterDrawDistance", {QStringLiteral("Ctrl+]")});
+		key(controls, "map.longerDrawDistance", {QStringLiteral("Ctrl+[")});
 		return controls;
 	}
 	if (id == QLatin1String("netradiant")) {
@@ -271,10 +283,19 @@ static LevelEditorControls familiarLevelControlsWithoutNudges(const QString& id)
 		controls.quickTurnSnapsPivot = false;
 		// Ctrl quick clip was audited for NRC, not this NetRadiant baseline.
 		plan.quickClipModifiers = Qt::NoModifier;
+		// So were the drag tool's Alt and Ctrl+Alt drags; the QE4 plane drag
+		// beside the selection is every Radiant's.
+		plan.vertexDragModifiers = plan.extrudeDragModifiers = Qt::NoModifier;
+		camera.planeDragModifiers = camera.extrudeDragModifiers = Qt::NoModifier;
 		// Standalone Ctrl+U wrapping was likewise audited only for NRC.
 		key(controls, "map.wrapMerge", {});
 		camera.clipViewAxis = false;
 		camera.clipDragStyle = CameraClipDragStyle::Surface;
+		// NRC's discrete drive steps, their 90-degree pitch stop and its
+		// 500-unit CamMoveSpeed were audited against NRC 449778b3 only.
+		camera.discreteDriveKeys = false;
+		camera.drivePitchLimitDegrees = CameraViewControls{}.drivePitchLimitDegrees;
+		camera.moveSpeed = 0;
 		// NetRadiant b4b295d7 surfacedialog.cpp pastes values, not seamless UVs.
 		camera.surfaceWrapFaceButton = Qt::NoButton;
 		camera.surfaceValuesButton = camera.surfaceValuesOnlyButton = camera.surfaceWrapOnlyButton = Qt::NoButton;
@@ -324,7 +345,21 @@ static LevelEditorControls familiarLevelControlsWithoutNudges(const QString& id)
 			QStringLiteral("map.surfaceScaleStepDown"), QStringLiteral("map.surfaceScaleStepLeft"), QStringLiteral("map.surfaceScaleStepRight"),
 			// Shift+] and Shift+[ step NRC's camera modes (CameraModeNext and
 			// CameraModePrev, 449778b3); NetRadiant's camwindow.cpp has neither.
-			QStringLiteral("map.nextCameraMode"), QStringLiteral("map.previousCameraMode")};
+			QStringLiteral("map.nextCameraMode"), QStringLiteral("map.previousCameraMode"),
+			// W for the Translate tool and R for the Rotate tool were audited
+			// against NRC 449778b3 only.
+			QStringLiteral("map.translateTool"), QStringLiteral("map.rotateTool"),
+			// G for the UV tool (MouseUV) was audited against NRC 449778b3 only.
+			QStringLiteral("map.uvTool"),
+			// So was Q for Select or Transform Tool (MouseDragOrTransform), and B
+			// for the Build tool (MouseBuild).
+			QStringLiteral("map.selectOrTransformTool"), QStringLiteral("map.buildTool"),
+			// Shift+P for Simple Patch Mesh was audited against NRC 449778b3 only,
+			// and so was Shift+C for Cap Selection (CapCurrentCurve).
+			QStringLiteral("map.addPatch"), QStringLiteral("map.capPatch"),
+			// So were Shift+keypad + and - for the camera speed (CameraSpeedInc
+			// and CameraSpeedDec).
+			QStringLiteral("map.cameraSpeedUp"), QStringLiteral("map.cameraSpeedDown")};
 		controls.keys.erase(std::remove_if(controls.keys.begin(), controls.keys.end(),
 			[&nrcOnly](const LevelEditorKeyBinding& binding) { return nrcOnly.contains(binding.commandId); }), controls.keys.end());
 		controls.surfaceRotationStep = LevelEditorControls{}.surfaceRotationStep;
@@ -442,8 +477,12 @@ static LevelEditorControls familiarLevelControlsWithoutNudges(const QString& id)
 		key(controls, "map.gridLarger", {QStringLiteral("]")});
 		key(controls, "map.zoomIn", {QStringLiteral("Del")});
 		key(controls, "map.zoomOut", {QStringLiteral("Ins")});
-		// GtkRadiant's End levelling still needs a DarkRadiant audit.
-		unbind(controls, "map.levelCamera");
+		// GtkRadiant's End levelling, Page Up and Down floor steps and cubic
+		// clip keys still need a DarkRadiant audit.
+		for (const char* command : {"map.levelCamera", "map.cameraFloorUp", "map.cameraFloorDown", "map.previewFarClip", "map.shorterDrawDistance",
+				 "map.longerDrawDistance"}) {
+			unbind(controls, command);
+		}
 		return controls;
 	}
 	if (id == QLatin1String("doom-builder") || id == QLatin1String("ultimate-doom-builder")) {
@@ -619,6 +658,42 @@ QPointF planCameraStep(const PlanViewControls& controls, int key, Qt::KeyboardMo
 	case Qt::Key_Right: return {0, -turn};
 	default: return {};
 	}
+}
+
+bool planViewKeepsKey(const PlanViewControls& controls, int key, Qt::KeyboardModifiers modifiers)
+{
+	// MapViewport::keyPressEvent's own keys, whichever modifiers come with them.
+	switch (key) {
+	case Qt::Key_Left: case Qt::Key_Right: case Qt::Key_Up: case Qt::Key_Down:
+	case Qt::Key_Plus: case Qt::Key_Minus: case Qt::Key_Equal: case Qt::Key_Underscore:
+	case Qt::Key_Home: case Qt::Key_F: case Qt::Key_Space: case Qt::Key_Backspace: case Qt::Key_Delete:
+	case Qt::Key_Escape: case Qt::Key_Return: case Qt::Key_Enter: case Qt::Key_Tab: case Qt::Key_Backtab:
+		return true;
+	default:
+		break;
+	}
+	return navigationHoldKeyMatches(controls.panHoldKey, key, modifiers & ~Qt::KeypadModifier);
+}
+
+CameraFlyKeys planRoutedCameraDriveKeys(const LevelEditorControls& controls)
+{
+	CameraFlyKeys keys;
+	if (!controls.plan.cameraDriveKeys || !controls.camera.perspective) {
+		return keys;
+	}
+	// Workflow reference: NRC camwindow.cpp CamWnd_Move_Discrete_Enable and
+	// CamWnd_Move_Enable at 449778b3 (GPL-2.0-or-later) connect the camera keys
+	// as main-window accelerators and key events, so they reach the camera
+	// from the 2D views. Original Qt implementation; see docs/CREDITS.md.
+	const auto routed = [&controls](const QString& name) {
+		const auto sequence = QKeySequence::fromString(name, QKeySequence::PortableText);
+		return sequence.count() == 1 && sequence[0].keyboardModifiers() == Qt::NoModifier
+				&& !planViewKeepsKey(controls.plan, sequence[0].key(), Qt::NoModifier) ? name : QString();
+	};
+	const CameraFlyKeys& drive = controls.camera.driveKeys;
+	keys = {routed(drive.forward), routed(drive.back), routed(drive.left), routed(drive.right), routed(drive.up), routed(drive.down),
+		routed(drive.turnLeft), routed(drive.turnRight), routed(drive.pitchUp), routed(drive.pitchDown)};
+	return keys;
 }
 
 } // namespace vibestudio

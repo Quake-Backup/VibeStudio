@@ -25,11 +25,17 @@ class PatchCapDialog final : public QDialog
 				   QWidget *parent = nullptr);
 	~PatchCapDialog() override;
 	LevelPatchCapRequest request() const;
-	int patchId() const;
+	// The patches to cap: every visible selected patch when the first
+	// choice, All selected patches, is current, else the one chosen.
+	QVector<int> patchIds() const;
+	// Offers the current material (the Textures tab's), which the
+	// NetRadiant Custom styles take until another material is chosen, as its
+	// Cap Selection takes the texture browser's.
+	void setCurrentMaterial(const QString &material);
 	bool isReady() const { return m_ready; }
 	bool previewValid() const { return m_valid; }
 	const LevelPatchCapResult &capResult() const { return m_result; }
-	void setApplyHandler(std::function<bool(int, const LevelPatchCapRequest &, QString *)> handler);
+	void setApplyHandler(std::function<bool(const QVector<int> &, const LevelPatchCapRequest &, QString *)> handler);
 	void accept() override;
 
   private:
@@ -37,13 +43,17 @@ class PatchCapDialog final : public QDialog
 	void schedule();
 	void startPreview();
 	void updateControlWidth();
+	void styleChanged();
 	void changeEvent(QEvent *) override;
 	LevelMapDocument m_source;
 	std::shared_ptr<const PackageArchiveReader> m_archive;
 	QString m_palette;
 	LevelPatchCapResult m_result;
 	LevelPreviewAssets m_assets;
-	QComboBox *m_patch = nullptr, *m_boundary = nullptr, *m_texture = nullptr, *m_uv = nullptr, *m_view = nullptr;
+	QComboBox *m_style = nullptr, *m_patch = nullptr, *m_boundary = nullptr, *m_texture = nullptr, *m_uv = nullptr, *m_view = nullptr;
+	QVector<int> m_selected;
+	int m_currentMaterialIndex = -1;
+	bool m_materialChosen = false;
 	QCheckBox *m_opposite = nullptr, *m_custom = nullptr, *m_invert = nullptr;
 	QDoubleSpinBox *m_units = nullptr, *m_x = nullptr, *m_y = nullptr, *m_z = nullptr;
 	QPlainTextEdit *m_status = nullptr;
@@ -55,7 +65,7 @@ class PatchCapDialog final : public QDialog
 	QTimer *m_debounce = nullptr;
 	QThread *m_thread = nullptr;
 	std::shared_ptr<Work> m_work;
-	std::function<bool(int, const LevelPatchCapRequest &, QString *)> m_handler;
+	std::function<bool(const QVector<int> &, const LevelPatchCapRequest &, QString *)> m_handler;
 	quint64 m_generation = 0;
 	bool m_ready = false, m_valid = false;
 };

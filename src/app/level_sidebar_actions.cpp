@@ -254,10 +254,9 @@ void ApplicationShell::buildLevelSidebars(const LevelSidebarContent& content)
 	// Map: what the map is and what it is checked against.
 	SidebarPage* map = createLevelSidebarPage(QStringLiteral("map"), true);
 	buildLevelMapSettings(map);
-	if (auto* statistics = qobject_cast<QAbstractItemView*>(content.statistics)) {
-		statistics->setMinimumHeight(140);
-	}
-	addLevelSidebarSection(map, QStringLiteral("map.statistics"), tr("Statistics"), content.statistics, 0, false);
+	// Layers, Map Properties, Mods and Statistics with Map Info's class table
+	// (level_map_inspector_actions.cpp).
+	buildLevelMapInspector(map, content.statistics);
 	addLevelSidebarSection(map, QStringLiteral("map.definitions"), tr("Entity Definitions"), content.definitions);
 	if (content.details) {
 		content.details->setMinimumHeight(220);
@@ -358,6 +357,23 @@ QWidget* ApplicationShell::buildLevelViewOptions()
 	// Brush and patch outlines over the camera's faces (level_camera_render_actions.cpp).
 	if (QAction* edges = m_commands ? m_commands->action(QStringLiteral("map.previewEdges")) : nullptr) {
 		layout->addWidget(actionCheckBox(edges, QStringLiteral("levelViewEdges"), this));
+	}
+	// Shading, fog with its distances, and the grid on brush faces
+	// (level_camera_render_actions.cpp).
+	if (QAction* shading = m_commands ? m_commands->action(QStringLiteral("map.previewShading")) : nullptr) {
+		layout->addWidget(actionCheckBox(shading, QStringLiteral("levelViewShading"), this));
+	}
+	if (QAction* fog = m_commands ? m_commands->action(QStringLiteral("map.previewFog")) : nullptr) {
+		layout->addWidget(actionCheckBox(fog, QStringLiteral("levelViewFog"), this));
+		layout->addWidget(buildLevelCameraFogRange());
+	}
+	if (QAction* faceGrid = m_commands ? m_commands->action(QStringLiteral("map.previewFaceGrid")) : nullptr) {
+		layout->addWidget(actionCheckBox(faceGrid, QStringLiteral("levelViewFaceGrid"), this));
+	}
+	// The far clip with its draw distance (level_camera_render_actions.cpp).
+	if (QAction* farClip = m_commands ? m_commands->action(QStringLiteral("map.previewFarClip")) : nullptr) {
+		layout->addWidget(actionCheckBox(farClip, QStringLiteral("levelViewFarClip"), this));
+		layout->addWidget(buildLevelCameraFarClipRange());
 	}
 
 	// The grid and snapping, mirrored from the view bar so either one works.
@@ -918,6 +934,12 @@ void ApplicationShell::registerLevelSidebarCommands()
 			setMode(StudioMode::Levels);
 			showLevelSidebarPage(QStringLiteral("map"), QStringLiteral("map.statistics"), true);
 		});
+	// NetRadiant Custom's Map Info (M): the same section, at its class table
+	// (level_map_inspector_actions.cpp).
+	add(QStringLiteral("map.mapInfo"), tr("Map Info"),
+		tr("Open the Map tab's Statistics at its class table: brush, patch and entity totals, group and in-game entities, and every entity class with "
+		   "its count."),
+		QStringLiteral("report"), [this]() { showLevelMapInfo(); });
 	add(QStringLiteral("map.worldspawn"), tr("Show Worldspawn Keys"),
 		tr("Open the Map tab's Worldspawn list to add or change worldspawn keys; each change is one undo step."), QStringLiteral("key"), [this]() {
 			setMode(StudioMode::Levels);

@@ -97,6 +97,9 @@ void ModelViewport::setMaterialStrokePreview(const ModelMesh& mesh, const QHash<
 	const QScopedValueRollback guard(m_materialStrokePreviewChange, true);
 	m_materialStrokePreviewChanged = true;
 	setMesh(mesh, true); setSurfaceSkins(skins); setHighlightedTriangles({});
+	// The preview may order its triangles differently; the owner marks them
+	// again, and clearing the preview restores the original marks.
+	setFaceGridTriangles({});
 	setSurfaceStrokePreview(triangles, count);
 }
 

@@ -11,6 +11,8 @@ struct LevelUvEditCliResult {
 };
 // map edit-uv: lists one brush face's winding or one patch's control points
 // in texture space, or moves a point, offsets or turns them, through the UV
-// Editor's service (core/level_uv_edit.h).
+// Editor's service (core/level_uv_edit.h), or stretches or skews them about
+// a pivot, or moves a patch's rows and columns, through the camera UV tool's
+// (core/level_uv_tool.h).
 LevelUvEditCliResult runLevelUvEdit(const QStringList& arguments);
 } // namespace vibestudio::cli

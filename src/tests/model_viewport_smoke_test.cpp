@@ -371,6 +371,64 @@ int main(int argc, char **argv)
 		ok &= expect(tests::settleModelViewport(wire), "expanded viewport remains usable after rendering");
 		app.removeTranslator(&expansion);
 	}
+	{
+		// A texture coordinate preview (the level camera's UV tool) rewrites
+		// only its triangles' uvs in the last upload: the frame must match a
+		// mesh built with those coordinates, and clearing it the original.
+		const auto sheetWith = [](bool mirrored) {
+			ModelMesh sheet;
+			sheet.geometryAvailable = true;
+			sheet.format = ModelMeshFormat::Quake3Md3;
+			sheet.sourcePath = QStringLiteral("tests/uv-sheet.md3");
+			sheet.frames.resize(1);
+			sheet.frames[0].name = QStringLiteral("sheet");
+			ModelSurface surface;
+			surface.name = QStringLiteral("sheet");
+			// Two quads with their own corners, as a level mesh's polygons have.
+			surface.triangles = {{0, 1, 2}, {1, 3, 2}, {4, 5, 6}, {5, 7, 6}};
+			const float u0 = mirrored ? 1.0f : 0.0f, u1 = mirrored ? 0.0f : 1.0f;
+			surface.texCoords = {{u0, 0}, {u1, 0}, {u0, 1}, {u1, 1}, {0, 0}, {1, 0}, {0, 1}, {1, 1}};
+			ModelFrameGeometry frame;
+			frame.positions = {{-40, -40, 0}, {-4, -40, 0}, {-40, 40, 0}, {-4, 40, 0}, {4, -40, 0}, {40, -40, 0}, {4, 40, 0}, {40, 40, 0}};
+			frame.normals = QVector<ModelVec3>(8, ModelVec3 {0, 0, 1});
+			surface.frames.append(frame);
+			sheet.surfaces.append(surface);
+			updateEditableModelMetadata(&sheet);
+			return sheet;
+		};
+		QImage twoTone(2, 1, QImage::Format_RGB32);
+		twoTone.setPixelColor(0, 0, Qt::red);
+		twoTone.setPixelColor(1, 0, Qt::blue);
+		const auto frameOf = [&](ModelViewport& view) {
+			QImage frame(view.size(), QImage::Format_RGB32);
+			view.render(&frame);
+			return frame;
+		};
+		const auto prepare = [&](ModelViewport& view, const ModelMesh& mesh) {
+			view.resize(256, 256);
+			view.setShowGrid(false);
+			view.setShowAxes(false);
+			view.setBackfaceCulling(false);
+			view.setRenderMode(ModelViewportRenderMode::Textured);
+			view.setMesh(mesh);
+			view.setSkin(twoTone);
+			view.setOrbit(0, 90);
+			return tests::settleModelViewport(view);
+		};
+		ModelViewport live, built;
+		ok &= expect(prepare(live, sheetWith(false)) && prepare(built, sheetWith(true)), "texture coordinate preview fixtures render");
+		const QImage original = frameOf(live);
+		live.setTexCoordPreview({0, 1}, [](const ModelVec3& position) { return QPointF(1.0 - (position.x + 40.0) / 36.0, (position.y + 40.0) / 80.0); });
+		ok &= expect(live.texCoordPreviewActive() && tests::settleModelViewport(live), "texture coordinate preview renders");
+		const QImage previewed = frameOf(live);
+		ok &= expect(previewed != original && previewed == frameOf(built), "a texture coordinate preview draws exactly as a mesh with those coordinates");
+		live.clearTexCoordPreview();
+		ok &= expect(!live.texCoordPreviewActive() && tests::settleModelViewport(live) && frameOf(live) == original,
+					 "clearing the texture coordinate preview draws the mesh's own coordinates again");
+		live.setTexCoordPreview({2, 3}, [](const ModelVec3& position) { return QPointF((position.x - 4.0) / 36.0, (position.y + 40.0) / 80.0); });
+		live.setMesh(sheetWith(false));
+		ok &= expect(!live.texCoordPreviewActive(), "a new mesh drops the texture coordinate preview");
+	}
 	std::cout << "Viewport device pixel ratio: " << viewport.devicePixelRatioF() << '\n';
 	return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }
