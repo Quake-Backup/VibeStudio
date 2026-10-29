@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 	QImage red(16, 16, QImage::Format_RGB32), blue(16, 16, QImage::Format_RGB32);
 	red.fill(Qt::red);
 	blue.fill(Qt::blue);
-	ok &= expect(write(path("assets/models/fixture.obj"), fixture) && write(path("bad.obj"), "mtllib material.mtl\n" + fixture) &&
+	ok &= expect(write(path("assets/models/fixture.obj"), fixture) && write(path("bad.obj"), "csh echo forbidden\n" + fixture) &&
 					 red.save(path("assets/models/red.png")) && blue.save(path("assets/models/blue.png")),
 				 "prepare independently generated model and materials");
 	auto archive = std::make_shared<PackageArchive>();
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 						 "imported package materials settle on the render worker");
 		}
 		const auto revision = editor.document().revisionFingerprint();
-		ok &= expect(!editor.openSource(path("bad.obj"), &error) && error.contains("material") &&
+		ok &= expect(!editor.openSource(path("bad.obj"), &error) && error.contains("csh") &&
 						 editor.document().revisionFingerprint() == revision,
 					 "failed OBJ import leaves the current document intact with actionable diagnostics");
 		if (viewport)

@@ -226,15 +226,36 @@ int main(int argc, char **argv)
 	{
 		ok &= rejects("v 0 0 0\nv 8 0 0\nv 0 8 0\nf " + bad + " 2 3\n", "invalid index forms rejected atomically");
 	}
+	// Material libraries, lines, points and loose vertices are dropped with a
+	// note by default, and refused when the import asks for that.
+	const auto refuses = [&](const QByteArray &bytes, const ModelObjImportOptions &options, const char *message)
+	{
+		QStringList notes;
+		const auto result = decodeModelObj("bad.obj", bytes, options, nullptr, &notes);
+		return expect(!result.isValid() && result.surfaces.isEmpty() && result.error.startsWith("OBJ line "), message);
+	};
+	const auto notes = [&](const QByteArray &bytes, const char *message)
+	{
+		QStringList list;
+		const auto result = decodeModelObj("loose.obj", bytes, ModelObjImportOptions{}, nullptr, &list);
+		return expect(result.error.isEmpty() && result.geometryAvailable && !list.isEmpty(), message);
+	};
+	ModelObjImportOptions strict;
+	strict.materials = ModelObjMaterials::Refuse;
+	strict.refuseLooseData = true;
+	for (const QByteArray &record : {QByteArray("mtllib skin.mtl"), QByteArray("p 1"), QByteArray("l 1 2"), QByteArray("v 7 7 7")})
+	{
+		ok &= notes(triangle + record + '\n', "material libraries and loose data are dropped with a note by default");
+		ok &= refuses(triangle + record + '\n', strict, "material libraries and loose data can be refused");
+	}
 	for (const QByteArray &record :
-		 {QByteArray("mtllib skin.mtl"), QByteArray("csh echo forbidden"), QByteArray("call other.obj"), QByteArray("curv 0 1 1 2"),
-		  QByteArray("p 1"), QByteArray("l 1 2"), QByteArray("v 1 2 3 1 0 0"), QByteArray("v 1 2 3 2"), QByteArray("vt 1 2 3"),
+		 {QByteArray("csh echo forbidden"), QByteArray("call other.obj"), QByteArray("curv 0 1 1 2"),
+		  QByteArray("v 1 2 3 1 0 0"), QByteArray("v 1 2 3 2"), QByteArray("vt 1 2 3"),
 		  QByteArray("vn 0 0 0"), QByteArray("v nan 0 0"), QByteArray("v inf 0 0"), QByteArray("v 1000001 0 0"), QByteArray("s -1"),
 		  QByteArray("s"), QByteArray("usemtl ../outside"), QByteArray("g ") + QByteArray(129, 'x'), QByteArray("g \xff")})
 	{
 		ok &= rejects(triangle + record + '\n', "unsupported or malformed attributes cannot be silently dropped");
 	}
-	ok &= rejects(triangle + "v 7 7 7\n", "loose geometry requires explicit cleanup before import");
 	ok &= rejects("v 0 0 0\nv 8 8 0\nv 0 8 0\nv 8 0 0\nf 1 2 3 4\n", "bow-tie polygon rejected");
 	ok &= rejects("v 0 0 0\nv 8 0 0\nv 8 8 1\nv 0 8 0\nf 1 2 3 4\n", "non-planar polygon rejected");
 	ok &= rejects("v 0 0 0\nv 8 0 0\nv 0 8 0\nf 1 2 3 1\n", "repeated polygon corner rejected");
@@ -376,9 +397,13 @@ int main(int argc, char **argv)
 		ok &= expect(run({"model", "import", path("prop.obj"), "--output", path("prop.mesh.json")}, false),
 					 "CLI import refuses unapproved overwrite");
 		ok &= expect(write(path("bad.obj"), "mtllib prop.mtl\n" + polygon) &&
-						 run({"model", "import", path("bad.obj"), "--output", path("bad.mesh.json")}, false) &&
+						 run({"model", "import", path("bad.obj"), "--obj-materials", "refuse", "--output", path("bad.mesh.json")}, false) &&
 						 !QFile::exists(path("bad.mesh.json")),
-					 "CLI unsupported MTL fails before output creation");
+					 "CLI refused MTL fails before output creation");
+		const auto plain = polygon.startsWith("\xEF\xBB\xBF") ? polygon.mid(3) : polygon;
+		ok &= expect(write(path("noted.obj"), "mtllib prop.mtl\n" + plain) &&
+						 run({"model", "import", path("noted.obj"), "--output", path("noted.mesh.json")}) && QFile::exists(path("noted.mesh.json")),
+					 "CLI imports an OBJ whose material library is missing, with a note");
 	}
 	std::cout << "OBJ geometry, seams, polygon oracles, rejection, cancellation, source/native/package/CLI tests: " << elapsed.elapsed()
 			  << " ms\n";

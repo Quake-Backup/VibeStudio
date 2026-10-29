@@ -12,6 +12,7 @@
 #include <QAbstractSlider>
 #include <QAccessible>
 #include <QDoubleSpinBox>
+#include <QElapsedTimer>
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QAction>
@@ -332,6 +333,22 @@ int main(int argc, char **argv)
 		}
 		if (scenario == 0)
 		{
+			// The timeline keeps up with the largest model: 1,024 frames.
+			auto large = tests::frameRangeFixture(modelDocumentMaxFrames);
+			large.collisionBoxes.clear();
+			expect(editor.setMesh(large, &error), QStringLiteral("open a 1024-frame model: ") + error);
+			app.processEvents();
+			QElapsedTimer clock;
+			clock.start();
+			for (int step = 0; step < 20; ++step)
+			{
+				frame->setCurrentIndex(step * 50);
+				timeline->repaint();
+			}
+			const auto elapsed = clock.elapsed();
+			expect(timeline->maximum() == modelDocumentMaxFrames - 1 && elapsed < 20000,
+				   QStringLiteral("twenty frame changes on a 1024-frame timeline took %1 ms").arg(elapsed));
+			std::cerr << "timeline: 20 frame changes with 1024 frames in " << elapsed << " ms\n";
 			// Frames a skinned skeleton drives are gated with the core's reason.
 			auto skinned = tests::skinFixture();
 			expect(editor.setMesh(skinned, &error), QStringLiteral("open the skinned fixture: ") + error);
