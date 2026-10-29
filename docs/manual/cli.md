@@ -46,9 +46,11 @@ scope, validation and guarded output match the Mesh Editor. See
 
 `model tool --tool align` gives the selected vertices one coordinate:
 `--axis x` (or several axes, such as `xz`) with `--value N` or
-`--to centroid|min|max`. `model tool --tool snap-grid --grid STEP` rounds them
-to the grid. Both move seam copies together, take `--frame all|N` and refuse
-an edit that would collapse a face. See
+`--to centroid|min|max`; `--to median --value N` instead moves the selection
+until its median takes the value. `model tool --tool snap-grid --grid STEP`
+rounds them to the grid. Both move seam copies together, take `--frame all|N`
+and `--mirror x|y|z` (mirror counterparts follow) and refuse an edit that would
+collapse a face. See
 [Align vertices](../MODEL_TOOLS.md#align-vertices).
 
 `model tool --tool connect --vertices a,b,c` joins a path of vertices with

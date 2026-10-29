@@ -387,9 +387,9 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("uv-cylinder"), {QStringLiteral("--faces"), QStringLiteral("--fit"), QStringLiteral("--axis")}},
 		{QStringLiteral("uv-sphere"), {QStringLiteral("--faces"), QStringLiteral("--fit"), QStringLiteral("--axis")}},
 		{QStringLiteral("align"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--axis"),
-			QStringLiteral("--value"), QStringLiteral("--to"), QStringLiteral("--frame")}},
+			QStringLiteral("--value"), QStringLiteral("--to"), QStringLiteral("--frame"), QStringLiteral("--mirror")}},
 		{QStringLiteral("snap-grid"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--axis"),
-			QStringLiteral("--grid"), QStringLiteral("--frame")}},
+			QStringLiteral("--grid"), QStringLiteral("--frame"), QStringLiteral("--mirror")}},
 		{QStringLiteral("connect"), {QStringLiteral("--vertices"), QStringLiteral("--angle")}},
 		{QStringLiteral("connect-edges"), {QStringLiteral("--edges"), QStringLiteral("--cuts"), QStringLiteral("--slide"), QStringLiteral("--angle")}},
 		{QStringLiteral("delete"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--mode")}},
@@ -656,9 +656,11 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		}
 		else
 		{
-			if (args.values.contains(QStringLiteral("--value")) == args.values.contains(QStringLiteral("--to")))
-				return fail(2, Text::tr("--tool align requires exactly one of --value N (or x,y,z) or --to centroid|min|max."));
 			const auto to = args.values.value(QStringLiteral("--to"));
+			// --to median moves the selection so its median takes --value.
+			const bool median = to == QStringLiteral("median");
+			if (median ? !args.values.contains(QStringLiteral("--value")) : args.values.contains(QStringLiteral("--value")) == args.values.contains(QStringLiteral("--to")))
+				return fail(2, Text::tr("--tool align requires exactly one of --value N (or x,y,z) or --to centroid|min|max, or --to median with --value."));
 			if (args.values.contains(QStringLiteral("--value")))
 			{
 				const auto text = args.values.value(QStringLiteral("--value"));
@@ -668,6 +670,10 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 				else if (!triple(text, &align.value))
 					return fail(2, Text::tr("Use --value N, or --value x,y,z with one number per axis."));
 			}
+			if (median)
+				align.target = ModelAlignTarget::Median;
+			else if (args.values.contains(QStringLiteral("--value")))
+				align.target = ModelAlignTarget::Value;
 			else if (to == QStringLiteral("centroid"))
 				align.target = ModelAlignTarget::Centroid;
 			else if (to == QStringLiteral("min"))
@@ -675,7 +681,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			else if (to == QStringLiteral("max"))
 				align.target = ModelAlignTarget::Maximum;
 			else
-				return fail(2, Text::tr("Use --to centroid, min or max."));
+				return fail(2, Text::tr("Use --to centroid, min, max or median."));
 		}
 	}
 	if (args.values.contains(QStringLiteral("--merge")))
@@ -915,11 +921,14 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	}
 	if (kind == ModelEditKind::AlignVertices)
 	{
-		const QStringList targets{QStringLiteral("value"), QStringLiteral("centroid"), QStringLiteral("min"), QStringLiteral("max"), QStringLiteral("grid")};
+		const QStringList targets{QStringLiteral("value"), QStringLiteral("centroid"), QStringLiteral("min"),
+								  QStringLiteral("max"),   QStringLiteral("grid"),	   QStringLiteral("median")};
 		QJsonObject align{{QStringLiteral("axes"), modelAlignAxesText(tool.align.axes)}, {QStringLiteral("target"), targets.value(int(tool.align.target))},
 						  {QStringLiteral("frame"), edit.frame < 0 ? QJsonValue(QStringLiteral("all")) : QJsonValue(edit.frame)}};
-		if (tool.align.target == ModelAlignTarget::Value)
+		if (tool.align.target == ModelAlignTarget::Value || tool.align.target == ModelAlignTarget::Median)
 			align.insert(QStringLiteral("value"), QJsonArray{tool.align.value[0], tool.align.value[1], tool.align.value[2]});
+		if (tool.mirrorAxes != 0)
+			align.insert(QStringLiteral("mirror"), modelAlignAxesText(tool.mirrorAxes));
 		if (tool.align.target == ModelAlignTarget::Grid)
 			align.insert(QStringLiteral("grid"), tool.align.grid);
 		result.payload.insert(QStringLiteral("align"), align);

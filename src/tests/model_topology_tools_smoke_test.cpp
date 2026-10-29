@@ -220,6 +220,36 @@ void alignChecks()
 		other.tool.align.axes = 1;
 		expect(!applyModelEdit(&mesh, other, nullptr, &error), "alignment settings on another tool are refused");
 	}
+	// Median: the selection moves, keeping its shape, so its centroid takes the value.
+	{
+		// x in {-8, 0, 8}, y in {0, 8}: 0 (-8,0) 1 (0,0) 2 (8,0) 3 (-8,8) 4 (0,8) 5 (8,8).
+		auto mesh = gridMesh(2, 1, 8, -8, 0);
+		ModelSelection selection{0, {2, 5}, {}};
+		expect(applyModelEdit(&mesh, alignEdit(selection, 2, ModelAlignTarget::Median, {0, 10, 0}), &selection, &error), "move the median Y to 10",
+			   error);
+		const auto &s = mesh.surfaces[0];
+		expect(near(s.frames[0].positions[2].y, 6) && near(s.frames[0].positions[5].y, 14) && near(s.frames[1].positions[2].y, 6) &&
+				   near(s.frames[1].positions[2].z, 8) && near(s.frames[0].positions[2].x, 8),
+			   "the median lands on 10 with the shape kept, every pose moving by the reference pose's offset");
+	}
+	// Symmetry: mirror counterparts follow, centre-line vertices stay on the plane.
+	{
+		auto mesh = gridMesh(2, 1, 8, -8, 0);
+		auto edit = alignEdit({0, {1, 2, 5}, {}}, 1, ModelAlignTarget::Value, {4, 0, 0});
+		edit.tool.mirrorAxes = 1;
+		expect(applyModelEdit(&mesh, edit, nullptr, &error), "align X with Symmetry X", error);
+		const auto &s = mesh.surfaces[0];
+		expect(near(s.frames[0].positions[2].x, 4) && near(s.frames[0].positions[5].x, 4) && near(s.frames[0].positions[0].x, -4) &&
+				   near(s.frames[0].positions[3].x, -4) && near(s.frames[1].positions[0].x, -4),
+			   "the unselected mirror counterparts take the reflected coordinate");
+		expect(s.frames[0].positions[1].x == 0.0f && s.frames[0].positions[4].x == 0.0f, "the centre-line vertex stays on the mirror plane");
+		auto other = gridMesh(2, 1, 8, -8, 0);
+		auto lift = alignEdit({0, {2}, {}}, 2, ModelAlignTarget::Value, {0, 3, 0});
+		lift.tool.mirrorAxes = 1;
+		expect(applyModelEdit(&other, lift, nullptr, &error) && near(other.surfaces[0].frames[0].positions[0].y, 3) &&
+				   near(other.surfaces[0].frames[0].positions[0].x, -8) && near(other.surfaces[0].frames[0].positions[3].y, 8),
+			   "a counterpart takes the aligned axis only", error);
+	}
 }
 
 // ---- Transform Model ------------------------------------------------------
@@ -1441,6 +1471,13 @@ void alignCli(const QString &input, const QString &output)
 	expect(runTool({input, "--tool", "align", "--axis", "xx", "--value", "0", "--vertices", "0", "--output", output, "--overwrite"}).exitCode == 2,
 		   "a repeated axis is a usage error");
 	expect(runTool({input, "--tool", "snap-grid", "--vertices", "0", "--output", output, "--overwrite"}).exitCode == 2, "snap-grid needs --grid");
+	result = runTool({input, "--tool", "align", "--axis", "x", "--to", "median", "--value", "5", "--vertices", "0,1", "--mirror", "y", "--output", output,
+					  "--overwrite"});
+	expect(result.exitCode == 0 && result.payload.value("align").toObject().value("target").toString() == "median" &&
+			   result.payload.value("align").toObject().value("mirror").toString() == "y",
+		   "align --to median --value with --mirror", result.error);
+	expect(runTool({input, "--tool", "align", "--axis", "x", "--to", "median", "--vertices", "0", "--output", output, "--overwrite"}).exitCode == 2,
+		   "align --to median without --value is a usage error");
 	result = runTool({input, "--tool", "connect", "--vertices", "8,15", "--output", output, "--overwrite"});
 	expect(result.exitCode == 0 && result.payload.value("selection").toObject().value("edges").toArray().size() == 4, "connect --vertices cuts a path",
 		   result.error);

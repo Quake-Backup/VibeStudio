@@ -214,17 +214,18 @@ void alignChecks(QApplication &app, ModelEditorDialog &editor)
 	expect(snap && snap->actions().contains(tools->action(QStringLiteral("meshSnapSelectionToGrid"))) &&
 			   editor.findChild<QMenu *>(QStringLiteral("meshMenuAlign")),
 		   "the Snap menu lists Snap Selection to Grid and the Align submenu");
-	// The Item page's selection position row sets an exact coordinate.
+	// The Item page's selection position row moves the selection's median.
 	tools->applySelection({0, {10, 15}, {}});
 	app.processEvents();
 	auto *positionX = editor.findChild<QDoubleSpinBox *>(QStringLiteral("meshSelectionPositionX"));
 	if (expect(positionX && positionX->isEnabled() && !positionX->accessibleName().isEmpty(), "the Item page shows the selection position"))
 	{
+		// The selected X coordinates are 0.6 and 0.9, so the median moves by -4.75.
 		positionX->setValue(-4);
 		app.processEvents();
-		expect(document.mesh().surfaces[0].frames[0].positions[10].x == -4.0f && document.mesh().surfaces[0].frames[1].positions[15].x == -4.0f &&
+		expect(near(document.mesh().surfaces[0].frames[0].positions[10].x, -4.15) && near(document.mesh().surfaces[0].frames[1].positions[15].x, -3.85) &&
 				   document.undoSteps() == steps + 1,
-			   "typing a selection position gives every selected vertex that coordinate in one step");
+			   "typing a selection position moves the selection so its median takes the value, in one step");
 		editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
 		app.processEvents();
 		expect(near(positionX->value(), (0.3 * 2 + 0.3 * 3) / 2), "the row shows the restored centroid after undo");

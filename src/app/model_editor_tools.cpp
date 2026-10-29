@@ -2068,19 +2068,20 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 	case ModelEditKind::AlignVertices:
 	{
 		const auto target = edit.tool.align.target;
-		QVector<LastField> fields{{Text::tr("Align to"), 0, 4, 0, [](const E &e) { return double(int(e.tool.align.target)); },
+		QVector<LastField> fields{{Text::tr("Align to"), 0, 5, 0, [](const E &e) { return double(int(e.tool.align.target)); },
 								   [](E &e, double v)
 								   {
 									   e.tool.align.target = ModelAlignTarget(int(v));
 									   // The grid step belongs to grid snapping only.
 									   e.tool.align.grid = e.tool.align.target != ModelAlignTarget::Grid ? 0 : e.tool.align.grid > 0 ? e.tool.align.grid : 1;
 								   },
-								   false, {Text::tr("Value"), Text::tr("Centroid"), Text::tr("Minimum"), Text::tr("Maximum"), Text::tr("Grid")}, true}};
+								   false, {Text::tr("Value"), Text::tr("Centroid"), Text::tr("Minimum"), Text::tr("Maximum"), Text::tr("Grid"), Text::tr("Median")},
+								   true}};
 		const char *axes[3]{"X", "Y", "Z"};
 		for (int axis = 0; axis < 3; ++axis)
 			fields.append({Text::tr("Axis %1").arg(QLatin1String(axes[axis])), 0, 1, 0, [axis](const E &e) { return double((e.tool.align.axes >> axis) & 1); },
 						   [axis](E &e, double v) { e.tool.align.axes = v > 0.5 ? e.tool.align.axes | (1 << axis) : e.tool.align.axes & ~(1 << axis); }, true});
-		for (int axis = 0; target == ModelAlignTarget::Value && axis < 3; ++axis)
+		for (int axis = 0; (target == ModelAlignTarget::Value || target == ModelAlignTarget::Median) && axis < 3; ++axis)
 			fields.append({Text::tr("Value %1").arg(QLatin1String(axes[axis])), -1000000, 1000000, 4, [axis](const E &e) { return e.tool.align.value[axis]; },
 						   [axis](E &e, double v) { e.tool.align.value[axis] = v; }});
 		if (target == ModelAlignTarget::Grid)

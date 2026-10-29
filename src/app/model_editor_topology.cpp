@@ -31,6 +31,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QSignalBlocker>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -509,6 +510,8 @@ bool ModelEditorTools::runAlign(int axes, ModelAlignTarget target, const std::ar
 	edit.tool.align.target = target;
 	edit.tool.align.value = value;
 	edit.tool.align.grid = target == ModelAlignTarget::Grid ? grid : 0;
+	// Symmetry: mirror counterparts follow and centre-line vertices stay put.
+	edit.tool.mirrorAxes = (m_mirror[0]->isChecked() ? 1 : 0) | (m_mirror[1]->isChecked() ? 2 : 0) | (m_mirror[2]->isChecked() ? 4 : 0);
 	QString failure;
 	if (runTool(edit, &failure))
 		return true;
@@ -826,8 +829,9 @@ void ModelEditorTools::buildTopologyMenus()
 
 void ModelEditorTools::buildAlignRow()
 {
-	// Item page: the selection's position in the displayed pose. Typing a value
-	// gives every selected vertex that coordinate (Align Vertices to a value).
+	// Item page: the selection's median in the displayed pose. Typing a value
+	// moves the whole selection so its median takes it (Align Vertices to the
+	// median, as Blender's Median fields do).
 	auto *contents = m_editor->findChild<QWidget *>(QStringLiteral("meshPageForm-item"));
 	auto *form = contents ? qobject_cast<QFormLayout *>(contents->layout()) : nullptr;
 	if (!form)
@@ -850,8 +854,9 @@ void ModelEditorTools::buildAlignRow()
 		spin->setMinimumWidth(0);
 		spin->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		spin->setAccessibleName(Text::tr("Selection position %1").arg(name));
-		spin->setAccessibleDescription(Text::tr("The centroid of the selection in the displayed pose. Enter a value to give every selected "
-												"vertex this %1 coordinate, as one undo step that follows the Apply to scope.")
+		spin->setAccessibleDescription(Text::tr("The median of the selection in the displayed pose. Enter a value to move the selection, "
+												"keeping its shape, until its median %1 is that value, as one undo step that follows the Apply "
+												"to scope. Snap > Align sets every vertex to one coordinate.")
 										   .arg(name));
 		spin->setToolTip(spin->accessibleDescription());
 		connect(spin, &QDoubleSpinBox::valueChanged, this,
@@ -862,7 +867,7 @@ void ModelEditorTools::buildAlignRow()
 					std::array<double, 3> values{0, 0, 0};
 					values[axis] = value;
 					QString error;
-					if (!runAlign(1 << axis, ModelAlignTarget::Value, values, 0, &error))
+					if (!runAlign(1 << axis, ModelAlignTarget::Median, values, 0, &error))
 						refreshAlignRow();
 				});
 		auto *line = new QWidget;

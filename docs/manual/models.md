@@ -327,11 +327,13 @@ threshold, ratio, seed or spacing; the selection updates without an undo step.
 
 **Put vertices on an exact coordinate.** Select the vertices, then choose
 **Mesh > Snap > Align > Flatten X** (or **Y**, **Z**) to line them up on their
-centroid, or type a value in **Selection position** on the **Item** page, for
-example X = 0 for a model's centre line before **Symmetrize**. **Snap
+centroid, or **Align X to 3D Cursor** with the cursor at X = 0 for a model's
+centre line before **Symmetrize**. Typing a value in **Selection position** on
+the **Item** page moves the whole selection until its median takes it. **Snap
 Selection to Grid** rounds every selected vertex to the Move snap step. Press
 <kbd>F9</kbd> to switch between a value, the centroid, the minimum, the
-maximum and the grid. Seam copies move together, **Apply to** chooses every
+maximum, the grid and the median. With **Symmetry** on, mirror counterparts
+follow and centre-line vertices stay on the mirror plane. Seam copies move together, **Apply to** chooses every
 frame or the current one, and an alignment that would collapse a face is
 refused. See [Align vertices](../MODEL_TOOLS.md#align-vertices).
 

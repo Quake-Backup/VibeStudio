@@ -580,12 +580,25 @@ coordinate, as MilkShape 3D's Flatten and Blender's scale-to-zero do:
 - **Align X/Y/Z to 3D Cursor** use the cursor's coordinate instead.
 - **Snap Selection to Grid** (Ctrl+G in the MilkShape 3D profile) rounds every
   selected vertex to the Move snap step on its own.
-- On the **Item** page, **Selection position** shows the selection's centroid
-  in the displayed pose; typing a value gives every selected vertex that
-  coordinate, which puts a centre line exactly on X = 0 before **Symmetrize**.
+- On the **Item** page, **Selection position** shows the selection's median
+  (centroid) in the displayed pose; typing a value moves the whole selection,
+  keeping its shape, until its median takes that value, as Blender's
+  **Median** fields do. With one vertex selected it places that vertex.
+  To give every selected vertex one coordinate, such as a centre line exactly
+  on X = 0 before **Symmetrize**, use **Align X to 3D Cursor** or **Adjust
+  Last Operation**'s **Value**.
 
 **Adjust Last Operation** changes the target (**Value**, **Centroid**,
-**Minimum**, **Maximum** or **Grid**), the axes, the value and the grid step.
+**Minimum**, **Maximum**, **Grid** or **Median**), the axes, the value and the
+grid step. A median move shifts every pose by the offset measured in the
+displayed pose.
+
+With the header's **Symmetry** axes on, every alignment keeps the model
+symmetric: an unselected mirror counterpart of a selected vertex takes the
+reflected coordinate on the aligned axes, and a selected vertex on an active
+mirror plane keeps its coordinate across that plane, so a centre line stays
+on it. A counterpart that is selected too aligns as selected. In the CLI,
+`--mirror x|y|z` does the same for `align` and `snap-grid`.
 Every UV and hard-normal seam copy of a vertex moves with it, so seams stay
 closed. The edit follows the **Apply to** scope: with **All frames** each pose
 aligns to its own centroid, minimum or maximum (a value or the grid applies
@@ -764,8 +777,8 @@ its `binding`.
 | `limited-dissolve` | `--faces` (default all), `--angle` (default 5) |
 | `connect` | `--vertices a,b[,c…]` (the path in order), `--angle` |
 | `connect-edges` | `--edges`, `--cuts` (1–64), `--slide` (-1 to 1), `--angle` |
-| `align` | selection, `--axis x\|y\|z\|xz…`, exactly one of `--value N` (or `x,y,z`) or `--to centroid\|min\|max`, `--frame all\|N`; JSON adds `align` |
-| `snap-grid` | selection, `--grid STEP`, `--axis` (default xyz), `--frame all\|N`; JSON adds `align` |
+| `align` | selection, `--axis x\|y\|z\|xz…`, exactly one of `--value N` (or `x,y,z`) or `--to centroid\|min\|max`, or `--to median` with `--value`; `--frame all\|N`, `--mirror x\|y\|z`; JSON adds `align` |
+| `snap-grid` | selection, `--grid STEP`, `--axis` (default xyz), `--frame all\|N`, `--mirror x\|y\|z`; JSON adds `align` |
 
 All tools accept `--surface N` (default 0) and `--reference-frame N` (the pose
 used for geometric choices, default 0), and require `--output <new.mesh.json>`.
