@@ -1,6 +1,7 @@
 #include "app/model_editor_tools.h"
 #include "app/locale_number.h"
 
+#include "app/model_bake_dialog.h"
 #include "app/model_editor_dialog.h"
 #include "app/model_primitive_binding_dialog.h"
 #include "app/model_symmetrize_joints_dialog.h"
@@ -411,6 +412,13 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshUnwrap"), Text::tr("Unwrap and Pack"), {}, [this] { m_editor->execute(ModelEditKind::UnwrapUv); });
 	addAction(QStringLiteral("meshUvDensity"), Text::tr("Texel Density…"), {}, [this] { m_editor->editUvDensity(); });
 	addAction(QStringLiteral("meshPackIslands"), Text::tr("Pack Islands"), {}, [this] { m_editor->execute(ModelEditKind::PackUv); });
+	// Read-only towards the model: the map is saved where the user chooses.
+	addAction(QStringLiteral("meshBakeMaps"), Text::tr("Bake Maps…"), {}, [this] {
+		const auto &document = m_editor->document();
+		auto *dialog = new ModelBakeDialog(document.mesh(), std::max(0, document.selection().surface), m_editor->m_preview->frame(), m_editor);
+		dialog->setAttribute(Qt::WA_DeleteOnClose);
+		dialog->show();
+	});
 	addAction(QStringLiteral("meshExportLods"), Text::tr("Export Quake III Detail Levels…"), {},
 			  [this]
 			  {
@@ -717,7 +725,7 @@ void ModelEditorTools::buildMenus()
 							 QStringLiteral("meshMenuFace")));
 	m_menuBar->addMenu(named(menu(Text::tr("&UV"), {QStringLiteral("meshUnwrap"), {}, QStringLiteral("meshUvCube"), QStringLiteral("meshUvCylinder"),
 													 QStringLiteral("meshUvSphere"), {}, QStringLiteral("meshUvView"), QStringLiteral("meshUvViewBounds"), {},
-													 QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSeam"), {}, QStringLiteral("meshUvDensity"), QStringLiteral("meshPackIslands")}),
+													 QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSeam"), {}, QStringLiteral("meshUvDensity"), QStringLiteral("meshPackIslands"), {}, QStringLiteral("meshBakeMaps")}),
 							 QStringLiteral("meshMenuUv")));
 	if (auto *layout = qobject_cast<QBoxLayout *>(m_editor->layout()))
 		layout->insertWidget(0, m_menuBar);

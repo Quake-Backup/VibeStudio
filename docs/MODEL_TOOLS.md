@@ -207,6 +207,10 @@ Shift+**G** Select Similar, **Z** Shading and **U** UV Mapping.
 skins with fullbrights, player colours, flood fill and the renderer's
 sampling, and Quake III shader stages. See [Game Preview](MODEL_GAME_PREVIEW.md).
 
+**UV** > **Bake Maps…** bakes ambient occlusion, Doom 3 tangent-space or
+object-space normals (from the model or a high-poly model) and lighting into
+the UV layout. See [Baking Texture Maps](MODEL_BAKE.md).
+
 **F3** searches every Mesh Editor command by name and shows its shortcut.
 
 **F9** shows the **Adjust Last Operation** panel. Changing a setting there

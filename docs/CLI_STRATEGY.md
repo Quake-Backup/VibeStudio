@@ -2474,6 +2474,12 @@ Each resolved path may be a definition file or a folder of them.
   model, or with `--format doom3` a Doom 3 skin declaration (`--model-path`,
   `--decl-name`). Both writers are the Mesh Editor's; refusals exit 4 without
   writing. See [Skin Variants](MODEL_SKIN_VARIANTS.md).
+- [x] `model bake <model> --type ao|object-normal|normal|lighting --output
+  <map.png|map.tga>` bakes ambient occlusion, object or Doom 3 tangent-space
+  normals (optionally projected from `--high` within `--cage`) or shadowed
+  lighting into the model's UV layout, with `--surface`, `--frame`, `--size`,
+  `--samples`, `--distance`, `--padding`, `--seed` and `--dry-run`. See
+  [Baking](MODEL_BAKE.md).
 - [x] `model game-skin <model> --output <skin.png>` writes the Game preview of
   one surface at `--time`: Quake MDL skins with `--top`/`--bottom` player
   colours, `--quake-renderer glquake|modern|software` fullbrights and sampling

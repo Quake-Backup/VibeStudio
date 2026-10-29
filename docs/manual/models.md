@@ -295,6 +295,22 @@ it, rather than only its image:
 The line beside the controls says what the preview cannot show, such as
 environment mapping. See [Game preview](../MODEL_GAME_PREVIEW.md).
 
+### Bake occlusion and normal maps
+
+Choose **UV** > **Bake Maps…** to bake a map into the active surface's UV
+layout (or every surface's):
+
+- **Ambient occlusion** darkens creases and corners, a good start for a
+  hand-painted skin.
+- **Tangent-space normals (Doom 3)** make a bump map for Doom 3-era models.
+  Choose a detailed model under **High-poly** to project its detail onto this
+  one, as Doom 3's renderbump does.
+- **Lighting** bakes a simple light and shadow.
+
+Choose **Bake**; the map appears when it is done, and **Cancel Bake** stops a
+long one. **Save Map…** writes a PNG or TGA; the model itself does not change.
+See [Baking Texture Maps](../MODEL_BAKE.md).
+
 ### Review what the decoder reported
 
 Many game files open with notes from the decoder. What happens depends on how
