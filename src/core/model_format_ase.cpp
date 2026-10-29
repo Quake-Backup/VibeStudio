@@ -44,6 +44,7 @@
 //   (0.02). Doom 3's position and UV "slop" merges are not applied.
 #include "core/model_ase.h"
 #include "core/model_document.h"
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 
 #include <QCoreApplication>
@@ -1201,7 +1202,7 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 		surface.triangles.append(ModelTriangle{corners[0], corners[1], corners[2]});
 	}
 	if (degenerate > 0) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 degenerate face(s) of ASE object %2 were skipped.").arg(degenerate).arg(objectName);
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-degenerate-faces"), QCoreApplication::translate("VibeStudioModelMesh", "%1 degenerate face(s) of ASE object %2 were skipped.").arg(degenerate).arg(objectName));
 	}
 	if (object.extraMeshes > 0) {
 		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "ASE object %1 carries %2 animation mesh sample(s); only its first mesh is decoded, as Doom 3 draws it.")
@@ -1210,13 +1211,13 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 	if (material && !material->subs.isEmpty()) {
 		const Doom3BitmapName whole = doom3MaterialFromBitmap(material->doom3Bitmap);
 		if (material->doom3HasBitmap && !whole.material.isEmpty()) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh",
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-multi-material"), QCoreApplication::translate("VibeStudioModelMesh",
 				"ASE object %1 uses the multi-material %2: Doom 3 draws the whole object with %3, the last diffuse bitmap in that material, while q3map2 splits it by sub-material as shown here.")
-				.arg(objectName, material->name, whole.material);
+				.arg(objectName, material->name, whole.material));
 		} else {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh",
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-multi-material"), QCoreApplication::translate("VibeStudioModelMesh",
 				"ASE object %1 uses the multi-material %2: Doom 3 draws the whole object with its default material, while q3map2 splits it by sub-material as shown here.")
-				.arg(objectName, material->name);
+				.arg(objectName, material->name));
 		}
 		if (material->nestedSubs > 0) {
 			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Material %1 nests %2 sub-material(s) below its first level; they are not split out.")
@@ -1266,18 +1267,18 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 			const Doom3BitmapName doom3 = doom3MaterialFromBitmap(bitmap);
 			skin = doom3.material;
 			if (doom3.cutAtSpace) {
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The bitmap path %1 contains a space; Doom 3 reads it only up to the space, as %2.")
-					.arg(bitmap, skin);
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-bitmap-space"), QCoreApplication::translate("VibeStudioModelMesh", "The bitmap path %1 contains a space; Doom 3 reads it only up to the space, as %2.")
+					.arg(bitmap, skin));
 			}
 			if (!doom3.resolved) {
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh",
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-bitmap-no-base"), QCoreApplication::translate("VibeStudioModelMesh",
 					"The bitmap path %1 has no base folder, so Doom 3 cannot name a material from it and draws surface %2 with its default material.")
-					.arg(bitmap, surface.name);
+					.arg(bitmap, surface.name));
 			}
 		} else if (material) {
 			skin = canonicalMaterialName(materialName);
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Material %1 has no diffuse bitmap; Doom 3 draws surface %2 with its default material.")
-				.arg(materialName, surface.name);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-no-diffuse"), QCoreApplication::translate("VibeStudioModelMesh", "Material %1 has no diffuse bitmap; Doom 3 draws surface %2 with its default material.")
+				.arg(materialName, surface.name));
 		}
 		if (!skin.isEmpty()) {
 			surface.skinPaths.append(skin);
@@ -1315,7 +1316,7 @@ void decodeAse(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "ASE objects: %1").arg(parser.objects.size());
 	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "ASE materials: %1").arg(parser.materials.size());
 	if (parser.materials.isEmpty()) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The ASE file has no materials; Doom 3 draws it with its default material.");
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-no-materials"), QCoreApplication::translate("VibeStudioModelMesh", "The ASE file has no materials; Doom 3 draws it with its default material."));
 	}
 	const QString modelDirectory = pathDirectory(path);
 	QSet<QString> usedNames;

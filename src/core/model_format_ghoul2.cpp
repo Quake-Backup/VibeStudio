@@ -47,6 +47,7 @@
 //   (R_LoadMDXM). OpenJK carries that table under GPL-2.0 only, which cannot
 //   be combined with VibeStudio's GPL-3.0, so it is not reproduced: such a mesh
 //   needs the Jedi Outcast GLA it was built for, and says so when it is absent.
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 
 #include "core/model_skeleton.h"
@@ -351,15 +352,15 @@ void fillGhoul2Skeleton(ModelMesh* mesh, const GlaSkeleton& gla, const QString& 
 	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh",
 		"Frame timing and clip names come from the game's animation.cfg, so every frame is listed as one clip with no rate.");
 	if (gla.declaredFrames > gla.clip.frames.size()) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The skeleton declares %1 frames; only the first %2 were kept to bound memory.")
-			.arg(gla.declaredFrames).arg(gla.clip.frames.size());
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("ghoul2-frames-capped"), QCoreApplication::translate("VibeStudioModelMesh", "The skeleton declares %1 frames; only the first %2 were kept to bound memory.")
+			.arg(gla.declaredFrames).arg(gla.clip.frames.size()));
 	}
 	if (gla.extraRoots > 0) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh",
-			"%1 bone(s) besides the first have no parent; the game expects a single root, and they were rooted like it.").arg(gla.extraRoots);
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-extra-roots"), QCoreApplication::translate("VibeStudioModelMesh",
+			"%1 bone(s) besides the first have no parent; the game expects a single root, and they were rooted like it.").arg(gla.extraRoots));
 	}
 	if (gla.renamed) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Some bones share a name; the repeats were given a numbered suffix.");
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-duplicate-bones"), QCoreApplication::translate("VibeStudioModelMesh", "Some bones share a name; the repeats were given a numbered suffix."));
 	}
 }
 
@@ -511,8 +512,8 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 			return;
 		}
 		if (thisIndex != index) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "GLM surface \"%1\" calls itself surface %2 but is listed as %3.")
-				.arg(surface.name, QString::number(thisIndex), QString::number(index));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-surface-index"), QCoreApplication::translate("VibeStudioModelMesh", "GLM surface \"%1\" calls itself surface %2 but is listed as %3.")
+				.arg(surface.name, QString::number(thisIndex), QString::number(index)));
 		}
 
 		for (int reference = 0; reference < referenceCount; ++reference) {
@@ -709,9 +710,9 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 			tag.offset = modelJointMultiply(inverseBind, modelJointMultiply(root, bolt));
 			mesh->skeleton.tags.append(tag);
 			if (!rigid) {
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh",
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-bolt-weights"), QCoreApplication::translate("VibeStudioModelMesh",
 					"Bolt surface \"%1\" is weighted to several bones; its tag follows \"%2\" alone and matches the game only where that bone dominates.")
-					.arg(parsed.name, gla.joints.at(joint).name);
+					.arg(parsed.name, gla.joints.at(joint).name));
 			}
 			continue;
 		}

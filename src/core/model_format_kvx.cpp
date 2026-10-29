@@ -44,6 +44,7 @@
 // keeps the triangle count down without changing what is drawn. Triangles are
 // emitted counter-clockwise seen from outside (GZDoom's own order is
 // clockwise, like its MD3 surfaces).
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 
 #include <QCoreApplication>
@@ -240,7 +241,7 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		++mips;
 	}
 	if (cursor != size - kKvxPaletteBytes) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The KVX mip levels do not end where the palette begins; GZDoom refuses such files.");
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("kvx-mip-end"), QCoreApplication::translate("VibeStudioModelMesh", "The KVX mip levels do not end where the palette begins; GZDoom refuses such files."));
 	}
 
 	if (faces.isEmpty()) {
@@ -392,7 +393,7 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		palette.setPixel(index & 15, index >> 4, qRgb(rgb[0], rgb[1], rgb[2]));
 	}
 	if (brightComponents > 0) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The KVX palette has %1 component(s) above the 6-bit maximum of 63.").arg(brightComponents);
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("kvx-palette-range"), QCoreApplication::translate("VibeStudioModelMesh", "The KVX palette has %1 component(s) above the 6-bit maximum of 63.").arg(brightComponents));
 	}
 	ModelEmbeddedSkin skin;
 	skin.index = 0;

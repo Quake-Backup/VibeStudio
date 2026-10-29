@@ -1,4 +1,5 @@
 #include "core/model_import_repair.h"
+#include "core/model_decode_issues.h"
 #include "core/model_source_decode.h"
 #include "core/model_geometry_helpers.h"
 
@@ -50,21 +51,22 @@ bool prepareGeometry(ModelImportRepairPlan *plan, QString *error, const ModelWor
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
 	if (!work.check())
 		return false;
-	if (!mesh.error.isEmpty() || !mesh.warnings.isEmpty() || !mesh.geometryAvailable || mesh.frames.isEmpty() ||
+	// Decode advisories do not block repair; damage and omissions do.
+	if (!mesh.error.isEmpty() || !modelDecodeBlockingIssues(mesh).isEmpty() || !mesh.geometryAvailable || mesh.frames.isEmpty() ||
 		mesh.frames.size() > modelDocumentMaxFrames || mesh.surfaces.isEmpty() || mesh.surfaces.size() > modelDocumentMaxSurfaces)
-		return fail(error, Text::tr("Repair requires a complete decoded model within the editable surface and pose limits. Decode errors "
-									"or warnings cannot be discarded."));
+		return fail(error, Text::tr("Repair requires a complete decoded model within the editable surface and pose limits. Decode errors, "
+									"damage and omissions cannot be discarded."));
 	qint64 vertices = 0, triangles = 0;
 	for (const auto &surface : mesh.surfaces)
 	{
 		vertices += surface.vertexCount;
 		triangles += surface.triangles.size();
-		if (!surface.warnings.isEmpty() || surface.vertexCount < 3 || surface.vertexCount > modelDocumentMaxVertices ||
+		if (surface.vertexCount < 3 || surface.vertexCount > modelDocumentMaxVertices ||
 			surface.texCoords.size() != surface.vertexCount || surface.frames.size() != mesh.frames.size() || surface.triangles.isEmpty() ||
 			surface.uvSeams.size() > surface.triangles.size() * 3)
 			return fail(
 				error,
-				Text::tr("Surface %1 has incomplete geometry or decode warnings; repair cannot invent missing data.").arg(surface.name));
+				Text::tr("Surface %1 has incomplete geometry; repair cannot invent missing data.").arg(surface.name));
 	}
 	if (vertices > modelDocumentMaxVertices || triangles > modelDocumentMaxTriangles ||
 		vertices * mesh.frames.size() > modelDocumentMaxFrameVertices || triangles * mesh.frames.size() > modelImportRepairMaxFacePoses)

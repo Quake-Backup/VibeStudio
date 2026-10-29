@@ -1,5 +1,6 @@
 #include "app/model_editor_dialog.h"
 #include "app/wrapping_action_button.h"
+#include "core/model_decode_issues.h"
 
 #include <QComboBox>
 #include <QCoreApplication>
@@ -120,6 +121,18 @@ void ModelEditorDialog::addHealthControls(QFormLayout *form)
 		button->setAccessibleName(button->text());
 		button->setAccessibleDescription(button->toolTip());
 	}
+	// The decode advisories and accepted omissions the source was imported
+	// with (core/model_decode_issues.h); read-only, kept in the source.
+	m_importIssues = new QLabel;
+	m_importIssues->setObjectName(QStringLiteral("meshImportIssues"));
+	m_importIssues->setTextFormat(Qt::PlainText);
+	m_importIssues->setWordWrap(true);
+	m_importIssues->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+	m_importIssues->setMinimumWidth(0);
+	m_importIssues->setFocusPolicy(Qt::TabFocus);
+	m_importIssues->setTextInteractionFlags(Qt::TextSelectableByKeyboard | Qt::TextSelectableByMouse);
+	m_importIssues->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Import issues"));
+	form->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Import"), m_importIssues);
 	connect(m_healthInspect, &QPushButton::clicked, this, [this] {
 		QString error;
 		if (!inspectTopology(&error))
@@ -191,6 +204,20 @@ void ModelEditorDialog::refreshHealth()
 						   QCoreApplication::translate("VibeStudioModelEditor", "%Ln face component(s)", nullptr, int(m_health.faceComponents)))
 				: QCoreApplication::translate("VibeStudioModelEditor", "Inspect the active surface to update topology findings."));
 	m_healthStatus->setAccessibleDescription(m_healthStatus->text());
+	if (m_importIssues)
+	{
+		const auto &mesh = m_document.mesh();
+		QStringList names;
+		for (const auto &surface : mesh.surfaces)
+		{
+			names << surface.name;
+		}
+		const auto lines = modelDecodeIssueLines(mesh.issues, names);
+		m_importIssues->setText(lines.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "No decode issues were recorded.")
+												: lines.join(QLatin1Char('\n')));
+		m_importIssues->setAccessibleDescription(lines.isEmpty() ? m_importIssues->text()
+																 : modelDecodeIssueSummary(mesh.issues));
+	}
 	refreshIntersections();
 }
 

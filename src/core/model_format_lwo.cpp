@@ -43,6 +43,7 @@
 //   game will drop them. picomodel (libs/picomodel/pm_lwo.c) uses the same
 //   first layer, axis swap and V flip, takes the first word of the surface
 //   name without its extension as the shader, and discards non-FACE polygons.
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 
 #include <QCoreApplication>
@@ -891,12 +892,12 @@ private:
 		m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Points: %1").arg(object.points.size());
 		m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Polygons: %1").arg(object.polygons.size());
 		if (object.layers > 1) {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Only the first of %1 LightWave layers is decoded; Doom 3 and q3map2 ignore the others.")
-				.arg(object.layers);
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("lwo-extra-layers"), QCoreApplication::translate("VibeStudioModelMesh", "Only the first of %1 LightWave layers is decoded; Doom 3 and q3map2 ignore the others.")
+				.arg(object.layers));
 		}
 		if (object.narrowUvMaps > 0) {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 LightWave UV map(s) have fewer than two values per entry and were ignored.")
-				.arg(object.narrowUvMaps);
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-short-uv-map"), QCoreApplication::translate("VibeStudioModelMesh", "%1 LightWave UV map(s) have fewer than two values per entry and were ignored.")
+				.arg(object.narrowUvMaps));
 		}
 
 		// Polygon normals in LightWave space: the cross product of the first
@@ -958,7 +959,7 @@ private:
 			polygon.slot = found.value();
 		}
 		if (untaggedDefault) {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object has no surface tags; its polygons use the default material.");
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-no-surface-tags"), QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object has no surface tags; its polygons use the default material."));
 		}
 
 		// Point -> polygon adjacency for smoothing (lwGetPointPolygons).
@@ -987,7 +988,7 @@ private:
 		}
 		const bool smoothingAllowed = smoothingWork <= kMaxSmoothingWork;
 		if (!smoothingAllowed) {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The LightWave points are shared too widely to smooth; polygon normals are used instead.");
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-flat-normals"), QCoreApplication::translate("VibeStudioModelMesh", "The LightWave points are shared too widely to smooth; polygon normals are used instead."));
 		}
 
 		// Corner UVs as Doom 3 resolves them: the last point map value, then the
@@ -1031,8 +1032,8 @@ private:
 			}
 		}
 		if (unmatchedPolygonUvs > 0) {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 per-polygon UV record(s) name a point their polygon does not use and were ignored.")
-				.arg(unmatchedPolygonUvs);
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-stray-uv-records"), QCoreApplication::translate("VibeStudioModelMesh", "%1 per-polygon UV record(s) name a point their polygon does not use and were ignored.")
+				.arg(unmatchedPolygonUvs));
 		}
 
 		struct SurfaceBuild {
@@ -1221,12 +1222,12 @@ private:
 		}
 
 		if (triangulated > 0) {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh",
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-triangulated"), QCoreApplication::translate("VibeStudioModelMesh",
 				"%1 polygon(s) with more than three corners were triangulated here; Doom 3 and q3map2 drop such polygons, so triangulate them in the modeller.")
-				.arg(triangulated);
+				.arg(triangulated));
 		}
 		if (refused > 0) {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 degenerate or self-crossing polygon(s) were skipped.").arg(refused);
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("lwo-skipped-polygons"), QCoreApplication::translate("VibeStudioModelMesh", "%1 degenerate or self-crossing polygon(s) were skipped.").arg(refused));
 		}
 		if (shortPolygons > 0) {
 			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 polygon(s) with fewer than three corners were skipped, as the game skips them.")
@@ -1236,10 +1237,10 @@ private:
 			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 curve, bone or metaball polygon(s) were skipped.").arg(otherTypes);
 		}
 		if (!haveUvMap) {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object has no UV map; Doom 3 draws it with zero texture coordinates.");
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-no-uv-map"), QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object has no UV map; Doom 3 draws it with zero texture coordinates."));
 		} else if (unmappedCorners > 0) {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 polygon corner(s) have no UV; Doom 3 gives them the first UV in the file.")
-				.arg(unmappedCorners);
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-missing-uvs"), QCoreApplication::translate("VibeStudioModelMesh", "%1 polygon corner(s) have no UV; Doom 3 gives them the first UV in the file.")
+				.arg(unmappedCorners));
 		}
 		if (object.ignoredChunks > 0) {
 			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 geometry chunk(s) of later layers were ignored.").arg(object.ignoredChunks);

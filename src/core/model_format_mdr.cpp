@@ -13,6 +13,7 @@
 // is the first frame, and every frame forms one clip whose timing comes from
 // the game's scripts. Only the first level of detail is decoded.
 
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 #include "core/model_skeleton.h"
 
@@ -100,8 +101,8 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		return;
 	}
 	if (endOffset < bytes.size()) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The MDR ends at byte %1 of %2; the bytes after it are ignored.")
-			.arg(endOffset).arg(bytes.size());
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-trailing-bytes"), QCoreApplication::translate("VibeStudioModelMesh", "The MDR ends at byte %1 of %2; the bytes after it are ignored.")
+			.arg(endOffset).arg(bytes.size()));
 	}
 	const QByteArray data = endOffset < bytes.size() ? bytes.left(qsizetype(endOffset)) : bytes;
 
@@ -141,8 +142,8 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Frames are stored with compressed bone matrices.");
 	}
 	if (boneCount > kMdrEngineMaxBones) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The MDR declares %1 bones; ioquake3 renders at most %2.")
-			.arg(boneCount).arg(kMdrEngineMaxBones);
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-bone-limit"), QCoreApplication::translate("VibeStudioModelMesh", "The MDR declares %1 bones; ioquake3 renders at most %2.")
+			.arg(boneCount).arg(kMdrEngineMaxBones));
 	}
 
 	// Frames: one model-space matrix per bone (mdrBone_t's matrix[3][4] is
@@ -223,7 +224,7 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR level of detail block lies outside the file.");
 				return;
 			}
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "MDR level of detail %1 lies outside the file; later levels are not listed.").arg(lod);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-lod"), QCoreApplication::translate("VibeStudioModelMesh", "MDR level of detail %1 lies outside the file; later levels are not listed.").arg(lod));
 			break;
 		}
 		const int surfaceCount = readI32(data, lodBase);
@@ -234,7 +235,7 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR level of detail declares counts outside the supported range.");
 				return;
 			}
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "MDR level of detail %1 declares counts outside the supported range; later levels are not listed.").arg(lod);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-lod"), QCoreApplication::translate("VibeStudioModelMesh", "MDR level of detail %1 declares counts outside the supported range; later levels are not listed.").arg(lod));
 			break;
 		}
 		if (lod > 0) {
@@ -364,7 +365,7 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		}
 		if (lod + 1 < lodCount) {
 			if (lodEnd < kMdrLodBytes) {
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "MDR level of detail %1 declares an end offset outside the file; later levels are not listed.").arg(lod);
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-lod"), QCoreApplication::translate("VibeStudioModelMesh", "MDR level of detail %1 declares an end offset outside the file; later levels are not listed.").arg(lod));
 				break;
 			}
 			lodBase += lodEnd;

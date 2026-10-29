@@ -18,6 +18,7 @@
 // writes GL command texture coordinates as s / skinwidth without the half-texel
 // offset (fmodels.c BuildGlCmds), so texture coordinates are decoded that way.
 // Mesh nodes select triangles through a 2048-bit mask; each becomes a surface.
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 
 #include <QCoreApplication>
@@ -216,7 +217,7 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		if (!work.step()) { return; }
 		const QString key = chunk.ident.toLower();
 		if (seen.contains(key)) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM repeats the chunk \"%1\"; the first one is used.").arg(chunk.ident);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("fm-repeated-chunk"), QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM repeats the chunk \"%1\"; the first one is used.").arg(chunk.ident));
 			continue;
 		}
 		seen.insert(key);
@@ -232,7 +233,7 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Chunk \"%1\" (version %2, %3 bytes) is kept in the file but not decoded.")
 				.arg(chunk.ident).arg(chunk.version).arg(chunk.size);
 		} else if (!known) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM holds an unknown chunk \"%1\", which was skipped.").arg(chunk.ident);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("fm-unknown-chunk"), QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM holds an unknown chunk \"%1\", which was skipped.").arg(chunk.ident));
 		}
 	}
 
@@ -281,7 +282,7 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	// Skin names. The game refuses a skin chunk that does not hold exactly
 	// num_skins names, but loads a model without one (and so without skins).
 	if (skinCount > 0 && !skinChunk) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM declares %1 skin(s) but holds no skin chunk.").arg(skinCount);
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("fm-no-skins"), QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM declares %1 skin(s) but holds no skin chunk.").arg(skinCount));
 	} else if (skinCount > 0) {
 		if (skinChunk->size != qint64(skinCount) * kSkinNameBytes) {
 			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM skin chunk does not hold the %1 skin name(s) the header declares.").arg(skinCount);
@@ -300,7 +301,7 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	bool haveNodes = false;
 	if (meshNodeCount > 0) {
 		if (!meshChunk) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM declares %1 mesh node(s) but holds no mesh node chunk; it is shown as one surface.").arg(meshNodeCount);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("fm-no-mesh-nodes"), QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM declares %1 mesh node(s) but holds no mesh node chunk; it is shown as one surface.").arg(meshNodeCount));
 		} else if (meshChunk->size < qint64(meshNodeCount) * kMeshNodeBytes) {
 			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM mesh node chunk is shorter than the header declares.");
 			return;
@@ -325,7 +326,7 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 			}
 			const int unused = int(std::count(used.cbegin(), used.cend(), false));
 			if (unused > 0) {
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) belong to no mesh node; the game does not draw them, so they are left out.").arg(unused);
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("fm-unused-triangles"), QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) belong to no mesh node; the game does not draw them, so they are left out.").arg(unused));
 			}
 		}
 	}

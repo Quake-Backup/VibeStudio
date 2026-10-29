@@ -274,6 +274,8 @@ class ModelEditorDialog final : public QDialog
 	QPushButton *m_uvUnwrap = nullptr, *m_uvPack = nullptr, *m_uvPackAround = nullptr;
 	QComboBox *m_uvObstacleScale = nullptr;
 	QLabel *m_healthStatus = nullptr, *m_healthDetail = nullptr;
+	// The decode issues the source was imported with (Health page).
+	QLabel *m_importIssues = nullptr;
 	QComboBox *m_healthFinding = nullptr;
 	QPushButton *m_healthInspect = nullptr, *m_healthSelect = nullptr, *m_healthRepair = nullptr;
 	ModelTopologyHealth m_health;

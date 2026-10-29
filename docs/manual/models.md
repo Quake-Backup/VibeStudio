@@ -261,6 +261,26 @@ constraints remain planned. The
    `.mesh.json` source. Game files are exported separately (see
    [Export and build game files](#export-and-build-game-files)).
 
+### Review what the decoder reported
+
+Many game files open with notes from the decoder. What happens depends on how
+much each note matters:
+
+- **Advisory** notes describe how the game treats the file, such as a Doom 3
+  ASE multi-material or an MD3 end offset that does not match the file. The
+  model opens as usual.
+- **Omission** notes mean the decoder left something out, such as a second
+  LightWave layer or a declared animation for another skeleton. **Review
+  Import** lists every note by severity. Choose **Accept Omissions and Import**
+  to edit the model without that data, or **Cancel** (the default, so
+  <kbd>Enter</kbd> and <kbd>Esc</kbd> both keep your current model).
+- **Damage**, such as triangles that point outside the model, cannot be
+  accepted; the import is refused with the reasons.
+
+The saved source keeps the advisories and accepted omissions, and
+**Health** > **Import** lists them. The game file itself never changes. See
+[Decode issues](../MODEL_FORMATS.md#decode-issues) for the full list.
+
 ### Save and review output
 
 The mesh editor checks that a loaded source still has its original contents and

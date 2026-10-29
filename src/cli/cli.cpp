@@ -128,6 +128,7 @@
 #include "core/model_mesh.h"
 #include "core/model_design.h"
 #include "core/model_document.h"
+#include "core/model_decode_issues.h"
 #include "core/model_animation.h"
 #include "core/model_tags.h"
 #include "core/model_topology_health.h"
@@ -536,7 +537,7 @@ QVector<CliCommandDescriptor> cliCommandDescriptors()
 		{QStringLiteral("map"), QStringLiteral("find"), QStringLiteral("List the map objects a query matches, as the Levels Objects filter reads it: key=value, key:text, key!=value, key<n, key>n, and plain words, all of which must hold. --number entity[,brush] instead finds the object a compiler names as \"Entity 0, Brush 12\", counted from 0."), {QStringLiteral("vibestudio --cli map find ./maps/start.map --where \"class=light light>200\""), QStringLiteral("vibestudio --cli map find ./maps/doom.wad --map MAP01 --where tag=3 --json")}},
 		{QStringLiteral("entity"), QStringLiteral("definitions"), QStringLiteral("Load Radiant .def, Valve .fgd, and Quake III .ent catalogues and list the entity classes they declare."), {QStringLiteral("vibestudio --cli entity definitions ./defs --json")}},
 		{QStringLiteral("entity"), QStringLiteral("validate"), QStringLiteral("Check a map's entities against an entity definition catalogue, including target and targetname references."), {QStringLiteral("vibestudio --cli entity validate ./maps/start.map --definitions ./defs/quake.def --json")}},
-		{QStringLiteral("model"), QStringLiteral("inspect"), QStringLiteral("Decode MDL, MD2, MD3, or polygonal OBJ from a loose file, archive, folder, or portable draft; report geometry, frames, tags, and skins."), {QStringLiteral("vibestudio --cli model inspect ./id1/pak0.pak progs/player.mdl --json")}},
+		{QStringLiteral("model"), QStringLiteral("inspect"), QStringLiteral("Decode any model format model formats lists (MDL, MD2, MD3, MDC, MDR, IQM, MD5, MDS, MDM, GLM, Half-Life and Hexen II MDL, LWO, ASE, Heretic II FM, KVX, polygonal OBJ) from a loose file, archive, folder, or portable draft; report geometry, frames, tags, skins, and decode issues by severity (advisory, omission, damage) with the decode verdict for editable import."), {QStringLiteral("vibestudio --cli model inspect ./id1/pak0.pak progs/player.mdl --json")}},
 		{QStringLiteral("model"), QStringLiteral("export"), QStringLiteral("Export one OBJ geometry frame with guarded writes and source/package protection. Supports portable drafts, dry-run, stdout, and omission notes."), {QStringLiteral("vibestudio --cli model export ./id1/pak0.pak progs/player.mdl --frame 0 --output ./out/player.obj --dry-run")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("materials"), QCoreApplication::translate("ModelMaterialSlotsCli", "Inspect model preview appearances using an archive, folder or portable draft with bounded image and shader lookup. Requires --package. Pair --surface N with --material-slot N for an external surface, use --skin N and --member N for an embedded MDL skin member, or use --entry PATH and/or --entry-index N for exact package .skin bindings. Appearance modes are separate. JSON includes selected surfaces and verified skin inputs. This read-only command does not change authored bindings."), {QStringLiteral("vibestudio --cli model materials ./models/prop.mesh.json --package ./assets --surface 0 --material-slot 1 --json")}},
 		{QStringLiteral("model"), QStringLiteral("pose"), QCoreApplication::translate("ModelPoseCli", "Inspect or author skeletal poses and clips. --operation list (default; optional --clip N --first N), bind (--joint), add (--name --frames N --fps N), duplicate or rename (--clip N --name), remove (--clip N), resize (--clip N --frames N), timing (--clip N --fps N), transform (--clip N --joint --first N --last N), copy (--clip N --first N --last N --source-clip N|bind --source-frame N), interpolate (--clip N --first N --last N), or working-set (--clips a,b with clip names or indexes, - for the bind pose alone, or omitted to fit clips automatically) to choose the clips baked into editable frames. Transforms accept --translate x,y,z, --rotate x,y,z in degrees, --scale x,y,z, --space model|local and --children yes|no. Alternatively, --matrix accepts twelve row-major model-space affine delta values; it excludes --translate, --rotate, --scale and --space. Add/timing accept --loop yes|no. Edits require --output .mesh.json; --dry-run validates and --overwrite permits replacement. Bind transforms preserve deformation. Clip indices and pose ranges are zero-based."), {QStringLiteral("vibestudio --cli model pose ./models/rig.mesh.json --json"), QStringLiteral("vibestudio --cli model pose ./models/rig.mesh.json --operation add --name idle --frames 24 --fps 24 --output ./models/animated.mesh.json --json"), QStringLiteral("vibestudio --cli model pose ./models/monster.mesh.json --operation working-set --clips idle,run --output ./models/run.mesh.json --json")}, true, true, true},
@@ -574,7 +575,7 @@ QVector<CliCommandDescriptor> cliCommandDescriptors()
 		{QStringLiteral("model"), QStringLiteral("recoveries"), QStringLiteral("List local mesh recovery headers; --directory selects a recovery folder."), {QStringLiteral("vibestudio --cli model recoveries --json")}},
 		{QStringLiteral("model"), QStringLiteral("recover"), QStringLiteral("Verify a mesh recovery copy and write a new editable source; existing files are protected."), {QStringLiteral("vibestudio --cli model recover ./copy.vsmeshrecovery --output ./out/recovered.mesh.json --dry-run --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("build"), QStringLiteral("Build MDL, MD2, MD3, MD5 mesh or animation, IQM, ASE or an OBJ frame from an editable mesh; primitive designs support MD2, MD3 and OBJ. For .md5anim choose --clip N|NAME (--frame N selects the clip that frame belongs to), or --all-clips --output-dir DIR for one file per clip; --md5-frame-rate N sets a whole frame rate. --target ID checks the model against a delivery target first (see model targets; the default is the one saved with the project that holds the source, or --project DIR, else the format's original engine) and exits 4 listing every limit it exceeds. Notes report what the format leaves out or approximates; --strict refuses an export that leaves data out, and --no-strict overrides a project that saves strict exports."), {QStringLiteral("vibestudio --cli model build ./samples/models/pillar.model.json --output ./out/pillar.md3 --dry-run --json"), QStringLiteral("vibestudio --cli model build ./models/monster.mesh.json --output ./out/monster.mdl --target quakespasm --json"), QStringLiteral("vibestudio --cli model build ./models/monster.mesh.json --output ./out/walk.md5anim --clip walk --json"), QStringLiteral("vibestudio --cli model build ./models/monster.mesh.json --all-clips --output-dir ./out/anims --strict --json")}, true, true, true},
-		{QStringLiteral("model"), QStringLiteral("import"), QStringLiteral("Import polygonal OBJ, MDL, MD2, MD3, a skeletal model such as MD5 or IQM, or bake a primitive design into an editable mesh source. OBJ retains UV/normal seams and direct material paths; material libraries and non-polygon data require conversion in the source modeller. A skeletal model over the editable frame budget keeps every clip in its skeleton and bakes the clips that fit; --clips a,b (names or indexes, or - for the bind pose alone) chooses that working set; a clip that matches nothing exits 2. Relative paths find loose companions such as md5anims beside the model."), {QStringLiteral("vibestudio --cli model import ./samples/models/pillar.model.json --output ./out/pillar.mesh.json --dry-run --json"), QStringLiteral("vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --dry-run --json")}, true, true, true},
+		{QStringLiteral("model"), QStringLiteral("import"), QStringLiteral("Import any model format model formats lists (polygonal OBJ, MDL, MD2, MD3, skeletal MD5, IQM, MDS, GLM and the rest, LWO, ASE), or bake a primitive design into an editable mesh source. OBJ retains UV/normal seams and direct material paths; material libraries and non-polygon data require conversion in the source modeller. Decode advisories never block the import; omissions (an extra layer, an animation for another skeleton, unreadable textures) need --accept-omissions, and damage always refuses; the source records the advisories and accepted omissions. A skeletal model over the editable frame budget keeps every clip in its skeleton and bakes the clips that fit; --clips a,b (names or indexes, or - for the bind pose alone) chooses that working set; a clip that matches nothing exits 2. Relative paths find loose companions such as md5anims beside the model."), {QStringLiteral("vibestudio --cli model import ./samples/models/pillar.model.json --output ./out/pillar.mesh.json --dry-run --json"), QStringLiteral("vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --dry-run --json"), QStringLiteral("vibestudio --cli model import ./models/crate.lwo --accept-omissions --output ./out/crate.mesh.json --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("edit"), QCoreApplication::translate("ModelSurfaceSelection", "Apply a validated mesh, UV, material, animation-frame, or attachment-tag edit. Transforms support --transform-space world|selection|custom (default world), custom --axis-rotation X,Y,Z and selection --axes-frame N. Axes also apply to face extrusion and duplication. One reference pose fixes selection axes across affected frames; default is the edited frame or pivot reference pose. Pivots remain in model coordinates. Transforms support snapping, explicit pivots, and --surfaces all or unique comma-separated indices for whole surfaces sharing one pivot. Do not mix --surfaces with component selectors. Boundary operations fill-boundary-loops and bridge-boundary-loops require --edges and cover all frames; --source-frame chooses a reference pose (default 0). Bridging joins exactly two loops, supports unequal counts and accepts --bridge-twist -1023 to 1023 (default 0). UV atlas operations accept --uv-atlas-size N or WIDTHxHEIGHT and --uv-padding pixels. uv-pack-around packs complete islands around fixed unselected and shared-material regions in the 0–1 tile; --uv-pack-scale fit|preserve chooses uniform fit (default) or unchanged UV scale. Clip timing: set-clip-fps requires --clip and --clip-fps; add-clip optionally accepts --clip-fps. Zero leaves timing unspecified, otherwise use 0.001–1000 FPS. On skeletal models JSON adds skinProvenance (kept, interpolated, mirrored, rebound, merged and bound weights per skinned surface); while a surface is skinned, duplicate-frame, delete-frame, insert-inbetweens and copy-frame-pose refuse the bind frame and frames baked from a skeletal clip, and keep every other frame's clip mapping; once every surface is unbound they apply to any frame."), {QStringLiteral("vibestudio --cli model edit ./out/pillar.mesh.json --operation transform --faces all --offset 0,0,8 --snap-grid 1 --output ./out/raised.mesh.json --dry-run --json")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("place-model"), QStringLiteral("Place a package MD3 in a Quake III map as a misc_model entity."), {QStringLiteral("vibestudio --cli map place-model ./maps/arena.map --engine idTech3 --package ./assets --entry models/props/pillar.md3 --origin 64,0,0 --output ./out/arena.map")}, true, true, true},
 		{QStringLiteral("bsp"), QStringLiteral("inspect"), QStringLiteral("Inspect a compiled BSP plus any leak and portal files beside it."), {QStringLiteral("vibestudio --cli bsp inspect ./out/start.bsp --json")}},
@@ -14916,6 +14917,22 @@ QJsonObject modelMeshJsonForCli(const ModelMesh& mesh)
 	}
 	object.insert(QStringLiteral("surfaceList"), surfaces);
 	object.insert(QStringLiteral("warnings"), QJsonArray::fromStringList(mesh.warnings));
+	// The same warnings by severity, and what they mean for editable import:
+	// clean, advisories only, omissions to accept, or damaged.
+	const auto issues = modelDecodeIssues(mesh);
+	const auto counts = countModelDecodeIssues(issues);
+	object.insert(QStringLiteral("issues"), modelDecodeIssuesJson(issues));
+	object.insert(QStringLiteral("issueCounts"), QJsonObject{{QStringLiteral("advisory"), counts.advisories},
+		{QStringLiteral("omission"), counts.omissions}, {QStringLiteral("damage"), counts.damage}});
+	QString verdict = QStringLiteral("clean");
+	if (counts.damage > 0) {
+		verdict = QStringLiteral("damaged");
+	} else if (counts.omissions > counts.accepted) {
+		verdict = QStringLiteral("accept-omissions");
+	} else if (counts.advisories > 0) {
+		verdict = QStringLiteral("advisories");
+	}
+	object.insert(QStringLiteral("decodeVerdict"), verdict);
 	if (!mesh.error.isEmpty()) {
 		object.insert(QStringLiteral("error"), mesh.error);
 	}
@@ -15194,6 +15211,9 @@ int runModelSourceCommand(const QString& action, const QString& path, const QStr
 			importOptions.chooseWorkingSet = true;
 			importOptions.workingSet = clips == QStringLiteral("-") ? QStringList{} : clips.split(QLatin1Char(','));
 		}
+		// Decode omissions (an extra layer, a clip that does not fit) refuse the
+		// import unless accepted; damage always does (core/model_decode_issues.h).
+		importOptions.acceptOmissions = hasOption(args, QStringLiteral("--accept-omissions"));
 		QFile file(path);
 		if (!file.open(QIODevice::ReadOnly) || file.size() > modelDocumentMaxSourceBytes) {
 			return printCliError(command, CliExitCode::Failure, QStringLiteral("The model cannot be read or exceeds 64 MiB."), format);
@@ -15202,9 +15222,22 @@ int runModelSourceCommand(const QString& action, const QString& path, const QStr
 		// The absolute path finds loose companions (md5anim, GLA, .def) beside
 		// a model named relative to the working folder.
 		if (file.error() != QFileDevice::NoError || !importEditableModel(QFileInfo(path).absoluteFilePath(), bytes, &mesh, importOptions, &importReport, &error) || !document.setMesh(mesh, &error)) {
+			if (importReport.omissionsPending) {
+				error += QLatin1Char('\n') + QCoreApplication::translate("VibeStudioModelDecodeIssues",
+					"Only omissions keep this model from importing. Run the import again with --accept-omissions to edit it without that data.");
+			}
 			// A --clips entry that names no clip is a usage error, as in model pose.
-			return printCliError(command, importReport.unresolvedClips ? CliExitCode::Usage : CliExitCode::ValidationFailed,
-				error.isEmpty() ? QStringLiteral("The source read failed.") : error, format);
+			const auto code = importReport.unresolvedClips ? CliExitCode::Usage : CliExitCode::ValidationFailed;
+			if (format == CliOutputFormat::Json && !importReport.issues.isEmpty()) {
+				// The classified decode issues show what an acceptance would cover.
+				auto result = cliResultJson(command, code);
+				result.insert(QStringLiteral("message"), error);
+				result.insert(QStringLiteral("issues"), modelDecodeIssuesJson(importReport.issues));
+				result.insert(QStringLiteral("omissionsPending"), importReport.omissionsPending);
+				printJson(result);
+				return exitCodeValue(code);
+			}
+			return printCliError(command, code, error.isEmpty() ? QStringLiteral("The source read failed.") : error, format);
 		}
 	} else {
 		if (!document.load(path, &error)) { return printCliError(command, CliExitCode::Failure, error, format); }
@@ -15576,6 +15609,10 @@ int runModelSourceCommand(const QString& action, const QString& path, const QStr
 			result.insert(QStringLiteral("rebaked"), importReport.rebaked);
 			result.insert(QStringLiteral("workingSet"), modelSkeletalWorkingSetJson(importReport.rebaked ? importReport.workingSet : modelSkeletalWorkingSet(mesh)));
 		}
+		// The decode advisories and accepted omissions the source records.
+		if (action == QStringLiteral("import")) {
+			result.insert(QStringLiteral("issues"), modelDecodeIssuesJson(mesh.issues));
+		}
 		printJson(result);
 	} else {
 		std::cout << text(QStringLiteral("%1 %2 (%3 surfaces, %4 triangles, %5 frames)\n").arg(dryRun ? QStringLiteral("Would write") : QStringLiteral("Wrote"), target.absoluteFilePath()).arg(mesh.surfaceCount).arg(mesh.triangleCount).arg(mesh.frameCount));
@@ -15586,6 +15623,11 @@ int runModelSourceCommand(const QString& action, const QString& path, const QStr
 				? QCoreApplication::translate("ModelPoseCli", "Baked the clips chosen with --clips into editable frames; the skeleton keeps every clip.")
 				: QCoreApplication::translate("ModelPoseCli", "Re-baked the skeletal frames to fit the editable budget; the skeleton keeps every clip.")) << '\n';
 			for (const auto& line : modelSkeletalWorkingSetLines(importReport.workingSet)) { std::cout << text(line) << '\n'; }
+		}
+		if (action == QStringLiteral("import")) {
+			QStringList names;
+			for (const auto& surface : mesh.surfaces) { names << surface.name; }
+			for (const auto& line : modelDecodeIssueLines(mesh.issues, names)) { std::cout << text(line) << '\n'; }
 		}
 	}
 	return exitCodeValue(CliExitCode::Success);

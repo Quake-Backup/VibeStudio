@@ -1,6 +1,7 @@
 #include "core/model_mesh.h"
 #include "core/model_archive.h"
 #include "core/model_document.h"
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 #include "core/model_skeleton.h"
 
@@ -1233,7 +1234,7 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Flags: 0x%1").arg(QString::number(static_cast<uint>(flags), 16));
 	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Declared skins: %1").arg(skinCount);
 	if (endOffset > 0 && endOffset != bytes.size()) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The MD3 end offset (%1) does not match the file size (%2).").arg(endOffset).arg(bytes.size());
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md3-end-offset"), QCoreApplication::translate("VibeStudioModelMesh", "The MD3 end offset (%1) does not match the file size (%2).").arg(endOffset).arg(bytes.size()));
 	}
 
 	for (int index = 0; index < frameCount; ++index) {
@@ -1351,7 +1352,7 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		surface.name = name.isEmpty() ? QStringLiteral("surface%1").arg(surface.index) : name;
 		surface.vertexCount = vertexCount;
 		if (surfaceFlags != 0) {
-			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "Surface flags: 0x%1").arg(QString::number(static_cast<uint>(surfaceFlags), 16));
+			noteModelSurfaceIssue(mesh, &surface, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md3-surface-flags"), QCoreApplication::translate("VibeStudioModelMesh", "Surface flags: 0x%1").arg(QString::number(static_cast<uint>(surfaceFlags), 16)));
 		}
 		if (surfaceFrameCount != frameCount) {
 			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "The surface declares %1 frame(s) while the model declares %2.").arg(surfaceFrameCount).arg(frameCount);
@@ -2067,8 +2068,11 @@ ModelMesh decodeModelMesh(const QString& virtualPath, const QByteArray& bytes, c
 
 	model_formats::Companions companions(&companionSource, &mesh);
 	switch (mesh.format) {
-	case ModelMeshFormat::WavefrontObj:
-		return decodeModelObj(virtualPath, bytes, control);
+	case ModelMeshFormat::WavefrontObj: {
+		ModelMesh obj = decodeModelObj(virtualPath, bytes, control);
+		classifyModelDecodeIssues(&obj);
+		return obj;
+	}
 	case ModelMeshFormat::QuakeMdl:
 		decodeQuakeMdl(bytes, effectivePalette, &mesh, control);
 		break;
@@ -2168,6 +2172,8 @@ ModelMesh decodeModelMesh(const QString& virtualPath, const QByteArray& bytes, c
 		failed.error = mesh.error;
 		return failed;
 	}
+	// Every warning gets a severity; unclassified ones count as damage.
+	classifyModelDecodeIssues(&mesh);
 	return mesh;
 }
 
@@ -2207,7 +2213,10 @@ ModelMesh decodeModelMeshFromArchive(const PackageArchiveReader& archive, const 
 	}
 	ModelMesh mesh = decodeModelMesh(virtualPath, bytes, &resolution.palette, control, modelCompanionsFromArchive(archive, control));
 	if (!mesh.embeddedSkins.isEmpty()) {
-		mesh.warnings += resolution.warnings;
+		// The palette only colours the preview; the indices are kept.
+		for (const QString& warning : std::as_const(resolution.warnings)) {
+			noteModelDecodeIssue(&mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdl-palette"), warning);
+		}
 		if (resolution.fromPackage && !resolution.sourceVirtualPath.isEmpty()) {
 			mesh.detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skin palette: %1").arg(resolution.sourceVirtualPath);
 		} else if (resolution.palette.generated) {
@@ -2338,13 +2347,21 @@ QStringList modelMeshSummaryLines(const ModelMesh& mesh)
 		lines << QCoreApplication::translate("VibeStudioModelMesh", "Companion file: %1").arg(companion);
 	}
 	lines += mesh.detailLines;
+	// Warnings by severity (core/model_decode_issues.h): advisories, then
+	// what editing needs accepted, then damage, each in decode order.
+	QStringList names;
 	for (const ModelSurface& surface : mesh.surfaces) {
-		for (const QString& warning : surface.warnings) {
-			lines << QCoreApplication::translate("VibeStudioModelMesh", "Surface %1: %2").arg(surface.index).arg(warning);
-		}
+		names << surface.name;
 	}
-	for (const QString& warning : mesh.warnings) {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "Warning: %1").arg(warning);
+	const QVector<ModelDecodeIssue> issues = modelDecodeIssues(mesh);
+	for (const auto severity : {ModelDecodeIssueSeverity::Advisory, ModelDecodeIssueSeverity::Omission, ModelDecodeIssueSeverity::Damage}) {
+		QVector<ModelDecodeIssue> group;
+		for (const ModelDecodeIssue& issue : issues) {
+			if (issue.severity == severity) {
+				group.append(issue);
+			}
+		}
+		lines += modelDecodeIssueLines(group, names);
 	}
 	return lines;
 }

@@ -444,6 +444,20 @@ still finds its companion files (md5anim, GLA, `.def`) beside it. See
 vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --json
 vibestudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json
 ```
+
+`model inspect --json` gives every decode warning a severity in `issues`
+(`advisory`, `omission` or `damage`), counts them in `issueCounts`, and sums
+them up as `decodeVerdict`: `clean`, `advisories`, `accept-omissions` or
+`damaged`. `model import` accepts advisories, refuses omissions with exit 4
+until you add `--accept-omissions`, and always refuses damage; its JSON lists
+`issues` and, on refusal, `omissionsPending`. The written source records the
+advisories and accepted omissions. See
+[Decode issues](../MODEL_FORMATS.md#decode-issues).
+
+```sh
+vibestudio --cli model inspect ./models/crate.lwo --json
+vibestudio --cli model import ./models/crate.lwo --accept-omissions --output ./out/crate.mesh.json --json
+```
 `model import` and `model edit` report the source they wrote (or would write
 with `--dry-run`) in JSON as `"source": {"bytes", "encoding", "limitBytes"}`.
 The encoding is `readable`, or `packed` when the readable source would pass the

@@ -1,7 +1,12 @@
 // MD5 (Doom 3, Quake 4, Prey, ETQW) decoding, writing and .def declarations.
 // Every fixture is synthetic text written here; no game data is used.
+#include "core/model_decode_issues.h"
+#include "core/model_document.h"
 #include "core/model_md5.h"
 #include "core/model_mesh.h"
+
+#include <QJsonDocument>
+#include <QJsonObject>
 #include "core/model_skeleton.h"
 
 #include <QByteArray>
@@ -931,9 +936,72 @@ void testDeclarations()
 
 } // namespace
 
+const ModelDecodeIssue* issueMentioning(const ModelMesh& mesh, const char* id, const QString& text)
+{
+	for (const ModelDecodeIssue& issue : mesh.issues) {
+		if (issue.id == QLatin1String(id) && issue.text.contains(text)) {
+			return &issue;
+		}
+	}
+	return nullptr;
+}
+
+// FMT-02: a folder sibling that belongs to another skeleton is an advisory,
+// a declared animation the decoder could not use is an omission, and only
+// unaccepted omissions or damage keep the model from being editable.
+void testDecodeIssues()
+{
+	// A declaration that names an animation nobody shipped.
+	auto withMissing = standardFiles();
+	withMissing->add(QStringLiteral("def/missing.def"),
+		QByteArray("model test_chain_missing {\n\tmesh models/md5/test/chain.md5mesh\n\tanim gone models/md5/test/gone.md5anim\n}\n"));
+	ModelMesh mesh = decodeModelMesh(kMeshPath, QByteArray(kChainMesh), nullptr, {}, fakeSource(withMissing));
+	if (!expect(mesh.error.isEmpty(), "issue fixture decodes")) {
+		return;
+	}
+	const ModelDecodeIssue* sibling = issueMentioning(mesh, "md5-anim-joints", QStringLiteral("broken.md5anim"));
+	expect(sibling && sibling->severity == ModelDecodeIssueSeverity::Advisory, "an undeclared sibling for another skeleton is an advisory");
+	const ModelDecodeIssue* declared = issueMentioning(mesh, "md5-anim-unreadable", QStringLiteral("gone.md5anim"));
+	expect(declared && declared->severity == ModelDecodeIssueSeverity::Omission, "a declared animation that cannot be read is an omission");
+	expect(mesh.issues.size() == modelDecodeIssues(mesh).size(), "every warning is classified once");
+	expect(modelDecodeNeedsOmissionAcceptance(mesh), "only omissions block the fixture");
+	const QStringList refused = validateEditableModel(mesh);
+	expect(!refused.isEmpty() && containsText(refused, QStringLiteral("gone.md5anim")) && !containsText(refused, QStringLiteral("broken.md5anim")),
+		"editable validation names the omission and not the advisory");
+	ModelMesh accepted = mesh;
+	acceptModelDecodeOmissions(&accepted);
+	expect(validateEditableModel(accepted).isEmpty(), "accepted omissions make the model editable");
+	updateEditableModelMetadata(&accepted);
+	expect(accepted.warnings.isEmpty() && accepted.issues.size() == mesh.issues.size(), "adoption keeps the record and clears the warnings");
+	QString error;
+	const QByteArray source = serializeEditableModel(accepted, &error);
+	ModelMesh reread;
+	if (expect(!source.isEmpty() && parseEditableModel(source, &reread, &error), "a source with import issues saves and reloads")) {
+		expect(reread.issues == accepted.issues, "the import record survives a save");
+		const QJsonObject root = QJsonDocument::fromJson(source).object();
+		expect(root.contains(QStringLiteral("importIssues")) && root.value(QStringLiteral("version")).toInt() == 15, "the record is version 15's importIssues block");
+	}
+
+	// A declaration naming the sibling makes it this model's: an omission.
+	auto files = standardFiles();
+	files->add(QStringLiteral("def/broken.def"), QByteArray("model test_chain_broken {\n\tmesh models/md5/test/chain.md5mesh\n\tanim limp models/md5/test/broken.md5anim\n}\n"));
+	const ModelMesh named = decodeModelMesh(kMeshPath, QByteArray(kChainMesh), nullptr, {}, fakeSource(files));
+	const ModelDecodeIssue* upgraded = issueMentioning(named, "md5-anim-joints", QStringLiteral("broken.md5anim"));
+	expect(upgraded && upgraded->severity == ModelDecodeIssueSeverity::Omission, "a declared sibling for another skeleton becomes an omission");
+
+	// Without the missing declared file only the advisory remains.
+	auto clean = std::make_shared<FakeFiles>();
+	clean->add(QStringLiteral("models/md5/test/walk.md5anim"), QByteArray(kWalkAnim));
+	clean->add(QStringLiteral("models/md5/test/broken.md5anim"), QByteArray(kBrokenAnim));
+	const ModelMesh advisory = decodeModelMesh(kMeshPath, QByteArray(kChainMesh), nullptr, {}, fakeSource(clean));
+	expect(!advisory.warnings.isEmpty() && modelDecodeBlockingIssues(advisory).isEmpty() && validateEditableModel(advisory).isEmpty(),
+		"a model with advisories only is editable as decoded");
+}
+
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
+	testDecodeIssues();
 	testMeshDecode();
 	testBudgetAndSources();
 	testFileSystemLayout();

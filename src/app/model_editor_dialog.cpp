@@ -6,8 +6,10 @@
 #include "app/studio_sidebar.h"
 #include "core/model_surfaces.h"
 
+#include "app/model_import_review.h"
 #include "app/model_recovery_dialog.h"
 #include "app/model_recovery_writer.h"
+#include "core/model_decode_issues.h"
 #include "app/model_skeletal_working_set_dialog.h"
 #include "app/model_uv_view.h"
 #include "app/model_viewport.h"
@@ -2587,10 +2589,10 @@ bool ModelEditorDialog::save(bool saveAs)
 }
 void ModelEditorDialog::open()
 {
+	// Every format the decoder reads geometry from (model formats lists them).
 	const auto path = QFileDialog::getOpenFileName(
 		this, QCoreApplication::translate("VibeStudioModelEditor", "Open or Import Model"), {},
-		QCoreApplication::translate("VibeStudioModelEditor", "Editable meshes and models (*.mesh.json *.model.json *.obj *.mdl *.md2 *.md3 *.mdc "
-															 "*.md5mesh *.iqm *.mdr *.mds *.mdm *.glm);;All files (*)"));
+		QCoreApplication::translate("VibeStudioModelEditor", "Editable meshes and models (%1);;All files (*)").arg(modelEditorOpenPatterns()));
 	if (path.isEmpty())
 	{
 		return;
@@ -2604,26 +2606,46 @@ bool ModelEditorDialog::openSource(const QString &path, QString *error)
 	if (!error) { error = &localError; }
 	error->clear();
 	if (m_working || path.isEmpty() || !maybeSave()) { return false; }
-	// The worker fills the receipt of a skeletal import re-baked to fit.
+	// The worker fills the receipt of a skeletal import re-baked to fit, and
+	// the decode issues; acceptOmissions is set after the import review.
 	const auto imported = std::make_shared<ModelImportReport>();
-	if (!performWork(
-			QCoreApplication::translate("VibeStudioModelEditor", "Open or Import Model"),
-			[path, imported](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
-			{
-				if (path.endsWith(QStringLiteral(".mesh.json"), Qt::CaseInsensitive))
-				{
-					return candidate.load(path, failure, control);
-				}
-				QByteArray bytes;
-				ModelMesh mesh;
-				return readModelFile(path, &bytes, failure, control) &&
-					   importEditableModel(path, bytes, &mesh, ModelImportOptions{}, imported.get(), failure, nullptr, control) &&
-					   candidate.setMesh(mesh, failure, control);
-			},
-			error))
+	const auto acceptOmissions = std::make_shared<bool>(false);
+	const auto job = [path, imported, acceptOmissions](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
 	{
-		m_status->setText(*error);
-		return false;
+		if (path.endsWith(QStringLiteral(".mesh.json"), Qt::CaseInsensitive))
+		{
+			return candidate.load(path, failure, control);
+		}
+		QByteArray bytes;
+		ModelMesh mesh;
+		ModelImportOptions options;
+		options.acceptOmissions = *acceptOmissions;
+		return readModelFile(path, &bytes, failure, control) &&
+			   importEditableModel(path, bytes, &mesh, options, imported.get(), failure, nullptr, control) &&
+			   candidate.setMesh(mesh, failure, control);
+	};
+	const auto title = QCoreApplication::translate("VibeStudioModelEditor", "Open or Import Model");
+	if (!performWork(title, job, error))
+	{
+		// Only omissions stood in the way: show every issue and let the user
+		// accept them, then import again (core/model_decode_issues.h).
+		if (!imported->omissionsPending)
+		{
+			m_status->setText(*error);
+			return false;
+		}
+		if (!reviewModelImportIssues(this, path, imported->issues))
+		{
+			*error = QCoreApplication::translate("VibeStudioModelEditor", "Import cancelled; the omissions were not accepted.");
+			announceStatus(m_status, *error, LiveStatus::Result);
+			return false;
+		}
+		*acceptOmissions = true;
+		if (!performWork(title, job, error))
+		{
+			m_status->setText(*error);
+			return false;
+		}
 	}
 	retireRecovery();
 	clearExportReport();
@@ -2660,6 +2682,12 @@ void ModelEditorDialog::reportOpenedModel(const ModelImportReport &imported)
 														"The source would be %1, over the 64 MiB limit, so it cannot be saved or "
 														"recovered yet. Delete clips, frames, curve keys or embedded skins until it fits.")
 								.arg(modelMebibytesText(m_document.sourceBytes(), QLocale()));
+		text = text.isEmpty() ? notice : text + QLatin1Char(' ') + notice;
+	}
+	// What the decode reported, by severity; the Health page lists each one.
+	if (const auto issues = modelDecodeIssueSummary(m_document.mesh().issues); !issues.isEmpty())
+	{
+		const auto notice = QCoreApplication::translate("VibeStudioModelEditor", "Imported with %1. Health lists each one.").arg(issues);
 		text = text.isEmpty() ? notice : text + QLatin1Char(' ') + notice;
 	}
 	if (!text.isEmpty())

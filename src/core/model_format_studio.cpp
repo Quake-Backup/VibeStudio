@@ -32,6 +32,7 @@
 // - Texture coordinates are texels divided by the texture size, without the
 //   half-texel offset Quake's alias models use (gl_studio.c multiplies by
 //   1 / width). Chrome textures get theirs from the view at run time.
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 
 #include "core/model_skeleton.h"
@@ -551,15 +552,15 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 		QByteArray textureFile;
 		QString problem;
 		if (!companions.canRead() || !companions.read(texturePath, &textureFile, &problem)) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The textures live in %1, which could not be read; the model is shown untextured.").arg(texturePath);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-textures-unreadable"), QCoreApplication::translate("VibeStudioModelMesh", "The textures live in %1, which could not be read; the model is shown untextured.").arg(texturePath));
 		} else if (!rangeOk(textureFile, 0, kHeaderBytes) || textureFile.left(4) != QByteArrayLiteral("IDST") || readI32(textureFile, 4) != kStudioVersion
 			|| readI32(textureFile, 72) < kHeaderBytes || readI32(textureFile, 72) > textureFile.size()) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The texture file %1 is not a Half-Life texture file; the model is shown untextured.").arg(texturePath);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-textures-invalid"), QCoreApplication::translate("VibeStudioModelMesh", "The texture file %1 is not a Half-Life texture file; the model is shown untextured.").arg(texturePath));
 		} else {
 			const QByteArray trimmed = textureFile.left(readI32(textureFile, 72));
 			if (!readTextures(trimmed, readHeader(trimmed), &textures, &problem, work)) {
 				if (!mesh->error.isEmpty()) { return; }
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The texture file %1 could not be decoded (%2); the model is shown untextured.").arg(texturePath, problem);
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-textures-undecodable"), QCoreApplication::translate("VibeStudioModelMesh", "The texture file %1 could not be decoded (%2); the model is shown untextured.").arg(texturePath, problem));
 				textures = TextureSet{};
 			} else {
 				texturesAvailable = true;
@@ -688,7 +689,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 				}
 			}
 			if (!texture) {
-				surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "The mesh's texture is not available, so its texture coordinates stay in texels.");
+				noteModelSurfaceIssue(mesh, &surface, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-uv-texels"), QCoreApplication::translate("VibeStudioModelMesh", "The mesh's texture is not available, so its texture coordinates stay in texels."));
 			}
 			const bool halfFloatUv = texture && (texture->flags & kTextureHalfFloatUv) != 0;
 			const float width = texture ? float(texture->width) : 1.0f;
@@ -833,11 +834,11 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 		ModelVec3 origin;
 		readVec3(bytes, base + 40, &origin);
 		if (bone < 0 || bone >= bones.size()) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Attachment %1 follows bone %2, which does not exist, and was left out.").arg(index).arg(bone);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-attachment"), QCoreApplication::translate("VibeStudioModelMesh", "Attachment %1 follows bone %2, which does not exist, and was left out.").arg(index).arg(bone));
 			continue;
 		}
 		if (!isFinite(origin)) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Attachment %1 has a position that is not a finite number and was left out.").arg(index);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-attachment"), QCoreApplication::translate("VibeStudioModelMesh", "Attachment %1 has a position that is not a finite number and was left out.").arg(index));
 			continue;
 		}
 		ModelSkeletalTag tag;
@@ -880,7 +881,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 			sequence.group = readI32(bytes, base + 156);
 			const QString clipName = sequence.label.isEmpty() ? QStringLiteral("sequence%1").arg(index) : sequence.label;
 			if (sequence.frames <= 0) {
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Sequence %1 (%2) has no frames and was left out.").arg(index).arg(clipName);
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-empty-sequence"), QCoreApplication::translate("VibeStudioModelMesh", "Sequence %1 (%2) has no frames and was left out.").arg(index).arg(clipName));
 				continue;
 			}
 			if (sequence.frames > kMaxFrames) {
@@ -888,8 +889,8 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 				return;
 			}
 			if (sequence.group < 0 || sequence.group >= header.groups) {
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Sequence %1 (%2) names sequence group %3, which the model does not have, and was left out.")
-					.arg(index).arg(clipName).arg(sequence.group);
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence-group"), QCoreApplication::translate("VibeStudioModelMesh", "Sequence %1 (%2) names sequence group %3, which the model does not have, and was left out.")
+					.arg(index).arg(clipName).arg(sequence.group));
 				continue;
 			}
 			if (sequence.blends > 1) {
@@ -936,8 +937,8 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 						continue;
 					}
 					if (!rangeOk(groupFile, 0, kSequenceHeaderBytes) || groupFile.left(4) != QByteArrayLiteral("IDSQ") || readI32(groupFile, 4) != kStudioVersion) {
-						mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The sequence group file %1 is not a Half-Life sequence group (IDSQ 10); its sequences were left out.")
-							.arg(groupPaths.value(sequence.group));
+						noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence-group"), QCoreApplication::translate("VibeStudioModelMesh", "The sequence group file %1 is not a Half-Life sequence group (IDSQ 10); its sequences were left out.")
+							.arg(groupPaths.value(sequence.group)));
 						missingGroups.insert(sequence.group);
 						invalidGroups.insert(sequence.group);
 						continue;
@@ -955,7 +956,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 					mesh->error = problem;
 					return;
 				}
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 The sequence was left out.").arg(problem);
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence"), QCoreApplication::translate("VibeStudioModelMesh", "%1 The sequence was left out.").arg(problem));
 				continue;
 			}
 			sequence.label = clipName;
@@ -973,7 +974,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 					mesh->error = problem;
 					return;
 				}
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 The sequence was left out.").arg(problem);
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence"), QCoreApplication::translate("VibeStudioModelMesh", "%1 The sequence was left out.").arg(problem));
 				continue;
 			}
 			matrixBudget -= matrices;
@@ -985,15 +986,15 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 		if (groupFiles.contains(it.key()) || invalidGroups.contains(it.key())) {
 			continue;
 		}
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The sequence group file %1 could not be read; %2 sequence(s) in it were left out.")
-			.arg(groupPaths.value(it.key())).arg(it.value());
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence-group"), QCoreApplication::translate("VibeStudioModelMesh", "The sequence group file %1 could not be read; %2 sequence(s) in it were left out.")
+			.arg(groupPaths.value(it.key())).arg(it.value()));
 	}
 	if (blendedSequences > 0) {
 		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 sequence(s) blend several animations; the first blend is shown.").arg(blendedSequences);
 	}
 	if (budgetSkipped > 0) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 sequence(s) were left out to keep the decoded animation within %2 frames and %3 joint poses.")
-			.arg(budgetSkipped).arg(kMaxFrames).arg(kMaxClipMatrices);
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequences-capped"), QCoreApplication::translate("VibeStudioModelMesh", "%1 sequence(s) were left out to keep the decoded animation within %2 frames and %3 joint poses.")
+			.arg(budgetSkipped).arg(kMaxFrames).arg(kMaxClipMatrices));
 	}
 
 	if (bones.isEmpty()) {

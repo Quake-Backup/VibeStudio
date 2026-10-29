@@ -62,6 +62,12 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 	strings(mesh.skinPaths);
 	strings(mesh.detailLines);
 	strings(mesh.warnings);
+	list(mesh.issues);
+	for (const auto &issue : mesh.issues)
+	{
+		string(issue.id);
+		string(issue.text);
+	}
 	string(mesh.error);
 	bytes(mesh.mdl.palette);
 	list(mesh.mdl.frameGroups);

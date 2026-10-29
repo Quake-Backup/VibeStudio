@@ -1,4 +1,5 @@
 #include "core/model_document.h"
+#include "core/model_decode_issues.h"
 #include "core/model_lod.h"
 #include "core/model_skin_variants.h"
 #include "core/model_vertex_identity.h"
@@ -322,11 +323,15 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 	{
 		return {cancelError};
 	}
-	if (!mesh.error.isEmpty() || !mesh.warnings.isEmpty() || !mesh.geometryAvailable)
+	// Decode advisories and accepted omissions do not block editing; damage
+	// and omissions nobody accepted do (core/model_decode_issues.h).
+	const QStringList blockingIssues = modelDecodeBlockingIssues(mesh);
+	if (!mesh.error.isEmpty() || !blockingIssues.isEmpty() || !mesh.geometryAvailable)
 	{
 		errors << QCoreApplication::translate("VibeStudioModelDocument",
-											  "An editable model requires complete geometry without decode errors or "
-											  "warnings.");
+											  "An editable model requires complete geometry without decode errors, damage "
+											  "or omissions that were not accepted.");
+		errors += blockingIssues;
 	}
 	if (mesh.frames.isEmpty() || mesh.frames.size() > modelDocumentMaxFrames || mesh.surfaces.isEmpty() || mesh.surfaces.size() > modelDocumentMaxSurfaces)
 	{
@@ -362,7 +367,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 																			 "and at most 128 characters.");
 		}
 		surfaceNames.insert(surface.name);
-		if (!surface.warnings.isEmpty() || surface.vertexCount < 3 || surface.vertexCount > modelDocumentMaxVertices ||
+		if (surface.vertexCount < 3 || surface.vertexCount > modelDocumentMaxVertices ||
 			surface.triangles.isEmpty() || surface.triangles.size() > modelDocumentMaxTriangles ||
 			surface.frames.size() != mesh.frames.size() || surface.texCoords.size() != surface.vertexCount ||
 			surface.uvSeams.size() > surface.triangles.size() * 3)
@@ -370,7 +375,6 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 			errors << QCoreApplication::translate("VibeStudioModelDocument", "Surface %1 has incomplete or unsupported topology, UVs, "
 																			 "or frames.")
 						  .arg(surface.name);
-			errors.append(surface.warnings);
 			return errors;
 		}
 		if (vertices > modelDocumentMaxVertices || triangles > modelDocumentMaxTriangles ||
@@ -611,6 +615,9 @@ void updateEditableModelMetadata(ModelMesh *mesh)
 	{
 		return;
 	}
+	// An editable model carries no warnings: the decode's advisories and
+	// accepted omissions become its import record.
+	adoptModelDecodeIssues(mesh);
 	mesh->frameCount = mesh->frames.size();
 	mesh->surfaceCount = mesh->surfaces.size();
 	mesh->vertexCount = 0;
@@ -724,6 +731,20 @@ bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, Mo
 	{
 		return fail(error, result.error);
 	}
+	if (options.acceptOmissions)
+	{
+		acceptModelDecodeOmissions(&result);
+	}
+	// What the decode found, by severity, whether or not the import goes
+	// ahead (core/model_decode_issues.h); the working-set fit below starts
+	// the report afresh, so it is filled in after it.
+	const auto decodeIssues = modelDecodeIssues(result);
+	const bool omissionsPending = modelDecodeNeedsOmissionAcceptance(result);
+	if (report)
+	{
+		report->issues = decodeIssues;
+		report->omissionsPending = omissionsPending;
+	}
 	if (options.chooseWorkingSet && result.skeleton.isEmpty())
 	{
 		return fail(error, notSkeletal);
@@ -756,7 +777,17 @@ bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, Mo
 	}
 	else if (!fitEditableModelBudget(&result, report, error, control))
 	{
+		if (report)
+		{
+			report->issues = decodeIssues;
+			report->omissionsPending = omissionsPending;
+		}
 		return false;
+	}
+	if (report)
+	{
+		report->issues = decodeIssues;
+		report->omissionsPending = omissionsPending;
 	}
 	const auto errors = validateEditableModel(result, control);
 	if (!errors.isEmpty())
@@ -814,7 +845,7 @@ int readableSourceVersion(const ModelMesh &mesh)
 	const bool timed = std::any_of(mesh.animations.cbegin(), mesh.animations.cend(), [](const auto &clip) { return clip.framesPerSecond > 0; });
 	const bool collisionAnimation = std::any_of(mesh.collisionBoxes.cbegin(), mesh.collisionBoxes.cend(), [](const auto &box) { return !box.framePoses.isEmpty(); });
 	const bool explicitTopology = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return !s.topologyVertices.isEmpty(); });
-	return !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3;
+	return !mesh.issues.isEmpty() ? 15 : !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3;
 }
 // Packed sources (version 12) store the bulk arrays as base64 strings of
 // little-endian 32-bit words; the rest of the source is the same JSON.
@@ -1044,6 +1075,20 @@ QJsonObject sourceJson(const ModelMesh &mesh, QString *error, const ModelWorkCon
 	{
 		result.insert(QStringLiteral("skinVariants"), modelSkinVariantsJson(mesh.skinVariants));
 	}
+	// Version 15: the decode advisories and accepted omissions of the import.
+	// A surface deleted since then leaves its issues to the whole model.
+	if (!mesh.issues.isEmpty())
+	{
+		auto issues = mesh.issues;
+		for (auto &issue : issues)
+		{
+			if (issue.surface >= mesh.surfaces.size())
+			{
+				issue.surface = -1;
+			}
+		}
+		result.insert(QStringLiteral("importIssues"), modelDecodeIssuesJson(issues));
+	}
 	return work.check() ? result : QJsonObject{};
 }
 
@@ -1194,7 +1239,8 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 		 root.value(QStringLiteral("version")) != QJsonValue(3) && root.value(QStringLiteral("version")) != QJsonValue(4) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(5) && root.value(QStringLiteral("version")) != QJsonValue(6) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(7) && root.value(QStringLiteral("version")) != QJsonValue(8) && root.value(QStringLiteral("version")) != QJsonValue(9) && root.value(QStringLiteral("version")) != QJsonValue(10) && root.value(QStringLiteral("version")) != QJsonValue(11) &&
-		 root.value(QStringLiteral("version")) != QJsonValue(modelSourcePackedVersion) && root.value(QStringLiteral("version")) != QJsonValue(13) && root.value(QStringLiteral("version")) != QJsonValue(14)) ||
+		 root.value(QStringLiteral("version")) != QJsonValue(modelSourcePackedVersion) && root.value(QStringLiteral("version")) != QJsonValue(13) && root.value(QStringLiteral("version")) != QJsonValue(14) &&
+		 root.value(QStringLiteral("version")) != QJsonValue(15)) ||
 		!root.value(QStringLiteral("source")).isString())
 	{
 		return malformed();
@@ -1647,6 +1693,15 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 		if (result.version < 14 || !parseModelSkinVariants(root.value(QStringLiteral("skinVariants")), &result.skinVariants, &variantError))
 		{
 			return variantError.isEmpty() ? malformed() : fail(error, variantError);
+		}
+	}
+	// Version 15 records the import's advisories and accepted omissions.
+	if (root.contains(QStringLiteral("importIssues")))
+	{
+		QString issuesError;
+		if (result.version < 15 || !parseModelDecodeIssues(root.value(QStringLiteral("importIssues")), int(result.surfaces.size()), &result.issues, &issuesError))
+		{
+			return issuesError.isEmpty() ? malformed() : fail(error, issuesError);
 		}
 	}
 	updateEditableModelMetadata(&result);

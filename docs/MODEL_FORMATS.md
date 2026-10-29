@@ -74,7 +74,8 @@ private interface in `src/core/model_formats_p.h`, and is reached only through
   each format's convention on the way in and back again on the way out;
 - reads companion files only through the shared budget (below);
 - reports what it left out as warnings or detail lines, translated in the
-  `VibeStudioModelMesh` context;
+  `VibeStudioModelMesh` context, and gives each warning a severity (see
+  [Decode issues](#decode-issues));
 - names, in its header comment, the public source each layout and convention
   comes from. The [credits](CREDITS.md#native-model-formats-and-modeller-profiles-2026-10-08)
   list them with licences and revisions.
@@ -90,6 +91,39 @@ Conversions worth knowing about:
 | MD5 | Joint quaternions rebuild w as -sqrt(1 - x² - y² - z²), which matches Doom 3's transposed rotation; the writers encode the same way. |
 | KVX | Voxels are placed the way GZDoom's VOXELDEF places them, including its extra quarter turn, one voxel per map unit. The vertical pixel stretch GZDoom applies at draw time is not part of the model and is not applied. |
 | Half-Life | Bone angles compose as yaw (Z) × pitch (Y) × roll (X); texture coordinates have no half-texel offset. |
+
+## Decode Issues
+
+A warning tells you something about the file, but not every warning means the
+model is damaged. Every decoder warning has one of three severities
+(`src/core/model_decode_issues.h`):
+
+| Severity | Meaning | Editable import |
+| --- | --- | --- |
+| Advisory | How a game treats the file, with no model data lost: an ASE multi-material Doom 3 draws with one material, a bitmap path with a space, an MD3 end offset that does not match the file, MD3 and MDC surface flags, repeated bone names given a suffix, an `.md5anim` beside the mesh that belongs to another skeleton, KVX palette notes. | Allowed. |
+| Omission | Data the decoder left out on purpose: a second LightWave layer, an animation a `.def` declares that cannot be read or does not fit the skeleton, frames over the memory cap, Half-Life textures or sequence groups that could not be read, degenerate LightWave polygons. | Needs acceptance. |
+| Damage | Lost or invalid data: triangles with indices outside the model, a surface chain that stops early, invalid normal indices, an MD2 GL command stream that does not match its triangles. | Refused. |
+
+A warning that no decoder has classified counts as damage, so a new message is
+safe until someone gives it a severity.
+
+`model inspect --json` lists `issues` (id, severity, surface, text),
+`issueCounts` and a `decodeVerdict` of `clean`, `advisories`,
+`accept-omissions` or `damaged`. `model import` imports advisories as they are,
+refuses omissions until you pass `--accept-omissions`, and always refuses
+damage; its JSON lists the issues either way. In the Mesh Editor, opening a
+model whose only problems are omissions shows **Review Import**, which lists
+every issue by severity; **Accept Omissions and Import** goes ahead and
+**Cancel** (the default) keeps the current document.
+
+An editable source records the advisories and accepted omissions it was
+imported with in an `importIssues` block (`.mesh.json` version 15) and carries
+no warnings. The Mesh Editor lists them under **Health** > **Import**. A
+source cannot record damage, and an omission it records must be accepted.
+
+The Mesh Editor's **Open / Import…** dialog offers every suffix of every format
+`model formats` lists with geometry; animation-only files (`.md5anim`, `.mdx`,
+`.gla`) open through their mesh.
 
 ## Companion Files
 
@@ -319,6 +353,10 @@ current frame.
 - No decoder has been run against real game files in bulk; malformed but
   loadable files may still be refused, and some valid variants may not be
   recognised.
+- Decode issue severities were assigned by reading each decoder, not from
+  real files; an advisory that hides real loss, or an omission that should be
+  an advisory, needs a report. Import repair allows advisories but cannot
+  accept omissions yet.
 - Writers exist for MD5, IQM and ASE only among the new formats. MDC, MDS,
   MDM/MDX, MDR, Ghoul 2, Half-Life MDL, Hexen II MDL, FM, LWO and KVX are read
   only.

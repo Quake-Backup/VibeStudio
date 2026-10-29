@@ -48,6 +48,7 @@
 //   counter-clockwise order the studio uses.
 // - The weights' boneIndex is the global bone number: the renderer indexes
 //   bones[] with it directly, whatever the old comment in qfiles.h says.
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 
 #include "core/model_skeleton.h"
@@ -401,7 +402,7 @@ void fillWolfSkeleton(ModelMesh* mesh, const QString& sourceFormat, const WolfAn
 	}
 	skeleton.clips.append(animation.clip);
 	if (renamed) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Some bones share a name; the repeats were given a numbered suffix.");
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-duplicate-bones"), QCoreApplication::translate("VibeStudioModelMesh", "Some bones share a name; the repeats were given a numbered suffix."));
 	}
 }
 
@@ -410,15 +411,15 @@ void addWolfAnimationDetails(ModelMesh* mesh, const WolfAnimation& animation)
 	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skeleton: %1 bone(s), %2 frame(s)")
 		.arg(animation.bones.size()).arg(animation.clip.frames.size());
 	if (animation.bones.size() > kGameMaxBones) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh",
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-bone-limit"), QCoreApplication::translate("VibeStudioModelMesh",
 			"The skeleton has %1 bones; the RTCW and Enemy Territory renderers hold at most %2.")
-			.arg(animation.bones.size()).arg(kGameMaxBones);
+			.arg(animation.bones.size()).arg(kGameMaxBones));
 	}
 	if (animation.torsoParent >= 0 && animation.torsoParent < animation.bones.size()) {
 		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Torso parent: %1")
 			.arg(mesh->skeleton.joints.at(animation.torsoParent).name);
 	} else if (animation.torsoParent != -1) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The torso parent bone %1 is outside the skeleton.").arg(animation.torsoParent);
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-torso-parent"), QCoreApplication::translate("VibeStudioModelMesh", "The torso parent bone %1 is outside the skeleton.").arg(animation.torsoParent));
 	}
 	int tagBones = 0;
 	for (const WolfBone& bone : animation.bones) {
@@ -434,8 +435,8 @@ void addWolfAnimationDetails(ModelMesh* mesh, const WolfAnimation& animation)
 	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh",
 		"Frame timing and clip names come from the game's animation scripts, so every frame is listed as one clip with no rate.");
 	if (animation.declaredFrames > animation.clip.frames.size()) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The skeleton declares %1 frames; only the first %2 were kept to bound memory.")
-			.arg(animation.declaredFrames).arg(animation.clip.frames.size());
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("mds-frames-capped"), QCoreApplication::translate("VibeStudioModelMesh", "The skeleton declares %1 frames; only the first %2 were kept to bound memory.")
+			.arg(animation.declaredFrames).arg(animation.clip.frames.size()));
 	}
 }
 
@@ -651,9 +652,9 @@ void decodeMds(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Tag \"%1\" follows bone \"%2\" (torso weight %3).")
 			.arg(tag.name, mesh->skeleton.joints.at(tag.bone).name, QString::number(tag.torsoWeight));
 		if (!columnAxes.at(tag.bone)) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh",
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-tag-axes"), QCoreApplication::translate("VibeStudioModelMesh",
 				"Tag \"%1\" sits on bone \"%2\", which also moves vertices, so the tag takes the bone's vertex axes; RTCW reads that bone's axes transposed for tags.")
-				.arg(tag.name, mesh->skeleton.joints.at(tag.bone).name);
+				.arg(tag.name, mesh->skeleton.joints.at(tag.bone).name));
 		}
 	}
 	bakeWolfSkeleton(mesh, control);

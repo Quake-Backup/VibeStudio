@@ -515,6 +515,8 @@ core_sources = files(
   'core/model_format_ase.cpp',
   'core/model_format_fm.cpp',
   'core/model_format_kvx.cpp',
+  # Decode issue severities and the editable gate (FMT-02).
+  'core/model_decode_issues.cpp',
   # Modeller profiles (Blender, 3ds Max, MilkShape 3D) and sidebars, as data.
   'core/model_editor_controls.cpp',
   'core/model_sidebar.cpp',
@@ -640,6 +642,7 @@ install_headers('core/model_targets.h', subdir: 'vibestudio/core')
 install_headers('core/model_target_prepare.h', subdir: 'vibestudio/core')
 install_headers('core/model_delivery.h', subdir: 'vibestudio/core')
 install_headers('core/model_editor_controls.h', 'core/model_sidebar.h', subdir: 'vibestudio/core')
+install_headers('core/model_decode_issues.h', subdir: 'vibestudio/core')
 install_headers('core/model_surface_selection.h', subdir: 'vibestudio/core')
 install_headers('core/model_geometric_topology.h', 'core/model_mesh_tools.h', 'core/model_selection_tools.h', 'core/model_lod.h', subdir: 'vibestudio/core')
 install_headers('core/model_material_slots.h', subdir: 'vibestudio/core')
@@ -983,6 +986,7 @@ app_sources = files(
   'app/model_editor_tags.cpp',
   'app/model_editor_collision.cpp',
   'app/model_editor_health.cpp',
+  'app/model_import_review.cpp',
   'app/model_editor_intersections.cpp',
   'app/model_editor_import_repair.cpp',
   'app/model_import_repair_dialog.cpp',
@@ -3792,6 +3796,19 @@ model_format_studio_hexen2_fm_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-format-studio-hexen2-fm-smoke', model_format_studio_hexen2_fm_smoke_test, timeout: 120)
+
+# Decode issue severities and the editable gate (FMT-02).
+model_decode_issues_smoke_test = executable(
+  'model_decode_issues_smoke_test', ['tests/model_decode_issues_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-decode-issues-smoke', model_decode_issues_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+
+model_import_review_ui_smoke_test = executable(
+  'model_import_review_ui_smoke_test', ['tests/model_import_review_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-import-review-ui-smoke', model_import_review_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 
 model_health_smoke_test = executable(

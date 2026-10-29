@@ -16,6 +16,7 @@
 // base position plus the decoded offset, and the normal comes from the
 // compressed word's 256-entry table when a compressed frame is used.
 
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 #include "core/model_skeleton.h"
 
@@ -140,8 +141,8 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		return;
 	}
 	if (endOffset < bytes.size()) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The MDC ends at byte %1 of %2; the bytes after it are ignored.")
-			.arg(endOffset).arg(bytes.size());
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdc-trailing-bytes"), QCoreApplication::translate("VibeStudioModelMesh", "The MDC ends at byte %1 of %2; the bytes after it are ignored.")
+			.arg(endOffset).arg(bytes.size()));
 	}
 	const QByteArray data = endOffset < bytes.size() ? bytes.left(qsizetype(endOffset)) : bytes;
 
@@ -301,7 +302,7 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		surface.name = name.isEmpty() ? QStringLiteral("surface%1").arg(surface.index) : name;
 		surface.vertexCount = vertexCount;
 		if (surfaceFlags != 0) {
-			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "Surface flags: 0x%1").arg(QString::number(quint32(surfaceFlags), 16));
+			noteModelSurfaceIssue(mesh, &surface, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdc-surface-flags"), QCoreApplication::translate("VibeStudioModelMesh", "Surface flags: 0x%1").arg(QString::number(quint32(surfaceFlags), 16)));
 		}
 
 		// md3Shader_t
