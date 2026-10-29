@@ -247,7 +247,8 @@ int main(int argc, char **argv)
 		edit.selection.edges = {modelEdge(ripVertex(mesh, 0, 0), ripVertex(mesh, 0, -16)),
 								modelEdge(ripVertex(mesh, 0, 0), ripVertex(mesh, 16, 0)),
 								modelEdge(ripVertex(mesh, 0, 0), ripVertex(mesh, 0, 16))};
-		expect(!applyModelEdit(&mesh, edit, nullptr, &error) && ripBytes(mesh) == ripBytes(source), "branching rip junction is refused");
+		// Branched rips are covered in detail by model-rip-branch-smoke.
+		expect(applyModelEdit(&mesh, edit, nullptr, &error) && validateEditableModel(mesh).isEmpty(), "a branching rip junction splits", error);
 	}
 	{
 		auto mesh = source;

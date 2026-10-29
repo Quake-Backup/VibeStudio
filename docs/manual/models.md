@@ -654,13 +654,14 @@ torso or closing gaps between parts. **F9** adds **Segments** (rings that bend
 with the animation) and a **Strip UV** scale that gives the bridge its own UVs.
 
 **Vertex → Rip** and **Edge → Rip** open a selected vertex or connected edge
-chain; **Rip and Fill** bridges the gap. **V/Alt+V** start these in the studio
+chain, which may branch into a T, a Y or a loop with a branch; **Rip and Fill**
+bridges the gap. **V/Alt+V** start these in the studio
 and Blender profiles. The starting pointer chooses the side; **B** swaps it
 and **F** toggles filling. Type a distance, constrain with **X/Y/Z**, confirm
 with **Enter**, or cancel the whole preview with **Esc**. **F9** adjusts the
 offset, side face, fill and UV scale. Every retained pose is updated through
-the shared service. See [Rip](../MODEL_RIP.md) for rig behaviour, CLI examples
-and the current unbranched-selection limits. Confirm **Rip** immediately or
+the shared service. See [Rip](../MODEL_RIP.md) for rig behaviour, branched
+junctions, CLI examples and the current limits. Confirm **Rip** immediately or
 enter a zero offset to split without moving; the split survives coincident
 positions, other mesh/UV tools and source reopening. **Rip and Fill** requires
 movement to create gap faces. **Esc** restores the original connectivity.
@@ -1053,8 +1054,8 @@ for boundary behaviour and the `model curve-transfer` CLI.
   distance, position tools make the frames they edit independent of the
   skeleton, and an unskinned surface must be bound before it can join a skinned
   one. See [Skin weights through mesh edits](../MODEL_SKIN_PROVENANCE.md#limits).
-- Modifier stacks and branched rip
-  junctions remain planned. [Spin](../MODEL_SPIN.md) and [Rip](../MODEL_RIP.md)
+- Modifier stacks and capped rip junctions across several moved sectors
+  remain planned. [Spin](../MODEL_SPIN.md) and [Rip](../MODEL_RIP.md)
   provide bounded shared GUI/CLI workflows. [Knife](../MODEL_KNIFE.md)
   cuts projected paths; [Bevel Edges](../MODEL_EDGE_BEVEL.md) provides chamfers
   and rounded bands with joined corners. Both share GUI/CLI validation.

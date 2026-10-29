@@ -13,7 +13,8 @@ export unchanged. A tool's preview applies the same core edit to a copy of the
 mesh, so what you see before confirming is exactly what is committed. The CLI
 commands `model tool` and `model select` use the same services.
 
-**Vertex/Edge → Rip** opens vertices or connected edge chains;
+**Vertex/Edge → Rip** opens vertices or connected edge chains, branched ones
+(T, Y, a loop with a branch) included;
 **Rip and Fill** adds gap faces. Both support side selection, constrained
 movement, typed offsets, worker preview and F9 adjustment. See [Rip](MODEL_RIP.md)
 for the shared CLI, retained pose/rig rules and current topology limits.

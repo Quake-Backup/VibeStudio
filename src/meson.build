@@ -3965,6 +3965,12 @@ model_intersect_cut_smoke_test = executable(
 )
 test('model-intersect-cut-smoke', model_intersect_cut_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
 
+model_rip_branch_smoke_test = executable(
+  'model_rip_branch_smoke_test', ['tests/model_rip_branch_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-rip-branch-smoke', model_rip_branch_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+
 model_polygon_tools_ui_smoke_test = executable(
   'model_polygon_tools_ui_smoke_test', ['tests/model_polygon_tools_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
