@@ -6,15 +6,24 @@ editor works offline and needs no AI connector, game installation, or extra Qt
 module. **Open…** imports loose images through the existing idTech decoders.
 
 The editor authors layered `.vtexture` projects and exports their visible
-composite as PNG, TGA, PCX, Quake miptexture/WAD2, Quake II WAL, or Doom flat/patch.
+composite as PNG, TGA, DDS (with or without mipmaps), FTX, PCX, Quake
+miptexture/WAD2, Quake II WAL, Half-Life miptexture/WAD3, SiN SWL, or Doom
+flat/patch, and its visible layers as the frames of Quake, Half-Life and
+Quake II sprites.
 The working surface is 8-bit RGBA or indexed color; higher
 precision raster imports are converted to 8-bit RGBA when opened or imported
 as layers. Project saves preserve this working representation losslessly.
 Opening a loose native image retains supported names, WAL animation/surface
 metadata, and patch offsets as export settings. Its other mip levels are
-regenerated from the edited surface; sprite frame authoring is not implemented.
+regenerated from the edited surface. A sprite opens with every frame as a layer
+(see [Frames and sprites](#frames-and-sprites)).
 Browser **Edit Selected** retains this metadata and the source package path while
-importing the displayed mip or frame. Native package staging uses the selected
+importing the displayed mip, or a sprite's frames with the displayed one active.
+**Edit in Texture Editor** on the Textures and Levels texture-list menus, and
+**Edit Skin in Texture Editor** on model skin rows, decode the named package
+image and open it the same way. Other surfaces, such as the Materials page,
+reach the same entry point (`ApplicationShell::editPackageImageInTextureEditor`)
+with a package path or texture reference. Native package staging uses the selected
 export profile. Layered projects, level/model materials, native packages and
 external compilers share the verified handoffs described below. Release scope,
 evidence and remaining platform/manual limitations are recorded in
@@ -50,6 +59,32 @@ Texture Editor** brings a variant here to continue by hand. See
   always replaces RGBA; tolerance 0 retains exact matching.
 - **Eyedropper** reads a pixel into the color field. Colors accept a Qt color
   name, `#RRGGBB`, or `#AARRGGBB`; the alpha component comes first.
+- **Secondary color**: right-click painting, fill and shapes use it, as does
+  Shift+Space at the pixel cursor; a right-click with the Eyedropper picks it.
+  **Swap Colors** (X on the canvas) exchanges the two. **Recent colors** keeps
+  the last eight colors painted: click one for the paint color, Shift+click for
+  the secondary color.
+- **Gradient** drags from the paint color to the secondary color (a
+  right-button drag runs the other way), clipped to the selection. Shapes are
+  **Linear**, **Radial** (distance from the start) and **Reflected** (mirrored
+  about the start); positions use pixel centres. Paint mode Replace writes the
+  gradient, alpha included; Blend over composites it once per pixel. **Dither
+  gradient** adds a 4 × 4 ordered dither that hides banding after a palette
+  remap. Endpoints must lie on the canvas.
+- **Clone Stamp** copies pixels from a source point: Ctrl+click, Ctrl+Space or
+  **Set Clone Source at Cursor** chooses it. A stroke copies the texel at its
+  offset from the source, read from the layer as it was when the stroke began,
+  so a stroke never copies its own paint. **Aligned clone** keeps the first
+  stroke's offset for later strokes; off, each stroke starts at the source.
+  With **Wrap painting** the source wraps across the edges; otherwise texels
+  whose source falls outside the canvas are left alone.
+- **Mirror** repeats strokes and shapes across the canvas centre lines (left
+  and right, top and bottom, or both), shown as dashed guides. A pixel at x
+  mirrors to width − 1 − x. Mirrored copies blend once per pixel like one stroke.
+- **Pen pressure sets brush width**: with a graphics tablet, each stroke
+  segment uses the brush width scaled by pressure, at least one texel. The
+  mouse always paints at full width. The canvas shows the stamp footprint, and
+  its mirrors, under the pointer and keyboard cursor.
 - **Rectangle Selection** clips painting, fill, paste, clear, palette remap,
   and flips to the active layer's selected pixels. The Selection section offers
   select all, deselect, copy, cut, paste at the pixel cursor, and move by a
@@ -88,12 +123,24 @@ Texture Editor** brings a variant here to continue by hand. See
   indexed result is needed. Palette provenance identifies generated stand-ins.
   Quantization reduces alpha to the selected palette's transparency rules;
   palettes without a transparent entry produce opaque output.
+  **Load Palette File…** uses a raw 768-byte palette (`gfx/palette.lmp`, a
+  `.pal`, or the first palette of a `PLAYPAL`) or a PCX file's palette as the
+  document palette, recording the file as its provenance. **Save Palette As…**
+  writes the 256 colors as raw RGB. **Analyze Colors** counts the visible
+  composite's distinct colors (up to 65,536) and the pixels without an exact
+  entry in the selected palette, which a palette export would change.
 
 The inspector's section selector exposes Paint, Transform, Palette, Package,
-Layers, Selection, Recovery, and Export without horizontally clipped tabs at larger text sizes.
+Layers, Selection, Recovery, Export, Adjust, and Frames without horizontally clipped tabs at larger text sizes.
+The **Drawing tools** strip beside the canvas switches tools; while the canvas
+has focus, P Pencil, B Brush, E Eraser, G Fill, Shift+G Gradient, I Eyedropper,
+M Rectangle Selection, L Line, R Rectangle, O Ellipse and S Clone Stamp choose
+them, and X swaps the colors. The keys are scoped to the canvas so letters
+still type into fields and combo boxes keep their keyboard search.
 The Layers section lists layers top to bottom. Add a transparent layer, import an
 image matching the canvas dimensions, duplicate, rename, reorder, hide, lock,
-and change opacity or blending. Pixel edits affect the selected layer; hidden
+and change opacity or blending. Each row's checkbox shows or hides that layer,
+and dragging a row reorders the layers as one undo step. Pixel edits affect the selected layer; hidden
 or locked layers reject them. Normal, Multiply, Screen, and Add blend modes
 are available. Merge Down requires two visible unlocked Normal layers because
 other blend modes can depend on layers beneath them. Flatten preserves the
@@ -131,7 +178,7 @@ entry or append one if a palette slot is free. A full opaque palette or RGB32
 layer promotes to RGBA when necessary. Center anchoring rounds half-pixel offsets
 toward the top left, including when shrinking.
 
-Painting uses crisp pixel masks without antialiasing or pressure sensitivity.
+Painting uses crisp pixel masks without antialiasing.
 A stamp of width `w` begins at `cursor − floor((w−1)/2)` on each axis, so even
 widths extend one extra pixel to the right/bottom. A round stamp includes pixel
 centers within its diameter; ellipses use the same pixel-center convention.
@@ -193,6 +240,49 @@ the smaller authoring canvas limit. It does not change an open editor document.
 Existing projects use `QSaveFile` atomic replacement; new projects publish a
 same-directory temporary file without overwriting a concurrently created target.
 Save errors leave edits unsaved.
+
+## Adjust colors and filters
+
+The **Adjust** section edits the active layer within the selection, as one
+undo step each. Fully transparent texels keep their hidden color, and indexed
+layers become RGBA where they change; remap afterwards for indexed output.
+
+- **Apply Adjustment** runs, in order: **Invert colors**, **Brightness**
+  (−255 to 255, added to each channel), **Contrast** (−100% to 100% around
+  mid-grey), **Hue** (−180° to 180°), **Saturation** and **Lightness** (−100% to
+  100%, lightness moving towards black or white), **Grayscale** (Rec. 601
+  luma), **Posterize levels** (2–64 per channel, or Off) and **Gamma** (10% to
+  1000%; 100% is unchanged). **Reset Adjustment** restores the neutral values.
+- **Apply Filter**: **Blur** is a separable box blur of the chosen radius
+  (1–16) in premultiplied alpha; **Sharpen** is an unsharp mask of that radius
+  and amount (percent); **Add noise** adds a uniform ±amount, the same for
+  each channel with **Monochrome noise**, from a deterministic seed; **Emboss**
+  shades relief lit from the top left; **Find edges** draws the Sobel gradient
+  magnitude in grey. **Filter across edges** samples the opposite edge of the
+  selection or canvas, so filtering a tiling texture adds no seam.
+- **Make Seamless** cross-fades each edge band of the chosen width with its
+  mirror partner across the seam, columns then rows, so both sides meet at the
+  same average. The width is 1 to half the shorter side of the selection or
+  canvas. Check the result with **Tile Preview**.
+- **Replace with Paint Color** replaces every pixel within the tolerance of
+  **Color to replace** in each RGBA channel, connected or not. **Keep each
+  pixel's alpha** keeps the matched pixels' transparency.
+
+## Frames and sprites
+
+Sprite profiles export each visible layer, bottom to top, as one frame at its
+opacity and without its blend mode. The **Frames** section previews them:
+step with **Frame**, play them with **Play Frames** at **Frames per second**
+(preview only), and tick **Onion skin** to draw the nearest visible layer below
+the active one translucently over the canvas while lining up frames; it is
+never exported. **Import Frames…** adds each chosen image as a layer above the
+active one, in order; smaller images are centred and larger ones are refused.
+
+**Edit Selected** on a Quake or Half-Life `.spr`, or a Quake II `.sp2` whose
+frames were found, opens every frame as a layer (at most 32), placed so their
+origins line up, with the displayed frame active and the sprite profile and
+origin selected for export. Frame groups are opened as their individual
+frames; group intervals are not kept, and exported sprites store single frames.
 
 ## Project persistence
 
@@ -305,6 +395,13 @@ guarded publication step finishes atomically and reports its result.
 | `quake2-wal` | `.wal` | Four opaque indexed mips, dimensions divisible by 16, safe relative names up to 31 ASCII characters, next-animation name, unsigned 32-bit surface/content flags and signed surface value. Reserves index 255; classic output is limited to 131,072 pixels. |
 | `doom-flat` | `.lmp` | Exactly 64 × 64 opaque raw indices, including index 255. Requires a flat namespace when added to a Doom WAD. |
 | `doom-patch` | `.lmp` | Column posts with binary alpha and signed 16-bit left/top offsets. Classic height is at most 255; explicit source-port limits allow tall posts. Large column offsets and narrower port recognition limits produce warnings. |
+| `dds-mipmaps` | `.dds` | Uncompressed BGRA8 with an area-averaged (premultiplied) mip chain down to 1 × 1, `DDSD_MIPMAPCOUNT` and `DDSCAPS_MIPMAP`. |
+| `sin-swl` | `.swl` | Four indexed mips, a stored 256-color palette, a safe relative name and animation name of at most 63 characters, unsigned flags and contents, and a 16-bit surface value. Index 255 is transparent. The palette checksum and the lighting, animation and physics properties are written as zero. |
+| `halflife-miptex` | `.mip` | One WAD3 miptexture lump: four indexed mips, dimensions divisible by 16, 1–15-character name, then its 256-color palette. A name starting with `{` makes index 255 (stored as blue) transparent; other names are opaque. |
+| `halflife-wad3` | `.wad` | The same miptexture in a new WAD3, lump type `0x43`. Textures over 512 pixels per side produce a warning. |
+| `quake-spr` | `.spr` | IDSP version 1. Each visible layer is a frame indexed with the game palette; index 255 is transparent, other alpha must be binary. Orientation and random synchronisation are stored; frames are single, not grouped. |
+| `halflife-spr` | `.spr` | IDSP version 2 with one stored palette for all frames and a texture format: normal and additive are opaque, alpha test makes index 255 transparent, and index alpha stores each texel's alpha as its index, drawn in the last palette entry's color. |
+| `quake2-sp2` | `.sp2` | IDS2 naming one PCX per frame, `<name>_<n>.pcx` from the native name (a safe relative path of at most 55 characters, such as `sprites/flame`). The PCX frames use the game palette with index 255 transparent; file exports write them beside the SP2, first. The original game loads at most 32 frames. |
 
 Palette profiles require a resolved 256-color palette. Generated stand-ins require
 **Allow generated palette** and remain visibly labelled. Matching source indices
@@ -318,7 +415,19 @@ sets alpha below the chosen threshold to zero and the remainder to 255; opaque
 profiles refuse it. Doom patches do not reserve a transparent palette index:
 transparent pixels are absent posts. WAL does reserve index 255.
 
-Mips use 2 × 2 area averaging or nearest pixel-center sampling. Quake's 224–255
+**Stored palette** applies to WAD3, Half-Life sprites and SWL, which carry their
+own colors: **Built from the image** (the default) builds up to 256 colors by
+median cut over the visible texels (255 when index 255 is reserved), keeping
+images with fewer colors exact; **Selected game palette** stores the Palette
+section's palette instead. Sprite profiles centre the origin on each frame
+unless **Centre the origin** is off; then **Left offset** and **Top
+offset** give the origin from the frame's top-left corner. Quake sprites store
+it as the frame's left and top edges relative to the origin, Quake II as the
+distance from the left and bottom edges.
+
+Mips use 2 × 2 area averaging or nearest pixel-center sampling. Profiles with
+a transparent index make a mip texel transparent when at least two of its four
+samples are, and average only the opaque samples otherwise. Quake's 224–255
 fullbright band has three choices: preserve matching authored indices (new RGBA
 colors avoid the band), exclude it, or allow conversion into it. Area filtering
 keeps any authored fullbright coverage in the next mip by averaging only the
@@ -341,6 +450,8 @@ the pending handoff before it can change either document.
 
 For WAD2, choose **Quake miptexture** and use the same bare name in Export and
 Package. The directory records type `0x44`; unrelated lump types are preserved.
+For WAD3, choose **Half-Life miptexture** the same way; the lump records type
+`0x43` and carries its palette.
 For IWAD/PWAD, choose **Doom flat** or **Doom patch** and an eight-character lump
 name. New lumps enter a matching flat/patch namespace, creating `F_START/F_END`
 or `P_START/P_END` if absent. The texture and generated markers form one package
@@ -348,10 +459,26 @@ undo step. Replacements retain their existing namespace and directory position;
 repeated names, unbalanced markers, and names in another namespace are refused.
 Existing global Doom pictures such as `TITLEPIC` can be replaced in place after
 validating that their current bytes are a patch; they are not moved into `P_`.
-Later marker edits that strand an authored texture block publication. WAD3
-encoding, sprite namespace authoring, and automatic `PNAMES/TEXTURE1` wall
-composition are unavailable; a staged Doom patch still needs the target game's
-wall-texture definitions before level use.
+Later marker edits that strand an authored texture block publication.
+**Stage as a sprite frame** puts a Doom patch between `S_START` and
+`S_END` instead, for sprite frames such as `TROOA1`; name each frame lump as the
+game expects. **Define wall texture** stages a `TEXTURE1` definition with the
+patch at 0, 0 and the patch's size in the same package undo step, adding the
+patch to `PNAMES` when missing. Existing definitions and patch order are kept;
+redefining an existing name needs **Replace existing entry**. Strife's shorter
+records are detected and kept. When the WAD has no `TEXTURE1`, a new one holds
+only the new texture: source ports such as ZDoom merge it with the game's, but
+the original Doom replaces the whole list, so copy the game's definitions in
+for vanilla play. Multi-patch compositions remain an editing job for
+`TEXTURE1` itself.
+
+A Quake II sprite stages its PCX frames beside the SP2, all in one package undo
+step. **Stage Companion Maps** in the Package section derives normal, gloss and
+(when something glows) glow maps from the visible composite and stages them as
+PNGs beside the package path, named for DarkPlaces, FTE and QuakeSpasm ports
+(`_norm`, `_gloss`, `_glow`) or ioquake3's OpenGL2 renderer (`_n`, `_s`,
+`_glow`); **Export Companion Maps…** writes them as files instead. They use the
+Texture Generator's derivations (see `docs/AI_AUTOMATION.md`).
 
 The Textures browser and thumbnails read the staged plan, so a new or replaced
 texture can be inspected and reopened before saving the package. Package
@@ -384,9 +511,10 @@ path to the saved WAD2. Quake II/III package contents must be mounted under the
 target game's asset root. PNG support depends on the target engine/source port.
 
 Model materials and shader image references can point at the same package
-texture path. This editor does not rewrite shader definitions, rename existing
-material references, or create Doom wall-texture definitions. Package refreshes
-notify level and model material views. Dependency review remains the place to inspect
+texture path. This editor does not rewrite shader definitions or rename
+existing material references; edit shaders on the Materials page. Package
+refreshes notify level and model material views. Project saves, file exports
+and companion maps are recorded in the studio's activity history. Dependency review remains the place to inspect
 these references before compiling and packaging.
 
 `texture stage` uses the same encoders and native staging service, saving an
@@ -410,8 +538,11 @@ vibestudio --cli texture stage flat.vtexture --profile doom-flat --target-packag
 ## Keyboard and accessibility
 
 The canvas is focusable: arrow keys move the pixel cursor, Space applies the
-current tool or sets shape endpoints, and Shift plus arrows grows a clipping selection. Plus/minus zoom,
+current tool or sets shape endpoints, Shift+Space does so with the secondary
+color, Ctrl+Space sets the clone source, and Shift plus arrows grows a clipping selection. Plus/minus zoom,
 F fits, 0 shows actual size, and Escape cancels the current stroke/selection.
+The tool keys above work while the canvas has focus; the view toolbar shows
+the zoom level.
 Middle-drag pans. Mouse-wheel zoom retains the fractional pixel under the pointer;
 toolbar and keyboard zoom retain the view center. The pixel readout includes
 coordinates and RGBA color, or pending shape endpoints. Eyedropper, Eraser, and
@@ -442,6 +573,14 @@ vibestudio --cli texture edit --package assets.pk3 --entry textures/wall.png --o
 ```
 
 `texture profiles` lists profile requirements and complete version-1 defaults.
+Sprite profiles export a project's visible layers as frames. A Quake II SP2
+export writes its PCX frames beside the output first, and the report lists them
+under `companions` with their sizes and SHA-256; `texture stage` stages them
+with the SP2. `--wall-texture NAME` makes `texture stage` define a Doom wall
+texture for the staged patch, and `--doom-sprite` stages it in the sprite
+namespace. `texture inspect` also reports `frames`, `distinctColors` and, with a
+saved palette, `offPalettePixels`. `texture palette --output <file.lmp>` writes
+a resolved palette as raw RGB, the format **Save Palette As…** writes.
 `texture validate` performs encoding without an output path or writes.
 `texture export` accepts a loose image, `.vtexture`, or `--package` with `--entry`;
 the output extension must match the profile. Options begin with saved project
@@ -466,8 +605,13 @@ For example, `wal.json` can contain:
 ```
 
 Other fields are `dither`, `allowGeneratedPalette`, `extendedLimits`, `fullbright`
-(`preserve`, `exclude`, `allow`), `alphaThreshold` (1–255), `leftOffset`, and
-`topOffset`. JSON flags use decimal integers; GUI WAL flags also accept `0x` hex.
+(`preserve`, `exclude`, `allow`), `alphaThreshold` (1–255), `leftOffset`,
+`topOffset`, `spriteType` (`parallel-upright`, `facing-upright`, `parallel`,
+`oriented`, `parallel-oriented`), `spriteTexture` (`normal`, `additive`,
+`index-alpha`, `alpha-test`), `spriteRandomSync`, `centeredOrigin`,
+`embeddedPalette` (`image`, `selected`), `doomSprite` and `wallTexture` (empty,
+or a lump name of up to 8 characters). Settings saved before these fields
+existed take their defaults. JSON flags use decimal integers; GUI WAL flags also accept `0x` hex.
 JSON export reports include options, dimensions, bytes, mip dimensions, changed
 pixel counts, warnings, output SHA-256, palette source and RGB SHA-256, and a
 separate `written` flag. A valid encoding does not imply successful publication.
@@ -541,6 +685,32 @@ Layer and selection operations use the same ordered recipe:
 ]
 ```
 
+Strokes may give each point a width, `[x, y, width]`, as pressure-sensitive
+input does; every point then needs one (1–128). `mirror` (`none`, `horizontal`,
+`vertical`, `both`) repeats a stroke or shape across the canvas centre lines.
+The adjustment, filter, gradient and clone operations use the same names and
+ranges as the Adjust and Paint sections:
+
+```json
+[
+  {"op": "adjust", "brightness": 10, "contrast": 5, "hue": 20, "saturation": -10,
+   "lightness": 5, "gamma": 110, "posterize": 0, "invert": false, "grayscale": false},
+  {"op": "filter", "kind": "blur", "radius": 2, "wrap": true},
+  {"op": "filter", "kind": "noise", "amount": 12, "seed": 3, "monochrome": true},
+  {"op": "gradient", "x": 0, "y": 0, "x2": 63, "y2": 0, "color": "#ff202020",
+   "color2": "#ffa0a0a0", "shape": "linear", "mode": "replace", "dither": true},
+  {"op": "replace-color", "from": "#ff000000", "to": "#ff102030", "tolerance": 4, "keepAlpha": true},
+  {"op": "seamless", "width": 8},
+  {"op": "stroke", "points": [[4, 4, 1], [20, 20, 6]], "color": "white", "width": 6, "mirror": "horizontal"},
+  {"op": "clone", "points": [[40, 40], [48, 40]], "x": -16, "y": 0, "width": 5, "brush": "round"}
+]
+```
+
+`filter` kinds are `blur`, `sharpen`, `noise`, `emboss` and `edges`; `radius`
+is 1–16 and `amount` 1–255 (default 50). Gradient shapes are `linear`,
+`radial` and `reflected`. `clone` takes the source as a relative offset `x`, `y`
+(not both zero) and refuses `mode` and `color`.
+
 `layer-select` and `layer-move` take a zero-based `index`, ordered bottom to
 top. `layer-properties` accepts optional `name`, `visible`, `locked`, `opacity`
 (0–100), and `blend` (`normal`, `multiply`, `screen`, `add`). Structural commands
@@ -572,6 +742,19 @@ and `rotate`.
 
 ## Verification
 
+`texture-adjust-smoke` checks each color adjustment step on known pixels,
+hidden-color and selection clipping, box blur weights, wrapped versus clamped
+filtering, deterministic noise, sharpen, emboss and edges, linear, radial,
+reflected, dithered and blended gradients, color replacement, seamless edge
+convergence, clone offsets and wrapping, mirrored strokes and shapes,
+per-point stroke widths, recipe rollback for every new operation, layer frames,
+median-cut palettes and color statistics.
+`texture-formats-smoke` round-trips Quake, Half-Life (alpha-test and
+index-alpha) and Quake II sprites, WAD3, SWL and mipmapped DDS through the
+existing decoders, checks origins, names, palettes and limits, stages SP2 frames,
+WAD3 lumps, Doom sprite patches and wall definitions (Doom and Strife layouts,
+grouped undo, replacement, missing lumps), and runs the CLI's sprite export,
+new recipe operations, inspection and `--wall-texture` staging.
 `texture-export-smoke` covers fixed native headers and a complete Doom patch
 fixture, all mip offsets, tall posts, alpha/matte behavior, reserved/fullbright
 indices, exact duplicate-color indices, engine limits, cancellation, conflicts,
@@ -708,9 +891,10 @@ gate decisions are in the [release audit](plans/texture-editor-release-candidate
 ## Additional exchange formats
 
 DDS and FTX are native import/export profiles in the same preview, validation,
-staging and CLI workflow. DDS writes uncompressed BGRA8 and FTX writes RGBA8;
-SWL imports its embedded palette and four mips and can export through other
-profiles. Import filters and `asset formats` share the runtime capability catalog,
+staging and CLI workflow. DDS writes uncompressed BGRA8, with or without a mip
+chain, and FTX writes RGBA8; SWL imports and exports its embedded palette and
+four mips. DDS imports keep their stored mip levels for the browser's **Mip**
+selector; the editor edits the displayed level and regenerates mips on export. Import filters and `asset formats` share the runtime capability catalog,
 including TIFF where Qt provides it. See [Asset Formats](ASSET_FORMATS.md) for
 variants and target-engine limits. `.vtexture` remains the editable source;
 [workspaces](WORKSPACES.md) restore surrounding project/package context.

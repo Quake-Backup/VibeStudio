@@ -48,9 +48,43 @@ bool brushFields(const QJsonObject& object, TextureBrush* brush)
 	const bool valid = (!object.contains(QStringLiteral("width")) || integer(object, "width", &brush->width)) &&
 		(!object.contains(QStringLiteral("brush")) || textureBrushShapeFromId(object.value(QStringLiteral("brush")).toString(), &brush->shape)) &&
 		(!object.contains(QStringLiteral("mode")) || texturePaintModeFromId(object.value(QStringLiteral("mode")).toString(), &brush->mode)) &&
-		(!object.contains(QStringLiteral("wrap")) || object.value(QStringLiteral("wrap")).isBool());
+		(!object.contains(QStringLiteral("wrap")) || object.value(QStringLiteral("wrap")).isBool()) &&
+		(!object.contains(QStringLiteral("mirror")) || textureMirrorFromId(object.value(QStringLiteral("mirror")).toString(), brush));
 	brush->wrap = object.value(QStringLiteral("wrap")).toBool();
 	return valid && validTextureBrush(*brush);
+}
+
+bool boolean(const QJsonObject& object, const char* key, bool* result)
+{
+	const auto value = object.value(QLatin1String(key));
+	if (value.isUndefined()) { return true; }
+	if (!value.isBool()) { return false; }
+	*result = value.toBool();
+	return true;
+}
+
+bool optionalInteger(const QJsonObject& object, const char* key, int* result)
+{
+	return !object.contains(QLatin1String(key)) || integer(object, key, result);
+}
+
+// Points are [x, y] or, with a per-point brush width, [x, y, width].
+bool strokePoints(const QJsonObject& object, QVector<QPoint>* points, QVector<int>* widths)
+{
+	const auto values = object.value(QStringLiteral("points"));
+	if (!values.isArray() || values.toArray().size() > 65536) { return false; }
+	bool withWidth = false;
+	for (const auto& value : values.toArray()) {
+		const auto pair = value.toArray();
+		if (pair.size() != 2 && pair.size() != 3) { return false; }
+		if (points->isEmpty()) { withWidth = pair.size() == 3; } else if (withWidth != (pair.size() == 3)) { return false; }
+		int x = 0, y = 0, width = 0;
+		QJsonObject coordinates{{QStringLiteral("x"), pair.at(0)}, {QStringLiteral("y"), pair.at(1)}, {QStringLiteral("w"), pair.size() == 3 ? pair.at(2) : QJsonValue(1)}};
+		if (!integer(coordinates, "x", &x) || !integer(coordinates, "y", &y) || !integer(coordinates, "w", &width)) { return false; }
+		*points << QPoint(x, y);
+		if (withWidth) { *widths << width; }
+	}
+	return true;
 }
 
 QPainter::CompositionMode compositionMode(TextureBlendMode mode)
@@ -531,14 +565,39 @@ bool TextureDocument::beginStroke(QPoint point, QColor color, const TextureBrush
 	return continueStroke(point);
 }
 
+bool TextureDocument::paintSegment(QPoint from, QPoint to, const TextureProgress& progress)
+{
+	QImage& pixels = m_state.layers[m_state.active].pixels;
+	const QImage& source = m_strokeBefore.layers[m_state.active].pixels;
+	const int right = m_state.size.width() - 1, bottom = m_state.size.height() - 1;
+	// Mirrored copies reflect about the canvas centre lines; a clone source
+	// offset reflects with them. Every copy reads the gesture-start layer, so
+	// overlapping copies still blend once per pixel.
+	for (int copy = 0; copy < 4; ++copy) {
+		const bool flipX = copy & 1, flipY = copy & 2;
+		if ((flipX && !m_brush.mirrorX) || (flipY && !m_brush.mirrorY)) { continue; }
+		const auto reflect = [&](QPoint point) { return QPoint(flipX ? right - point.x() : point.x(), flipY ? bottom - point.y() : point.y()); };
+		TextureBrush brush = m_brush;
+		brush.cloneOffset = {flipX ? -m_brush.cloneOffset.x() : m_brush.cloneOffset.x(), flipY ? -m_brush.cloneOffset.y() : m_brush.cloneOffset.y()};
+		const QPoint a = reflect(from), b = reflect(to);
+		if (!validTexturePaintPoint(a, m_state.size, brush.wrap) || !validTexturePaintPoint(b, m_state.size, brush.wrap)) { continue; }
+		if (!paintTextureSegment(&pixels, source, a, b, m_color, brush, editBounds(), progress)) { return false; }
+		invalidateStrokeComposite(a, b);
+	}
+	return true;
+}
+
+bool TextureDocument::setStrokeWidth(int width)
+{
+	if (!m_stroking || width < 1 || width > 128) { return false; }
+	m_brush.width = width;
+	return true;
+}
+
 bool TextureDocument::continueStroke(QPoint point, const TextureProgress& progress)
 {
 	if (!m_stroking || !validTexturePaintPoint(point, m_state.size, m_brush.wrap)) { return false; }
-	QImage& pixels = m_state.layers[m_state.active].pixels;
-	if (!paintTextureSegment(&pixels, m_strokeBefore.layers[m_state.active].pixels, m_lastPoint, point, m_color, m_brush, editBounds(), progress)) {
-		cancelStroke(); return false;
-	}
-	invalidateStrokeComposite(m_lastPoint, point);
+	if (!paintSegment(m_lastPoint, point, progress)) { cancelStroke(); return false; }
 	m_lastPoint = point;
 	return true;
 }
@@ -548,7 +607,9 @@ bool TextureDocument::endStroke()
 	if (!m_stroking) { return false; }
 	State next = m_state; m_state = m_strokeBefore; m_strokeBefore = {}; m_stroking = false;
 	const QImage composite = m_composite; const QRegion dirty = m_compositeDirty;
-	if (!commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Paint stroke"))) { return false; }
+	const QString label = m_brush.mode == TexturePaintMode::Clone ? QCoreApplication::translate("VibeStudioTexture", "Clone pixels") :
+		QCoreApplication::translate("VibeStudioTexture", "Paint stroke");
+	if (!commit(std::move(next), label)) { return false; }
 	// The stroke preview already describes the committed pixels. Retain it
 	// across release so finishing a gesture does not render the whole canvas.
 	m_composite = composite; m_compositeDirty = dirty;
@@ -567,18 +628,31 @@ bool TextureDocument::paintStroke(const QVector<QPoint>& points, QColor color, i
 
 bool TextureDocument::paintStroke(const QVector<QPoint>& points, QColor color, const TextureBrush& brush, QString* error, const TextureProgress& progress)
 {
+	return paintStroke(points, color, brush, {}, error, progress);
+}
+
+bool TextureDocument::paintStroke(const QVector<QPoint>& points, QColor color, const TextureBrush& brush, const QVector<int>& widths, QString* error, const TextureProgress& progress)
+{
 	if (points.isEmpty() || points.size() > 65536) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "A stroke needs 1–65,536 points.")); }
+	if (!widths.isEmpty() && (widths.size() != points.size() || std::any_of(widths.cbegin(), widths.cend(), [](int width) { return width < 1 || width > 128; }))) {
+		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Give every stroke point a brush width of 1–128, or none."));
+	}
+	const int widest = widths.isEmpty() ? brush.width : *std::max_element(widths.cbegin(), widths.cend());
+	const int copies = (brush.mirrorX ? 2 : 1) * (brush.mirrorY ? 2 : 1);
 	for (const auto& point : points) {
 		if (!validTexturePaintPoint(point, m_state.size, brush.wrap)) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Stroke points must lie inside the texture, or its 3 × 3 repeat when wrapping.")); }
 	}
 	if (!validTextureBrush(brush)) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose a valid brush shape, paint mode, and width of 1–128.")); }
 	qint64 stamps = 1; QPoint previous = points.first();
 	for (const auto& point : points) { stamps += std::max(std::abs(point.x() - previous.x()), std::abs(point.y() - previous.y())) + 1; previous = point; }
-	if (stamps * brush.width * brush.width > 256ll * 1024 * 1024) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "The stroke exceeds the 268,435,456 pixel-write work limit. Split it into shorter strokes.")); }
+	if (stamps * widest * widest * copies > 256ll * 1024 * 1024) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "The stroke exceeds the 268,435,456 pixel-write work limit. Split it into shorter strokes.")); }
 	if (!checkpoint(progress, 0, stamps, error)) { return false; }
-	if (!beginStroke(points.first(), color, brush, error)) { return false; }
+	TextureBrush first = brush; if (!widths.isEmpty()) { first.width = widths.first(); }
+	if (!beginStroke(points.first(), color, first, error)) { return false; }
 	qint64 completed = 1;
-	for (const auto& point : points) {
+	for (qsizetype index = 0; index < points.size(); ++index) {
+		const QPoint point = points[index];
+		if (!widths.isEmpty()) { setStrokeWidth(widths[index]); }
 		const int steps = std::max(std::abs(point.x() - m_lastPoint.x()), std::abs(point.y() - m_lastPoint.y())) + 1;
 		if (!continueStroke(point, [&](qint64 done, qint64 total) { return checkpoint(progress, completed + done * steps / total, stamps, error); })) { cancelStroke(); return false; }
 		completed += steps;
@@ -590,13 +664,21 @@ bool TextureDocument::paintStroke(const QVector<QPoint>& points, QColor color, c
 bool TextureDocument::drawShape(TextureShape shape, QPoint from, QPoint to, QColor color, const TextureBrush& brush, bool filled, QString* error, const TextureProgress& progress)
 {
 	if (!editable(error)) { return false; }
-	if (!color.isValid() || !validTextureBrush(brush) || !validTexturePaintPoint(from, m_state.size, brush.wrap) ||
+	if (!color.isValid() || !validTextureBrush(brush) || brush.mode == TexturePaintMode::Clone || !validTexturePaintPoint(from, m_state.size, brush.wrap) ||
 		!validTexturePaintPoint(to, m_state.size, brush.wrap) || (shape != TextureShape::Line && shape != TextureShape::Rectangle && shape != TextureShape::Ellipse)) {
 		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose a valid shape, brush, color, and endpoints inside the canvas or wrapped repeat."));
 	}
 	QImage next = activeLayer()->pixels.convertToFormat(QImage::Format_ARGB32);
 	const auto report = [&](qint64 done, qint64 total) { return checkpoint(progress, done, total, error); };
-	if (!paintTextureShape(&next, activeLayer()->pixels, shape, from, to, color.rgba(), brush, filled, editBounds(), report)) { return false; }
+	const int right = m_state.size.width() - 1, bottom = m_state.size.height() - 1;
+	for (int copy = 0; copy < 4; ++copy) {
+		const bool flipX = copy & 1, flipY = copy & 2;
+		if ((flipX && !brush.mirrorX) || (flipY && !brush.mirrorY)) { continue; }
+		const auto reflect = [&](QPoint point) { return QPoint(flipX ? right - point.x() : point.x(), flipY ? bottom - point.y() : point.y()); };
+		const QPoint a = reflect(from), b = reflect(to);
+		if (!validTexturePaintPoint(a, m_state.size, brush.wrap) || !validTexturePaintPoint(b, m_state.size, brush.wrap)) { continue; }
+		if (!paintTextureShape(&next, activeLayer()->pixels, shape, a, b, color.rgba(), brush, filled, editBounds(), report)) { return false; }
+	}
 	const QString label = shape == TextureShape::Line ? QCoreApplication::translate("VibeStudioTexture", "Draw line") :
 		(shape == TextureShape::Rectangle ? QCoreApplication::translate("VibeStudioTexture", "Draw rectangle") : QCoreApplication::translate("VibeStudioTexture", "Draw ellipse"));
 	return commitPixels(std::move(next), label, error);
@@ -776,6 +858,69 @@ bool TextureDocument::remapPalette(const IdTechPalette& palette, bool dither, QS
 	return commitPixels(next, QCoreApplication::translate("VibeStudioTexture", "Remap palette"), error);
 }
 
+bool TextureDocument::adjustColors(const TextureColorAdjustment& adjustment, QString* error, const TextureProgress& progress)
+{
+	if (!editable(error)) { return false; }
+	if (textureColorAdjustmentIsIdentity(adjustment) && validTextureColorAdjustment(adjustment)) { return checkpoint(progress, 1, 1, error); }
+	QImage next = adjustTextureColors(activeLayer()->pixels, editBounds(), adjustment, error, progress);
+	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Adjust colors"), error);
+}
+
+bool TextureDocument::applyFilter(const TextureFilterSettings& settings, QString* error, const TextureProgress& progress)
+{
+	if (!editable(error)) { return false; }
+	QImage next = filterTexturePixels(activeLayer()->pixels, editBounds(), settings, error, progress);
+	if (next.isNull()) { return false; }
+	QString label;
+	switch (settings.kind) {
+	case TextureFilterKind::Blur: label = QCoreApplication::translate("VibeStudioTexture", "Blur"); break;
+	case TextureFilterKind::Sharpen: label = QCoreApplication::translate("VibeStudioTexture", "Sharpen"); break;
+	case TextureFilterKind::Noise: label = QCoreApplication::translate("VibeStudioTexture", "Add noise"); break;
+	case TextureFilterKind::Emboss: label = QCoreApplication::translate("VibeStudioTexture", "Emboss"); break;
+	case TextureFilterKind::Edges: label = QCoreApplication::translate("VibeStudioTexture", "Find edges"); break;
+	}
+	return commitPixels(std::move(next), label, error);
+}
+
+bool TextureDocument::drawGradient(const TextureGradient& gradient, QString* error, const TextureProgress& progress)
+{
+	if (!editable(error)) { return false; }
+	if (!QRect(QPoint(), m_state.size).contains(gradient.from) || !QRect(QPoint(), m_state.size).contains(gradient.to)) {
+		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Gradient endpoints must lie inside the canvas."));
+	}
+	QImage next = gradientTexturePixels(activeLayer()->pixels, editBounds(), gradient, error, progress);
+	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Gradient"), error);
+}
+
+bool TextureDocument::replaceColor(QColor from, QColor to, int tolerance, bool keepAlpha, QString* error, const TextureProgress& progress)
+{
+	if (!editable(error)) { return false; }
+	if (!from.isValid() || !to.isValid()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose valid colors to find and replace.")); }
+	QImage next = replaceTextureColor(activeLayer()->pixels, editBounds(), from.rgba(), to.rgba(), tolerance, keepAlpha, error, progress);
+	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Replace color"), error);
+}
+
+bool TextureDocument::makeSeamless(int blend, QString* error, const TextureProgress& progress)
+{
+	if (!editable(error)) { return false; }
+	QImage next = seamlessTexturePixels(activeLayer()->pixels, editBounds(), blend, error, progress);
+	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Make seamless"), error);
+}
+
+QVector<QImage> TextureDocument::layerFrames() const
+{
+	QVector<QImage> frames;
+	for (const auto& layer : m_state.layers) {
+		if (!layer.visible) { continue; }
+		TextureLayer frame = layer; frame.blend = TextureBlendMode::Normal;
+		QImage pixels = compositeLayers(m_state.size, {frame});
+		// A one-layer composite returns the stored pixels, which may be indexed.
+		if (pixels.format() != QImage::Format_Indexed8 || frame.opacity != 100) { pixels = pixels.convertToFormat(QImage::Format_ARGB32); }
+		frames << pixels;
+	}
+	return frames;
+}
+
 QByteArray TextureDocument::pngBytes(QString* error) const
 {
 	if (image().isNull()) { fail(error, QCoreApplication::translate("VibeStudioTexture", "There is no texture to save.")); return {}; }
@@ -831,18 +976,48 @@ bool applyTextureOperations(TextureDocument* document, const QJsonArray& operati
 		const QString type = op.value(QStringLiteral("op")).toString();
 		QString problem; bool applied = false;
 		int x = 0, y = 0, w = 0, h = 0;
-		if (type == QStringLiteral("stroke")) {
-			QVector<QPoint> points;
+		if (type == QStringLiteral("stroke") || type == QStringLiteral("clone")) {
+			QVector<QPoint> points; QVector<int> widths;
 			TextureBrush brush;
-			bool valid = brushFields(op, &brush) && op.value(QStringLiteral("points")).isArray() && op.value(QStringLiteral("points")).toArray().size() <= 65536;
-			for (const auto& value : op.value(QStringLiteral("points")).toArray()) {
-				if (!valid) { break; }
-				const auto pair = value.toArray();
-				QJsonObject coordinates{{QStringLiteral("x"), pair.size() > 0 ? pair.at(0) : QJsonValue{}}, {QStringLiteral("y"), pair.size() > 1 ? pair.at(1) : QJsonValue{}}};
-				if (pair.size() != 2 || !integer(coordinates, "x", &x) || !integer(coordinates, "y", &y)) { valid = false; break; }
-				points << QPoint(x, y);
+			bool valid = brushFields(op, &brush) && strokePoints(op, &points, &widths);
+			QColor color(op.value(QStringLiteral("color")).toString());
+			if (type == QStringLiteral("clone")) {
+				// The source offset is relative: each painted texel copies the
+				// gesture-start texel at (x + dx, y + dy).
+				valid = valid && !op.contains(QStringLiteral("mode")) && !op.contains(QStringLiteral("color")) && integer(op, "x", &x) && integer(op, "y", &y);
+				brush.mode = TexturePaintMode::Clone; brush.cloneOffset = {x, y}; color = Qt::transparent;
+				valid = valid && validTextureBrush(brush) && (x != 0 || y != 0);
 			}
-			applied = valid && next.paintStroke(points, QColor(op.value(QStringLiteral("color")).toString()), brush, &problem, report);
+			applied = valid && next.paintStroke(points, color, brush, widths, &problem, report);
+		} else if (type == QStringLiteral("adjust")) {
+			TextureColorAdjustment adjustment;
+			applied = optionalInteger(op, "brightness", &adjustment.brightness) && optionalInteger(op, "contrast", &adjustment.contrast) &&
+				optionalInteger(op, "hue", &adjustment.hue) && optionalInteger(op, "saturation", &adjustment.saturation) &&
+				optionalInteger(op, "lightness", &adjustment.lightness) && optionalInteger(op, "gamma", &adjustment.gamma) &&
+				optionalInteger(op, "posterize", &adjustment.posterize) && boolean(op, "invert", &adjustment.invert) &&
+				boolean(op, "grayscale", &adjustment.grayscale) && validTextureColorAdjustment(adjustment) && next.adjustColors(adjustment, &problem, report);
+		} else if (type == QStringLiteral("filter")) {
+			TextureFilterSettings settings; int seed = 1;
+			applied = textureFilterKindFromId(op.value(QStringLiteral("kind")).toString(), &settings.kind) && optionalInteger(op, "radius", &settings.radius) &&
+				optionalInteger(op, "amount", &settings.amount) && optionalInteger(op, "seed", &seed) && seed >= 0 &&
+				boolean(op, "monochrome", &settings.monochrome) && boolean(op, "wrap", &settings.wrap);
+			settings.seed = quint32(seed);
+			applied = applied && next.applyFilter(settings, &problem, report);
+		} else if (type == QStringLiteral("gradient")) {
+			TextureGradient gradient;
+			const QColor first(op.value(QStringLiteral("color")).toString()), second(op.value(QStringLiteral("color2")).toString());
+			applied = integer(op, "x", &x) && integer(op, "y", &y) && integer(op, "x2", &w) && integer(op, "y2", &h) && first.isValid() && second.isValid() &&
+				(!op.contains(QStringLiteral("shape")) || textureGradientShapeFromId(op.value(QStringLiteral("shape")).toString(), &gradient.shape)) &&
+				(!op.contains(QStringLiteral("mode")) || texturePaintModeFromId(op.value(QStringLiteral("mode")).toString(), &gradient.mode)) &&
+				boolean(op, "dither", &gradient.dither);
+			gradient.from = {x, y}; gradient.to = {w, h}; gradient.first = first.rgba(); gradient.second = second.rgba();
+			applied = applied && next.drawGradient(gradient, &problem, report);
+		} else if (type == QStringLiteral("replace-color")) {
+			bool keepAlpha = false;
+			applied = optionalInteger(op, "tolerance", &w) && boolean(op, "keepAlpha", &keepAlpha) &&
+				next.replaceColor(QColor(op.value(QStringLiteral("from")).toString()), QColor(op.value(QStringLiteral("to")).toString()), w, keepAlpha, &problem, report);
+		} else if (type == QStringLiteral("seamless")) {
+			applied = integer(op, "width", &w) && next.makeSeamless(w, &problem, report);
 		} else if (type == QStringLiteral("line") || type == QStringLiteral("rectangle") || type == QStringLiteral("ellipse")) {
 			TextureBrush brush;
 			const auto shape = type == QStringLiteral("line") ? TextureShape::Line : (type == QStringLiteral("rectangle") ? TextureShape::Rectangle : TextureShape::Ellipse);

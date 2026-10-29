@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/idtech_image.h"
+#include "core/texture_adjust.h"
 #include "core/texture_paint.h"
 #include "core/texture_transform.h"
 
@@ -84,6 +85,11 @@ public:
 	void cancelStroke();
 	bool paintStroke(const QVector<QPoint>& points, QColor color, int width, QString* error = nullptr, const TextureProgress& progress = {});
 	bool paintStroke(const QVector<QPoint>& points, QColor color, const TextureBrush& brush, QString* error = nullptr, const TextureProgress& progress = {});
+	// `widths` (empty, or one per point) varies the brush width along the
+	// stroke, as pressure-sensitive input does. Each stays within 1–128.
+	bool paintStroke(const QVector<QPoint>& points, QColor color, const TextureBrush& brush, const QVector<int>& widths, QString* error = nullptr, const TextureProgress& progress = {});
+	// Later segments of the current interactive stroke use this width.
+	bool setStrokeWidth(int width);
 	bool drawShape(TextureShape shape, QPoint from, QPoint to, QColor color, const TextureBrush& brush, bool filled, QString* error = nullptr, const TextureProgress& progress = {});
 	bool floodFill(QPoint point, QColor color, QString* error = nullptr, const TextureProgress& progress = {});
 	bool floodFill(QPoint point, QColor color, int tolerance, bool wrap, QString* error = nullptr, const TextureProgress& progress = {});
@@ -95,6 +101,15 @@ public:
 	bool flip(bool horizontal, QString* error = nullptr);
 	bool rotateClockwise(QString* error = nullptr, const TextureProgress& progress = {});
 	bool remapPalette(const IdTechPalette& palette, bool dither, QString* error = nullptr, const TextureProgress& progress = {});
+	// Active-layer operations clipped to the selection; see core/texture_adjust.h.
+	bool adjustColors(const TextureColorAdjustment& adjustment, QString* error = nullptr, const TextureProgress& progress = {});
+	bool applyFilter(const TextureFilterSettings& settings, QString* error = nullptr, const TextureProgress& progress = {});
+	bool drawGradient(const TextureGradient& gradient, QString* error = nullptr, const TextureProgress& progress = {});
+	bool replaceColor(QColor from, QColor to, int tolerance, bool keepAlpha, QString* error = nullptr, const TextureProgress& progress = {});
+	bool makeSeamless(int blend, QString* error = nullptr, const TextureProgress& progress = {});
+	// Each visible layer, bottom to top, at its opacity over transparency: the
+	// frames of a sprite export and of the editor's frame preview.
+	[[nodiscard]] QVector<QImage> layerFrames() const;
 	[[nodiscard]] QByteArray pngBytes(QString* error = nullptr) const;
 	bool savePng(const QString& path, bool overwrite, bool dryRun, QString* error = nullptr) const;
 
@@ -108,6 +123,7 @@ private:
 	struct History { State state; quint64 revision = 0; QString label; };
 	bool commit(State next, const QString& label, QString* error = nullptr);
 	bool commitPixels(QImage next, const QString& label, QString* error);
+	bool paintSegment(QPoint from, QPoint to, const TextureProgress& progress);
 	bool editable(QString* error) const;
 	void remember(History state);
 	void trimHistory(bool preferRedo);

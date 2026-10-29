@@ -1275,6 +1275,41 @@ compatible with VibeStudio's GPL-3.0 license.
   master reviewed on the date above. VibeStudio's encoder and bounded decoder
   apply these format rules with independent implementations.
 
+The sprite, WAD3, SWL and mipmapped DDS writers in `src/core/texture_formats.*`
+and the Doom wall-texture definitions in `src/core/texture_doom_walls.*` were
+added on 2026-10-28, independently implemented from these references. No
+engine or tool source code and no game content was copied:
+
+- [Quake `WinQuake/spritegn.h`](https://github.com/id-Software/Quake/blob/master/WinQuake/spritegn.h)
+  and the Quake Specifications sprite chapter: IDSP version 1 header, frame
+  records, origins and bounding radius; GPL-2.0-or-later, master reviewed
+  2026-10-28.
+- [Valve `halflife` `utils/sprgen/sprgen.c`](https://github.com/ValveSoftware/halflife/blob/master/utils/sprgen/sprgen.c):
+  IDSP version 2's texture formats, palette count and grey index-alpha ramp;
+  Half-Life SDK licence, layout only, master reviewed 2026-10-28.
+- [Quake II `qcommon/qfiles.h`](https://github.com/id-Software/Quake-2/blob/master/qcommon/qfiles.h)
+  `dsprite_t`/`dsprframe_t`, [`ref_gl/gl_rmain.c`](https://github.com/id-Software/Quake-2/blob/master/ref_gl/gl_rmain.c)
+  `R_DrawSpriteModel` (origins from the left and bottom edges) and
+  [`gl_model.c`](https://github.com/id-Software/Quake-2/blob/master/ref_gl/gl_model.c)
+  (the 32-frame limit); GPL-2.0-or-later, master reviewed 2026-10-28.
+- The [Valve Developer Community WAD3 page](https://developer.valvesoftware.com/wiki/WAD):
+  lump type `0x43`, the palette tail and the `{` transparency convention;
+  living page, read 2026-10-28.
+- SiN's `sinmiptex_t`, as read by [PakFu `src/formats/swl_image.cpp`](https://github.com/themuffinator/PakFu/tree/13111e4c07513548a29fd7eb74fc9d004c44aa59/src/formats)
+  (revision `13111e4c07513548a29fd7eb74fc9d004c44aa59`, GPL-3.0): field
+  offsets for the writer, which is VibeStudio code.
+- Microsoft's [DDS_HEADER](https://learn.microsoft.com/windows/win32/direct3ddds/dds-header)
+  and [DDS_PIXELFORMAT](https://learn.microsoft.com/windows/win32/direct3ddds/dds-pixelformat)
+  documentation: mip count and capability flags; read 2026-10-28.
+- [Chocolate Doom `src/doom/r_data.c`](https://github.com/chocolate-doom/chocolate-doom/blob/chocolate-doom-3.1.0/src/doom/r_data.c)
+  and the [Doom Wiki TEXTURE1 and TEXTURE2 page](https://doomwiki.org/wiki/TEXTURE1_and_TEXTURE2):
+  `PNAMES`, `maptexture_t`/`mappatch_t` and Strife's shorter records;
+  GPL-2.0-or-later tag `chocolate-doom-3.1.0`, living wiki page read 2026-10-28.
+- The colour adjustments, filters, gradients, median-cut palette and seamless
+  cross-fade in `src/core/texture_adjust.*` and `src/core/texture_formats.*`
+  are standard image-processing techniques implemented by VibeStudio; no
+  third-party code was used.
+
 ### idTech Map Formats
 | Specification | Reference | VibeStudio modules | Revision / date |
 |---|---|---|---|

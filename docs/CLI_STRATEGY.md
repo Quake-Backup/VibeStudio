@@ -911,10 +911,21 @@ use the same pixel rules and cancellation checkpoints as the authoring canvas.
 resampling. `resize-selection` and `rotate-selection` transform the active
 layer's selected pixels at one of nine anchors, refusing out-of-canvas results.
 The existing `resize` and `rotate` operations affect the entire canvas.
+`adjust`, `filter` (`blur`, `sharpen`, `noise`, `emboss`, `edges`), `gradient`,
+`replace-color`, `seamless` and `clone` share the Adjust and Paint sections'
+rules; strokes accept per-point widths (`[x, y, width]`) and `mirror`.
 `texture inspect <file.vtexture>` validates a layered project and reports layers, metadata and a
 source fingerprint. Native writes preserve layers and palette metadata and
 check conflicts when updating an opened project. PNG exports are composites.
-`texture profiles` lists nine output profiles and versioned defaults.
+`texture inspect` also reports `frames`, `distinctColors` and, with a saved
+palette, `offPalettePixels`. `texture palette --output <file.lmp>` writes the
+resolved palette as 256 raw RGB triplets through guarded publication, with
+`--dry-run` and `--overwrite`.
+`texture profiles` lists eighteen output profiles and versioned defaults,
+including `dds-mipmaps`, `sin-swl`, `halflife-miptex`, `halflife-wad3`,
+`quake-spr`, `halflife-spr` and `quake2-sp2`. Sprite profiles export a
+project's visible layers as frames; a Quake II SP2 writes its PCX frames beside
+the output and reports them as `companions`.
 `texture validate <input>` encodes without writes; `texture export <input> --output <path>`
 shares guarded publication, dry runs and explicit overwrites. `--profile` and
 `--export-options <json>` select native metadata, alpha, dithering and mip rules.
@@ -929,7 +940,11 @@ counts, mip dimensions, palette source and engine warnings. See the complete
 --target-entry <path|lump> --output <draft.vibepackage>` runs the same encoders
 and package staging service. WAD2 miptexture types and Doom flat/patch namespaces
 survive grouped undo and draft reopening. `--replace-texture` approves replacing
-an entry; `--overwrite` separately approves replacing the output draft. A target
+an entry; `--overwrite` separately approves replacing the output draft.
+WAD3 miptextures keep lump type `0x43`. `--wall-texture <NAME>` also defines a
+single-patch `TEXTURE1` wall texture for a staged Doom patch, adding it to
+`PNAMES`, in the same undo step; `--doom-sprite` stages the patch in the sprite
+namespace instead. SP2 frames stage with their sprite. A target
 package palette takes precedence unless a palette file/root was supplied.
 Dry runs write nothing. JSON distinguishes the draft's `written` status from
 `packageWritten: false` and includes the planned operation manifest. Publish

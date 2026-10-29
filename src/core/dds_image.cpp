@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <limits>
 
+#include <QtEndian>
 #include <QtGlobal>
 
 namespace vibestudio {
@@ -1036,6 +1037,55 @@ void decode_bc4_generic_block(const uchar* b, bool snorm, uchar out[16], DecodeS
 }
 }  // namespace
 
+namespace {
+bool decodeDdsSurface(const QByteArray& bytes, const DdsInfo& info, QImage* img, QString* err)
+{
+	switch (info.format) {
+		case DdsFormat::UncompressedMasks: return decode_uncompressed_masks(bytes, info, img, err);
+		case DdsFormat::Bc1: return decode_bc1(bytes, info, img, err);
+		case DdsFormat::Bc2: return decode_bc2(bytes, info, img, err);
+		case DdsFormat::Bc3: return decode_bc3(bytes, info, false, img, err);
+		case DdsFormat::Bc3Rxgb: return decode_bc3(bytes, info, true, img, err);
+		case DdsFormat::Bc4Unorm: return decode_bc4(bytes, info, false, img, err);
+		case DdsFormat::Bc4Snorm: return decode_bc4(bytes, info, true, img, err);
+		case DdsFormat::Bc5Unorm: return decode_bc5(bytes, info, false, img, err);
+		case DdsFormat::Bc5Snorm: return decode_bc5(bytes, info, true, img, err);
+		case DdsFormat::Unknown: break;
+	}
+	return false;
+}
+}
+
+// VibeStudio addition (2026-10-28): lower mip levels follow the base surface
+// in order, each half the size (at least 1) in the base format, per
+// Microsoft's DDS documentation. Levels after a malformed one are dropped.
+QVector<QImage> decodeDdsMipLevels(const QByteArray& bytes, const IdTechImageDecodeContext& context, int maximumLevels)
+{
+	QVector<QImage> mips;
+	DdsInfo info; QString err;
+	if (bytes.size() > 64 * 1024 * 1024 || bytes.size() < 32 || !parse_dds_header(bytes, &info, &err)) { return mips; }
+	const quint32 declared = qFromLittleEndian<quint32>(bytes.constData() + 28);
+	const int levels = int(std::min<quint32>({std::max(1u, declared), quint32(std::max(1, maximumLevels)), 16u}));
+	const bool compressed = info.format != DdsFormat::UncompressedMasks;
+	const int blockBytes = info.format == DdsFormat::Bc1 || info.format == DdsFormat::Bc4Unorm || info.format == DdsFormat::Bc4Snorm ? 8 : 16;
+	qint64 offset = info.data_offset, retained = 0;
+	int width = info.width, height = info.height;
+	for (int level = 0; level < levels; ++level) {
+		if (context.isCancelled && context.isCancelled()) { break; }
+		if (width > context.maximumDimension || height > context.maximumDimension || retained + qint64(width) * height > context.maximumTotalPixels) { break; }
+		DdsInfo surface = info;
+		surface.width = width; surface.height = height; surface.data_offset = int(offset); surface.isCancelled = context.isCancelled;
+		if (level > 0) { surface.pitch_bytes = 0; }
+		QImage image;
+		if (offset > bytes.size() || !decodeDdsSurface(bytes, surface, &image, &err) || image.isNull()) { break; }
+		mips << image; retained += qint64(width) * height;
+		const qint64 rowBytes = compressed ? qint64(std::max(1, (width + 3) / 4)) * blockBytes : (level == 0 && info.pitch_bytes ? qint64(info.pitch_bytes) : qint64(width) * (info.rgb_bit_count / 8));
+		offset += compressed ? rowBytes * std::max(1, (height + 3) / 4) : rowBytes * height;
+		width = std::max(1, width / 2); height = std::max(1, height / 2);
+	}
+	return mips;
+}
+
 QImage decodeDdsImage(const QByteArray& bytes, const IdTechImageDecodeContext& context, QString* error) {
 	if (error) {
 		error->clear();
@@ -1061,39 +1111,7 @@ QImage decodeDdsImage(const QByteArray& bytes, const IdTechImageDecodeContext& c
 	}
 	info.isCancelled = context.isCancelled;
 	QImage img;
-	bool ok = false;
-	switch (info.format) {
-		case DdsFormat::UncompressedMasks:
-			ok = decode_uncompressed_masks(bytes, info, &img, &err);
-			break;
-		case DdsFormat::Bc1:
-			ok = decode_bc1(bytes, info, &img, &err);
-			break;
-		case DdsFormat::Bc2:
-			ok = decode_bc2(bytes, info, &img, &err);
-			break;
-		case DdsFormat::Bc3:
-			ok = decode_bc3(bytes, info, false, &img, &err);
-			break;
-		case DdsFormat::Bc3Rxgb:
-			ok = decode_bc3(bytes, info, true, &img, &err);
-			break;
-		case DdsFormat::Bc4Unorm:
-			ok = decode_bc4(bytes, info, false, &img, &err);
-			break;
-		case DdsFormat::Bc4Snorm:
-			ok = decode_bc4(bytes, info, true, &img, &err);
-			break;
-		case DdsFormat::Bc5Unorm:
-			ok = decode_bc5(bytes, info, false, &img, &err);
-			break;
-		case DdsFormat::Bc5Snorm:
-			ok = decode_bc5(bytes, info, true, &img, &err);
-			break;
-		case DdsFormat::Unknown:
-			ok = false;
-			break;
-	}
+	const bool ok = decodeDdsSurface(bytes, info, &img, &err);
 
 	if (!ok || img.isNull()) {
 		if (error) {

@@ -232,6 +232,10 @@ public:
 	// Opens a map, package, project folder, or text file the same way a drop
 	// onto the window would, so command-line paths behave like drag and drop.
 	void openPathFromCommandLine(const QString& path);
+	// Select a package image in Textures and open it in the Texture Editor once
+	// decoded. Accepts a package path or a texture/material reference, as the
+	// Materials, Levels and Models surfaces name images.
+	void editPackageImageInTextureEditor(const QString& reference);
 	bool saveWorkspaceTo(const QString& path, bool overwrite = false, QString* error = nullptr);
 	bool openWorkspaceFrom(const QString& path, QString* error = nullptr);
 	void openWorkspaceFile();
@@ -2323,6 +2327,8 @@ private:
 	QPushButton* m_textureEditSelected = nullptr;
 	QToolButton* m_textureCancelPreview = nullptr;
 	bool m_texturePreviewPending = false;
+	// A package path waiting for its decode before the Texture Editor opens it.
+	QString m_pendingTextureEdit;
 	bool m_textureThumbnailPending = false;
 	bool m_textureThumbnailsPaused = false;
 	QString m_textureThumbnailPendingPath;

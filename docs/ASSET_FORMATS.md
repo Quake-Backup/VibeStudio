@@ -34,9 +34,9 @@ the texture browser/editor, explicit model-skin references and CLI imports:
 
 | Format | Import | Native export | Limits |
 |---|---|---|---|
-| DDS | 2D base surface: BC1/2/3, BC4/5 UNORM/SNORM, RXGB, supported RGB/luminance masks and DX10 variants | Uncompressed BGRA8 with alpha | Base mip only; cube, array and volume textures refused; no BC6/7 or compressed export. |
+| DDS | 2D base surface: BC1/2/3, BC4/5 UNORM/SNORM, RXGB, supported RGB/luminance masks and DX10 variants | Uncompressed BGRA8 with alpha, optionally with a full mip chain (`dds-mipmaps`) | Import keeps the base surface and every stored mip level that decodes; cube, array and volume textures refused; no BC6/7 or compressed export. |
 | FTX | RGBA8 with the header's alpha flag | RGBA8 with alpha | Exact payload and positive dimensions required. |
-| SiN SWL | Indexed image, embedded palette, four mip levels | Convert pixels through another export profile | Index 255 transparency; non-overlapping, ordered in-bounds mip payloads; no SWL writer. |
+| SiN SWL | Indexed image, embedded palette, four mip levels | `sin-swl`: four mips, stored palette, name, animation, flags, contents, 16-bit value | Index 255 transparency; non-overlapping, ordered in-bounds mip payloads; the writer stores zero for the palette checksum and the properties it does not author. |
 
 DDS data is presented as an 8-bit preview: signed channels are remapped to the
 visible range, BC4 is grayscale, and BC5 reconstructs the blue normal component

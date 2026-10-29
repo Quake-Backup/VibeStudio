@@ -30,6 +30,16 @@ void paintSpan(QImage* pixels, const QImage& source, int y, int left, int right,
 		if (first > last) { return; }
 		auto* row = reinterpret_cast<QRgb*>(pixels->scanLine(y));
 		if (brush.mode == TexturePaintMode::Replace) { std::fill(row + first, row + last + 1, color); }
+		else if (brush.mode == TexturePaintMode::Clone) {
+			// Sample the gesture-start layer, so a stroke never re-clones its own paint.
+			int sy = y + brush.cloneOffset.y();
+			if (brush.wrap) { sy = wrapped(sy, source.height()); } else if (sy < 0 || sy >= source.height()) { return; }
+			for (int x = first; x <= last; ++x) {
+				int sx = x + brush.cloneOffset.x();
+				if (brush.wrap) { sx = wrapped(sx, source.width()); } else if (sx < 0 || sx >= source.width()) { continue; }
+				row[x] = source.pixel(sx, sy);
+			}
+		}
 		else { for (int x = first; x <= last; ++x) { row[x] = sourceOver(color, source.pixel(x, y)); } }
 	};
 	if (!brush.wrap) { write(left, right); return; }
@@ -56,8 +66,22 @@ QString textureBrushShapeId(TextureBrushShape shape)
 }
 QString texturePaintModeId(TexturePaintMode mode)
 {
-	switch (mode) { case TexturePaintMode::Replace: return QStringLiteral("replace"); case TexturePaintMode::SourceOver: return QStringLiteral("source-over"); }
+	switch (mode) { case TexturePaintMode::Replace: return QStringLiteral("replace"); case TexturePaintMode::SourceOver: return QStringLiteral("source-over"); case TexturePaintMode::Clone: return QStringLiteral("clone"); }
 	return {};
+}
+QString textureMirrorId(const TextureBrush& brush)
+{
+	if (brush.mirrorX && brush.mirrorY) { return QStringLiteral("both"); }
+	if (brush.mirrorX) { return QStringLiteral("horizontal"); }
+	return brush.mirrorY ? QStringLiteral("vertical") : QStringLiteral("none");
+}
+bool textureMirrorFromId(const QString& id, TextureBrush* brush)
+{
+	const bool horizontal = id == QStringLiteral("horizontal") || id == QStringLiteral("both");
+	const bool vertical = id == QStringLiteral("vertical") || id == QStringLiteral("both");
+	if (!horizontal && !vertical && id != QStringLiteral("none")) { return false; }
+	if (brush) { brush->mirrorX = horizontal; brush->mirrorY = vertical; }
+	return true;
 }
 bool textureBrushShapeFromId(const QString& id, TextureBrushShape* shape)
 {
@@ -75,7 +99,8 @@ bool texturePaintModeFromId(const QString& id, TexturePaintMode* mode)
 }
 bool validTextureBrush(const TextureBrush& brush)
 {
-	return brush.width >= 1 && brush.width <= 128 && !textureBrushShapeId(brush.shape).isEmpty() && !texturePaintModeId(brush.mode).isEmpty();
+	return brush.width >= 1 && brush.width <= 128 && !textureBrushShapeId(brush.shape).isEmpty() && !texturePaintModeId(brush.mode).isEmpty() &&
+		std::abs(brush.cloneOffset.x()) <= 8192 && std::abs(brush.cloneOffset.y()) <= 8192;
 }
 bool validTexturePaintPoint(QPoint point, QSize size, bool wrap)
 {

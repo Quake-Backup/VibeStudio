@@ -35,7 +35,10 @@ using vibestudio::tests::setObjectSelected;
 #include <QTemporaryDir>
 #include <QTabWidget>
 #include <QTimer>
+#include <QToolButton>
 #include <QTranslator>
+#include <QFileInfo>
+#include <QRegularExpression>
 
 #include <iostream>
 
@@ -102,7 +105,7 @@ int main(int argc, char** argv)
 		auto* filled = editor->findChild<QCheckBox*>(QStringLiteral("textureFilledShapes"));
 		auto* tolerance = editor->findChild<QSpinBox*>(QStringLiteral("textureFillTolerance"));
 		auto* color = editor->findChild<QLineEdit*>(QStringLiteral("textureColor"));
-		ok &= expect(tool->count() == 9 && !paintMode->isEnabled() && !tolerance->isEnabled(), "tool inspector exposes new tools and only relevant settings");
+		ok &= expect(tool->count() == 11 && !paintMode->isEnabled() && !tolerance->isEnabled(), "tool inspector exposes new tools and only relevant settings");
 		tool->setCurrentIndex(int(TextureCanvas::Tool::Brush)); brushWidth->setValue(3); color->setText(QStringLiteral("#80ff0000"));
 		canvas->beginGesture({1, 1}); canvas->continueGesture({4, 1}); canvas->continueGesture({1, 1}); canvas->endGesture();
 		ok &= expect(paintMode->isEnabled() && editor->document().image().pixelColor(3, 1) == QColor(255, 0, 0, 128), "UI blend brush applies opacity once across direct gesture commands");
@@ -272,6 +275,108 @@ int main(int argc, char** argv)
 			ok &= expect(fits, "properties fit at large scale and with expanded translations");
 		}
 		delete editor;
+		if (scale == 100) {
+			// The gap-round tools and sections, through direct commands.
+			auto* extra = new TextureEditorDialog; extra->show(); app.processEvents();
+			QImage blank(16, 16, QImage::Format_ARGB32); blank.fill(qRgba(0, 0, 0, 255));
+			ok &= expect(extra->setImage(blank, QStringLiteral("textures/extra.png"), &error), "open a fixture for the new tools");
+			auto* extraCanvas = extra->findChild<TextureCanvas*>(QStringLiteral("textureCanvas"));
+			auto* extraTool = extra->findChild<QComboBox*>(QStringLiteral("textureTool"));
+			auto* primary = extra->findChild<QLineEdit*>(QStringLiteral("textureColor"));
+			auto* secondary = extra->findChild<QLineEdit*>(QStringLiteral("textureSecondaryColor"));
+			auto* brushAction = extra->findChild<QAction*>(QStringLiteral("textureToolAction5"));
+			ok &= expect(brushAction && brushAction->shortcut() == QKeySequence(Qt::Key_B) && brushAction->shortcutContext() == Qt::WidgetShortcut && extraCanvas->actions().contains(brushAction), "tool keys are scoped to the canvas");
+			brushAction->trigger();
+			ok &= expect(extraTool->currentIndex() == int(TextureCanvas::Tool::Brush) && extraCanvas->tool() == TextureCanvas::Tool::Brush, "the tool strip chooses tools");
+			extraTool->setCurrentIndex(int(TextureCanvas::Tool::Fill));
+			ok &= expect(extra->findChild<QAction*>(QStringLiteral("textureToolAction2"))->isChecked(), "the strip follows the tool combo");
+			primary->setText(QStringLiteral("#ffff0000")); secondary->setText(QStringLiteral("#ff00ff00"));
+			extraTool->setCurrentIndex(int(TextureCanvas::Tool::Pencil));
+			extraCanvas->beginGesture({1, 1}, true); extraCanvas->endGesture(); app.processEvents();
+			ok &= expect(extra->document().image().pixel(1, 1) == qRgb(0, 255, 0), "right-button strokes paint the secondary colour");
+			ok &= expect(!extra->findChildren<QToolButton*>(QRegularExpression(QStringLiteral("^textureRecentColor"))).isEmpty(), "painted colours appear as named recent swatches");
+			extra->findChild<QAction*>(QStringLiteral("swapTextureColors"))->trigger();
+			ok &= expect(primary->text() == QStringLiteral("#ff00ff00") && secondary->text() == QStringLiteral("#ffff0000"), "Swap Colors exchanges the colours");
+			extraTool->setCurrentIndex(int(TextureCanvas::Tool::Pick)); extraCanvas->setCursorPixel({1, 1}); extraCanvas->applyAtCursor(true);
+			ok &= expect(QColor(secondary->text()) == QColor(0, 255, 0), "a secondary eyedropper pick fills the secondary colour");
+			primary->setText(QStringLiteral("#ff000000")); secondary->setText(QStringLiteral("#ffffffff"));
+			extraTool->setCurrentIndex(int(TextureCanvas::Tool::Gradient));
+			extraCanvas->beginGesture({0, 0}); extraCanvas->continueGesture({15, 0}); extraCanvas->endGesture();
+			ok &= expect(settled(extra) && extra->document().image().pixel(0, 5) == qRgb(0, 0, 0) && extra->document().image().pixel(15, 5) == qRgb(255, 255, 255) &&
+				qRed(extra->document().image().pixel(8, 5)) > 100, "a gradient drag runs from the paint to the secondary colour");
+			extraTool->setCurrentIndex(int(TextureCanvas::Tool::Clone));
+			extraCanvas->beginGesture({2, 12}); extraCanvas->endGesture();
+			ok &= expect(extra->document().image().pixel(2, 12) != qRgb(255, 255, 255), "the clone stamp waits for a source");
+			extraCanvas->setCloneSource({15, 3}); extraCanvas->beginGesture({2, 12}); extraCanvas->endGesture();
+			ok &= expect(extra->document().image().pixel(2, 12) == qRgb(255, 255, 255) && extra->document().undoLabel() == QStringLiteral("Clone pixels"), "the clone stamp copies from its source");
+			auto* mirror = extra->findChild<QComboBox*>(QStringLiteral("textureMirror")); mirror->setCurrentIndex(mirror->findData(QStringLiteral("horizontal")));
+			primary->setText(QStringLiteral("#ff0000ff")); extraTool->setCurrentIndex(int(TextureCanvas::Tool::Pencil));
+			extraCanvas->beginGesture({1, 14}); extraCanvas->endGesture();
+			ok &= expect(extra->document().image().pixel(1, 14) == qRgb(0, 0, 255) && extra->document().image().pixel(14, 14) == qRgb(0, 0, 255), "mirror painting repeats the stroke");
+			mirror->setCurrentIndex(0);
+			extra->findChild<QSpinBox*>(QStringLiteral("textureBrushWidth"))->setValue(5);
+			extraCanvas->beginGesture({3, 8}); extraCanvas->continueGestureWithPressure({12, 8}, 0.2); extraCanvas->endGesture();
+			ok &= expect(extra->document().image().pixel(3, 6) == qRgb(0, 0, 255) && extra->document().image().pixel(12, 8) == qRgb(0, 0, 255) &&
+				extra->document().image().pixel(12, 6) != qRgb(0, 0, 255), "pen pressure narrows the stroke after its first stamp");
+			extra->findChild<QSpinBox*>(QStringLiteral("textureBrushWidth"))->setValue(1);
+			const QImage beforeAdjust = extra->document().image();
+			extra->findChild<QCheckBox*>(QStringLiteral("textureInvert"))->setChecked(true);
+			extra->findChild<QPushButton*>(QStringLiteral("applyTextureAdjustment"))->click();
+			ok &= expect(settled(extra) && extra->document().image().pixel(0, 5) == qRgb(255, 255, 255) && extra->document().undoLabel() == QStringLiteral("Adjust colors"), "Apply Adjustment inverts through the recipe engine");
+			extra->undo(); extra->findChild<QCheckBox*>(QStringLiteral("textureInvert"))->setChecked(false);
+			extra->findChild<QPushButton*>(QStringLiteral("applyTextureFilter"))->click();
+			ok &= expect(settled(extra) && extra->document().image() != beforeAdjust && extra->document().undoLabel() == QStringLiteral("Blur"), "Apply Filter blurs as one undo step");
+			extra->undo();
+			extra->findChild<QPushButton*>(QStringLiteral("makeTextureSeamless"))->click();
+			ok &= expect(settled(extra) && extra->document().undoLabel() == QStringLiteral("Make seamless"), "Make Seamless runs on the canvas");
+			extra->undo();
+			extra->findChild<QLineEdit*>(QStringLiteral("textureReplaceFrom"))->setText(QStringLiteral("#ff0000ff"));
+			primary->setText(QStringLiteral("#ffff00ff"));
+			extra->findChild<QPushButton*>(QStringLiteral("replaceTextureColor"))->click();
+			ok &= expect(settled(extra) && extra->document().image().pixel(1, 14) == qRgb(255, 0, 255) && extra->document().image().pixel(14, 14) == qRgb(255, 0, 255), "Replace with Paint Color changes every matching pixel");
+			extra->applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("layer-add")}, {QStringLiteral("name"), QStringLiteral("Top")}}});
+			ok &= expect(settled(extra) && extra->document().layers().size() == 2, "a second layer for frames");
+			auto* layers = extra->findChild<QListWidget*>(QStringLiteral("textureLayers"));
+			auto* topRow = layers->item(0);
+			ok &= expect(topRow && (topRow->flags() & Qt::ItemIsUserCheckable) && topRow->checkState() == Qt::Checked, "layer rows carry a visibility check box");
+			topRow->setCheckState(Qt::Unchecked);
+			ok &= expect(settled(extra) && !extra->document().layers().last().visible, "unticking a row hides its layer");
+			layers->item(0)->setCheckState(Qt::Checked); ok &= expect(settled(extra) && extra->document().layers().last().visible, "ticking it shows the layer again");
+			layers->model()->moveRow(QModelIndex(), 1, QModelIndex(), 0);
+			ok &= expect(settled(extra) && extra->document().layers().last().name != QStringLiteral("Top"), "dragging a row reorders the layers");
+			auto* tabs = extra->findChild<QTabWidget*>(QStringLiteral("textureProperties")); tabs->setCurrentIndex(tabs->count() - 1); app.processEvents();
+			ok &= expect(extra->frameCount() == 2, "the Frames section lists each visible layer");
+			extra->setFramePlaying(true); ok &= expect(extra->framePlaying(), "frames play"); extra->setFramePlaying(false);
+			ok &= expect(!extra->framePlaying(), "frames stop");
+			extra->findChild<QCheckBox*>(QStringLiteral("textureOnionSkin"))->setChecked(true); app.processEvents();
+			tabs->setCurrentIndex(0);
+			const QString palettePath = root.filePath(QStringLiteral("saved.lmp"));
+			ok &= expect(extra->savePaletteToPath(palettePath, &error) && QFileInfo(palettePath).size() == 768, "palettes save as raw RGB");
+			extra->loadPaletteFromPath(palettePath);
+			ok &= expect(settled(extra) && extra->paletteResolution().sourceVirtualPath == QFileInfo(palettePath).absoluteFilePath(), "palette files load with their provenance");
+			extra->analyzeColors();
+			ok &= expect(settled(extra) && !extra->findChild<QLabel*>(QStringLiteral("textureColorStats"))->text().isEmpty(), "Analyze Colors reports distinct and off-palette counts");
+			const QString companion = root.filePath(QStringLiteral("companion.png"));
+			ok &= expect(extra->exportCompanionMaps(companion, false, &error) && QFileInfo::exists(root.filePath(QStringLiteral("companion_norm.png"))) &&
+				QFileInfo::exists(root.filePath(QStringLiteral("companion_gloss.png"))), "companion maps export beside the texture name");
+			delete extra;
+			// A sprite opens with each frame as a layer, aligned on its origin.
+			TextureDocument sprite; sprite.create({8, 8}, Qt::transparent); sprite.paintStroke({QPoint(1, 1)}, Qt::red, TextureBrush{2});
+			sprite.addLayer(QStringLiteral("B")); sprite.paintStroke({QPoint(5, 5)}, Qt::blue, TextureBrush{2});
+			IdTechPaletteResolution quakePalette; quakePalette.palette = generatedIdTechPalette(QStringLiteral("quake")); quakePalette.palette.generated = false;
+			TextureExportOptions spriteOptions; spriteOptions.format = TextureExportFormat::QuakeSprite; spriteOptions.alpha = TextureExportAlpha::Threshold;
+			const auto encodedSprite = encodeTextureDocumentExport(sprite, spriteOptions, quakePalette);
+			const auto decodedSprite = decodeIdTechImage(QStringLiteral("sprites/s.spr"), encodedSprite.bytes, quakePalette.palette);
+			auto* spriteEditor = new TextureEditorDialog; spriteEditor->show(); app.processEvents();
+			TextureExportOptions opened;
+			ok &= expect(encodedSprite.succeeded && spriteEditor->editDecodedImage(decodedSprite, QStringLiteral("sprites/s.spr"), quakePalette, 1) &&
+				spriteEditor->document().layers().size() == 2 && spriteEditor->document().activeLayerIndex() == 1 && !spriteEditor->hasUnsavedChanges(), "a sprite opens with each frame as a layer");
+			ok &= expect(spriteEditor->exportOptions(&opened) && opened.format == TextureExportFormat::QuakeSprite && !opened.centeredOrigin && opened.leftOffset == 4 && opened.topOffset == 4,
+				"the sprite profile and shared origin are ready for export");
+			spriteEditor->previewExport();
+			ok &= expect(settled(spriteEditor) && spriteEditor->findChild<QComboBox*>(QStringLiteral("textureExportMipLevel"))->count() == 2, "the export preview lists every frame");
+			delete spriteEditor;
+		}
 		milestone(scale == 100 ? "100 percent editing complete" : "200 percent editing complete");
 		if (scale == 200) { app.removeTranslator(&expanded); }
 	}
@@ -399,6 +504,14 @@ int main(int argc, char** argv)
 		ok &= expect(editSelected && editSelected->isEnabled(), "native browser preview becomes editable after asynchronous decoding");
 		if (editSelected) { editSelected->click(); }
 		milestone("Native image imported");
+		const auto importedRevision = editor->document().revision();
+		shell->editPackageImageInTextureEditor(QStringLiteral("does-not-exist"));
+		ok &= expect(!editor->isBusy() && editor->document().revision() == importedRevision, "an unknown image reference leaves the open texture alone");
+		shell->editPackageImageInTextureEditor(QStringLiteral("native"));
+		// The image may decode again first; the editor opens once it has.
+		QElapsedTimer reopenWait; reopenWait.start();
+		while (editor->document().revision() == importedRevision && reopenWait.elapsed() < 15000) { app.processEvents(); }
+		ok &= expect(settled(editor) && editor->document().revision() != importedRevision && !editor->hasUnsavedChanges(), "Edit in Texture Editor reopens a decoded package image");
 		TextureExportOptions imported;
 		ok &= expect(editor->exportOptions(&imported) && imported.format == TextureExportFormat::QuakeMiptex && imported.name == QStringLiteral("native")
 			&& editor->findChild<QLineEdit*>(QStringLiteral("texturePackagePath"))->text() == QStringLiteral("native"), "real native browser handoff retains lump name and metadata");

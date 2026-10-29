@@ -158,7 +158,7 @@ int main(int argc, char** argv)
 		options = {}; options.format = TextureExportFormat::Quake2Wal; options.name = QStringLiteral("custom/wall"); options.surfaceFlags = 0xf0000001u; options.surfaceValue = -3;
 		ok &= expect(writeTextureProject(document, request, {{QStringLiteral("palette"), texturePaletteMetadata(palette)}, {QStringLiteral("export"), textureExportOptionsJson(options)}}).succeeded, "prepare native project CLI input");
 		const auto projectBefore = read(projectPath); QJsonObject report;
-		ok &= expect(cli({"texture", "profiles"}, 0, &report) && report.value("profiles").toArray().size() == 11, "CLI lists all eleven profiles with defaults");
+		ok &= expect(cli({"texture", "profiles"}, 0, &report) && report.value("profiles").toArray().size() == textureExportProfiles().size(), "CLI lists every profile with defaults");
 		ok &= expect(cli({"texture", "validate", projectPath}, 0, &report) && report.value("export").toObject().value("options").toObject().value("surfaceFlags").toDouble() == double(0xf0000001u) && !report.value("written").toBool(), "CLI validates persisted native metadata without an output file");
 		const auto config = root.filePath(QStringLiteral("export.json")); put(config, R"({"name":"wall","alpha":"strict"})");
 		for (const auto& profile : textureExportProfiles()) {

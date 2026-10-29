@@ -6,6 +6,8 @@ namespace vibestudio {
 
 // PakFu-derived DDS/FTX/SWL codecs; see docs/CREDITS.md for provenance.
 QImage decodeDdsImage(const QByteArray& bytes, const IdTechImageDecodeContext& context, QString* error);
+// Base surface first, then the declared lower mip levels that decode (at most 16).
+QVector<QImage> decodeDdsMipLevels(const QByteArray& bytes, const IdTechImageDecodeContext& context, int maximumLevels = 16);
 IdTechImageDecodeResult decodeExtraImage(IdTechImageFormat format, const QByteArray& bytes, const IdTechImageDecodeContext& context);
 // Lossless, single-surface DDS BGRA8 / FTX RGBA8. No block compression.
 QByteArray encodeExtraImage(const QImage& image, bool dds, QString* error, const std::function<bool()>& isCancelled = {});

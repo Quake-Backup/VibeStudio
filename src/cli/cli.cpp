@@ -76,6 +76,8 @@
 #include "core/texture_document.h"
 #include "core/texture_project.h"
 #include "core/texture_export.h"
+#include "core/texture_formats.h"
+#include "core/texture_output.h"
 #include "core/texture_recovery.h"
 #include "core/audio_clip.h"
 #include "core/audio_export.h"
@@ -590,13 +592,13 @@ QVector<CliCommandDescriptor> cliCommandDescriptors()
 		{QStringLiteral("launch"), QStringLiteral("plan"), QStringLiteral("Build a reviewable game launch command line without starting anything; --deploy also shows where the built map would be copied."), {QStringLiteral("vibestudio --cli launch plan --map start --json"), QStringLiteral("vibestudio --cli launch plan --bsp maps/start.bsp --deploy")}, true, true, true},
 		{QStringLiteral("launch"), QStringLiteral("run"), QStringLiteral("Start the configured game installation with the planned command line; --deploy first copies the built map into the game folder."), {QStringLiteral("vibestudio --cli launch run --map start"), QStringLiteral("vibestudio --cli launch run --bsp maps/start.bsp --deploy --allow-test-maps")}, true, true, false},
 		{QStringLiteral("texture"), QStringLiteral("decode"), QStringLiteral("Decode an idTech texture, flat, sprite, or image entry and optionally write a PNG."), {QStringLiteral("vibestudio --cli texture decode ./id1/pak0.pak progs/player.mdl --output ./out/player.png --dry-run")}, true, true, true},
-		{QStringLiteral("texture"), QStringLiteral("palette"), QStringLiteral("Resolve the palette used to decode indexed art and report where it came from."), {QStringLiteral("vibestudio --cli texture palette ./id1/pak0.pak --palette quake --json")}},
+		{QStringLiteral("texture"), QStringLiteral("palette"), QStringLiteral("Resolve the palette used to decode indexed art, report where it came from, and optionally write it as a raw 768-byte palette."), {QStringLiteral("vibestudio --cli texture palette ./id1/pak0.pak --palette quake --json"), QStringLiteral("vibestudio --cli texture palette ./id1/pak0.pak --palette quake --output ./palette.lmp --dry-run --json")}},
 		{QStringLiteral("texture"), QStringLiteral("create"), QStringLiteral("Create a bounded PNG or layered texture project with optional ordered operations."), {QStringLiteral("vibestudio --cli texture create --size 64x64 --color transparent --output ./texture.vtexture --dry-run --json")}, true, true, true},
 		{QStringLiteral("texture"), QStringLiteral("edit"), QStringLiteral("Apply an ordered recipe to an image, layered project, or package texture; write PNG or .vtexture."), {QStringLiteral("vibestudio --cli texture edit ./texture.vtexture --operations ./edits.json --output ./edited.vtexture --dry-run --json")}, true, true, true},
 		{QStringLiteral("texture"), QStringLiteral("inspect"), QStringLiteral("Validate a native texture project and report layers, metadata, dimensions, and source fingerprint."), {QStringLiteral("vibestudio --cli texture inspect ./texture.vtexture --json")}},
 		{QStringLiteral("texture"), QStringLiteral("profiles"), QStringLiteral("List texture output profiles and the versioned export option defaults."), {QStringLiteral("vibestudio --cli texture profiles --json")}},
 		{QStringLiteral("texture"), QStringLiteral("export"), QStringLiteral("Export an image, layered project, or package texture using an explicit game profile and guarded publication."), {QStringLiteral("vibestudio --cli texture export ./texture.vtexture --profile quake2-wal --export-options ./wal.json --output ./texture.wal --dry-run --json")}, true, true, true},
-		{QStringLiteral("texture"), QStringLiteral("stage"), QStringLiteral("Encode a texture into an undoable package draft, preserving native WAD namespaces and lump types."), {QStringLiteral("vibestudio --cli texture stage ./flat.vtexture --profile doom-flat --target-package ./mod.wad --target-entry NEWFLAT --output ./mod.vibepackage --dry-run --json")}, true, true, true},
+		{QStringLiteral("texture"), QStringLiteral("stage"), QStringLiteral("Encode a texture into an undoable package draft, preserving native WAD namespaces and lump types; optionally define a Doom wall texture."), {QStringLiteral("vibestudio --cli texture stage ./flat.vtexture --profile doom-flat --target-package ./mod.wad --target-entry NEWFLAT --output ./mod.vibepackage --dry-run --json"), QStringLiteral("vibestudio --cli texture stage ./wall.vtexture --profile doom-patch --target-package ./mod.wad --target-entry WALL1 --wall-texture WALL1 --output ./mod.vibepackage --dry-run --json")}, true, true, true},
 		{QStringLiteral("texture"), QStringLiteral("validate"), QStringLiteral("Encode and validate a texture profile without writing, reporting alpha, palette, mipmaps and engine limits."), {QStringLiteral("vibestudio --cli texture validate ./texture.vtexture --profile tga --json")}},
 		{QStringLiteral("texture"), QStringLiteral("recoveries"), QStringLiteral("Inspect bounded local texture checkpoints without following their recorded source paths."), {QStringLiteral("vibestudio --cli texture recoveries ./texture-recovery --json")}},
 		{QStringLiteral("texture"), QStringLiteral("recover"), QStringLiteral("Restore a texture checkpoint to an explicitly chosen new native project file."), {QStringLiteral("vibestudio --cli texture recover ./draft.vtrecovery --output ./recovered.vtexture --dry-run --json")}, true, true, true},
@@ -13791,7 +13793,16 @@ int runTextureInspectCommand(const QString& path, CliOutputFormat format)
 		object.insert(QStringLiteral("path"), identity.path); object.insert(QStringLiteral("sha256"), QString::fromLatin1(identity.sha256.toHex()));
 		object.insert(QStringLiteral("width"), document.size().width()); object.insert(QStringLiteral("height"), document.size().height());
 		object.insert(QStringLiteral("activeLayer"), document.activeLayerIndex()); object.insert(QStringLiteral("layers"), layers);
-		object.insert(QStringLiteral("metadata"), metadata); printJson(object);
+		object.insert(QStringLiteral("metadata"), metadata);
+		// The palette checks the editor's Analyze Colors runs, on the composite.
+		const int distinct = textureDistinctColors(document.image());
+		object.insert(QStringLiteral("distinctColors"), distinct > 65536 ? QJsonValue(QStringLiteral(">65536")) : QJsonValue(distinct));
+		IdTechPaletteResolution saved;
+		if (metadata.contains(QStringLiteral("palette")) && texturePaletteFromMetadata(metadata.value(QStringLiteral("palette")).toObject(), &saved, nullptr) && saved.palette.isValid()) {
+			object.insert(QStringLiteral("offPalettePixels"), double(textureOffPalettePixels(document.image(), saved.palette.colors)));
+		}
+		object.insert(QStringLiteral("frames"), document.layerFrames().size());
+		printJson(object);
 	} else {
 		std::cout << text(QStringLiteral("%1: %2 x %3, %4 layers\n").arg(identity.path).arg(document.size().width()).arg(document.size().height()).arg(layers.size()));
 		for (const auto& value : layers) { const auto layer = value.toObject(); std::cout << text(QStringLiteral("  %1: %2 (%3, %4%)\n").arg(layer.value(QStringLiteral("id")).toInt()).arg(layer.value(QStringLiteral("name")).toString(), layer.value(QStringLiteral("blend")).toString()).arg(layer.value(QStringLiteral("opacity")).toInt())); }
@@ -13832,7 +13843,8 @@ int runTextureExportCommand(const QString& command, const QString& input, const 
 	if (!paletteFile.isEmpty() && !paletteRoot.isEmpty()) { return printCliError(command, CliExitCode::Usage, QStringLiteral("Choose --palette-file or --palette-root."), format); }
 	const QString paletteId = !requestedPalette.isEmpty() ? requestedPalette :
 		(requestedProfile.startsWith(QStringLiteral("doom-")) || QFileInfo(input).suffix().compare(QStringLiteral("lmp"), Qt::CaseInsensitive) == 0 ? QStringLiteral("doom") :
-		(requestedProfile == QStringLiteral("quake2-wal") || QFileInfo(input).suffix().compare(QStringLiteral("wal"), Qt::CaseInsensitive) == 0 ? QStringLiteral("quake2") : QStringLiteral("quake")));
+		(requestedProfile.startsWith(QStringLiteral("quake2-")) || QFileInfo(input).suffix().compare(QStringLiteral("wal"), Qt::CaseInsensitive) == 0 ||
+		 QFileInfo(input).suffix().compare(QStringLiteral("sp2"), Qt::CaseInsensitive) == 0 ? QStringLiteral("quake2") : QStringLiteral("quake")));
 	IdTechPaletteResolution resolution; resolution.palette = generatedIdTechPalette(paletteId); resolution.requestedPaletteId = paletteId;
 	PackageArchive archive; const auto package = optionValue(args, QStringLiteral("--package"));
 	if (!package.isEmpty()) {
@@ -13881,6 +13893,8 @@ int runTextureExportCommand(const QString& command, const QString& input, const 
 	}
 	if (!requestedProfile.isEmpty()) { settings.insert(QStringLiteral("profile"), requestedProfile); }
 	if (hasOption(args, QStringLiteral("--allow-generated-palette"))) { settings.insert(QStringLiteral("allowGeneratedPalette"), true); }
+	if (const auto wall = optionValue(args, QStringLiteral("--wall-texture")); !wall.isEmpty()) { settings.insert(QStringLiteral("wallTexture"), wall.toUpper()); }
+	if (hasOption(args, QStringLiteral("--doom-sprite"))) { settings.insert(QStringLiteral("doomSprite"), true); }
 	if (!textureExportOptionsFromJson(settings, &options, &error)) { return printCliError(command, CliExitCode::Usage, error, format); }
 	PackageStagingModel staging;
 	if (stagingOnly) {
@@ -13893,14 +13907,18 @@ int runTextureExportCommand(const QString& command, const QString& input, const 
 		}
 		if (paletteFile.isEmpty() && paletteRoot.isEmpty()) {
 			const auto targetPaletteId = !requestedPalette.isEmpty() ? requestedPalette :
-				(options.format == TextureExportFormat::DoomFlat || options.format == TextureExportFormat::DoomPatch ? QStringLiteral("doom") : options.format == TextureExportFormat::Quake2Wal ? QStringLiteral("quake2") : QStringLiteral("quake"));
+				(options.format == TextureExportFormat::DoomFlat || options.format == TextureExportFormat::DoomPatch ? QStringLiteral("doom") :
+				 options.format == TextureExportFormat::Quake2Wal || options.format == TextureExportFormat::Quake2Sprite ? QStringLiteral("quake2") : QStringLiteral("quake"));
 			const auto targetPalette = resolveIdTechPalette(PackageStagingArchive(staging), targetPaletteId);
 			if (targetPalette.fromPackage) { resolution = targetPalette; }
 		}
 	}
 	TextureExportResult result; const bool dryRun = validateOnly || hasOption(args, QStringLiteral("--dry-run"));
-	bool succeeded = (validateOnly || stagingOnly) ? (result = encodeTextureExport(document.image(), options, resolution), result.succeeded) :
-		saveTextureExport(document.image(), options, resolution, output, hasOption(args, QStringLiteral("--overwrite")), dryRun, &result, &error);
+	// Sprite profiles take each visible layer as a frame; file exports also
+	// publish the files a sprite names (Quake II SP2 frames) beside it.
+	const auto frames = textureExportFrames(document, options);
+	bool succeeded = (validateOnly || stagingOnly) ? (result = encodeTextureFrames(frames, options, resolution), result.succeeded) :
+		saveTextureFramesExport(frames, options, resolution, output, hasOption(args, QStringLiteral("--overwrite")), dryRun, &result, &error);
 	if (succeeded && stagingOnly) {
 		succeeded = stageTextureExport(result, options, targetEntry, &staging, hasOption(args, QStringLiteral("--replace-texture")), &error);
 		if (succeeded && !dryRun) { succeeded = PackageDraft::save(output, &staging, hasOption(args, QStringLiteral("--overwrite")), &error, packageDraftWriteControl()); }
@@ -13919,7 +13937,10 @@ int runTextureExportCommand(const QString& command, const QString& input, const 
 		object.insert(QStringLiteral("export"), textureExportReportJson(options, resolution, result)); printJson(object);
 	} else {
 		if (!succeeded) { std::cerr << text(error) << "\n"; }
-		else { std::cout << text(QStringLiteral("%1 %2: %3 x %4, %5 bytes, %6 mip levels\n").arg(validateOnly ? QStringLiteral("Validated") : (dryRun ? QStringLiteral("Would write") : QStringLiteral("Wrote")), validateOnly ? input : output).arg(document.size().width()).arg(document.size().height()).arg(result.bytes.size()).arg(result.mipLevels.size())); }
+		else {
+			std::cout << text(QStringLiteral("%1 %2: %3 x %4, %5 bytes, %6 mip levels, %7 frames\n").arg(validateOnly ? QStringLiteral("Validated") : (dryRun ? QStringLiteral("Would write") : QStringLiteral("Wrote")), validateOnly ? input : output).arg(document.size().width()).arg(document.size().height()).arg(result.bytes.size()).arg(result.mipLevels.size()).arg(result.frames.size()));
+			for (const auto& companion : result.companions) { std::cout << text(QStringLiteral("  with %1 (%2 bytes)\n").arg(stagingOnly || validateOnly ? companion.path : textureExportCompanionPath(output, companion)).arg(companion.bytes.size())); }
+		}
 		for (const auto& warning : result.warnings) { std::cout << text(warning) << "\n"; }
 	}
 	return succeeded ? 0 : static_cast<int>(CliExitCode::ValidationFailed);
@@ -14115,9 +14136,21 @@ int runTexturePaletteCommand(const QString& commandName, const QString& packageP
 		}
 		resolution = resolveIdTechPalette(archive, paletteId);
 	}
+	// --output writes the resolved colours as raw RGB, as the editor's Save Palette As does.
+	const QString output = optionValue(args, QStringLiteral("--output"));
+	const bool dryRun = hasOption(args, QStringLiteral("--dry-run"));
+	if (!output.isEmpty()) {
+		QString writeError; TextureOutputTarget target;
+		if (!resolution.palette.isValid() || !inspectTextureOutputTarget(output, hasOption(args, QStringLiteral("--overwrite")), &target, &writeError) ||
+			!writeTextureOutput(target, encodeRawTexturePalette(resolution.palette.colors), dryRun, &writeError)) {
+			return printCliError(commandName, CliExitCode::ValidationFailed, writeError.isEmpty() ? QStringLiteral("There is no 256-colour palette to write.") : writeError, format);
+		}
+	}
 
 	if (format == CliOutputFormat::Json) {
 		QJsonObject object = cliResultJson(commandName);
+		object.insert(QStringLiteral("outputPath"), output); object.insert(QStringLiteral("dryRun"), dryRun);
+		object.insert(QStringLiteral("written"), !output.isEmpty() && !dryRun);
 		object.insert(QStringLiteral("paletteId"), resolution.palette.id);
 		object.insert(QStringLiteral("displayName"), resolution.palette.displayName);
 		object.insert(QStringLiteral("fromPackage"), resolution.fromPackage);
