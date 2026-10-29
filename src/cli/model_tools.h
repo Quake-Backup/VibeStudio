@@ -52,6 +52,9 @@ ModelToolsCliResult runModelCurves(const QStringList &arguments);
 ModelToolsCliResult runModelCurveKeys(const QStringList &arguments);
 ModelToolsCliResult runModelCurveTransfer(const QStringList &arguments);
 ModelToolsCliResult runModelUvDensity(const QStringList &arguments);
+// `model uv --health`: read-only UV health (core/model_uv_health.h); exit 4
+// when a --fail-on problem is found, with the report in the payload.
+ModelToolsCliResult runModelUvHealth(const QStringList &arguments);
 ModelToolsCliResult runModelSkinning(const QStringList &arguments);
 // `model pose`: skeletal bind, clip and sampled-pose authoring.
 ModelToolsCliResult runModelPose(const QStringList &arguments);

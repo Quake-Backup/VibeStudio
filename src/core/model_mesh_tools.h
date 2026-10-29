@@ -81,7 +81,12 @@ enum class ModelUvProjection
 	Cube,
 	View,
 	Cylinder,
-	Sphere
+	Sphere,
+	// Quake MDL front/back skin: faces facing along the tool axis fill the
+	// left half and the others the right half, offset by exactly half the
+	// skin width so the MDL writer pairs silhouette corners as onseam
+	// vertices (core/model_uv_frontback.cpp).
+	QuakeFrontBack
 };
 enum class ModelBisectKeep
 {

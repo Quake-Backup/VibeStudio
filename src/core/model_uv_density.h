@@ -15,6 +15,11 @@ struct ModelUvDensityOptions
 	int referenceFrame = 0;
 	double target = 1;		// pixels per model unit, using square-root area ratio
 	bool individual = true; // false applies one factor, preserving relative density
+	// Other whole surfaces matched in the same edit, beside the selected
+	// islands of the active surface, and the original skin size of any surface
+	// whose material differs from textureSize (core/model_uv_density.h).
+	QSet<int> surfaces{};
+	QHash<int, QSize> surfaceSizes{};
 	bool operator==(const ModelUvDensityOptions &) const = default;
 };
 struct ModelUvDensityIsland

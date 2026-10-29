@@ -1,5 +1,9 @@
 #include "app/model_editor_dialog.h"
 #include "app/locale_number.h"
+#include "core/model_mdl.h"
+#include "core/model_targets.h"
+#include "core/model_uv_atlas.h"
+#include "core/level_materials.h"
 
 #include "app/model_uv_view.h"
 #include "app/model_uv_density_dialog.h"
@@ -21,6 +25,7 @@
 #include <QToolBar>
 #include <QVBoxLayout>
 #include <algorithm>
+#include <array>
 
 namespace vibestudio
 {
@@ -68,6 +73,52 @@ QWidget *ModelEditorDialog::createUvView()
 	m_uvMove->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
 													 "Drag the centre square to move selected UVs. Release applies one undo step; "
 													 "Escape cancels. Surface controls provide numeric movement and snapping."));
+	// UV health overlay: shades one problem at a time on the view's worker.
+	tools->addSeparator();
+	m_uvHealthOverlay = new QComboBox;
+	m_uvHealthOverlay->setObjectName(QStringLiteral("meshUvHealthOverlay"));
+	m_uvHealthOverlay->addItems({QCoreApplication::translate("ModelUvHealth", "No UV problems shown"),
+								 QCoreApplication::translate("ModelUvHealth", "Stretched faces"),
+								 QCoreApplication::translate("ModelUvHealth", "Overlapping faces"),
+								 QCoreApplication::translate("ModelUvHealth", "Flipped faces"),
+								 QCoreApplication::translate("ModelUvHealth", "Faces outside the tile")});
+	m_uvHealthOverlay->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+	m_uvHealthOverlay->setMinimumContentsLength(12);
+	m_uvHealthOverlay->setAccessibleName(QCoreApplication::translate("ModelUvHealth", "UV problem overlay"));
+	m_uvHealthOverlay->setToolTip(QCoreApplication::translate(
+		"ModelUvHealth", "Shade one kind of UV problem in the UV view. Each kind has its own hatching and the view's legend counts the "
+						 "faces. Stretch is measured against the displayed pose and the skin's original size."));
+	m_uvHealthOverlay->setAccessibleDescription(m_uvHealthOverlay->toolTip());
+	tools->addWidget(m_uvHealthOverlay);
+	m_uvHealthStretch = new QDoubleSpinBox;
+	m_uvHealthStretch->setObjectName(QStringLiteral("meshUvHealthStretch"));
+	m_uvHealthStretch->setRange(1.01, 100);
+	m_uvHealthStretch->setDecimals(2);
+	m_uvHealthStretch->setSingleStep(0.1);
+	m_uvHealthStretch->setValue(1.5);
+	m_uvHealthStretch->setLayoutDirection(Qt::LeftToRight);
+	m_uvHealthStretch->setAccessibleName(QCoreApplication::translate("ModelUvHealth", "UV stretch limit"));
+	m_uvHealthStretch->setToolTip(QCoreApplication::translate(
+		"ModelUvHealth", "Faces whose texels are stretched or squashed by more than this factor, against their island's average "
+						 "density, count as stretched. 1 is no stretch."));
+	m_uvHealthStretch->setAccessibleDescription(m_uvHealthStretch->toolTip());
+	tools->addWidget(m_uvHealthStretch);
+	auto *problems = action(QCoreApplication::translate("ModelUvHealth", "Select Shown Problems"), QStringLiteral("selectMeshUvProblems"));
+	problems->setToolTip(QCoreApplication::translate("ModelUvHealth", "Select the faces the UV problem overlay shades. The model is not changed."));
+	auto *check = action(QCoreApplication::translate("ModelUvHealth", "Check UV Health"), QStringLiteral("checkMeshUvHealth"));
+	check->setToolTip(QCoreApplication::translate(
+		"ModelUvHealth", "Report stretched, overlapping, flipped, collapsed and out-of-tile faces, the largest texel-centre error, the "
+						 "MDL, MD2 and MD3 vertices an export would store, and the GLQuake skin flood-fill hazard for an MDL."));
+	connect(problems, &QAction::triggered, this,
+			[this]
+			{
+				const auto mask = modelUvHealthOverlayMask(ModelUvHealthOverlay(m_uvHealthOverlay->currentIndex()));
+				if (mask)
+					selectUvProblems(mask);
+			});
+	connect(check, &QAction::triggered, this, [this] { checkUvHealth(); });
+	connect(m_uvHealthOverlay, &QComboBox::currentIndexChanged, this, [this] { refreshUv(); });
+	connect(m_uvHealthStretch, &QDoubleSpinBox::valueChanged, this, [this] { refreshUv(); });
 	layout->addWidget(tools);
 	layout->addWidget(m_uv, 1);
 	connect(all, &QAction::triggered, m_uv, &ModelUvView::frameAll);
@@ -348,7 +399,261 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 						  ModelEditKind::DetachUv);
 	detach->setToolTip(QCoreApplication::translate(
 		"VibeStudioModelEditor", "Split selected faces from unselected neighbours without moving UVs or changing poses and normals. Select "
-								 "one island to detach it; clearing seam marks does not weld existing split vertices."));
+								 "one island to detach it; Weld UVs joins split corners again."));
+	detach->setAccessibleDescription(detach->toolTip());
+	// UV operators (core/model_uv_ops.h): each is one undo step.
+	const auto toolButton = [&](const QString &label, const QString &name, ModelEditKind kind, const QString &tip)
+	{
+		auto *item = new WrappingActionButton(label, 2);
+		item->setObjectName(name);
+		item->setProperty("requiresMeshComponents", true);
+		item->setToolTip(tip);
+		item->setAccessibleName(label);
+		item->setAccessibleDescription(tip);
+		surface->addRow(item);
+		connect(item, &QPushButton::clicked, this, [this, kind] { runUvTool(kind); });
+		return item;
+	};
+	m_uvWeldTolerance = new QDoubleSpinBox;
+	m_uvWeldTolerance->setObjectName(QStringLiteral("meshUvWeldTolerance"));
+	m_uvWeldTolerance->setDecimals(6);
+	m_uvWeldTolerance->setRange(0, 1);
+	m_uvWeldTolerance->setSingleStep(0.001);
+	m_uvWeldTolerance->setLayoutDirection(Qt::LeftToRight);
+	m_uvWeldTolerance->setAccessibleName(QCoreApplication::translate("ModelUvOps", "UV weld distance"));
+	m_uvWeldTolerance->setToolTip(QCoreApplication::translate(
+		"ModelUvOps", "Split UV corners join when their UVs are at most this far apart (one unit is one texture tile). Zero joins only "
+					  "corners at exactly the same UV, such as those Detach UV Faces split."));
+	m_uvWeldTolerance->setAccessibleDescription(m_uvWeldTolerance->toolTip());
+	surface->addRow(QCoreApplication::translate("ModelUvOps", "Weld Distance"), m_uvWeldTolerance);
+	toolButton(QCoreApplication::translate("ModelUvOps", "Weld UVs"), QStringLiteral("weldMeshUvs"), ModelEditKind::WeldUv,
+			   QCoreApplication::translate("ModelUvOps", "Join the selected corners with their split copies where position and normal match in "
+														 "every pose, at their mean UV. Seam marks stay; clear them to merge the islands."));
+	toolButton(QCoreApplication::translate("ModelUvOps", "Stitch UVs"), QStringLiteral("stitchMeshUvs"), ModelEditKind::StitchUv,
+			   QCoreApplication::translate("ModelUvOps", "In edge selection, choose boundary edges of a UV seam. The smaller island turns and "
+														 "moves, never mirrored or scaled, so the edges meet; the corners then weld."));
+	m_uvAlignMode = new QComboBox;
+	m_uvAlignMode->setObjectName(QStringLiteral("meshUvAlignMode"));
+	m_uvAlignMode->addItems({QCoreApplication::translate("ModelUvOps", "U to minimum"), QCoreApplication::translate("ModelUvOps", "U to centre"),
+							 QCoreApplication::translate("ModelUvOps", "U to maximum"), QCoreApplication::translate("ModelUvOps", "V to minimum"),
+							 QCoreApplication::translate("ModelUvOps", "V to centre"), QCoreApplication::translate("ModelUvOps", "V to maximum"),
+							 QCoreApplication::translate("ModelUvOps", "Straighten")});
+	m_uvAlignMode->setCurrentIndex(1);
+	m_uvAlignMode->setAccessibleName(QCoreApplication::translate("ModelUvOps", "UV alignment"));
+	m_uvAlignMode->setToolTip(QCoreApplication::translate(
+		"ModelUvOps", "Line the selected UV corners up on U or V at their lowest, middle or highest value, or straighten them onto the "
+					  "line between the two corners farthest apart. Faces sharing those corners follow."));
+	m_uvAlignMode->setAccessibleDescription(m_uvAlignMode->toolTip());
+	surface->addRow(QCoreApplication::translate("ModelUvOps", "Align"), m_uvAlignMode);
+	toolButton(QCoreApplication::translate("ModelUvOps", "Align UVs"), QStringLiteral("alignMeshUvs"), ModelEditKind::AlignUv,
+			   m_uvAlignMode->toolTip());
+	m_uvSnapMode = new QComboBox;
+	m_uvSnapMode->setObjectName(QStringLiteral("meshUvSnapMode"));
+	m_uvSnapMode->addItems(
+		{QCoreApplication::translate("ModelUvOps", "Texel centres"), QCoreApplication::translate("ModelUvOps", "Texel corners")});
+	m_uvSnapMode->setAccessibleName(QCoreApplication::translate("ModelUvOps", "Texel snapping"));
+	m_uvSnapMode->setToolTip(QCoreApplication::translate(
+		"ModelUvOps", "Texel centres are where MDL and MD2 store UVs, so an export after snapping loses nothing. The grid is the MDL skin "
+					  "size for an MDL, else the MD2 skin size."));
+	m_uvSnapMode->setAccessibleDescription(m_uvSnapMode->toolTip());
+	surface->addRow(QCoreApplication::translate("ModelUvOps", "Snap To"), m_uvSnapMode);
+	toolButton(QCoreApplication::translate("ModelUvOps", "Snap UVs to Texels"), QStringLiteral("snapMeshUvTexels"), ModelEditKind::SnapUvTexels,
+			   m_uvSnapMode->toolTip());
+	// Unwrap method and packing choices, read by Unwrap and Pack.
+	m_uvUnwrapMethod = new QComboBox;
+	m_uvUnwrapMethod->setObjectName(QStringLiteral("meshUvUnwrapMethod"));
+	m_uvUnwrapMethod->addItems({QCoreApplication::translate("ModelUvOps", "Automatic charts"),
+								QCoreApplication::translate("ModelUvOps", "Conformal (seams only)")});
+	m_uvUnwrapMethod->setAccessibleName(QCoreApplication::translate("ModelUvOps", "UV unwrap method"));
+	m_uvUnwrapMethod->setToolTip(QCoreApplication::translate(
+		"ModelUvOps", "Automatic charts may add cuts of their own. Conformal makes exactly one island per seam-bounded region with "
+					  "least squares conformal maps; a closed region needs a seam first. In vertex selection, the selected vertices pin "
+					  "their UVs and their islands unwrap."));
+	m_uvUnwrapMethod->setAccessibleDescription(m_uvUnwrapMethod->toolTip());
+	surface->addRow(QCoreApplication::translate("ModelUvOps", "Unwrap Method"), m_uvUnwrapMethod);
+	m_uvUnwrapPack = new WrappingCheckBox(QCoreApplication::translate("ModelUvOps", "Pack after a conformal unwrap"));
+	m_uvUnwrapPack->setObjectName(QStringLiteral("meshUvUnwrapPack"));
+	m_uvUnwrapPack->setChecked(true);
+	m_uvUnwrapPack->setAccessibleName(m_uvUnwrapPack->text());
+	m_uvUnwrapPack->setToolTip(QCoreApplication::translate(
+		"ModelUvOps", "Turn off to keep conformal islands in a row at one density, or where two or more pinned corners put them."));
+	m_uvUnwrapPack->setAccessibleDescription(m_uvUnwrapPack->toolTip());
+	surface->addRow(m_uvUnwrapPack);
+	m_uvPackRotate = new WrappingCheckBox(QCoreApplication::translate("ModelUvOps", "Turn islands when packing"));
+	m_uvPackRotate->setObjectName(QStringLiteral("meshUvPackRotate"));
+	m_uvPackRotate->setAccessibleName(m_uvPackRotate->text());
+	m_uvPackRotate->setToolTip(QCoreApplication::translate(
+		"ModelUvOps", "Pack Selected UVs and a packed conformal unwrap also try every island a quarter turn round, keeping whichever fits "
+					  "densest. Islands are never mirrored."));
+	m_uvPackRotate->setAccessibleDescription(m_uvPackRotate->toolTip());
+	surface->addRow(m_uvPackRotate);
+	m_uvPackShared = new WrappingCheckBox(QCoreApplication::translate("ModelUvOps", "Pack with surfaces sharing this material"));
+	m_uvPackShared->setObjectName(QStringLiteral("meshUvPackShared"));
+	m_uvPackShared->setAccessibleName(m_uvPackShared->text());
+	m_uvPackShared->setToolTip(QCoreApplication::translate(
+		"ModelUvOps", "Pack Selected UVs also packs every face of the other surfaces bound to the same material slot into the same atlas, "
+					  "so islands from different surfaces never overlap."));
+	m_uvPackShared->setAccessibleDescription(m_uvPackShared->toolTip());
+	surface->addRow(m_uvPackShared);
+	connect(m_uvUnwrapMethod, &QComboBox::currentIndexChanged, this, [this] { refreshUv(); });
+}
+
+void ModelEditorDialog::configureUvAtlasTools(ModelEdit *edit) const
+{
+	if (!m_uvUnwrapMethod)
+		return;
+	auto &tools = edit->uvTools;
+	const bool conformal = edit->kind == ModelEditKind::UnwrapUv && m_uvUnwrapMethod->currentIndex() == 1;
+	tools.unwrapMethod = conformal ? ModelUvUnwrapMethod::Conformal : ModelUvUnwrapMethod::Automatic;
+	tools.unwrapPack = !conformal || m_uvUnwrapPack->isChecked();
+	tools.packRotate = m_uvPackRotate->isChecked() && (edit->kind == ModelEditKind::PackUv || (conformal && tools.unwrapPack));
+	const auto &mesh = m_document.mesh();
+	const int active = edit->selection.surface;
+	if (edit->kind == ModelEditKind::PackUv && m_uvPackShared->isChecked() && active >= 0 && active < mesh.surfaces.size())
+		for (int s = 0; s < mesh.surfaces.size(); ++s)
+			if (s != active && modelUvSurfacesShareMaterial(mesh.surfaces[active], mesh.surfaces[s]))
+				tools.packSurfaces.insert(s);
+	// In vertex selection, a conformal unwrap pins the selected vertices and
+	// unwraps their islands.
+	if (conformal && edit->selection.faces.isEmpty() && !edit->selection.vertices.isEmpty() && active >= 0 && active < mesh.surfaces.size())
+	{
+		ModelUvTopology topology;
+		QSet<int> faces;
+		if (buildModelUvTopology(mesh.surfaces[active], &topology) &&
+			expandModelUvIslands(mesh.surfaces[active], topology, {}, edit->selection.vertices, {}, &faces))
+			edit->selection.faces = faces;
+	}
+}
+
+void ModelEditorDialog::rememberUvTransferSource(const ModelMesh &before, const ModelEdit &edit)
+{
+	static constexpr std::array uvKinds{ModelEditKind::TransformUv, ModelEditKind::ProjectUv,	   ModelEditKind::DetachUv,
+										ModelEditKind::UnwrapUv,	ModelEditKind::PackUv,		   ModelEditKind::PackUvAround,
+										ModelEditKind::SetUvDensity, ModelEditKind::ProjectUvMapping, ModelEditKind::WeldUv,
+										ModelEditKind::StitchUv,	ModelEditKind::AlignUv,		   ModelEditKind::SnapUvTexels};
+	const int surface = edit.selection.surface;
+	if (std::find(uvKinds.cbegin(), uvKinds.cend(), edit.kind) == uvKinds.cend() || surface < 0 || surface >= before.surfaces.size())
+	{
+		m_uvTransferSurface = -1;
+		m_uvTransferBefore = {};
+		return;
+	}
+	// Consecutive UV edits on one surface keep the layout from before the
+	// first, which is what the painted skin matches.
+	if (m_uvTransferSurface != surface)
+	{
+		m_uvTransferBefore = before.surfaces[surface];
+		m_uvTransferSurface = surface;
+	}
+	m_uvTransferRevision = m_document.revisionFingerprint();
+}
+
+bool ModelEditorDialog::canTransferSkin() const
+{
+	const auto &mesh = m_document.mesh();
+	return m_uvTransferSurface >= 0 && m_uvTransferSurface < mesh.surfaces.size() && m_uvTransferRevision == m_document.revisionFingerprint() &&
+		   m_uvTransferBefore.triangles.size() == mesh.surfaces[m_uvTransferSurface].triangles.size();
+}
+
+bool ModelEditorDialog::runUvTool(ModelEditKind kind, QString *error)
+{
+	if (m_working || m_document.mesh().surfaces.isEmpty() || !isModelUvToolEdit(kind))
+		return false;
+	ModelEdit edit;
+	edit.kind = kind;
+	edit.selection = m_document.selection();
+	auto &tools = edit.uvTools;
+	if (kind == ModelEditKind::WeldUv)
+		tools.weldTolerance = m_uvWeldTolerance->value();
+	if (kind == ModelEditKind::AlignUv)
+	{
+		const int align = m_uvAlignMode->currentIndex();
+		tools.alignAxis = align >= 3 && align < 6 ? 1 : 0;
+		tools.alignMode = align == 6 ? ModelUvAlignMode::Straighten
+						  : align % 3 == 0 ? ModelUvAlignMode::Minimum
+						  : align % 3 == 1 ? ModelUvAlignMode::Centre
+										   : ModelUvAlignMode::Maximum;
+	}
+	if (kind == ModelEditKind::SnapUvTexels)
+		tools.snapMode = m_uvSnapMode->currentIndex() == 1 ? ModelUvSnapMode::Corners : ModelUvSnapMode::Centres;
+	QString failure;
+	if (!applyEdit(edit, &failure))
+	{
+		if (error)
+			*error = failure;
+		m_status->setText(failure, LiveStatus::Problem);
+		return false;
+	}
+	const auto size = modelUvSnapSize(m_document.mesh());
+	const int vertices = m_document.mesh().surfaces[m_document.selection().surface].vertexCount;
+	switch (kind)
+	{
+	case ModelEditKind::WeldUv:
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "Welded UV corners; the surface now has %Ln vertices.", nullptr, vertices),
+						  LiveStatus::Result);
+		break;
+	case ModelEditKind::StitchUv:
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "Stitched the seam; the surface now has %Ln vertices.", nullptr, vertices),
+						  LiveStatus::Result);
+		break;
+	case ModelEditKind::AlignUv:
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "Aligned the selected UVs."), LiveStatus::Result);
+		break;
+	default:
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "Snapped the selected UVs to the %L1 × %L2 texel grid.")
+							  .arg(size.width())
+							  .arg(size.height()),
+						  LiveStatus::Result);
+		break;
+	}
+	return true;
+}
+
+bool ModelEditorDialog::layoutQuakeFrontBack(int axis, QString *error)
+{
+	if (m_working || m_document.mesh().surfaces.isEmpty())
+		return false;
+	ModelEdit edit;
+	edit.kind = ModelEditKind::ProjectUvMapping;
+	edit.selection = m_document.selection();
+	edit.selection.vertices.clear();
+	edit.selection.edges.clear();
+	const auto &surface = m_document.mesh().surfaces[edit.selection.surface];
+	if (edit.selection.faces.isEmpty())
+		for (int face = 0; face < surface.triangles.size(); ++face)
+			edit.selection.faces.insert(face);
+	edit.tool.uvProjection = ModelUvProjection::QuakeFrontBack;
+	edit.tool.axis = std::clamp(axis, 0, 2);
+	edit.tool.referenceFrame = std::clamp(m_preview->frame(), 0, std::max(0, int(m_document.mesh().frames.size()) - 1));
+	QString failure;
+	if (!applyEdit(edit, &failure))
+	{
+		if (error)
+			*error = failure;
+		m_status->setText(failure, LiveStatus::Problem);
+		return false;
+	}
+	const auto &mesh = m_document.mesh();
+	const auto size = modelUvSnapSize(mesh);
+	int stored = 0, render = 0;
+	ModelTargetProfile target;
+	findModelTargetProfile(QStringLiteral("mdl"), deliveryTarget(QStringLiteral("mdl")), &target);
+	if (mesh.mdl.enabled && mesh.surfaces.size() == 1 && modelMdlVertexCounts(mesh, &stored, &render))
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "Laid out front and back halves on %L1 × %L2 texels. The MDL stores %L3 "
+																	"vertices (%4 allows %L5), %L6 of them on the seam.")
+							  .arg(size.width())
+							  .arg(size.height())
+							  .arg(stored)
+							  .arg(target.label)
+							  .arg(target.limits.vertices)
+							  .arg(render - stored),
+						  LiveStatus::Result);
+	else
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "Laid out front and back halves on %L1 × %L2 texels.")
+							  .arg(size.width())
+							  .arg(size.height()),
+						  LiveStatus::Result);
+	return true;
 }
 
 void ModelEditorDialog::refreshUv()
@@ -366,7 +671,8 @@ void ModelEditorDialog::refreshUv()
 	const bool meshMode = m_selectionMode->currentIndex() < 3 && selected.tag.isEmpty() && selected.collision.isEmpty() && selected.surfaces.isEmpty();
 	findChild<QAction *>(QStringLiteral("selectMeshUvIslands"))->setEnabled(meshMode);
 	const bool atlasSelection = meshMode && !selected.faces.isEmpty() && selected.vertices.isEmpty() && selected.edges.isEmpty();
-	m_uvUnwrap->setEnabled(atlasSelection);
+	const bool conformal = m_uvUnwrapMethod && m_uvUnwrapMethod->currentIndex() == 1;
+	m_uvUnwrap->setEnabled(atlasSelection || (conformal && meshMode && !selected.vertices.isEmpty() && selected.edges.isEmpty()));
 	m_uvPack->setEnabled(atlasSelection);
 	m_uvPackAround->setEnabled(atlasSelection);
 	m_uvObstacleScale->setEnabled(atlasSelection);
@@ -374,7 +680,141 @@ void ModelEditorDialog::refreshUv()
 	m_uvPickIslands->setEnabled(m_selectionMode->currentIndex() == 0);
 	m_uv->setPickMode(m_selectionMode->currentIndex() == 0 && m_uvPickIslands->isChecked() ? 3 : m_selectionMode->currentIndex());
 	m_uv->setMoveEnabled(meshMode && m_uvMove->isChecked(), m_uvSnap->isChecked() ? m_uvGrid->value() : 0);
+	const auto overlay = ModelUvHealthOverlay(m_uvHealthOverlay->currentIndex());
+	const int pose = std::clamp(m_preview->frame(), 0, std::max(0, int(surface.frames.size()) - 1));
+	m_uv->setHealthOverlay(overlay, overlay == ModelUvHealthOverlay::None || surface.frames.isEmpty() ? QVector<ModelVec3>{} : surface.frames[pose].positions,
+						   uvSkinSize(selected.surface), m_uvHealthStretch->value());
+	m_uvHealthStretch->setEnabled(overlay == ModelUvHealthOverlay::Stretch);
+	findChild<QAction *>(QStringLiteral("selectMeshUvProblems"))->setEnabled(meshMode && overlay != ModelUvHealthOverlay::None);
 	m_uv->setSource(surface, selected, image);
+}
+
+QSize ModelEditorDialog::uvSkinSize(int surface) const
+{
+	if (m_preview->mdlPlaybackActive() && !m_preview->mdlPlaybackSkin().isNull())
+		return m_preview->mdlPlaybackSkin().size();
+	if (!m_mdlPreview.isNull())
+		return m_mdlPreview.size();
+	for (const auto &material : m_materialAssets.materials)
+		if (material.key == modelPreviewSurfaceMaterialKey(surface) && material.sourceSize.isValid() && !material.sourceSize.isEmpty())
+			return material.sourceSize;
+	return modelUvHealthDefaultTextureSize(m_document.mesh());
+}
+
+bool ModelEditorDialog::selectUvProblems(quint8 flags, QString *error)
+{
+	if (m_working || m_document.mesh().surfaces.isEmpty() || m_selectionMode->currentIndex() >= 3)
+	{
+		const auto message = QCoreApplication::translate("ModelUvHealth", "Switch to face, vertex or edge selection to select UV problems.");
+		if (error)
+			*error = message;
+		m_status->setText(message, LiveStatus::Problem);
+		return false;
+	}
+	ModelUvHealthOptions options;
+	options.textureSize = uvSkinSize(m_document.selection().surface);
+	options.referenceFrame = std::clamp(m_preview->frame(), 0, std::max(0, int(m_document.mesh().frames.size()) - 1));
+	options.stretchLimit = m_uvHealthStretch->value();
+	int count = 0;
+	QString failure;
+	if (!performWork(
+			QCoreApplication::translate("ModelUvHealth", "Select UV Problems"),
+			[options, flags, &count](ModelDocument &candidate, QString *problem, const ModelWorkControl &control)
+			{
+				auto selected = candidate.selection();
+				ModelUvHealthReport report;
+				if (!inspectModelUvSurfaceHealth(candidate.mesh().surfaces[selected.surface], options, &report, problem, control))
+					return false;
+				const auto faces = report.faces(flags);
+				count = int(faces.size());
+				selected.faces = QSet<int>(faces.cbegin(), faces.cend());
+				selected.vertices.clear();
+				selected.edges.clear();
+				candidate.setSelection(selected);
+				return true;
+			},
+			&failure))
+	{
+		if (error)
+			*error = failure;
+		m_status->setText(failure);
+		return false;
+	}
+	{
+		QSignalBlocker blocker(m_selectionMode);
+		m_selectionMode->setCurrentIndex(0);
+	}
+	refresh();
+	if (count)
+		m_status->setText(QCoreApplication::translate("ModelUvHealth", "Selected %Ln faces with this UV problem.", nullptr, count),
+						  LiveStatus::Result);
+	else
+		m_status->setText(QCoreApplication::translate("ModelUvHealth", "No face has this UV problem. The selection is now empty."),
+						  LiveStatus::Result);
+	return true;
+}
+
+bool ModelEditorDialog::checkUvHealth(ModelUvHealthReport *result, QString *error)
+{
+	if (m_document.mesh().surfaces.isEmpty())
+		return false;
+	ModelUvHealthOptions options;
+	const int surface = m_document.selection().surface;
+	options.textureSize = uvSkinSize(surface);
+	options.referenceFrame = std::clamp(m_preview->frame(), 0, std::max(0, int(m_document.mesh().frames.size()) - 1));
+	options.stretchLimit = m_uvHealthStretch->value();
+	ModelUvHealthReport report;
+	QString failure;
+	if (!performWork(
+			QCoreApplication::translate("ModelUvHealth", "Check UV Health"),
+			[options, surface, &report](ModelDocument &candidate, QString *problem, const ModelWorkControl &control)
+			{ return inspectModelUvHealth(candidate.mesh(), surface, options, &report, problem, control); },
+			&failure))
+	{
+		if (error)
+			*error = failure;
+		m_status->setText(failure);
+		return false;
+	}
+	const int overlapping = int(report.overlapping.size()), flipped = int(report.flipped.size()), outside = int(report.outside.size());
+	const int stretched = int(report.stretched.size()), collapsed = int(report.collapsedUv.size() + report.collapsedGeometry.size());
+	QStringList parts;
+	parts << QCoreApplication::translate("ModelUvHealth", "UV health for %1 against %L2 × %L3 texels. Faces overlapping: %L4; flipped: %L5; "
+										 "stretched: %L6; collapsed: %L7; outside the tile: %L8.")
+				 .arg(m_document.mesh().surfaces[surface].name)
+				 .arg(report.textureSize.width())
+				 .arg(report.textureSize.height())
+				 .arg(overlapping)
+				 .arg(flipped)
+				 .arg(stretched)
+				 .arg(collapsed)
+				 .arg(outside);
+	if (report.overlapLimitReached)
+		parts << QCoreApplication::translate("ModelUvHealth", "The overlap check reached its work limit; select fewer faces or split the surface.");
+	if (report.mirroredIslands)
+	{
+		const int mirrored = report.mirroredIslands;
+		parts << QCoreApplication::translate("ModelUvHealth", "Mirrored islands: %L1.").arg(mirrored);
+	}
+	parts << QCoreApplication::translate("ModelUvHealth", "Largest texel-centre error %1 texels.").arg(localeNumber(report.maxTexelError, 3));
+	for (const auto &native : report.native)
+	{
+		if (!native.available)
+			continue;
+		const auto format = native.format.toUpper();
+		if (native.limit > 0)
+			parts << QCoreApplication::translate("ModelUvHealth", "%1 stores %L2 of %L3 vertices.").arg(format).arg(native.stored).arg(native.limit);
+		else
+			parts << QCoreApplication::translate("ModelUvHealth", "%1 stores %L2 vertices.").arg(format).arg(native.stored);
+	}
+	if (report.floodFillHazard())
+		parts << QCoreApplication::translate("ModelUvHealth", "GLQuake's skin flood fill reaches %Ln used texels; keep the first texel's colour out "
+											 "of painted areas.", nullptr, report.floodFillUsedTexels);
+	const bool problems = overlapping || flipped || stretched || collapsed || outside || report.floodFillHazard() || report.overlapLimitReached;
+	m_status->setText(parts.join(QLatin1Char(' ')), problems ? LiveStatus::Problem : LiveStatus::Result);
+	if (result)
+		*result = std::move(report);
+	return true;
 }
 
 void ModelEditorDialog::editUvDensity()

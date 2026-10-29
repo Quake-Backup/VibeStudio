@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/model_uv_render.h"
+#include "core/model_uv_health.h"
 
 #include <QLabel>
 #include <QThread>
@@ -11,6 +12,17 @@ struct ModelUvHit
 {
 	int kind = -1, a = -1, b = -1;
 };
+// What the UV view's health overlay shows (core/model_uv_health.h).
+enum class ModelUvHealthOverlay
+{
+	None,
+	Stretch,
+	Overlaps,
+	Flipped,
+	OutsideTile
+};
+// The face bits an overlay shows.
+[[nodiscard]] quint8 modelUvHealthOverlayMask(ModelUvHealthOverlay overlay);
 class ModelUvView final : public QLabel
 {
 	Q_OBJECT
@@ -23,6 +35,17 @@ class ModelUvView final : public QLabel
 	void setPlaybackTexture(const QImage &texture);
 	void setPickMode(int mode);
 	void setMoveEnabled(bool enabled, double grid = 0);
+	// Measures UV health on the render worker against `referencePositions`
+	// (one per surface vertex) and a skin of `textureSize`, and shades the
+	// faces `overlay` names. None clears it.
+	void setHealthOverlay(ModelUvHealthOverlay overlay, const QVector<ModelVec3> &referencePositions, QSize textureSize,
+						  double stretchLimit = 1.5);
+	[[nodiscard]] ModelUvHealthOverlay healthOverlay() const { return m_overlay; }
+	// The last measured health for the shown layout; null without an overlay
+	// or before the worker finished.
+	[[nodiscard]] const ModelUvHealthReport *health() const { return m_health.get(); }
+	// The overlay's legend and count, for the status chip and screen readers.
+	[[nodiscard]] QString healthLegend() const;
 	void frameAll();
 	void frameSelection();
 	void panView(QPointF delta);
@@ -78,6 +101,10 @@ class ModelUvView final : public QLabel
 	Qt::MouseButton m_button = Qt::NoButton;
 	ModelTexCoord m_delta;
 	QString m_error;
+	ModelUvHealthOverlay m_overlay = ModelUvHealthOverlay::None;
+	QVector<ModelVec3> m_healthPositions;
+	ModelUvHealthOptions m_healthOptions;
+	std::shared_ptr<const ModelUvHealthReport> m_health;
 	void requestRender(bool retire = false);
 	void startRender();
 	void announce();

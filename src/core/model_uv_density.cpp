@@ -145,75 +145,115 @@ bool applyModelUvDensity(ModelMesh *mesh, const ModelEdit &edit, ModelSelection 
 	if (!mesh || !selection || selection->surface < 0 || selection->surface >= mesh->surfaces.size() || edit.frame != -1 ||
 		!std::isfinite(o.target) || o.target < .000001 || o.target > 1000000)
 		return fail(error, Text::tr("UV density spans every pose and needs a target from 0.000001 to 1,000,000 pixels per model unit."));
-	const auto &source = mesh->surfaces[selection->surface];
-	ModelUvTopology topology;
-	QSet<int> faces;
-	if (!buildModelUvTopology(source, &topology, error, control) ||
-		!expandModelUvIslands(source, topology, selection->faces, selection->vertices, selection->edges, &faces, error, control))
-		return false;
-	if (faces.isEmpty())
-		return fail(error, Text::tr("Select mesh components or complete UV islands before setting density."));
-	ModelUvDensityReport before;
-	if (!inspectModelUvDensity(source, faces, o.textureSize, o.referenceFrame, &before, error, control))
-		return false;
-	ModelUvIslandTransform transform;
-	QSet<int> changedFaces;
-	transform.referenceFrame = o.referenceFrame;
-	qint64 other = 0;
-	for (int s = 0; s < mesh->surfaces.size(); ++s)
-		if (s != selection->surface)
-			other += mesh->surfaces[s].vertexCount;
-	transform.vertexLimit = int(
-		std::min<qint64>(modelDocumentMaxVertices, modelDocumentMaxFrameVertices / std::max<qsizetype>(1, mesh->frames.size())) - other);
-	for (const auto &row : before.islands)
+	// The active surface's selected islands, then every island of each other
+	// listed surface, each measured against its own skin size.
+	struct Part
 	{
-		if (!work.step())
+		int surface;
+		QSet<int> faces;
+		QSize size;
+		ModelUvDensityReport before;
+	};
+	QVector<Part> parts;
+	{
+		const auto &source = mesh->surfaces[selection->surface];
+		ModelUvTopology topology;
+		QSet<int> faces;
+		if (!buildModelUvTopology(source, &topology, error, control) ||
+			!expandModelUvIslands(source, topology, selection->faces, selection->vertices, selection->edges, &faces, error, control))
 			return false;
-		if (!row.scalable())
-			return fail(
-				error,
-				Text::tr("Island %1 has collapsed geometry or UV faces. Repair or unwrap it before setting density.").arg(row.island));
-		const double factor = o.target / (o.individual ? row.density : before.density);
-		if (std::abs(factor - 1) <= 1e-12)
-			continue;
-		transform.islandScales.insert(row.island, factor);
-		for (int face : row.faces)
+		if (faces.isEmpty())
+			return fail(error, Text::tr("Select mesh components or complete UV islands before setting density."));
+		parts.append({selection->surface, faces, o.textureSize, {}});
+	}
+	auto others = o.surfaces.values();
+	std::sort(others.begin(), others.end());
+	for (auto it = o.surfaceSizes.cbegin(); it != o.surfaceSizes.cend(); ++it)
+		if (!o.surfaces.contains(it.key()) || !validSize(it.value()))
+			return fail(error, Text::tr("Give texture sizes only for the other surfaces being matched, from 1 to 65,536 pixels."));
+	for (int s : others)
+	{
+		if (s < 0 || s >= mesh->surfaces.size() || s == selection->surface)
+			return fail(error, Text::tr("Match density across existing surfaces other than the active one."));
+		QSet<int> all;
+		for (int face = 0; face < mesh->surfaces[s].triangles.size(); ++face)
+			all.insert(face);
+		parts.append({s, all, o.surfaceSizes.value(s, o.textureSize), {}});
+	}
+	double modelArea = 0, pixelArea = 0;
+	for (auto &part : parts)
+	{
+		if (!inspectModelUvDensity(mesh->surfaces[part.surface], part.faces, part.size, o.referenceFrame, &part.before, error, control))
+			return false;
+		modelArea += part.before.modelArea;
+		pixelArea += part.before.pixelArea;
+	}
+	// Group mode keeps relative density across every surface: one factor from
+	// the summed areas, each surface's texels counted on its own skin.
+	const double combined = modelArea > 0 ? std::sqrt(pixelArea / modelArea) : 0;
+	auto candidate = *mesh;
+	for (const auto &part : parts)
+	{
+		const auto &source = candidate.surfaces[part.surface];
+		const auto &before = part.before;
+		ModelUvIslandTransform transform;
+		QSet<int> changedFaces;
+		transform.referenceFrame = o.referenceFrame;
+		qint64 other = 0;
+		for (int s = 0; s < candidate.surfaces.size(); ++s)
+			if (s != part.surface)
+				other += candidate.surfaces[s].vertexCount;
+		transform.vertexLimit = int(
+			std::min<qint64>(modelDocumentMaxVertices, modelDocumentMaxFrameVertices / std::max<qsizetype>(1, candidate.frames.size())) - other);
+		for (const auto &row : before.islands)
 		{
 			if (!work.step())
 				return false;
-			changedFaces.insert(face);
+			if (!row.scalable())
+				return fail(error, Text::tr("Island %1 of surface %2 has collapsed geometry or UV faces. Repair or unwrap it before setting "
+											"density.")
+									   .arg(row.island)
+									   .arg(part.surface));
+			const double factor = o.target / (o.individual ? row.density : combined);
+			if (std::abs(factor - 1) <= 1e-12)
+				continue;
+			transform.islandScales.insert(row.island, factor);
+			for (int face : row.faces)
+			{
+				if (!work.step())
+					return false;
+				changedFaces.insert(face);
+			}
 		}
-	}
-	if (changedFaces.isEmpty())
-	{
-		if (!work.check())
+		if (changedFaces.isEmpty())
+			continue;
+		if (transform.vertexLimit < source.vertexCount)
+			return fail(error, Text::tr("Splitting UV islands would exceed the vertex or animation storage limit."));
+		ModelSurface result;
+		if (!transformModelUvIslands(source, changedFaces, transform, &result, error, control))
 			return false;
-		*selection = {selection->surface, {}, faces};
-		return true;
-	}
-	ModelSurface result;
-	if (!transformModelUvIslands(source, changedFaces, transform, &result, error, control))
-		return false;
-	ModelUvDensityReport after;
-	if (!inspectModelUvDensity(result, faces, o.textureSize, o.referenceFrame, &after, error, control))
-		return false;
-	// Float UV storage can lose very small changes far outside the base tile.
-	// Verify the stored result instead of claiming an unachievable target.
-	for (int i = 0; i < after.islands.size(); ++i)
-	{
-		if (!work.step())
+		ModelUvDensityReport after;
+		if (!inspectModelUvDensity(result, part.faces, part.size, o.referenceFrame, &after, error, control))
 			return false;
-		const double expected = o.individual ? o.target : before.islands[i].density * o.target / before.density;
-		if (!after.islands[i].scalable() || std::abs(after.islands[i].density - expected) > expected * .0001)
-			return fail(
-				error,
-				Text::tr(
-					"Stored UV precision cannot represent this density here. Move islands nearer the origin or choose a larger target."));
+		// Float UV storage can lose very small changes far outside the base tile.
+		// Verify the stored result instead of claiming an unachievable target.
+		for (int i = 0; i < after.islands.size(); ++i)
+		{
+			if (!work.step())
+				return false;
+			const double expected = o.individual ? o.target : before.islands[i].density * o.target / combined;
+			if (!after.islands[i].scalable() || std::abs(after.islands[i].density - expected) > expected * .0001)
+				return fail(
+					error,
+					Text::tr(
+						"Stored UV precision cannot represent this density here. Move islands nearer the origin or choose a larger target."));
+		}
+		candidate.surfaces[part.surface] = std::move(result);
 	}
 	if (!work.check())
 		return false;
-	mesh->surfaces[selection->surface] = std::move(result);
-	*selection = {selection->surface, {}, faces};
+	*mesh = std::move(candidate);
+	*selection = {selection->surface, {}, parts.first().faces};
 	return true;
 }
 } // namespace vibestudio

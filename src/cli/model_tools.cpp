@@ -4,6 +4,7 @@
 #include "core/model_document.h"
 #include "core/model_file_io.h"
 #include "core/model_lod.h"
+#include "core/model_mdl.h"
 #include "core/model_mesh_tools.h"
 #include "core/model_selection_tools.h"
 #include "core/model_target_prepare.h"
@@ -325,7 +326,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("add"), ModelEditKind::AddPrimitive},				{QStringLiteral("decimate"), ModelEditKind::Decimate},
 		{QStringLiteral("bevel-vertices"), ModelEditKind::BevelVertices},	{QStringLiteral("solidify"), ModelEditKind::Solidify},
 		{QStringLiteral("uv-cube"), ModelEditKind::ProjectUvMapping},		{QStringLiteral("uv-view"), ModelEditKind::ProjectUvMapping},
-		{QStringLiteral("uv-cylinder"), ModelEditKind::ProjectUvMapping},	{QStringLiteral("uv-sphere"), ModelEditKind::ProjectUvMapping}};
+		{QStringLiteral("uv-cylinder"), ModelEditKind::ProjectUvMapping},	{QStringLiteral("uv-sphere"), ModelEditKind::ProjectUvMapping},
+		{QStringLiteral("uv-quake-frontback"), ModelEditKind::ProjectUvMapping}};
 	const auto toolName = args.values.value(QStringLiteral("--tool"));
 	if (!tools.contains(toolName))
 	{
@@ -375,7 +377,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("uv-cube"), {QStringLiteral("--faces"), QStringLiteral("--tile-size"), QStringLiteral("--fit")}},
 		{QStringLiteral("uv-view"), {QStringLiteral("--faces"), QStringLiteral("--tile-size"), QStringLiteral("--fit"), QStringLiteral("--u-axis"), QStringLiteral("--v-axis")}},
 		{QStringLiteral("uv-cylinder"), {QStringLiteral("--faces"), QStringLiteral("--fit"), QStringLiteral("--axis")}},
-		{QStringLiteral("uv-sphere"), {QStringLiteral("--faces"), QStringLiteral("--fit"), QStringLiteral("--axis")}}};
+		{QStringLiteral("uv-sphere"), {QStringLiteral("--faces"), QStringLiteral("--fit"), QStringLiteral("--axis")}},
+		{QStringLiteral("uv-quake-frontback"), {QStringLiteral("--faces"), QStringLiteral("--axis")}}};
 	const QSet<QString> shared{QStringLiteral("--cli"),	  QStringLiteral("--json"),			  QStringLiteral("--quiet"),
 							   QStringLiteral("--verbose"), QStringLiteral("--dry-run"),		  QStringLiteral("--overwrite"),
 							   QStringLiteral("--input"),   QStringLiteral("--output"),		  QStringLiteral("--tool"),
@@ -554,7 +557,11 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	tool.uvProjection = toolName == QStringLiteral("uv-view")		 ? ModelUvProjection::View
 						: toolName == QStringLiteral("uv-cylinder") ? ModelUvProjection::Cylinder
 						: toolName == QStringLiteral("uv-sphere")	 ? ModelUvProjection::Sphere
+						: toolName == QStringLiteral("uv-quake-frontback") ? ModelUvProjection::QuakeFrontBack
 																	 : ModelUvProjection::Cube;
+	// Quake front/back faces along +X by default, Quake's forward axis.
+	if (toolName == QStringLiteral("uv-quake-frontback") && !args.values.contains(QStringLiteral("--axis")))
+		tool.axis = 0;
 	if (args.values.contains(QStringLiteral("--merge")))
 	{
 		const auto text = args.values.value(QStringLiteral("--merge"));
@@ -762,6 +769,28 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 																														: QStringLiteral("none")},
 						{QStringLiteral("joint"), tool.bindJoint},
 						{QStringLiteral("skinned"), !surface.skinning.isEmpty()}});
+	if (tool.uvProjection == ModelUvProjection::QuakeFrontBack && kind == ModelEditKind::ProjectUvMapping)
+	{
+		// What the MDL writer would store, against the default target's limit.
+		int stored = 0, render = 0;
+		ModelTargetProfile mdl;
+		findModelTargetProfile(QStringLiteral("mdl"), {}, &mdl);
+		const auto skin = modelUvSnapSize(document.mesh());
+		QJsonObject layout{{QStringLiteral("skinWidth"), skin.width()}, {QStringLiteral("skinHeight"), skin.height()},
+						   {QStringLiteral("limit"), mdl.limits.vertices}};
+		if (document.mesh().mdl.enabled && document.mesh().surfaces.size() == 1 && modelMdlVertexCounts(document.mesh(), &stored, &render))
+		{
+			layout.insert(QStringLiteral("stored"), stored);
+			layout.insert(QStringLiteral("onseam"), render - stored);
+			layout.insert(QStringLiteral("uvCorners"), surface.vertexCount);
+			result.lines << Text::tr("The MDL would store %1 vertices (%2 of them on the seam) for %3 UV corners; the limit is %4.")
+								.arg(stored)
+								.arg(render - stored)
+								.arg(surface.vertexCount)
+								.arg(mdl.limits.vertices);
+		}
+		result.payload.insert(QStringLiteral("mdlLayout"), layout);
+	}
 	if (kind == ModelEditKind::Symmetrize && !document.mesh().skeleton.isEmpty())
 	{
 		QJsonObject pairs;

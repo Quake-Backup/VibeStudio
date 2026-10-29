@@ -117,6 +117,16 @@ constexpr CommandEntry kCommands[] = {
 	// UVs.
 	{"meshUvMenu", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "UV Mapping Menu"), "U"},
 	{"meshUvDensity", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Texel Density"), ""},
+	{"meshUnwrapConformal", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Unwrap (Seams Only)"), ""},
+	{"meshUvWeld", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Weld UVs"), ""},
+	{"meshUvStitch", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Stitch UVs"), ""},
+	{"meshUvAlign", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Align UVs"), ""},
+	{"meshUvSnapTexels", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Snap UVs to Texels"), ""},
+	{"meshUvQuakeFrontBack", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Quake Front/Back Skin Layout"), ""},
+	{"meshUvCheckHealth", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Check UV Health"), ""},
+	{"meshUvExportLayout", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Export UV Layout"), ""},
+	{"meshUvTransferSkin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Transfer Skin to New UVs"), ""},
+	{"meshUvEditSkin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Edit Skin"), ""},
 	{"meshShowUvEditor", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Texture Coordinate Editor"), ""},
 	{"meshAssignMaterial", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Assign Material to Selection"), ""},
 	// View.

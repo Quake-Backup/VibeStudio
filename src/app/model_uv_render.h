@@ -28,6 +28,14 @@ struct ModelUvRenderRequest
 	ModelTexCoord moveOffset;
 	bool moving = false, showVertices = false;
 	QColor background, foreground, accent;
+	// UV health overlay (core/model_uv_health.h): faces whose bits match
+	// overlayMask are filled with overlayPattern above the texture, outlined,
+	// and the 0–1 tile is drawn when showTile is set. One entry per face.
+	QVector<quint8> faceOverlay;
+	quint8 overlayMask = 0;
+	Qt::BrushStyle overlayPattern = Qt::DiagCrossPattern;
+	QColor overlayColour;
+	bool showTile = false;
 };
 struct ModelUvRenderResult
 {

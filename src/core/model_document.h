@@ -21,6 +21,7 @@
 #include "core/model_transform.h"
 #include "core/model_uv.h"
 #include "core/model_uv_density.h"
+#include "core/model_uv_ops.h"
 #include "core/model_vertex_origins.h"
 
 #include <QByteArray>
@@ -201,6 +202,11 @@ enum class ModelEditKind
 	// Chooses the skeletal clips baked into editable frames
 	// (core/model_skeletal_working_set.h); ModelSkeletalEditOptions::workingSet.
 	SetSkeletalWorkingSet,
+	// UV operators (core/model_uv_ops.h); ModelEdit::uvTools.
+	WeldUv,
+	StitchUv,
+	AlignUv,
+	SnapUvTexels,
 };
 
 struct ModelEdit
@@ -276,6 +282,9 @@ struct ModelEdit
 	QVector<ModelWeightStroke> weightStrokes;
 	ModelWeightTransferOptions weightTransfer{};
 	ModelUvDensityOptions uvDensity{};
+	// UV operators, and the unwrap method and packing rotation of UnwrapUv
+	// and PackUv (core/model_uv_ops.h).
+	ModelUvToolOptions uvTools{};
 };
 
 struct ModelExportReport

@@ -59,6 +59,23 @@ CameraKey cameraKey(const QKeyEvent *event)
 	}
 }
 } // namespace
+quint8 modelUvHealthOverlayMask(ModelUvHealthOverlay overlay)
+{
+	switch (overlay)
+	{
+	case ModelUvHealthOverlay::Stretch:
+		return ModelUvHealthStretched;
+	case ModelUvHealthOverlay::Overlaps:
+		return ModelUvHealthOverlapping;
+	case ModelUvHealthOverlay::Flipped:
+		return ModelUvHealthFlipped;
+	case ModelUvHealthOverlay::OutsideTile:
+		return ModelUvHealthOutsideTile;
+	case ModelUvHealthOverlay::None:
+		break;
+	}
+	return 0;
+}
 struct ModelUvView::Work
 {
 	ModelUvRenderRequest request;
@@ -67,6 +84,10 @@ struct ModelUvView::Work
 	quint64 revision = 0, generation = 0;
 	QString error;
 	bool success = false;
+	ModelUvHealthOverlay overlay = ModelUvHealthOverlay::None;
+	QVector<ModelVec3> positions;
+	ModelUvHealthOptions healthOptions;
+	std::shared_ptr<ModelUvHealthReport> health;
 };
 ModelUvView::ModelUvView(QWidget *parent) : QLabel(parent)
 {
@@ -184,6 +205,60 @@ void ModelUvView::setMoveEnabled(bool enabled, double grid)
 		update();
 	}
 }
+void ModelUvView::setHealthOverlay(ModelUvHealthOverlay overlay, const QVector<ModelVec3> &referencePositions, QSize textureSize,
+								   double stretchLimit)
+{
+	ModelUvHealthOptions options;
+	if (textureSize.isValid() && !textureSize.isEmpty())
+		options.textureSize = textureSize;
+	if (std::isfinite(stretchLimit) && stretchLimit >= 1)
+		options.stretchLimit = stretchLimit;
+	if (overlay == ModelUvHealthOverlay::None)
+	{
+		if (m_overlay == overlay)
+			return;
+		m_overlay = overlay;
+		m_healthPositions.clear();
+		m_health.reset();
+		requestRender();
+		return;
+	}
+	if (overlay == m_overlay && options == m_healthOptions && referencePositions.constData() == m_healthPositions.constData() &&
+		referencePositions.size() == m_healthPositions.size())
+		return;
+	if (overlay != m_overlay)
+		m_health.reset();
+	m_overlay = overlay;
+	m_healthPositions = referencePositions;
+	m_healthOptions = options;
+	requestRender();
+}
+QString ModelUvView::healthLegend() const
+{
+	if (m_overlay == ModelUvHealthOverlay::None)
+		return {};
+	if (!m_health)
+		return QCoreApplication::translate("VibeStudioModelUvView", "Measuring UV health…");
+	const int count = int(m_health->faces(modelUvHealthOverlayMask(m_overlay)).size());
+	switch (m_overlay)
+	{
+	case ModelUvHealthOverlay::Stretch:
+		return QCoreApplication::translate("VibeStudioModelUvView", "Dotted faces stretch texels more than %1 times: %Ln faces.", nullptr, count)
+			.arg(localeNumber(m_health->stretchLimit, 3));
+	case ModelUvHealthOverlay::Overlaps:
+		return QCoreApplication::translate("VibeStudioModelUvView", "Cross-hatched faces overlap other faces: %Ln faces.", nullptr, count);
+	case ModelUvHealthOverlay::Flipped:
+		return QCoreApplication::translate("VibeStudioModelUvView", "Horizontally hatched faces are flipped against their island: %Ln faces.",
+										   nullptr, count);
+	case ModelUvHealthOverlay::OutsideTile:
+		return QCoreApplication::translate("VibeStudioModelUvView",
+										   "Vertically hatched faces leave the dashed 0–1 tile that MDL and MD2 require: %Ln faces.", nullptr,
+										   count);
+	case ModelUvHealthOverlay::None:
+		break;
+	}
+	return {};
+}
 void ModelUvView::requestRender(bool retire)
 {
 	if (!m_hasSource)
@@ -230,6 +305,21 @@ void ModelUvView::startRender()
 	request.background = palette().color(QPalette::Base);
 	request.foreground = palette().color(QPalette::Text);
 	request.accent = palette().color(QPalette::Highlight);
+	work->overlay = m_overlay;
+	if (m_overlay != ModelUvHealthOverlay::None && m_healthPositions.size() == m_surface.vertexCount)
+	{
+		work->positions = m_healthPositions;
+		work->healthOptions = m_healthOptions;
+		request.overlayMask = modelUvHealthOverlayMask(m_overlay);
+		request.overlayPattern = m_overlay == ModelUvHealthOverlay::Stretch		? Qt::Dense6Pattern
+								 : m_overlay == ModelUvHealthOverlay::Overlaps	? Qt::DiagCrossPattern
+								 : m_overlay == ModelUvHealthOverlay::Flipped	? Qt::HorPattern
+																				: Qt::VerPattern;
+		// A fixed warning orange keeps contrast on dark, light and textured
+		// backgrounds; the pattern and the legend carry the meaning.
+		request.overlayColour = QColor(255, 128, 0);
+		request.showTile = m_overlay == ModelUvHealthOverlay::OutsideTile;
+	}
 	m_dirty = false;
 	m_work = work;
 	auto *thread = QThread::create(
@@ -239,6 +329,32 @@ void ModelUvView::startRender()
 			{
 				ModelWorkControl control;
 				control.cancelled = [work] { return work->cancelled.load(); };
+				if (work->request.overlayMask)
+				{
+					// Health runs beside the raster on this worker, measured
+					// against the reference pose the editor supplied.
+					auto surface = work->request.surface;
+					ModelFrameGeometry pose;
+					pose.positions = work->positions;
+					surface.frames = {pose};
+					auto options = work->healthOptions;
+					options.referenceFrame = 0;
+					auto health = std::make_shared<ModelUvHealthReport>();
+					QString problem;
+					if (inspectModelUvSurfaceHealth(surface, options, health.get(), &problem, control))
+					{
+						work->request.faceOverlay = health->faceFlags;
+						work->health = std::move(health);
+					}
+					else if (work->cancelled.load())
+					{
+						return;
+					}
+					else
+					{
+						work->request.overlayMask = 0;
+					}
+				}
 				work->success = renderModelUv(work->request, &work->result, &work->error, control);
 			}
 			catch (const std::bad_alloc &)
@@ -258,6 +374,7 @@ void ModelUvView::startRender()
 					if (work->success)
 					{
 						m_topology = work->result.topology;
+						m_health = work->overlay == m_overlay ? std::shared_ptr<const ModelUvHealthReport>(work->health) : nullptr;
 						setPixmap(QPixmap::fromImage(work->result.image));
 						if (work->revision == m_revision)
 						{
@@ -309,6 +426,10 @@ QString ModelUvView::summary() const
 			.arg(m_surface.name)
 			.arg(m_topology ? m_topology->islands.size() : 0)
 			.arg(m_surface.uvSeams.size());
+	if (m_overlay != ModelUvHealthOverlay::None)
+	{
+		text += QLatin1Char(' ') + healthLegend();
+	}
 	if (isRendering())
 	{
 		text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelUvView", "Updating UV layout…");
@@ -518,13 +639,15 @@ void ModelUvView::paintEvent(QPaintEvent *event)
 											  .arg(m_topology->islands.size())
 											  .arg(m_surface.uvSeams.size())
 										: QString();
-	if (!status.isEmpty())
+	const QString legend = m_error.isEmpty() && !isRendering() ? healthLegend() : QString();
+	if (!status.isEmpty() || !legend.isEmpty())
 	{
+		const QString chip = legend.isEmpty() ? status : status.isEmpty() ? legend : status + QLatin1Char('\n') + legend;
 		const QRectF box = QRectF(rect()).adjusted(8, 8, -8, -8);
-		const auto textBox = painter.boundingRect(box, Qt::AlignTop | Qt::AlignLeft | Qt::TextWordWrap, status).adjusted(-3, -2, 3, 2);
+		const auto textBox = painter.boundingRect(box, Qt::AlignTop | Qt::AlignLeft | Qt::TextWordWrap, chip).adjusted(-3, -2, 3, 2);
 		painter.fillRect(textBox, palette().base());
 		painter.setPen(palette().text().color());
-		painter.drawText(box, Qt::AlignTop | Qt::AlignLeft | Qt::TextWordWrap, status);
+		painter.drawText(box, Qt::AlignTop | Qt::AlignLeft | Qt::TextWordWrap, chip);
 	}
 	if (hasFocus())
 	{

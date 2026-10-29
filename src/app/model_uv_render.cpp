@@ -209,6 +209,53 @@ bool renderModelUv(const ModelUvRenderRequest &r, ModelUvRenderResult *result, Q
 		const bool moved = r.moving && (r.selection.faces.contains(face) || explicitPoints.contains(vertex));
 		return candidate.camera.map(QPointF(uv.u + (moved ? r.moveOffset.u : 0), uv.v + (moved ? r.moveOffset.v : 0)));
 	};
+	if (r.overlayMask && r.faceOverlay.size() == r.surface.triangles.size())
+	{
+		// Health overlay: a translucent wash, a pattern that tells the problems
+		// apart without colour, and the union outline, below selection hatching.
+		QSet<int> flagged;
+		for (int face = 0; face < r.faceOverlay.size(); ++face)
+		{
+			if (!work.step())
+			{
+				return false;
+			}
+			if (r.faceOverlay[face] & r.overlayMask)
+			{
+				flagged.insert(face);
+			}
+		}
+		if (!flagged.isEmpty())
+		{
+			QPainterPath overlay;
+			if (!buildModelUvSelectionPath(r.surface, flagged, candidate.camera, ModelTexCoord{}, area, &overlay, error, control))
+			{
+				return false;
+			}
+			QColor wash = r.overlayColour;
+			wash.setAlpha(70);
+			painter.setPen(Qt::NoPen);
+			painter.setBrush(wash);
+			painter.drawPath(overlay);
+			painter.setBrush(QBrush(r.overlayColour, r.overlayPattern));
+			painter.drawPath(overlay);
+			painter.setBrush(Qt::NoBrush);
+			painter.setPen(QPen(r.overlayColour, 2));
+			painter.drawPath(overlay);
+		}
+	}
+	if (r.showTile)
+	{
+		const auto tile = candidate.camera.mapRect(QRectF(0, 0, 1, 1)).intersected(area.adjusted(-4, -4, 4, 4));
+		if (!tile.isEmpty())
+		{
+			painter.setBrush(Qt::NoBrush);
+			painter.setPen(QPen(Qt::black, 4));
+			painter.drawRect(tile);
+			painter.setPen(QPen(r.overlayColour.isValid() ? r.overlayColour : r.accent, 2, Qt::DashLine));
+			painter.drawRect(tile);
+		}
+	}
 	painter.setPen(Qt::NoPen);
 	QColor fill = r.accent;
 	fill.setAlpha(85);
