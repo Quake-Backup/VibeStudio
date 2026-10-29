@@ -4104,6 +4104,11 @@ model_uv_pins_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-uv-pins-smoke', model_uv_pins_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+model_skin_shell_ui_smoke_test = executable(
+  'model_skin_shell_ui_smoke_test', ['tests/model_skin_shell_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-skin-shell-ui-smoke', model_skin_shell_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 model_uv_islands_ui_smoke_test = executable(
   'model_uv_islands_ui_smoke_test', ['tests/model_uv_islands_ui_smoke_test.cpp'],

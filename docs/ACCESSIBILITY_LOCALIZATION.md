@@ -3200,7 +3200,15 @@ unwrap method and packing choices) are named, described standard widgets in
 the Surface panel (`ModelUvOps`). Export UV Layout and Transfer Skin dialogs
 (`ModelUvLayoutDialog`, `ModelSkinHandoff`) use labelled form rows, keep sizes
 left-to-right in right-to-left layouts, and report results and refusals in
-the status line. Dotted seam lines, dashed
+the status line. Pinned UV corners draw as a diamond with a cross, so they
+differ from selected vertices by shape as well as colour. The offer to apply a
+skin saved in Textures is a named row in the status strip with **Apply Skin**
+and **Dismiss** buttons that are Tab stops of their own; its text announces as
+a live update (`ModelSkinHandoff`, `ModelSkinRoundTrip`). Adjust Last
+Operation fields for the UV operators are named numeric fields and combo boxes,
+reachable from the keyboard like the other operators' fields. The Texel Density
+dialog's chosen-surfaces table is a standard table with checkable surface names
+and editable sizes, named and described for screen readers. Dotted seam lines, dashed
 selected edges, hatched faces, and square vertices supplement color. Seams draw
 above ordinary UV wires, selected edges above seams, and selected markers last,
 so later unselected components cannot obscure them. Overlapping selected faces
