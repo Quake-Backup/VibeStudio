@@ -113,6 +113,9 @@ class ModelEditorDialog final : public QDialog
 	bool exportCollisionAse(const QString &path, const ModelCollisionSurfaceExport &request, bool overwrite, QString *error = nullptr);
 	bool exportCollisionClipModel(const QString &path, const QString &volume, const ModelCollisionSurfaceExport &request, bool overwrite,
 								  QString *error = nullptr);
+	// modelPath is the static model's game path, the collisionModel name.
+	bool exportCollisionModelFile(const QString &path, const QString &modelPath, const ModelCollisionSurfaceExport &request,
+								  bool overwrite, QString *error = nullptr);
 	// Native export (model_editor_export.cpp). The export actions choose the
 	// destination, then call these; each shows its report under Export Report.
 	bool exportToPath(const QString &path, const QString &format, const ModelExportOptions &options, QString *error = nullptr);
@@ -343,7 +346,7 @@ class ModelEditorDialog final : public QDialog
 	QComboBox *m_collisionHullProfile = nullptr;
 	QSpinBox *m_collisionHullFaces = nullptr;
 	QLineEdit *m_collisionDoom3Material = nullptr;
-	QPushButton *m_collisionAseExport = nullptr, *m_collisionClipExport = nullptr;
+	QPushButton *m_collisionAseExport = nullptr, *m_collisionClipExport = nullptr, *m_collisionCmExport = nullptr;
 	QPushButton *m_collisionAnimate = nullptr, *m_collisionFreeze = nullptr;
 	QList<QPushButton *> m_collisionSelectedButtons;
 	QByteArray m_collisionRevision;

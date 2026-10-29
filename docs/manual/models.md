@@ -753,12 +753,16 @@ The Mesh Editor's **Collision** page creates static, oriented collision boxes:
 add or fit a box to the selection, then move, rotate and size it. For round or
 sloped props, **Fit New Hull** fits a convex hull instead, kept within the
 **Hull budget** you choose (a map brush, or a Doom 3 trace model's 16 faces); it
-moves, scales and animates like a box.
+moves, scales and animates like a box. **Fit New Animated Hull** fits a separate
+hull in every frame, for props that bend or stretch.
 
 For Doom 3, **Export ASE with Collision…** writes the model with one
 collision surface per box or hull, so the game collides with those instead of the
-render triangles, and **Export Doom 3 Clip Model…** writes the selected volume for
-an entity's `clipmodel` key. See [Doom 3 collision](../MODEL_COLLISION.md#doom-3-collision).
+render triangles, and warns when the open package's material scripts do not give
+the collision material the `collision` keyword. **Export Doom 3 Clip Model…**
+writes the selected volume for an entity's `clipmodel` key, and **Export Doom 3
+.cm File…** writes a collision model file that Doom 3 reads beside a static model
+instead of converting its surfaces. See [Doom 3 collision](../MODEL_COLLISION.md#doom-3-collision).
 **Export Collision Map…** writes the boxes as brushes in a separate `.map`
 file, and **Place Collision in Level** adds them to the open Quake, Quake II or
 Quake III map as one undoable edit. To fit a prop placed in the level, select its

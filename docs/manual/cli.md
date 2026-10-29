@@ -217,9 +217,12 @@ as one undo step each. See
 [recorded placement and refresh](../MODEL_COLLISION.md#recorded-placement-and-refresh).
 
 `model collision --operation fit-hull --name N [--profile quake3|doom3-trace]
-[--max-faces K]` fits a convex hull within a face budget; `--operation export-ase
---target doom3` writes an ASE with collision surfaces and `--operation
-export-clipmodel --target doom3 --box N` a Doom 3 clip model. See
+[--max-faces K]` fits a convex hull within a face budget (`fit-animated-hull`
+fits one in every frame); `--operation export-ase
+--target doom3` writes an ASE with collision surfaces (`--package PATH` checks the
+material's `collision` keyword), `--operation export-clipmodel --target doom3
+--box N` a Doom 3 clip model and `--operation export-cm --target doom3
+--model-path models/X.ase` a Doom 3 `.cm` collision model file. See
 [convex hulls](../MODEL_COLLISION.md#convex-hulls) and
 [Doom 3 collision](../MODEL_COLLISION.md#doom-3-collision).
 

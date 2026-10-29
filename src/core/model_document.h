@@ -204,6 +204,8 @@ enum class ModelEditKind
 	// Convex collision hull fitted to vertices (core/model_collision_hull.h);
 	// collisionBox.name, frame, selection, collisionHullProfile and collisionHullMaxFaces.
 	FitCollisionHull,
+	// A hull fitted separately in every frame, one shape per pose.
+	FitAnimatedCollisionHull,
 };
 
 struct ModelEdit

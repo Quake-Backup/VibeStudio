@@ -703,7 +703,10 @@ skewed basis, which the Quake III attachment blend can give between frames, is
 refused when it is skewed by more than 1%; smaller drift is straightened.
 
 Animation bakes give each volume a track with one pose per sample (editable
-mesh version 7); a hull whose handedness changes between samples is refused.
+mesh version 7). A hull whose shape changes between samples, because an
+attachment's handedness flips or the part's own hull has a
+[shape per frame](MODEL_COLLISION.md#convex-hulls), keeps each sample's shape in
+that pose.
 The bake's geometry is byte for byte the same with or without collision. The
 editable mesh keeps the volumes; MD2, MD3 and OBJ leave them out with the usual
 note. The choice lasts for the session and is not stored in the recipe; the

@@ -244,7 +244,14 @@ the rule in `idCollisionModelManagerLocal::LoadRenderModel`
 ([`neo/cm/CollisionModel_load.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/cm/CollisionModel_load.cpp)):
 when any surface's material has the `collision` keyword, only those surfaces
 collide; the `clipmodel` key and trace model come from the same release's game
-code. Behaviour only; no code is copied. Recording placements in a
+code. The `.cm` collision model files follow the reader and writer in
+[`neo/cm/CollisionModel_files.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/cm/CollisionModel_files.cpp),
+`LoadModel`'s lookup of `<model>.cm` with CRC 0 before `LoadRenderModel`, and the
+polygon winding of `LoadRenderModel` with `idWinding::GetPlane`
+([`neo/idlib/geometry/Winding.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/idlib/geometry/Winding.cpp)),
+reviewed 2026-10-29. The material check reads the `collision` infoParm of
+[`neo/renderer/Material.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/renderer/Material.cpp)
+through the materials module's existing parser. Behaviour only; no code is copied. Recording placements in a
 `func_group` relies on the compilers merging `func_group` into the world, as
 ericw-tools `qbsp`, Quake II `qbsp3` and q3map2 do and as
 [TrenchBroom](https://github.com/TrenchBroom/TrenchBroom) uses it for groups.

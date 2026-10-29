@@ -411,7 +411,8 @@ QString droppedFrameLoss(const ModelMesh &mesh, const Frame &item, int inherited
 		if (box.framePoses.size() != mesh.frames.size())
 			continue;
 		const auto &own = box.framePoses[frame], &bind = box.framePoses[inherited];
-		if (!same(own.centre, bind.centre) || !same(own.size, bind.size) || !same(own.rotation, bind.rotation))
+		if (!same(own.centre, bind.centre) || !same(own.size, bind.size) || !same(own.rotation, bind.rotation) ||
+			!std::equal(own.hull.cbegin(), own.hull.cend(), bind.hull.cbegin(), bind.hull.cend(), [](ModelVec3 a, ModelVec3 b) { return same(a, b); }))
 			return Text::tr("Collision box %1 has its own pose in frame %2 of clip %3. Keep the clip in the working set to keep it.")
 				.arg(box.name)
 				.arg(frame)

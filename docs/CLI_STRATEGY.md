@@ -432,7 +432,7 @@ vibestudio --cli asset route textures/wall.dds --json
 ```
 
 `model collision` shares mesh validation/edit history and level placement with
-the GUI. Operations inspect, add, fit, fit-animated, fit-hull, export-ase, export-clipmodel, animate, freeze, update,
+the GUI. Operations inspect, add, fit, fit-animated, fit-hull, fit-animated-hull, export-ase, export-cm, export-clipmodel, animate, freeze, update,
 transform, duplicate, delete, export-map,
 place, placed and refresh have strict applicable options, text/JSON diagnostics and guarded outputs.
 Placement records its source in one `func_group` and accepts `--instance entity:N`

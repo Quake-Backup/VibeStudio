@@ -5,6 +5,7 @@
 #include "core/model_collision_hull.h"
 #include "core/model_collision_doom3.h"
 #include "core/model_document.h"
+#include "core/package_archive.h"
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QJsonDocument>
@@ -66,7 +67,7 @@ ModelCollisionCliResult runModelCollision(const QStringList &arguments)
 								"--edges",		"--target",			 "--material",		"--origin",		"--map",	   "--offset",
 								"--rotate",		"--scale",			 "--pivot",			"--pivot-mode", "--snap-grid", "--snap-angle",
 								"--snap-scale", "--transform-space", "--axis-rotation", "--axes-frame", "--instance", "--group",
-								"--profile",	"--max-faces"};
+								"--profile",	"--max-faces",		 "--package",		"--model-path"};
 	QSet<QString> seen;
 	QHash<QString, QString> values;
 	QStringList positional;
@@ -111,15 +112,17 @@ ModelCollisionCliResult runModelCollision(const QStringList &arguments)
 	// Placed collision records in a level (core/model_collision_placement.h).
 	const bool refresh = operation == "refresh", placed = operation == "placed";
 	// Doom 3 collision (core/model_collision_doom3.h).
-	const bool exportAse = operation == "export-ase", exportClip = operation == "export-clipmodel";
+	const bool exportAse = operation == "export-ase", exportClip = operation == "export-clipmodel", exportCm = operation == "export-cm";
 	const bool transform = operation == "transform";
-	const bool hull = operation == "fit-hull";
-	const bool edit = QSet<QString>{"add", "fit", "fit-animated", "fit-hull", "animate", "freeze", "update", "duplicate", "delete", "transform"}
+	// fit-animated-hull fits one shape per stored frame.
+	const bool animatedHull = operation == "fit-animated-hull", hull = operation == "fit-hull" || animatedHull;
+	const bool edit = QSet<QString>{"add",	 "fit",	   "fit-animated", "fit-hull", "fit-animated-hull", "animate",
+									"freeze", "update", "duplicate",	"delete",	"transform"}
 						  .contains(operation);
-	if (!edit && !exportMap && !place && !refresh && !placed && !exportAse && !exportClip && operation != "inspect")
+	if (!edit && !exportMap && !place && !refresh && !placed && !exportAse && !exportClip && !exportCm && operation != "inspect")
 	{
-		return fail(2, Text::tr("Use inspect, add, fit, fit-animated, fit-hull, animate, freeze, update, transform, duplicate, delete, "
-								"export-map, place, placed, refresh, export-ase or export-clipmodel."));
+		return fail(2, Text::tr("Use inspect, add, fit, fit-animated, fit-hull, fit-animated-hull, animate, freeze, update, transform, "
+								"duplicate, delete, export-map, place, placed, refresh, export-ase, export-clipmodel or export-cm."));
 	}
 	QSet<QString> allowed{"--input", "--operation", "--cli", "--json", "--quiet", "--verbose"};
 	allowed.unite(globals);
@@ -137,7 +140,7 @@ ModelCollisionCliResult runModelCollision(const QStringList &arguments)
 	}
 	if (hull)
 		allowed.unite({"--profile", "--max-faces"});
-	if (operation == "fit" || hull || operation == "freeze" || operation == "update" || transform || exportMap || place || operation == "inspect")
+	if (operation == "fit" || (hull && !animatedHull) || operation == "freeze" || operation == "update" || transform || exportMap || place || operation == "inspect")
 		allowed << "--frame";
 	if (operation == "duplicate")
 	{
@@ -170,10 +173,14 @@ ModelCollisionCliResult runModelCollision(const QStringList &arguments)
 	{
 		allowed << "--group" << "--instance";
 	}
-	if (exportAse || exportClip)
+	if (exportAse || exportClip || exportCm)
 		allowed.unite({"--target", "--material", "--frame"});
+	if (exportCm)
+		allowed << "--model-path"; // the static model's game path, the collisionModel name
 	if (exportClip)
 		allowed << "--box";
+	if (exportAse)
+		allowed << "--package"; // checks the material in that package's scripts
 	if (!(seen - allowed).isEmpty())
 	{
 		return fail(2, Text::tr("Option does not apply to %1: %2").arg(operation, QStringList((seen - allowed).values()).join(", ")));
@@ -191,6 +198,8 @@ ModelCollisionCliResult runModelCollision(const QStringList &arguments)
 	if ((exportAse || exportClip) && (values.value("--target") != "doom3" || !output.endsWith(".ase", Qt::CaseInsensitive) ||
 									  (exportClip && !values.contains("--box"))))
 		return fail(2, Text::tr("Doom 3 collision exports need --target doom3 and an .ase output; export-clipmodel also needs --box."));
+	if (exportCm && (values.value("--target") != "doom3" || !output.endsWith(".cm", Qt::CaseInsensitive) || !values.contains("--model-path")))
+		return fail(2, Text::tr("export-cm needs --target doom3, --model-path with the model's game path and a .cm output."));
 	if ((edit && !output.endsWith(".mesh.json", Qt::CaseInsensitive)) ||
 		((exportMap || place || refresh) && !output.endsWith(".map", Qt::CaseInsensitive)))
 	{
@@ -229,6 +238,7 @@ ModelCollisionCliResult runModelCollision(const QStringList &arguments)
 	{
 		ModelEdit change;
 		change.kind = transform						? ModelEditKind::TransformCollisionBox
+					  : animatedHull				? ModelEditKind::FitAnimatedCollisionHull
 					  : hull						? ModelEditKind::FitCollisionHull
 					  : operation == "fit-animated" ? ModelEditKind::FitAnimatedCollisionBox
 					  : operation == "animate"		? ModelEditKind::AnimateCollisionBox
@@ -400,6 +410,21 @@ ModelCollisionCliResult runModelCollision(const QStringList &arguments)
 									.arg(fitted->name, Text::tr("%n vertex(es)", nullptr, vertices), Text::tr("%n edge(s)", nullptr, edges),
 										 Text::tr("%n face(s)", nullptr, faces));
 			}
+			if (animatedHull)
+			{
+				// Each stored frame's own shape; frame zero is the volume's shape above.
+				QJsonArray frames;
+				for (const auto &pose : fitted->framePoses)
+				{
+					ModelCollisionHullShape posed;
+					modelCollisionHullShape(pose.hull.isEmpty() ? fitted->hull : pose.hull, &posed);
+					frames << QJsonObject{{"vertices", int(posed.vertices.size())}, {"faces", int(posed.faces.size())}};
+				}
+				auto object = result.payload.value("hull").toObject();
+				object.insert("frames", frames);
+				result.payload.insert("hull", object);
+				result.lines << Text::tr("Shaped separately in %n stored frame(s).", nullptr, int(frames.size()));
+			}
 		}
 		bytes = serializeEditableModel(document.mesh(), &error);
 	}
@@ -449,7 +474,7 @@ ModelCollisionCliResult runModelCollision(const QStringList &arguments)
 				result.payload.insert("instance", QStringLiteral("entity:%1").arg(instanceId));
 		}
 	}
-	else if (exportAse || exportClip)
+	else if (exportAse || exportClip || exportCm)
 	{
 		ModelCollisionSurfaceExport request;
 		if (values.contains("--material"))
@@ -470,8 +495,35 @@ ModelCollisionCliResult runModelCollision(const QStringList &arguments)
 				return fail(4, error);
 			const int volumes = int(document.mesh().collisionBoxes.size());
 			result.payload.insert("collisionSurfaces", volumes);
+			if (values.contains("--package"))
+			{
+				// Whether the project's material scripts give the material the
+				// collision keyword; a missing one is reported, not refused.
+				PackageArchive package;
+				if (!package.load(values.value("--package"), &error))
+					return fail(4, error);
+				const auto check = checkModelDoom3CollisionMaterial(package, request.material);
+				result.payload.insert("materialCheck", QJsonObject{{"state", modelDoom3CollisionMaterialStateId(check.state)},
+																   {"source", check.sourcePath}});
+				if (!check.note.isEmpty())
+					report.notes << check.note;
+			}
 			result.payload.insert("notes", QJsonArray::fromStringList(report.notes));
 			result.lines += report.notes;
+		}
+		else if (exportCm)
+		{
+			ModelDoom3CollisionModelFile file;
+			if (!exportModelDoom3CollisionModelFile(document.mesh(), values.value("--model-path"), request, &file, &error))
+				return fail(4, error);
+			bytes = file.bytes;
+			result.payload.insert("collisionModel", QJsonObject{{"modelPath", file.modelPath},
+																 {"gamePath", file.filePath},
+																 {"polygons", file.polygons},
+																 {"edges", file.edges},
+																 {"vertices", file.vertices}});
+			result.payload.insert("notes", QJsonArray::fromStringList(file.notes));
+			result.lines += file.notes;
 		}
 		else
 		{
