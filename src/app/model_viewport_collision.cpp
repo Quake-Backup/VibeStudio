@@ -1,5 +1,6 @@
 #include "app/model_viewport.h"
 #include "core/model_collision.h"
+#include "core/model_collision_hull.h"
 #include <QPainter>
 #include <cmath>
 
@@ -116,17 +117,13 @@ QVector<ModelViewport::CollisionOverlay> ModelViewport::projectCollisionOverlays
 		{
 			continue;
 		}
-		const auto corners = modelCollisionCorners(pose);
-		for (int i = 0; i < 8; ++i)
+		// Box edges, or a convex hull's edges (core/model_collision_hull.h).
+		for (const auto &edge : modelCollisionEdges(pose))
 		{
-			for (int axis = 0; axis < 3; ++axis)
+			QPointF a, b;
+			if (projectSegment(edge.first, edge.second, &a, &b))
 			{
-				const int j = i ^ (1 << axis);
-				QPointF a, b;
-				if (i < j && projectSegment(corners[i], corners[j], &a, &b))
-				{
-					projected.edges << QLineF(a, b);
-				}
+				projected.edges << QLineF(a, b);
 			}
 		}
 		result << projected;

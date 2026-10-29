@@ -6,6 +6,8 @@
 #include "app/status_line_label.h"
 #include "core/model_document.h"
 #include "core/model_collision.h"
+#include "core/model_collision_placement.h"
+#include "core/model_collision_doom3.h"
 #include "core/model_delivery.h"
 #include "core/model_editor_controls.h"
 #include "core/model_skin_source.h"
@@ -102,6 +104,15 @@ class ModelEditorDialog final : public QDialog
 	bool inspectIntersections(QString *error = nullptr);
 	bool exportCollision(const QString &path, const ModelCollisionExport &request, bool overwrite, QString *error = nullptr);
 	bool placeCollision(const ModelCollisionExport &request, QString *error = nullptr);
+	// The level's selected model entity (or entityId): collision follows its
+	// transform and records it (core/model_collision_placement.h).
+	bool placeCollisionForInstance(int entityId = -1, QString *error = nullptr);
+	QVector<ModelCollisionRecord> placedCollisionRecords() const;
+	bool refreshPlacedCollision(int entityId, QString *error = nullptr);
+	// Doom 3 collision (core/model_collision_doom3.h), through the guarded model writer.
+	bool exportCollisionAse(const QString &path, const ModelCollisionSurfaceExport &request, bool overwrite, QString *error = nullptr);
+	bool exportCollisionClipModel(const QString &path, const QString &volume, const ModelCollisionSurfaceExport &request, bool overwrite,
+								  QString *error = nullptr);
 	// Native export (model_editor_export.cpp). The export actions choose the
 	// destination, then call these; each shows its report under Export Report.
 	bool exportToPath(const QString &path, const QString &format, const ModelExportOptions &options, QString *error = nullptr);
@@ -328,6 +339,11 @@ class ModelEditorDialog final : public QDialog
 	QCheckBox *m_showCollision = nullptr;
 	LiveStatusLabel *m_collisionSummary = nullptr;
 	QPushButton *m_collisionExport = nullptr, *m_collisionPlace = nullptr;
+	QPushButton *m_collisionPlaceInstance = nullptr, *m_collisionRefresh = nullptr;
+	QComboBox *m_collisionHullProfile = nullptr;
+	QSpinBox *m_collisionHullFaces = nullptr;
+	QLineEdit *m_collisionDoom3Material = nullptr;
+	QPushButton *m_collisionAseExport = nullptr, *m_collisionClipExport = nullptr;
 	QPushButton *m_collisionAnimate = nullptr, *m_collisionFreeze = nullptr;
 	QList<QPushButton *> m_collisionSelectedButtons;
 	QByteArray m_collisionRevision;
@@ -516,6 +532,8 @@ class ModelEditorDialog final : public QDialog
 	void refreshCollision();
 	void executeCollision(ModelEditKind kind);
 	void handoffCollision(bool place);
+	void chooseCollisionRefresh();
+	QString collisionSourcePath() const;
 	ModelCollisionExport collisionRequest() const;
 	void addHealthControls(QFormLayout *form);
 	void refreshHealth();

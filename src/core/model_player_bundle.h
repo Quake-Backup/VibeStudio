@@ -116,4 +116,20 @@ QStringList modelPlayerBundleText(const ModelPlayerBundle &bundle);
 // are protected; no game installation or source package is modified.
 PackageWriteReport writeModelPlayerBundle(const ModelPlayerBundle &bundle, const QString &path, bool overwrite, bool dryRun,
 										  const ModelWorkControl &control = {});
+// The same writer for another archive format: Pak (.pak), Zip (.zip or .pk2) or Pk3 (.pk3).
+PackageWriteReport writeModelBundleArchive(const ModelPlayerBundle &bundle, const QString &path, PackageArchiveFormat format, bool overwrite,
+										   bool dryRun, const ModelWorkControl &control = {});
+
+// Shared by the other native bundles (core/model_weapon_bundle.h): one checked
+// file (safe unique path, size budget), a part's local transform and inherited
+// scale baked into its frames and tags, an input path the output must never
+// replace, and the material dependency closure, captured and checked again over
+// the owned bytes.
+bool addModelBundleFile(ModelPlayerBundle *bundle, const QString &path, const QString &role, const QByteArray &bytes,
+						QString *error = nullptr);
+bool transformModelBundlePart(ModelMesh *mesh, const ModelAssemblyPart &part, double parentScale, QString *error = nullptr,
+							  const ModelWorkControl &control = {});
+void protectModelBundleInput(ModelPlayerBundle *bundle, const QString &path);
+bool captureModelBundleDependencies(const ModelMesh &materials, const ModelAssemblyContext &context, ModelPlayerBundle *bundle,
+									QString *error = nullptr, const ModelWorkControl &control = {});
 } // namespace vibestudio

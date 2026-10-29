@@ -157,6 +157,12 @@ ModelAssemblyDialog::ModelAssemblyDialog(QWidget *parent) : QDialog(parent)
 							   [this] { chooseAnimationBake(true); });
 	action(QCoreApplication::translate("ModelAssemblyDialog", "Native Animation…"), "assemblyQ3Animation", [this] { chooseQ3Animation(); });
 	action(QCoreApplication::translate("ModelAssemblyDialog", "Player Package…"), "assemblyPlayerBundle", [this] { choosePlayerBundle(); });
+	action(QCoreApplication::translate("ModelAssemblyDialog", "Quake II Player…"), "assemblyQ2Player", [this] { chooseQ2PlayerBundle(); })
+		->setToolTip(QCoreApplication::translate("ModelAssemblyDialog", "Review and publish a Quake II player: tris.md2, weapon.md2, PCX "
+																		"skins and icons, sounds and view weapons."));
+	action(QCoreApplication::translate("ModelAssemblyDialog", "Weapon Package…"), "assemblyWeaponBundle", [this] { chooseWeaponBundle(); })
+		->setToolTip(QCoreApplication::translate("ModelAssemblyDialog", "Review and publish a Quake III weapon set: the weapon with its hand, "
+																		"barrel and flash models."));
 	auto *details = action(QCoreApplication::translate("ModelAssemblyDialog", "Details"), "assemblyDetails",
 						   [this](bool checked) { m_details->setVisible(checked); });
 	details->setCheckable(true);
@@ -209,6 +215,37 @@ ModelAssemblyDialog::ModelAssemblyDialog(QWidget *parent) : QDialog(parent)
 	frame->setAutoDefault(false);
 	connect(frame, &QPushButton::clicked, m_preview, &ModelViewport::frameModel);
 	timeline->addWidget(frame, 1, 0);
+	auto *interpolationLabel = new QLabel(QCoreApplication::translate("ModelAssemblyDialog", "&Attachment blend"));
+	m_tagInterpolation = new QComboBox;
+	m_tagInterpolation->setObjectName(QStringLiteral("assemblyTagInterpolation"));
+	m_tagInterpolation->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+	m_tagInterpolation->setMinimumContentsLength(10);
+	m_tagInterpolation->addItem(QCoreApplication::translate("ModelAssemblyDialog", "Quake III renderer"),
+								int(ModelTagInterpolation::Quake3Renderer));
+	m_tagInterpolation->addItem(QCoreApplication::translate("ModelAssemblyDialog", "Shortest arc"), int(ModelTagInterpolation::ShortestArc));
+	m_tagInterpolation->setAccessibleName(QCoreApplication::translate("ModelAssemblyDialog", "Attachment tag interpolation"));
+	m_tagInterpolation->setAccessibleDescription(QCoreApplication::translate(
+		"ModelAssemblyDialog", "How attachment tags blend between stored frames in the preview and in bakes."));
+	m_tagInterpolation->setToolTip(QCoreApplication::translate(
+		"ModelAssemblyDialog", "Quake III renderer blends origin and each axis linearly, then normalises each axis, as the game does. "
+							   "Shortest arc rotates along the shortest path and keeps the basis rigid."));
+	interpolationLabel->setBuddy(m_tagInterpolation);
+	timeline->addWidget(interpolationLabel, 2, 0);
+	timeline->addWidget(m_tagInterpolation, 2, 1);
+	connect(m_tagInterpolation, &QComboBox::currentIndexChanged, this, [this] {
+		if (m_refreshing || m_working)
+			return;
+		QString error;
+		applyTagInterpolation(static_cast<ModelTagInterpolation>(m_tagInterpolation->currentData().toInt()), &error);
+	});
+	m_includeCollision = new QCheckBox(QCoreApplication::translate("ModelAssemblyDialog", "Include part collision in bakes"));
+	m_includeCollision->setObjectName(QStringLiteral("assemblyIncludeCollision"));
+	m_includeCollision->setAccessibleName(m_includeCollision->text());
+	m_includeCollision->setToolTip(QCoreApplication::translate(
+		"ModelAssemblyDialog", "Carry each part's collision boxes and hulls into Bake Pose to Mesh, Export Pose and the animation bakes, "
+							   "placed as the parts are and named part_volume. Animation bakes give each one a pose per sample."));
+	m_includeCollision->setAccessibleDescription(m_includeCollision->toolTip());
+	timeline->addWidget(m_includeCollision, 3, 0, 1, 2);
 	centreLayout->addWidget(m_timeline);
 	m_materialStatus = new QLabel;
 	m_materialStatus->setTextFormat(Qt::PlainText);
@@ -262,8 +299,9 @@ ModelAssemblyDialog::ModelAssemblyDialog(QWidget *parent) : QDialog(parent)
 			for (const auto &entry : m_materialSource.archive->entries())
 			{
 				const auto name = entry.virtualPath.toLower();
-				if (entry.kind == PackageEntryKind::File && (name.endsWith(".mesh.json") || name.endsWith(".obj") ||
-															 name.endsWith(".mdl") || name.endsWith(".md2") || name.endsWith(".md3")))
+				if (entry.kind == PackageEntryKind::File &&
+					(name.endsWith(".mesh.json") || name.endsWith(".obj") || name.endsWith(".mdl") || name.endsWith(".md2") ||
+					 name.endsWith(".md3") || name.endsWith(".md5mesh") || name.endsWith(".iqm")))
 				{
 					models << entry.virtualPath;
 				}
@@ -287,7 +325,7 @@ ModelAssemblyDialog::ModelAssemblyDialog(QWidget *parent) : QDialog(parent)
 		}
 		const auto path = QFileDialog::getOpenFileName(
 			this, QCoreApplication::translate("ModelAssemblyDialog", "Choose Assembly Model"), m_source->text(),
-			QCoreApplication::translate("ModelAssemblyDialog", "Models (*.mesh.json *.obj *.mdl *.md2 *.md3)"));
+			QCoreApplication::translate("ModelAssemblyDialog", "Models (*.mesh.json *.obj *.mdl *.md2 *.md3 *.md5mesh *.iqm)"));
 		if (!path.isEmpty())
 		{
 			m_kind->setCurrentIndex(0);
@@ -320,6 +358,11 @@ ModelAssemblyDialog::ModelAssemblyDialog(QWidget *parent) : QDialog(parent)
 		  "assemblyRotation");
 	m_scale = number(.000001, 1000, 1, 6);
 	field(form, QCoreApplication::translate("ModelAssemblyDialog", "Uniform scale"), m_scale, "assemblyScale");
+	m_spin = number(-10000, 10000, 0, 2);
+	m_spin->setToolTip(QCoreApplication::translate("ModelAssemblyDialog", "Preview spin about the part's own X axis, as Quake III rolls a "
+																		 "weapon's barrel model. Native exports leave it out."));
+	field(form, QCoreApplication::translate("ModelAssemblyDialog", "Spin about X (rpm)"), m_spin, "assemblySpin");
+	m_spin->setAccessibleDescription(m_spin->toolTip());
 	m_first = new QSpinBox;
 	m_first->setLayoutDirection(Qt::LeftToRight);
 	m_first->setRange(0, 1023);
@@ -655,6 +698,34 @@ bool ModelAssemblyDialog::applyPart(const QString &previousId, const ModelAssemb
 	}
 	return adopt(std::move(candidate), error);
 }
+bool ModelAssemblyDialog::applyTagInterpolation(ModelTagInterpolation mode, QString *error)
+{
+	if (mode == m_document.assembly().tagInterpolation)
+		return true;
+	auto candidate = m_document;
+	if (!candidate.setTagInterpolation(mode, error) || !adopt(std::move(candidate), error))
+	{
+		refresh(false);
+		if (error)
+			report(*error, LiveStatus::Problem);
+		return false;
+	}
+	if (m_previewError.isEmpty())
+		report(mode == ModelTagInterpolation::Quake3Renderer
+				   ? QCoreApplication::translate("ModelAssemblyDialog", "Attachment tags now blend as the Quake III renderer does.")
+				   : QCoreApplication::translate("ModelAssemblyDialog", "Attachment tags now blend along the shortest arc."),
+			   LiveStatus::Result);
+	return true;
+}
+bool ModelAssemblyDialog::includesCollision() const
+{
+	return m_includeCollision && m_includeCollision->isChecked();
+}
+void ModelAssemblyDialog::setIncludeCollision(bool include)
+{
+	if (m_includeCollision)
+		m_includeCollision->setChecked(include);
+}
 bool ModelAssemblyDialog::removeBranch(const QString &id, QString *error)
 {
 	auto candidate = m_document;
@@ -716,12 +787,13 @@ bool ModelAssemblyDialog::exportPose(const QString &path, bool overwrite, QStrin
 	const auto source = m_document.recoverySource().isEmpty() ? m_document.path() : m_document.recoverySource();
 	const auto archive = m_materialSource.archive;
 	const auto seconds = m_seconds;
+	const bool includeCollision = includesCollision();
 	ModelExportReport result;
 	if (!performWork(
 			QCoreApplication::translate("ModelAssemblyDialog", "Export Assembly Pose"),
 			[&](QString *failure, const ModelWorkControl &control) {
-				return exportModelAssemblyPose(assembly, resolved, seconds, path, source, overwrite, false, failure, control, &result,
-											   archive);
+				return exportModelAssemblyPose(assembly, resolved, seconds, path, source, overwrite, false, failure, control, &result, archive,
+											   includeCollision);
 			},
 			error, true))
 	{
@@ -872,6 +944,7 @@ void ModelAssemblyDialog::refresh(bool rebuildTree)
 	m_play->setEnabled(previewReady() && !m_reducedMotion);
 	m_time->setEnabled(previewReady());
 	m_time->setValue(m_seconds);
+	m_tagInterpolation->setCurrentIndex(std::max(0, m_tagInterpolation->findData(int(m_document.assembly().tagInterpolation))));
 	if (rebuildTree)
 	{
 		m_tree->clear();
@@ -949,6 +1022,7 @@ void ModelAssemblyDialog::refreshInspector()
 	setVector(m_translation, selected.translation);
 	setVector(m_rotation, selected.rotation);
 	m_scale->setValue(selected.scale);
+	m_spin->setValue(selected.spinRpm);
 	m_first->setValue(selected.firstFrame);
 	m_last->setValue(selected.lastFrame);
 	m_fps->setValue(selected.framesPerSecond);
@@ -981,6 +1055,16 @@ void ModelAssemblyDialog::refreshTags(const QString &selected)
 				seen.insert(tag.name);
 			}
 		}
+		// A skeletal parent offers every joint as joint:<name>.
+		for (const auto &joint : input.mesh.skeleton.joints)
+		{
+			const auto name = modelAssemblyJointPrefix() + joint.name;
+			if (!seen.contains(name) && name.size() <= 63)
+			{
+				m_tag->addItem(name);
+				seen.insert(name);
+			}
+		}
 	}
 	if (!selected.isEmpty())
 	{
@@ -1008,6 +1092,10 @@ void ModelAssemblyDialog::refreshSelection()
 void ModelAssemblyDialog::refreshDetails()
 {
 	QStringList lines = m_pose.notes;
+	if (m_document.assembly().tagInterpolation == ModelTagInterpolation::Quake3Renderer)
+		lines.prepend(QCoreApplication::translate("ModelAssemblyDialog", "Attachment blend: Quake III renderer (per-axis, as the game)."));
+	else
+		lines.prepend(QCoreApplication::translate("ModelAssemblyDialog", "Attachment blend: shortest arc (rigid rotation)."));
 	if (m_document.assembly().q3Animation)
 	{
 		const auto &binding = *m_document.assembly().q3Animation;
@@ -1065,6 +1153,7 @@ void ModelAssemblyDialog::newPart()
 	setVector(m_translation, {});
 	setVector(m_rotation, {});
 	m_scale->setValue(1);
+	m_spin->setValue(0);
 	m_first->setValue(0);
 	m_last->setValue(-1);
 	m_fps->setValue(10);
@@ -1086,6 +1175,7 @@ void ModelAssemblyDialog::applyInspector()
 	part.translation = vectorValue(m_translation);
 	part.rotation = vectorValue(m_rotation);
 	part.scale = m_scale->value();
+	part.spinRpm = m_spin->value();
 	part.firstFrame = m_first->value();
 	part.lastFrame = m_last->value();
 	part.framesPerSecond = m_fps->value();
@@ -1251,15 +1341,31 @@ void ModelAssemblyDialog::bake()
 		return;
 	}
 	play(false);
+	// With part collision, sample the same pose again with its volumes.
+	auto baked = m_pose;
+	if (includesCollision())
+	{
+		const auto assembly = m_document.assembly();
+		const auto resolved = m_resolved;
+		const auto seconds = m_seconds;
+		QString failure;
+		if (!performWork(
+				QCoreApplication::translate("ModelAssemblyDialog", "Sample Assembly Pose"),
+				[&](QString *problem, const ModelWorkControl &control) {
+					return sampleModelAssembly(assembly, resolved, seconds, &baked, problem, control, true);
+				},
+				&failure))
+			return;
+	}
 	const auto answer =
 		QMessageBox::question(this, QCoreApplication::translate("ModelAssemblyDialog", "Bake One Pose"),
-							  m_pose.notes.join(QStringLiteral("\n\n")), QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
+							  baked.notes.join(QStringLiteral("\n\n")), QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
 	if (answer != QMessageBox::Ok)
 	{
 		return;
 	}
 	QString error;
-	if (!editBakedPose(m_pose.mesh, &error))
+	if (!editBakedPose(baked.mesh, &error))
 	{
 		report(error, LiveStatus::Problem);
 		return;

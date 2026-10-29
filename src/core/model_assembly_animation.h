@@ -10,6 +10,8 @@ struct ModelAssemblyAnimationOptions
 	int frameCount = 30;
 	double framesPerSecond = 30;
 	QString clipName = QStringLiteral("assembly");
+	// Carry part collision into animated tracks, one pose per sample.
+	bool includeCollision = false;
 };
 struct ModelAssemblyAnimation
 {

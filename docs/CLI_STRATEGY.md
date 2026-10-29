@@ -432,9 +432,12 @@ vibestudio --cli asset route textures/wall.dds --json
 ```
 
 `model collision` shares mesh validation/edit history and level placement with
-the GUI. Operations inspect, add, fit, fit-animated, animate, freeze, update,
-transform, duplicate, delete, export-map and
-place have strict applicable options, text/JSON diagnostics and guarded outputs.
+the GUI. Operations inspect, add, fit, fit-animated, fit-hull, export-ase, export-clipmodel, animate, freeze, update,
+transform, duplicate, delete, export-map,
+place, placed and refresh have strict applicable options, text/JSON diagnostics and guarded outputs.
+Placement records its source in one `func_group` and accepts `--instance entity:N`
+to follow a placed model's transform; `placed --map` lists records as current or
+stale and `refresh --map` replaces them as one undo step.
 Mutations support dry runs; placement writes a separate map and protects source
 inputs. Target selection and Quake III shader dependency are explicit. See
 [Model Collision CLI](MODEL_COLLISION.md#cli) for the full contract.
@@ -2210,6 +2213,15 @@ Each resolved path may be a definition file or a folder of them.
   package/draft references, input fingerprints, source protection and dry runs
   share the GUI services. `--operation inspect|add|update|remove|bake|bake-animation`, part fields
   and worked examples are documented in [Model Assemblies](MODEL_ASSEMBLY.md).
+  `--tag-interpolation quake3|shortest-arc` (add, update without `--part`,
+  animation-set) sets the assembly's attachment blend; JSON reports `tagInterpolation`.
+  `bake` and `bake-animation` accept `--collision include|omit` to carry part
+  collision into the bake; JSON reports `collisionVolumes`. `--tag joint:NAME`
+  attaches a part to a skeletal parent's joint. `--operation weapon-review|weapon-export`
+  reviews and publishes a Quake III weapon set (see
+  [Weapon packages](MODEL_ASSEMBLY.md#weapon-packages)), and
+  `--operation q2-player-review|q2-player-export` a Quake II player (see
+  [Quake II player packages](MODEL_ASSEMBLY.md#quake-ii-player-packages)).
 - [x] `model assembly --operation bake-animation` requires `--frames` and
   `--sample-fps`, with optional `--time` and `--clip-name`. It writes a sampled
   `.mesh.json`, MD2 or MD3 with the same storage, topology, cancellation and

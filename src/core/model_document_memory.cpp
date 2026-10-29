@@ -74,6 +74,7 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 	{
 		string(box.name);
 		list(box.framePoses);
+		list(box.hull);
 	}
 	const auto &skeleton = mesh.skeleton;
 	list(skeleton.joints);

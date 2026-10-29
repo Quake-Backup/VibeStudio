@@ -749,6 +749,7 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::AnimateCollisionBox:
 	case ModelEditKind::FreezeCollisionBox:
 	case ModelEditKind::FitAnimatedCollisionBox:
+	case ModelEditKind::FitCollisionHull:
 	case ModelEditKind::RotateEdges:
 	case ModelEditKind::MergeVertices:
 	case ModelEditKind::DissolveVertices:

@@ -134,4 +134,51 @@ bool interpolateModelTag(const ModelTag &first, const ModelTag &second, double a
 	*output = result;
 	return true;
 }
+
+bool interpolateModelTagQuake3(const ModelTag &first, const ModelTag &second, double amount, ModelTag *output)
+{
+	// Behaviour of R_LerpTag in id Software's Quake III Arena renderer
+	// (code/renderer/tr_model.c, GPL-2.0-or-later), reimplemented from its
+	// description: backLerp = 1 - frac; each origin and axis component is
+	// start * backLerp + end * frac; VectorNormalize then scales each axis to
+	// unit length and leaves a zero vector unchanged.
+	// https://github.com/id-Software/Quake-III-Arena/blob/master/code/renderer/tr_model.c
+	if (!output || !validAmount(amount) || first.name != second.name || !finite(first.origin) || !finite(second.origin))
+	{
+		return false;
+	}
+	for (int i = 0; i < 9; ++i)
+	{
+		if (!std::isfinite(first.axis[i]) || !std::isfinite(second.axis[i]))
+		{
+			return false;
+		}
+	}
+	const double back = 1 - amount;
+	auto result = first;
+	result.origin = {float(double(first.origin.x) * back + double(second.origin.x) * amount),
+					 float(double(first.origin.y) * back + double(second.origin.y) * amount),
+					 float(double(first.origin.z) * back + double(second.origin.z) * amount)};
+	for (int axis = 0; axis < 3; ++axis)
+	{
+		double v[3];
+		double magnitude = 0;
+		for (int component = 0; component < 3; ++component)
+		{
+			v[component] = double(first.axis[axis * 3 + component]) * back + double(second.axis[axis * 3 + component]) * amount;
+			magnitude += v[component] * v[component];
+		}
+		magnitude = std::sqrt(magnitude);
+		for (int component = 0; component < 3; ++component)
+		{
+			result.axis[axis * 3 + component] = float(magnitude > 0 ? v[component] / magnitude : v[component]);
+		}
+	}
+	if (!finite(result.origin))
+	{
+		return false;
+	}
+	*output = result;
+	return true;
+}
 } // namespace vibestudio

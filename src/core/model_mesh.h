@@ -314,6 +314,9 @@ struct ModelCollisionBox {
 	// The scalar fields mirror frame zero for compatibility. Use
 	// setModelCollisionFrames to replace a track and maintain that invariant.
 	QVector<ModelCollisionPose> framePoses{};
+	// Empty for a box. Otherwise a convex hull: points in the box frame, each
+	// coordinate within -0.5..0.5, scaled by size (core/model_collision_hull.h).
+	QVector<ModelVec3> hull{};
 };
 
 // A skin stored inside the model itself. MDL carries indexed pixels that need a

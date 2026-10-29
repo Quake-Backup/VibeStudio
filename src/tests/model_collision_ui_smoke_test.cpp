@@ -1,6 +1,7 @@
 #include "app/model_editor_dialog.h"
 #include "app/model_viewport.h"
 #include "app/studio_theme.h"
+#include "core/model_collision_hull.h"
 #include "core/model_design.h"
 #include "core/model_recovery.h"
 #include "tests/model_viewport_test_helpers.h"
@@ -14,6 +15,7 @@
 #include <QDoubleSpinBox>
 #include <QEventLoop>
 #include <QFile>
+#include <QFileInfo>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -405,6 +407,88 @@ int main(int argc, char **argv)
 			ok &= expect(editor.placeCollision({"quake3", "common/playerclip", {128, 0, 0}}, &error) && published == 1 &&
 							 map.brushes.size() == 2 && undoLevelMapEdit(&map, &error) && map.brushes.isEmpty(),
 						 "GUI placement publishes shared undoable candidate", error);
+			{
+				// Instance placement and refresh of recorded collision (ATT-COLL-03).
+				LevelMapDocument level;
+				ok &= expect(loadLevelMapBytes({path("instance.map"), {}, "idtech3"},
+											   "{\n\"classname\" \"worldspawn\"\n}\n{\n\"classname\" \"misc_model\"\n\"model\" "
+											   "\"models/crate.md3\"\n\"origin\" \"64 0 0\"\n\"angle\" \"90\"\n}\n",
+											   &level, &error),
+							 "instance level fixture", error);
+				int instanceId = -1;
+				for (const auto &entity : level.entities)
+					if (entity.className == "misc_model")
+						instanceId = entity.id;
+				int levelPublished = 0;
+				const auto previous = editor.collisionDestination;
+				editor.collisionDestination = [&] {
+					return ModelCollisionDestination{level, [&](const LevelMapDocument &candidate, QString *) {
+														 level = candidate;
+														 ++levelPublished;
+														 return true;
+													 }};
+				};
+				editor.refreshContext();
+				auto *placeInstance = editor.findChild<QPushButton *>("placeMeshCollisionInstance");
+				auto *refreshPlaced = editor.findChild<QPushButton *>("refreshMeshCollision");
+				ok &= expect(placeInstance && refreshPlaced && placeInstance->isEnabled() && refreshPlaced->isEnabled() &&
+								 !placeInstance->accessibleName().isEmpty() && !placeInstance->accessibleDescription().isEmpty() &&
+								 !refreshPlaced->accessibleDescription().isEmpty(),
+							 "instance placement and refresh are named, described and enabled with a level");
+				ok &= expect(!editor.placeCollisionForInstance(-1, &error) && levelPublished == 0 && !error.isEmpty(),
+							 "instance placement needs a selected model entity");
+				ok &= expect(editor.placeCollisionForInstance(instanceId, &error) && levelPublished == 1,
+							 "GUI places collision through the instance", error);
+				const auto records = editor.placedCollisionRecords();
+				ok &= expect(records.size() == 1 && records[0].brushCount == int(editor.document().mesh().collisionBoxes.size()) &&
+								 std::abs(records[0].transform[3] - 64) < 1e-9 && std::abs(records[0].transform[1] + 1) < 1e-9,
+							 "the record carries the instance's turned transform");
+				const int group = records.value(0).entityId;
+				ok &= expect(editor.refreshPlacedCollision(group, &error) && levelPublished == 2 && editor.placedCollisionRecords().size() == 1,
+							 "GUI refresh replaces the set as one publication", error);
+				ok &= expect(undoLevelMapEdit(&level, &error) && editor.placedCollisionRecords().value(0).entityId == group,
+							 "one level undo restores the previous set", error);
+				editor.collisionDestination = previous;
+			}
+			{
+				// Fit New Hull with a trace-model budget (ATT-COLL-01).
+				auto *fitHull = editor.findChild<QPushButton *>("fitMeshCollisionHull");
+				auto *profile = editor.findChild<QComboBox *>("meshCollisionHullProfile");
+				auto *summary = editor.findChild<QLabel *>("meshCollisionSummary");
+				ok &= expect(fitHull && profile && summary && !fitHull->accessibleDescription().isEmpty() &&
+								 !profile->accessibleName().isEmpty() && profile->findData("doom3-trace") >= 0,
+							 "hull fitting controls are named and described");
+				if (fitHull && profile && summary)
+				{
+					profile->setCurrentIndex(profile->findData("doom3-trace"));
+					name->setText("shell");
+					const int before = int(editor.document().mesh().collisionBoxes.size());
+					fitHull->click();
+					const auto *shell = findModelCollisionBox(editor.document().mesh(), "shell");
+					ok &= expect(shell && !shell->hull.isEmpty() && editor.document().mesh().collisionBoxes.size() == before + 1 &&
+									 editor.document().selection().collision == "shell" && summary->text().contains("Convex hull"),
+								 "Fit New Hull adds a selected hull and the inspector reports its counts");
+					ok &= expect(tests::settleModelViewport(*preview) && preview->collisionScreenEdges("shell").size() == 12,
+								 "the overlay draws the hull's edges");
+					editor.findChild<QAction *>("undoMesh")->trigger();
+					ok &= expect(!findModelCollisionBox(editor.document().mesh(), "shell"), "undo removes the fitted hull");
+					boxes->setCurrentIndex(boxes->findData("extra"));
+				}
+			}
+			{
+				// Doom 3 collision exports (ATT-COLL-02).
+				auto *aseButton = editor.findChild<QPushButton *>("exportMeshCollisionAse");
+				auto *clipButton = editor.findChild<QPushButton *>("exportMeshCollisionClipModel");
+				auto *doom3Material = editor.findChild<QLineEdit *>("meshCollisionDoom3Material");
+				ok &= expect(aseButton && clipButton && doom3Material && !aseButton->accessibleDescription().isEmpty() &&
+								 !clipButton->accessibleDescription().isEmpty() && doom3Material->text() == "textures/common/collision",
+							 "Doom 3 export controls are named, described and default to the collision material");
+				ok &= expect(editor.exportCollisionAse(path("prop.ase"), {}, false, &error) && QFileInfo::exists(path("prop.ase")),
+							 "GUI writes an ASE with collision surfaces", error);
+				ok &= expect(!editor.exportCollisionAse(path("prop.ase"), {}, false, &error), "an existing ASE needs approval");
+				ok &= expect(editor.exportCollisionClipModel(path("clip.ase"), "extra", {}, false, &error) && QFileInfo::exists(path("clip.ase")),
+							 "GUI writes a Doom 3 clip model", error);
+			}
 			editor.collisionDestination = [&]
 			{
 				return ModelCollisionDestination{map, [](const LevelMapDocument &, QString *failure)
@@ -437,7 +521,7 @@ int main(int argc, char **argv)
 			{
 				ok &= expect(button->hasHeightForWidth() ? button->height() >= button->heightForWidth(button->width())
 					: button->width() >= button->fontMetrics().horizontalAdvance(button->text()) + 12,
-							 "all collision action labels fit at the configured text scale");
+							 "all collision action labels fit at the configured text scale", button->objectName());
 			}
 			ok &= expect(capture(editor, QStringLiteral("collision-editor-%1-top").arg(variant)), "capture collision controls");
 			scroll->verticalScrollBar()->setValue(scroll->verticalScrollBar()->maximum());

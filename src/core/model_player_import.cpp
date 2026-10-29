@@ -300,6 +300,8 @@ bool importModelQ3Player(const PackageArchiveReader &archive, const QString &pla
 		candidate.assembly.parts << part;
 	}
 	candidate.assembly.q3Animation = ModelAssemblyQ3Animation{config, roles()[0], roles()[1]};
+	// Preview attachments between frames as the game's renderer blends them.
+	candidate.assembly.tagInterpolation = ModelTagInterpolation::Quake3Renderer;
 	if (!validateModelAssembly(candidate.assembly, error))
 		return fail(error, Text::tr("Player %1 cannot become an assembly: %2").arg(found->name, error ? *error : QString()));
 	auto &publication = candidate.publication;

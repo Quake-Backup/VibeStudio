@@ -647,6 +647,22 @@ Quake III player PK3 (**Player Package…**). Assemblies link separate models;
 they are not skeletal animation, and game-side animation set-up is still up to
 you.
 
+**Attachment blend**, below the preview, sets how parent tags move between
+stored frames, in the preview and in every bake. **Quake III renderer** blends
+each tag axis the way the game does, so a fast swing or head turn looks as it will
+in game, slight skew included. **Shortest arc** keeps the attached part rigid.
+Binding native animation or opening a player selects **Quake III renderer**;
+older assemblies keep **Shortest arc**. See
+[Attachment blend](../MODEL_ASSEMBLY.md#attachment-blend).
+
+A part can also hang from a joint of a skeletal parent (MD5, IQM): choose
+`joint:<name>` as its **Parent tag**, such as `joint:hand` for a weapon. See
+[Joint attachments](../MODEL_ASSEMBLY.md#joint-attachments).
+
+To keep the parts' collision in a bake, tick **Include part collision in bakes**:
+each part's boxes and hulls are placed as the part is and named after it. See
+[Part collision in bakes](../MODEL_ASSEMBLY.md#part-collision-in-bakes).
+
 ### Open an existing Quake III player
 
 **Open Player…** turns a player of the current package or folder into a new
@@ -662,6 +678,26 @@ Nothing in the package changes. The new assembly is unsaved: save it beside the
 package, not inside it. To bring in only an `animation.cfg`, use **Native
 Animation… > Import from Package…**. See
 [Opening a Quake III player](../MODEL_ASSEMBLY.md#opening-a-quake-iii-player).
+
+### Publish a Quake III weapon
+
+**Weapon Package…** writes a weapon's models into one PK3 at
+`models/weapons2/<id>/`: the weapon, and optionally its first-person hand, its
+spinning barrel and its muzzle flash. Build the weapon as an assembly with the
+barrel on the weapon's `tag_barrel` and the flash on its `tag_flash`, choose the
+part for each role, then **Review Package** and **Export PK3…**. The review
+refuses a weapon without `tag_flash` and other missing tags, so the flash and
+barrel cannot end up in the wrong place. Set **Spin about X (rpm)** on the barrel
+to see it roll in the preview. See [Weapon packages](../MODEL_ASSEMBLY.md#weapon-packages).
+
+### Publish a Quake II player
+
+**Quake II Player…** writes `players/<id>/` into a PAK: the body as `tris.md2`
+with the 198 standard player frames, `weapon.md2` playing in step with it, each
+skin and icon as a PCX in the game's palette, and optional sounds and view
+weapons. Open the game's `pak0.pak` (or a package with `pics/colormap.pcx`) first
+for the palette. A wrong frame count names the standard ranges so you can see
+what is missing. See [Quake II player packages](../MODEL_ASSEMBLY.md#quake-ii-player-packages).
 
 ### Publish a Quake III player
 
@@ -714,11 +750,27 @@ way. Player packages use a part's variants for skins of the same name. See
 ## Add collision
 
 The Mesh Editor's **Collision** page creates static, oriented collision boxes:
-add or fit a box to the selection, then move, rotate and size it.
+add or fit a box to the selection, then move, rotate and size it. For round or
+sloped props, **Fit New Hull** fits a convex hull instead, kept within the
+**Hull budget** you choose (a map brush, or a Doom 3 trace model's 16 faces); it
+moves, scales and animates like a box.
+
+For Doom 3, **Export ASE with Collision…** writes the model with one
+collision surface per box or hull, so the game collides with those instead of the
+render triangles, and **Export Doom 3 Clip Model…** writes the selected volume for
+an entity's `clipmodel` key. See [Doom 3 collision](../MODEL_COLLISION.md#doom-3-collision).
 **Export Collision Map…** writes the boxes as brushes in a separate `.map`
 file, and **Place Collision in Level** adds them to the open Quake, Quake II or
-Quake III map as one undoable edit. Placed brushes do not follow later edits to
-the prop.
+Quake III map as one undoable edit. To fit a prop placed in the level, select its
+model entity there and choose **Place for Selected Model Instance**: the boxes
+follow the instance's position, angles and scale.
+
+Placed collision remembers which model it came from. When you change the boxes,
+choose **Refresh Placed Collision…**: it lists this model's collision in the open
+level as **Current** or **Stale**, and replaces the set you choose in one undoable
+edit, instead of adding a second set. Moving the prop in the level does not move
+its collision; refresh it afterwards. See
+[Recorded placement and refresh](../MODEL_COLLISION.md#recorded-placement-and-refresh).
 
 ## Export and build game files
 

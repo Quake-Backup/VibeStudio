@@ -391,6 +391,7 @@ core_sources = files(
   'core/map_preview_mesh.cpp',
   'core/level_materials.cpp',
   'core/level_model_appearance.cpp',
+  'core/level_model_instance.cpp',
   'core/map_render.cpp',
   'core/model_mesh.cpp',
   'core/model_archive.cpp',
@@ -412,9 +413,14 @@ core_sources = files(
   'core/model_import_repair.cpp',
   'core/model_source_decode.h',
   'core/model_collision.cpp',
+  'core/model_collision_placement.cpp',
+  'core/model_collision_hull.cpp',
+  'core/model_collision_doom3.cpp',
   'core/model_assembly.cpp',
   'core/model_assembly_skin.cpp',
   'core/model_player_bundle.cpp',
+  'core/model_weapon_bundle.cpp',
+  'core/model_q2_player_bundle.cpp',
   'core/model_player_import.cpp',
   'core/model_assembly_q3_animation.cpp',
   'core/model_q3_animation.cpp',
@@ -608,10 +614,15 @@ install_headers('core/model_document.h', 'core/model_topology.h', subdir: 'vibes
 install_headers('core/model_document_memory.h', 'core/model_source_encoding.h', subdir: 'vibestudio/core')
 install_headers('core/model_assembly.h', subdir: 'vibestudio/core')
 install_headers('core/model_player_bundle.h', subdir: 'vibestudio/core')
+install_headers('core/model_weapon_bundle.h', subdir: 'vibestudio/core')
+install_headers('core/model_q2_player_bundle.h', subdir: 'vibestudio/core')
 install_headers('core/model_player_import.h', subdir: 'vibestudio/core')
 install_headers('core/model_q3_animation.h', subdir: 'vibestudio/core')
 install_headers('core/model_assembly_animation.h', subdir: 'vibestudio/core')
 install_headers('core/model_collision.h', subdir: 'vibestudio/core')
+install_headers('core/model_collision_placement.h', subdir: 'vibestudio/core')
+install_headers('core/model_collision_hull.h', subdir: 'vibestudio/core')
+install_headers('core/model_collision_doom3.h', subdir: 'vibestudio/core')
 install_headers('core/model_assembly_recovery.h', subdir: 'vibestudio/core')
 install_headers('core/model_topology_health.h', subdir: 'vibestudio/core')
 install_headers('core/model_boundary_fill.h', subdir: 'vibestudio/core')
@@ -685,6 +696,7 @@ install_headers('core/ai_audio_transport.h', subdir: 'vibestudio/core')
 install_headers('core/sound_generation.h', subdir: 'vibestudio/core')
 install_headers('core/level_materials.h', subdir: 'vibestudio/core')
 install_headers('core/level_model_appearance.h', subdir: 'vibestudio/core')
+install_headers('core/level_model_instance.h', subdir: 'vibestudio/core')
 
 app_sources = files(
   'app/asset_workbench_actions.cpp',
@@ -878,6 +890,8 @@ app_sources = files(
   'app/model_assembly_dialog.cpp',
   'app/model_assembly_skin.cpp',
   'app/model_player_bundle.cpp',
+  'app/model_weapon_bundle.cpp',
+  'app/model_q2_player_dialog.cpp',
   'app/model_assembly_q3_animation.cpp',
   'app/model_assembly_player_import.cpp',
   'app/model_q3_animation_dialog.cpp',
@@ -4293,6 +4307,36 @@ model_assembly_cli_smoke_test = executable(
 )
 test('model-assembly-cli-smoke', model_assembly_cli_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
 
+model_assembly_tag_interpolation_smoke_test = executable(
+  'model_assembly_tag_interpolation_smoke_test', ['tests/model_assembly_tag_interpolation_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-assembly-tag-interpolation-smoke', model_assembly_tag_interpolation_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+
+model_assembly_collision_smoke_test = executable(
+  'model_assembly_collision_smoke_test', ['tests/model_assembly_collision_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-assembly-collision-smoke', model_assembly_collision_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+
+model_assembly_joint_smoke_test = executable(
+  'model_assembly_joint_smoke_test', ['tests/model_assembly_joint_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-assembly-joint-smoke', model_assembly_joint_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+
+model_weapon_bundle_smoke_test = executable(
+  'model_weapon_bundle_smoke_test', ['tests/model_weapon_bundle_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-weapon-bundle-smoke', model_weapon_bundle_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+
+model_q2_player_bundle_smoke_test = executable(
+  'model_q2_player_bundle_smoke_test', ['tests/model_q2_player_bundle_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-q2-player-bundle-smoke', model_q2_player_bundle_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+
 model_assembly_ui_smoke_test = executable(
   'model_assembly_ui_smoke_test', ['tests/model_assembly_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
@@ -4316,6 +4360,24 @@ model_collision_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-collision-smoke', model_collision_smoke_test, env: model_document_test_env, timeout: 90)
+
+model_collision_placement_smoke_test = executable(
+  'model_collision_placement_smoke_test', ['tests/model_collision_placement_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-collision-placement-smoke', model_collision_placement_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+
+model_collision_hull_smoke_test = executable(
+  'model_collision_hull_smoke_test', ['tests/model_collision_hull_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-collision-hull-smoke', model_collision_hull_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+
+model_collision_doom3_smoke_test = executable(
+  'model_collision_doom3_smoke_test', ['tests/model_collision_doom3_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-collision-doom3-smoke', model_collision_doom3_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
 
 model_collision_cli_smoke_test = executable(
   'model_collision_cli_smoke_test', ['tests/model_collision_cli_smoke_test.cpp'],

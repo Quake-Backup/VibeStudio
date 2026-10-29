@@ -22,4 +22,10 @@ bool interpolateModelNormal(ModelVec3 first, ModelVec3 second, double amount, Mo
 // Endpoint poses are exact. Intermediate tag orientations use the shortest arc
 // and preserve common handedness. Names must match; frameIndex comes from first.
 bool interpolateModelTag(const ModelTag &first, const ModelTag &second, double amount, ModelTag *output);
+// Quake III's renderer blend (R_LerpTag): origin and each axis blend linearly,
+// then each axis is normalised on its own, without re-orthogonalising. Endpoints
+// are normalised too, as the engine does; a blended axis of zero length stays
+// zero. Only finiteness and matching names are required: opposite handedness and
+// antipodal poses are allowed, because the game allows them.
+bool interpolateModelTagQuake3(const ModelTag &first, const ModelTag &second, double amount, ModelTag *output);
 } // namespace vibestudio

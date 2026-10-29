@@ -1,5 +1,6 @@
 #include "core/model_assembly_animation.h"
 #include "core/model_archive.h"
+#include "core/model_collision.h"
 #include "core/package_archive.h"
 
 #include <QCoreApplication>
@@ -48,9 +49,14 @@ QStringList modelAssemblyAnimationNotes(const ModelAssemblyResolved &resolved, c
 	if (std::any_of(resolved.inputs.cbegin(), resolved.inputs.cend(),
 					[](const auto &input) { return !input.mesh.collisionBoxes.isEmpty(); }))
 	{
-		notes << QCoreApplication::translate(
-			"VibeStudioModelAssemblyAnimation",
-			"Input collision boxes remain in their model sources. Author collision on the baked mesh separately.");
+		if (options.includeCollision)
+			notes << QCoreApplication::translate("VibeStudioModelAssemblyAnimation",
+												 "Part collision volumes are carried into the bake as <part>_<volume>, with one pose per "
+												 "sample. Native model formats leave them out; editable sources keep them.");
+		else
+			notes << QCoreApplication::translate(
+				"VibeStudioModelAssemblyAnimation",
+				"Input collision boxes remain in their model sources. Author collision on the baked mesh separately.");
 	}
 	if (std::any_of(resolved.inputs.cbegin(), resolved.inputs.cend(),
 					[](const auto &input) { return !input.mesh.embeddedSkins.isEmpty() || input.mesh.mdl.enabled; }))
@@ -114,6 +120,9 @@ bool bakeModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAssemb
 													   "Reduce the frame count or simplify the inputs."));
 	}
 	ModelAssemblyAnimation candidate;
+	// Collision tracks: one pose per sample for every carried volume.
+	QVector<ModelCollisionBox> volumes;
+	QVector<QVector<ModelCollisionPose>> tracks;
 	// Each pose validates its exact composed geometry. Keep nested progress from
 	// replacing the stable sequence counter, while preserving cancellation polls.
 	const ModelWorkControl sampling{control.cancelled, {}};
@@ -124,9 +133,30 @@ bool bakeModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAssemb
 			return false;
 		}
 		ModelAssemblyPose pose;
-		if (!sampleModelAssembly(assembly, resolved, options.startSeconds + index / options.framesPerSecond, &pose, error, sampling))
+		if (!sampleModelAssembly(assembly, resolved, options.startSeconds + index / options.framesPerSecond, &pose, error, sampling,
+								 options.includeCollision))
 		{
 			return false;
+		}
+		if (index == 0)
+		{
+			volumes = pose.mesh.collisionBoxes;
+			tracks.resize(volumes.size());
+		}
+		if (pose.mesh.collisionBoxes.size() != volumes.size())
+			return fail(error, QCoreApplication::translate("VibeStudioModelAssemblyAnimation", "The sampled assembly changes its collision."));
+		for (int v = 0; v < volumes.size(); ++v)
+		{
+			const auto &box = pose.mesh.collisionBoxes[v];
+			// A hull mirrored in one sample and not in another cannot be one track.
+			if (box.name != volumes[v].name || !std::equal(box.hull.cbegin(), box.hull.cend(), volumes[v].hull.cbegin(), volumes[v].hull.cend(),
+													  [](ModelVec3 a, ModelVec3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; }))
+				return fail(error, QCoreApplication::translate("VibeStudioModelAssemblyAnimation",
+															   "Sample %1 changes the handedness of collision volume %2. Bake separate "
+															   "intervals.")
+									   .arg(index)
+									   .arg(box.name));
+			tracks[v] << ModelCollisionPose{box.centre, box.size, box.rotation};
 		}
 		pose.mesh.frames[0].name = QStringLiteral("bake%1").arg(index, 4, 10, QLatin1Char('0'));
 		if (index == 0)
@@ -158,6 +188,14 @@ bool bakeModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAssemb
 			target.frames.append(sample.frames[0]);
 		}
 		candidate.mesh.frames.append(pose.mesh.frames[0]);
+	}
+	candidate.mesh.collisionBoxes.clear();
+	for (int v = 0; v < volumes.size(); ++v)
+	{
+		auto volume = volumes[v];
+		if (options.frameCount > 1)
+			setModelCollisionFrames(&volume, tracks[v]);
+		candidate.mesh.collisionBoxes << volume;
 	}
 	candidate.mesh.animations = {{options.clipName, 0, options.frameCount, options.framesPerSecond}};
 	updateEditableModelMetadata(&candidate.mesh);

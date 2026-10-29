@@ -133,6 +133,32 @@ the custom sounds of `CG_LoadClientInfo` and the 19,998-byte limit of
 [`cg_players.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_players.c).
 Behaviour only; the implementation is original.
 
+The assembly's **Quake III renderer** attachment blend
+(`interpolateModelTagQuake3` in `core/model_pose`, reviewed 2026-10-28, same
+licence, `master` branch) follows `R_LerpTag` in
+[`tr_model.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/renderer/tr_model.c):
+linear origin and per-axis blends, then `VectorNormalize` on each axis with no
+re-orthogonalisation; the child is placed through that basis as
+`CG_PositionEntityOnTag` in
+[`cg_ents.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_ents.c)
+does. Behaviour only; the implementation is original.
+
+Quake II player packages (`core/model_q2_player_bundle`, reviewed 2026-10-28)
+follow the frame ranges of
+[`game/m_player.h`](https://github.com/id-Software/Quake-2/blob/master/game/m_player.h),
+the sexed `*<name>.wav` sounds of `game/p_client.c` and `game/p_view.c`, and the
+client's `players/<model>/tris.md2`, `weapon.md2`, `<skin>.pcx`, `<skin>_i.pcx`
+and view weapon loading in `client/cl_parse.c`, all in id Software's
+[Quake II](https://github.com/id-Software/Quake-2) GPL-2.0-or-later source.
+Behaviour only; the implementation is original and no palette is bundled.
+
+Weapon packages (`core/model_weapon_bundle`, reviewed 2026-10-28, same licence)
+follow `CG_RegisterWeapon` (the `<w>.md3`, `_flash`, `_barrel` and `_hand` model
+names), `CG_AddPlayerWeapon` (`tag_weapon`, `tag_barrel`, `tag_flash` and the
+barrel roll) and `CG_MapTorsoToWeaponFrame` in
+[`cg_weapons.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_weapons.c).
+Behaviour only; the implementation is original.
+
 The native animation roster, lower-body frame adjustment, legacy gesture
 fallback and reverse/loop timing reference id Software's
 [`bg_public.h`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/game/bg_public.h)
@@ -208,6 +234,23 @@ and [`bspfile_ibsp.cpp`](https://github.com/Garux/netradiant-custom/blob/68ecbed
 at `68ecbed64b7be78741878c730279b5471d978c7c`. These GPL-2.0-or-later references
 were reviewed for GPL-3.0 compatibility on 2026-10-05. BSP readers, membership
 oracles, fixtures and workflow code are original VibeStudio implementations.
+
+Collision hulls and recorded placement (reviewed 2026-10-28). The Doom 3 trace
+model budget (16 polygons, 32 edges, 32 vertices) follows `MAX_TRACEMODEL_POLYS`,
+`MAX_TRACEMODEL_EDGES` and `MAX_TRACEMODEL_VERTS` in id Software's
+[`neo/idlib/geometry/TraceModel.h`](https://github.com/id-Software/DOOM-3/blob/master/neo/idlib/geometry/TraceModel.h)
+(GPL-3.0-or-later with id's additional terms). Doom 3 collision surfaces follow
+the rule in `idCollisionModelManagerLocal::LoadRenderModel`
+([`neo/cm/CollisionModel_load.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/cm/CollisionModel_load.cpp)):
+when any surface's material has the `collision` keyword, only those surfaces
+collide; the `clipmodel` key and trace model come from the same release's game
+code. Behaviour only; no code is copied. Recording placements in a
+`func_group` relies on the compilers merging `func_group` into the world, as
+ericw-tools `qbsp`, Quake II `qbsp3` and q3map2 do and as
+[TrenchBroom](https://github.com/TrenchBroom/TrenchBroom) uses it for groups.
+The instance transform is the level preview's existing reading of `angles`,
+`angle`, `modelscale` and `modelscale_vec`. The hull builder, conservative
+simplification and records are original VibeStudio implementations.
 
 ## Placed Model Compiler Appearances
 

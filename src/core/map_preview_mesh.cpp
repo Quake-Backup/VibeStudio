@@ -1,6 +1,7 @@
 #include "core/map_preview_mesh.h"
 #include "core/level_visibility.h"
 #include "core/level_model_appearance.h"
+#include "core/level_model_instance.h"
 #include "core/level_scene.h"
 #include "core/doom_preview_geometry.h"
 
@@ -285,22 +286,11 @@ LevelMapPreviewMesh buildLevelMapPreviewMesh(const LevelMapDocument& document, c
 		for (const auto& entity : document.entities) {
 			if (hidden.contains(levelMapSelectionRefId({LevelMapSelectionKind::Entity, entity.id}))) { continue; }
 			if (!room || cancelled()) { break; }
-			const auto property = [&entity](const QString& key) {
-				for (const auto& item : entity.properties) { if (item.key.compare(key, Qt::CaseInsensitive) == 0) { return item.value; } }
-				return QString();
-			};
 			const QString path = levelModelAppearance(document, entity).cacheKey;
 			const auto found = options.modelMeshes.constFind(path);
 			if (found == options.modelMeshes.cend() || !found->geometryAvailable) { continue; }
-			QMatrix4x4 transform;
-			transform.translate(entity.origin.x, entity.origin.y, entity.origin.z);
-			const auto angles = property(QStringLiteral("angles")).split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
-			if (angles.size() == 3) {
-				transform.rotate(angles[1].toFloat(), 0, 0, 1); transform.rotate(angles[0].toFloat(), 0, 1, 0); transform.rotate(angles[2].toFloat(), 1, 0, 0);
-			} else { transform.rotate(property(QStringLiteral("angle")).toFloat(), 0, 0, 1); }
-			const auto scales = property(QStringLiteral("modelscale_vec")).split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
-			if (scales.size() == 3) { transform.scale(scales[0].toFloat(), scales[1].toFloat(), scales[2].toFloat()); }
-			else { bool ok = false; const float scale = property(QStringLiteral("modelscale")).toFloat(&ok); if (ok) { transform.scale(scale); } }
+			// Shared with model collision placement (core/level_model_instance.h).
+			const QMatrix4x4 transform = levelModelInstanceMatrix(levelModelInstanceTransform(entity));
 			++preview.modelInstances;
 			for (const auto& surface : found->surfaces) {
 				if (!room || surface.frames.isEmpty()) { break; }
