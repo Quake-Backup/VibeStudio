@@ -51,6 +51,34 @@ QString materialEngineGeneration(MaterialEngine engine);
 MaterialEngine materialEngineFromId(const QString& id);
 QVector<MaterialEngine> materialEngines();
 
+// Which idTech 3 game reads a Quake III shader script. They share the
+// format but not the keywords: each game drops a shader that uses a keyword
+// it does not know (tr_shader.c ParseShader and ParseStage of each GPL
+// release). They also differ in which of two scripts defining one name wins.
+enum class MaterialDialect {
+	Automatic,      // worked out from the scripts' keywords
+	Quake3,         // Quake III Arena as ioquake3 runs it
+	Quake3Original, // Quake III Arena 1.32 as id Software released it
+	Wolfenstein,    // Return to Castle Wolfenstein (iortcw)
+	EnemyTerritory, // Wolfenstein: Enemy Territory
+	JediKnight,     // Jedi Knight II and Jedi Academy (OpenJK)
+};
+
+// "auto", "quake3", "quake3-1.32", "rtcw", "et", "jediknight".
+QString materialDialectId(MaterialDialect dialect);
+QString materialDialectDisplayName(MaterialDialect dialect);
+// Accepts the ids above plus ioq3, q3a, wolf, wolfet, jk2, jka, openjk.
+bool materialDialectFromId(const QString& id, MaterialDialect* dialect);
+// Every dialect but Automatic.
+QVector<MaterialDialect> materialDialects();
+// The dialect a game installation key names (rtcw, et, jk2, jka, quake3),
+// Automatic when it names none.
+MaterialDialect materialDialectForGameKey(const QString& gameKey);
+// True when the alphabetically last script defining a name wins (every
+// engine that concatenates scripts in reverse and finds the first match);
+// false for Quake III 1.32, whose shader text hash finds the first.
+bool materialDialectLastScriptWins(MaterialDialect dialect);
+
 // A span of script text. Offsets are UTF-16 positions in the owning script's
 // text; lines are 1-based. Synthetic materials have no span (start < 0).
 struct MaterialSourceSpan {
@@ -219,6 +247,8 @@ enum class MaterialTexModKind {
 	Transform,
 	Turbulent,
 	EntityTranslate,
+	// Enemy Territory: swaps s and t.
+	Swap,
 	// Doom 3 stage transforms (expression arguments).
 	Translate, // also "scroll"
 	ScaleExpression,
@@ -320,6 +350,13 @@ struct MaterialStage {
 	bool nearest = false;
 	bool videoLoop = false;
 	bool cameraCubeMap = false;
+	// Jedi Knight oneshotanimMap: the frames play once and hold the last.
+	bool animationOnce = false;
+	// Jedi Knight: the stage also feeds the glow (bloom) pass.
+	bool glow = false;
+	// Jedi Knight surfaceSprites: the stage scatters sprites (grass,
+	// weather) over the surface instead of covering it.
+	bool surfaceSprites = false;
 
 	MaterialBlend blend;
 	MaterialColorGen rgbGen;
@@ -350,6 +387,12 @@ struct MaterialStage {
 	double privatePolygonOffset = 0.0;
 	QString vertexProgram;
 	QString fragmentProgram;
+	// Doom 3 program inputs: vertexParm n's expressions (up to four, -1
+	// unused) and fragmentMap n's image program (-1 unset), by n, with
+	// whether each map is a cube map (1) or a camera cube map (2).
+	QVector<std::array<int, 4>> vertexParms;
+	QVector<int> fragmentMaps;
+	QVector<int> fragmentMapCubes;
 	// Doom 3 `diffusemap x` and friends make a stage from one global
 	// directive: its index in the material's directives, else -1.
 	int shorthandDirective = -1;
@@ -636,6 +679,9 @@ struct MaterialDefinition {
 struct MaterialScript {
 	QString path;
 	MaterialEngine engine = MaterialEngine::Unknown;
+	// The Quake III game the script was read for; never Automatic once
+	// parsed. Doom 3 scripts keep Quake3.
+	MaterialDialect dialect = MaterialDialect::Quake3;
 	QString text;
 	QVector<MaterialDefinition> materials;
 	QVector<MaterialTable> tables;

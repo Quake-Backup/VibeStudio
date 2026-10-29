@@ -1267,6 +1267,7 @@ void CommandPaletteDialog::rebuildRows()
 		row.iconName = registration.iconName;
 		row.enabled = target ? target->isEnabled() : false;
 		row.destructive = registration.destructive;
+		row.inSubmenu = !registration.menuSection.isEmpty();
 		m_rows.push_back(row);
 		known.insert(normalizedToken(registration.commandId));
 	}
@@ -1317,15 +1318,19 @@ void CommandPaletteDialog::applyFilter()
 		} else {
 			const QString label = row.label.toLower();
 			const QString title = QStringLiteral("%1 %2").arg(label, row.category.toLower());
-			// Letters may be skipped in a command's name and category; its
-			// description, long enough to hold almost any letters in order,
-			// matches by whole words.
-			if (label.startsWith(needle)) {
-				rank = 0;
-			} else if (hasWordStart(label, needle)) {
-				rank = 1;
-			} else if (isSubsequence(title, needle) || hasEveryWordStart(QStringLiteral("%1 %2").arg(title, row.summary.toLower()), needle)) {
+			// A command named exactly what was typed leads, one at the top of
+			// its menu before one in a submenu, whose name leans on the
+			// submenu's title. Letters may be skipped in a command's name and
+			// category; its description, long enough to hold almost any
+			// letters in order, matches by whole words.
+			if (label == needle) {
+				rank = row.inSubmenu ? 1 : 0;
+			} else if (label.startsWith(needle)) {
 				rank = 2;
+			} else if (hasWordStart(label, needle)) {
+				rank = 3;
+			} else if (isSubsequence(title, needle) || hasEveryWordStart(QStringLiteral("%1 %2").arg(title, row.summary.toLower()), needle)) {
+				rank = 4;
 			} else {
 				continue;
 			}

@@ -139,6 +139,12 @@ public:
 	// that way. Empty skins end the preview.
 	void setGameSkins(const QHash<int, QImage>& skins, const QHash<int, QImage>& glows, bool nearest);
 	[[nodiscard]] bool gameSkinsActive() const { return !m_gameSkins.isEmpty(); }
+	// Replaces the images of some surfaces and redraws, leaving the others,
+	// the selection and any drag or stroke in progress as they are: for
+	// animated materials, several times a second.
+	void updateSurfaceSkinImages(const QHash<int, QImage>& skins);
+	// The image a surface is drawn with, null when it has none of its own.
+	[[nodiscard]] QImage surfaceSkinImage(int surface) const;
 	void clearSkin();
 	[[nodiscard]] bool hasSkin() const;
 	[[nodiscard]] QSize skinSize() const;

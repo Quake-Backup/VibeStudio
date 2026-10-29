@@ -171,6 +171,9 @@ if python_for_tests.found()
     'documentation-validation',
     python_for_tests,
     args: [files('scripts/validate_docs.py')],
+    # It reads every catalogue and manual page: about ten seconds alone, past
+    # the default 30 beside the heavy UI tests of a parallel run.
+    timeout: 120,
   )
   test(
     'source-layout-validation',

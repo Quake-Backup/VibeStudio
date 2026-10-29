@@ -5,6 +5,8 @@
 #include "core/advanced_studio.h"
 #include "core/idtech_image.h"
 #include "core/map_assets.h"
+#include "core/material_lookup.h"
+#include "core/material_script.h"
 
 #include <QBuffer>
 #include <QCoreApplication>
@@ -132,7 +134,26 @@ class BoundedReader final : public PackageArchiveReader
 struct ShaderOwner {
 	QString path;
 	ShaderDefinition shader;
+	// Declared in a base package beneath the package (layerId "base:<n>").
+	bool base = false;
 };
+// The base game's declaration the game uses when its own scripts declare a
+// name more than once: within one script the first, across scripts the last
+// script (ioquake3 and the derivatives) or the first (Quake III 1.32).
+// Owners are in script path order.
+ShaderOwner gameShaderOwner(const QVector<ShaderOwner> &owners, MaterialDialect dialect)
+{
+	if (!materialDialectLastScriptWins(dialect)) {
+		return owners.first();
+	}
+	const QString last = owners.last().path;
+	for (const auto &owner : owners) {
+		if (owner.path == last) {
+			return owner;
+		}
+	}
+	return owners.last();
+}
 struct Request {
 	QString key, name, modelPath;
 	QImage embedded;
@@ -317,6 +338,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 		report.warnings << QCoreApplication::translate("VibeStudioLevelMaterials", "%1: %2").arg(appearance.modelPath, error);
 	}
 	QMap<QString, QVector<ShaderOwner>> shaders;
+	QStringList scriptTexts;
 	bool scriptsComplete = true;
 	if (quake3 && !requests.isEmpty()) {
 		int scriptCount = 0, shaderCount = 0;
@@ -341,7 +363,8 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 				scriptsComplete = false;
 				continue;
 			}
-			const auto script = parseShaderScriptText(QString::fromUtf8(bytes), entry.virtualPath);
+			scriptTexts << QString::fromUtf8(bytes);
+			const auto script = parseShaderScriptText(scriptTexts.last(), entry.virtualPath);
 			if (!script.issues.isEmpty()) {
 				scriptsComplete = false;
 			}
@@ -350,7 +373,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 					scriptsComplete = false;
 					break;
 				}
-				shaders[keyFor(shader.name)].push_back({entry.virtualPath, shader});
+				shaders[keyFor(shader.name)].push_back({entry.virtualPath, shader, entry.layerId.startsWith(QStringLiteral("base:"))});
 			}
 			if (shaderCount > 65536) {
 				break;
@@ -363,6 +386,12 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 													   "Shader scripts are unreadable, ambiguous, malformed, or exceed the scan budget. "
 													   "Material previews are withheld until shader lookup is reliable.");
 	}
+	// Each shader is read as the Materials page reads it, for one Quake III
+	// game across the package's scripts, so a face shows the same image.
+	const MaterialDialect dialect = options.materialDialect == MaterialDialect::Automatic && !scriptTexts.isEmpty()
+		? detectMaterialDialect(scriptTexts)
+		: options.materialDialect;
+	scriptTexts.clear();
 	report.requestedMaterials = static_cast<int>(requests.size());
 	total = completed + report.requestedMaterials;
 	QHash<QString, LevelPreviewMaterial> decodedImages;
@@ -381,6 +410,9 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 		material.key = request.key;
 		material.name = request.name;
 		material.status = QStringLiteral("missing");
+		// The shader's own warnings, kept apart from the image's: a decoded
+		// image is shared by every material that shows it.
+		QStringList shaderWarnings;
 		const auto resolve = [&] {
 			if (!request.embedded.isNull()) {
 				material.image = request.embedded;
@@ -418,9 +450,18 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 										  ? mapTextureMaterialCandidates(request.name, document.format, document.engineFamily)
 										  : QStringList{request.name};
 			for (const auto &name : names) {
-				const auto owners = shaders.value(keyFor(name));
+				auto owners = shaders.value(keyFor(name));
 				if (owners.isEmpty()) {
 					continue;
+				}
+				// The package's own declarations hide the base game's, as a mod
+				// replaces a game shader by declaring it again; two in the
+				// package stay ambiguous, as dependency review reports them.
+				// The game's own scripts are taken as the game takes them.
+				if (std::any_of(owners.cbegin(), owners.cend(), [](const ShaderOwner &owner) { return !owner.base; })) {
+					owners.erase(std::remove_if(owners.begin(), owners.end(), [](const ShaderOwner &owner) { return owner.base; }), owners.end());
+				} else if (owners.size() > 1) {
+					owners = {gameShaderOwner(owners, dialect)};
 				}
 				if (owners.size() != 1) {
 					material.status = QStringLiteral("ambiguous");
@@ -430,17 +471,36 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 				material.shaderPath = owners.first().path;
 				QString imageName;
 				const auto &shader = owners.first().shader;
-				for (const auto &directive : shader.directives) {
-					static const QRegularExpression editorImage(QStringLiteral("^qer_editorimage\\s+(.+)$"),
-																QRegularExpression::CaseInsensitiveOption);
-					const auto match = editorImage.match(directive);
-					if (match.hasMatch()) {
-						imageName = unquote(match.captured(1));
-						material.status = QStringLiteral("editor-image");
-						break;
+				// The Materials page's reading of this declaration chooses the
+				// image (core/material_lookup.h); the catalogue's own reading
+				// covers a declaration that parser cannot take.
+				const MaterialScript parsed = parseMaterialScript(shader.rawText, MaterialEngine::Quake3, owners.first().path, dialect);
+				const MaterialDefinition *definition = parsed.find(shader.name);
+				bool animated = false;
+				if (definition) {
+					imageName = materialDeclaredDisplayImage(*definition);
+					if (!imageName.isEmpty()) {
+						material.status = definition->editorImage.isEmpty() ? QStringLiteral("stage-image") : QStringLiteral("editor-image");
+					}
+					animated = definition->isAnimated();
+					if (!definition->engineRejection.isEmpty()) {
+						shaderWarnings << QCoreApplication::translate("VibeStudioLevelMaterials",
+							"The game rejects this shader and draws its default image instead: %1").arg(definition->engineRejection);
 					}
 				}
-				if (imageName.isEmpty()) {
+				if (!definition) {
+					for (const auto &directive : shader.directives) {
+						static const QRegularExpression editorImage(QStringLiteral("^qer_editorimage\\s+(.+)$"),
+																	QRegularExpression::CaseInsensitiveOption);
+						const auto match = editorImage.match(directive);
+						if (match.hasMatch()) {
+							imageName = unquote(match.captured(1));
+							material.status = QStringLiteral("editor-image");
+							break;
+						}
+					}
+				}
+				if (imageName.isEmpty() && !definition) {
 					for (const auto &stage : shader.stages) {
 						for (const auto &path : stage.textureReferences) {
 							if (!path.startsWith(QLatin1Char('$'))) {
@@ -454,9 +514,12 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 						}
 					}
 				}
-				material.note = QCoreApplication::translate("VibeStudioLevelMaterials",
-															"Static shader image only; lighting, blending, animation, deformation and "
-															"texture-coordinate effects are not simulated.");
+				material.note = animated
+					? QCoreApplication::translate("VibeStudioLevelMaterials",
+						  "Still image of an animated shader; View > Camera Display > Animate Materials in Camera plays it in the camera.")
+					: QCoreApplication::translate("VibeStudioLevelMaterials",
+						  "Static shader image only; lighting, blending, animation, deformation and "
+						  "texture-coordinate effects are not simulated.");
 				if (imageName.isEmpty()) {
 					material.status = QStringLiteral("unsupported");
 					return;
@@ -549,6 +612,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 				}
 			}
 		}
+		material.warnings = shaderWarnings + material.warnings;
 		report.materials.push_back(std::move(material));
 	}
 	tick();

@@ -239,6 +239,9 @@ QString MaterialLibraryModel::rowDescription(int row) const
 	if (entry.shadowed) {
 		traits << tr("shadowed by %1").arg(entry.shadowedBy);
 	}
+	if (entry.base) {
+		traits << tr("from the base game, read only");
+	}
 	if (entry.errors > 0) {
 		traits << tr("%n error(s)", nullptr, entry.errors);
 	}
@@ -261,7 +264,10 @@ QVariant MaterialLibraryModel::data(const QModelIndex& index, int role) const
 	const MaterialLibraryEntry& entry = m_rows.library->entries.at(row);
 	switch (role) {
 	case Qt::DisplayRole:
-		return entry.shadowed ? tr("%1 (shadowed)").arg(shortName(entry.name)) : shortName(entry.name);
+		if (entry.shadowed) {
+			return tr("%1 (shadowed)").arg(shortName(entry.name));
+		}
+		return entry.base ? tr("%1 (base)").arg(shortName(entry.name)) : shortName(entry.name);
 	case Qt::ToolTipRole: {
 		QString tip = rowDescription(row);
 		if (!entry.sourcePath.isEmpty()) {
@@ -290,7 +296,7 @@ QVariant MaterialLibraryModel::data(const QModelIndex& index, int role) const
 	case Qt::SizeHintRole:
 		return m_itemSize.isValid() ? QVariant(m_itemSize) : QVariant();
 	case Qt::ForegroundRole:
-		if (entry.shadowed) {
+		if (entry.shadowed || entry.base) {
 			return currentStudioTheme().colors.textMuted;
 		}
 		return {};
@@ -306,6 +312,12 @@ QVariant MaterialLibraryModel::data(const QModelIndex& index, int role) const
 		return entry.animated;
 	case ShadowedRole:
 		return entry.shadowed;
+	case BaseRole:
+		return entry.base;
+	case ProblemsRole:
+		return entry.errors * 1000 + entry.warnings + (entry.rejected ? 1000000 : 0);
+	case SourceRole:
+		return entry.sourcePath;
 	default:
 		return {};
 	}
@@ -423,6 +435,57 @@ bool MaterialLibraryFilter::filterAcceptsRow(int sourceRow, const QModelIndex& s
 		return false;
 	}
 	return m_query.isEmpty() || studioQueryMatches(m_query, model->properties(sourceRow), entry.name);
+}
+
+void MaterialLibraryFilter::setOrder(Order order)
+{
+	m_order = order;
+	// Column -1 puts the rows back in the library's own order.
+	sort(order == Order::Library ? -1 : 0);
+}
+
+void MaterialLibraryFilter::setUseCounts(const QHash<int, int>& counts)
+{
+	m_useCounts = counts;
+	if (m_order == Order::MostUsed) {
+		sort(-1);
+		sort(0);
+	}
+}
+
+bool MaterialLibraryFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
+{
+	const auto byName = [&]() {
+		return QString::localeAwareCompare(left.data(MaterialLibraryModel::NameRole).toString(), right.data(MaterialLibraryModel::NameRole).toString()) < 0;
+	};
+	switch (m_order) {
+	case Order::Library:
+		return left.row() < right.row();
+	case Order::Name:
+		return byName();
+	case Order::Engine: {
+		const int a = left.data(MaterialLibraryModel::EngineRole).toInt();
+		const int b = right.data(MaterialLibraryModel::EngineRole).toInt();
+		return a != b ? a < b : byName();
+	}
+	case Order::Source: {
+		const int compared = QString::compare(left.data(MaterialLibraryModel::SourceRole).toString(),
+			right.data(MaterialLibraryModel::SourceRole).toString(), Qt::CaseInsensitive);
+		return compared != 0 ? compared < 0 : left.row() < right.row();
+	}
+	case Order::Problems: {
+		// Most serious first.
+		const int a = left.data(MaterialLibraryModel::ProblemsRole).toInt();
+		const int b = right.data(MaterialLibraryModel::ProblemsRole).toInt();
+		return a != b ? a > b : byName();
+	}
+	case Order::MostUsed: {
+		const int a = m_useCounts.value(left.row());
+		const int b = m_useCounts.value(right.row());
+		return a != b ? a > b : byName();
+	}
+	}
+	return false;
 }
 
 } // namespace vibestudio

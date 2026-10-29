@@ -992,6 +992,9 @@ ApplicationShell::~ApplicationShell()
 	delete m_audioRecoveryDiscovery;
 	m_audioRecoveryDiscovery = nullptr;
 	if (m_codeSearchPanel) { m_codeSearchPanel->invalidateReferences(tr("The studio is closing.")); }
+	// The Materials page keeps its view through the shell's settings: save it
+	// now, while they exist, and let it call nothing back while it goes.
+	if (m_materialWorkbench) { m_materialWorkbench->detachHost(); }
 	// Retire language callbacks while the shell's tabs and settings still exist.
 	retireCodeQuickInfo(tr("The studio is closing."), true);
 	retireCodeSignatureHelp();
@@ -9273,6 +9276,7 @@ void ApplicationShell::refreshLevelMapTextures(const QVector<LevelMapTextureUse>
 		if (previewMaterial) {
 			facts << (previewMaterial->ready() ? tr("preview %1 × %2").arg(previewMaterial->sourceSize.width()).arg(previewMaterial->sourceSize.height())
 				: tr("preview unavailable"));
+			if (previewMaterial->sourceLayer.startsWith(QStringLiteral("base:"))) { facts << tr("from the game's base packages"); }
 			if (!previewMaterial->note.isEmpty()) { facts << previewMaterial->note; }
 		} else if (path.isEmpty()) {
 			facts << (m_packageArchive.isOpen() ? tr("not in the open package") : tr("no package open for its picture"));
@@ -15686,6 +15690,24 @@ void ApplicationShell::buildCommands()
 				m_materialWorkbench->showNewMaterialDialog();
 			}
 		});
+	add(QStringLiteral("material.saveAll"), StudioCommandGroup::Tools, tr("Save All Mat&erials"),
+		tr("Save or stage every material text with unsaved changes on the Materials page."), QStringLiteral("save"), false, false, false,
+		[this]() {
+			if (m_materialWorkbench) {
+				m_materialWorkbench->saveAll();
+			}
+		});
+	add(QStringLiteral("material.findUses"), StudioCommandGroup::Tools, tr("Find Material Uses in Maps"),
+		tr("List the maps that use the material chosen on the Materials page, and open one in Levels."), QStringLiteral("map"), false, false, false,
+		[this]() { showMaterialMapUses(); });
+	add(QStringLiteral("material.exportPreview"), StudioCommandGroup::Tools, tr("Export Material Preview…"),
+		tr("Write the Materials page's preview, or an animation sheet, to a PNG."), QStringLiteral("export"), false, false, false,
+		[this]() {
+			if (m_materialWorkbench) {
+				m_materialWorkbench->chooseExportImage(false);
+			}
+		});
+	registerLevelMaterialAnimationCommand();
 	add(QStringLiteral("extension.discover"), StudioCommandGroup::Tools, tr("Discover &Extensions"),
 		tr("Load vibestudio.extension.json manifests and report their trust metadata."), QStringLiteral("plugin"), false, false, false,
 		[this]() {

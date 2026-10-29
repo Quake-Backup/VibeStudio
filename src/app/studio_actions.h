@@ -232,6 +232,9 @@ private:
 		QString iconName;
 		bool enabled = true;
 		bool destructive = false;
+		// Filed in a submenu, whose title its label leans on ("Models" under
+		// Filters).
+		bool inSubmenu = false;
 	};
 
 	void rebuildRows();

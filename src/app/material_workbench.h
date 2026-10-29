@@ -9,12 +9,18 @@
 // every text change is parsed again to update the preview, the graph, the
 // images and the problems. Saving writes a loose script, or stages the
 // script, the Doom lumps or the Quake II WAL into the open package.
+//
+// Base packages (a game installation's, or a PWAD's IWAD) sit beneath the
+// package: their images, tables and Doom lumps are used, and their
+// materials are listed read-only, to override in the package. The Maps tab
+// lists the maps that use the material, and opens them in Levels.
 
 #include "core/material_classic.h"
 #include "core/material_graph.h"
 #include "core/material_images.h"
 #include "core/material_library.h"
 #include "core/material_render.h"
+#include "core/material_usage.h"
 #include "core/package_archive.h"
 
 #include <QHash>
@@ -25,6 +31,7 @@
 #include <memory>
 
 class QComboBox;
+class QDialog;
 class QLabel;
 class QLineEdit;
 class QListView;
@@ -47,6 +54,7 @@ class MaterialPreviewView;
 class MaterialPropertyPanel;
 class MaterialScriptHighlighter;
 class MaterialTaskLane;
+class CodeFindBar;
 class StudioCodeEditor;
 struct MaterialLibraryRows;
 
@@ -59,6 +67,15 @@ struct MaterialWorkbenchHost {
 	std::function<bool(const QByteArray& bytes, const QString& lumpName, QString* error)> stageLump;
 	std::function<void(const QString& reference)> showTexture;
 	std::function<void(const QString& filePath, int line)> openInCode;
+	// Opens an image (its package path) in the Texture Editor.
+	std::function<void(const QString& virtualPath)> editImage;
+	// Opens a map in Levels and selects what uses `material` there.
+	std::function<bool(const MaterialMapUse& use, const QString& material, QString* error)> openMapUse;
+	// Shows a package entry on the Packages page.
+	std::function<void(const QString& virtualPath)> revealInPackage;
+	// The page's view settings, kept between sessions (opaque bytes).
+	std::function<QByteArray()> loadState;
+	std::function<void(const QByteArray& state)> saveState;
 };
 
 class MaterialWorkbench final : public QWidget {
@@ -69,6 +86,9 @@ public:
 	~MaterialWorkbench() override;
 
 	void setHost(MaterialWorkbenchHost host);
+	// Saves a pending view state through the host, then forgets the host: the
+	// owner calls it before the host's state goes, as when the studio closes.
+	void detachHost();
 	// The open package as an immutable snapshot (staged edits included), its
 	// path, and a revision that changes when its contents do.
 	void setPackage(std::shared_ptr<const PackageArchiveReader> reader, const QString& path, const QString& revision);
@@ -78,6 +98,17 @@ public:
 	// A .shader or .mtr file, read with the open package's images.
 	bool openScript(const QString& path, QString* error = nullptr);
 	void setReducedMotion(bool reduced);
+	// Packages the game mounts beneath the open one, by file path, lowest
+	// first. Read with the package; an unreadable one is reported and skipped.
+	void setBasePackages(const QStringList& paths);
+	[[nodiscard]] QStringList basePackages() const { return m_basePaths; }
+	// The Quake III game scripts are read for; Automatic works it out.
+	void setDialect(MaterialDialect dialect);
+	[[nodiscard]] MaterialDialect dialectChoice() const { return m_dialectChoice; }
+	// The dialect the library was read with.
+	[[nodiscard]] MaterialDialect dialect() const;
+	// Lists base materials, or only the package's own.
+	void setShowBaseMaterials(bool show);
 
 	[[nodiscard]] bool hasContent() const;
 	// One line for the page header.
@@ -89,6 +120,8 @@ public:
 	[[nodiscard]] bool hasUnsavedChanges() const;
 	bool save(QString* error = nullptr);
 	bool saveAs(const QString& path, QString* error = nullptr);
+	// Saves the current text and every other text with unsaved changes.
+	bool saveAll(QString* error = nullptr);
 	void revert();
 	bool selectMaterial(const QString& name);
 	[[nodiscard]] QString currentMaterial() const { return m_materialName; }
@@ -112,6 +145,37 @@ public:
 	// is filtered to the names that contain it.
 	void revealMaterial(const QString& name, std::function<bool(const QString&)> missing = {});
 
+	// Whole-definition edits of the current material, each one undo step in
+	// the text: rename it, add a renamed copy after it, or remove it.
+	bool renameCurrentMaterial(const QString& name, QString* error = nullptr);
+	bool duplicateCurrentMaterial(const QString& name, QString* error = nullptr);
+	bool deleteCurrentMaterial(QString* error = nullptr);
+	// Copies a base material into the package, in a script the game reads
+	// after (or, for Quake III 1.32 and Doom 3, before) the base scripts, so
+	// the copy wins; selects the copy.
+	bool overrideInPackage(QString* error = nullptr);
+	[[nodiscard]] bool currentIsBase() const;
+	// Writes the preview to a PNG: one frame now, or `frames` frames over
+	// the animation's cycle as a sheet.
+	bool exportPreview(const QString& path, int frames = 1, const QSize& size = QSize(), QString* error = nullptr);
+
+	// The maps that use materials, read in the background the first time the
+	// Maps tab shows or Find Uses in Maps asks.
+	void scanUsage();
+	// Shows the Maps tab, reading the maps when they have not been read.
+	void showMapUses();
+	// Asks where to write the preview (or a sheet of frames), then writes it.
+	void chooseExportImage(bool sheet);
+	[[nodiscard]] std::shared_ptr<const MaterialUsageIndex> usage() const { return m_usage; }
+	[[nodiscard]] bool usageScanning() const { return m_usageScanning; }
+	// Problems of every material in the package, not only the current one.
+	void setWholePackageProblems(bool whole);
+	void showPreviewSettings();
+	[[nodiscard]] QDialog* previewSettingsDialog() const { return m_previewSettings; }
+
+	[[nodiscard]] QByteArray saveState() const;
+	void restoreState(const QByteArray& state);
+
 	// Parts, for the shell's focus handling and for tests.
 	[[nodiscard]] MaterialPreviewView* preview() const { return m_preview; }
 	[[nodiscard]] MaterialGraphView* graphView() const { return m_graph; }
@@ -123,12 +187,17 @@ public:
 	[[nodiscard]] QTabWidget* editorTabs() const { return m_tabs; }
 	[[nodiscard]] QTreeWidget* problemsList() const { return m_problems; }
 	[[nodiscard]] QTreeWidget* imagesList() const { return m_imageList; }
+	[[nodiscard]] QTreeWidget* mapsList() const { return m_mapList; }
+	[[nodiscard]] CodeFindBar* findBar() const { return m_findBar; }
+	[[nodiscard]] MaterialLibraryFilter* libraryFilter() const { return m_proxy; }
 
 Q_SIGNALS:
 	// hasContent() or summary() changed.
 	void contentChanged();
 	void statusMessage(const QString& message);
 	void unsavedChangesChanged(bool unsaved);
+	// The Quake III game chosen for the scripts changed (dialectChoice()).
+	void dialectChanged();
 
 protected:
 	void changeEvent(QEvent* event) override;
@@ -141,6 +210,8 @@ private:
 		MaterialTextKind kind = MaterialTextKind::None;
 		MaterialEngine engine = MaterialEngine::Unknown;
 		QString title;
+		// A base package's script: shown, not edited (Override in Package).
+		bool readOnly = false;
 		// A loose file written in place, or a package entry or lump staged.
 		QString filePath;
 		QString virtualPath;
@@ -184,9 +255,25 @@ private:
 	void updateNotes();
 	void updateTimeline();
 	void rebuildLightingMenu();
+	void rebuildLibraryMenu();
+	void rebuildMoreMenu();
+	void showLibraryContextMenu(const QPoint& position);
+	void showImagesContextMenu(const QPoint& position);
+	void updateMapsTab();
+	void updateWholeProblems();
+	void scheduleStateSave();
+	void applyLibraryOrder();
+	[[nodiscard]] MaterialDialect scriptDialect(MaterialEngine engine) const;
+	// Adds `body` (a whole definition named `name`) to the script at
+	// `scriptPath`, in its open text or as a new script, and selects it.
+	bool addDefinitionText(MaterialEngine engine, const QString& scriptPath, const QString& name, const QString& body, QString* error);
+	bool applyWholeDefinitionEdit(const MaterialEdit& edit, const QString& select, QString* error);
+	[[nodiscard]] QString scriptFilePath() const;
 	void applyRenderOptions();
 	void showLine(int line);
 	void refreshDocumentState();
+	// Writes or stages one document's text; the saved text is updated.
+	bool writeDocument(Document* document, const QString& text, QString* problem);
 	void chooseSaveAs();
 	bool writeLooseFile(const QString& path, const QByteArray& bytes, QString* error);
 	[[nodiscard]] std::shared_ptr<const MaterialTableSet> tablesFor(const MaterialScript& script) const;
@@ -210,10 +297,23 @@ private:
 	bool m_scanning = false;
 	bool m_scanPending = false;
 	bool m_reducedMotion = false;
+	QStringList m_basePaths;
+	// Base packages read before, by path and modification time.
+	QHash<QString, std::shared_ptr<const PackageArchiveReader>> m_baseReaders;
+	MaterialDialect m_dialectChoice = MaterialDialect::Automatic;
+	bool m_showBase = true;
+	std::shared_ptr<const MaterialUsageIndex> m_usage;
+	bool m_usageScanning = false;
+	bool m_usageStale = true;
+	bool m_wholeProblems = false;
+	QString m_skyName;
+	bool m_restoringState = false;
 
 	Document m_document;
-	// Unsaved text of documents switched away from, by document key.
+	// Unsaved text of documents switched away from, by document key, and
+	// where each one saves.
 	QHash<QString, QString> m_buffers;
+	QHash<QString, Document> m_bufferDocuments;
 	QString m_materialName;
 	// A material asked for before the library was read.
 	QString m_requestedName;
@@ -243,17 +343,24 @@ private:
 
 	MaterialTaskLane* m_scanLane = nullptr;
 	MaterialTaskLane* m_imageLane = nullptr;
+	MaterialTaskLane* m_usageLane = nullptr;
 	QTimer* m_reparseTimer = nullptr;
 	QTimer* m_visibleTimer = nullptr;
+	QTimer* m_stateTimer = nullptr;
 
 	LoadingPane* m_state = nullptr;
 	QLineEdit* m_filter = nullptr;
 	QComboBox* m_engineFilter = nullptr;
 	QToolButton* m_viewMode = nullptr;
 	QToolButton* m_animateSwatches = nullptr;
+	QToolButton* m_libraryOptions = nullptr;
+	QMenu* m_libraryMenu = nullptr;
+	int m_swatchSide = 72;
 	QToolButton* m_newMaterial = nullptr;
 	QToolButton* m_save = nullptr;
 	QToolButton* m_revert = nullptr;
+	QToolButton* m_more = nullptr;
+	QMenu* m_moreMenu = nullptr;
 	QLabel* m_libraryCount = nullptr;
 	QListView* m_libraryView = nullptr;
 	MaterialLibraryModel* m_model = nullptr;
@@ -278,12 +385,20 @@ private:
 	QMenu* m_addNodeMenu = nullptr;
 	QLabel* m_documentLabel = nullptr;
 	StudioCodeEditor* m_editor = nullptr;
+	CodeFindBar* m_findBar = nullptr;
 	MaterialScriptHighlighter* m_highlighter = nullptr;
 	QTreeWidget* m_imageList = nullptr;
 	QTreeWidget* m_problems = nullptr;
+	QToolButton* m_problemScope = nullptr;
+	QWidget* m_mapsTab = nullptr;
+	QLabel* m_mapsSummary = nullptr;
+	QToolButton* m_mapsRescan = nullptr;
+	QTreeWidget* m_mapList = nullptr;
+	QDialog* m_previewSettings = nullptr;
 	QTextEdit* m_details = nullptr;
 	QSplitter* m_mainSplitter = nullptr;
 	QSplitter* m_editorSplitter = nullptr;
+	QSplitter* m_graphSplitter = nullptr;
 };
 
 } // namespace vibestudio

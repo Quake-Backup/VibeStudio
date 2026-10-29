@@ -1506,7 +1506,10 @@ QVector<CommandPaletteEntry> commandPaletteEntries()
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Step the camera through Wireframe, Flat Shaded, Textured and Textured with Edges, wrapping round.")},
 		{"map-previous-camera-mode", "map.previous-camera-mode", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Previous Camera Mode"),
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Step the camera back through Textured with Edges, Textured, Flat Shaded and Wireframe, wrapping round.")},
-		{"map-toggle-grid", "map.toggle-grid", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Show Grid"),
+		// Animated materials on the camera's faces (app/level_material_animator.h).
+		{"map-animate-materials", "map.animate-materials", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Animate Materials in Camera"),
+			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Play scrolling, pulsing and animated materials on the camera's faces, drawn as the Materials page draws them; reduce motion keeps them still, and the choice is kept.")},
+		{"map-toggle-grid", "map.toggle-grid",QT_TRANSLATE_NOOP("VibeStudioSemantics", "Show Grid"),
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Show or hide the grid lines in the 2D view.")},
 		{"map-toggle-snap", "map.toggle-snap", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Snap to Grid"),
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Turn grid snapping for drags, nudges, and drawn brushes on or off.")},

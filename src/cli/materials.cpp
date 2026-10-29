@@ -8,6 +8,7 @@
 #include "core/material_images.h"
 #include "core/material_library.h"
 #include "core/material_model.h"
+#include "core/material_usage.h"
 #include "core/material_render.h"
 #include "core/material_script.h"
 #include "core/package_archive.h"
@@ -114,7 +115,7 @@ bool parseArguments(const QStringList& arguments, QSet<QString> flags, QSet<QStr
 QSet<QString> sourceOptions()
 {
 	return {QStringLiteral("--input"), QStringLiteral("--package"), QStringLiteral("--base"), QStringLiteral("--engine"),
-		QStringLiteral("--palette"), QStringLiteral("--material")};
+		QStringLiteral("--palette"), QStringLiteral("--material"), QStringLiteral("--dialect")};
 }
 
 bool readNumber(const Arguments& args, const QString& key, double minimum, double maximum, double* out, QString* error)
@@ -237,7 +238,9 @@ bool writeImage(const QString& path, const QImage& image, QString* error)
 struct MaterialSource {
 	QString path;
 	std::shared_ptr<PackageArchive> archive;
-	std::shared_ptr<PackageArchive> base;
+	// --base packages, lowest first: images, tables, Doom lumps and base
+	// materials beneath the package.
+	QVector<std::shared_ptr<PackageArchive>> bases;
 	MaterialLibrary library;
 	// The loose script's index in library.scripts, or -1.
 	int looseScript = -1;
@@ -308,33 +311,51 @@ int openSource(const Arguments& args, const QString& path, MaterialSource* sourc
 	} else {
 		rootWarning = Text::tr("Images were not searched: %1 could not be opened (%2).").arg(native(root), loadError);
 	}
+	MaterialDialect dialect = MaterialDialect::Automatic;
+	if (args.hasValue(QStringLiteral("--dialect")) && !materialDialectFromId(args.value(QStringLiteral("--dialect")), &dialect)) {
+		*error = Text::tr("Unknown dialect %1; use auto, quake3, quake3-1.32, rtcw, et or jediknight.").arg(args.value(QStringLiteral("--dialect")));
+		return kUsage;
+	}
+	// Several base packages are separated as in PATH; the first is lowest.
 	if (args.hasValue(QStringLiteral("--base"))) {
-		const QString basePath = args.value(QStringLiteral("--base"));
-		auto base = std::make_shared<PackageArchive>();
-		if (!base->load(basePath, &loadError)) {
-			*error = Text::tr("Could not open the base package %1: %2").arg(native(basePath), loadError);
-			return kFailure;
+		for (const QString& basePath : args.value(QStringLiteral("--base")).split(QDir::listSeparator(), Qt::SkipEmptyParts)) {
+			auto base = std::make_shared<PackageArchive>();
+			if (!base->load(basePath, &loadError)) {
+				*error = Text::tr("Could not open the base package %1: %2").arg(native(basePath), loadError);
+				return kFailure;
+			}
+			source->bases.push_back(base);
 		}
-		source->base = base;
 	}
 	MaterialLibraryOptions options;
 	options.includeImplicit = !args.has(QStringLiteral("--no-implicit"));
+	options.dialect = dialect;
+	for (const std::shared_ptr<PackageArchive>& base : std::as_const(source->bases)) {
+		options.baseReaders.push_back(base);
+	}
 	if (source->archive) {
-		source->library = scanMaterialLibrary(*source->archive, options);
+		source->library = scanMaterialLibrary(std::shared_ptr<const PackageArchiveReader>(source->archive), options);
 	}
 	if (source->library.sourcePath.isEmpty()) {
 		source->library.sourcePath = source->path;
 	}
-	if (!source->archive && !source->base) {
+	if (!source->archive && source->bases.isEmpty()) {
 		source->imageWarning = rootWarning;
 	}
 	if (!script) {
 		return 0;
 	}
+	// A loose script is read as its package's game reads the rest.
+	const bool packageShaders = std::any_of(source->library.scripts.cbegin(), source->library.scripts.cend(),
+		[](const MaterialScript& each) { return each.engine == MaterialEngine::Quake3; });
 	MaterialScript parsed;
-	if (!loadMaterialScript(source->path, &parsed, &loadError)) {
+	if (!loadMaterialScript(source->path, &parsed, &loadError, MaterialEngine::Unknown,
+			dialect != MaterialDialect::Automatic ? dialect : (packageShaders ? source->library.dialect : MaterialDialect::Automatic))) {
 		*error = loadError;
 		return kFailure;
+	}
+	if (source->library.scripts.isEmpty() && parsed.engine == MaterialEngine::Quake3) {
+		source->library.dialect = parsed.dialect;
 	}
 	source->looseScriptFile = source->path;
 	// The script joins the package where the game would read it, replacing a
@@ -392,7 +413,7 @@ int chooseEntry(const Arguments& args, const MaterialSource& source, int* entry,
 	QVector<int> candidates;
 	for (int index = 0; index < source.library.entries.size(); ++index) {
 		const MaterialLibraryEntry& item = source.library.entries.at(index);
-		if ((source.looseScript < 0 || item.scriptIndex == source.looseScript) && !item.shadowed) {
+		if ((source.looseScript < 0 || item.scriptIndex == source.looseScript) && !item.shadowed && !item.base) {
 			candidates.push_back(index);
 		}
 	}
@@ -427,6 +448,9 @@ int selectEntries(const Arguments& args, const MaterialSource& source, QVector<i
 		if (engine != MaterialEngine::Unknown && entry.engine != engine) {
 			continue;
 		}
+		if (entry.base && !args.has(QStringLiteral("--include-base"))) {
+			continue;
+		}
 		if (!query.isEmpty()) {
 			const StudioQueryProperties properties = materialLibraryEntryQueryProperties(entry, source.library.definition(index));
 			for (const QString& key : properties.uniqueKeys()) {
@@ -451,9 +475,13 @@ int selectEntries(const Arguments& args, const MaterialSource& source, QVector<i
 MaterialImageSource imageSource(const Arguments& args, const MaterialSource& source)
 {
 	MaterialImageSource images;
-	images.archive = source.archive;
-	if (source.base) {
-		images.fallbacks.push_back(source.base);
+	// The package over its base packages when it has some; a loose script
+	// without a package reads the base packages directly.
+	images.archive = source.library.reader ? source.library.reader : source.archive;
+	if (!images.archive) {
+		for (const std::shared_ptr<PackageArchive>& base : source.bases) {
+			images.fallbacks.push_back(base);
+		}
 	}
 	images.revision = source.path;
 	images.doomCatalog = source.library.doomCatalog;
@@ -485,7 +513,9 @@ int checkOutput(const Arguments& args, const MaterialSource* source, const QStri
 		return kNotFound;
 	}
 	if (source) {
-		for (const std::shared_ptr<PackageArchive>& archive : {source->archive, source->base}) {
+		QVector<std::shared_ptr<PackageArchive>> read = source->bases;
+		read.push_back(source->archive);
+		for (const std::shared_ptr<PackageArchive>& archive : std::as_const(read)) {
 			if (archive && QFileInfo(archive->sourcePath()).isFile() && samePath(archive->sourcePath(), path)) {
 				*error = Text::tr("%1 is a package being read; write somewhere else.").arg(native(path));
 				return kUsage;
@@ -633,7 +663,7 @@ MaterialsCliResult listCommand(const QStringList& arguments)
 	options.unite(QSet<QString> {QStringLiteral("--where"), QStringLiteral("--limit")});
 	Arguments args;
 	QString error;
-	if (!parseArguments(arguments, {QStringLiteral("--no-implicit")}, options, &args, &error)) {
+	if (!parseArguments(arguments, {QStringLiteral("--no-implicit"), QStringLiteral("--include-base")}, options, &args, &error)) {
 		return fail(kUsage, error);
 	}
 	QString path;
@@ -763,7 +793,8 @@ MaterialsCliResult validateCommand(const QStringList& arguments)
 	Arguments args;
 	QString error;
 	if (!parseArguments(arguments,
-			{QStringLiteral("--no-images"), QStringLiteral("--strict"), QStringLiteral("--no-implicit"), QStringLiteral("--developer-default")},
+			{QStringLiteral("--no-images"), QStringLiteral("--strict"), QStringLiteral("--no-implicit"), QStringLiteral("--developer-default"),
+				QStringLiteral("--include-base")},
 			options, &args, &error)) {
 		return fail(kUsage, error);
 	}
@@ -913,7 +944,7 @@ MaterialsCliResult validateCommand(const QStringList& arguments)
 	const int checked = static_cast<int>(selected.size());
 	result.lines << Text::tr("Checked %n material(s):", nullptr, checked) + QLatin1Char(' ') + Text::tr("%n error(s)", nullptr, errors)
 			+ QStringLiteral(", ") + Text::tr("%n warning(s)", nullptr, warnings) + QLatin1Char('.');
-	if (missingImages > 0 && !source.base) {
+	if (missingImages > 0 && source.bases.isEmpty()) {
 		result.lines << Text::tr("Pass --base with the game's own package or folder to find images this one borrows.");
 	}
 	const bool strict = args.has(QStringLiteral("--strict"));
@@ -1429,6 +1460,7 @@ MaterialsCliResult graphCommand(const QStringList& arguments)
 		related << frame.name;
 	}
 	QString focus;
+	QString materialName = definition.name;
 	for (int number = 0; number < edits.size(); ++number) {
 		MaterialGraphEdit edit = edits.at(number);
 		if (edit.related.isEmpty()) {
@@ -1437,7 +1469,7 @@ MaterialsCliResult graphCommand(const QStringList& arguments)
 		if (edit.kind == MaterialGraphEditKind::AddNode && edit.nodeTemplate == QStringLiteral("doom.range") && edit.value.isEmpty()) {
 			edit.value = definition.kind == QStringLiteral("doom-flat") ? QStringLiteral("flat") : QStringLiteral("texture");
 		}
-		const MaterialGraphEditResult applied = applyMaterialGraphEdit(text.text, kind, definition.name, edit, text.path);
+		const MaterialGraphEditResult applied = applyMaterialGraphEdit(text.text, kind, materialName, edit, text.path, source.library.dialect);
 		if (!applied.ok) {
 			return fail(kValidationFailed, Text::tr("Edit %1 (%2 %3): %4")
 											   .arg(number + 1)
@@ -1445,6 +1477,9 @@ MaterialsCliResult graphCommand(const QStringList& arguments)
 		}
 		text.text = applied.text;
 		focus = applied.focusNode;
+		if (!applied.renamedTo.isEmpty()) {
+			materialName = applied.renamedTo;
+		}
 	}
 	QByteArray bytes = text.text.toUtf8();
 	const bool walOutput = kind == MaterialTextKind::Quake2WalJson && QFileInfo(output).suffix().compare(QStringLiteral("wal"), Qt::CaseInsensitive) == 0;
@@ -1462,8 +1497,8 @@ MaterialsCliResult graphCommand(const QStringList& arguments)
 	QJsonArray diagnostics;
 	if (kind == MaterialTextKind::Quake3Shader || kind == MaterialTextKind::Doom3Material) {
 		const MaterialScript edited = parseMaterialScript(text.text, kind == MaterialTextKind::Doom3Material ? MaterialEngine::Doom3 : MaterialEngine::Quake3,
-			text.path);
-		if (const MaterialDefinition* changed = edited.find(definition.name)) {
+			text.path, source.library.dialect);
+		if (const MaterialDefinition* changed = edited.find(materialName)) {
 			for (const MaterialDiagnostic& diagnostic : changed->diagnostics) {
 				diagnostics.append(materialDiagnosticJson(diagnostic));
 				result.lines << diagnosticLine(native(text.path), diagnostic);
@@ -1480,7 +1515,7 @@ MaterialsCliResult graphCommand(const QStringList& arguments)
 		return fail(kFailure, error);
 	}
 	const int applied = static_cast<int>(edits.size());
-	payload.insert(QStringLiteral("material"), definition.name);
+	payload.insert(QStringLiteral("material"), materialName);
 	payload.insert(QStringLiteral("textKind"), materialTextKindId(kind));
 	payload.insert(QStringLiteral("edits"), applied);
 	payload.insert(QStringLiteral("focusNode"), focus);
@@ -1502,31 +1537,57 @@ MaterialsCliResult graphCommand(const QStringList& arguments)
 MaterialsCliResult editCommand(const QStringList& arguments)
 {
 	QSet<QString> options = sourceOptions();
-	options.unite(QSet<QString> {QStringLiteral("--edits"), QStringLiteral("--script"), QStringLiteral("--output")});
+	options.unite(QSet<QString> {QStringLiteral("--edits"), QStringLiteral("--script"), QStringLiteral("--output"), QStringLiteral("--rename"),
+		QStringLiteral("--duplicate")});
 	Arguments args;
 	QString error;
-	if (!parseArguments(arguments, {QStringLiteral("--dry-run"), QStringLiteral("--overwrite"), QStringLiteral("--strict")}, options, &args, &error)) {
+	if (!parseArguments(arguments, {QStringLiteral("--dry-run"), QStringLiteral("--overwrite"), QStringLiteral("--strict"), QStringLiteral("--remove")},
+			options, &args, &error)) {
 		return fail(kUsage, error);
 	}
 	QString path;
 	if (const int code = sourceArgument(args, &path, &error)) {
 		return fail(code, error);
 	}
-	if (!args.hasValue(QStringLiteral("--edits"))) {
-		return fail(kUsage, Text::tr("Give the edits as a JSON file with --edits."));
+	// One whole-definition edit of --material, instead of a JSON file.
+	const int shortcuts = (args.hasValue(QStringLiteral("--rename")) ? 1 : 0) + (args.hasValue(QStringLiteral("--duplicate")) ? 1 : 0)
+		+ (args.has(QStringLiteral("--remove")) ? 1 : 0);
+	if (shortcuts > 1 || (shortcuts == 1 && args.hasValue(QStringLiteral("--edits")))) {
+		return fail(kUsage, Text::tr("Give one of --edits, --rename, --duplicate or --remove."));
+	}
+	if (shortcuts == 1 && !args.hasValue(QStringLiteral("--material"))) {
+		return fail(kUsage, Text::tr("--rename, --duplicate and --remove need --material."));
+	}
+	if (shortcuts == 0 && !args.hasValue(QStringLiteral("--edits"))) {
+		return fail(kUsage, Text::tr("Give the edits as a JSON file with --edits, or one of --rename, --duplicate or --remove with --material."));
 	}
 	const bool dry = args.has(QStringLiteral("--dry-run"));
 	const QString output = args.value(QStringLiteral("--output"));
 	if (output.isEmpty() && !dry) {
 		return fail(kUsage, Text::tr("Give --output for the edited script, or --dry-run to check the edits without writing."));
 	}
-	QByteArray editBytes;
-	if (!readFileBytes(args.value(QStringLiteral("--edits")), kMaximumEditBytes, &editBytes, &error)) {
-		return fail(kNotFound, error);
-	}
 	QVector<MaterialEdit> edits;
-	if (!parseMaterialEditsJson(editBytes, args.value(QStringLiteral("--material")), &edits, &error)) {
-		return fail(kUsage, error);
+	if (shortcuts == 1) {
+		MaterialEdit edit;
+		edit.material = args.value(QStringLiteral("--material"));
+		if (args.hasValue(QStringLiteral("--rename"))) {
+			edit.kind = MaterialEditKind::RenameDefinition;
+			edit.text = args.value(QStringLiteral("--rename"));
+		} else if (args.hasValue(QStringLiteral("--duplicate"))) {
+			edit.kind = MaterialEditKind::DuplicateDefinition;
+			edit.text = args.value(QStringLiteral("--duplicate"));
+		} else {
+			edit.kind = MaterialEditKind::RemoveDefinition;
+		}
+		edits.push_back(edit);
+	} else {
+		QByteArray editBytes;
+		if (!readFileBytes(args.value(QStringLiteral("--edits")), kMaximumEditBytes, &editBytes, &error)) {
+			return fail(kNotFound, error);
+		}
+		if (!parseMaterialEditsJson(editBytes, args.value(QStringLiteral("--material")), &edits, &error)) {
+			return fail(kUsage, error);
+		}
 	}
 	MaterialSource source;
 	if (const int code = openSource(args, path, &source, &error)) {
@@ -1966,12 +2027,131 @@ MaterialsCliResult walCommand(const QStringList& arguments)
 	return result;
 }
 
+// --- usage -----------------------------------------------------------------
+
+// Which maps use a material, every material's use count, or the materials
+// no map uses (--unused).
+MaterialsCliResult usageCommand(const QStringList& arguments)
+{
+	QSet<QString> options = sourceOptions();
+	options.unite(QSet<QString> {QStringLiteral("--where"), QStringLiteral("--limit")});
+	Arguments args;
+	QString error;
+	if (!parseArguments(arguments, {QStringLiteral("--unused"), QStringLiteral("--no-implicit"), QStringLiteral("--include-base")}, options, &args,
+			&error)) {
+		return fail(kUsage, error);
+	}
+	QString path;
+	if (const int code = sourceArgument(args, &path, &error)) {
+		return fail(code, error);
+	}
+	int limit = INT_MAX;
+	if (!readInteger(args, QStringLiteral("--limit"), 1, INT_MAX, &limit, &error)) {
+		return fail(kUsage, error);
+	}
+	if (args.has(QStringLiteral("--unused")) && args.hasValue(QStringLiteral("--material"))) {
+		return fail(kUsage, Text::tr("Give --material or --unused, not both."));
+	}
+	MaterialSource source;
+	if (const int code = openSource(args, path, &source, &error)) {
+		return fail(code, error);
+	}
+	if (!source.archive) {
+		return fail(kUsage, Text::tr("Maps are read from a package, folder or WAD; %1 is a loose script.").arg(native(source.path)));
+	}
+	const std::shared_ptr<const PackageArchiveReader> reader = source.library.reader ? source.library.reader : source.archive;
+	const MaterialUsageIndex usage = scanMaterialUsage(*reader);
+	MaterialsCliResult result;
+	QJsonObject payload;
+	payload.insert(QStringLiteral("source"), source.path);
+	payload.insert(QStringLiteral("maps"), QJsonArray::fromStringList(usage.maps));
+	result.lines << Text::tr("%n map(s) read.", nullptr, static_cast<int>(usage.maps.size()));
+	for (const QString& warning : usage.warnings) {
+		result.lines << Text::tr("Warning: %1").arg(warning);
+	}
+	const auto useLine = [](const MaterialMapUse& use) {
+		QString where = use.mapPath;
+		if (!use.mapName.isEmpty()) {
+			where = where.isEmpty() ? use.mapName : where + QLatin1Char(':') + use.mapName;
+		}
+		QString line = QStringLiteral("  %1  %2 x %3").arg(where, use.textureName).arg(use.count);
+		if (!use.lines.isEmpty()) {
+			QStringList numbers;
+			for (int number : use.lines) {
+				numbers << QString::number(number);
+			}
+			line += QLatin1Char(' ') + Text::tr("(lines %1)").arg(numbers.join(QStringLiteral(", ")));
+		}
+		return line;
+	};
+	if (args.hasValue(QStringLiteral("--material"))) {
+		const QString name = args.value(QStringLiteral("--material"));
+		const QVector<MaterialMapUse> uses = usage.usesOf(name);
+		QJsonArray items;
+		int total = 0;
+		for (const MaterialMapUse& use : uses) {
+			items.append(materialMapUseJson(use));
+			total += use.count;
+			result.lines << useLine(use);
+		}
+		result.lines.insert(1, uses.isEmpty() ? Text::tr("No map uses %1.").arg(name)
+											  : Text::tr("%1 is used %n time(s):", nullptr, total).arg(name));
+		payload.insert(QStringLiteral("material"), name);
+		payload.insert(QStringLiteral("uses"), items);
+		payload.insert(QStringLiteral("total"), total);
+		result.payload = payload;
+		return result;
+	}
+	QVector<int> selected;
+	if (const int code = selectEntries(args, source, &selected, &error)) {
+		return fail(code, error);
+	}
+	struct Row {
+		int entry = -1;
+		int total = 0;
+	};
+	QVector<Row> rows;
+	for (int entry : std::as_const(selected)) {
+		const MaterialLibraryEntry& item = source.library.entries.at(entry);
+		if (item.shadowed) {
+			continue;
+		}
+		const int total = usage.useCount(item.name);
+		if (args.has(QStringLiteral("--unused")) ? total == 0 : total > 0) {
+			rows.push_back({entry, total});
+		}
+	}
+	std::stable_sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) { return a.total > b.total; });
+	QJsonArray items;
+	const int shown = std::min(limit, static_cast<int>(rows.size()));
+	for (int index = 0; index < shown; ++index) {
+		const MaterialLibraryEntry& item = source.library.entries.at(rows.at(index).entry);
+		QJsonObject object;
+		object.insert(QStringLiteral("name"), item.name);
+		object.insert(QStringLiteral("engine"), materialEngineId(item.engine));
+		object.insert(QStringLiteral("uses"), rows.at(index).total);
+		items.append(object);
+		result.lines << QStringLiteral("  %1  %2").arg(item.name).arg(rows.at(index).total);
+	}
+	const int matched = static_cast<int>(rows.size());
+	result.lines.insert(1, args.has(QStringLiteral("--unused")) ? Text::tr("%n material(s) no map uses:", nullptr, matched)
+																: Text::tr("%n material(s) used by maps:", nullptr, matched));
+	if (shown < matched) {
+		result.lines << Text::tr("%n more not shown; raise --limit to see them.", nullptr, matched - shown);
+	}
+	payload.insert(args.has(QStringLiteral("--unused")) ? QStringLiteral("unused") : QStringLiteral("used"), items);
+	payload.insert(QStringLiteral("matched"), matched);
+	result.payload = payload;
+	return result;
+}
+
 } // namespace
 
 QStringList materialCommandActions()
 {
 	return {QStringLiteral("list"), QStringLiteral("inspect"), QStringLiteral("validate"), QStringLiteral("render"), QStringLiteral("graph"),
-		QStringLiteral("edit"), QStringLiteral("templates"), QStringLiteral("new"), QStringLiteral("doom-tables"), QStringLiteral("wal")};
+		QStringLiteral("edit"), QStringLiteral("templates"), QStringLiteral("new"), QStringLiteral("doom-tables"), QStringLiteral("wal"),
+		QStringLiteral("usage")};
 }
 
 MaterialsCliResult runMaterialCommand(const QString& action, const QStringList& arguments)
@@ -2005,6 +2185,9 @@ MaterialsCliResult runMaterialCommand(const QString& action, const QStringList& 
 	}
 	if (action == QStringLiteral("wal")) {
 		return walCommand(arguments);
+	}
+	if (action == QStringLiteral("usage")) {
+		return usageCommand(arguments);
 	}
 	return fail(kUsage, Text::tr("Unknown material command %1; use %2.").arg(action, materialCommandActions().join(QStringLiteral(", "))));
 }

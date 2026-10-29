@@ -111,6 +111,8 @@ struct LevelShapeRequest;
 struct LevelBuildWorkspace;
 
 class MaterialWorkbench;
+class LevelMaterialAnimator;
+struct MaterialMapUse;
 class PackageEntryView;
 class PackageStagingView;
 class PackageFolderView;
@@ -1477,6 +1479,21 @@ private:
 	// shader or material a surface names, or its image in Textures when no
 	// material declares it.
 	void showModelMaterial(const QString& reference);
+	// Opens a map from the Materials page's Maps tab in Levels, with the faces
+	// using the material selected; the base packages the workbench reads.
+	bool openMaterialMapUse(const MaterialMapUse& use, const QString& material, QString* error);
+	void showMaterialMapUses();
+	// Shows a material's image on Textures and opens it in the Texture Editor
+	// once it is decoded.
+	void editMaterialImageInTextureEditor(const QString& reference);
+	// View > Camera Display > Animate Materials in Camera, and the animator it
+	// drives, given the camera's mesh and its faces' still images.
+	void registerLevelMaterialAnimationCommand();
+	void refreshLevelMaterialAnimation(const ModelMesh& mesh, const QHash<int, QImage>& stillImages);
+	[[nodiscard]] QStringList materialBasePackagePaths() const;
+	// The Quake III game the Materials page reads scripts for; Levels reads
+	// shaders for the same one.
+	[[nodiscard]] MaterialDialect materialDialectChoice() const;
 	void createAdvancedSpritePlan();
 	void indexAdvancedCodeWorkspace();
 	void createAdvancedAiProposal();
@@ -2322,6 +2339,8 @@ private:
 	LoadingPane* m_advancedStudioState = nullptr;
 	QTreeWidget* m_advancedShaderGraph = nullptr;
 	MaterialWorkbench* m_materialWorkbench = nullptr;
+	LevelMaterialAnimator* m_levelMaterialAnimator = nullptr;
+	QString m_levelMaterialAnimatorKey;
 	QTabWidget* m_shaderPageTabs = nullptr;
 	QListWidget* m_advancedSpriteSequence = nullptr;
 	QListWidget* m_advancedCodeTree = nullptr;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/map_preview_mesh.h"
+#include "core/material_model.h"
 #include "core/package_archive.h"
 
 #include <QImage>
@@ -13,8 +14,10 @@ namespace vibestudio
 {
 
 // Images for editing, not a simulation of an engine's shader stages or lighting.
-// Resolution uses the same package paths, shader parser and image/model decoders
-// as dependency review and asset editing. Run on a worker with an immutable reader.
+// Resolution uses the same package paths, shader catalogue and image/model
+// decoders as dependency review and asset editing; a Quake III shader's image
+// is the one the Materials page shows for it (core/material_lookup.h). Run on
+// a worker with an immutable reader.
 struct LevelPreviewInput {
 	qsizetype entryIndex = -1; // Identity inside this immutable package snapshot.
 	qint64 sourceOrdinal = -1;
@@ -47,6 +50,9 @@ struct LevelPreviewAssetOptions {
 	qint64 totalReadByteLimit = 64 * 1024 * 1024;
 	qint64 imageByteLimit = 64 * 1024 * 1024;
 	int previewDimension = 512;
+	// The Quake III game shaders are read for, as the Materials page reads
+	// them; Automatic works it out from the package's scripts together.
+	MaterialDialect materialDialect = MaterialDialect::Automatic;
 };
 
 struct LevelPreviewAssets {
@@ -67,6 +73,9 @@ struct LevelPreviewAssets {
 };
 
 using LevelPreviewAssetProgress = std::function<bool(int completed, int total)>;
+// `archive` may be a package over its game's base packages
+// (MaterialLayeredReader): base images, models and palettes then resolve
+// beneath the package's, and a shader the package declares hides the game's.
 LevelPreviewAssets resolveLevelPreviewAssets(const LevelMapDocument &document, const PackageArchiveReader &archive,
 											 const LevelPreviewAssetOptions &options = {}, LevelPreviewAssetProgress progress = {});
 // Authored meshes use the same bounded image/shader resolver without loading

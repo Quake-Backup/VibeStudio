@@ -2991,8 +2991,14 @@ One family for every idTech material, shared with the **Materials** page
 (`core/material_*`; design in `docs/MATERIALS.md`). A source is a package,
 folder or WAD, or a loose `.shader` or `.mtr` script; a loose script's images
 and Doom 3 tables come from the folder above its `scripts/` or `materials/`
-folder, or from `--package`. `--base` adds the game's own package or folder
-for images a mod borrows. `--material` names the material (it may be left
+folder, or from `--package`. `--base` puts the game's own packages or folders
+beneath the source (several separated as in `PATH`, lowest first): their
+images, Doom 3 tables and Doom lumps are used (a PWAD's textures merge with
+its IWAD's), and their materials are known by name but listed and checked
+only with `--include-base`. `--dialect auto|quake3|quake3-1.32|rtcw|et|jediknight`
+reads Quake III shader scripts as that game does: the keywords it loads (any
+other drops the shader) and which of two scripts defining a name wins; `auto`
+works it out from the scripts. `--material` names the material (it may be left
 out when the source defines only one), `--engine doom|quake|quake2|quake3|doom3`
 narrows or overrides the engine, and `--palette` picks the palette for
 paletted images when the package has none.
@@ -3003,8 +3009,9 @@ paletted images when the package has none.
   `image`, `frames`, `blend`, `sort`, `cull`, `errors` and `warnings`, the
   yes/no traits `animated`, `sky`, `light`, `fog`, `translucent`, `rejected`
   and `shadowed`, and each surface parameter, keyword flag or Quake II flag
-  (`slick=yes`, `surfaceparm=nolightmap`); `--limit` caps the rows and
-  `--no-implicit` leaves out images no script names.
+  (`slick=yes`, `surfaceparm=nolightmap`), and `base=yes` for base packages'
+  materials; `--limit` caps the rows and `--no-implicit` leaves out images no
+  script names.
 - [x] `material inspect` shows one material: its summary, every image and
   where it resolved (or that it is missing), diagnostics, why the engine would
   drop it, its node graph and, with `--show-source`, its text.
@@ -3033,18 +3040,21 @@ paletted images when the package has none.
   engine draws its fallback) and `--developer-default` complete it.
 - [x] `material graph` prints the material's node graph (nodes, properties
   and links) and the nodes that can be added. With `--edits <json>` it applies
-  graph edits (`set`, `add`, `remove`, `move`, `wrap`, `unwrap`, `expand`) to
+  graph edits (`set`, `add`, `remove`, `move`, `wrap`, `unwrap`, `expand`,
+  `rename`; setting the `material` node's `name` also renames) to
   the material's text, checks the result by parsing it again, and writes it to
   `--output` (or shows it with `--dry-run`). `--text-kind` picks the text for
   classic materials: `swantbls`, `animdefs` or `wal-json`; a `wal-json` edit
   written to a `.wal` file rewrites that WAL's header.
 - [x] `material edit` applies text edits from `--edits <json>` (`set`, `add`,
   `remove`, `add-stage`, `remove-stage`, `move-stage`, `move`,
-  `replace-definition`, `add-definition`, `remove-definition`, `rename`) to a
-  Quake III shader or Doom 3 material script: the loose script, `--script` in a
-  package, or the script that defines `--material`. It writes `--output` with
-  `--overwrite` for the same file, or reports with `--dry-run`; `--strict`
-  refuses to write a script with errors.
+  `replace-definition`, `add-definition`, `remove-definition`, `rename`,
+  `duplicate`) to a Quake III shader or Doom 3 material script: the loose
+  script, `--script` in a package, or the script that defines `--material`.
+  Instead of a JSON file, `--rename <name>`, `--duplicate <name>` (a renamed
+  copy after the original) or `--remove` act on `--material`. It writes
+  `--output` with `--overwrite` for the same file, or reports with
+  `--dry-run`; `--strict` refuses to write a script with errors.
 - [x] `material templates` lists the starting points for `material new`, by
   engine.
 - [x] `material new --template <id> --name <material>` writes a new material,
@@ -3058,6 +3068,12 @@ paletted images when the package has none.
   `--material` in a package) as ericw-tools `.wal_json`; `--output` writes that
   sidecar, and `--metadata <wal_json> --output <wal>` rewrites the header's
   flags, contents, value and next frame without touching the pixels.
+- [x] `material usage` reads the source's maps (`.map` sources of every idTech
+  editor, Quake, Half-Life, Quake II and Quake III-family BSPs, Doom WAD and
+  UDMF maps, maps inside nested WADs) and, with `--material`, lists each map
+  that uses it, how often and on which `.map` lines; without it, every used
+  material with its count, or with `--unused` the materials no map uses.
+  `--where`, `--engine` and `--limit` narrow the list as in `material list`.
 
 ### 3D Rendering
 Every 3D view and material preview draws on the GPU through one renderer

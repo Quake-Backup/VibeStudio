@@ -169,6 +169,9 @@ install_headers('core/material_render.h', 'core/material_render_p.h', subdir: 'v
 install_headers('core/render_device.h', 'core/render_device_p.h', 'core/render_shaders.h', subdir: 'vibestudio/core')
 install_headers('core/material_library.h', subdir: 'vibestudio/core')
 install_headers('core/material_graph.h', subdir: 'vibestudio/core')
+install_headers('core/material_video.h', subdir: 'vibestudio/core')
+install_headers('core/material_usage.h', subdir: 'vibestudio/core')
+install_headers('core/material_lookup.h', subdir: 'vibestudio/core')
 
 core_sources = files(
   'core/render_device.cpp',
@@ -273,6 +276,9 @@ core_sources = files(
   'core/material_render_doom3.cpp',
   'core/material_library.cpp',
   'core/material_graph.cpp',
+  'core/material_video.cpp',
+  'core/material_usage.cpp',
+  'core/material_lookup.cpp',
   'core/ai_connectors.cpp',
   'core/ai_gguf_runtime.cpp',
   'core/ai_harness.cpp',
@@ -837,6 +843,7 @@ app_sources = files(
   'app/material_library_model.cpp',
   'app/material_workbench.cpp',
   'app/material_actions.cpp',
+  'app/level_material_animator.cpp',
   'app/texture_editor_dialog.cpp',
   'app/texture_preview_worker.cpp',
   'app/texture_png_export_dialog.cpp',
@@ -1366,6 +1373,17 @@ material_graph_smoke_test = executable(
 )
 test('material-graph-smoke', material_graph_smoke_test, timeout: 120)
 
+# Dialects, RoQ videos, base packages, map usage, whole-definition edits, the
+# Levels face lookup and Doom 3 heat haze, on generated files.
+material_integration_smoke_test = executable(
+  'material_integration_smoke_test',
+  ['tests/material_integration_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep],
+  install: false,
+)
+test('material-integration-smoke', material_integration_smoke_test, timeout: 180)
+
 material_cli_smoke_test = executable(
   'material_cli_smoke_test',
   ['tests/material_cli_smoke_test.cpp'],
@@ -1395,8 +1413,18 @@ if qt6_test_dep.found()
     dependencies: [vibestudio_app_dep, qt6_test_dep],
     install: false,
   )
-  test('material-workbench-ui-smoke', material_workbench_ui_smoke_test, timeout: 300)
+  test('material-workbench-ui-smoke', material_workbench_ui_smoke_test, timeout: 600)
 endif
+
+# Animated materials on the Levels camera.
+level_material_animation_ui_smoke_test = executable(
+  'level_material_animation_ui_smoke_test',
+  ['tests/level_material_animation_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep],
+  install: false,
+)
+test('level-material-animation-ui-smoke', level_material_animation_ui_smoke_test, timeout: 180)
 
 texture_resource_smoke_test = executable(
   'texture_resource_smoke_test',
@@ -4045,7 +4073,10 @@ model_intersections_ui_smoke_test = executable(
   'model_intersections_ui_smoke_test', ['tests/model_intersections_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
 )
-test('model-intersections-ui-smoke', model_intersections_ui_smoke_test, env: model_document_test_env, timeout: 120)
+# Both time the editor's event loop through a maximum-size job against a
+# 300 ms budget; beside other heavy tests the gaps measure the machine, not
+# the editor, so they run alone.
+test('model-intersections-ui-smoke', model_intersections_ui_smoke_test, env: model_document_test_env, timeout: 120, is_parallel: false)
 
 model_import_repair_smoke_test = executable(
   'model_import_repair_smoke_test', ['tests/model_import_repair_smoke_test.cpp'],
@@ -4057,7 +4088,7 @@ model_import_repair_ui_smoke_test = executable(
   'model_import_repair_ui_smoke_test', ['tests/model_import_repair_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep],
 )
-test('model-import-repair-ui-smoke', model_import_repair_ui_smoke_test, env: model_document_test_env, timeout: 120)
+test('model-import-repair-ui-smoke', model_import_repair_ui_smoke_test, env: model_document_test_env, timeout: 120, is_parallel: false)
 
 model_health_ui_smoke_test = executable(
   'model_health_ui_smoke_test', ['tests/model_health_ui_smoke_test.cpp'],

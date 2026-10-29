@@ -179,6 +179,10 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Models:** Collision and attachments: convex hulls (per frame when animated), Doom 3 collision ASE, clip models and `.cm` files, collision placed to match a placed model and refreshed when it goes stale, part collision in assembly bakes, Quake III tag blending, joint attachments, and **Open Doom 3 Entity…**.
 - **Models:** Packages for players and weapons: Quake III weapon sets with `_hand`, `_barrel` and `_flash` models, detail levels and sounds, and Quake II player packages (`tris.md2`, `weapon.md2`, skins, icons, sounds) from loose files or package entries.
 - **Models:** Studio integration: `model import` reads package entries with `--palette`; **Show in Materials**; model sources open as documents and stay in workspaces; open sources notice changes on disk; staged weight strokes and curve drafts survive a crash; exports leave receipts so stale outputs can be refreshed; **Stage in Package** reviews what it will stage; models are placed the same way from every editor and `map place-model`; and model commands stop cleanly on Ctrl+C with `--progress`.
+- **Materials:** Read a mod or PWAD over its game's base packages (images, tables, Doom IWAD textures and the game's own materials, read only, with Override in Package), choose the Quake III game scripts are read for (Quake III Arena, 1.32, Return to Castle Wolfenstein, Enemy Territory, Jedi Knight), play RoQ videos on videoMap stages, approximate Doom 3 heat haze and bumpy environment reflections, and list the maps that use a material in a new Maps tab that opens them in Levels.
+- **Levels:** View > Camera Display > Animate Materials in Camera plays scrolling, pulsing and animated materials on the camera's faces, drawn as the Materials page draws them; reduce motion keeps them still.
+- **Materials:** Rename, duplicate and delete materials, Save All, problems of the whole package, library sorting and swatch sizes, Preview Settings (tiling, field of view, background, entity colour, Doom 3 shader parms and sound), export to PNG or an animation sheet, find, replace and completion in the text, and a view that is kept between sessions.
+- **Command line:** `material usage` lists the maps that use a material or the unused ones; `--dialect`, several `--base` packages with `--include-base`, and `material edit --rename`, `--duplicate` and `--remove`.
 
 ### Changed
 
@@ -198,6 +202,7 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Levels:** Linked groups use TrenchBroom's terms: commands and help speak of linked groups and link sets rather than linked copies. Scene metadata version 6 saves each linked group's affine frame; maps saved with earlier versions still open, and the CLI keeps the old `link`, `update-links`, `unlink` and `extract-linked` names.
 - **Levels:** **Extract Linked Groups** now takes closed groups nested in the open linked group, moving each whole into the new linked groups with its links, and works inside a linked group nested in another, whose set takes the same new structure and stays in sync.
 - **Models:** OBJ import accepts typical Blender exports: Y-up conversion, scale, material libraries and dropped lines, points and unused vertices, each reported, with strict options that refuse them as before.
+- **Levels:** The camera and its texture list read the selected game installation's base packages beneath the open package, and take each Quake III shader's image as the Materials page does, for the game chosen there; a shader that game throws away keeps its editor image, with a warning in Details.
 
 ### Removed
 
@@ -260,5 +265,7 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Levels:** An edit to one of two linked groups that sit inside the same linked group now reaches every copy of both, and members changed the same way at once are no longer marked out of sync because their protected values differ.
 - **Levels:** The 3D camera no longer waits indefinitely to rebuild after an edit when its repaints are slow, as with a large map, a debug build or a busy machine; on Windows the rebuild's start timer could be held back until the camera stopped repainting.
 - **Models:** OBJ export no longer writes vertices no face uses, and the Mesh Editor no longer repaints every panel around long operations, which made it freeze and slowed Cancel on large models.
+- **Command Palette:** a command named exactly what you type comes first, so typing Models opens the Models page again rather than the Levels Models filter.
+- **Levels:** A component move released in the camera is no longer dropped when the camera resizes or moves while the move is still being checked; the map and selection are still checked before it applies.
 
 [Unreleased]: https://github.com/themuffinator/VibeStudio/commits/main

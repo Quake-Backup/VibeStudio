@@ -1122,6 +1122,10 @@ void MaterialGraphView::showMenu(const QPoint& globalPosition, int index)
 			const QString reference = node->imageReference;
 			QAction* image = menu.addAction(tr("Show Image in Textures"));
 			connect(image, &QAction::triggered, this, [this, reference]() { Q_EMIT showImageRequested(reference); });
+			if (m_imageEditing) {
+				QAction* edit = menu.addAction(tr("Edit Image in Texture Editor"));
+				connect(edit, &QAction::triggered, this, [this, reference]() { Q_EMIT editImageRequested(reference); });
+			}
 		}
 	}
 	if (!menu.isEmpty()) {

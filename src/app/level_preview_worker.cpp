@@ -2,6 +2,7 @@
 #include "core/map_assets.h"
 #include "core/doom_preview_geometry.h"
 #include "core/level_model_appearance.h"
+#include "core/material_library.h"
 #include "core/package_staging.h"
 
 #include <QCoreApplication>
@@ -23,6 +24,10 @@ QString materialKey(const LevelPreviewRequest &request)
 	};
 	add(request.assetKey);
 	add(request.options.paletteId);
+	add(materialDialectId(request.options.materialDialect));
+	for (const auto &path : request.basePackagePaths) {
+		add(path);
+	}
 	add(request.document.engineFamily);
 	add(QString::number(static_cast<int>(request.document.format)));
 	for (const auto &use : levelMapTextureUsage(request.document)) {
@@ -166,6 +171,19 @@ void LevelPreviewWorker::startPending()
 				if (request.staging) {
 					PackageReadControl control; control.isCancelled = [work] { return work->cancelled.load(); };
 					request.archive = std::make_shared<PackageStagingArchive>(*request.staging, PackageStagingReadMode::CompletePlan, control);
+				}
+				// The game's base packages beneath the package; one that does
+				// not open is left out, as on the Materials page.
+				if (request.archive && !request.basePackagePaths.isEmpty()) {
+					QVector<std::shared_ptr<const PackageArchiveReader>> bases;
+					for (const auto &path : std::as_const(request.basePackagePaths)) {
+						auto base = std::make_shared<PackageArchive>();
+						QString error;
+						if (!work->cancelled && base->load(path, &error)) {
+							bases.push_back(std::move(base));
+						}
+					}
+					request.archive = std::make_shared<MaterialLayeredReader>(request.archive, bases);
 				}
 				PackageArchive empty;
 				work->result.assets = resolveLevelPreviewAssets(request.document, request.archive ? *request.archive : empty,

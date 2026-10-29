@@ -2031,6 +2031,20 @@ animated preview never starts by itself when reduced motion is on. All
 strings are translatable; engine keywords, node ids and file paths stay
 technical identifiers.
 
+The workbench's later controls follow the same rules: **Library Options**,
+**More**, **Whole Package** and **Read Maps Again** are named tool buttons
+whose menus carry tooltips; the **Maps** tab is a named tree whose rows say in
+their tooltip what Enter does, with a named summary label above it; the find
+bar on the **Text** tab is the Code page's (Ctrl+F, Ctrl+H, Escape), and
+completion (Ctrl+Space) uses the Code editor's list. **Preview Settings** is a
+non-modal dialog whose every field has an accessible name (shader parms and
+globals by number) and whose changes show at once, so a screen-reader user
+hears the preview notes update. Base game materials are marked by words
+("(base)", "read only") as well as muted text, never by colour alone.
+**Animate Materials in Camera** on the Levels page is off until turned on and
+never plays while reduce motion is on; turning either off puts the still face
+images back.
+
 The studio shell's navigation is keyboard-first. The mode rail is a single tab
 stop whose arrow keys, Home, and End move between modes; tool buttons, page
 buttons, and the rail take focus from Tab but not from a mouse click, so focus

@@ -175,6 +175,7 @@ void ApplicationShell::refreshLevelMap3D()
 				rebuildLevelMaterialTargets({});
 				m_levelMap3D->clearSkin();
 				m_levelMap3D->clearMesh();
+				refreshLevelMaterialAnimation(ModelMesh(), {});
 				m_levelMap3D->setEnabled(true);
 				if (m_levelBookmarkCameraPending) { m_levelMap3D->restoreNavigationState(m_levelBookmarkCamera); }
 				m_levelPreviewLabel->setText(result.assets.cancelled ? tr("Level preview cancelled. Reload to try again.")
@@ -187,7 +188,9 @@ void ApplicationShell::refreshLevelMap3D()
 			m_levelMap3D->setBackfaceCulling(true);
 			m_levelMap3D->clearSkin();
 			m_levelMap3D->setMesh(result.preview.mesh, result.sourceKey == m_levelMap3DSource);
-			m_levelMap3D->setSurfaceSkins(levelPreviewSurfaceImages(result.preview.mesh, result.assets));
+			const QHash<int, QImage> stillImages = levelPreviewSurfaceImages(result.preview.mesh, result.assets);
+			m_levelMap3D->setSurfaceSkins(stillImages);
+			refreshLevelMaterialAnimation(result.preview.mesh, stillImages);
 			// The saved face mode and edges outlast every rebuild, wireframe included.
 			applyLevelCameraRender();
 			m_levelMap3DSource = result.sourceKey;
@@ -223,6 +226,10 @@ void ApplicationShell::refreshLevelMap3D()
 	LevelPreviewRequest request;
 	request.document = filtered ? m_levelMapViewport->displayDocument() : m_levelMapDocument;
 	request.options.paletteId = activePaletteId();
+	request.options.materialDialect = materialDialectChoice();
+	// Faces read the game's base packages beneath the package, as on the
+	// Materials page and in the animated faces.
+	request.basePackagePaths = materialBasePackagePaths();
 	request.sourceKey = QString::number(m_levelMapLoadSerial);
 	request.loadSerial = m_levelMapLoadSerial;
 	request.assetKey = m_packageArchive.sourcePath() + QLatin1Char('|') + QString::number(m_packageStaging.revision()) + QLatin1Char('|') +
@@ -230,7 +237,8 @@ void ApplicationShell::refreshLevelMap3D()
 	QCryptographicHash hash(QCryptographicHash::Sha256);
 	hash.addData((request.sourceKey + QLatin1Char('|') + request.document.sourcePath + QLatin1Char('|') + request.document.mapName +
 				  QLatin1Char('|') + QString::number(request.document.revision) + QLatin1Char('|') + request.assetKey + QLatin1Char('|') +
-				  request.options.paletteId)
+				  request.options.paletteId + QLatin1Char('|') + materialDialectId(request.options.materialDialect) + QLatin1Char('|') +
+				  request.basePackagePaths.join(QLatin1Char('|')))
 					 .toUtf8());
 	// Hidden IDs, not only their count: two equally sized isolates differ.
 	// Doom keeps record arrays intact, so visible-array ids alone cannot

@@ -99,6 +99,107 @@ MaterialLibraryEntry entryFor(const MaterialDefinition& definition)
 
 } // namespace
 
+MaterialLayeredReader::MaterialLayeredReader(std::shared_ptr<const PackageArchiveReader> package, QVector<std::shared_ptr<const PackageArchiveReader>> base)
+	: m_package(std::move(package)), m_base(std::move(base))
+{
+	m_base.removeAll(nullptr);
+	// Lowest layer first; a path a higher layer also has is hidden, as the
+	// game's search path hides it. Within one layer every entry stays (a WAD
+	// repeats lump names).
+	QVector<QVector<PackageEntry>> layers;
+	for (int index = 0; index <= m_base.size(); ++index) {
+		const PackageArchiveReader* source = layer(index);
+		layers.push_back(source ? source->entries() : QVector<PackageEntry>());
+	}
+	QSet<QString> above;
+	QVector<QVector<bool>> hidden(layers.size());
+	for (int index = static_cast<int>(layers.size()) - 1; index >= 0; --index) {
+		QSet<QString> mine;
+		hidden[index].resize(layers.at(index).size());
+		for (qsizetype entry = 0; entry < layers.at(index).size(); ++entry) {
+			const PackageEntry& item = layers.at(index).at(entry);
+			const QString key = item.virtualPath.toLower();
+			hidden[index][entry] = item.kind == PackageEntryKind::File && above.contains(key);
+			mine.insert(key);
+		}
+		above.unite(mine);
+	}
+	for (int index = 0; index < layers.size(); ++index) {
+		const bool baseLayer = index < m_base.size();
+		for (qsizetype entry = 0; entry < layers.at(index).size(); ++entry) {
+			if (hidden.at(index).at(entry)) {
+				continue;
+			}
+			PackageEntry item = layers.at(index).at(entry);
+			if (baseLayer) {
+				item.layerId = QStringLiteral("base:%1").arg(index);
+			}
+			m_entries.push_back(item);
+			m_sources.push_back({index, entry});
+		}
+	}
+}
+
+const PackageArchiveReader* MaterialLayeredReader::layer(int index) const
+{
+	if (index >= 0 && index < m_base.size()) {
+		return m_base.at(index).get();
+	}
+	return index == m_base.size() ? m_package.get() : nullptr;
+}
+
+PackageArchiveFormat MaterialLayeredReader::format() const
+{
+	return m_package ? m_package->format() : PackageArchiveFormat::Unknown;
+}
+
+QString MaterialLayeredReader::sourcePath() const
+{
+	return m_package ? m_package->sourcePath() : QString();
+}
+
+QString MaterialLayeredReader::wadMagic() const
+{
+	return m_package ? m_package->wadMagic() : QString();
+}
+
+bool MaterialLayeredReader::isOpen() const
+{
+	return m_package && m_package->isOpen();
+}
+
+bool MaterialLayeredReader::readEntryBytes(const QString& virtualPath, QByteArray* out, QString* error, qint64 maxBytes) const
+{
+	const QString key = virtualPath.toLower();
+	for (qsizetype index = m_entries.size() - 1; index >= 0; --index) {
+		if (m_entries.at(index).kind == PackageEntryKind::File && m_entries.at(index).virtualPath.toLower() == key) {
+			return readEntryAt(index, out, error, maxBytes);
+		}
+	}
+	if (error) {
+		*error = Text::tr("%1 is not in the package or its base packages.").arg(virtualPath);
+	}
+	return false;
+}
+
+bool MaterialLayeredReader::readEntryAt(qsizetype index, QByteArray* out, QString* error, qint64 maxBytes) const
+{
+	if (index < 0 || index >= m_sources.size()) {
+		if (error) {
+			*error = Text::tr("No entry %1.").arg(index);
+		}
+		return false;
+	}
+	const Source& source = m_sources.at(index);
+	const PackageArchiveReader* reader = layer(source.layer);
+	return reader && reader->readEntryAt(source.index, out, error, maxBytes);
+}
+
+bool MaterialLayeredReader::isBaseEntry(qsizetype index) const
+{
+	return index >= 0 && index < m_sources.size() && m_sources.at(index).layer < m_base.size();
+}
+
 int MaterialLibrary::indexOf(const QString& name, MaterialEngine engine) const
 {
 	const QString key = materialLookupKey(name);
@@ -241,12 +342,15 @@ void MaterialLibrary::rebuildEntries()
 {
 	entries.clear();
 	QSet<QString> defined;
+	const auto fromBase = [this](const QString& path) { return !basePaths.isEmpty() && basePaths.contains(path.toLower()); };
 	for (int scriptIndex = 0; scriptIndex < scripts.size(); ++scriptIndex) {
 		const MaterialScript& script = scripts.at(scriptIndex);
+		const bool baseScript = fromBase(script.path);
 		for (int materialIndex = 0; materialIndex < script.materials.size(); ++materialIndex) {
 			MaterialLibraryEntry entry = entryFor(script.materials.at(materialIndex));
 			entry.scriptIndex = scriptIndex;
 			entry.materialIndex = materialIndex;
+			entry.base = baseScript;
 			if (entry.sourcePath.isEmpty()) {
 				entry.sourcePath = script.path;
 			}
@@ -258,6 +362,7 @@ void MaterialLibrary::rebuildEntries()
 		MaterialLibraryEntry entry = entryFor(ownDefinitions.at(index));
 		entry.scriptIndex = -1;
 		entry.materialIndex = index;
+		entry.base = fromBase(entry.sourcePath);
 		entries.push_back(entry);
 	}
 	implicitDefinitions.clear();
@@ -273,10 +378,14 @@ void MaterialLibrary::rebuildEntries()
 		entry.scriptIndex = -2;
 		entry.materialIndex = static_cast<int>(implicitDefinitions.size());
 		entry.thumbnailImage = image;
+		entry.base = fromBase(image);
 		implicitDefinitions.push_back(definition);
 		entries.push_back(entry);
 	}
 	resolveShadowing();
+	if (!listBase) {
+		entries.erase(std::remove_if(entries.begin(), entries.end(), [](const MaterialLibraryEntry& entry) { return entry.base; }), entries.end());
+	}
 }
 
 void MaterialLibrary::resolveShadowing()
@@ -294,12 +403,14 @@ void MaterialLibrary::resolveShadowing()
 		int winner = members.first();
 		const MaterialEngine engine = entries.at(winner).engine;
 		if (engine == MaterialEngine::Quake3) {
-			// ioquake3: the alphabetically last script wins; inside one
-			// script, its first definition.
+			// ioquake3 and the derivatives: the alphabetically last script
+			// wins; Quake III 1.32: the first. Inside one script, its first
+			// definition.
+			const bool lastWins = materialDialectLastScriptWins(dialect);
 			for (int member : members) {
 				const QString path = entries.at(member).sourcePath.toLower();
 				const QString best = entries.at(winner).sourcePath.toLower();
-				if (path > best) {
+				if (lastWins ? path > best : path < best) {
 					winner = member;
 				}
 			}
@@ -368,11 +479,55 @@ MaterialEngine detectMaterialEngine(const PackageArchiveReader& reader)
 	return MaterialEngine::Unknown;
 }
 
+MaterialLibrary scanMaterialLibrary(std::shared_ptr<const PackageArchiveReader> reader, const MaterialLibraryOptions& options,
+	const MaterialLibraryProgress& progress)
+{
+	if (!reader) {
+		return {};
+	}
+	QVector<std::shared_ptr<const PackageArchiveReader>> base = options.baseReaders;
+	base.removeAll(nullptr);
+	std::shared_ptr<const PackageArchiveReader> source = reader;
+	if (!base.isEmpty()) {
+		source = std::make_shared<MaterialLayeredReader>(reader, base);
+	}
+	MaterialLibrary library = scanMaterialLibrary(*source, options, progress);
+	library.reader = source;
+	library.baseCount = static_cast<int>(base.size());
+	return library;
+}
+
 MaterialLibrary scanMaterialLibrary(const PackageArchiveReader& reader, const MaterialLibraryOptions& options, const MaterialLibraryProgress& progress)
 {
 	MaterialLibrary library;
 	library.sourcePath = reader.sourcePath();
+	library.listBase = options.listBaseMaterials;
 	const QVector<PackageEntry> entries = reader.entries();
+	// What comes from a base package: its paths, and Doom lump names whose
+	// last (winning) lump is in one.
+	if (const auto* layered = dynamic_cast<const MaterialLayeredReader*>(&reader); layered && layered->baseCount() > 0) {
+		QHash<QString, bool> lumps;
+		for (qsizetype index = 0; index < entries.size(); ++index) {
+			const PackageEntry& entry = entries.at(index);
+			if (entry.kind != PackageEntryKind::File) {
+				continue;
+			}
+			const bool base = layered->isBaseEntry(index);
+			if (base) {
+				library.basePaths.insert(entry.virtualPath.toLower());
+			}
+			lumps.insert(withoutSuffix(packageVirtualPathFileName(entry.virtualPath)).toLower(), base);
+		}
+		// A lump the package repeats (a PWAD's TEXTURE1 or flat) is the
+		// package's: Doom finds the last one.
+		for (auto it = lumps.cbegin(); it != lumps.cend(); ++it) {
+			if (it.value()) {
+				library.basePaths.insert(it.key());
+			} else {
+				library.basePaths.remove(it.key());
+			}
+		}
+	}
 	const auto wanted = [&](MaterialEngine engine) { return options.engines.isEmpty() || options.engines.contains(engine); };
 	const auto report = [&](int done, int total, const QString& phase) {
 		if (progress && !progress(done, total, phase)) {
@@ -405,6 +560,14 @@ MaterialLibrary scanMaterialLibrary(const PackageArchiveReader& reader, const Ma
 		library.complete = false;
 	}
 	const QString scriptsPhase = Text::tr("Reading material scripts");
+	// Read every script first: one dialect covers all of a game's Quake III
+	// scripts, worked out from them together.
+	struct ScriptText {
+		int entry = 0;
+		QString text;
+	};
+	QVector<ScriptText> texts;
+	QStringList quake3Texts;
 	for (int position = 0; position < scriptEntries.size(); ++position) {
 		if (!report(position, static_cast<int>(scriptEntries.size()), scriptsPhase)) {
 			return library;
@@ -422,7 +585,15 @@ MaterialLibrary scanMaterialLibrary(const PackageArchiveReader& reader, const Ma
 			continue;
 		}
 		totalBytes += bytes.size();
-		MaterialScript script = parseMaterialScript(decodeText(bytes), MaterialEngine::Unknown, entry.virtualPath);
+		texts.push_back({scriptEntries.at(position), decodeText(bytes)});
+		if (materialEngineForScriptPath(entry.virtualPath) == MaterialEngine::Quake3) {
+			quake3Texts << texts.last().text;
+		}
+	}
+	library.dialect = options.dialect != MaterialDialect::Automatic ? options.dialect : detectMaterialDialect(quake3Texts);
+	for (const ScriptText& item : std::as_const(texts)) {
+		const PackageEntry& entry = entries.at(item.entry);
+		MaterialScript script = parseMaterialScript(item.text, MaterialEngine::Unknown, entry.virtualPath, library.dialect);
 		const QString layer = entry.layerId.isEmpty() ? entry.sourceArchiveId : entry.layerId;
 		for (MaterialDefinition& definition : script.materials) {
 			definition.sourceLayer = layer;
@@ -604,6 +775,7 @@ StudioQueryProperties materialLibraryEntryQueryProperties(const MaterialLibraryE
 	properties.insert(QStringLiteral("translucent"), yesNo(entry.translucent));
 	properties.insert(QStringLiteral("rejected"), yesNo(entry.rejected));
 	properties.insert(QStringLiteral("shadowed"), yesNo(entry.shadowed));
+	properties.insert(QStringLiteral("base"), yesNo(entry.base));
 	properties.insert(QStringLiteral("errors"), QString::number(entry.errors));
 	properties.insert(QStringLiteral("warnings"), QString::number(entry.warnings));
 	properties.insert(QStringLiteral("frames"), QString::number(definition.classic.frames.size()));
@@ -662,6 +834,9 @@ QJsonObject materialLibraryEntryJson(const MaterialLibraryEntry& entry)
 	if (entry.shadowed) {
 		object.insert(QStringLiteral("shadowedBy"), entry.shadowedBy);
 	}
+	if (entry.base) {
+		object.insert(QStringLiteral("base"), true);
+	}
 	QJsonArray images;
 	for (const QString& image : entry.images) {
 		images.append(image);
@@ -676,6 +851,12 @@ QJsonObject materialLibraryJson(const MaterialLibrary& library, bool includeEntr
 	object.insert(QStringLiteral("source"), library.sourcePath);
 	object.insert(QStringLiteral("complete"), library.complete);
 	object.insert(QStringLiteral("scripts"), library.scripts.size());
+	if (std::any_of(library.scripts.cbegin(), library.scripts.cend(), [](const MaterialScript& script) { return script.engine == MaterialEngine::Quake3; })) {
+		object.insert(QStringLiteral("dialect"), materialDialectId(library.dialect));
+	}
+	if (library.baseCount > 0) {
+		object.insert(QStringLiteral("basePackages"), library.baseCount);
+	}
 	object.insert(QStringLiteral("materials"), library.entries.size());
 	QJsonObject counts;
 	for (MaterialEngine engine : library.engines()) {
@@ -718,6 +899,12 @@ QStringList materialLibrarySummaryLines(const MaterialLibrary& library)
 	const int scriptCount = static_cast<int>(library.scripts.size());
 	if (scriptCount > 0) {
 		lines << Text::tr("%n script(s)", nullptr, scriptCount);
+		if (std::any_of(library.scripts.cbegin(), library.scripts.cend(), [](const MaterialScript& script) { return script.engine == MaterialEngine::Quake3; })) {
+			lines << Text::tr("Shaders read as %1").arg(materialDialectDisplayName(library.dialect));
+		}
+	}
+	if (library.baseCount > 0) {
+		lines << Text::tr("%n base package(s) beneath the package", nullptr, library.baseCount);
 	}
 	int errors = 0;
 	int rejected = 0;

@@ -33,6 +33,8 @@ public:
 	// What the Add Node menu offers.
 	void setNodeTemplates(const QVector<MaterialGraphNodeTemplate>& templates);
 	void setReadOnly(bool readOnly);
+	// Offers Edit Image in Texture Editor on image nodes.
+	void setImageEditing(bool available) { m_imageEditing = available; }
 	[[nodiscard]] bool isReadOnly() const { return m_readOnly; }
 
 	[[nodiscard]] QString selectedNode() const;
@@ -57,6 +59,8 @@ Q_SIGNALS:
 	void nodeActivated(const QString& nodeId);
 	void showImageRequested(const QString& reference);
 	void showTextRequested(int line);
+	// Edit Image in Texture Editor on an image node.
+	void editImageRequested(const QString& reference);
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
@@ -99,6 +103,7 @@ private:
 	QVector<MaterialGraphNodeTemplate> m_templates;
 	QString m_message;
 	bool m_readOnly = false;
+	bool m_imageEditing = false;
 	int m_selected = -1;
 	int m_hover = -1;
 	QPointF m_pan;

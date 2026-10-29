@@ -298,8 +298,8 @@ void checkQuake3Parsing()
 	expect(sky && sky->isSky() && sky->sky.farBox == QStringLiteral("env/test") && near(sky->sky.cloudHeight, 512.0),
 		"skyParms reads the far box and defaults the cloud height to 512");
 
-	// Enemy Territory's implicit keywords and other derivatives' keywords are
-	// read, not rejected.
+	// Enemy Territory's implicit and fog keywords: the script is read as
+	// Enemy Territory reads it (detected from those keywords), nothing dropped.
 	const MaterialScript derivatives = parseMaterialScript(QStringLiteral(
 		"textures/et/fence\n{\n\tsurfaceparm alphashadow\n\timplicitMask -\n}\n"
 		"textures/et/wall\n{\n\timplicitMap textures/et/wall_d.jpg\n}\n"
@@ -318,8 +318,16 @@ void checkQuake3Parsing()
 	expect(glass && glass->stages.size() == 2 && glass->stages.at(0).blend.source == MaterialBlendFactor::SourceAlpha,
 		"implicitBlend blends the image");
 	const MaterialDefinition* foggy = derivatives.find(QStringLiteral("textures/et/foggy"));
-	expect(foggy && foggy->engineRejection.isEmpty() && foggy->stages.size() == 1 && foggy->warningCount() >= 2,
-		"Wolfenstein fog keywords warn instead of dropping the shader");
+	expect(derivatives.dialect == MaterialDialect::EnemyTerritory, "implicit keywords mark the script as Enemy Territory's");
+	expect(foggy && foggy->engineRejection.isEmpty() && foggy->stages.size() == 1 && foggy->warningCount() == 0,
+		"Wolfenstein fog keywords load in Enemy Territory without a warning");
+	// Read as Quake III Arena, the same keywords drop their shaders.
+	const MaterialScript arena = parseMaterialScript(derivatives.text, MaterialEngine::Quake3, QString(), MaterialDialect::Quake3);
+	const MaterialDefinition* arenaFoggy = arena.find(QStringLiteral("textures/et/foggy"));
+	const MaterialDefinition* arenaFence = arena.find(QStringLiteral("textures/et/fence"));
+	expect(arenaFoggy && arenaFoggy->engineRejection.contains(QStringLiteral("Return to Castle Wolfenstein")) && arenaFence
+			&& !arenaFence->engineRejection.isEmpty(),
+		"Quake III Arena drops a shader using a derivative's keyword and names the game it belongs to");
 }
 
 void checkQuake3Edits()

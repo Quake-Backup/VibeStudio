@@ -155,6 +155,9 @@ enum class MaterialGraphEditKind {
 	UnwrapExpression,
 	// Doom 3: turn a diffusemap/bumpmap/specularmap shorthand into a block.
 	ExpandShorthand,
+	// Rename the material (value: the new name). Setting the material node's
+	// "name" property does the same.
+	RenameMaterial,
 };
 
 QString materialGraphEditKindId(MaterialGraphEditKind kind);
@@ -179,12 +182,14 @@ struct MaterialGraphEditResult {
 	QString text;
 	// The node to select after the edit, when it moved or is new.
 	QString focusNode;
+	// The material's new name after a rename, else empty.
+	QString renamedTo;
 };
 
 // Applies one graph edit to the material's source text and returns the new
 // text. The text is checked by parsing it again.
 MaterialGraphEditResult applyMaterialGraphEdit(const QString& text, MaterialTextKind kind, const QString& material,
-	const MaterialGraphEdit& edit, const QString& sourcePath = QString());
+	const MaterialGraphEdit& edit, const QString& sourcePath = QString(), MaterialDialect dialect = MaterialDialect::Automatic);
 
 QJsonObject materialGraphJson(const MaterialGraph& graph);
 // Reads graph edits for the CLI: [{"edit": "set", "node": "stage/1",

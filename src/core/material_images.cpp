@@ -2,6 +2,7 @@
 
 #include "core/idtech_image.h"
 #include "core/material_script.h"
+#include "core/material_video.h"
 
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -346,6 +347,7 @@ private:
 	void resolvePalette(const QString& defaultId);
 	void resolveColormaps();
 	void resolveFile(const QString& reference);
+	void resolveVideo(const QString& reference);
 	void resolveSkyBox(const QString& base, bool underscore, const QStringList& extensions);
 	void resolveDoom3Cube(const QString& reference, bool camera);
 	QImage evaluateProgram(int node, QString* status, QString* note, int depth = 0);
@@ -522,6 +524,44 @@ void Resolver::resolveFile(const QString& reference)
 	store(reference, loadByCandidates(reference, candidates));
 }
 
+void Resolver::resolveVideo(const QString& reference)
+{
+	const QString key = materialImageKey(reference);
+	if (reference.trimmed().isEmpty() || m_set->videos.contains(key) || m_set->textures.contains(key)) {
+		return;
+	}
+	const QStringList candidates = materialVideoCandidates(reference);
+	for (const QString& candidate : candidates) {
+		int reader = -1;
+		int entry = -1;
+		if (!findPath(candidate, &reader, &entry)) {
+			continue;
+		}
+		const QString path = m_readers.at(reader).data->entries.at(entry).virtualPath;
+		QByteArray bytes;
+		QString error;
+		std::shared_ptr<MaterialVideo> video;
+		if (read(reader, entry, &bytes, &error)) {
+			video = MaterialVideo::open(bytes, reference, path, &error);
+		}
+		if (!video) {
+			// Not decodable (a CIN file, a damaged RoQ): the moving stand-in.
+			auto texture = std::make_shared<MaterialTexture>(*materialVideoPlaceholder());
+			texture->reference = reference;
+			texture->path = path;
+			texture->note = error;
+			store(reference, texture);
+			return;
+		}
+		m_set->videos.insert(key, video);
+		auto first = std::make_shared<MaterialTexture>(*video->frame(0));
+		first->note = video->description();
+		store(reference, first);
+		return;
+	}
+	store(reference, missing(reference, candidates));
+}
+
 void Resolver::resolveSkyBox(const QString& base, bool underscore, const QStringList& extensions)
 {
 	if (base.isEmpty() || base == QStringLiteral("-") || m_set->cubes.contains(materialImageKey(base))) {
@@ -567,7 +607,7 @@ void Resolver::resolveQuake3()
 			}
 			break;
 		case MaterialImageKind::Video:
-			store(stage.imagePath, materialVideoPlaceholder());
+			resolveVideo(stage.imagePath);
 			break;
 		default:
 			break;
@@ -783,11 +823,25 @@ void Resolver::resolveDoom3()
 			continue;
 		}
 		if (stage.imageKind == MaterialImageKind::Video) {
-			store(stage.imagePath, materialVideoPlaceholder());
+			resolveVideo(stage.imagePath);
 			continue;
 		}
 		if (stage.imageProgram >= 0) {
 			resolveProgram(stage.imageProgram, materialImageProgramText(m_definition.imagePrograms, stage.imageProgram));
+		}
+		for (int unit = 0; unit < stage.fragmentMaps.size(); ++unit) {
+			// _currentRender is the frame so far, not an image.
+			const int program = stage.fragmentMaps.at(unit);
+			const QString text = program >= 0 ? materialImageProgramText(m_definition.imagePrograms, program) : QString();
+			if (text.isEmpty() || text.compare(QStringLiteral("_currentRender"), Qt::CaseInsensitive) == 0) {
+				continue;
+			}
+			const int cube = stage.fragmentMapCubes.value(unit);
+			if (cube > 0) {
+				resolveDoom3Cube(text, cube == 2);
+			} else {
+				resolveProgram(program, text);
+			}
 		}
 	}
 	// lightFalloffImage is itself an image program text.
@@ -1277,6 +1331,30 @@ MaterialTexturePtr MaterialImageSet::find(const QString& reference) const
 MaterialCubeTexturePtr MaterialImageSet::findCube(const QString& reference) const
 {
 	return cubes.value(materialImageKey(reference));
+}
+
+MaterialVideoPtr MaterialImageSet::findVideo(const QString& reference) const
+{
+	return videos.value(materialImageKey(reference));
+}
+
+QStringList materialVideoCandidates(const QString& reference)
+{
+	QString name = reference.trimmed();
+	name.replace(QLatin1Char('\\'), QLatin1Char('/'));
+	// cl_cin.c CIN_PlayCinematic looks under video/ for a bare name.
+	QStringList names {name};
+	if (!name.contains(QLatin1Char('/'))) {
+		names.prepend(QStringLiteral("video/") + name);
+	}
+	QStringList candidates;
+	for (const QString& each : std::as_const(names)) {
+		candidates << each;
+		if (QFileInfo(each).suffix().isEmpty()) {
+			candidates << each + QStringLiteral(".roq");
+		}
+	}
+	return candidates;
 }
 
 QStringList MaterialImageSet::missing() const
