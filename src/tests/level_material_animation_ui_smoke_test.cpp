@@ -245,7 +245,8 @@ int main(int argc, char** argv)
 			}
 		}
 		expect(animatedSurface >= 0 && floorSurface >= 0, "the camera has the animated shader's face and the floor");
-		expect(camera->surfaceSkinImage(floorSurface).size() == QSize(16, 48),
+		// The base package loads in the background; the camera reads again then.
+		expect(waitFor([&]() { return camera->isEnabled() && camera->surfaceSkinImage(floorSurface).size() == QSize(16, 48); }),
 			"the floor shows the base package's shader image, beneath the package",
 			QStringLiteral("%1x%2").arg(camera->surfaceSkinImage(floorSurface).width()).arg(camera->surfaceSkinImage(floorSurface).height()));
 		// The texture list says so in words.

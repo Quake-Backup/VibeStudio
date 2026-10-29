@@ -66,6 +66,8 @@ void ApplicationShell::addLevelMapBrushFromUi(const QPointF &viewPoint)
 	if (!archive && m_packageArchive.isOpen()) {
 		archive = std::make_shared<const PackageArchive>(m_packageArchive);
 	}
+	// Material previews read the game's base packages beneath it.
+	archive = levelMaterialReader(std::move(archive));
 	LevelPrimitiveDialog dialog(m_levelMapDocument, request, archive, activePaletteId(), this);
 	const auto publish = levelPlacementCommitter();
 	dialog.setApplyHandler([this, &dialog, publish](const LevelMapDocument &candidate, QString *error) {

@@ -22,6 +22,8 @@ void ApplicationShell::capLevelMapPatchFromUi()
 	if (!archive && m_packageArchive.isOpen()) {
 		archive = std::make_shared<const PackageArchive>(m_packageArchive);
 	}
+	// Material previews read the game's base packages beneath it.
+	archive = levelMaterialReader(std::move(archive));
 	PatchCapDialog dialog(m_levelMapDocument, archive, activePaletteId(), this);
 	const auto serial = m_levelMapLoadSerial, revision = m_levelMapDocument.revision, packageRevision = m_packageStaging.revision(),
 			   reload = m_levelPreviewReload;

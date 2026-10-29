@@ -39,6 +39,7 @@ void ApplicationShell::beginLevelSurfaceStroke()
 	work.archive = m_packageArchive.snapshotReader();
 	if (!work.archive && m_packageArchive.isOpen()) { work.archive = std::make_shared<const PackageArchive>(m_packageArchive); }
 	if (m_packageStaging.isLoaded()) { work.staging = std::make_shared<const PackageStagingModel>(m_packageStaging); }
+	work.baseReaders = levelBaseReaders();
 	work.palette = activePaletteId(); work.clipboardArchive = m_levelSurfaceClipboardArchive; work.clipboardStaging = m_levelSurfaceClipboardStaging;
 	work.clipboardPalette = m_levelSurfaceClipboardPalette; work.clipboardEngineFamily = m_levelSurfaceClipboardEngineFamily;
 	work.clipboardFormat = m_levelSurfaceClipboardFormat; work.clipboardContextCaptured = true;
@@ -171,7 +172,10 @@ void ApplicationShell::completeLevelSurfaceStroke(LevelSurfaceResult result)
 			preview.document.entities.removeIf([&](const auto& entity) { return !state->visibleEntities.contains(entity.id); });
 		}
 		preview.archive = state->work.archive; preview.staging = state->work.stagingIndexed ? nullptr : state->work.staging;
-		preview.options.paletteId = state->work.palette; preview.assetKey = state->assetKey;
+		preview.options.paletteId = state->work.palette; preview.options.materialDialect = materialDialectChoice(); preview.assetKey = state->assetKey;
+		// The stroke draws over the same base packages as the camera.
+		preview.baseReaders = state->work.baseReaders;
+		preview.baseKey = preview.baseReaders.isEmpty() ? QString() : m_levelBaseReadersKey;
 		preview.loadSerial = state->work.token; preview.sourceKey = QString::number(state->work.stroke->stepCount());
 		m_levelSurfaceStrokePreview->request(std::move(preview));
 		const auto message = tr("%n surface(s) in stroke preview · Release to apply; Escape cancels.", nullptr, result.changedFaces + result.changedPatches);

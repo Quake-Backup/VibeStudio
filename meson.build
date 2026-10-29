@@ -207,6 +207,9 @@ if python_for_tests.found()
     'translation-extraction-validation',
     python_for_tests,
     args: [files('scripts/extract_translations.py'), '--check'],
+    # lupdate scans the whole tree: about eight seconds alone, past the
+    # default 30 beside the heavy UI tests of a parallel run.
+    timeout: 120,
   )
   test(
     'translation-extraction-smoke',

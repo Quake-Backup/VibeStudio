@@ -193,17 +193,25 @@ stroke in progress carry on; turning it off, or reduce motion, puts the still
 images back. Doom faces keep their still images (the camera names them by
 its own flat and wall keys).
 
-The still images follow the Materials page too. The Levels camera's preview
-(`LevelPreviewWorker`, `src/core/level_materials.cpp`) reads the package over
-the same base packages (`LevelPreviewRequest::basePackagePaths`, through
-`MaterialLayeredReader`), so a mod's faces that name the game's textures and
-shaders are drawn. It finds a shader's declaration in the same catalogue as
+The still images follow the Materials page too. Levels reads the package over
+the same base packages: the shell loads them once in the background
+(`ApplicationShell::refreshLevelBaseReaders`, keyed by path and modification
+time, since reading hashes each file) and layers every Levels material reader
+over that one set (`levelMaterialReader`, through `MaterialLayeredReader`): the
+camera's preview (`LevelPreviewWorker`), the animator, the editing dialogs'
+previews (primitives, brush points, sweeps, wraps, merges, placement, prefabs,
+patch caps and stitches, surfaces and the UV editor), the material view
+filters and the surface tools' image sizes. So a mod's faces that name the
+game's textures and shaders are drawn, sized and filtered; until the set has
+loaded they read the package alone, and Levels reads again when it arrives.
+`src/core/level_materials.cpp` finds a shader's declaration in the same catalogue as
 dependency review: the package's own declaration hides the game's, a name
 declared twice in the package stays ambiguous, a name the game's own scripts
 declare twice is taken as the game takes it, and the read budgets hold. It
 then reads that declaration with the Materials parser, for the Quake III game
-chosen on the Materials page (`LevelPreviewAssetOptions::materialDialect`),
-and shows the image the Materials page shows for it
+chosen on the Materials page (`LevelPreviewAssetOptions::materialDialect`,
+whose default the shell sets for every Levels preview with
+`setLevelPreviewDefaultDialect`; the CLI keeps Automatic), and shows the image the Materials page shows for it
 (`materialDeclaredDisplayImage`). A shader that game throws away keeps its
 editor image in the camera, with a warning in **Details**; an animated one
 says that the camera command plays it. Changing the game on the Materials page
@@ -307,8 +315,7 @@ arrow keys mirror. All text is translatable.
 - In the Levels camera, animated faces show the face-on frame of their
   material (no lightmaps or vertex deforms of the map), and Doom faces do
   not animate.
-- In Levels, the camera and its texture list read the game's base packages
-  beneath the package. Dependency review reads the package alone on purpose
-  (it lists what the package must carry); the editing dialogs' small previews
-  and the material view filters read it alone too, so a face named after a
-  base texture is flat in those previews.
+- Dependency review, build and packaging read the package alone by design:
+  they list and ship what the package itself must carry, and the game
+  supplies its base packages. `map preview` and the other CLI commands read
+  the package they are given.

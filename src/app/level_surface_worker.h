@@ -21,6 +21,9 @@ struct LevelSurfaceWork {
 	LevelSurfacePasteOptions paste;
 	std::shared_ptr<const PackageArchiveReader> archive;
 	std::shared_ptr<const PackageStagingModel> staging;
+	// Loaded base packages beneath the package (lowest first): image sizes
+	// resolve over them, as in the Levels camera.
+	QVector<std::shared_ptr<const PackageArchiveReader>> baseReaders;
 	std::shared_ptr<const PackageArchiveReader> clipboardArchive;
 	std::shared_ptr<const PackageStagingModel> clipboardStaging;
 	QString clipboardPalette;

@@ -42,6 +42,11 @@ struct LevelPreviewMaterial {
 	[[nodiscard]] bool ready() const { return !image.isNull(); }
 };
 
+// The Quake III game Levels reads shaders for when a caller does not say:
+// the Materials page's choice in the studio, Automatic elsewhere (the CLI).
+void setLevelPreviewDefaultDialect(MaterialDialect dialect);
+[[nodiscard]] MaterialDialect levelPreviewDefaultDialect();
+
 struct LevelPreviewAssetOptions {
 	QString paletteId;
 	int materialLimit = 256;
@@ -52,7 +57,7 @@ struct LevelPreviewAssetOptions {
 	int previewDimension = 512;
 	// The Quake III game shaders are read for, as the Materials page reads
 	// them; Automatic works it out from the package's scripts together.
-	MaterialDialect materialDialect = MaterialDialect::Automatic;
+	MaterialDialect materialDialect = levelPreviewDefaultDialect();
 };
 
 struct LevelPreviewAssets {

@@ -34,6 +34,8 @@ void ApplicationShell::wrapLevelMapFromUi(bool withPoints)
 	if (withPoints) {
 		auto archive = m_packageStaging.isLoaded() ? std::make_shared<PackageStagingArchive>(m_packageStaging) : m_packageArchive.snapshotReader();
 		if (!archive && m_packageArchive.isOpen()) { archive = std::make_shared<const PackageArchive>(m_packageArchive); }
+		// Material previews read the game's base packages beneath it.
+		archive = levelMaterialReader(std::move(archive));
 		LevelWrapDialog dialog(m_levelMapDocument,request,archive,activePaletteId(),this); dialog.setApplyHandler(apply); dialog.exec();
 	} else {
 		LevelPlacementRequest work; work.operation = LevelPlacementOperation::WrapMerge; work.wrap = request;
