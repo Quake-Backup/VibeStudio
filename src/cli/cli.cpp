@@ -1665,6 +1665,10 @@ int printCliCancelled(const QString& commandName, CliOutputFormat format)
 
 int printCliError(const QString& commandName, CliExitCode code, const QString& message, CliOutputFormat format)
 {
+	// A model command that failed because Ctrl+C stopped it (core/cli_cancellation.h).
+	if (code != CliExitCode::Usage && cliCancellationRequested()) {
+		return printCliCancelled(commandName, format);
+	}
 	if (format == CliOutputFormat::Json) {
 		QJsonObject object = cliResultJson(commandName, code);
 		object.insert(QStringLiteral("message"), message);
@@ -17690,7 +17694,15 @@ int runImpl(const QStringList& args)
 		printExitCodes(outputFormat(args), QStringLiteral("cli exit-codes"));
 		return 0;
 	}
-	const int subcommandResult = runSubcommand(args);
+	// Every model command stops at its next checkpoint on Ctrl+C and reports
+	// phases with --progress, which the commands' own option lists need not
+	// know (core/cli_cancellation.h, core/model_work_defaults.h).
+	QStringList subcommandArgs = args;
+	const QString subcommandFamily = normalizedOptionId(commandTokens(args).value(0));
+	if (subcommandFamily == QStringLiteral("model") || subcommandFamily == QStringLiteral("models") || subcommandFamily == QStringLiteral("mesh")) {
+		installCliModelWorkDefaults(subcommandArgs.removeAll(QStringLiteral("--progress")) > 0);
+	}
+	const int subcommandResult = runSubcommand(subcommandArgs);
 	if (subcommandResult >= 0) {
 		return subcommandResult;
 	}

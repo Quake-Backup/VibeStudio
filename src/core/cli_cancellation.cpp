@@ -1,4 +1,5 @@
 #include "core/cli_cancellation.h"
+#include "core/model_work_defaults.h"
 
 #include <QElapsedTimer>
 #include <QJsonDocument>
@@ -96,8 +97,21 @@ QString cliModelWorkPhaseId(ModelWorkPhase phase)
 	return {};
 }
 
-ModelWorkControl cliModelWorkControl(bool progress)
+namespace
 {
+std::atomic_bool g_progressRequested{false};
+} // namespace
+
+void installCliModelWorkDefaults(bool progress)
+{
+	installCliCancellation();
+	g_progressRequested.store(progress);
+	setModelWorkDefaults(cliModelWorkControl(progress));
+}
+
+ModelWorkControl cliModelWorkControl(bool requested)
+{
+	const bool progress = requested || g_progressRequested.load();
 	ModelWorkControl control;
 	control.cancelled = [] { return cliCancellationRequested(); };
 	// A test hook: cancel at the Nth progress report, as a console request

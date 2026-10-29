@@ -31,4 +31,9 @@ void requestCliCancellation();
 [[nodiscard]] ModelWorkControl cliModelWorkControl(bool progress = false);
 // "reading", "validating", "editing", "serializing", "writing", "committing".
 [[nodiscard]] QString cliModelWorkPhaseId(ModelWorkPhase phase);
+// For every model command: installs the handlers and makes the token (and,
+// with `progress`, the phase reporter) the process default for model work
+// started without a control (core/model_work_defaults.h). Later
+// cliModelWorkControl calls report progress too when `progress` is set.
+void installCliModelWorkDefaults(bool progress);
 } // namespace vibestudio

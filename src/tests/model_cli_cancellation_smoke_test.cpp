@@ -97,7 +97,8 @@ int main(int argc, char **argv)
 		{
 			QProcess process;
 			auto environment = QProcessEnvironment::systemEnvironment();
-			environment.insert(QStringLiteral("VIBESTUDIO_CLI_CANCEL_AT_PROGRESS"), QString::fromLatin1(cancelAt));
+			if (!cancelAt.isEmpty())
+				environment.insert(QStringLiteral("VIBESTUDIO_CLI_CANCEL_AT_PROGRESS"), QString::fromLatin1(cancelAt));
 			process.setProcessEnvironment(environment);
 			process.start(QString::fromLocal8Bit(argv[1]), QStringList{QStringLiteral("--cli"), QStringLiteral("--settings-file"),
 																	   path(QStringLiteral("settings.ini"))} +
@@ -138,6 +139,43 @@ int main(int argc, char **argv)
 							 !QFileInfo::exists(args.at(args.indexOf(QStringLiteral("--output")) + 1)) && stagingFiles(temporary.path()) == 0,
 						 "a cancelled model tool or model lod exits 130 and writes nothing");
 			std::cout << qPrintable(args.at(1)) << " cancelled: exit " << code << '\n';
+		}
+		// Every other model command takes the token through the process
+		// defaults (core/model_work_defaults.h), without its own wiring.
+		const auto assembly = path(QStringLiteral("big.assembly.json"));
+		int created = -1;
+		ok &= expect(run({QStringLiteral("model"), QStringLiteral("assembly"), QStringLiteral("--new"), QStringLiteral("--part"), QStringLiteral("root"),
+						  QStringLiteral("--model"), big, QStringLiteral("--output"), assembly},
+						 QByteArray(), &created) &&
+						 created == 0,
+					 "create an assembly of the maximum source");
+		const QVector<QStringList> generic{
+			{QStringLiteral("model"), QStringLiteral("surfaces"), big, QStringLiteral("--operation"), QStringLiteral("separate"), QStringLiteral("--surface"),
+			 QStringLiteral("0"), QStringLiteral("--faces"), QStringLiteral("0,1"), QStringLiteral("--name"), QStringLiteral("panel"),
+			 QStringLiteral("--output"), path(QStringLiteral("surfaces.mesh.json"))},
+			{QStringLiteral("model"), QStringLiteral("uv-density"), big, QStringLiteral("--texture-size"), QStringLiteral("512"), QStringLiteral("--target"),
+			 QStringLiteral("2"), QStringLiteral("--output"), path(QStringLiteral("density.mesh.json"))},
+			{QStringLiteral("model"), QStringLiteral("skinning"), big, QStringLiteral("--surface"), QStringLiteral("0")},
+			{QStringLiteral("model"), QStringLiteral("assembly"), assembly, QStringLiteral("--operation"), QStringLiteral("bake"), QStringLiteral("--time"),
+			 QStringLiteral("0"), QStringLiteral("--output"), path(QStringLiteral("baked.obj"))}};
+		for (const auto &args : generic)
+		{
+			int code = -1;
+			ok &= expect(run(args, QByteArray("1"), &code), "run the command");
+			const int at = int(args.indexOf(QStringLiteral("--output")));
+			ok &= expect(code == cliCancelledExitCode && output.value(QStringLiteral("cancelled")).toBool() &&
+							 (at < 0 || !QFileInfo::exists(args.at(at + 1))) && stagingFiles(temporary.path()) == 0,
+						 "a cancelled model command exits 130 and writes nothing");
+			std::cout << qPrintable(args.at(1)) << " cancelled: exit " << code << '\n';
+		}
+		// --progress reaches commands that do not list it.
+		{
+			QProcess process;
+			process.start(QString::fromLocal8Bit(argv[1]), {QStringLiteral("--cli"), QStringLiteral("--settings-file"), path(QStringLiteral("settings.ini")),
+															QStringLiteral("model"), QStringLiteral("uv-density"), big, QStringLiteral("--texture-size"),
+															QStringLiteral("512"), QStringLiteral("--progress"), QStringLiteral("--json")});
+			ok &= expect(process.waitForFinished(300000) && process.exitCode() == 0 && process.readAllStandardError().contains("\"progress\""),
+						 "--progress reports phases for any model command");
 		}
 #ifdef Q_OS_WIN
 		// A real Ctrl+Break, when this test shares a console with the child.

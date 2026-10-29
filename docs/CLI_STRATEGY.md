@@ -2241,7 +2241,11 @@ Each resolved path may be a definition file or a folder of them.
   report `role: "skin"`.
 - [x] Model commands share a cancellation token (core/cli_cancellation.h):
   `model import`, `model edit`, `model build`, `model stage`, `model outputs`,
-  `model tool` and `model lod` take it.
+  `model tool` and `model lod` pass it explicitly; every other model command
+  gets it, and `--progress`, through the process defaults the CLI installs for
+  the `model` family (core/model_work_defaults.h), which every core checkpoint
+  started without a control consults. A failure printed after a cancel request
+  reports as cancelled.
   Ctrl+C/Ctrl+Break (SetConsoleCtrlHandler) or SIGINT/SIGTERM (sigaction) stop
   at the next ModelWorkControl checkpoint, publish nothing and exit 130 with
   `"cancelled": true`; a second request exits at once. `--progress` writes phase
