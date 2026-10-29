@@ -20879,6 +20879,15 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial)
 		if (m_packageExtractionRunning || m_packageSaveRunning || m_packageReadRunning) { return QHash<QString, QByteArray>{}; }
 		return readStagedModelFiles(m_packageStaging, paths);
 	};
+	// Modeller: a Doom 3 model set from Game Declarations, staged as one package step.
+	editor->stageGameFiles = [this](const QVector<ModelGameFile>& files, bool replace, QString* outputError) {
+		if (m_packageExtractionRunning || m_packageSaveRunning || m_packageReadRunning) { if (outputError) { *outputError = tr("Wait for the package operation to finish before staging a model."); } return false; }
+		if (!stageModelGameFiles(files, &m_packageStaging, replace, outputError)) { return false; }
+		refreshPackageStagingSummary();
+		recordActivity(tr("Mesh Handoff"), files.isEmpty() ? QString() : files.last().path, tr("package"), OperationState::Completed,
+		    tr("Doom 3 model set staged as one package step."));
+		return true;
+	};
 	// Modeller: delivery targets saved with the open project, or suggested by its installation.
 	editor->deliveryContext = [this]() {
 		ModelEditorDeliveryContext delivery;

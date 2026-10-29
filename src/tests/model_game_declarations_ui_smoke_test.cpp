@@ -7,8 +7,10 @@
 
 #include <QAccessible>
 #include <QApplication>
+#include <QCheckBox>
 #include <QClipboard>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QDir>
 #include <QFile>
 #include <QLineEdit>
@@ -111,7 +113,51 @@ int main(int argc, char **argv)
 		declarations.findChild<QLineEdit *>("declarationsPath")->setText("progs/test");
 		const auto qc = QDir(tmp.path()).filePath(QStringLiteral("frames%1.qc").arg(scenario));
 		expect(declarations.text().contains("$cd progs/test") && declarations.saveText(qc) && QFile::exists(qc), "Save As writes the QuakeC macros");
+		auto *stage = declarations.findChild<QPushButton *>("declarationsStage");
+		expect(stage && !stage->isVisibleTo(&declarations), "Stage in Package needs an open package");
+		declarations.setTarget(4);
+		auto *sprites = declarations.findChild<QLineEdit *>("declarationsSprites");
+		expect(sprites && sprites->isVisibleTo(&declarations) && accessibleControl(sprites) && declarations.text().isEmpty(),
+			   "VOXELDEF shows its options and refuses an animated model");
 		declarations.reject();
+
+		// VOXELDEF for an unanimated model, and staging the Doom 3 set.
+		ModelDesign design;
+		design.parts.append(ModelDesignPart{});
+		auto still = buildModelDesignMesh(design);
+		updateEditableModelMetadata(&still);
+		ModelDeclarationsDialog voxel(still, "ceye.kvx");
+		voxel.show();
+		QCoreApplication::processEvents();
+		voxel.setTarget(4);
+		voxel.findChild<QLineEdit *>("declarationsSprites")->setText("ceye possa");
+		voxel.findChild<QDoubleSpinBox *>("declarationsAngle")->setValue(90);
+		voxel.findChild<QCheckBox *>("declarationsPalette")->setChecked(true);
+		expect(voxel.text().contains("CEYE = \"voxels/ceye.kvx\"") && voxel.text().contains("POSSA = ") && voxel.text().contains("\tAngleOffset = 90") &&
+				   voxel.text().contains("\tOverridePalette"),
+			   "the dialog previews VOXELDEF entries");
+		voxel.reject();
+		ModelDeclarationsDialog staged(candidate, "test.mesh.json");
+		QVector<ModelGameFile> received;
+		bool replaced = true;
+		staged.setStager(
+			[&](const QVector<ModelGameFile> &files, bool replace, QString *)
+			{
+				received = files;
+				replaced = replace;
+				return true;
+			});
+		staged.show();
+		QCoreApplication::processEvents();
+		auto *stageButton = staged.findChild<QPushButton *>("declarationsStage");
+		expect(stageButton && stageButton->isVisibleTo(&staged) && stageButton->isEnabled() && accessibleControl(stageButton) &&
+				   accessibleControl(staged.findChild<QWidget *>("declarationsReplace")),
+			   "an open package offers Stage in Package");
+		expect(staged.stageModelSet() && received.size() == 3 && received.last().path == "def/test.def" && !replaced,
+			   "Stage in Package hands the whole set to the package staging");
+		staged.setTarget(1);
+		expect(!stageButton->isEnabled(), "only the Doom 3 set stages");
+		staged.reject();
 	}
 	std::cout << checks << " game declaration UI checks; " << failures << " failures\n";
 	return failures ? 1 : 0;

@@ -327,7 +327,7 @@ current frame.
   (`src/tests/model_skeletal_writer_oracle.py`, see
   [engine acceptance](MODEL_ENGINE_ACCEPTANCE.md#independent-md5-iqm-and-ase-reader)),
   not yet in Doom 3, Quake 4 or ioquake3. Doom 3 `.def` declarations, QuakeC
-  frame macros, Quake II frame headers and GZDoom MODELDEF are generated (see
+  frame macros, Quake II frame headers, GZDoom MODELDEF and VOXELDEF are generated (see
   [game declarations](MODEL_GAME_DECLARATIONS.md)) but not yet loaded in
   those engines.
 - Levels of detail beyond the first are not read for MDS, MDM, MDR and

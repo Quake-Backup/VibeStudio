@@ -414,6 +414,9 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		if (m_working) return;
 		m_preview->finishEditTransform(false); m_preview->pause();
 		ModelDeclarationsDialog dialog(m_document.mesh(), QFileInfo(m_document.path()).fileName(), this);
+		// Stage in Package needs an open folder or ZIP-family package.
+		if (stageGameFiles && context && context().canStage)
+			dialog.setStager(stageGameFiles);
 		dialog.exec();
 	});
 	form->addRow(declarations);

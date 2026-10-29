@@ -93,7 +93,7 @@ QJsonArray eventsJson(const QVector<ModelAnimationEvent> &events)
 QString baseName(const QString &path)
 {
 	auto name = QFileInfo(path).fileName();
-	for (const auto &suffix : {QStringLiteral(".mesh.json"), QStringLiteral(".json")})
+	for (const auto &suffix : {QStringLiteral(".mesh.json"), QStringLiteral(".json"), QStringLiteral(".kvx")})
 		if (name.endsWith(suffix, Qt::CaseInsensitive))
 		{
 			name.chop(suffix.size());
@@ -247,11 +247,11 @@ ModelToolsCliResult runModelEvents(const QStringList &arguments)
 
 ModelToolsCliResult runModelDeclarations(const QStringList &arguments)
 {
-	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite"};
+	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--override-palette"};
 	const QSet<QString> options{"--input",	   "--target",	  "--output",  "--set",	  "--name",			 "--mesh-path", "--anim-dir",
 								"--skin",	   "--inherit",	  "--offset",  "--cd",	  "--base",			 "--prefix",	"--scale",
 								"--actor",	   "--path",	  "--model",   "--sprite", "--angle-offset", "--settings-file", "--locale",
-								"--catalog-root"};
+								"--catalog-root", "--sprites", "--spin", "--placed-spin", "--dropped-spin"};
 	QSet<QString> seen;
 	QHash<QString, QString> values;
 	QString input;
@@ -260,12 +260,13 @@ ModelToolsCliResult runModelDeclarations(const QStringList &arguments)
 		return failure;
 	const auto target = values.value("--target");
 	if (!modelGameDeclarationTargets().contains(target))
-		return fail(2, Text::tr("Choose --target doom3, quakec, quake2 or gzdoom."));
+		return fail(2, Text::tr("Choose --target doom3, quakec, quake2, gzdoom or gzdoom-voxeldef."));
 	const QHash<QString, QSet<QString>> specific{
 		{"doom3", {"--set", "--name", "--mesh-path", "--anim-dir", "--skin", "--inherit", "--offset"}},
 		{"quakec", {"--cd", "--base", "--skin"}},
 		{"quake2", {"--cd", "--prefix", "--scale"}},
-		{"gzdoom", {"--actor", "--path", "--model", "--skin", "--scale", "--offset", "--sprite", "--angle-offset"}}};
+		{"gzdoom", {"--actor", "--path", "--model", "--skin", "--scale", "--offset", "--sprite", "--angle-offset"}},
+		{"gzdoom-voxeldef", {"--sprites", "--path", "--scale", "--angle-offset", "--spin", "--placed-spin", "--dropped-spin", "--override-palette"}}};
 	for (const auto &key : seen)
 		if (!flags.contains(key) && !QSet<QString>{"--input", "--target", "--output", "--settings-file", "--locale", "--catalog-root"}.contains(key) &&
 			!specific.value(target).contains(key))
@@ -278,9 +279,18 @@ ModelToolsCliResult runModelDeclarations(const QStringList &arguments)
 		return fail(2, Text::tr("--dry-run and --overwrite apply to written files."));
 	ModelDocument document;
 	QString error;
-	if (!document.load(input, &error))
+	// VOXELDEF names a voxel, which can be read straight from its .kvx file.
+	ModelMesh voxel;
+	const bool kvx = target == "gzdoom-voxeldef" && input.endsWith(".kvx", Qt::CaseInsensitive);
+	if (kvx)
+	{
+		voxel = decodeModelMeshFile(QFileInfo(input).absoluteFilePath());
+		if (!voxel.error.isEmpty())
+			return fail(1, voxel.error);
+	}
+	else if (!document.load(input, &error))
 		return fail(1, error);
-	const auto &mesh = document.mesh();
+	const auto &mesh = kvx ? voxel : document.mesh();
 	const auto name = values.value("--name", baseName(input));
 	const auto sourceName = QFileInfo(input).fileName();
 	QString text;
@@ -328,6 +338,31 @@ ModelToolsCliResult runModelDeclarations(const QStringList &arguments)
 				return fail(2, Text::tr("Scale must be a positive number."));
 		}
 		text = modelQuake2FrameHeaderText(mesh, o, &error);
+	}
+	else if (target == "gzdoom-voxeldef")
+	{
+		ModelGzdoomVoxeldefOptions o;
+		auto sprite = QFileInfo(input).baseName().toUpper();
+		static const QRegularExpression invalid(QStringLiteral("[^A-Z0-9]"));
+		sprite.remove(invalid);
+		o.sprites = values.value("--sprites", (sprite + QStringLiteral("XXXX")).left(4)).toUpper().split(',', Qt::SkipEmptyParts);
+		o.path = values.value("--path", QStringLiteral("voxels/%1.kvx").arg(name.toLower()));
+		o.overridePalette = seen.contains("--override-palette");
+		o.sourceName = sourceName;
+		bool ok = true;
+		if (seen.contains("--scale"))
+			o.scale = values.value("--scale").toDouble(&ok);
+		if (ok && seen.contains("--angle-offset"))
+			o.angleOffset = values.value("--angle-offset").toDouble(&ok);
+		if (ok && seen.contains("--spin"))
+			o.placedSpin = o.droppedSpin = values.value("--spin").toInt(&ok);
+		if (ok && seen.contains("--placed-spin"))
+			o.placedSpin = values.value("--placed-spin").toInt(&ok);
+		if (ok && seen.contains("--dropped-spin"))
+			o.droppedSpin = values.value("--dropped-spin").toInt(&ok);
+		if (!ok || (seen.contains("--spin") && (seen.contains("--placed-spin") || seen.contains("--dropped-spin"))))
+			return fail(2, Text::tr("Scale and angle offset are numbers and spins whole numbers; give --spin, or --placed-spin and --dropped-spin."));
+		text = modelGzdoomVoxeldefText(mesh, o, &error);
 	}
 	else
 	{

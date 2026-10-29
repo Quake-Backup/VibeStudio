@@ -49,6 +49,8 @@ connector is required. See [inverse kinematics](MODEL_IK.md). The pose
 clipboard, clip import, animation events, game declarations and clip
 constraints likewise work offline with no setup option; the pose commands take
 keys from the chosen controls profile like every other modeller command.
+**Stage in Package** for a Doom 3 model set uses the package already open in
+the studio; nothing is staged without one.
 
 **Transfer Skin Weights** needs no additional setup, connector or dependency.
 It uses the current model's retained bind frame and skeleton, modeller camera

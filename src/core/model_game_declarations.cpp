@@ -1,8 +1,11 @@
 #include "core/model_game_declarations.h"
 #include "core/model_animation_events.h"
 #include "core/model_document.h"
+#include "core/package_archive.h"
+#include "core/package_staging.h"
 
 #include <QCoreApplication>
+#include <QFileInfo>
 #include <QRegularExpression>
 #include <QSet>
 #include <algorithm>
@@ -122,7 +125,7 @@ QString animPath(const ModelDoom3DefOptions &o, const QString &clip)
 
 QStringList modelGameDeclarationTargets()
 {
-	return {QStringLiteral("doom3"), QStringLiteral("quakec"), QStringLiteral("quake2"), QStringLiteral("gzdoom")};
+	return {QStringLiteral("doom3"), QStringLiteral("quakec"), QStringLiteral("quake2"), QStringLiteral("gzdoom"), QStringLiteral("gzdoom-voxeldef")};
 }
 
 bool validModelGamePath(const QString &path)
@@ -377,5 +380,106 @@ QString modelGzdoomModeldefText(const ModelMesh &mesh, const ModelGzdoomModeldef
 		lines << QStringLiteral("\tAngleOffset %1").arg(number(o.angleOffset));
 	lines << QString() << frames << QStringLiteral("}") << QString();
 	return lines.join(QLatin1Char('\n'));
+}
+QString modelGzdoomVoxeldefText(const ModelMesh &mesh, const ModelGzdoomVoxeldefOptions &o, QString *error)
+{
+	// GZDoom draws voxels unanimated; the declaration names the .kvx file the
+	// package ships (VibeStudio reads KVX but does not write it).
+	if (mesh.frames.size() > 1 || !mesh.skeleton.clips.isEmpty())
+	{
+		fail(error, Text::tr("VOXELDEF voxels are not animated. Declare a model with a single frame, such as a KVX voxel."));
+		return {};
+	}
+	// Four-character sprites, or a sprite and one frame letter (A-Z, [, \, ]).
+	static const QRegularExpression sprite(QStringLiteral("^[A-Z0-9_]{4}[A-Z\\[\\\\\\]]?$"));
+	QSet<QString> seen;
+	for (const auto &name : o.sprites)
+		if (!sprite.match(name).hasMatch() || seen.contains(name))
+		{
+			fail(error, Text::tr("Give each replaced sprite once, as four upper-case letters or digits, optionally followed by a frame letter."));
+			return {};
+		}
+		else
+			seen.insert(name);
+	if (o.sprites.isEmpty() || o.sprites.size() > 256)
+	{
+		fail(error, Text::tr("Name from 1 to 256 sprites for the voxel to replace."));
+		return {};
+	}
+	if (!validModelGamePath(o.path) || !o.path.endsWith(QStringLiteral(".kvx"), Qt::CaseInsensitive))
+	{
+		fail(error, Text::tr("Give the voxel's package path as letters, digits and '/', ending in .kvx, such as voxels/troo.kvx."));
+		return {};
+	}
+	if (!std::isfinite(o.scale) || o.scale <= 0 || o.scale > 1000 || !std::isfinite(o.angleOffset) || std::abs(o.angleOffset) > 360 ||
+		std::abs(o.placedSpin) > 3600 || std::abs(o.droppedSpin) > 3600)
+	{
+		fail(error, Text::tr("Use a scale above 0 up to 1000, an angle offset from -360 to 360 and spins from -3600 to 3600."));
+		return {};
+	}
+	// The scale is read as a floating-point number: keep a decimal point.
+	auto scale = number(o.scale);
+	if (!scale.contains(QLatin1Char('.')) && !scale.contains(QLatin1Char('e')))
+		scale += QStringLiteral(".0");
+	QStringList options;
+	if (o.scale != 1)
+		options << QStringLiteral("\tScale = %1").arg(scale);
+	if (o.angleOffset != 0)
+		options << QStringLiteral("\tAngleOffset = %1").arg(number(o.angleOffset));
+	if (o.placedSpin == o.droppedSpin && o.placedSpin != 0)
+		options << QStringLiteral("\tSpin = %1").arg(o.placedSpin);
+	else
+	{
+		if (o.placedSpin != 0)
+			options << QStringLiteral("\tPlacedSpin = %1").arg(o.placedSpin);
+		if (o.droppedSpin != 0)
+			options << QStringLiteral("\tDroppedSpin = %1").arg(o.droppedSpin);
+	}
+	if (o.overridePalette)
+		options << QStringLiteral("\tOverridePalette");
+	QStringList lines{QStringLiteral("// ") + generatedLine(o.sourceName)};
+	for (const auto &name : o.sprites)
+	{
+		lines << QStringLiteral("%1 = \"%2\"").arg(name, o.path);
+		if (!options.isEmpty())
+			lines << QStringLiteral("{") << options << QStringLiteral("}");
+	}
+	lines << QString();
+	return lines.join(QLatin1Char('\n'));
+}
+bool stageModelGameFiles(const QVector<ModelGameFile> &files, PackageStagingModel *staging, bool replaceExisting, QString *error)
+{
+	if (files.isEmpty())
+		return fail(error, Text::tr("Prepare the model set before staging it."));
+	if (!staging || !staging->isLoaded() || staging->sourceFormat() == PackageArchiveFormat::Wad)
+		return fail(error, Text::tr("Open a folder, ZIP, PK3 or PK4 package before staging the model set."));
+	auto staged = *staging;
+	if (!staged.beginOperationGroup(Text::tr("Stage Doom 3 model set"), error))
+		return false;
+	for (const auto &file : files)
+	{
+		const auto normalized = normalizePackageVirtualPath(file.path, false);
+		const auto suffix = QFileInfo(normalized.normalizedPath).suffix().toLower();
+		const bool known = (file.role == QStringLiteral("mesh") && suffix == QStringLiteral("md5mesh") && file.bytes.startsWith("MD5Version")) ||
+						   (file.role == QStringLiteral("anim") && suffix == QStringLiteral("md5anim") && file.bytes.startsWith("MD5Version")) ||
+						   (file.role == QStringLiteral("declaration") && suffix == QStringLiteral("def") && !file.bytes.isEmpty());
+		if (!normalized.isSafe() || !validModelGamePath(normalized.normalizedPath) || !known || file.bytes.size() > modelDocumentMaxSourceBytes)
+		{
+			staged.endOperationGroup(false);
+			return fail(error, Text::tr("%1 is not a model set file this package can take.").arg(file.path));
+		}
+		if (!staged.addBytes(file.bytes, normalized.normalizedPath, error,
+							 replaceExisting ? PackageStageConflictResolution::ReplaceExisting : PackageStageConflictResolution::Block))
+		{
+			staged.endOperationGroup(false);
+			return false;
+		}
+	}
+	if (!staged.endOperationGroup(true, error))
+		return false;
+	if (!staged.summary().canSave)
+		return fail(error, Text::tr("Resolve the package's staging conflicts before staging the model set."));
+	*staging = std::move(staged);
+	return true;
 }
 } // namespace vibestudio

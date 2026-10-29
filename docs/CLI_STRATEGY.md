@@ -3375,8 +3375,9 @@ outputs and JSON reports. See [constraints and layers](MODEL_ANIMATION_CONSTRAIN
 the shared `EditAnimationEvents` edit, with guarded `.mesh.json` outputs.
 `model declarations` generates Doom 3 model declarations (and, with `--set`,
 the whole md5mesh, md5anim and `.def` set, every destination checked before
-any write), QuakeC `$frame` macros, Quake II frame headers and GZDoom MODELDEF
-from the same services as **Skeleton > Game Declarations**. See
+any write), QuakeC `$frame` macros, Quake II frame headers, GZDoom MODELDEF and
+GZDoom VOXELDEF (`--target gzdoom-voxeldef`, from an editable source or a
+`.kvx`) from the same services as **Skeleton > Game Declarations**. See
 [game declarations](MODEL_GAME_DECLARATIONS.md).
 
 ### Inverse kinematics

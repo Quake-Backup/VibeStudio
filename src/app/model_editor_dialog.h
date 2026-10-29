@@ -8,6 +8,7 @@
 #include "core/model_collision.h"
 #include "core/model_delivery.h"
 #include "core/model_editor_controls.h"
+#include "core/model_game_declarations.h"
 #include "core/model_skin_source.h"
 #include "core/model_skin_bindings.h"
 #include "core/model_topology_health.h"
@@ -156,6 +157,10 @@ class ModelEditorDialog final : public QDialog
 	// readStagedModelFiles), so staging an MD3 can review the detail files
 	// already beside it; read on the GUI thread.
 	std::function<QHash<QString, QByteArray>(const QStringList &)> readPackageFiles;
+	// Stages a Doom 3 model set (core/model_game_declarations.h
+	// stageModelGameFiles) into the active package as one package step;
+	// Game Declarations offers Stage in Package when it is set.
+	std::function<bool(const QVector<ModelGameFile> &, bool, QString *)> stageGameFiles;
 	std::function<void(const QString &)> showMaterial;
 	// Runs after the user picks another controls profile, so other views
 	// (the Models page preview) can follow it.
