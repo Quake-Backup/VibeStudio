@@ -55,7 +55,7 @@ files of skeletal models.
 | Quake, Hexen II, Quake II, Heretic II | Quake MDL, Hexen II MDL, MD2, Heretic II FM | MDL, MD2 |
 | Half-Life and its mods | Half-Life MDL, with its texture and sequence files | Read only |
 | Quake III Arena, Team Arena, Elite Force, Darkplaces | MD3, MDR, IQM | MD3, IQM |
-| Return to Castle Wolfenstein, Enemy Territory | MDC, MDS, MDM with its MDX | Export as MD3, which both games load |
+| Return to Castle Wolfenstein, Enemy Territory | MDC, MDS, MDM with its MDX | MDS (Return to Castle Wolfenstein skeletons), or MD3, which both games load |
 | Jedi Outcast, Jedi Academy, Soldier of Fortune II | Ghoul 2 GLM with its GLA | Export as MD3 |
 | Doom 3, Quake 4, Prey, Quake Wars, The Dark Mod | MD5 mesh and animation, LightWave LWO, ASE | MD5 mesh, MD5 animation, ASE |
 | Any modeller | Wavefront OBJ, glTF 2.0 (`.gltf`, `.glb`) | OBJ (one frame); glTF is read only |
@@ -161,8 +161,9 @@ alongside:
   independently they work as usual, and the other frames keep their clips.
   Once every surface is unbound they work on every frame.
 - **Save** keeps the skeleton in the `.mesh.json` source.
-- Export as MD5 or IQM to keep the joints, or as MD3, MD2 or MDL to bake the
-  animation into frames.
+- Export as MD5 or IQM to keep the joints, as **RTCW Skeletal Model (MDS)…**
+  for Return to Castle Wolfenstein (its bones must keep their lengths, as the
+  game's do), or as MD3, MD2 or MDL to bake the animation into frames.
 
 The Mesh Editor holds at most 1,024 frames and 1,048,576 frame vertices
 (vertices times frames). A larger skeletal model opens with a **working set**:
@@ -810,7 +811,7 @@ the prop.
 | From | How |
 | --- | --- |
 | Models page | **Export OBJ** writes the current frame of the selected model. |
-| Mesh Editor | In the **Model** menu, **Export MD3…**, **Export MD2…**, **Export MDL…** or **Export OBJ Frame…**; **Export Other Format** for **MD5 Mesh…**, **MD5 Animation of Clip…**, **MD5 Animations of All Clips…**, **Inter-Quake Model (IQM)…** and **ASE Frame…**; **Stage in Package** or **Stage and Place** for a package and map. |
+| Mesh Editor | In the **Model** menu, **Export MD3…**, **Export MD2…**, **Export MDL…** or **Export OBJ Frame…**; **Export Other Format** for **MD5 Mesh…**, **MD5 Animation of Clip…**, **MD5 Animations of All Clips…**, **Inter-Quake Model (IQM)…**, **RTCW Skeletal Model (MDS)…** and **ASE Frame…**; **Stage in Package** or **Stage and Place** for a package and map. |
 | Command line | `model build` turns a `.mesh.json` or `.model.json` source into any of those formats (`--target` names the game); `model lod` writes Quake III detail levels; `model targets` lists the delivery targets or checks a model against them. |
 
 Each export checks the limits of its delivery target first, and reports what

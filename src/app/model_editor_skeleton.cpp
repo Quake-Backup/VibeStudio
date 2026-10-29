@@ -354,6 +354,14 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 	m_exportIqm->setToolTip(Text::tr("Write an Inter-Quake Model with joints, weights and every skeletal clip, for ioquake3 and its descendants."));
 	connect(m_exportIqm, &QPushButton::clicked, this, [this] { exportModel(QStringLiteral("iqm")); });
 	form->addRow(m_exportIqm);
+	// Return to Castle Wolfenstein (core/model_mds.h): bones keep their lengths.
+	auto *exportMds = new WrappingActionButton(Text::tr("Export RTCW MDS…"), 2);
+	exportMds->setObjectName(QStringLiteral("exportMeshMds"));
+	exportMds->setToolTip(Text::tr("Write a Return to Castle Wolfenstein skeletal MDS with every clip as consecutive frames; bones must keep their lengths."));
+	exportMds->setAccessibleName(Text::tr("Export RTCW MDS"));
+	exportMds->setAccessibleDescription(exportMds->toolTip());
+	connect(exportMds, &QPushButton::clicked, this, [this] { exportModel(QStringLiteral("mds")); });
+	form->addRow(exportMds);
 }
 
 void ModelEditorDialog::refreshSkeleton()

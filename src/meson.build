@@ -527,6 +527,8 @@ core_sources = files(
   'core/model_bake.cpp',
   # Painting skins on the model (UVSKIN-09).
   'core/model_skin_paint.cpp',
+  # RTCW MDS writer (FMT-09).
+  'core/model_format_mds_writer.cpp',
   # Modeller profiles (Blender, 3ds Max, MilkShape 3D) and sidebars, as data.
   'core/model_editor_controls.cpp',
   'core/model_sidebar.cpp',
@@ -652,7 +654,7 @@ install_headers('core/model_targets.h', subdir: 'vibestudio/core')
 install_headers('core/model_target_prepare.h', subdir: 'vibestudio/core')
 install_headers('core/model_delivery.h', subdir: 'vibestudio/core')
 install_headers('core/model_editor_controls.h', 'core/model_sidebar.h', subdir: 'vibestudio/core')
-install_headers('core/model_decode_issues.h', 'core/model_audit.h', 'core/model_game_preview.h', 'core/model_bvh.h', 'core/model_bake.h', 'core/model_skin_paint.h', subdir: 'vibestudio/core')
+install_headers('core/model_decode_issues.h', 'core/model_audit.h', 'core/model_game_preview.h', 'core/model_bvh.h', 'core/model_bake.h', 'core/model_skin_paint.h', 'core/model_mds.h', subdir: 'vibestudio/core')
 install_headers('core/model_surface_selection.h', subdir: 'vibestudio/core')
 install_headers('core/model_geometric_topology.h', 'core/model_mesh_tools.h', 'core/model_selection_tools.h', 'core/model_lod.h', subdir: 'vibestudio/core')
 install_headers('core/model_material_slots.h', subdir: 'vibestudio/core')
@@ -3889,6 +3891,13 @@ model_skin_paint_ui_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
 )
 test('model-skin-paint-ui-smoke', model_skin_paint_ui_smoke_test, env: model_document_test_env, timeout: 300)
+
+# The RTCW MDS writer (FMT-09).
+model_format_mds_writer_smoke_test = executable(
+  'model_format_mds_writer_smoke_test', ['tests/model_format_mds_writer_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-format-mds-writer-smoke', model_format_mds_writer_smoke_test, timeout: 120)
 
 
 model_health_smoke_test = executable(

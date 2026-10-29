@@ -3555,8 +3555,9 @@ The decode issue severities (`src/core/model_decode_issues.*`,
 the bulk model audit (`src/core/model_audit.*`), the Game preview
 (`src/core/model_game_preview.*`, `src/app/model_editor_game_preview.cpp`)
 the map baker (`src/core/model_bake.*`, `src/core/model_bvh.*`,
-`src/app/model_bake_dialog.*`) and skin painting (`src/core/model_skin_paint.*`,
-`src/app/model_skin_paint_dialog.*`) are original VibeStudio code.
+`src/app/model_bake_dialog.*`), skin painting (`src/core/model_skin_paint.*`,
+`src/app/model_skin_paint_dialog.*`) and the MDS writer
+(`src/core/model_format_mds_writer.cpp`) are original VibeStudio code.
 
 | Reference | What it informed | Revision | Licence / use |
 |---|---|---|---|
@@ -3565,6 +3566,7 @@ the map baker (`src/core/model_bake.*`, `src/core/model_bvh.*`,
 | Quake Specifications chapter 5, Quake II `qfiles.h`, Quake III `md3.h` (see [Native Model Formats And Modeller Profiles](#native-model-formats-and-modeller-profiles-2026-10-08)) | The byte layouts of the rich MDL, MD2 and MD3 fuzz seeds built by the tests | As recorded there | Layout only |
 | [Quake GPL source](https://github.com/id-Software/Quake/tree/bf4ac424ce754894ac8f1dae6a3981954bc9852d) (`WinQuake/cl_parse.c` `CL_NewTranslation`, `WinQuake/r_alias.c` `R_AliasSetupSkin`, `GLQuake/gl_model.c` `Mod_FloodFillSkin`, `GLQuake/gl_rmain.c` `R_TranslatePlayerSkin`) | The Game preview's player colour translation, skin group timing, fullbright range and GLQuake flood fill (`src/core/model_game_preview.cpp`) | `bf4ac424ce754894ac8f1dae6a3981954bc9852d`, read 2026-10-29 | GPL-2.0-or-later, compatible with GPL-3.0; behaviour only, no code copied |
 | [Doom 3 GPL source](https://github.com/id-Software/DOOM-3/tree/a9c49da5afb18201d31e3f0a429a037e56ce2b9a) (`neo/renderer/tr_trisurf.cpp` `R_DeriveTangents`, `neo/tools/renderbump/renderbump.cpp`) | The baker's tangent frames (s and t gradients made orthogonal to the normal) and the renderbump-style projection of high-poly normals onto a game mesh (`src/core/model_bake.cpp`) | `a9c49da5afb18201d31e3f0a429a037e56ce2b9a`, read 2026-10-29 | GPL-3.0 with id's additional terms; behaviour only, no code copied |
+| [Return to Castle Wolfenstein GPL source](https://github.com/id-Software/RTCW-SP/tree/70951bc71b730efe6bcb07db7ae76ef0c4ae7c14) (`src/qcommon/qfiles.h`, `src/renderer/tr_animation.c` `R_CalcBone`, `RB_SurfaceAnim`) | The MDS writer's layout and the inverse of the bone maths (`src/core/model_format_mds_writer.cpp`) and the independent reader in its test | `70951bc71b730efe6bcb07db7ae76ef0c4ae7c14`, read 2026-10-29 | GPL-3.0 with id's additional terms; layout and behaviour only, no code copied |
 | Moeller and Trumbore, "Fast, Minimum Storage Ray/Triangle Intersection" (Journal of Graphics Tools 2(1), 1997); Steele, Lea and Flood, "Fast Splittable Pseudorandom Number Generators" (OOPSLA 2014, SplitMix64) | The bake BVH's ray-triangle test and the per-texel sample sequence (`src/core/model_bvh.cpp`, `model_bake.cpp`) | Published algorithms | Algorithms only |
 | [Quake III Arena GPL source](https://github.com/id-Software/Quake-III-Arena/tree/dbe4ddb10315479fc00086f08e25d968b4b43c49) (`code/renderer/tr_shade.c`, `tr_shade_calc.c`) | The Game preview's stage blending, alphaFunc, rgbGen/alphaGen and tcMod order and maths, composed in texture space | `dbe4ddb10315479fc00086f08e25d968b4b43c49`, read 2026-10-29 | GPL-2.0-or-later, compatible with GPL-3.0; behaviour only, no code copied |
 

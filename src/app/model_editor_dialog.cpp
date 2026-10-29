@@ -509,6 +509,10 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 				 QStringLiteral("iqm"),
 				 QCoreApplication::translate("VibeStudioModelEditor",
 											 "Joints, weights and every skeletal clip, for ioquake3, Darkplaces and FTEQW."));
+	formatAction(QCoreApplication::translate("VibeStudioModelEditor", "RTCW Skeletal Model (MDS)…"), QStringLiteral("exportMeshMdsFormat"),
+				 QStringLiteral("mds"),
+				 QCoreApplication::translate("VibeStudioModelEditor",
+											 "Return to Castle Wolfenstein: bones, weights, tags and every clip as consecutive frames; bones must keep their lengths."));
 	formatAction(QCoreApplication::translate("VibeStudioModelEditor", "ASE Frame…"), QStringLiteral("exportMeshAse"),
 				 QStringLiteral("ase"),
 				 QCoreApplication::translate("VibeStudioModelEditor",

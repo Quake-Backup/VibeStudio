@@ -41,7 +41,7 @@ Doom's own sprites and Quake's sprite files are handled by the
 | Heretic II FM | `.fm` | `header` chunk | No | Frames, skins, mesh nodes as surfaces | No |
 | Quake III MD3 | `.md3` | `IDP3`, version 15 | No | Surfaces, shaders, every frame and tag | Yes, with the [detail levels](MODEL_LOD.md) its delivery target loads (`name_1.md3`, `name_2.md3`) |
 | MDC | `.mdc` | `IDPC`, version 2 | No | Base and compressed frames, tags, shaders | No (export MD3, which both games load) |
-| MDS | `.mds` | `MDSW`, version 4 | Yes | Bones, weights, frames, tags | No |
+| MDS | `.mds` | `MDSW`, version 4 | Yes | Bones, weights, frames, tags | Yes, from a skeleton whose bones keep their lengths ([MDS export](#write-rtcw-mds)) |
 | MDM | `.mdm` | `MDMW`, version 3 | Yes | Surfaces and weights, skinned against the MDX | No |
 | MDX | `.mdx` | `MDXW`, version 2 | Yes, animation only | Bones and frames | No |
 | MDR | `.mdr` | `RDM5`, version 2 | Yes | Per-frame bone matrices, the first level of detail, tags | No |
@@ -125,6 +125,32 @@ source cannot record damage, and an omission it records must be accepted.
 The Mesh Editor's **Open / Import…** dialog offers every suffix of every format
 `model formats` lists with geometry; animation-only files (`.md5anim`, `.mdx`,
 `.gla`) open through their mesh.
+
+## Write RTCW MDS
+
+`exportEditableModel(mesh, "mds")` (and **Export** in the Mesh Editor, and
+`model build --format mds`) writes a Return to Castle Wolfenstein skeletal
+model, MDSW version 4, from any skeleton (`src/core/model_format_mds_writer.cpp`,
+`core/model_mds.h`). MDS bones rotate freely every frame, but a child sits at
+a fixed distance from its parent along stored offset angles, and only the root
+moves, so the writer:
+
+- refuses a bone whose distance from its parent changes between frames (beyond
+  0.01 units), a bone that scales or shears, roots that do not share one
+  position, more than 128 bones, and vertices with more than eight weights;
+- writes the clips one after another as the file's frames (the game's
+  animation scripts name the ranges), or the bind pose alone;
+- rounds every angle to 1/65536 of a turn, rebuilding each child's position
+  from its rounded parent so rounding does not pile up down the hierarchy;
+- writes the full level of detail with an identity collapse map, each
+  vertex's normal in its first bone's space, and tags on their bones (a tag's
+  own offset is left out and reported);
+- stores triangles clockwise, as the game culls them.
+
+The writer's test reads the bytes back with VibeStudio's decoder and with an
+independent reader written from `mdsHeader_t` and `R_CalcBone`, and both put
+every vertex within 0.02 units of the source clip. ET MDM+MDX and Ghoul 2
+GLM+GLA writers are still to come.
 
 ## Audit Models In Bulk
 
@@ -428,9 +454,10 @@ current frame.
   real files; an advisory that hides real loss, or an omission that should be
   an advisory, needs a report. Import repair allows advisories but cannot
   accept omissions yet.
-- Writers exist for MD5, IQM and ASE only among the new formats. MDC, MDS,
-  MDM/MDX, MDR, Ghoul 2, Half-Life MDL, Hexen II MDL, FM, LWO and KVX are read
-  only.
+- Writers exist for MD5, IQM, ASE and MDS only among the new formats. MDC,
+  MDM/MDX, MDR, Ghoul 2, Half-Life MDL, Hexen II MDL, FM, LWO, KVX and glTF are
+  read only. The MDS writer is checked by VibeStudio's decoder and an
+  independent reader in its test, not yet in Return to Castle Wolfenstein.
 - The MD5, IQM and ASE writers are checked through VibeStudio's own decoders,
   recorded output and an independent oracle
   (`src/tests/model_skeletal_writer_oracle.py`, see

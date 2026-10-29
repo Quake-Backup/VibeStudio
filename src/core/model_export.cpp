@@ -1,6 +1,7 @@
 #include "core/model_ase.h"
 #include "core/model_iqm.h"
 #include "core/model_md5.h"
+#include "core/model_mds.h"
 #include "core/model_skeletal_export.h"
 #include "core/model_skeleton.h"
 #include "core/model_document.h"
@@ -1113,6 +1114,17 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 		}
 		return result;
 	}
+	if (id == QStringLiteral("mds"))
+	{
+		// RTCW skeletal MDS (core/model_mds.h), from the edited bind pose.
+		ModelMesh prepared = mesh;
+		const int bindFrame = modelBindPoseFrame(prepared);
+		if (!prepared.skeleton.isEmpty() && bindFrame >= 0)
+		{
+			rebindModelSkinning(&prepared, bindFrame);
+		}
+		return exportModelMds(prepared, ModelMdsExportOptions{}, error, control, report);
+	}
 	if (id == QStringLiteral("ase"))
 	{
 		if (frame < 0 || frame >= mesh.frames.size())
@@ -1229,7 +1241,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 		return result.toUtf8();
 	}
 	return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
-													  "Editable model export supports MDL, MD2, MD3, MD5 mesh or animation, IQM, ASE, or a "
+													  "Editable model export supports MDL, MD2, MD3, MD5 mesh or animation, IQM, ASE, MDS, or a "
 													  "single OBJ frame."));
 }
 } // namespace
@@ -1237,7 +1249,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 QStringList modelExportFormatIds()
 {
 	return {QStringLiteral("mdl"), QStringLiteral("md2"), QStringLiteral("md3"), QStringLiteral("obj"), QStringLiteral("md5mesh"),
-			QStringLiteral("md5anim"), QStringLiteral("iqm"), QStringLiteral("ase")};
+			QStringLiteral("md5anim"), QStringLiteral("iqm"), QStringLiteral("ase"), QStringLiteral("mds")};
 }
 
 QByteArray exportEditableModel(const ModelMesh &mesh, const QString &format, int frame, QString *error, const ModelWorkControl &control,
