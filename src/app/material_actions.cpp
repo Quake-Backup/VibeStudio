@@ -6,7 +6,11 @@
 
 #include "app/application_shell.h"
 
+#include "app/asset_views.h"
+#include "app/level_material_animator.h"
 #include "app/material_workbench.h"
+#include "app/model_viewport.h"
+#include "app/studio_actions.h"
 #include "core/game_installation.h"
 #include "core/level_map.h"
 #include "core/material_library.h"
@@ -14,11 +18,14 @@
 
 #include <QComboBox>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFileInfo>
 #include <QStatusBar>
 #include <QTabWidget>
+#include <QTimer>
 
 #include <algorithm>
+#include <memory>
 
 namespace vibestudio {
 
@@ -80,6 +87,7 @@ QWidget* ApplicationShell::buildMaterialWorkbench()
 	host.showTexture = [this](const QString& reference) { showTextureReference(reference); };
 	host.openInCode = [this](const QString& path, int line) { openCodeFileAt(path, std::max(1, line)); };
 	host.openMapUse = [this](const MaterialMapUse& use, const QString& material, QString* error) { return openMaterialMapUse(use, material, error); };
+	host.editImage = [this](const QString& reference) { editMaterialImageInTextureEditor(reference); };
 	host.revealInPackage = [this](const QString& path) { revealPackageEntry(path); };
 	host.loadState = [this]() { return m_settings.shellLayoutState(QStringLiteral("materialsWorkbench")); };
 	host.saveState = [this](const QByteArray& state) { m_settings.setShellLayoutState(QStringLiteral("materialsWorkbench"), state); };
@@ -96,6 +104,9 @@ void ApplicationShell::syncMaterialWorkbench()
 		return;
 	}
 	m_materialWorkbench->setReducedMotion(m_settings.accessibilityPreferences().reducedMotion);
+	if (m_levelMaterialAnimator) {
+		m_levelMaterialAnimator->setReducedMotion(m_settings.accessibilityPreferences().reducedMotion);
+	}
 	if (!m_packageArchive.isOpen()) {
 		m_materialWorkbench->clearPackage();
 		return;
@@ -152,6 +163,100 @@ QStringList ApplicationShell::materialBasePackagePaths() const
 		}
 	}
 	return paths;
+}
+
+namespace {
+
+const QString kAnimateMaterialsKey = QStringLiteral("levelAnimateMaterials");
+
+} // namespace
+
+void ApplicationShell::registerLevelMaterialAnimationCommand()
+{
+	if (!m_commands) {
+		return;
+	}
+	StudioCommandRegistration command;
+	command.commandId = QStringLiteral("map.animateMaterials");
+	command.group = StudioCommandGroup::View;
+	command.label = tr("Animate Materials in Camera");
+	command.statusTip = tr("Play scrolling, pulsing and animated materials on the camera's faces, drawn as the Materials page draws them. "
+						   "Reduce motion keeps them still. The choice is kept.");
+	command.iconName = QStringLiteral("film");
+	command.checkable = true;
+	command.menuSection = tr("Camera Display");
+	command.handler = [this]() {
+		const bool on = m_settings.shellLayoutState(kAnimateMaterialsKey) != QByteArrayLiteral("on");
+		m_settings.setShellLayoutState(kAnimateMaterialsKey, on ? QByteArrayLiteral("on") : QByteArrayLiteral("off"));
+		if (QAction* action = m_commands->action(QStringLiteral("map.animateMaterials")); action && action->isChecked() != on) {
+			action->setChecked(on);
+		}
+		if (m_levelMaterialAnimator) {
+			m_levelMaterialAnimator->setEnabled(on);
+		}
+		const bool still = m_settings.accessibilityPreferences().reducedMotion;
+		statusBar()->showMessage(!on ? tr("The camera shows materials still.")
+			: still					  ? tr("Animate Materials in Camera is on, but Reduce motion keeps them still.")
+									  : tr("Animated materials play in the camera."),
+			5000);
+	};
+	if (QAction* action = m_commands->registerCommand(command)) {
+		action->setChecked(m_settings.shellLayoutState(kAnimateMaterialsKey) == QByteArrayLiteral("on"));
+	}
+}
+
+void ApplicationShell::refreshLevelMaterialAnimation(const ModelMesh& mesh, const QHash<int, QImage>& stillImages)
+{
+	if (!m_levelMap3D) {
+		return;
+	}
+	if (!m_levelMaterialAnimator) {
+		m_levelMaterialAnimator = new LevelMaterialAnimator(m_levelMap3D, this);
+	}
+	m_levelMaterialAnimator->setReducedMotion(m_settings.accessibilityPreferences().reducedMotion);
+	m_levelMaterialAnimator->setEnabled(m_settings.shellLayoutState(kAnimateMaterialsKey) == QByteArrayLiteral("on"));
+	// Doom faces carry the camera's own flat and wall keys, not material names.
+	if (mesh.surfaces.isEmpty() || m_levelMapDocument.format == LevelMapFormat::DoomWad || !m_packageArchive.isOpen()) {
+		m_levelMaterialAnimator->stop();
+		return;
+	}
+	const QStringList basePaths = materialBasePackagePaths();
+	const QString key = packageViewKey() + QLatin1Char('|') + basePaths.join(QLatin1Char('|'));
+	if (key != m_levelMaterialAnimatorKey) {
+		m_levelMaterialAnimatorKey = key;
+		m_levelMaterialAnimator->setPackage(std::make_shared<PackageArchive>(packageViewArchive()), basePaths);
+	}
+	const MaterialEngine engine = m_levelMapDocument.format == LevelMapFormat::Quake3Map ? MaterialEngine::Quake3 : MaterialEngine::Unknown;
+	m_levelMaterialAnimator->setSurfaces(mesh, engine, stillImages);
+}
+
+void ApplicationShell::editMaterialImageInTextureEditor(const QString& reference)
+{
+	if (resolveTextureReference(reference).isEmpty()) {
+		showTextureReference(reference);
+		return;
+	}
+	showTextureReference(reference);
+	// The Texture Editor edits the texture the Textures page has decoded: wait
+	// for this one to finish decoding, then open it.
+	auto* wait = new QTimer(this);
+	wait->setInterval(100);
+	auto started = std::make_shared<QElapsedTimer>();
+	started->start();
+	connect(wait, &QTimer::timeout, this, [this, wait, started]() {
+		const bool ready = m_texturePreview && m_texturePreview->hasImage() && !m_texturePreviewPending;
+		if (!ready && started->elapsed() < 20000) {
+			return;
+		}
+		wait->stop();
+		wait->deleteLater();
+		if (ready) {
+			showTextureEditor(true);
+		} else {
+			statusBar()->showMessage(tr("The texture is still loading; choose Edit in Texture Editor on the Textures page once it shows."));
+		}
+	});
+	wait->start();
 }
 
 void ApplicationShell::showMaterialMapUses()

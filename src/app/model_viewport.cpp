@@ -1113,6 +1113,25 @@ void ModelViewport::setSurfaceSkins(const QHash<int, QImage>& skins)
 	invalidateProjection(); setAccessibleDescription(accessibleSummary()); update();
 }
 
+void ModelViewport::updateSurfaceSkinImages(const QHash<int, QImage>& skins)
+{
+	bool changed = false;
+	for (auto it = skins.cbegin(); it != skins.cend(); ++it) {
+		if (it.key() < 0 || it.key() >= m_mesh.surfaces.size() || it.value().isNull()) { continue; }
+		const auto converted = it.value().convertToFormat(QImage::Format_ARGB32_Premultiplied);
+		m_surfaceSkins.insert(it.key(), converted);
+		if (modelSkinHasAlpha(converted)) { m_surfaceSkinAlpha.insert(it.key()); } else { m_surfaceSkinAlpha.remove(it.key()); }
+		changed = true;
+	}
+	// A redraw without retiring the projection: interactions keep going.
+	if (changed) { invalidateRaster(false); update(); }
+}
+
+QImage ModelViewport::surfaceSkinImage(int surface) const
+{
+	return m_surfaceSkins.value(surface);
+}
+
 void ModelViewport::invalidateProjection()
 {
 	m_componentCycle.reset();

@@ -752,6 +752,7 @@ app_sources = files(
   'app/material_library_model.cpp',
   'app/material_workbench.cpp',
   'app/material_actions.cpp',
+  'app/level_material_animator.cpp',
   'app/texture_editor_dialog.cpp',
   'app/texture_preview_worker.cpp',
   'app/texture_png_export_dialog.cpp',
@@ -1290,6 +1291,16 @@ if qt6_test_dep.found()
   )
   test('material-workbench-ui-smoke', material_workbench_ui_smoke_test, timeout: 300)
 endif
+
+# Animated materials on the Levels camera.
+level_material_animation_ui_smoke_test = executable(
+  'level_material_animation_ui_smoke_test',
+  ['tests/level_material_animation_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep],
+  install: false,
+)
+test('level-material-animation-ui-smoke', level_material_animation_ui_smoke_test, timeout: 180)
 
 texture_resource_smoke_test = executable(
   'texture_resource_smoke_test',

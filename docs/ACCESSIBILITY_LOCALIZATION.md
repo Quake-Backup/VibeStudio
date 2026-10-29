@@ -1960,6 +1960,9 @@ non-modal dialog whose every field has an accessible name (shader parms and
 globals by number) and whose changes show at once, so a screen-reader user
 hears the preview notes update. Base game materials are marked by words
 ("(base)", "read only") as well as muted text, never by colour alone.
+**Animate Materials in Camera** on the Levels page is off until turned on and
+never plays while reduce motion is on; turning either off puts the still face
+images back.
 
 The studio shell's navigation is keyboard-first. The mode rail is a single tab
 stop whose arrow keys, Home, and End move between modes; tool buttons, page

@@ -102,6 +102,10 @@ motion** is on in Accessibility settings.
   time, the sound level and the shader parms and globals that drive
   expressions.
 
+In **Levels**, **View** > **Camera Display** > **Animate Materials in Camera**
+plays scrolling, pulsing and animated materials on the camera's faces the same
+way; the choice is kept, and **Reduce motion** keeps the faces still.
+
 Videos on `videoMap` stages play from their RoQ files, looping in Quake III
 and, in Doom 3, unless the stage says `loop`, holding the last frame. Doom 3's
 heat haze stages ripple whatever is drawn behind them by their normal map, as
@@ -201,8 +205,9 @@ file in **Code**, and shows a script on the **Packages** page.
 - Keywords that act on a whole map (fog, sun, light grid, distance culling),
   Jedi Knight's surface sprites and its glow are read and named under the
   picture, not drawn.
-- Levels draws each face with the material's editor or main image, not
-  animated.
+- The Levels camera plays animated materials only with **View** >
+  **Camera Display** > **Animate Materials in Camera** on, as a face-on frame
+  of each material, and not for Doom maps.
 
 ## Command-line equivalents
 

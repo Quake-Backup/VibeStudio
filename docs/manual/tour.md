@@ -50,7 +50,9 @@ You can also find **Documentation** in the Command Palette.
 
 The Command Palette and Go to File match loosely, so you can skip letters:
 `opk` finds **Open Package**, and `bwall` finds `brick_wall.tga`. A command's
-description matches by whole words, such as `texture lock`. Commands that
+description matches by whole words, such as `texture lock`. A command named
+exactly what you type comes first, so `models` opens the **Models** page
+before the **Models** filter on **View** > **Filters**. Commands that
 cannot run right now stay in the list, dimmed. Go to File lists recent files,
 your project's files and the entries of the open package; **File** >
 **Open Recent** also lists recent files. In the code editor's find bar,

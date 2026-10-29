@@ -178,6 +178,23 @@ other direction: the definition a face's name finds (an implicit shader when
 none does), the image editors show for it, and a face-on frame for animated
 textures.
 
+## Animated Materials In The Levels Camera
+
+**View** > **Camera Display** > **Animate Materials in Camera** (off until
+turned on, and kept) plays animated materials on the Levels camera's faces.
+`LevelMaterialAnimator` (`src/app/level_material_animator.*`) reads the
+package over the same base packages as the Materials page through
+`MaterialLookup`, finds the faces whose material changes over time (Quake III
+and the derivatives' shaders, Quake and Quake II texture animations), and
+eight times a second has the material renderer draw each one face-on, in the
+background, at most 24 at once. Only those faces' images change, through
+`ModelViewport::updateSurfaceSkinImages`, so the selection and any drag or
+stroke in progress carry on; turning it off, or reduce motion, puts the still
+images back. Doom faces keep their still images (the camera names them by
+its own flat and wall keys). The still images themselves still come from the
+Levels page's own lookup, which keeps its rules for ambiguous names and read
+budgets for dependency review.
+
 ## The Workbench
 
 The page lists every material of the open package (or loose script) as
@@ -228,8 +245,9 @@ The page also has:
   light radius, angle and orbit time, sound level, shader parms 0-11 and
   globals 0-7;
 - **Problems** for the material or the **Whole Package**; a **Maps** tab;
-  **Images** with Show in Textures, Edit Image in Texture Editor (when the
-  studio offers it), Show in Packages and Copy Path;
+  **Images** with Show in Textures, Edit Image in Texture Editor (shown on
+  Textures and opened in the editor once decoded), Show in Packages and Copy
+  Path;
 - find and replace in the text (Ctrl+F, Ctrl+H) and completion (Ctrl+Space)
   of the engine's and game's keywords and the package's images.
 
@@ -270,5 +288,6 @@ arrow keys mirror. All text is translatable.
 - Quake II `.cin` cinematics are not decoded; they are not shader videos.
 - Base packages on the page are the selected game installation's; a package
   of a different engine family gets none.
-- The Levels 3D view draws each face's display image; it can ask
-  `MaterialLookup` for animated frames, which the Levels page does not do yet.
+- In the Levels camera, animated faces show the face-on frame of their
+  material (no lightmaps or vertex deforms of the map), and Doom faces do
+  not animate.

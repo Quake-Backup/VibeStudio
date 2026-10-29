@@ -175,6 +175,7 @@ void ApplicationShell::refreshLevelMap3D()
 				rebuildLevelMaterialTargets({});
 				m_levelMap3D->clearSkin();
 				m_levelMap3D->clearMesh();
+				refreshLevelMaterialAnimation(ModelMesh(), {});
 				m_levelMap3D->setEnabled(true);
 				if (m_levelBookmarkCameraPending) { m_levelMap3D->restoreNavigationState(m_levelBookmarkCamera); }
 				m_levelPreviewLabel->setText(result.assets.cancelled ? tr("Level preview cancelled. Reload to try again.")
@@ -187,7 +188,9 @@ void ApplicationShell::refreshLevelMap3D()
 			m_levelMap3D->setBackfaceCulling(true);
 			m_levelMap3D->clearSkin();
 			m_levelMap3D->setMesh(result.preview.mesh, result.sourceKey == m_levelMap3DSource);
-			m_levelMap3D->setSurfaceSkins(levelPreviewSurfaceImages(result.preview.mesh, result.assets));
+			const QHash<int, QImage> stillImages = levelPreviewSurfaceImages(result.preview.mesh, result.assets);
+			m_levelMap3D->setSurfaceSkins(stillImages);
+			refreshLevelMaterialAnimation(result.preview.mesh, stillImages);
 			// The saved face mode and edges outlast every rebuild, wireframe included.
 			applyLevelCameraRender();
 			m_levelMap3DSource = result.sourceKey;

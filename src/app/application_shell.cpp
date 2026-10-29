@@ -15665,6 +15665,7 @@ void ApplicationShell::buildCommands()
 				m_materialWorkbench->chooseExportImage(false);
 			}
 		});
+	registerLevelMaterialAnimationCommand();
 	add(QStringLiteral("extension.discover"), StudioCommandGroup::Tools, tr("Discover &Extensions"),
 		tr("Load vibestudio.extension.json manifests and report their trust metadata."), QStringLiteral("plugin"), false, false, false,
 		[this]() {

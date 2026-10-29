@@ -127,6 +127,12 @@ public:
 	void setSkin(const QImage& skin);
 	// Overrides the shared fallback skin for individual surfaces.
 	void setSurfaceSkins(const QHash<int, QImage>& skins);
+	// Replaces the images of some surfaces and redraws, leaving the others,
+	// the selection and any drag or stroke in progress as they are: for
+	// animated materials, several times a second.
+	void updateSurfaceSkinImages(const QHash<int, QImage>& skins);
+	// The image a surface is drawn with, null when it has none of its own.
+	[[nodiscard]] QImage surfaceSkinImage(int surface) const;
 	void clearSkin();
 	[[nodiscard]] bool hasSkin() const;
 	[[nodiscard]] QSize skinSize() const;

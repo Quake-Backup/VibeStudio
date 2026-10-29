@@ -168,6 +168,7 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - Levels smart tags: game/project tag data now supplies Make &lt;tag&gt; and Make non-&lt;tag&gt; commands, matching material/shader or brush-class choices, mask-preserving flag edits, configured classname textures, cancellable preparation and one-step undo. map smart-tag offers the same choices and safe-save edits.
 - Levels: **Show** > **Grid Coordinates** numbers the 2D grid lines clear of the status tags, and **Show** > **Block Grid** draws the compiler block grid from worldspawn `_blocksize`, as NetRadiant Custom's Show Coordinates and Show Blocks do. Both are bindable **View** commands, and `map render --block-grid` draws the same block grid into SVG pictures.
 - **Materials:** Read a mod or PWAD over its game's base packages (images, tables, Doom IWAD textures and the game's own materials, read only, with Override in Package), choose the Quake III game scripts are read for (Quake III Arena, 1.32, Return to Castle Wolfenstein, Enemy Territory, Jedi Knight), play RoQ videos on videoMap stages, approximate Doom 3 heat haze and bumpy environment reflections, and list the maps that use a material in a new Maps tab that opens them in Levels.
+- **Levels:** View > Camera Display > Animate Materials in Camera plays scrolling, pulsing and animated materials on the camera's faces, drawn as the Materials page draws them; reduce motion keeps them still.
 - **Materials:** Rename, duplicate and delete materials, Save All, problems of the whole package, library sorting and swatch sizes, Preview Settings (tiling, field of view, background, entity colour, Doom 3 shader parms and sound), export to PNG or an animation sheet, find, replace and completion in the text, and a view that is kept between sessions.
 - **Command line:** `material usage` lists the maps that use a material or the unused ones; `--dialect`, several `--base` packages with `--include-base`, and `material edit --rename`, `--duplicate` and `--remove`.
 
@@ -249,5 +250,6 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Models:** The Mesh Editor's controls take keyboard focus back after a delayed progress dialog closes, so keyboard work continues after a long edit.
 - **Levels:** An edit to one of two linked groups that sit inside the same linked group now reaches every copy of both, and members changed the same way at once are no longer marked out of sync because their protected values differ.
 - **Levels:** The 3D camera no longer waits indefinitely to rebuild after an edit when its repaints are slow, as with a large map, a debug build or a busy machine; on Windows the rebuild's start timer could be held back until the camera stopped repainting.
+- **Command Palette:** a command named exactly what you type comes first, so typing Models opens the Models page again rather than the Levels Models filter.
 
 [Unreleased]: https://github.com/themuffinator/VibeStudio/commits/main

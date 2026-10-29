@@ -3873,10 +3873,10 @@ The owning studio is still running. Close that document there before discarding 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/level_vertex_insertion.cpp" line="+10"/>
+        <location line="+10"/>
         <location line="+103"/>
         <location line="+9"/>
-        <location line="+4"/>
+        <location filename="../src/core/level_vertex_insertion.cpp" line="+4"/>
         <source>Brush %1: %2</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3945,7 +3945,7 @@ The owning studio is still running. Close that document there before discarding 
         </translation>
     </message>
     <message>
-        <location line="-14"/>
+        <location filename="../src/core/level_vertex_insertion.cpp" line="-14"/>
         <source>Open a Quake-family map to insert brush vertices.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4564,7 +4564,7 @@ The owning studio is still running. Close that document there before discarding 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cli/level_build_workspace.cpp" line="+7"/>
+        <location line="+7"/>
         <location filename="../src/cli/level_build_deployment.cpp" line="+7"/>
         <location filename="../src/cli/level_build_workspace.cpp" line="+7"/>
         <source>Unexpected option: %1</source>
@@ -4588,7 +4588,7 @@ The owning studio is still running. Close that document there before discarding 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location filename="../src/cli/level_build_workspace.cpp" line="+5"/>
         <source>Expected build prepare &lt;map&gt; --package &lt;assets&gt; --output &lt;new-directory&gt;, or build run-prepared &lt;directory&gt;.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4600,19 +4600,19 @@ The owning studio is still running. Close that document there before discarding 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cli/level_build_workspace.cpp" line="+14"/>
+        <location line="+14"/>
         <location filename="../src/cli/level_build_deployment.cpp" line="+11"/>
         <source>Use compression store, fast, default or best.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cli/level_build_deployment.cpp" line="+5"/>
+        <location line="+5"/>
         <source>Expected output SHA-256 must contain 64 hexadecimal digits.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
-        <location line="+28"/>
+        <location filename="../src/cli/level_build_deployment.cpp" line="+28"/>
         <location filename="../src/cli/level_build_workspace.cpp" line="+6"/>
         <source>The settings store is read-only.</source>
         <translation type="unfinished"></translation>
@@ -6637,7 +6637,7 @@ Assets: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/level_map.cpp" line="-189"/>
+        <location line="-189"/>
         <source>BLOCKMAP is empty; testing requires a source port that generates collision blockmaps.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -6652,7 +6652,7 @@ Assets: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-59"/>
+        <location filename="../src/core/level_map.cpp" line="-59"/>
         <source>Unable to read the WAD, or it exceeds the 512 MiB document limit.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7839,13 +7839,13 @@ Assets: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cli/level_grid_round.cpp" line="+6"/>
         <location line="+6"/>
+        <location filename="../src/cli/level_grid_round.cpp" line="+6"/>
         <source>--allow-valve220 requires --uv-lock on or fit.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location filename="../src/cli/level_grid_round.cpp" line="+5"/>
         <source>Name objects with --object kind:id, or picked components with --set brush:ID/vertex|edge|face/IDS or patch:ID/vertex/IDS, not both.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -8607,8 +8607,8 @@ Assets: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/level_merge.cpp" line="+11"/>
-        <location line="+10"/>
+        <location line="+11"/>
+        <location filename="../src/core/level_merge.cpp" line="+10"/>
         <location line="+24"/>
         <location line="+30"/>
         <source>Brush merge cancelled.</source>
@@ -8680,7 +8680,7 @@ Assets: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-198"/>
+        <location filename="../src/core/level_merge.cpp" line="-198"/>
         <source>This brush cannot be solved without coordinate cleanup. Repair its geometry before merging.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -14531,7 +14531,7 @@ Assets: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/level_udmf.cpp" line="+27"/>
+        <location line="+27"/>
         <source>UDMF vertices move in XY. Edit sector heights to change level elevation.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -14547,203 +14547,203 @@ Assets: %2</source>
     </message>
     <message>
         <location line="-5259"/>
-        <location line="-5109"/>
+        <location filename="../src/core/level_udmf.cpp" line="-669"/>
         <source>UDMF operation cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5064"/>
+        <location line="+45"/>
         <source>Edit UDMF properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5063"/>
+        <location line="+1"/>
         <source>Restore UDMF properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5057"/>
-        <location line="-5016"/>
-        <location line="-4948"/>
-        <location line="-4897"/>
-        <location line="-4837"/>
-        <location line="-4747"/>
-        <location line="-4591"/>
+        <location line="+6"/>
+        <location line="+41"/>
+        <location line="+68"/>
+        <location line="+51"/>
+        <location line="+60"/>
+        <location line="+90"/>
+        <location line="+156"/>
         <source>Use the UDMF property editor for this map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4575"/>
+        <location filename="../src/core/level_udmf.cpp" line="+16"/>
         <source>TEXTMAP line %1: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4568"/>
-        <location line="-4502"/>
+        <location line="+7"/>
+        <location line="+66"/>
         <source>NUL bytes are not valid UDMF syntax.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4543"/>
+        <location line="-41"/>
         <source>Unterminated block comment.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4513"/>
-        <location line="-4495"/>
+        <location line="+30"/>
+        <location line="+18"/>
         <source>A UDMF scalar exceeds 1 MiB.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4509"/>
+        <location line="-14"/>
         <source>Unterminated quoted string.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4491"/>
+        <location line="+18"/>
         <source>Unexpected character.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4481"/>
+        <location line="+10"/>
         <source>Expected an identifier of at most 128 ASCII characters.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4475"/>
+        <location line="+6"/>
         <source>Expected &apos;%1&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4464"/>
+        <location line="+11"/>
         <source>Expected one scalar property value.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4414"/>
-        <location line="-3910"/>
+        <location line="+50"/>
+        <location line="+504"/>
         <source>TEXTMAP exceeds one million properties.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4408"/>
-        <location line="-4037"/>
-        <location line="-4032"/>
-        <location line="-3942"/>
-        <location line="-3904"/>
+        <location line="-498"/>
+        <location line="+371"/>
+        <location line="+5"/>
+        <location line="+90"/>
+        <location line="+38"/>
         <source>TEXTMAP exceeds the 64 MiB editor limit.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4387"/>
+        <location line="-483"/>
         <source>Expected &apos;=&apos; or &apos;{&apos; after an identifier.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4384"/>
-        <location line="-3963"/>
+        <location line="+3"/>
+        <location line="+421"/>
         <source>TEXTMAP exceeds 250,000 blocks.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4335"/>
+        <location line="-372"/>
         <source>Property &apos;%1&apos; requires a finite %2 within the editor range.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4334"/>
+        <location line="+1"/>
         <source>integer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4334"/>
+        <location line="+0"/>
         <source>number</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4321"/>
+        <location line="+13"/>
         <source>Property &apos;%1&apos; requires true or false.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4311"/>
+        <location line="+10"/>
         <source>Property &apos;%1&apos; requires a quoted string.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4290"/>
+        <location line="+21"/>
         <source>TEXTMAP requires a quoted namespace assignment.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4285"/>
+        <location line="+5"/>
         <source>Namespace &apos;%1&apos; is preserved; preview uses common Doom fields.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4277"/>
+        <location line="+8"/>
         <source>Duplicate property names use the last value; edit ambiguous keys in the source text.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4182"/>
+        <location line="+95"/>
         <source>Extension blocks are preserved by the editor. Verify that your node builder supports them; some builders discard unknown block types.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4173"/>
+        <location line="+9"/>
         <source>Linedef references a missing vertex or sidedef.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4166"/>
+        <location line="+7"/>
         <source>Sidedef references a missing sector.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4123"/>
+        <location line="+43"/>
         <source>This UDMF transaction exceeds its %1-property edit limit.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4003"/>
+        <location line="+120"/>
         <source>The UDMF transform has mismatched object snapshots.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3998"/>
+        <location line="+5"/>
         <source>The UDMF transform changed object identities.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4103"/>
+        <location line="-105"/>
         <source>Enter exactly one UDMF property name.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4099"/>
+        <location line="+4"/>
         <source>A property appears more than once in this edit.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4087"/>
-        <location line="-3948"/>
+        <location line="+12"/>
+        <location line="+139"/>
         <source>UDMF object &apos;%1&apos; was not found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4074"/>
+        <location line="-126"/>
         <source>Property &apos;%1&apos; is duplicated; this edit would be ambiguous.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4061"/>
+        <location line="+13"/>
         <source>Enter exactly one UDMF scalar value.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4043"/>
-        <location line="-3945"/>
+        <location line="+18"/>
+        <location line="+98"/>
         <source>UDMF source spans overlap.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -17987,7 +17987,7 @@ Assets: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_assembly_skin.cpp" line="+2"/>
+        <location line="+2"/>
         <source>Frame All</source>
         <translation type="unfinished"></translation>
     </message>
@@ -26793,12 +26793,12 @@ Target materials: %2
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_surface_selection.cpp" line="+7"/>
+        <location line="+7"/>
         <source>This operation requires component selection. Switch to Faces, Vertices or Edges first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33"/>
+        <location filename="../src/core/model_surface_selection.cpp" line="-33"/>
         <source>Select surfaces and a valid reference pose and pivot.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -39850,7 +39850,7 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>VibeStudioAssistant</name>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+16343"/>
+        <location filename="../src/app/application_shell.cpp" line="+16344"/>
         <source>Show the raw JSON</source>
         <translation type="unfinished"></translation>
     </message>
@@ -53098,7 +53098,7 @@ Select a WAV asset, or the audio could not be decoded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/level_axis_transform_smoke_test.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Selection centre rounded to the grid while Snap is on</source>
         <translation type="unfinished"></translation>
     </message>
@@ -55166,7 +55166,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/level_smart_tags.cpp" line="+3"/>
+        <location line="+3"/>
         <source>Choose flags to set or clear, or a value, before changing face flags.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -59387,593 +59387,593 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/level_quick_transform.cpp" line="-7078"/>
-        <location line="-4600"/>
+        <location line="-7078"/>
+        <location line="+2205"/>
         <source>Entity %1 would leave the supported world bounds of -32768 to 32768.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4584"/>
+        <location line="+16"/>
         <source>Entity %1 uses a scalar angle that cannot represent this rotation. Use an angles property only if its game definition supports it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4574"/>
+        <location line="+10"/>
         <source>Entity %1 has invalid angles.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4512"/>
+        <location line="+62"/>
         <source>Brush %1, face %2: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4494"/>
+        <location line="+18"/>
         <source>Brush %1 would leave the supported world bounds of -32768 to 32768.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4478"/>
+        <location line="+16"/>
         <source>Patch %1&apos;s control grid could not be read, so it cannot be transformed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4470"/>
+        <location line="+8"/>
         <source>Patch %1 would leave the supported world bounds of -32768 to 32768.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4424"/>
+        <location line="+46"/>
         <source>Thing %1 would leave the map: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9017"/>
-        <location line="-4396"/>
+        <location line="-4593"/>
+        <location line="+4621"/>
         <source>Vertex %1 would leave the WAD coordinate range.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10548"/>
+        <location line="-6152"/>
         <source>The VibeStudio scene note no longer matches this map, so its layers and groups were read from TrenchBroom&apos;s keys.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10544"/>
+        <location line="+4"/>
         <source>TrenchBroom&apos;s layers and groups could not be read: %1 The map opens with them as func_group entities.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9816"/>
+        <location line="+728"/>
         <source>Restore selection and group context</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9804"/>
+        <location line="+12"/>
         <source>Restore visibility and selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9793"/>
+        <location line="+11"/>
         <source>Open a map to change its selection.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9785"/>
+        <location line="+8"/>
         <source>Change object selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8091"/>
+        <location line="+1694"/>
         <source>Copy requires 1–16,384 objects of a Quake-family .map file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8082"/>
+        <location line="+9"/>
         <source>A selected object no longer exists or cannot be copied as .map text.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8051"/>
+        <location line="+31"/>
         <source>A selected brush or patch has no owning entity.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8035"/>
+        <location line="+16"/>
         <source>The copied assembly exceeds 16,384 objects. Copy a smaller assembly.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8008"/>
+        <location line="+27"/>
         <source>Copied text must fit within 4,194,304 characters and 8 MiB of UTF-8, without NUL characters. Copy a smaller assembly.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-7979"/>
+        <location line="+29"/>
         <source>The selection contains no objects to copy.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6916"/>
-        <location line="-6650"/>
+        <location line="+1063"/>
+        <location line="+266"/>
         <source>Unknown duplication mode.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6913"/>
-        <location line="-6647"/>
+        <location line="-263"/>
+        <location line="+266"/>
         <source>Duplicate, make unique requires a Quake-family text map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6706"/>
+        <location line="-59"/>
         <source>Duplicate %1 objects, make unique</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5090"/>
+        <location line="+1616"/>
         <source>Textures are applied to Quake-family brushes and patches; a Doom map&apos;s walls and flats take Find and Replace Textures.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4906"/>
+        <location line="+184"/>
         <source>Nothing in scope uses %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4383"/>
+        <location line="+523"/>
         <source>The transform would collapse linedef %1 after rounding to WAD coordinates.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4356"/>
+        <location line="+27"/>
         <source>Valve 220 conversion cannot be mixed with brush-primitive matrices in the same map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4347"/>
+        <location line="+9"/>
         <source>Brush %1 has an invalid projection and cannot be converted to Valve 220.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4337"/>
+        <location line="+10"/>
         <source>Brush %1 must have one complete face per source line before map-wide Valve 220 conversion.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4292"/>
+        <location line="+45"/>
         <source>The objects to move are no longer in the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3687"/>
+        <location line="+605"/>
         <source>Brushes can be clipped in Quake-family .map files only.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3676"/>
+        <location line="+11"/>
         <source>The clip plane needs three points that are not in a line.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3672"/>
+        <location line="+4"/>
         <source>Select brushes, or brush entities, to clip.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3646"/>
+        <location line="+26"/>
         <source>Brush %1 is not a closed brush, so it cannot be clipped.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3621"/>
+        <location line="+25"/>
         <source>Brush %1 writes its faces on lines shared with other text, so it cannot be clipped.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3618"/>
+        <location line="+3"/>
         <source>Entity %1 closes on a line shared with other map text, so brush %2 cannot be clipped.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3588"/>
+        <location line="+30"/>
         <source>Brush %1 could not be cut into closed brushes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3542"/>
+        <location line="+46"/>
         <source>Split brush:%1 in two</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3542"/>
+        <location line="+0"/>
         <source>Clip brush:%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3541"/>
-        <location line="-2489"/>
+        <location line="+1"/>
+        <location line="+1052"/>
         <source>Put brush:%1 back whole</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3539"/>
+        <location line="-1050"/>
         <source>Split %1 brushes in two</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3539"/>
+        <location line="+0"/>
         <source>Clip %1 brushes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3538"/>
+        <location line="+1"/>
         <source>Put %1 brushes back whole</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3535"/>
+        <location line="+3"/>
         <source>The brushes to clip are no longer in the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3357"/>
+        <location line="+178"/>
         <source>Brushes can be rebuilt in Quake-family .map files only.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3354"/>
+        <location line="+3"/>
         <source>Rebuild between one and 256 brushes at a time.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3351"/>
+        <location line="+3"/>
         <source>Choose a valid single material name for the rebuilt brushes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3340"/>
+        <location line="+11"/>
         <source>Brush %1 is not in the map, or is named twice.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3333"/>
+        <location line="+7"/>
         <source>Brush %1 writes its faces on lines shared with other text, so it cannot be rebuilt.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3330"/>
+        <location line="+3"/>
         <source>Entity %1 closes on a line shared with other map text, so brush %2 cannot be rebuilt.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3302"/>
+        <location line="+28"/>
         <source>Brush %1 could not be rebuilt as a closed brush in its face format.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3291"/>
+        <location line="+11"/>
         <source>Brush %1 cannot keep every corner of its new shape in this face format. Reduce detail or make it larger.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3279"/>
+        <location line="+12"/>
         <source>The brushes to rebuild are no longer in the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3022"/>
+        <location line="+257"/>
         <source>Brushes can be hollowed in Quake-family .map files only.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3019"/>
+        <location line="+3"/>
         <source>The walls need a thickness above zero.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3008"/>
-        <location line="-2771"/>
+        <location line="+11"/>
+        <location line="+237"/>
         <source>Select brushes, or brush entities, to hollow.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2994"/>
+        <location line="-223"/>
         <source>Brush %1 has no face %2 to leave open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2959"/>
+        <location line="+35"/>
         <source>Brush %1 is not a closed brush, so it cannot be hollowed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2950"/>
+        <location line="+9"/>
         <source>Brush %1 has every face open, so it would have no walls.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2926"/>
+        <location line="+24"/>
         <source>Brush %1 is too thin for two walls %2 units thick.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2920"/>
+        <location line="+6"/>
         <source>Brush %1 writes its faces on lines shared with other text, so it cannot be hollowed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2916"/>
+        <location line="+4"/>
         <source>Entity %1 closes on a line shared with other map text, so brush %2 cannot be hollowed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2831"/>
+        <location line="+85"/>
         <source>Brush %1 could not be made into closed walls.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2797"/>
+        <location line="+34"/>
         <source>Brush %1 could not keep an inner brush inside its walls.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2765"/>
+        <location line="+32"/>
         <source>Hollow brush:%1 into %2 walls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2764"/>
+        <location line="+1"/>
         <source>Fill brush:%1 back in</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2762"/>
+        <location line="+2"/>
         <source>Hollow %1 brushes into %2 walls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2761"/>
+        <location line="+1"/>
         <source>Fill %1 brushes back in</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2757"/>
+        <location line="+4"/>
         <source>The brushes to hollow are no longer in the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2659"/>
+        <location line="+98"/>
         <source>Entity %1 closes on a line shared with other map text, so brush %2 cannot be carved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2655"/>
+        <location line="+4"/>
         <source>Brush %1 writes its faces on lines shared with other text, so it cannot be carved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2644"/>
+        <location line="+11"/>
         <source>Brush %1 could not be carved into closed brushes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2634"/>
+        <location line="+10"/>
         <source>Brush %1 shares a source line with other map text, so carving it away would damage the file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2596"/>
+        <location line="+38"/>
         <source>Brushes can be carved in Quake-family .map files only.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2592"/>
+        <location line="+4"/>
         <source>Select the brushes to carve with.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2579"/>
+        <location line="+13"/>
         <source>The selected brushes are not closed brushes, so they cannot carve.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2526"/>
+        <location line="+53"/>
         <source>The selected brushes do not overlap any other brush.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2491"/>
+        <location line="+35"/>
         <source>Carve brush:%1 with %2 brushes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2490"/>
+        <location line="+1"/>
         <source>Carve brush:%1 with %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2487"/>
+        <location line="+3"/>
         <source>Carve %1 brushes with %2 brushes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2486"/>
+        <location line="+1"/>
         <source>Carve %1 brushes with %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2485"/>
+        <location line="+1"/>
         <source>Put %1 carved brushes back</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2481"/>
+        <location line="+4"/>
         <source>The brushes to carve are no longer in the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2450"/>
+        <location line="+31"/>
         <source>Select linedefs first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2395"/>
-        <location line="+405913"/>
+        <location line="+55"/>
+        <location line="+5593"/>
         <source>Linedef %1 refers to a vertex the map does not have.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-408299"/>
+        <location line="-5584"/>
         <source>Linedef %1 is too short to split.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2325"/>
+        <location line="+61"/>
         <source>Split linedef:%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2325"/>
+        <location line="+0"/>
         <source>Split %1 linedefs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2324"/>
+        <location line="+1"/>
         <source>Join linedef:%1 again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2324"/>
+        <location line="+0"/>
         <source>Join %1 linedefs again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2322"/>
+        <location line="+2"/>
         <source>The linedefs to split are no longer in the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2263"/>
+        <location line="+59"/>
         <source>Flip linedef:%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2263"/>
+        <location line="+0"/>
         <source>Flip %1 linedefs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2262"/>
+        <location line="+1"/>
         <source>Flip linedef:%1 back</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2262"/>
+        <location line="+0"/>
         <source>Flip %1 linedefs back</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2260"/>
+        <location line="+2"/>
         <source>The linedefs to flip are no longer in the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1515"/>
-        <location line="-1098"/>
-        <location line="-781"/>
-        <location line="-707"/>
+        <location line="+745"/>
+        <location line="+417"/>
+        <location line="+317"/>
+        <location line="+74"/>
         <source>Sectors belong to Doom and Hexen maps.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1495"/>
+        <location line="-788"/>
         <source>A corner has no position.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1482"/>
+        <location line="+13"/>
         <source>Corner %1, %2 is outside the map&apos;s coordinate range.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1471"/>
+        <location line="+11"/>
         <source>A sector needs three corners or more.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1466"/>
+        <location line="+5"/>
         <source>The shape passes %1, %2 twice.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1453"/>
+        <location line="+13"/>
         <source>The shape doubles back on itself at %1, %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1450"/>
+        <location line="+3"/>
         <source>The shape crosses itself; draw its corners in order around it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1439"/>
+        <location line="+11"/>
         <source>The shape has no area.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1348"/>
+        <location line="+91"/>
         <source>The shape crosses linedef %1; draw along it, or split it where they meet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1318"/>
+        <location line="+30"/>
         <source>sector %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1318"/>
+        <location line="+0"/>
         <source>the void</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1296"/>
+        <location line="+22"/>
         <source>The shape covers more than one area, %1 and %2; draw it within one area at a time.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1139"/>
+        <location line="+157"/>
         <source>Draw sector:%1 with 1 new linedef</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1138"/>
+        <location line="+1"/>
         <source>Draw sector:%1 with %2 new linedefs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1136"/>
-        <location line="-899"/>
+        <location line="+2"/>
+        <location line="+237"/>
         <source>Take sector:%1 back out</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1135"/>
+        <location line="-236"/>
         <source>The map changed under the drawing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1092"/>
+        <location line="+43"/>
         <source>Choose a point inside a closed shape of lines.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1005"/>
+        <location line="+87"/>
         <source>No closed shape of lines surrounds %1, %2; draw the lines first, or click inside them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-900"/>
+        <location line="+105"/>
         <source>Make sector:%1 from %n linedef(s)</source>
         <translation>
             <numerusform>Make sector:%1 from %n linedef</numerusform>
@@ -59981,239 +59981,239 @@ Searched: %3
         </translation>
     </message>
     <message>
-        <location line="-898"/>
+        <location line="+2"/>
         <source>The map changed under the new sector.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-864"/>
+        <location line="+34"/>
         <source>Vertices belong to Doom and Hexen maps.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-851"/>
+        <location line="+13"/>
         <source>Select two or more vertices to merge.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-819"/>
+        <location line="+32"/>
         <source>Merge 1 vertex into vertex:%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-818"/>
+        <location line="+1"/>
         <source>Merge %1 vertices into vertex:%2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-816"/>
+        <location line="+2"/>
         <source>Separate the merged vertices again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-815"/>
+        <location line="+1"/>
         <source>The vertices to merge are no longer in the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-768"/>
+        <location line="+47"/>
         <source>Select two or more sectors to join.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-730"/>
+        <location line="+38"/>
         <source>Merge %1 sectors into sector:%2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-729"/>
+        <location line="+1"/>
         <source>Join %1 sectors into sector:%2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-727"/>
+        <location line="+2"/>
         <source>Separate the joined sectors again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-726"/>
+        <location line="+1"/>
         <source>The sectors to join are no longer in the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-693"/>
+        <location line="+33"/>
         <source>Select the sectors to change.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-653"/>
+        <location line="+40"/>
         <source>floor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-653"/>
+        <location line="+0"/>
         <source>floors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-651"/>
+        <location line="+2"/>
         <source>ceiling</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-651"/>
+        <location line="+0"/>
         <source>ceilings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-649"/>
+        <location line="+2"/>
         <source>light level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-649"/>
+        <location line="+0"/>
         <source>light levels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-589"/>
+        <location line="+60"/>
         <source>A shift of 0 changes nothing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-572"/>
+        <location line="+17"/>
         <source>The %1 are already at their limit.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-562"/>
+        <location line="+10"/>
         <source>Raise %1 %2 by %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-561"/>
+        <location line="+1"/>
         <source>Lower %1 %2 by %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-559"/>
-        <location line="-490"/>
+        <location line="+2"/>
+        <location line="+69"/>
         <source>Put the %1 back</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-557"/>
-        <location line="-488"/>
+        <location line="-67"/>
+        <location line="+69"/>
         <source>The sectors to change are no longer in the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-521"/>
+        <location line="-33"/>
         <source>Select three or more sectors, in the order the gradient runs.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-501"/>
+        <location line="+20"/>
         <source>The %1 already run evenly from the first sector to the last.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-492"/>
+        <location line="+9"/>
         <source>Grade the %1 of %2 sectors from %3 to %4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-452"/>
+        <location line="+40"/>
         <source>Doors are made on Doom and Hexen maps.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-439"/>
+        <location line="+13"/>
         <source>Select the sectors to make doors.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-428"/>
+        <location line="+11"/>
         <source>A door&apos;s textures are names of 1 to 8 characters without spaces; &quot;%1&quot; will not do.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-424"/>
+        <location line="+4"/>
         <source>A flat&apos;s name is 1 to 8 characters without spaces; &quot;%1&quot; will not do.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-340"/>
+        <location line="+84"/>
         <source>Make sector:%1 a door</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-340"/>
+        <location line="+0"/>
         <source>Make %1 sectors doors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-338"/>
+        <location line="+2"/>
         <source>Make sector:%1 a room again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-338"/>
+        <location line="+0"/>
         <source>Make %1 doors rooms again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-337"/>
+        <location line="+1"/>
         <source>The sectors to make doors are no longer in the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-284"/>
+        <location line="+53"/>
         <source>Only things, vertices, linedefs, and sectors can be deleted from a Doom map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-151"/>
+        <location line="+133"/>
         <source>Repeat object transform</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-150"/>
+        <location line="+1"/>
         <source>Restore objects before repeated transform</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-133"/>
+        <location line="+17"/>
         <source>Only Quake-family maps take an affine transform.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-129"/>
+        <location line="+4"/>
         <source>The transform needs finite values.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-125"/>
+        <location line="+4"/>
         <source>The transform must not flatten the selection.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-108"/>
+        <location line="+17"/>
         <source>Select map objects to transform.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-52"/>
+        <location line="+56"/>
         <source>Transform selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-51"/>
+        <location line="+1"/>
         <source>Restore selection before transform</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+480844"/>
+        <location line="+112"/>
         <source>Nothing selected has a size to change.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -61150,7 +61150,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/level_map.cpp" line="+5"/>
+        <location line="+5"/>
         <source>Brush %1 is not a closed brush, so it cannot be shrunk or expanded.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -61654,7 +61654,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/level_patch_tools.cpp" line="+3"/>
+        <location line="+3"/>
         <source>Patch sizes must be positive and the center must contain finite coordinates.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -61704,7 +61704,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-328"/>
+        <location filename="../src/core/level_patch_tools.cpp" line="-328"/>
         <source>The patch already has 31 control columns or rows, the most it can have.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -63553,7 +63553,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/studio_runtime_smoke_test.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Japanese</source>
         <translation type="unfinished"></translation>
     </message>
@@ -64952,7 +64952,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/material_graph.cpp" line="+7"/>
+        <location line="+7"/>
         <source>Expected: episode (1-3) off on.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -65479,144 +65479,144 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/material_model.cpp" line="-929"/>
+        <location line="-929"/>
         <source>Depth test</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-176"/>
+        <location line="+3"/>
         <source>Write depth</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-174"/>
-        <location line="-143"/>
+        <location line="+2"/>
+        <location filename="../src/core/material_model.cpp" line="+31"/>
         <source>Detail</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-129"/>
-        <location line="+1220"/>
+        <location line="+14"/>
+        <location line="+548"/>
         <source>Deform %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1335"/>
+        <location line="-534"/>
         <source>Wavelength</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-104"/>
+        <location line="+11"/>
         <source>Width</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-103"/>
+        <location line="+1"/>
         <source>Height</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-102"/>
-        <location line="+1752"/>
+        <location line="+1"/>
+        <location line="+629"/>
         <source>Speed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1851"/>
+        <location line="-626"/>
         <source>Direction (x y z)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-85"/>
-        <location line="-80"/>
-        <location line="-73"/>
-        <location line="+2326"/>
-        <location line="-40"/>
+        <location line="+14"/>
+        <location line="+5"/>
+        <location line="+7"/>
+        <location line="+837"/>
+        <location filename="../src/core/material_model.cpp" line="-40"/>
         <source>Sky</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2405"/>
+        <location line="-843"/>
         <source>Far box</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-117"/>
+        <location line="+2"/>
         <source>Cloud height</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-115"/>
+        <location line="+2"/>
         <source>Near box</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-106"/>
-        <location line="-102"/>
-        <location line="-95"/>
-        <location line="+2941"/>
+        <location line="+9"/>
+        <location line="+4"/>
+        <location line="+7"/>
+        <location line="+820"/>
         <source>Fog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3039"/>
+        <location line="-823"/>
         <source>Opaque at</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-71"/>
+        <location line="+27"/>
         <source>Time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-65"/>
+        <location line="+6"/>
         <source>Sound</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-37"/>
-        <location line="-32"/>
+        <location line="+28"/>
+        <location line="+5"/>
         <source>Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-36"/>
+        <location line="-4"/>
         <source>Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28"/>
+        <location line="+8"/>
         <source>Number</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-25"/>
-        <location line="+3354"/>
+        <location line="+3"/>
+        <location line="+771"/>
         <source>Table</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3374"/>
+        <location line="-766"/>
         <source>As text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16"/>
+        <location line="+4"/>
         <source>Index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-7"/>
+        <location line="+9"/>
         <source>A</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6"/>
+        <location line="+1"/>
         <source>B</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2699"/>
+        <location line="+48"/>
         <source>Bump scale</source>
         <translation type="unfinished"></translation>
     </message>
@@ -65643,7 +65643,7 @@ Searched: %3
     <message>
         <location line="+5"/>
         <location line="+632"/>
-        <location line="+41"/>
+        <location filename="../src/core/material_model.cpp" line="+41"/>
         <source>Translucent</source>
         <translation type="unfinished"></translation>
     </message>
@@ -66319,7 +66319,7 @@ Searched: %3
     </message>
     <message>
         <location line="+1"/>
-        <location line="-40"/>
+        <location filename="../src/core/material_model.cpp" line="-40"/>
         <source>Warp</source>
         <translation type="unfinished"></translation>
     </message>
@@ -66724,7 +66724,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/material_usage.cpp" line="+61"/>
+        <location line="+61"/>
         <source>Reading Doom textures</source>
         <translation type="unfinished"></translation>
     </message>
@@ -66833,7 +66833,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/material_script.cpp" line="+2"/>
+        <location line="+2"/>
         <source>Doom 3</source>
         <translation type="unfinished"></translation>
     </message>
@@ -66859,7 +66859,7 @@ Searched: %3
     </message>
     <message>
         <location line="+2"/>
-        <location line="-6"/>
+        <location filename="../src/core/material_script.cpp" line="-6"/>
         <source>Return to Castle Wolfenstein</source>
         <translation type="unfinished"></translation>
     </message>
@@ -66875,7 +66875,7 @@ Searched: %3
     </message>
     <message>
         <location line="+517"/>
-        <location line="+3392"/>
+        <location filename="../src/core/material_script.cpp" line="+3392"/>
         <source>Light</source>
         <translation type="unfinished"></translation>
     </message>
@@ -69601,7 +69601,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_editor_controls.cpp" line="-69"/>
+        <location line="-69"/>
         <source>Mouse</source>
         <translation type="unfinished"></translation>
     </message>
@@ -69683,7 +69683,7 @@ Searched: %3
     </message>
     <message>
         <location line="+2"/>
-        <location line="+27"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="+27"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
@@ -69739,7 +69739,7 @@ Searched: %3
     </message>
     <message>
         <location line="+1"/>
-        <location line="-22"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="-22"/>
         <location line="+3"/>
         <source>Pan</source>
         <translation type="unfinished"></translation>
@@ -69816,7 +69816,7 @@ Searched: %3
     </message>
     <message>
         <location line="+1"/>
-        <location line="+44"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="+44"/>
         <source>Lasso</source>
         <translation type="unfinished"></translation>
     </message>
@@ -69847,7 +69847,7 @@ Searched: %3
     </message>
     <message>
         <location line="+2"/>
-        <location line="-54"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="-54"/>
         <source>Transforms</source>
         <translation type="unfinished"></translation>
     </message>
@@ -69891,7 +69891,7 @@ Searched: %3
     </message>
     <message>
         <location line="+2"/>
-        <location line="+80"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="+80"/>
         <location line="+2"/>
         <source>Views</source>
         <translation type="unfinished"></translation>
@@ -69943,13 +69943,13 @@ Searched: %3
     </message>
     <message>
         <location line="+1"/>
-        <location line="-55"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="-55"/>
         <source>Select</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+37"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="+37"/>
         <source>Transform</source>
         <translation type="unfinished"></translation>
     </message>
@@ -69989,7 +69989,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-892"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="-892"/>
         <source>Open or Import</source>
         <translation type="unfinished"></translation>
     </message>
@@ -72866,7 +72866,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_layout.cpp" line="+8"/>
+        <location line="+8"/>
         <source>3D</source>
         <translation type="unfinished"></translation>
     </message>
@@ -72924,137 +72924,137 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_tags.cpp" line="-153"/>
+        <location line="-153"/>
         <source>Clip</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-77"/>
+        <location line="+7"/>
         <source>Animation preview status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-59"/>
+        <location line="+18"/>
         <source>Preview FPS</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-58"/>
+        <location line="+1"/>
         <source>Session preview speed. Selecting a clip uses its saved FPS when specified. Apply Clip FPS to save timing; game exports require separate animation configuration. Reduced motion disables automatic playback.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-55"/>
+        <location line="+3"/>
         <source>Smooth preview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-52"/>
+        <location line="+3"/>
         <source>Blend positions, normal directions and rigid attachments between stored frames, including the end-to-start loop. Pause to return to the current stored pose for editing. This session-only preview does not insert or export poses.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-38"/>
+        <location line="+14"/>
         <source>Clip name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-37"/>
+        <location line="+1"/>
         <source>A unique name for a new or renamed clip. Clip names and ranges are saved in the editable source; game exports require their own animation configuration.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-32"/>
+        <location line="+5"/>
         <source>First frame</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-31"/>
+        <location line="+1"/>
         <source>First included frame, using the transport&apos;s zero-based frame index.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28"/>
+        <location line="+3"/>
         <source>Last frame</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-27"/>
+        <location line="+1"/>
         <source>Last included frame. Clips may overlap and may contain a single pose.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21"/>
+        <location line="+6"/>
         <source>Add Clip</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20"/>
+        <location line="+1"/>
         <source>Save a named range without copying or changing any poses.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-25"/>
+        <location line="-5"/>
         <source>Saved clip FPS</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-24"/>
+        <location line="+1"/>
         <source>Playback rate saved in the editable source. Zero leaves timing unspecified. Native MDL groups retain their independent timing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23"/>
+        <location line="+1"/>
         <source>Unspecified</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18"/>
+        <location line="+5"/>
         <source>Apply Clip FPS</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17"/>
+        <location line="+1"/>
         <source>Save the selected clip&apos;s playback rate in one undo step without resampling any poses.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15"/>
+        <location line="+2"/>
         <source>Apply Clip Range</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14"/>
+        <location line="+1"/>
         <source>Replace the selected clip&apos;s inclusive frame bounds in one undo step.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11"/>
+        <location line="+3"/>
         <source>Rename Clip</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10"/>
+        <location line="+1"/>
         <source>Rename the selected clip without renaming its frames.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-7"/>
+        <location line="+3"/>
         <source>Delete Clip</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6"/>
+        <location line="+1"/>
         <source>Remove only the selected clip&apos;s name and range. All poses remain in the model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1"/>
+        <location line="+5"/>
         <source>Source pose to copy into the displayed frame, across every surface and attachment.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+792"/>
+        <location line="+3"/>
         <source>Copy Full Pose</source>
         <translation type="unfinished"></translation>
     </message>
@@ -73105,7 +73105,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_tags.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Apply to</source>
         <translation type="unfinished"></translation>
     </message>
@@ -73120,60 +73120,60 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-965"/>
-        <location line="+966"/>
+        <location line="-175"/>
+        <location line="+176"/>
         <source>Scale</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1377"/>
+        <location line="-505"/>
         <source>First vertex index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-410"/>
+        <location line="+1"/>
         <source>Second vertex index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-409"/>
+        <location line="+1"/>
         <source>Third vertex index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-389"/>
+        <location line="+20"/>
         <source>Box</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-385"/>
+        <location line="+4"/>
         <source>Tag</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-329"/>
+        <location line="+56"/>
         <source>M&amp;odel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-269"/>
+        <location line="+60"/>
         <source>Export MDL…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-236"/>
+        <location line="+33"/>
         <location filename="../src/app/model_editor_skeleton.cpp" line="+344"/>
         <source>Choose a skeletal clip and its whole frame rate, then write it as an md5anim.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_skeleton.cpp" line="+3"/>
+        <location line="+3"/>
         <source>MD5 Animations of All Clips…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+5"/>
+        <location filename="../src/app/model_editor_skeleton.cpp" line="+5"/>
         <source>Write every skeletal clip as its own md5anim, named after the clip, into a folder.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -73375,7 +73375,7 @@ Searched: %3
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/tests/studio_runtime_smoke_test.cpp" line="-2"/>
+        <location line="-2"/>
         <source>%Ln triangle(s)</source>
         <translation>
             <numerusform>%Ln triangle</numerusform>
@@ -73408,7 +73408,7 @@ Searched: %3
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/model_editor_health.cpp" line="+3"/>
+        <location line="+3"/>
         <source>Selected: %Ln surface(s) · active: %1 · one common transform pivot</source>
         <translation>
             <numerusform>Selected: %Ln surface · active: %1 · one common transform pivot</numerusform>
@@ -73436,421 +73436,421 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1178"/>
+        <location line="+582"/>
         <source>Surface material path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1176"/>
+        <location line="+2"/>
         <source>Assign Material</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1174"/>
+        <location line="+2"/>
         <source>Show Material</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1159"/>
+        <location line="+15"/>
         <source>UV Scale</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1158"/>
+        <location line="+1"/>
         <source>UV Offset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1153"/>
+        <location line="+5"/>
         <source>UV rotation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1152"/>
+        <location line="+1"/>
         <source>UV Rotation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1150"/>
+        <location line="+2"/>
         <source>Transform UVs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1146"/>
+        <location line="+4"/>
         <source>UV projection plane</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1145"/>
+        <location line="+1"/>
         <source>Projection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1144"/>
+        <location line="+1"/>
         <source>Project UVs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1142"/>
+        <location line="+2"/>
         <source>Project model units onto the chosen plane, then apply UV Scale, Rotation, and Offset. One tile per 64 units uses a scale of 0.015625.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1137"/>
-        <location line="-1136"/>
+        <location line="+5"/>
+        <location line="+1"/>
         <source>Frame name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1135"/>
+        <location line="+1"/>
         <source>Rename Frame</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1133"/>
+        <location line="+2"/>
         <source>Duplicate Frame</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1131"/>
+        <location line="+2"/>
         <source>Delete Frame</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1543"/>
+        <location line="-412"/>
         <source>Collision</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1120"/>
-        <location line="-1110"/>
+        <location line="+423"/>
+        <location line="+10"/>
         <source>MD2 skin width</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1119"/>
-        <location line="-1109"/>
+        <location line="-9"/>
+        <location line="+10"/>
         <source>MD2 skin height</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1115"/>
+        <location line="-6"/>
         <source>Match the external PCX skin. Original Quake II export supports at most 640 by 480 pixels. Apply to save these dimensions with the mesh.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1108"/>
+        <location line="+7"/>
         <source>Apply Skin Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1104"/>
+        <location line="+4"/>
         <source>Model package path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1099"/>
+        <location line="+5"/>
         <source>Package path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1098"/>
+        <location line="+1"/>
         <source>Replace existing entry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1095"/>
+        <location line="+3"/>
         <source>Level origin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1047"/>
+        <location line="+48"/>
         <source>Mesh editor status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1039"/>
+        <location line="+8"/>
         <source>Checks unsaved edits every five seconds. Copies stay on this device. Turning this off keeps existing copies.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1030"/>
+        <location line="+9"/>
         <source>Local mesh recovery status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-584"/>
+        <location line="+446"/>
         <source>Transforming selection. Release to validate and apply; Escape cancels.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-576"/>
+        <location line="+8"/>
         <source>Transform preview ended.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-575"/>
+        <location line="+1"/>
         <source>Invalid transform cancelled. The source is unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-565"/>
+        <location line="+10"/>
         <source>This drag position is invalid. Move back to a valid position; releasing now cancels.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-557"/>
+        <location line="+8"/>
         <source>Move preview: X %1, Y %2, Z %3 model units. Release to apply; Escape cancels.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-555"/>
+        <location line="+2"/>
         <source>Rotation preview: X %1°, Y %2°, Z %3°. Release to apply; Escape cancels.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-553"/>
+        <location line="+2"/>
         <source>Scale preview: X %1×, Y %2×, Z %3×. Release to apply; Escape cancels.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1670"/>
+        <location line="-1117"/>
         <source>Open / Import…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1855"/>
+        <location line="-185"/>
         <source>Unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1757"/>
+        <location line="+98"/>
         <source>Materials</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1656"/>
+        <location line="+101"/>
         <source>Save As…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1666"/>
+        <location line="-10"/>
         <source>Recover…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1625"/>
+        <location line="+41"/>
         <source>Export MD3…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1623"/>
+        <location line="+2"/>
         <source>Export OBJ Frame…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1620"/>
+        <location line="+3"/>
         <source>Export Other Format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1602"/>
+        <location line="+18"/>
         <source>MD5 Mesh…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1600"/>
+        <location line="+2"/>
         <source>Doom 3, Quake 4, Prey and Quake Wars meshes; a model without joints gets one origin joint.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1598"/>
+        <location line="+2"/>
         <source>MD5 Animation of Clip…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1585"/>
+        <location line="+13"/>
         <source>Inter-Quake Model (IQM)…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1583"/>
+        <location line="+2"/>
         <source>Joints, weights and every skeletal clip, for ioquake3, Darkplaces and FTEQW.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1581"/>
+        <location line="+2"/>
         <source>ASE Frame…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1579"/>
+        <location line="+2"/>
         <source>The current frame as a static ASCII Scene Export for Doom 3, Quake 4 or q3map2 misc_model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1551"/>
+        <location line="+28"/>
         <source>Active surface for materials and UV inspection. In Surfaces mode, choosing a surface also adds it to the selection.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1543"/>
+        <location line="+8"/>
         <source>Surfaces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1509"/>
+        <location line="+34"/>
         <source>Model outliner and assets</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1441"/>
+        <location line="+68"/>
         <source>Move with arrows, rotate with rings, or scale with boxes. In Rotate, drag the Free centre or empty space inside the dashed circle for trackball rotation. The centre moves in the view plane in Move, or scales uniformly in Scale. Pivots are set in Geometry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1433"/>
+        <location line="+8"/>
         <source>Snap move offsets, rotation angles, and scale factors using each tool&apos;s step. The shown step belongs to the selected tool. Free rotation snaps its total angle while retaining its axis. Apply Transform snaps the numeric XYZ angles separately and uses all three steps; scale snaps relative to 1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1420"/>
+        <location line="+13"/>
         <source>Move step</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1411"/>
+        <location line="+9"/>
         <source>Rotate step</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1401"/>
+        <location line="+10"/>
         <source>Scale step</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1042"/>
+        <location line="+359"/>
         <source>Keep Local Recovery Copies</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1016"/>
+        <location line="+26"/>
         <source>Material images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1010"/>
+        <location line="+6"/>
         <source>Material image status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-989"/>
+        <location line="+21"/>
         <source>Stop loading material images.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-987"/>
+        <location line="+2"/>
         <source>Images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-986"/>
+        <location line="+1"/>
         <source>Material image actions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-985"/>
+        <location line="+1"/>
         <source>Reload the material images, or show each surface&apos;s image and any problem.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-976"/>
+        <location line="+9"/>
         <source>Details…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1282"/>
+        <location line="-306"/>
         <source>Transform axes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1281"/>
+        <location line="+1"/>
         <source>World</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1280"/>
+        <location line="+1"/>
         <source>Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1278"/>
+        <location line="+2"/>
         <source>Custom axes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1272"/>
+        <location line="+6"/>
         <source>Orient the transform axes with XYZ angles in degrees. The pivot remains in model coordinates.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1247"/>
+        <location line="+25"/>
         <source>Extrude selected faces by Offset along the chosen axes in every frame. Existing shared edges define the region boundary.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1226"/>
+        <location line="+21"/>
         <source>Bridge twist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1225"/>
+        <location line="+1"/>
         <source>Advance the second boundary&apos;s starting vertex from the closest pair in the displayed pose. Zero uses automatic alignment. Positive and negative steps wrap around the aligned second loop.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1220"/>
+        <location line="+5"/>
         <source>Bridge Boundary Loops</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1218"/>
+        <location line="+2"/>
         <source>Bridge selected boundary loops</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1217"/>
+        <location line="+1"/>
         <source>Select edges from exactly two closed boundaries on one surface. Join unequal or equal loops with triangles chosen in the displayed pose. Every pose is checked before one undo step. New faces stay selected for UV and normal finishing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1103"/>
+        <location line="+114"/>
         <source>Use .mdl for Quake, .md2 for Quake II or .md3 for Quake III. Export limits apply when staging. The editable source retains authoring metadata. Level placement currently requires MD3.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-974"/>
+        <location line="+129"/>
         <source>Show each surface&apos;s material image and any problem.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-956"/>
+        <location line="+18"/>
         <source>Loading material images…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-882"/>
+        <location line="+74"/>
         <source>Recovery copy updated.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-881"/>
+        <location line="+1"/>
         <location filename="../src/tests/model_accessibility_ui_smoke_test.cpp" line="+375"/>
         <source>Recovery failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/model_accessibility_ui_smoke_test.cpp" line="-147"/>
+        <location line="-147"/>
         <location line="+170"/>
         <source>Automatic recovery is off. Existing copies are retained.</source>
         <translation type="unfinished"></translation>
@@ -74533,8 +74533,8 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_dialog.cpp" line="-1130"/>
-        <location line="-1110"/>
+        <location filename="../src/app/model_editor_dialog.cpp" line="+164"/>
+        <location line="+20"/>
         <location filename="../src/app/model_editor_uv.cpp" line="-2"/>
         <source>Custom</source>
         <translation type="unfinished"></translation>
@@ -74650,107 +74650,107 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_tags.cpp" line="-283"/>
+        <location filename="../src/app/model_editor_tags.cpp" line="-47"/>
         <source>Attachment tags</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-275"/>
+        <location line="+8"/>
         <source>Selected attachment pose</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-267"/>
+        <location line="+8"/>
         <source>Attachment tag name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-264"/>
+        <location line="+3"/>
         <source>A unique name of 1–63 printable ASCII characters, without surrounding spaces. Tag identities span every animation frame.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-261"/>
+        <location line="+3"/>
         <source>Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-247"/>
+        <location line="+14"/>
         <source>Add Tag</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-246"/>
+        <location line="+1"/>
         <source>Duplicate Tag</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-244"/>
+        <location line="+2"/>
         <source>Rename Tag</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-242"/>
+        <location line="+2"/>
         <source>Delete Tag</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-238"/>
+        <location line="+4"/>
         <source>Attachment pose edit scope</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-235"/>
+        <location line="+3"/>
         <source>Origin, orientation and pose copying use this scope. It is shared with Geometry transforms; tag names always apply to every frame.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-230"/>
+        <location line="+5"/>
         <source>Pose scope</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-220"/>
+        <location line="+10"/>
         <source>Origin %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-215"/>
+        <location line="+5"/>
         <source>Use Selection Centre</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-212"/>
+        <location line="+3"/>
         <source>Fill the origin fields from selected mesh components in the displayed frame, then add a tag.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-191"/>
+        <location line="+21"/>
         <source>Select mesh components to use their centre as the tag origin.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-180"/>
+        <location line="+11"/>
         <source>Set Origin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-178"/>
+        <location line="+2"/>
         <source>Reset Orientation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-176"/>
+        <location line="+2"/>
         <source>Align the tag&apos;s local axes with model X, Y and Z in the chosen scope. Use Rotate or Geometry for rotation deltas; imported orientation is preserved until explicitly edited.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-171"/>
+        <location line="+5"/>
         <source>Attachment source frame</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-124"/>
+        <location line="+47"/>
         <source>%1 · frame %L2
 Local axes
 %3</source>
@@ -74758,17 +74758,17 @@ Local axes
     </message>
     <message>
         <location filename="../src/app/model_editor_animation.cpp" line="-75"/>
-        <location filename="../src/app/model_editor_tags.cpp" line="-169"/>
+        <location filename="../src/app/model_editor_tags.cpp" line="-45"/>
         <source>Copy from frame</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_tags.cpp" line="-168"/>
+        <location filename="../src/app/model_editor_tags.cpp" line="+1"/>
         <source>Copy Tag Pose</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-144"/>
+        <location line="+24"/>
         <source>%n attachment tag(s). Select a tag in the component table to edit its pose.</source>
         <translation>
             <numerusform>%n attachment tag. Select a tag in the component table to edit its pose.</numerusform>
@@ -74776,94 +74776,94 @@ Local axes
         </translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_health.cpp" line="-1051"/>
+        <location filename="../src/app/model_editor_health.cpp" line="-170"/>
         <source>Duplicate faces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1050"/>
+        <location line="+1"/>
         <source>Unused vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1049"/>
+        <location line="+1"/>
         <source>Disconnected vertex fans</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1048"/>
+        <location line="+1"/>
         <source>Inconsistent winding</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1047"/>
+        <location line="+1"/>
         <source>Nonmanifold edges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1046"/>
+        <location line="+1"/>
         <source>Boundary edges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1042"/>
+        <location line="+4"/>
         <source>Faces with the same three vertex indices, in any order. Repair keeps the lowest face index, including when a reversed copy was intentionally two-sided.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1039"/>
+        <location line="+3"/>
         <source>Vertices used by no face. Repair removes their UVs and all animation samples; surviving attributes stay exact.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1036"/>
+        <location line="+3"/>
         <source>Face groups touching only at a vertex. Repair gives each disconnected fan its own copy in every pose, preserving UVs, normals and seam marks.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1034"/>
+        <location line="+2"/>
         <source>Two faces traverse their shared edge in the same direction. Repair orients the whole surface from each component&apos;s lowest face. It preserves authored normals; use Recalculate Normals if needed. Remove duplicates and resolve nonmanifold edges first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1030"/>
+        <location line="+4"/>
         <source>More than two faces share an indexed edge. Repair splits its endpoints into connected face fans, preserving existing two-face connections. It keeps every face, UV and animation sample, and can create open boundaries. Review the result before welding or exporting.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1026"/>
+        <location line="+4"/>
         <source>Edges belonging to one face. Open surfaces and indexed UV or normal seams commonly have boundaries. These are informational and are not closed automatically. To close a chosen hole, select an edge from it and use Geometry &gt; Fill Boundary Loops.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1019"/>
+        <location line="+7"/>
         <source>Remove Duplicate Faces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1018"/>
+        <location line="+1"/>
         <source>Remove Unused Vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1017"/>
-        <location line="-959"/>
+        <location line="+1"/>
+        <location line="+58"/>
         <source>Split Disconnected Fans</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1016"/>
+        <location line="-57"/>
         <source>Orient Faces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1015"/>
+        <location line="+1"/>
         <location filename="../src/tests/model_health_ui_smoke_test.cpp" line="+238"/>
         <source>Split Nonmanifold Edges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/model_health_ui_smoke_test.cpp" line="+20"/>
+        <location line="+20"/>
         <source>Inspect Surface</source>
         <translation type="unfinished"></translation>
     </message>
@@ -75875,19 +75875,19 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_dialog.cpp" line="-1392"/>
+        <location filename="../src/app/model_editor_dialog.cpp" line="-282"/>
         <location filename="../src/app/model_editor_skeleton.cpp" line="+74"/>
         <source>Joints</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_skeleton.cpp" line="-210"/>
-        <location line="+2"/>
+        <location line="-210"/>
+        <location filename="../src/app/model_editor_skeleton.cpp" line="+2"/>
         <source>Joint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-68"/>
+        <location filename="../src/app/model_editor_skeleton.cpp" line="-68"/>
         <source>Skeletal working set</source>
         <translation type="unfinished"></translation>
     </message>
@@ -76243,7 +76243,7 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_dialog.cpp" line="-1176"/>
+        <location filename="../src/app/model_editor_dialog.cpp" line="+216"/>
         <source>Select rows to edit faces, vertices, edges, tags, collision boxes, surfaces, or joints. Shift extends a range; Control adds or removes rows. Tags, Collision and Joints modes select one named item.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -76520,7 +76520,7 @@ Second: surface %6 (%7), face %8</source>
 <context>
     <name>VibeStudioModelImportRepair</name>
     <message>
-        <location filename="../src/app/model_editor_dialog.cpp" line="-1309"/>
+        <location filename="../src/app/model_editor_dialog.cpp" line="-133"/>
         <source>Repair Import…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -76546,12 +76546,12 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_import_repair_dialog.cpp" line="+16"/>
+        <location line="+16"/>
         <source>Saved and opened repaired copy: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-158"/>
+        <location filename="../src/app/model_import_repair_dialog.cpp" line="-158"/>
         <source>Remove face: invalid index</source>
         <translation type="unfinished"></translation>
     </message>
@@ -77512,8 +77512,8 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_mesh.cpp" line="+1"/>
         <location line="+1"/>
+        <location filename="../src/core/model_mesh.cpp" line="+1"/>
         <source>Translation: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -77526,19 +77526,19 @@ Second: surface %6 (%7), face %8</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1"/>
+        <location filename="../src/core/model_mesh.cpp" line="+1"/>
         <source>Declared bounding radius: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1"/>
+        <location filename="../src/core/model_mesh.cpp" line="+1"/>
         <source>Declared size: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1"/>
+        <location filename="../src/core/model_mesh.cpp" line="+1"/>
         <source>Sync type: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -77658,7 +77658,7 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-564"/>
+        <location filename="../src/core/model_mesh.cpp" line="-564"/>
         <location line="+13"/>
         <location line="+10"/>
         <location line="+18"/>
@@ -77823,15 +77823,15 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_mesh.cpp" line="+1"/>
-        <location filename="../src/core/model_format_hexen2.cpp" line="-75"/>
+        <location line="+1"/>
+        <location filename="../src/core/model_format_hexen2.cpp" line="+1"/>
         <location filename="../src/core/model_mesh.cpp" line="+1"/>
         <source>Texture coordinates: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1"/>
+        <location filename="../src/core/model_mesh.cpp" line="+1"/>
         <source>GL commands: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -77951,14 +77951,14 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location filename="../src/core/model_mesh.cpp" line="+21"/>
         <source>The MD2 skin size is zero; texture coordinates are left unscaled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/core/model_format_fm.cpp" line="-6"/>
         <location filename="../src/core/model_format_ghoul2.cpp" line="+738"/>
-        <location filename="../src/core/model_format_hexen2.cpp" line="+244"/>
+        <location filename="../src/core/model_format_hexen2.cpp" line="+168"/>
         <location filename="../src/core/model_format_iqm.cpp" line="+751"/>
         <location filename="../src/core/model_format_md5.cpp" line="+1565"/>
         <location filename="../src/core/model_format_mdc.cpp" line="+170"/>
@@ -78097,13 +78097,13 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_format_mds.cpp" line="+4"/>
+        <location line="+4"/>
         <source>%1 bone(s) besides the first have no parent; the game expects a single root, and they were rooted like it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
-        <location line="-33"/>
+        <location filename="../src/core/model_format_mds.cpp" line="-33"/>
         <source>Some bones share a name; the repeats were given a numbered suffix.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -78206,7 +78206,7 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_mesh.cpp" line="+2"/>
+        <location line="+2"/>
         <source>Bones and frames: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -78217,7 +78217,7 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_format_mdr.cpp" line="+2"/>
+        <location line="+2"/>
         <source>The GLM was built for %1 bone(s) and its GLA has %2.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -78298,7 +78298,7 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_mesh.cpp" line="+62"/>
+        <location line="+62"/>
         <source>MDC surface %1 lies outside the file.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -78343,7 +78343,7 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location filename="../src/core/model_mesh.cpp" line="+2"/>
         <source>The MD3 end offset (%1) does not match the file size (%2).</source>
         <translation type="unfinished"></translation>
     </message>
@@ -78647,7 +78647,7 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_mesh.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Frame rate: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -78846,7 +78846,7 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location filename="../src/core/model_mesh.cpp" line="+2"/>
         <source>Tags: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -78912,7 +78912,7 @@ Second: surface %6 (%7), face %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_format_studio.cpp" line="+2"/>
+        <location line="+2"/>
         <source>Frames are stored with compressed bone matrices.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -83821,7 +83821,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/core/model_targets.cpp" line="+5"/>
+        <location line="+5"/>
         <source>Skin variants that bound joined surfaces (%n): %1. Those faces now wear &quot;%2&quot;&apos;s material in each variant.</source>
         <translation>
             <numerusform>Skin variants that bound joined surfaces (%n): %1. Those faces now wear &quot;%2&quot;&apos;s material in each variant.</numerusform>
@@ -83995,7 +83995,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         </translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location filename="../src/core/model_targets.cpp" line="+4"/>
         <source>%1, at most, before the writer shares vertices</source>
         <translation type="unfinished"></translation>
     </message>
@@ -84017,7 +84017,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/model_accessibility_ui_smoke_test.cpp" line="-1004"/>
+        <location line="-1004"/>
         <source>Select something to transform first.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -84081,7 +84081,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_editor_tools.cpp" line="+0"/>
+        <location line="+0"/>
         <source>Visible faces</source>
         <translation type="unfinished"></translation>
     </message>
@@ -84092,35 +84092,35 @@ The owning studio is still running; discarding this copy is disabled.</source>
     </message>
     <message>
         <location line="+6"/>
-        <location line="-1657"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1657"/>
         <location line="+1613"/>
         <source>Move</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="-1611"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1611"/>
         <location line="+1611"/>
         <source>Rotate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="-1609"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1609"/>
         <location line="+1610"/>
         <source>Scale</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="-1565"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1565"/>
         <location line="+1702"/>
         <source>Extrude Edges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
-        <location line="-2"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-2"/>
         <source>Extrude Faces</source>
         <translation type="unfinished"></translation>
     </message>
@@ -84131,84 +84131,84 @@ The owning studio is still running; discarding this copy is disabled.</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="-1737"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1737"/>
         <location line="+1743"/>
         <source>Inset Faces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="-1749"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1749"/>
         <location line="+1751"/>
         <source>Shrink/Fatten</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="-1741"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1741"/>
         <location line="+1737"/>
         <source>Duplicate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="-1735"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1735"/>
         <location line="+1745"/>
         <source>Loop Cut</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="-1659"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1659"/>
         <location line="+1689"/>
         <source>Bevel Vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="-1687"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1687"/>
         <location line="+1689"/>
         <source>Bevel Edges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="-1773"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1773"/>
         <location line="+1775"/>
         <source>Knife</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="-1746"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1746"/>
         <location line="+1748"/>
         <source>Spin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="-1745"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1745"/>
         <source>Spin Duplicates</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <location line="+663"/>
-        <location line="-1"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1"/>
         <source>Rip and Fill</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-663"/>
         <location line="+663"/>
-        <location line="-1"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1"/>
         <location line="+1749"/>
         <source>Rip</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-660"/>
-        <location line="-1781"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-1781"/>
         <location line="+1745"/>
         <source>Edge Slide</source>
         <translation type="unfinished"></translation>
@@ -84434,7 +84434,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
     <message>
         <location line="+4"/>
         <location line="+70"/>
-        <location line="-791"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-791"/>
         <location line="+930"/>
         <source>Bevel refused</source>
         <translation type="unfinished"></translation>
@@ -84446,21 +84446,21 @@ The owning studio is still running; discarding this copy is disabled.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="-930"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-930"/>
         <location line="+930"/>
         <source>Knife refused</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+12"/>
-        <location line="-930"/>
+        <location filename="../src/app/model_editor_tools.cpp" line="-930"/>
         <location line="+930"/>
         <location filename="../src/tests/model_accessibility_ui_smoke_test.cpp" line="+191"/>
         <source>Spin refused</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/model_accessibility_ui_smoke_test.cpp" line="+5"/>
+        <location line="+5"/>
         <source>Nothing to apply.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -86472,7 +86472,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
 <context>
     <name>VibeStudioModelViewport</name>
     <message>
-        <location filename="../src/app/model_viewport.cpp" line="+3376"/>
+        <location filename="../src/app/model_viewport.cpp" line="+3395"/>
         <source>Wireframe</source>
         <translation type="unfinished"></translation>
     </message>
@@ -86504,157 +86504,157 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_extraction.cpp" line="-1791"/>
-        <location line="-459"/>
-        <location line="-451"/>
-        <location line="-442"/>
+        <location line="-1791"/>
+        <location line="+1182"/>
+        <location line="+8"/>
+        <location filename="../src/core/package_extraction.cpp" line="+9"/>
         <source>Package entry not found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2022"/>
+        <location line="-1580"/>
         <source>Unsafe package mount path: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1914"/>
+        <location line="+108"/>
         <source>This reader does not support bounded package streaming.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1877"/>
+        <location line="+37"/>
         <source>Package path does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1785"/>
+        <location line="+92"/>
         <source>Unsupported package format.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1755"/>
+        <location line="+30"/>
         <source>The package document snapshot is not available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1725"/>
+        <location line="+30"/>
         <source>The package snapshot has an unsupported WAD layout.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1640"/>
-        <location line="-1702"/>
+        <location line="+85"/>
+        <location filename="../src/core/package_extraction.cpp" line="-62"/>
         <source>No package is open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1610"/>
+        <location line="+92"/>
         <source>The source snapshot entry changed size: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1584"/>
+        <location line="+26"/>
         <source>Files or folders disappeared from the folder package. Refresh it before continuing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1571"/>
+        <location line="+13"/>
         <source>Package entry is a directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1565"/>
-        <location line="-1449"/>
+        <location line="+6"/>
+        <location filename="../src/core/package_extraction.cpp" line="+116"/>
         <source>Package entry is not readable by the current reader.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1429"/>
+        <location line="+20"/>
         <source>Folder package not found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1405"/>
+        <location line="+24"/>
         <source>Skipped unsafe folder entry: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1401"/>
+        <location line="+4"/>
         <source>Skipped folder entry outside the package root.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1339"/>
+        <location line="+62"/>
         <source>Unable to open PAK file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1331"/>
+        <location line="+8"/>
         <source>Invalid PAK header.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1322"/>
+        <location line="+9"/>
         <source>Invalid PAK directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1315"/>
+        <location line="+7"/>
         <source>Unable to seek to PAK directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1299"/>
+        <location line="+16"/>
         <source>Unable to read PAK directory record.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1290"/>
+        <location line="+9"/>
         <source>Skipped unsafe PAK entry: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1283"/>
+        <location line="+7"/>
         <source>Skipped PAK entry with invalid offset or size.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1243"/>
+        <location line="+40"/>
         <source>Unable to open WAD file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1234"/>
+        <location line="+9"/>
         <source>Invalid WAD header.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1223"/>
+        <location line="+11"/>
         <source>Invalid WAD directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1216"/>
+        <location line="+7"/>
         <source>Unable to seek to WAD directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1199"/>
+        <location line="+17"/>
         <source>Unable to read WAD directory record.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1185"/>
+        <location line="+14"/>
         <source>Skipped unsafe WAD entry: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1181"/>
+        <location line="+4"/>
         <source>Skipped WAD entry with invalid offset or size.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1149"/>
+        <location line="+32"/>
         <source>WAD2/WAD3 compressed lumps are listed but not decoded.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -86774,7 +86774,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_zip.cpp" line="+8"/>
+        <location line="+8"/>
         <source>Invalid ZIP central directory name length.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -86809,7 +86809,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+34"/>
+        <location filename="../src/core/package_zip.cpp" line="+34"/>
         <source>ZIP local file header could not be located for this entry.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -87011,53 +87011,53 @@ The owning studio is still running; discarding this copy is disabled.</source>
     </message>
     <message>
         <location line="+7"/>
-        <location filename="../src/core/package_extraction.cpp" line="-1088"/>
+        <location filename="../src/core/package_extraction.cpp" line="+61"/>
         <source>Unable to read the complete package entry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_extraction.cpp" line="-1083"/>
-        <location line="-1082"/>
+        <location line="+5"/>
+        <location filename="../src/core/package_extraction.cpp" line="+1"/>
         <source>Package entry size does not match its directory record.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1075"/>
+        <location line="+7"/>
         <source>The package source changed while reading an entry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-988"/>
+        <location line="+87"/>
         <source>Unable to read the requested compressed entry prefix.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-974"/>
+        <location line="+14"/>
         <source>Unable to read compressed package entry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-965"/>
+        <location line="+9"/>
         <source>Unable to inflate the compressed package entry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-964"/>
+        <location line="+1"/>
         <source>Unable to inflate the compressed package entry: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-958"/>
+        <location line="+6"/>
         <source>Inflated package entry size does not match the central directory (%1 of %2 bytes).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-947"/>
+        <location line="+11"/>
         <source>CRC-32 mismatch for package entry (expected %1, got %2); the archive is corrupt.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-918"/>
+        <location line="+29"/>
         <source>Preparing package index…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -87226,163 +87226,163 @@ The owning studio is still running; discarding this copy is disabled.</source>
     </message>
     <message>
         <location line="+26"/>
-        <location filename="../src/core/package_extraction.cpp" line="-1124"/>
+        <location filename="../src/core/package_extraction.cpp" line="-206"/>
         <source>Output path escapes the selected root.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_extraction.cpp" line="-1144"/>
+        <location filename="../src/core/package_extraction.cpp" line="-20"/>
         <source>Extraction refuses symbolic links and junctions in the output path: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1140"/>
+        <location line="+4"/>
         <source>An output parent is not a directory: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1123"/>
+        <location line="+17"/>
         <source>Extraction would replace or modify package source content.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1105"/>
+        <location line="+18"/>
         <source>Package extraction cancelled. Completed files are retained; the current file was not committed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1090"/>
+        <location line="+15"/>
         <source>Resolve blocked package edits before extracting the planned package: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1084"/>
+        <location line="+6"/>
         <source>Choose explicit entries or extract-all, not both.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1081"/>
+        <location line="+3"/>
         <source>No package entries were selected; nothing was extracted. Request extract-all to write the whole archive.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1078"/>
+        <location line="+3"/>
         <source>Output directory is required.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1074"/>
+        <location line="+4"/>
         <source>Output path exists but is not a directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1054"/>
+        <location line="+20"/>
         <source>An explicit extraction index must select one existing file and cannot be repeated.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-998"/>
+        <location line="+56"/>
         <source>The selected source entry has an unsafe package path.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-989"/>
+        <location line="+9"/>
         <source>Multiple package entries share this output path. Extraction requires unique paths.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-987"/>
+        <location line="+2"/>
         <source>A package file also occupies a required output directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-983"/>
-        <location line="-962"/>
+        <location line="+4"/>
+        <location line="+21"/>
         <source>The output path has a conflicting file or directory type.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-978"/>
+        <location line="-16"/>
         <source>Package entry size exceeds the supported range.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-973"/>
+        <location line="+5"/>
         <source>Extraction preflight failed. No output files or directories were created.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-960"/>
+        <location line="+13"/>
         <source>Unable to create output directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-957"/>
+        <location line="+3"/>
         <source>The output path is not a regular file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-926"/>
+        <location line="+31"/>
         <source>Package entry exceeded its declared size.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-924"/>
+        <location line="+2"/>
         <source>Unable to write all output bytes: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-904"/>
+        <location line="+20"/>
         <source>Unable to publish without overwriting another file: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-899"/>
+        <location line="+5"/>
         <source>Cancelled before this file was committed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-894"/>
+        <location line="+5"/>
         <source>Package extraction cancelled. Completed files are retained.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-961"/>
+        <location line="-67"/>
         <source>Would create directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-959"/>
+        <location line="+2"/>
         <source>Created directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-955"/>
+        <location line="+4"/>
         <source>Output exists; pass overwrite to replace it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-953"/>
+        <location line="+2"/>
         <source>Would overwrite file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-953"/>
+        <location line="+0"/>
         <source>Would write file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-948"/>
+        <location line="+5"/>
         <source>Unable to create output parent directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-902"/>
+        <location line="+46"/>
         <source>Overwrote file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-902"/>
+        <location line="+0"/>
         <source>Wrote file.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -87560,7 +87560,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_staging.cpp" line="+5"/>
+        <location line="+5"/>
         <source>Package snapshot exceeds the limits of %1 records or %2 metadata bytes. Undo recent edits or use a smaller package.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -88519,7 +88519,7 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_staging.cpp" line="+9"/>
+        <location line="+9"/>
         <source>Choose a safe package folder path.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -89474,7 +89474,7 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_wad_groups.cpp" line="+46"/>
+        <location line="+46"/>
         <location line="+2127"/>
         <source>Unsupported WAD magic: %1</source>
         <translation type="unfinished"></translation>
@@ -89944,14 +89944,14 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_staging_content.cpp" line="+58"/>
-        <location line="+10"/>
+        <location line="+58"/>
+        <location filename="../src/core/package_staging_content.cpp" line="+10"/>
         <source>Retained generated content exceeds the %1-byte document limit. Save and reopen the draft to release inline content, or stage smaller assets.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
-        <location line="+6"/>
+        <location filename="../src/core/package_staging_content.cpp" line="+6"/>
         <source>Retained source fingerprints exceed the %1-byte document limit. Use smaller inputs or save a smaller package and reopen it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -90182,7 +90182,7 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_staging_protection.cpp" line="+1"/>
+        <location line="+1"/>
         <location filename="../src/core/package_protection.cpp" line="-1"/>
         <source>Checking package source protections</source>
         <translation type="unfinished"></translation>
@@ -94100,7 +94100,7 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/render_vulkan.cpp" line="-157"/>
+        <location line="-157"/>
         <source>The OpenGL driver cannot render this view&apos;s images.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -94116,7 +94116,7 @@ Output: %2</source>
     </message>
     <message>
         <location line="+7"/>
-        <location line="-367"/>
+        <location filename="../src/core/render_vulkan.cpp" line="-367"/>
         <location line="+37"/>
         <location line="+18"/>
         <location line="+30"/>
@@ -94132,7 +94132,7 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1437"/>
+        <location filename="../src/core/render_vulkan.cpp" line="-1437"/>
         <location line="+312"/>
         <source>No Vulkan driver is installed. Install your graphics driver&apos;s Vulkan support, or choose OpenGL.</source>
         <translation type="unfinished"></translation>
@@ -95069,46 +95069,46 @@ Output: %2</source>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+960"/>
+        <location line="+963"/>
         <source>Paste at Original Position</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-959"/>
-        <location line="+960"/>
+        <location line="-962"/>
+        <location line="+963"/>
         <source>Paste clipboard objects at their saved coordinates.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-958"/>
-        <location line="+961"/>
+        <location line="-961"/>
+        <location line="+964"/>
         <source>Paste to Camera</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-960"/>
-        <location line="+961"/>
+        <location line="-963"/>
+        <location line="+964"/>
         <source>Centre the pasted assembly on the camera or orbit focus using a snapped translation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-957"/>
+        <location line="-960"/>
         <source>Duplicate Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+8"/>
-        <location line="+942"/>
+        <location line="+945"/>
         <source>Repeat Last Commands</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-941"/>
+        <location line="-944"/>
         <source>Replay recorded object transforms and duplications on the current selection.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+859"/>
+        <location line="+862"/>
         <source>Select Siblings</source>
         <translation type="unfinished"></translation>
     </message>
@@ -95118,13 +95118,13 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-859"/>
-        <location line="+947"/>
+        <location line="-862"/>
+        <location line="+950"/>
         <source>Clear Repeatable Commands</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1079"/>
+        <location line="-1082"/>
         <source>Clear temporary hiding while the Levels surface has focus. Saved scene visibility and view filters remain in effect.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -96036,7 +96036,7 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/level_palette_coverage_ui_smoke_test.cpp" line="-5"/>
+        <location line="-5"/>
         <source>Open a .map file or a Doom map lump.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -96436,7 +96436,7 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+4"/>
         <source>Show Grid</source>
         <translation type="unfinished"></translation>
     </message>
@@ -97431,7 +97431,17 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location line="-80"/>
+        <source>Animate Materials in Camera</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location line="+1"/>
+        <source>Play scrolling, pulsing and animated materials on the camera&apos;s faces, drawn as the Materials page draws them; reduce motion keeps them still, and the choice is kept.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+80"/>
         <source>Clear selected linked entities&apos; protection and restore available unprotected values.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -101515,7 +101525,7 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/texture_transform.cpp" line="+37"/>
+        <location line="+37"/>
         <source>A texture supports 1–32 layers and at most 33,554,432 layer pixels in total.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -101662,7 +101672,7 @@ Output: %2</source>
     <message>
         <location line="+4"/>
         <location line="+281"/>
-        <location line="+5"/>
+        <location filename="../src/core/texture_transform.cpp" line="+5"/>
         <source>Unable to allocate transformed pixels.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -105519,7 +105529,7 @@ Replace what is there with this variant?</source>
 <context>
     <name>vibestudio::ApplicationShell</name>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-16103"/>
+        <location filename="../src/app/application_shell.cpp" line="-16104"/>
         <location line="+13830"/>
         <location line="+55"/>
         <location line="+408"/>
@@ -105632,45 +105642,45 @@ Replace what is there with this variant?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/audio_browser_actions.cpp" line="-6635"/>
+        <location line="-6635"/>
         <location line="+12441"/>
         <location line="+357"/>
-        <location line="+12383"/>
+        <location line="+12384"/>
         <source>Running</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-31657"/>
-        <location line="+32195"/>
+        <location line="-25180"/>
+        <location line="+25718"/>
         <location filename="../src/app/code_language_actions.cpp" line="+112"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/code_language_actions.cpp" line="-25715"/>
+        <location line="-25716"/>
         <source>Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-25601"/>
-        <location line="-18376"/>
-        <location line="-13852"/>
+        <location line="+2"/>
+        <location line="+7225"/>
+        <location line="+4524"/>
         <source>Cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-25599"/>
+        <location line="-11747"/>
         <source>Completed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-25590"/>
+        <location line="+9"/>
         <location filename="../src/app/audio_recovery_actions.cpp" line="+47"/>
         <source>Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/audio_recovery_actions.cpp" line="+2"/>
+        <location line="+2"/>
         <source>PAK</source>
         <translation type="unfinished"></translation>
     </message>
@@ -105692,12 +105702,12 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+4"/>
         <location line="+26"/>
-        <location line="+24983"/>
+        <location line="+24984"/>
         <source>Unknown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-25002"/>
+        <location line="-25003"/>
         <location line="+4"/>
         <source>File</source>
         <translation type="unfinished"></translation>
@@ -105728,19 +105738,19 @@ Replace what is there with this variant?</source>
         <location line="+14"/>
         <location line="+6660"/>
         <location line="+5"/>
-        <location line="+13926"/>
+        <location line="+13927"/>
         <location filename="../src/app/package_context_actions.cpp" line="+22"/>
         <source>Unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_context_actions.cpp" line="-20601"/>
+        <location line="-20602"/>
         <source>Text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20577"/>
-        <location line="-16288"/>
+        <location line="+2"/>
+        <location line="+4289"/>
         <source>Image</source>
         <translation type="unfinished"></translation>
     </message>
@@ -105751,12 +105761,12 @@ Replace what is there with this variant?</source>
         <location line="+1137"/>
         <location line="+25"/>
         <location line="+3176"/>
-        <location line="+19399"/>
+        <location line="+19400"/>
         <source>Model</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-23735"/>
+        <location filename="../src/app/application_shell.cpp" line="-23736"/>
         <location line="+290"/>
         <location line="+3997"/>
         <location line="+938"/>
@@ -105772,36 +105782,36 @@ Replace what is there with this variant?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/asset_workbench_actions.cpp" line="-14276"/>
+        <location line="-14276"/>
         <source>Binary</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-12312"/>
-        <location line="-11047"/>
+        <location line="+1860"/>
+        <location line="+1265"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11045"/>
+        <location line="+2"/>
         <location filename="../src/app/code_document_actions.cpp" line="+93"/>
         <location filename="../src/app/level_editing_actions.cpp" line="+1044"/>
         <source>Replace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_editing_actions.cpp" line="+2"/>
+        <location line="+2"/>
         <source>Rename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+21057"/>
+        <location line="+21058"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21065"/>
+        <location line="-21066"/>
         <source>Stage</source>
         <translation type="unfinished"></translation>
     </message>
@@ -105811,401 +105821,401 @@ Replace what is there with this variant?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1987"/>
+        <location line="+3"/>
         <source>%1 MiB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1984"/>
+        <location line="+3"/>
         <source>%1 KiB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1992"/>
-        <location line="-1982"/>
+        <location line="-8"/>
+        <location line="+10"/>
         <source>%1 B</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1955"/>
+        <location line="+27"/>
         <source>Preview kind: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1953"/>
+        <location line="+2"/>
         <source>Summary: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1950"/>
+        <location line="+3"/>
         <source>Bytes sampled: %1 of %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1944"/>
+        <location line="+6"/>
         <source>Preview is truncated; open raw details for byte counts.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1941"/>
+        <location line="+3"/>
         <source>Reason: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1935"/>
+        <location line="+6"/>
         <source>Text sample:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1934"/>
+        <location line="+1"/>
         <source>(empty text entry)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1930"/>
+        <location line="+4"/>
         <source>Image metadata:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1929"/>
-        <location line="-1900"/>
-        <location line="+38920"/>
+        <location line="+1"/>
+        <location line="+29"/>
+        <location line="+11514"/>
         <location line="+1092"/>
-        <location filename="../src/app/package_context_actions.cpp" line="-16281"/>
+        <location filename="../src/app/package_context_actions.cpp" line="+7"/>
         <source>Format: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_context_actions.cpp" line="-28915"/>
+        <location line="-12634"/>
         <source>Dimensions: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28914"/>
+        <location line="+1"/>
         <source>%1 x %2 px</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28912"/>
+        <location line="+2"/>
         <source>Depth: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28912"/>
+        <location line="+0"/>
         <source>%1 bpp</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28911"/>
+        <location line="+1"/>
         <source>Palette-aware: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28911"/>
-        <location line="-28850"/>
-        <location line="-28849"/>
-        <location line="-28848"/>
-        <location line="-22989"/>
-        <location line="-22983"/>
-        <location line="-17520"/>
-        <location line="-17519"/>
-        <location line="-16641"/>
-        <location line="-16277"/>
-        <location line="-15687"/>
-        <location line="-15322"/>
+        <location line="+0"/>
+        <location line="+61"/>
+        <location line="+1"/>
+        <location line="+1"/>
+        <location line="+5859"/>
+        <location line="+6"/>
+        <location line="+5463"/>
+        <location line="+1"/>
+        <location line="+878"/>
+        <location line="+364"/>
+        <location line="+590"/>
+        <location line="+365"/>
         <source>yes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28911"/>
-        <location line="-28850"/>
-        <location line="-28849"/>
-        <location line="-28848"/>
-        <location line="-22989"/>
-        <location line="-22983"/>
-        <location line="-17520"/>
-        <location line="-17519"/>
-        <location line="-16641"/>
-        <location line="-16277"/>
-        <location line="-15687"/>
-        <location line="-15322"/>
+        <location line="-13589"/>
+        <location line="+61"/>
+        <location line="+1"/>
+        <location line="+1"/>
+        <location line="+5859"/>
+        <location line="+6"/>
+        <location line="+5463"/>
+        <location line="+1"/>
+        <location line="+878"/>
+        <location line="+364"/>
+        <location line="+590"/>
+        <location line="+365"/>
         <source>no</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28909"/>
+        <location line="-13587"/>
         <source>Palette sample:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28903"/>
+        <location line="+6"/>
         <source>Model viewport:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28902"/>
+        <location line="+1"/>
         <source>(metadata viewport unavailable)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28899"/>
+        <location line="+3"/>
         <source>Skin/material dependencies:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28894"/>
+        <location line="+5"/>
         <source>Animation/frame names:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28888"/>
+        <location line="+6"/>
         <source>Audio metadata:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28885"/>
+        <location line="+3"/>
         <source>Waveform preview:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28879"/>
+        <location line="+6"/>
         <source>Hex sample:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28878"/>
+        <location line="+1"/>
         <source>(no bytes available)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28860"/>
-        <location line="-15352"/>
-        <location line="-14944"/>
+        <location line="+18"/>
+        <location line="+13508"/>
+        <location line="+408"/>
         <source>Name: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28859"/>
+        <location line="-13915"/>
         <source>Profile ID: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28858"/>
+        <location line="+1"/>
         <source>Game key: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28857"/>
-        <location line="-17085"/>
+        <location line="+1"/>
+        <location line="+11772"/>
         <source>Engine: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28856"/>
-        <location line="-28827"/>
+        <location line="-11771"/>
+        <location line="+29"/>
         <source>Root: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28855"/>
+        <location line="-28"/>
         <source>Executable: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28855"/>
+        <location line="+0"/>
         <source>not set</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28854"/>
+        <location line="+1"/>
         <source>Base package paths: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28854"/>
-        <location line="-28853"/>
-        <location line="-23004"/>
-        <location line="-22985"/>
-        <location line="-22984"/>
-        <location line="-22838"/>
-        <location line="-16876"/>
-        <location line="-15690"/>
-        <location line="-15526"/>
-        <location line="-15523"/>
-        <location line="-15428"/>
-        <location line="-14978"/>
-        <location line="-14977"/>
+        <location line="+0"/>
+        <location line="+1"/>
+        <location line="+5849"/>
+        <location line="+19"/>
+        <location line="+1"/>
+        <location line="+146"/>
+        <location line="+5962"/>
+        <location line="+1186"/>
+        <location line="+164"/>
+        <location line="+3"/>
+        <location line="+95"/>
+        <location line="+450"/>
+        <location line="+1"/>
         <source>none</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28853"/>
+        <location line="-13876"/>
         <source>Mod package paths: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28852"/>
+        <location line="+1"/>
         <source>Palette: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28852"/>
-        <location line="-28851"/>
+        <location line="+0"/>
+        <location line="+1"/>
         <source>generic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28851"/>
+        <location line="+0"/>
         <source>Compiler profile: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28850"/>
+        <location line="+1"/>
         <source>Read-only: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28849"/>
+        <location line="+1"/>
         <source>Hidden: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28848"/>
+        <location line="+1"/>
         <source>Selected: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28847"/>
+        <location line="+1"/>
         <source>Validation: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28847"/>
+        <location line="+0"/>
         <source>usable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28847"/>
-        <location line="-16257"/>
+        <location line="+0"/>
+        <location line="+12590"/>
         <source>blocked</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28845"/>
+        <location line="-12588"/>
         <source>Errors:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28839"/>
-        <location line="-15483"/>
+        <location line="+6"/>
+        <location line="+13356"/>
         <source>Warnings:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28828"/>
-        <location line="-22262"/>
-        <location line="-2905"/>
+        <location line="-13345"/>
+        <location line="+6566"/>
+        <location line="+19358"/>
         <source>Project: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28826"/>
+        <location line="-25922"/>
         <source>Ready checks: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28825"/>
-        <location line="-15668"/>
-        <location line="-15666"/>
+        <location line="+1"/>
+        <location line="+13157"/>
+        <location filename="../src/app/package_context_actions.cpp" line="+2"/>
         <source>Warnings: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28822"/>
+        <location line="-13156"/>
         <source>Failures: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28792"/>
+        <location line="+30"/>
         <source>Directories</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28789"/>
+        <location line="+3"/>
         <source>Nested Archives</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28786"/>
-        <location line="-24121"/>
+        <location line="+3"/>
+        <location line="+4665"/>
         <source>Images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28783"/>
+        <location line="-4662"/>
         <source>Text And Maps</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28777"/>
-        <location line="-24086"/>
-        <location line="-24045"/>
-        <location line="-14798"/>
-        <location filename="../src/app/asset_workbench_actions.cpp" line="-11063"/>
-        <location line="-11061"/>
-        <location line="-11059"/>
-        <location line="-11057"/>
-        <location line="-11045"/>
+        <location line="+6"/>
+        <location line="+4691"/>
+        <location line="+41"/>
+        <location line="+9247"/>
+        <location filename="../src/app/asset_workbench_actions.cpp" line="-18"/>
+        <location line="+2"/>
+        <location line="+2"/>
+        <location line="+2"/>
+        <location line="+12"/>
         <location filename="../src/app/level_asset_browsers.cpp" line="+278"/>
         <location filename="../src/app/model_page.cpp" line="+27"/>
         <source>Models</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_page.cpp" line="-13976"/>
+        <location line="-13976"/>
         <source>Compiled Maps</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13947"/>
+        <location line="+2"/>
         <source>Binary Or Unknown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13706"/>
+        <location line="+241"/>
         <source>Map recovery checkpoint failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13705"/>
+        <location line="+1"/>
         <source>Recovery checkpoint failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13704"/>
+        <location line="+1"/>
         <source>Map recovery checkpoint saved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13697"/>
+        <location line="+7"/>
         <source>Map recovery checkpoints are available in File &gt; Recover Maps.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13412"/>
+        <location line="+285"/>
         <source>Suggestions: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13369"/>
+        <location line="+43"/>
         <source>Property</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13369"/>
-        <location line="-11586"/>
-        <location line="-6273"/>
-        <location line="-6267"/>
+        <location line="+0"/>
+        <location line="+1783"/>
+        <location line="+5313"/>
+        <location line="+6"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="+16"/>
         <location line="+101"/>
         <location line="+2"/>
@@ -106213,58 +106223,58 @@ Replace what is there with this variant?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_panels.cpp" line="-6842"/>
-        <location line="-6510"/>
-        <location line="-2318"/>
+        <location line="-6842"/>
+        <location line="+25"/>
+        <location line="+4192"/>
         <source>Format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6534"/>
-        <location line="+39873"/>
-        <location filename="../src/app/code_language_actions.cpp" line="-25590"/>
+        <location line="-4216"/>
+        <location line="+24511"/>
+        <location filename="../src/app/code_language_actions.cpp" line="+0"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/code_language_actions.cpp" line="-50096"/>
+        <location line="-24507"/>
         <source>No model metadata could be read from this entry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50089"/>
+        <location line="+7"/>
         <source>Surface %1: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50084"/>
+        <location line="+5"/>
         <source>None of the skins this model names could be found in the package, so it draws flat shaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50081"/>
+        <location line="+3"/>
         <source>Warnings (%1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50075"/>
+        <location line="+6"/>
         <source>%1, version %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50073"/>
-        <location line="-46313"/>
+        <location line="+2"/>
+        <location line="+3760"/>
         <source>Frames</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50072"/>
+        <location line="-3759"/>
         <location filename="../src/app/level_view_actions.cpp" line="+146"/>
         <source>Surfaces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="+2"/>
+        <location line="+2"/>
         <location line="+1253"/>
         <source>Vertices</source>
         <translation type="unfinished"></translation>
@@ -106281,19 +106291,19 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+24227"/>
+        <location line="+24228"/>
         <location filename="../src/app/level_find_replace_actions.cpp" line="+318"/>
         <source>%1 to %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_find_replace_actions.cpp" line="-24226"/>
+        <location line="-24227"/>
         <source>Radius</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23906"/>
-        <location line="-4446"/>
+        <location line="+2"/>
+        <location line="+19461"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="+51"/>
         <location line="+3"/>
         <location filename="../src/app/level_view_actions.cpp" line="-20"/>
@@ -106301,7 +106311,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="-19460"/>
+        <location line="-19461"/>
         <source>Header only; this format&apos;s geometry is not decoded yet.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -106312,7 +106322,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_panels.cpp" line="+3"/>
+        <location line="+3"/>
         <source>Surfaces (%1)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -106400,14 +106410,14 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+47"/>
-        <location line="+15379"/>
+        <location line="+15380"/>
         <source>VibeStudio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15359"/>
+        <location line="-15360"/>
         <location line="+7655"/>
-        <location line="+7390"/>
+        <location line="+7391"/>
         <location line="+1803"/>
         <location line="+3566"/>
         <location filename="../src/app/level_filter_tag_actions.cpp" line="+369"/>
@@ -106419,132 +106429,132 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="-20401"/>
+        <location line="-20402"/>
         <source>Studio work surface</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15010"/>
+        <location line="+133"/>
         <source>Studio ready</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14854"/>
-        <location line="-2389"/>
-        <location line="-2205"/>
+        <location line="+156"/>
+        <location line="+12465"/>
+        <location line="+184"/>
         <source>Workspace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14853"/>
+        <location line="-12648"/>
         <source>Workspace header</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14850"/>
+        <location line="+3"/>
         <source>Detect Installs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14849"/>
+        <location line="+1"/>
         <source>Detect game installations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14848"/>
+        <location line="+1"/>
         <source>Scan common Steam and GOG library roots for confirmable game installation candidates.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14842"/>
+        <location line="+6"/>
         <source>Initialize Manifest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14841"/>
+        <location line="+1"/>
         <source>Initialize project manifest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14840"/>
+        <location line="+1"/>
         <source>Create or refresh the .vibestudio/project.json manifest for the current project folder.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14834"/>
-        <location line="-10717"/>
-        <location line="-3588"/>
+        <location line="+6"/>
+        <location line="+4117"/>
+        <location line="+7129"/>
         <source>Open Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14833"/>
+        <location line="-11245"/>
         <source>Open project folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14832"/>
+        <location line="+1"/>
         <source>Choose a project folder and add it to recent projects.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14820"/>
+        <location line="+12"/>
         <source>Workspace dashboard state</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14818"/>
-        <location line="-9734"/>
-        <location line="-4504"/>
+        <location line="+2"/>
+        <location line="+5084"/>
+        <location line="+5230"/>
         <source>Project manifest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14817"/>
+        <location line="-10313"/>
         <source>Project health</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14816"/>
+        <location line="+1"/>
         <source>Linked installation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14798"/>
+        <location line="+18"/>
         <source>Go to %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14772"/>
-        <location line="-2713"/>
+        <location line="+26"/>
+        <location line="+12059"/>
         <source>Project Health</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14771"/>
+        <location line="-12058"/>
         <source>Workspace context panels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14768"/>
+        <location line="+3"/>
         <source>Problems, search, changed files, dependency graph, and recent activity for the active workspace.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14764"/>
+        <location line="+4"/>
         <source>Project problems</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14763"/>
+        <location line="+1"/>
         <source>Project health warnings, blocking issues, and next actions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14760"/>
-        <location line="-12826"/>
-        <location line="-10801"/>
-        <location line="+419368"/>
+        <location line="+3"/>
+        <location line="+1934"/>
+        <location line="+2025"/>
+        <location line="+14597"/>
         <location line="+4756"/>
         <location line="+643"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="+282"/>
@@ -106552,239 +106562,239 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-23945"/>
+        <location line="-23946"/>
         <source>Workspace search</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23662"/>
+        <location line="+1"/>
         <source>Searches mounted package entries and project files by path.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23661"/>
+        <location line="+1"/>
         <source>Search project files and mounted package entries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23652"/>
+        <location line="+9"/>
         <source>Workspace search results</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23651"/>
+        <location line="+1"/>
         <source>Matching project file paths and mounted package virtual paths.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23646"/>
+        <location line="+5"/>
         <source>Reveal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23645"/>
+        <location line="+1"/>
         <source>Reveal selected workspace path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23644"/>
+        <location line="+1"/>
         <source>Open the containing folder for the selected project file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23639"/>
-        <location line="-6915"/>
+        <location line="+5"/>
+        <location line="+16725"/>
         <source>Copy Path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23638"/>
+        <location line="-16724"/>
         <source>Copy selected virtual path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23637"/>
+        <location line="+1"/>
         <source>Copy the selected project-relative or package virtual path.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23631"/>
+        <location line="+6"/>
         <source>Search</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23627"/>
+        <location line="+4"/>
         <source>Changed and staged files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23626"/>
+        <location line="+1"/>
         <source>Git changed and staged files for the active project, when available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23624"/>
+        <location line="+2"/>
         <source>Changes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23620"/>
+        <location line="+4"/>
         <source>Project dependency graph</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23617"/>
+        <location line="+3"/>
         <source>Graph</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23613"/>
+        <location line="+4"/>
         <source>Recent activity timeline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23612"/>
+        <location line="+1"/>
         <source>Recent project, package, setup, and task events.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23610"/>
+        <location line="+2"/>
         <source>Timeline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23599"/>
+        <location line="+11"/>
         <source>Workspace dashboard details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23598"/>
-        <location line="-19354"/>
-        <location line="-19274"/>
+        <location line="+1"/>
+        <location line="+4244"/>
+        <location line="+80"/>
         <source>Workspace Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23597"/>
+        <location line="-4323"/>
         <source>Open a project folder to inspect manifest and health details.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23593"/>
+        <location line="+4"/>
         <source>Recent Projects</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23588"/>
+        <location line="+5"/>
         <source>Recent projects</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23587"/>
+        <location line="+1"/>
         <source>Project folders remembered from previous sessions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23564"/>
-        <location line="-23482"/>
+        <location line="+23"/>
+        <location line="+82"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23563"/>
+        <location line="-81"/>
         <source>Remove selected recent project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23562"/>
+        <location line="+1"/>
         <source>Remove the selected project from the recent list without touching its files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23557"/>
-        <location line="-12370"/>
+        <location line="+5"/>
+        <location line="+11187"/>
         <source>Clear</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23556"/>
+        <location line="-11186"/>
         <source>Clear recent projects</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23555"/>
+        <location line="+1"/>
         <source>Clear the recent-project list without touching project files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23547"/>
-        <location line="-11705"/>
+        <location line="+8"/>
+        <location line="+11842"/>
         <source>Game Installations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23545"/>
+        <location line="-11840"/>
         <source>Game installation summary</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23541"/>
+        <location line="+4"/>
         <source>Game installations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23540"/>
+        <location line="+1"/>
         <source>Game installation profiles used by projects, packages, compilers, and launch workflows. Each is read-only unless test maps are allowed for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23520"/>
+        <location line="+20"/>
         <source>Add game installation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23519"/>
+        <location line="+1"/>
         <source>Create a manual, read-only installation profile from a selected folder.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23514"/>
+        <location line="+5"/>
         <source>Import Detected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23513"/>
+        <location line="+1"/>
         <source>Import detected installation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23512"/>
+        <location line="+1"/>
         <source>Save the selected detected Steam or GOG candidate as a confirmable read-only profile.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23499"/>
+        <location line="+13"/>
         <source>Allow test maps</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23497"/>
+        <location line="+2"/>
         <source>Allow test maps for the selected installation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23496"/>
+        <location line="+1"/>
         <source>Let the Build page copy built maps into this installation&apos;s maps folder before launching. Nothing else in it is written.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23489"/>
+        <location line="+7"/>
         <location filename="../src/app/level_asset_browsers.cpp" line="+226"/>
         <source>Use</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_asset_browsers.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Select game installation</source>
         <translation type="unfinished"></translation>
     </message>
@@ -106847,524 +106857,524 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="-9174"/>
-        <location line="+21469"/>
+        <location line="+21470"/>
         <location line="+279"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="+1134"/>
         <source>Entity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-21747"/>
+        <location line="-21748"/>
         <source>Package Plan</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20467"/>
+        <location line="+1"/>
         <source>Batch Recipe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20466"/>
+        <location line="+1"/>
         <source>CLI Command</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20463"/>
+        <location line="+3"/>
         <source>AI creation prompt</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20462"/>
+        <location line="+1"/>
         <source>Prompt for staged, reviewable local AI-assisted creation proposals.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20461"/>
+        <location line="+1"/>
         <source>Describe what to draft</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20456"/>
+        <location line="+5"/>
         <source>Create Proposal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20455"/>
+        <location line="+1"/>
         <source>Create AI proposal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20454"/>
+        <location line="+1"/>
         <source>Draft a reviewable proposal locally. No files are written and no network request is made.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20447"/>
+        <location line="+7"/>
         <source>AI proposal review</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20446"/>
+        <location line="+1"/>
         <source>Reviewable AI proposal summary, context, generated actions, and prompt/response log.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20437"/>
+        <location line="+9"/>
         <source>Workspace scroll area</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20432"/>
-        <location line="-14091"/>
-        <location line="-8170"/>
+        <location line="+5"/>
+        <location line="+6341"/>
+        <location line="+5921"/>
         <source>Levels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20431"/>
+        <location line="-12261"/>
         <source>Level editor header</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20429"/>
+        <location line="+2"/>
         <source>Dependencies</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20427"/>
+        <location line="+2"/>
         <source>Inspect level asset dependencies</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20426"/>
+        <location line="+1"/>
         <source>Check textures, shader images, models, and sounds against the open package, then export resolved assets.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20414"/>
+        <location line="+12"/>
         <source>Resolve package staging conflicts before checking dependencies.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20370"/>
+        <location line="+44"/>
         <source>The map changed after this scan. Reopen Dependencies to select current objects.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20345"/>
+        <location line="+25"/>
         <source>Save level map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20344"/>
+        <location line="+1"/>
         <source>Save this map, keeping a backup when replacing an existing file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20339"/>
-        <location line="-19586"/>
+        <location line="+5"/>
+        <location line="+753"/>
         <source>New Map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20338"/>
+        <location line="-752"/>
         <source>New level map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20304"/>
+        <location line="+34"/>
         <source>Save before loading another map?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20280"/>
-        <location line="-15378"/>
+        <location line="+24"/>
+        <location line="+4902"/>
         <source>Save before opening another map?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20023"/>
+        <location line="-4645"/>
         <source>Grid Coordinates</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20022"/>
+        <location line="+1"/>
         <source>Label the grid lines with their coordinates along the bottom and leading edges, clear of the status tags.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20021"/>
+        <location line="+1"/>
         <source>Block Grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20020"/>
+        <location line="+1"/>
         <source>Draw dashed lines where the compiler splits the world into blocks, from worldspawn _blocksize (1024 units by default).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20014"/>
+        <location line="+6"/>
         <source>Draw a box around every linked group. The link sets of the selected or open groups are drawn either way, with arrows.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19434"/>
+        <location line="+580"/>
         <source>Review selected planned files and save them as a separate package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19405"/>
+        <location line="+29"/>
         <source>Compare the source package entry by entry with another archive.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19278"/>
+        <location line="+127"/>
         <source>Save As</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19224"/>
+        <location line="+54"/>
         <source>Planned package entries, including staged additions, renamed files and folders, and generated assets.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18197"/>
+        <location line="+1027"/>
         <source>Turns every AI feature off. Editing, packages, compiling, and the CLI never need AI.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18189"/>
+        <location line="+8"/>
         <source>Let AI features use connectors that send requests off this machine: providers with your API key, or Claude Code and Codex with your own login. Each request is shown for your approval first; keys are read from environment variables and never logged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18185"/>
+        <location line="+4"/>
         <source>Planned: supervised plan, review, stage, validate, and summarize workflows. Nothing uses this yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18157"/>
+        <location line="+28"/>
         <source>The connector every text feature asks: the Assistant, Generate Level, Edit Map with AI, and ai ask. Set its model under Text Model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18156"/>
+        <location line="+1"/>
         <source>Coding (planned)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18156"/>
+        <location line="+0"/>
         <source>Planned: code, script, shader, and config assistance. Nothing uses this yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18155"/>
+        <location line="+1"/>
         <source>Vision (planned)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18155"/>
+        <location line="+0"/>
         <source>Planned: reading images and screenshots as context. Nothing uses this yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18150"/>
+        <location line="+5"/>
         <source>Voice (planned)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18150"/>
+        <location line="+0"/>
         <source>Planned: narration and speech. Nothing uses this yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18149"/>
+        <location line="+1"/>
         <source>3D (planned)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18149"/>
+        <location line="+0"/>
         <source>Planned: model and concept-to-asset generation. Nothing uses this yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18148"/>
+        <location line="+1"/>
         <source>Embeddings (planned)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18148"/>
+        <location line="+0"/>
         <source>Planned: semantic search and context ranking. Nothing uses this yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18145"/>
+        <location line="+3"/>
         <source>The connector text features use instead while cloud connectors are off: a runtime on this machine, or a GGUF model run inside VibeStudio.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18139"/>
+        <location line="+6"/>
         <source>Text Model</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18138"/>
+        <location line="+1"/>
         <source>Used by the Assistant, Generate Level, Edit Map with AI, and ai ask.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18103"/>
+        <location line="+35"/>
         <source>Choose a GGUF model file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18101"/>
+        <location line="+2"/>
         <source>Choose a GGUF Model</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18101"/>
+        <location line="+0"/>
         <source>GGUF models (*.gguf);;All files (*.*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18091"/>
+        <location line="+10"/>
         <source>Choose the tool&apos;s program</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18089"/>
+        <location line="+2"/>
         <source>Choose the Program</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18075"/>
+        <location line="+14"/>
         <source>Text connection status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18071"/>
+        <location line="+4"/>
         <source>Use This Connector</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18069"/>
+        <location line="+2"/>
         <source>Use this connector for text features</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18068"/>
-        <location line="-6102"/>
+        <location line="+1"/>
+        <location line="+11967"/>
         <source>Make this the connector the Assistant, Generate Level, and Edit Map with AI ask.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17779"/>
-        <location filename="../src/app/asset_workbench_actions.cpp" line="-11067"/>
+        <location line="-11678"/>
+        <location filename="../src/app/asset_workbench_actions.cpp" line="-22"/>
         <source>Edit the displayed mip level or sprite frame with its native export metadata.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/asset_workbench_actions.cpp" line="-10964"/>
+        <location line="+103"/>
         <source>Reading texture…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10964"/>
+        <location line="+0"/>
         <source>Resolving texture palette…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10964"/>
+        <location line="+0"/>
         <source>Decoding texture…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10964"/>
+        <location line="+0"/>
         <source>Preparing thumbnail…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-12324"/>
-        <location line="-10961"/>
-        <location line="-10713"/>
-        <location line="-4081"/>
+        <location line="-1360"/>
+        <location line="+1363"/>
+        <location line="+248"/>
+        <location line="+6632"/>
         <source>Cancel Preview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10961"/>
+        <location line="-6880"/>
         <source>Cancel texture preview and queued thumbnails.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10959"/>
+        <location line="+2"/>
         <source>Cancel texture previews</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10947"/>
+        <location line="+12"/>
         <source>Texture preview cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10946"/>
+        <location line="+1"/>
         <source>Select an image or reload previews to continue.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10943"/>
+        <location line="+3"/>
         <source>Reload Previews</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10943"/>
+        <location line="+0"/>
         <source>Reload textures and palette sources from the current package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10941"/>
+        <location line="+2"/>
         <source>Reload texture previews</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10496"/>
+        <location line="+445"/>
         <source>Edit WAV, MP3, FLAC, Ogg Vorbis or digital Doom DMX audio, then export or stage the result.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10473"/>
+        <location line="+23"/>
         <source>Write a separate WAV file. Validated PCM16 is copied; other supported WAV, DMX, MP3, FLAC and Vorbis sounds are converted to PCM16.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10054"/>
+        <location line="+419"/>
         <source>Quick Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9048"/>
-        <location filename="../src/app/package_context_actions.cpp" line="-14801"/>
-        <location line="-14748"/>
+        <location line="+1006"/>
+        <location filename="../src/app/package_context_actions.cpp" line="-3"/>
+        <location line="+53"/>
         <source>Untitled Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_context_actions.cpp" line="-9837"/>
+        <location line="+4911"/>
         <source>Texture Preview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9836"/>
-        <location line="-9768"/>
-        <location line="-1437"/>
+        <location line="+1"/>
+        <location line="+68"/>
+        <location line="+8332"/>
         <source>Loading texture preview…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-7039"/>
+        <location line="-5603"/>
         <source>Write the edited map to a new path without touching the source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19310"/>
-        <location line="-18575"/>
+        <location line="-12271"/>
+        <location line="+735"/>
         <source>Open Map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19309"/>
+        <location line="-734"/>
         <source>Open level map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19308"/>
+        <location line="+1"/>
         <source>Choose a Doom WAD map or Quake-family .map source to inspect.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19301"/>
+        <location line="+7"/>
         <source>Level document tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19298"/>
+        <location line="+3"/>
         <source>Level map path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19297"/>
+        <location line="+1"/>
         <source>Absolute or relative path to a Doom WAD map or Quake-family .map file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19296"/>
+        <location line="+1"/>
         <source>Map source path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19281"/>
+        <location line="+15"/>
         <source>Map in the WAD</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19280"/>
+        <location line="+1"/>
         <source>Which map of the WAD to open, such as MAP01 or E1M1. Choosing one opens it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19279"/>
+        <location line="+1"/>
         <source>The maps in this WAD. Choose one to open it, or type a map name.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19278"/>
+        <location line="+1"/>
         <source>MAP01 / E1M1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19253"/>
+        <location line="+25"/>
         <source>Level map engine hint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19252"/>
+        <location line="+1"/>
         <source>Optional parser hint for Doom, Quake, or Quake III map sources.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19251"/>
+        <location line="+1"/>
         <source>Engine family used to parse the map. Auto detects it from the file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19250"/>
+        <location line="+1"/>
         <source>Auto</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19249"/>
+        <location line="+1"/>
         <source>idTech1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19248"/>
+        <location line="+1"/>
         <source>idTech2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19247"/>
+        <location line="+1"/>
         <source>idTech3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19244"/>
+        <location line="+3"/>
         <location filename="../src/app/level_preview_actions.cpp" line="+71"/>
         <source>Reload</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_preview_actions.cpp" line="+0"/>
+        <location line="+0"/>
         <source>Load the map at this path and refresh entities, textures, validation, and preview state.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -107489,27 +107499,27 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+4981"/>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-23626"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="-137"/>
         <source>Objects</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-28583"/>
+        <location line="-4957"/>
         <source>Map palette</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28581"/>
+        <location line="+2"/>
         <source>Entity classes, or Doom thing types, to place. Enter or a double-click places one in the middle of the view; drag one onto the map to place it where it drops.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28569"/>
+        <location line="+12"/>
         <source>Filter classes and things</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28569"/>
+        <location line="+0"/>
         <source>Map palette filter</source>
         <translation type="unfinished"></translation>
     </message>
@@ -107816,7 +107826,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="+147"/>
+        <location line="+147"/>
         <source>Open a map to add shapes to it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -107950,266 +107960,266 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <location line="+147"/>
         <location line="+3029"/>
         <location line="+6453"/>
-        <location filename="../src/app/asset_workbench_actions.cpp" line="-9050"/>
-        <location line="-9048"/>
-        <location line="-9046"/>
-        <location line="-9026"/>
+        <location filename="../src/app/asset_workbench_actions.cpp" line="-2"/>
+        <location line="+2"/>
+        <location line="+2"/>
+        <location line="+20"/>
         <location filename="../src/app/level_preview_actions.cpp" line="-28"/>
         <source>Textures</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_preview_actions.cpp" line="-6454"/>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-28454"/>
+        <location line="-6454"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="+115"/>
         <source>Statistics</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-33920"/>
+        <location line="-5466"/>
         <source>Map viewport controls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33918"/>
-        <location line="-33137"/>
-        <location line="-28450"/>
+        <location line="+2"/>
+        <location line="+781"/>
+        <location line="+4687"/>
         <source>Undo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33918"/>
-        <location line="-21786"/>
+        <location line="-5468"/>
+        <location line="+12132"/>
         <source>Undo the last map edit.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33913"/>
-        <location line="-33134"/>
+        <location line="-12127"/>
+        <location line="+779"/>
         <source>Redo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33913"/>
-        <location line="-21783"/>
+        <location line="-779"/>
+        <location line="+12130"/>
         <source>Redo the last undone map edit.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33904"/>
+        <location line="-12121"/>
         <source>Map projection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33903"/>
+        <location line="+1"/>
         <source>Choose the orthographic plane the viewport draws.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33902"/>
+        <location line="+1"/>
         <source>Top (X/Y)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33901"/>
+        <location line="+1"/>
         <source>Front (X/Z)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33895"/>
-        <location line="-33785"/>
+        <location line="+6"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="+110"/>
         <source>Grid size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33784"/>
+        <location line="+1"/>
         <source>Grid spacing in world units.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33782"/>
-        <location line="-21278"/>
+        <location line="+2"/>
+        <location line="+12504"/>
         <source>Grid %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33777"/>
+        <location line="-12499"/>
         <source>Snap</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33775"/>
+        <location line="+2"/>
         <source>Snap drags and nudges to the grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33774"/>
+        <location line="+1"/>
         <source>Drags and arrow-key nudges move by whole grid steps. Turn it off to move by the raw pointer delta.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33767"/>
-        <location line="-33739"/>
+        <location line="+7"/>
+        <location line="+28"/>
         <source>Show</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33754"/>
-        <location line="-13311"/>
+        <location line="-15"/>
+        <location line="+20444"/>
         <source>Things</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33754"/>
-        <location line="-13310"/>
+        <location line="-20444"/>
+        <location line="+20445"/>
         <source>Draw Doom things.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33753"/>
+        <location line="-20444"/>
         <source>Sector Fill</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33753"/>
+        <location line="+0"/>
         <source>Shade Doom sectors by light level.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33752"/>
-        <location line="-31032"/>
+        <location line="+1"/>
+        <location line="+2720"/>
         <location filename="../src/app/level_shapes_panel.cpp" line="-486"/>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-30999"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="+33"/>
         <source>Grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33719"/>
+        <location line="-2720"/>
         <source>Draw grid lines at the grid spacing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33712"/>
+        <location line="+7"/>
         <source>Mark every vertex and brush corner.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33711"/>
+        <location line="+1"/>
         <source>Labels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33711"/>
+        <location line="+0"/>
         <source>Name entities and things beside their markers.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33710"/>
+        <location line="+1"/>
         <source>Target Links</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33709"/>
+        <location line="+1"/>
         <source>Draw arrows from each entity&apos;s target and killtarget keys to the entities they name. The selection&apos;s links are drawn either way.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33704"/>
+        <location line="+5"/>
         <source>Map display options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-33698"/>
-        <location line="-31278"/>
-        <location line="-11755"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-18747"/>
+        <location line="+6"/>
+        <location line="+2420"/>
+        <location line="+19524"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-968"/>
         <source>Zoom to Fit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40690"/>
+        <location line="-21944"/>
         <source>Frame the whole map in the viewport.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40688"/>
+        <location line="+2"/>
         <source>Zoom map viewport to fit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40677"/>
-        <location line="-18749"/>
+        <location line="+11"/>
+        <location line="+21929"/>
         <source>Zoom to Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40677"/>
+        <location line="-21929"/>
         <source>Frame the selected objects in the viewport (F).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40675"/>
+        <location line="+2"/>
         <source>Zoom map viewport to the selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40669"/>
+        <location line="+6"/>
         <source>Export Image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40669"/>
+        <location line="+0"/>
         <source>Write a deterministic SVG picture of the current map for review or documentation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40668"/>
+        <location line="+1"/>
         <source>Export map image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40662"/>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-11711"/>
+        <location line="+6"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="+44"/>
         <source>3D</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-11711"/>
+        <location line="+0"/>
         <source>Show the map in 3D: drag to orbit, wheel to zoom. The 2D view comes back with the same button.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11708"/>
+        <location line="+3"/>
         <source>3D preview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11703"/>
+        <location line="+5"/>
         <source>Controls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11703"/>
+        <location line="+0"/>
         <source>Level editor controls.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11701"/>
-        <location line="-3994"/>
+        <location line="+2"/>
+        <location line="+7707"/>
         <source>Level editor controls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11686"/>
+        <location line="-7692"/>
         <source>Controls like</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11684"/>
+        <location line="+2"/>
         <source>%1 (keys only)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11671"/>
+        <location line="+13"/>
         <source>Show Every Gesture and Key...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -108235,7 +108245,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="+2"/>
+        <location line="+2"/>
         <source>Map viewport readout</source>
         <translation type="unfinished"></translation>
     </message>
@@ -108265,124 +108275,124 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-11972"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="-301"/>
         <source>Layers and Groups</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11968"/>
+        <location line="+4"/>
         <source>Classes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11962"/>
+        <location line="+6"/>
         <source>About the chosen class</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11961"/>
+        <location line="+1"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11954"/>
+        <location line="+7"/>
         <source>Place the chosen class in the middle of the active view</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11953"/>
+        <location line="+1"/>
         <source>Place the chosen class or thing in the middle of the active 2D view. You can also drag it onto any view.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11938"/>
-        <location line="-11931"/>
-        <location line="-11926"/>
+        <location line="+15"/>
+        <location line="+7"/>
+        <location line="+5"/>
         <source>In This Map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11936"/>
+        <location line="-10"/>
         <source>Package Textures</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11935"/>
+        <location line="+1"/>
         <source>List every texture in the open package as well as the ones the map uses.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11931"/>
-        <location line="-11926"/>
+        <location line="+4"/>
+        <location line="+5"/>
         <source>Map and Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11922"/>
+        <location line="+4"/>
         <source>Tile Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11922"/>
+        <location line="+0"/>
         <source>Make the texture tiles smaller or larger.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11914"/>
+        <location line="+8"/>
         <source>Small</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11914"/>
+        <location line="+0"/>
         <source>Medium</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11914"/>
+        <location line="+0"/>
         <source>Large</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11914"/>
+        <location line="+0"/>
         <source>Largest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11891"/>
+        <location line="+23"/>
         <source>Edit selected entity key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11887"/>
+        <location line="+4"/>
         <source>Find a value of one key across the map&apos;s entities and replace it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11853"/>
+        <location line="+34"/>
         <source>Raw Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11849"/>
+        <location line="+4"/>
         <source>Text Outline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11845"/>
+        <location line="+4"/>
         <source>Display</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/app/level_filter_tag_actions.cpp" line="-505"/>
         <location line="+61"/>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-11844"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="+1"/>
         <location filename="../src/app/level_view_actions.cpp" line="-142"/>
         <location filename="../src/app/level_view_filter_actions.cpp" line="+52"/>
         <source>Filters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_filter_actions.cpp" line="-3"/>
+        <location line="-3"/>
         <location line="+189"/>
         <source>Toggle %1 Visible</source>
         <translation type="unfinished"></translation>
@@ -108399,7 +108409,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_smart_tag_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Apply the %1 tag to the selection in one undo step.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -108452,32 +108462,32 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+36"/>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-11843"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="+1"/>
         <source>Entity Classes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-11828"/>
+        <location line="+15"/>
         <source>Show or hide every %1 entity in the Levels views, those added later included, for this map session. Checked while the views draw them; the map is unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11793"/>
+        <location line="+35"/>
         <source>Choose a Tag File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11792"/>
+        <location line="+1"/>
         <source>Tag files and TrenchBroom game configurations (*.json *.cfg);;All files (*.*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11785"/>
+        <location line="+7"/>
         <source>Could not use %1 for tags: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-11779"/>
+        <location line="+6"/>
         <source>%n tag(s) read from %1; each has a Toggle Visible command. The map is unchanged.</source>
         <translation>
             <numerusform>%n tag read from %1; each has a Toggle Visible command. The map is unchanged.</numerusform>
@@ -108485,77 +108495,77 @@ Double-click or press Enter to show it on the Textures surface.</source>
         </translation>
     </message>
     <message>
-        <location line="-11770"/>
+        <location line="+9"/>
         <source>The tag file is no longer used; the project&apos;s own tags stay.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11712"/>
+        <location line="+58"/>
         <source>Entity class filters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11707"/>
+        <location line="+5"/>
         <source>Find a class</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11706"/>
+        <location line="+1"/>
         <source>Find an entity class to filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11700"/>
+        <location line="+6"/>
         <source>Entity classes the views draw</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11699"/>
+        <location line="+1"/>
         <source>Untick a class to hide every entity of it in the Levels views for this map session. Groups tick or untick their classes together.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11648"/>
+        <location line="+51"/>
         <source>Show All Classes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11647"/>
+        <location line="+1"/>
         <source>Show every entity class in the Levels views again. The map is unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11646"/>
+        <location line="+1"/>
         <source>Hide All Classes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11645"/>
+        <location line="+1"/>
         <source>Hide every entity class in the Levels views for this map session; tick the ones to keep. The map is unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11584"/>
+        <location line="+61"/>
         <source>brush class</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11584"/>
+        <location line="+0"/>
         <source>point class</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11583"/>
+        <location line="+1"/>
         <source>from the entity definitions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11583"/>
+        <location line="+0"/>
         <source>used by this map only</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-11582"/>
+        <location line="+1"/>
         <source>%1: %2, %3, %n in this map.</source>
         <translation>
             <numerusform>%1: %2, %3, %n in this map.</numerusform>
@@ -108563,7 +108573,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-11580"/>
+        <location line="+2"/>
         <source>%1, shown, %n in this map</source>
         <translation>
             <numerusform>%1, shown, %n in this map</numerusform>
@@ -108571,7 +108581,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-11579"/>
+        <location line="+1"/>
         <source>%1, hidden, %n in this map</source>
         <translation>
             <numerusform>%1, hidden, %n in this map</numerusform>
@@ -108579,7 +108589,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-11569"/>
+        <location line="+10"/>
         <source>%n class(es) whose names begin with %1; tick or untick them together.</source>
         <translation>
             <numerusform>%n class whose names begin with %1; tick or untick them together.</numerusform>
@@ -108587,17 +108597,17 @@ Double-click or press Enter to show it on the Textures surface.</source>
         </translation>
     </message>
     <message>
-        <location line="-11559"/>
+        <location line="+10"/>
         <source>Open a map to filter its entity classes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11557"/>
+        <location line="+2"/>
         <source>Class filters are for Quake-family maps; Doom maps filter things by category above.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-11555"/>
+        <location line="+2"/>
         <source>All %n class(es) shown. Class filters last until another map opens and never change the map.</source>
         <translation>
             <numerusform>All %n class shown. Class filters last until another map opens and never change the map.</numerusform>
@@ -108605,7 +108615,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-11553"/>
+        <location line="+2"/>
         <source>%1 of %n class(es) hidden from the views until another map opens; the map is unchanged.</source>
         <translation>
             <numerusform>%1 of %n class hidden from the views until another map opens; the map is unchanged.</numerusform>
@@ -108613,22 +108623,22 @@ Double-click or press Enter to show it on the Textures surface.</source>
         </translation>
     </message>
     <message>
-        <location line="-11535"/>
+        <location line="+18"/>
         <source>Class filters are for Quake-family maps.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11506"/>
+        <location line="+29"/>
         <source>%1 entities shown again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11505"/>
+        <location line="+1"/>
         <source>%1 entities hidden from the views for this map session; the map is unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-11502"/>
+        <location line="+3"/>
         <source>%n entity class(es) shown again.</source>
         <translation>
             <numerusform>%n entity class shown again.</numerusform>
@@ -108636,7 +108646,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-11501"/>
+        <location line="+1"/>
         <source>%n entity class(es) hidden from the views for this map session; the map is unchanged.</source>
         <translation>
             <numerusform>%n entity class hidden from the views for this map session; the map is unchanged.</numerusform>
@@ -108644,27 +108654,27 @@ Double-click or press Enter to show it on the Textures surface.</source>
         </translation>
     </message>
     <message>
-        <location line="-11476"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="+25"/>
         <source>Level browsers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11474"/>
+        <location line="+2"/>
         <source>Level properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11405"/>
+        <location line="+69"/>
         <source>Grid spacing in world units, the same setting as the view bar&apos;s grid.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11399"/>
+        <location line="+6"/>
         <source>%1 units</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-11397"/>
+        <location line="+2"/>
         <source>%n unit(s)</source>
         <translation>
             <numerusform>%n unit</numerusform>
@@ -108672,215 +108682,215 @@ Double-click or press Enter to show it on the Textures surface.</source>
         </translation>
     </message>
     <message>
-        <location line="-11330"/>
+        <location line="+67"/>
         <source>2D</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11329"/>
+        <location line="+1"/>
         <source>3D and 2D</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11329"/>
+        <location line="+0"/>
         <source>Four Views</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11328"/>
+        <location line="+1"/>
         <source>3D Above</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11328"/>
+        <location line="+0"/>
         <source>3D Beside</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11010"/>
+        <location line="+318"/>
         <source>Move %1 to the Right Sidebar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11010"/>
+        <location line="+0"/>
         <source>Move %1 to the Left Sidebar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11007"/>
+        <location line="+3"/>
         <source>Open Sidebar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11007"/>
+        <location line="+0"/>
         <source>Fold Sidebar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11005"/>
+        <location line="+2"/>
         <source>Show Tab Captions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11000"/>
-        <location line="-10866"/>
+        <location line="+5"/>
+        <location line="+134"/>
         <source>Reset Sidebars</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10962"/>
+        <location line="-96"/>
         <source>%1 moved to the other sidebar. Reset Sidebars on its tab menu puts every tab back.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10946"/>
+        <location line="+16"/>
         <source>Sidebars reset to the %1 arrangement.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10920"/>
+        <location line="+26"/>
         <source>Level Sidebars</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10914"/>
+        <location line="+6"/>
         <source>Show %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10884"/>
+        <location line="+30"/>
         <source>Fold or Open the Browser Sidebar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10883"/>
+        <location line="+1"/>
         <source>Fold the sidebar of browsers down to its tabs, or open it again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10879"/>
+        <location line="+4"/>
         <source>Fold or Open the Properties Sidebar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10878"/>
+        <location line="+1"/>
         <source>Fold the sidebar of properties down to its tabs, or open it again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10874"/>
+        <location line="+4"/>
         <source>Sidebar Tab Captions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10873"/>
+        <location line="+1"/>
         <source>Name each sidebar tab under its glyph.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10866"/>
+        <location line="+7"/>
         <source>Put every Levels sidebar tab back where the editor profile places it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10860"/>
+        <location line="+6"/>
         <source>Show Map Statistics</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10859"/>
+        <location line="+1"/>
         <source>Open the Map tab&apos;s Statistics: entity, brush, face, patch and texture counts, bounds and issues.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10855"/>
+        <location line="+4"/>
         <source>Show Worldspawn Keys</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10854"/>
+        <location line="+1"/>
         <source>Open the Map tab&apos;s Worldspawn list to add or change worldspawn keys; each change is one undo step.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10835"/>
+        <location line="+19"/>
         <source>Open a map to see what it can place.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10834"/>
+        <location line="+1"/>
         <source>Choose a class above to read about it. Drag it onto a view to place it there.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10827"/>
+        <location line="+7"/>
         <source>%1
 DoomEd number %2, filed under %3.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10823"/>
+        <location line="+4"/>
         <source>DoomEd number %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10817"/>
+        <location line="+6"/>
         <source>%1
 No definition is loaded for this class, so its keys are not known. Load entity definitions on the Map tab.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10807"/>
+        <location line="+10"/>
         <source>Size %1 × %2 × %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10797"/>
+        <location line="+10"/>
         <source>Keys: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10790"/>
+        <location line="+7"/>
         <source>Flags: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10787"/>
+        <location line="+3"/>
         <source>Model: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10751"/>
+        <location line="+36"/>
         <source>Choose a class in Entities before placing it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="+11884"/>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-11551"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="-800"/>
         <source>Change a key on the selected map object.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-11540"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="+11"/>
         <source>Move selected map object</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="+3"/>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-11542"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="-2"/>
         <source>Translate the selected map object by a delta.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-23384"/>
+        <location line="-11842"/>
         <source>Entity inspector</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23381"/>
-        <location line="-21680"/>
-        <location line="-18086"/>
-        <location line="-9760"/>
+        <location line="+3"/>
+        <location line="+1701"/>
+        <location line="+3594"/>
+        <location line="+8327"/>
         <location filename="../src/app/level_editing_actions.cpp" line="-39"/>
         <location line="+32"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="-400"/>
@@ -108890,7 +108900,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_panels.cpp" line="-13600"/>
+        <location line="-13601"/>
         <source>Colour for %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -109021,12 +109031,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="+3046"/>
         <location line="+28"/>
-        <location line="+10667"/>
+        <location line="+10668"/>
         <source>Inspector</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8721"/>
+        <location line="-8722"/>
         <source>Health</source>
         <translation type="unfinished"></translation>
     </message>
@@ -109034,129 +109044,129 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="-4482"/>
         <location line="+1229"/>
         <location line="+374"/>
-        <location line="+16371"/>
-        <location filename="../src/app/level_preview_actions.cpp" line="-1313"/>
+        <location line="+16372"/>
+        <location filename="../src/app/level_preview_actions.cpp" line="+36"/>
         <source>Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_preview_actions.cpp" line="-16886"/>
+        <location line="-15574"/>
         <source>Outline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19798"/>
+        <location line="-2912"/>
         <source>Level map workbench</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19778"/>
-        <location line="-5544"/>
-        <location line="-5533"/>
+        <location line="+20"/>
+        <location line="+14235"/>
+        <location line="+11"/>
         <source>No map open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19777"/>
-        <location line="-5532"/>
+        <location line="-14245"/>
+        <location line="+14246"/>
         <source>Open a Quake, Quake II, or Quake III .map, or a Doom WAD, to inspect its entities, brushes, and health in the viewport.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19765"/>
-        <location line="-19759"/>
+        <location line="-14234"/>
+        <location line="+6"/>
         <source>Recent maps</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19758"/>
+        <location line="+1"/>
         <source>Maps opened recently. Press Enter or double-click one to open it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19634"/>
-        <location line="-14282"/>
-        <location line="-9664"/>
-        <location line="-8347"/>
+        <location line="+124"/>
+        <location line="+5352"/>
+        <location line="+4618"/>
+        <location line="+1317"/>
         <source>Packages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19633"/>
+        <location line="-11286"/>
         <source>Package manager header</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19631"/>
-        <location line="-19186"/>
+        <location line="+2"/>
+        <location line="+445"/>
         <location filename="../src/app/package_document_actions.cpp" line="+167"/>
         <source>New Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_document_actions.cpp" line="-443"/>
+        <location line="-443"/>
         <source>Create a new package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-275"/>
+        <location line="+1"/>
         <source>Start an empty PAK, ZIP, PK3 or WAD document.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-272"/>
+        <location line="+3"/>
         <source>Export Selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-271"/>
+        <location line="+1"/>
         <source>Export selected package files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-266"/>
+        <location line="+5"/>
         <source>Open a package before exporting a subset.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-255"/>
+        <location line="+11"/>
         <source>Select files or folders to export.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-251"/>
+        <location line="+4"/>
         <source>Package subset export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-243"/>
+        <location line="+8"/>
         <source>Compare</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-242"/>
+        <location line="+1"/>
         <source>Compare the open package with another</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-229"/>
-        <location line="+2749"/>
+        <location line="+13"/>
+        <location line="+398"/>
         <source>Open Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2977"/>
+        <location line="-397"/>
         <source>Open folder package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-227"/>
+        <location line="+1"/>
         <source>Open a folder as a read-only package source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-221"/>
-        <location line="+3419"/>
+        <location line="+6"/>
+        <location line="+384"/>
         <location line="+1532"/>
         <location line="+241"/>
         <location line="+200"/>
@@ -109165,47 +109175,47 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6701"/>
+        <location line="-3445"/>
         <source>Open package file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-219"/>
+        <location line="+1"/>
         <source>Open a PAK, WAD, ZIP, or PK3 package for read-only browsing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-213"/>
+        <location line="+6"/>
         <source>Package tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-210"/>
+        <location line="+3"/>
         <source>Package entry filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-209"/>
+        <location line="+1"/>
         <source>Filters loaded package entries by path or type hint, or by a query such as ext=wav size&gt;1mb.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-208"/>
+        <location line="+1"/>
         <source>Filter entries by path or type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-207"/>
+        <location line="+1"/>
         <source>Words search paths and types. key=value, key:text, key!=value, key&lt;n, and key&gt;n test each entry&apos;s path, name, ext, folder, type, storage, size, and packed size, all together: ext=wav size&gt;1mb, folder:textures. Sizes take k, m, and g. Down lists the queries used before.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-38"/>
+        <location line="+169"/>
         <source>No entry matches the filter.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-38"/>
+        <location line="+0"/>
         <source>%n matching entr(y)(ies) selected.</source>
         <translation>
             <numerusform>%n matching entry selected.</numerusform>
@@ -109213,160 +109223,160 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         </translation>
     </message>
     <message>
-        <location line="-168"/>
+        <location line="-130"/>
         <source>Extract</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-168"/>
+        <location line="+0"/>
         <source>Extract selected package entries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-167"/>
+        <location line="+1"/>
         <source>Extract selected package entries to a chosen folder without overwriting existing files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-166"/>
+        <location line="+1"/>
         <source>Extract All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-166"/>
+        <location line="+0"/>
         <source>Extract all package entries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-165"/>
+        <location line="+1"/>
         <source>Extract every readable package entry to a chosen folder without overwriting existing files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-164"/>
+        <location line="+1"/>
         <source>Cancel Extract</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-164"/>
+        <location line="+0"/>
         <source>Cancel package extraction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-161"/>
-        <location line="+16507"/>
+        <location line="+3"/>
+        <location line="+10361"/>
         <source>Package extraction cancellation requested</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16663"/>
+        <location line="-10356"/>
         <source>New Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-156"/>
+        <location line="+0"/>
         <source>Create package folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-155"/>
+        <location line="+1"/>
         <source>Create an empty folder in the package. ZIP and PK3 preserve empty folders.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-153"/>
+        <location line="+2"/>
         <source>WAD Groups</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-153"/>
+        <location line="+0"/>
         <source>Review WAD group edits</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-152"/>
+        <location line="+1"/>
         <source>Review map renames and complete group deletions, including GL companions and namespace boundaries.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-148"/>
+        <location line="+4"/>
         <source>Stage package add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-147"/>
+        <location line="+1"/>
         <source>Stage a local file as a new virtual package entry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-146"/>
+        <location line="+1"/>
         <source>Stage package replace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-145"/>
+        <location line="+1"/>
         <source>Stage a local file to replace the selected package entry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-144"/>
+        <location line="+1"/>
         <source>Stage package rename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-143"/>
-        <location line="+19941"/>
+        <location line="+1"/>
+        <location line="+11979"/>
         <source>Stage a rename for the selected package entry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20083"/>
+        <location line="-11978"/>
         <source>Stage package delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-141"/>
+        <location line="+1"/>
         <source>Stage deletion for the selected package entries.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-140"/>
+        <location line="+1"/>
         <source>Review Changes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-140"/>
+        <location line="+0"/>
         <source>Review staged package changes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-139"/>
-        <location line="+20658"/>
+        <location line="+1"/>
+        <location line="+11990"/>
         <source>Compare the source package with the staged result before saving.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20783"/>
+        <location line="-11976"/>
         <source>Package compression level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-124"/>
+        <location line="+1"/>
         <source>DEFLATE effort for ZIP and PK3 output. Every level measures each block as stored, fixed, and dynamic Huffman and keeps the smallest, so the levels trade search time for size, never correctness. PAK and WAD output is always stored.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-123"/>
+        <location line="+1"/>
         <source>Store (no compression)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-122"/>
+        <location line="+1"/>
         <source>Fast</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-121"/>
+        <location line="+1"/>
         <location filename="../src/app/level_object_selection_actions.cpp" line="+131"/>
         <location filename="../src/app/level_scene_layer_actions.cpp" line="+87"/>
         <location line="+67"/>
@@ -109374,7 +109384,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_scene_layer_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Best</source>
         <translation type="unfinished"></translation>
     </message>
@@ -109520,13 +109530,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+4482"/>
         <location line="+1804"/>
         <location line="+2112"/>
-        <location line="+3878"/>
+        <location line="+3879"/>
         <location filename="../src/app/level_asset_browsers.cpp" line="-209"/>
         <source>Preview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_asset_browsers.cpp" line="-12275"/>
+        <location line="-12276"/>
         <source>Staging</source>
         <translation type="unfinished"></translation>
     </message>
@@ -109607,7 +109617,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+30"/>
-        <location line="+13680"/>
+        <location line="+13681"/>
         <location line="+8"/>
         <location line="+47"/>
         <location line="+2523"/>
@@ -109617,13 +109627,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17347"/>
-        <location line="+13688"/>
+        <location line="-17348"/>
+        <location line="+13689"/>
         <source>Open a PAK, WAD, ZIP, or PK3 archive, or a folder, to browse its entries, preview content, and stage changes for a new package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13666"/>
+        <location line="-13667"/>
         <location line="+10831"/>
         <source>Build</source>
         <translation type="unfinished"></translation>
@@ -109635,12 +109645,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+3"/>
-        <location line="+21872"/>
+        <location line="+21873"/>
         <source>Inspect Artifacts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21871"/>
+        <location line="-21872"/>
         <source>Inspect compiled artifacts</source>
         <translation type="unfinished"></translation>
     </message>
@@ -109653,331 +109663,331 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="-380"/>
         <location line="+401"/>
         <location line="+2313"/>
-        <location line="+9856"/>
+        <location line="+9857"/>
         <location line="+2967"/>
         <location line="+966"/>
         <location filename="../src/app/code_formatting.cpp" line="+58"/>
         <location filename="../src/app/code_index_actions.cpp" line="+68"/>
-        <location filename="../src/app/level_preview_actions.cpp" line="-19183"/>
+        <location filename="../src/app/level_preview_actions.cpp" line="+3"/>
         <location filename="../src/tests/code_index_ui_smoke_test.cpp" line="+187"/>
         <location filename="../src/tests/package_browser_ui_smoke_test.cpp" line="+154"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/package_browser_ui_smoke_test.cpp" line="-16101"/>
+        <location line="-16102"/>
         <source>Cancel build pipeline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15946"/>
+        <location line="+1"/>
         <source>Stop the running pipeline after the current stage.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15939"/>
+        <location line="+7"/>
         <source>Build and Launch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15937"/>
+        <location line="+2"/>
         <source>Build, then launch the game</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15936"/>
+        <location line="+1"/>
         <source>Run the pipeline, then launch the game with the built map once it succeeds (F5).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15930"/>
+        <location line="+6"/>
         <source>Run Pipeline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15928"/>
+        <location line="+2"/>
         <source>Run build pipeline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15927"/>
+        <location line="+1"/>
         <source>Run every enabled stage in order, capturing logs, diagnostics, hashes, and command manifests.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15921"/>
+        <location line="+6"/>
         <source>Build pipeline settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15920"/>
-        <location line="-15605"/>
+        <location line="+1"/>
+        <location line="+315"/>
         <source>Pipeline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15916"/>
+        <location line="-311"/>
         <source>Build pipeline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15915"/>
+        <location line="+1"/>
         <source>Chained compile stages run in order, each feeding the next stage&apos;s input.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15910"/>
+        <location line="+5"/>
         <source>Input</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15906"/>
+        <location line="+4"/>
         <source>Build pipeline input</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15905"/>
+        <location line="+1"/>
         <source>Source map path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15901"/>
+        <location line="+4"/>
         <source>Choose the source map for the pipeline.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15900"/>
+        <location line="+1"/>
         <source>Choose build pipeline input</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15898"/>
+        <location line="+2"/>
         <source>Choose Build Input</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15898"/>
+        <location line="+0"/>
         <source>Maps (*.map *.wad);;All files (*.*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15888"/>
+        <location line="+10"/>
         <source>Use Open Map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15888"/>
+        <location line="+0"/>
         <source>Build the map open in Levels, and follow it when another map is opened.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15886"/>
+        <location line="+2"/>
         <source>Build the map open in Levels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15879"/>
+        <location line="+7"/>
         <source>Prepare Workspace…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15879"/>
+        <location line="+0"/>
         <source>Capture the current Quake III map and package assets for a reproducible build.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15877"/>
+        <location line="+2"/>
         <source>Prepare a build workspace from the current map and package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15873"/>
+        <location line="+4"/>
         <source>Copy Commands</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15873"/>
+        <location line="+0"/>
         <source>Copy every stage command line so the same build can be reproduced from a shell or CI.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15871"/>
+        <location line="+2"/>
         <source>Copy build pipeline commands</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15866"/>
-        <location line="+483121"/>
+        <location line="+5"/>
+        <location line="+22123"/>
         <source>Show Output</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-498987"/>
+        <location line="-22123"/>
         <source>Open the folder that holds the compiled map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15864"/>
+        <location line="+2"/>
         <source>Show the compiled map in its folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15859"/>
+        <location line="+5"/>
         <source>Add to Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15859"/>
-        <location line="-4241"/>
+        <location line="+0"/>
+        <location line="+11618"/>
         <source>Stage the built map into the open package under maps/, for Save As to write.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15857"/>
+        <location line="-11616"/>
         <source>Add the built map to the open package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15852"/>
+        <location line="+5"/>
         <source>Explain</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15852"/>
-        <location line="-4153"/>
+        <location line="+0"/>
+        <location line="+11700"/>
         <source>Ask the Assistant about the last build&apos;s problems. You see what is sent before it goes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15850"/>
+        <location line="-11698"/>
         <source>Explain the build problems with the Assistant</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15843"/>
+        <location line="+7"/>
         <source>Build pipeline state</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15842"/>
-        <location line="+649473"/>
+        <location line="+1"/>
+        <location line="+21513"/>
         <source>Build Pipeline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-665314"/>
+        <location line="-21512"/>
         <source>Chained compile stages with per-stage logs, diagnostics, and output paths.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15839"/>
+        <location line="+2"/>
         <source>Stage plan</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15838"/>
+        <location line="+1"/>
         <source>Stage output</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15837"/>
+        <location line="+1"/>
         <source>Artifacts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15833"/>
+        <location line="+4"/>
         <source>Build pipeline stages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15832"/>
+        <location line="+1"/>
         <source>Each stage of the selected pipeline with its state, duration, and whether it is optional.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15831"/>
+        <location line="+1"/>
         <source>Pipeline Stages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15830"/>
+        <location line="+1"/>
         <source>Choose a pipeline and an input map to plan the stages.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15822"/>
+        <location line="+8"/>
         <source>Build pipeline stage list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15821"/>
+        <location line="+1"/>
         <source>Stage order, resolved input and output paths, tool availability, and skip reasons.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15811"/>
+        <location line="+10"/>
         <source>Build pipeline detail drawer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15810"/>
+        <location line="+1"/>
         <source>Build Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15809"/>
+        <location line="+1"/>
         <source>Stage commands, captured output, diagnostics, artifacts, and manifests.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15805"/>
+        <location line="+4"/>
         <source>Build problems</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15804"/>
+        <location line="+1"/>
         <source>Warnings and errors the compilers reported in the last run. Press Enter on one to show the map object or the file line it names.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15792"/>
+        <location line="+12"/>
         <source>Stages and problems</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15790"/>
+        <location line="+2"/>
         <source>Stages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15787"/>
+        <location line="+3"/>
         <source>Stage list and build details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15769"/>
-        <location line="-15683"/>
+        <location line="+18"/>
+        <location line="+86"/>
         <source>Compiler profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15768"/>
+        <location line="-85"/>
         <source>Each compiler profile, the engine and stage it serves, and whether its tool is ready. Select one to run it or copy its command.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15760"/>
-        <location line="-15684"/>
+        <location line="+8"/>
+        <location line="+76"/>
         <source>Compiler tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15759"/>
+        <location line="-75"/>
         <source>Each compiler tool, whether it was found, the executable the studio runs, and where that path comes from. Press Enter to choose a tool&apos;s executable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15757"/>
+        <location line="+2"/>
         <source>Tool</source>
         <translation type="unfinished"></translation>
     </message>
@@ -110108,12 +110118,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+21146"/>
+        <location line="+21147"/>
         <source>Map name to load, for example start</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21144"/>
+        <location line="-21145"/>
         <source>Map</source>
         <translation type="unfinished"></translation>
     </message>
@@ -110141,14 +110151,14 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+5"/>
-        <location line="+21609"/>
+        <location line="+21610"/>
         <location line="+19"/>
         <location line="+3"/>
         <source>Launch Game</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21629"/>
+        <location line="-21630"/>
         <source>Launch configured game</source>
         <translation type="unfinished"></translation>
     </message>
@@ -110207,103 +110217,103 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+65"/>
         <location line="+10182"/>
         <location line="+215"/>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-126"/>
+        <location filename="../src/app/level_shapes_panel.cpp" line="+100"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-10522"/>
+        <location line="-10396"/>
         <source>Settings header</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10521"/>
+        <location line="+1"/>
         <source>Changes apply immediately and are saved automatically.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10515"/>
+        <location line="+6"/>
         <source>Settings categories</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10509"/>
+        <location line="+6"/>
         <source>Settings category pages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10484"/>
+        <location line="+25"/>
         <source>First-run setup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10483"/>
+        <location line="+1"/>
         <source>Setup status, current step, warnings, and actions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10476"/>
-        <location line="-8577"/>
-        <location line="-882"/>
+        <location line="+7"/>
+        <location line="+1899"/>
+        <location line="+7695"/>
         <source>Setup status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10473"/>
+        <location line="-9591"/>
         <source>Current setup step</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10468"/>
+        <location line="+5"/>
         <source>Setup progress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10463"/>
+        <location line="+5"/>
         <source>Setup next action</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10459"/>
+        <location line="+4"/>
         <source>Setup summary</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10458"/>
+        <location line="+1"/>
         <source>Every setup step in order with its state, followed by setup warnings.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10451"/>
-        <location line="-5978"/>
+        <location line="+7"/>
+        <location line="+4473"/>
         <location filename="../src/app/model_browser_appearance.cpp" line="+60"/>
         <source>Reset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_browser_appearance.cpp" line="-4472"/>
+        <location line="-4472"/>
         <source>Reset setup progress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4398"/>
+        <location line="+14"/>
         <source>Skip</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4397"/>
+        <location line="+1"/>
         <source>Skip setup for now</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4392"/>
+        <location line="+5"/>
         <location filename="../src/app/code_snippet_bar.cpp" line="+25"/>
         <location filename="../src/tests/completion_snippet_ui_smoke_test.cpp" line="+132"/>
         <source>Finish</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/completion_snippet_ui_smoke_test.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Finish setup</source>
         <translation type="unfinished"></translation>
     </message>
@@ -110322,77 +110332,77 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="+5"/>
         <location line="+9082"/>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-5993"/>
+        <location filename="../src/app/level_shapes_panel.cpp" line="-15"/>
         <source>Start</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-15074"/>
+        <location line="-9081"/>
         <source>Start or resume setup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15066"/>
+        <location line="+8"/>
         <source>Getting Started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15058"/>
+        <location line="+8"/>
         <source>Appearance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5140"/>
+        <location line="+9918"/>
         <source>Accessibility and language preferences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15042"/>
-        <location line="-15029"/>
+        <location line="-9902"/>
+        <location line="+13"/>
         <source>Theme</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15026"/>
-        <location line="-15021"/>
+        <location line="+3"/>
+        <location line="+5"/>
         <source>Text scale</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15024"/>
-        <location line="-5692"/>
-        <location line="+292127"/>
+        <location line="-3"/>
+        <location line="+9332"/>
+        <location line="+8584"/>
         <source>%1%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-307145"/>
+        <location line="-17910"/>
         <source>UI density</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15008"/>
+        <location line="+10"/>
         <source>Density</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14985"/>
+        <location line="+23"/>
         <source>Navigation rail</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14984"/>
+        <location line="+1"/>
         <source>How the page list on the left spends its width. Automatic keeps it to icons and opens it over the page while the pointer rests on it or the keyboard is in it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14978"/>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-9716"/>
+        <location line="+6"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="+44"/>
         <source>Navigation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="+4058069"/>
+        <location line="+13906"/>
         <source>Reduce motion</source>
         <translation type="unfinished"></translation>
     </message>
@@ -110412,127 +110422,127 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4067836"/>
-        <location line="-9684"/>
+        <location line="-13957"/>
+        <location line="+20"/>
         <source>Language</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9652"/>
-        <location line="-9645"/>
+        <location line="+32"/>
+        <location line="+7"/>
         <source>Editor profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9650"/>
+        <location line="-5"/>
         <source>The Levels page works like the editor you already know: its mouse, camera, layout, and keys.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9601"/>
+        <location line="+49"/>
         <source>Startup and Recovery</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9597"/>
+        <location line="+4"/>
         <source>Reopen the last session at start</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9595"/>
+        <location line="+2"/>
         <source>Reopen the last session</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9594"/>
+        <location line="+1"/>
         <source>At start, reopen the package, the map, and the code files that were open last time. Opening a file from the command line skips it, and after a crash the studio offers them instead.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9592"/>
+        <location line="+2"/>
         <source>Keep a crash report on this machine</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9590"/>
+        <location line="+2"/>
         <source>Keep crash reports</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9589"/>
+        <location line="+1"/>
         <source>If the studio closes unexpectedly, write what it was doing to a report beside the session log, for the next start to offer. Reports never leave this machine unless you copy them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9585"/>
+        <location line="+4"/>
         <source>Appearance and Language</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9577"/>
+        <location line="+8"/>
         <source>AI Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9574"/>
-        <location line="-9573"/>
+        <location line="+3"/>
+        <location line="+1"/>
         <source>AI-free mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9570"/>
+        <location line="+3"/>
         <source>Every core workflow stays local and deterministic. Connectors below are remembered but not used.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9566"/>
+        <location line="+4"/>
         <source>Allow cloud AI connectors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9565"/>
+        <location line="+1"/>
         <source>Cloud AI connectors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9562"/>
+        <location line="+3"/>
         <source>Allow agentic workflows</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9561"/>
+        <location line="+1"/>
         <source>Agentic workflows</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9556"/>
+        <location line="+5"/>
         <source>Preferred Connectors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9546"/>
+        <location line="+10"/>
         <source>Not selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9533"/>
+        <location line="+13"/>
         <source>Reasoning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4288410"/>
+        <location line="+13803"/>
         <location line="+3"/>
         <source>Voice</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4297935"/>
+        <location line="-13795"/>
         <location filename="../src/app/level_protected_property_actions.cpp" line="+127"/>
         <source>Local</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_protected_property_actions.cpp" line="+16"/>
+        <location line="+16"/>
         <source>Connector to set up</source>
         <translation type="unfinished"></translation>
     </message>
@@ -110550,23 +110560,23 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="+18"/>
-        <location line="+11959"/>
+        <location line="+11960"/>
         <source>Model name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11958"/>
+        <location line="-11959"/>
         <source>The model&apos;s name as the provider or runtime lists it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+11"/>
-        <location line="+11946"/>
+        <location line="+11947"/>
         <source>Endpoint address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11945"/>
+        <location line="-11946"/>
         <source>Leave empty for the provider&apos;s own address. A local runtime is usually http://localhost with its port.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -110574,12 +110584,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location filename="../src/app/ai_generation_actions.cpp" line="-96"/>
         <location line="+106"/>
         <location filename="../src/app/application_shell.cpp" line="+1"/>
-        <location line="+11929"/>
+        <location line="+11930"/>
         <source>Endpoint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-11918"/>
+        <location filename="../src/app/application_shell.cpp" line="-11919"/>
         <source>API key source</source>
         <translation type="unfinished"></translation>
     </message>
@@ -110810,505 +110820,505 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="+2"/>
         <location line="+318"/>
-        <location filename="../src/app/asset_workbench_actions.cpp" line="-9050"/>
+        <location filename="../src/app/asset_workbench_actions.cpp" line="-24"/>
         <source>Texture Editor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/asset_workbench_actions.cpp" line="-9366"/>
+        <location line="-316"/>
         <source>Open the texture editor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9365"/>
+        <location line="+1"/>
         <source>Create, paint, transform, save, and stage a texture.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9362"/>
+        <location line="+3"/>
         <source>Edit Selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9358"/>
+        <location line="+4"/>
         <source>Edit the displayed texture image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9347"/>
+        <location line="+11"/>
         <source>Export PNG</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9346"/>
+        <location line="+1"/>
         <source>Export selected texture</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9345"/>
+        <location line="+1"/>
         <source>Write the decoded image to a PNG file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9339"/>
+        <location line="+6"/>
         <source>Texture tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9336"/>
+        <location line="+3"/>
         <source>Texture filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9335"/>
+        <location line="+1"/>
         <source>Filter textures, sprites, and images by path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9334"/>
+        <location line="+1"/>
         <source>Words search paths. key=value, key:text, key!=value, key&lt;n, and key&gt;n test each image&apos;s name, ext, folder, size, and uses in the open map, and once decoded its w, h, and format, all together: w&gt;=128 format=wal, uses&gt;0. Down lists the queries used before.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9324"/>
+        <location line="+10"/>
         <source>In open map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9322"/>
+        <location line="+2"/>
         <source>Show only textures the open map uses</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9321"/>
+        <location line="+1"/>
         <source>List only the textures the map open in Levels uses, with how many times.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9315"/>
-        <location line="-9312"/>
-        <location line="-9219"/>
-        <location line="-9072"/>
-        <location line="+532752"/>
+        <location line="+6"/>
+        <location line="+3"/>
+        <location line="+93"/>
+        <location line="+147"/>
+        <location line="+15313"/>
         <source>Palette</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-542063"/>
+        <location line="-15552"/>
         <source>Palette used to decode indexed idTech art. Real palettes are read from the open package when it has one.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9297"/>
+        <location line="+14"/>
         <source>Mip</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9294"/>
+        <location line="+3"/>
         <source>Mip level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9293"/>
+        <location line="+1"/>
         <source>idTech textures store several mip levels; choose which one to display.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9284"/>
+        <location line="+9"/>
         <source>Tiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9284"/>
+        <location line="+0"/>
         <source>Show decoded thumbnails.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9283"/>
+        <location line="+1"/>
         <source>List</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9283"/>
+        <location line="+0"/>
         <source>Show paths and sizes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9225"/>
+        <location line="+58"/>
         <source>Texture browser state</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9223"/>
+        <location line="+2"/>
         <source>Decoded idTech textures, flats, sprites, and palettes from the open package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9221"/>
+        <location line="+2"/>
         <source>Texture list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9220"/>
+        <location line="+1"/>
         <source>Decoded preview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9210"/>
+        <location line="+10"/>
         <source>Texture entries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9209"/>
+        <location line="+1"/>
         <source>Image, texture, flat, and sprite entries in the open package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9197"/>
+        <location line="+12"/>
         <source>Texture preview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9196"/>
+        <location line="+1"/>
         <source>Decoded pixels for the selected entry. Scroll to zoom, drag to pan, hover for the palette index.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9193"/>
-        <location line="+689427"/>
+        <location line="+3"/>
+        <location line="+14886"/>
         <source>No palette resolved yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-698618"/>
+        <location line="-14884"/>
         <source>Palette source</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9186"/>
+        <location line="+5"/>
         <source>Texture view controls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9182"/>
+        <location line="+4"/>
         <source>Sprite frame</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9181"/>
+        <location line="+1"/>
         <source>Sprites hold several frames; choose which one to display.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9179"/>
+        <location line="+2"/>
         <source>Frame 1 of 1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9163"/>
+        <location line="+16"/>
         <source>Fit the image in the view (F).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9162"/>
+        <location line="+1"/>
         <source>Actual Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9162"/>
+        <location line="+0"/>
         <source>Show one texel per screen pixel (0).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9160"/>
+        <location line="+2"/>
         <source>Zoom In</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9160"/>
+        <location line="+0"/>
         <source>Zoom in (+).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9158"/>
+        <location line="+2"/>
         <source>Zoom Out</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9158"/>
+        <location line="+0"/>
         <source>Zoom out (-).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9156"/>
+        <location line="+2"/>
         <source>Pixel grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9154"/>
+        <location line="+2"/>
         <source>Show the pixel grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9153"/>
+        <location line="+1"/>
         <source>Outline each texel once the view is zoomed in far enough to see them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9148"/>
+        <location line="+5"/>
         <source>Transparency</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9146"/>
+        <location line="+2"/>
         <source>Show transparency as a checkerboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9145"/>
+        <location line="+1"/>
         <source>Draw a checkerboard behind the image so transparent texels stand out.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9129"/>
+        <location line="+16"/>
         <source>Palette swatches</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9128"/>
+        <location line="+1"/>
         <source>The 256 palette entries used to decode indexed art, with the transparent index marked.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9119"/>
+        <location line="+9"/>
         <source>Texture detail drawer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9118"/>
+        <location line="+1"/>
         <source>Texture Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9117"/>
+        <location line="+1"/>
         <source>Format, dimensions, mip levels, palette source, flags, and raw metadata.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9105"/>
+        <location line="+12"/>
         <source>Sprite engine</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9104"/>
+        <location line="+1"/>
         <source>Doom</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9103"/>
+        <location line="+1"/>
         <source>Quake</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9102"/>
+        <location line="+1"/>
         <source>Engine</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9100"/>
+        <location line="+2"/>
         <source>Sprite name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9099"/>
+        <location line="+1"/>
         <source>SPRT / torch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9098"/>
-        <location line="-7635"/>
+        <location line="+1"/>
+        <location line="+1463"/>
         <source>Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9096"/>
+        <location line="-1461"/>
         <source>Sprite frame count</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9095"/>
+        <location line="+1"/>
         <source>frames</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9091"/>
+        <location line="+4"/>
         <source>Sprite rotations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9090"/>
+        <location line="+1"/>
         <source>rotations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9088"/>
+        <location line="+2"/>
         <source>Rotations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9086"/>
+        <location line="+2"/>
         <source>Plan Sprite</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9085"/>
+        <location line="+1"/>
         <source>Create sprite workflow plan</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9078"/>
+        <location line="+7"/>
         <source>Doom and Quake sprite frame naming, palette, and package staging lines.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9075"/>
+        <location line="+3"/>
         <source>Texture inspector</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9071"/>
+        <location line="+4"/>
         <source>Sprite Creator</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9069"/>
+        <location line="+2"/>
         <source>Texture browser layout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9052"/>
-        <location line="+1077741"/>
+        <location line="+17"/>
+        <location line="+12182"/>
         <source>No textures to show</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1086773"/>
+        <location line="-12162"/>
         <source>Model workbench header</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9030"/>
+        <location line="+2"/>
         <source>Design Prop</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9028"/>
+        <location line="+2"/>
         <source>Design a model prop</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9027"/>
+        <location line="+1"/>
         <source>Build a static prop from primitives, export it, stage it in a package, or place it in a Quake III level.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9018"/>
+        <location line="+9"/>
         <source>Assemble</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9016"/>
+        <location line="+2"/>
         <source>Open the model assembly editor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9015"/>
+        <location line="+1"/>
         <source>Attach models to named tags with independent animation, save their links, or bake one pose into the mesh editor.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9011"/>
+        <location line="+4"/>
         <source>Export OBJ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9008"/>
+        <location line="+3"/>
         <source>Export the current model frame</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9007"/>
+        <location line="+1"/>
         <source>Write the current frame as a Wavefront OBJ for an external modeller.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8993"/>
+        <location line="+14"/>
         <source>Model browser state</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8989"/>
+        <location line="+4"/>
         <source>Model list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8988"/>
+        <location line="+1"/>
         <source>Frames and surfaces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8987"/>
+        <location line="+1"/>
         <source>Skins</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8982"/>
+        <location line="+5"/>
         <source>Model entries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8981"/>
+        <location line="+1"/>
         <source>Model files in the open package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8968"/>
+        <location line="+13"/>
         <source>Model viewport controls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8965"/>
+        <location line="+3"/>
         <source>Model render mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8964"/>
+        <location line="+1"/>
         <source>Textured</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8963"/>
+        <location line="+1"/>
         <source>Flat shaded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8962"/>
+        <location line="+1"/>
         <source>Wireframe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8954"/>
+        <location line="+8"/>
         <source>Model animation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8953"/>
+        <location line="+1"/>
         <source>Animations are inferred from frame names, which is how MDL and MD2 store them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8944"/>
-        <location line="+1297068"/>
+        <location line="+9"/>
+        <location line="+15616"/>
         <location filename="../src/app/level_asset_browsers.cpp" line="+62"/>
         <location line="+100"/>
         <location line="+316"/>
@@ -111316,13 +111326,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_asset_browsers.cpp" line="-15615"/>
-        <location line="+15623"/>
+        <location line="-15616"/>
+        <location line="+15624"/>
         <source>Play or pause the model animation (Space).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15621"/>
+        <location line="-15622"/>
         <source>Play or pause the model animation</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111448,92 +111458,92 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location filename="../src/app/model_page.cpp" line="-6248"/>
+        <location filename="../src/app/model_page.cpp" line="+19"/>
         <source>Header fields, skin and material dependencies, and raw metadata.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_page.cpp" line="-6269"/>
+        <location filename="../src/app/model_page.cpp" line="-21"/>
         <source>Model browser</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6266"/>
+        <location line="+3"/>
         <source>Model files in the open package. Filter by name or by key=value, such as ext=md5mesh.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6261"/>
+        <location line="+5"/>
         <source>Model inspector</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6250"/>
+        <location line="+11"/>
         <source>Frames, surfaces, tags, vertex and triangle counts, animations, and skin paths.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6249"/>
+        <location line="+1"/>
         <source>The surface materials and skins the model uses, and how they resolve.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6244"/>
+        <location line="+5"/>
         <source>Model joints</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6243"/>
+        <location line="+1"/>
         <source>The joint hierarchy and skeletal clips of skeletal models such as MD5, MDS, MDM, Ghoul 2 and IQM.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6242"/>
+        <location line="+1"/>
         <source>Joint or clip</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6242"/>
+        <location line="+0"/>
         <source>Detail</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6238"/>
+        <location line="+4"/>
         <source>Skeleton</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6237"/>
+        <location line="+1"/>
         <source>Joints, skeletal clips and the companion files read with the model (md5anim, MDX, GLA).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6203"/>
+        <location line="+34"/>
         <source>%1 controls. %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6183"/>
+        <location line="+20"/>
         <source>No joints: this model animates by frames.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6183"/>
+        <location line="+0"/>
         <source>No model selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6178"/>
+        <location line="+5"/>
         <source>Joints</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6165"/>
+        <location line="+13"/>
         <source>Clips</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-6160"/>
+        <location line="+5"/>
         <source>%Ln frame(s) at %1 fps</source>
         <translation>
             <numerusform>%Ln frame at %1 fps</numerusform>
@@ -111541,7 +111551,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-6159"/>
+        <location line="+1"/>
         <source>%Ln frame(s)</source>
         <translation>
             <numerusform>%Ln frame</numerusform>
@@ -111549,7 +111559,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         </translation>
     </message>
     <message>
-        <location line="-6154"/>
+        <location line="+5"/>
         <source>Read with</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111558,37 +111568,37 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+734"/>
         <location line="+340"/>
         <location line="+595"/>
-        <location line="+6837"/>
+        <location line="+6838"/>
         <location line="+772"/>
-        <location filename="../src/app/model_page.cpp" line="-6251"/>
+        <location filename="../src/app/model_page.cpp" line="-97"/>
         <source>Summary</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_page.cpp" line="-6249"/>
+        <location filename="../src/app/model_page.cpp" line="+2"/>
         <source>Skin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15665"/>
-        <location filename="../src/app/model_page.cpp" line="-6248"/>
+        <location filename="../src/app/application_shell.cpp" line="-15666"/>
+        <location filename="../src/app/model_page.cpp" line="+1"/>
         <source>Metadata</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_page.cpp" line="-6418"/>
+        <location line="-170"/>
         <source>Model browser layout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6417"/>
+        <location line="+1"/>
         <location filename="../src/app/level_asset_browsers.cpp" line="-499"/>
         <source>Filter models</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_asset_browsers.cpp" line="+0"/>
         <location line="+0"/>
+        <location filename="../src/app/level_asset_browsers.cpp" line="+0"/>
         <source>Model filter</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111599,12 +111609,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+19"/>
-        <location line="+11946"/>
+        <location line="+11947"/>
         <source>No models to show</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11926"/>
+        <location line="-11927"/>
         <source>Audio workbench header</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111626,7 +111636,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/asset_workbench_actions.cpp" line="-172"/>
+        <location line="-172"/>
         <source>Open a local audio file for editing</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111667,12 +111677,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+15761"/>
+        <location line="+15762"/>
         <source>Waveform</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15760"/>
+        <location line="-15761"/>
         <source>Format details</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111713,13 +111723,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+6"/>
-        <location line="+12785"/>
+        <location line="+12786"/>
         <location line="+1"/>
         <source>Volume</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-12778"/>
+        <location line="-12779"/>
         <source>Playback volume</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111741,7 +111751,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/audio_browser_actions.cpp" line="+3"/>
+        <location line="+3"/>
         <source>Audio details</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111787,8 +111797,8 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_asset_browsers.cpp" line="+0"/>
         <location line="+0"/>
+        <location filename="../src/app/level_asset_browsers.cpp" line="+0"/>
         <source>Sound filter</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111799,7 +111809,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+6"/>
-        <location line="+7"/>
+        <location filename="../src/app/level_asset_browsers.cpp" line="+7"/>
         <source>Sounds</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111820,12 +111830,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+20"/>
-        <location line="+11752"/>
+        <location line="+11753"/>
         <source>No sounds to show</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11732"/>
+        <location line="-11733"/>
         <location line="+2924"/>
         <location line="+5934"/>
         <source>Code</source>
@@ -111843,7 +111853,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/code_index_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Index code workspace</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111881,17 +111891,17 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9072"/>
+        <location line="-5828"/>
         <source>Cancel model preview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-319"/>
+        <location line="+1"/>
         <source>Stop loading the selected model and its material images.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3998"/>
+        <location line="+434"/>
         <source>Save the file open in the editor.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111917,12 +111927,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+12"/>
-        <location line="+16329"/>
+        <location line="+16330"/>
         <source>No file open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16321"/>
+        <location line="-16322"/>
         <location line="+2920"/>
         <source>Code editor</source>
         <translation type="unfinished"></translation>
@@ -111959,12 +111969,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+4"/>
-        <location line="+16281"/>
+        <location line="+16282"/>
         <source>Choose a file under Project files to edit it here.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16268"/>
+        <location line="-16269"/>
         <source>Open files</source>
         <translation type="unfinished"></translation>
     </message>
@@ -112025,12 +112035,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+18048"/>
+        <location line="+18049"/>
         <source>Index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18043"/>
+        <location line="-18044"/>
         <source>Editor and output</source>
         <translation type="unfinished"></translation>
     </message>
@@ -112081,270 +112091,270 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+19"/>
-        <location line="+71"/>
+        <location filename="../src/app/code_index_actions.cpp" line="+71"/>
         <source>Files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+9"/>
         <location line="+975"/>
-        <location line="+10461"/>
+        <location line="+10462"/>
         <location filename="../src/app/release_actions.cpp" line="+482"/>
         <source>No project open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/release_actions.cpp" line="-11435"/>
+        <location line="-11436"/>
         <source>Open a project folder to browse and edit its scripts, configs, shaders, and QuakeC with highlighting and diagnostics.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10927"/>
+        <location line="+26"/>
         <source>Activity summary</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10921"/>
+        <location line="+6"/>
         <source>Activity tasks</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10920"/>
+        <location line="+1"/>
         <source>Queued, running, warning, failed, cancelled, and completed tasks.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10904"/>
+        <location line="+16"/>
         <source>Cancel selected activity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10898"/>
+        <location line="+6"/>
         <source>Clear Finished</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10897"/>
+        <location line="+1"/>
         <source>Clear finished activities</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10889"/>
+        <location line="+8"/>
         <source>Selected activity state</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10887"/>
+        <location line="+2"/>
         <source>Task context</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10886"/>
+        <location line="+1"/>
         <source>Result summary</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10885"/>
+        <location line="+1"/>
         <source>Structured log</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10880"/>
+        <location line="+5"/>
         <source>Activity detail drawer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10879"/>
-        <location line="-3349"/>
-        <location line="-3297"/>
+        <location line="+1"/>
+        <location line="+7530"/>
+        <location line="+52"/>
         <source>Task Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10878"/>
+        <location line="-7581"/>
         <source>Select an activity to inspect logs, warnings, timing, and raw task metadata.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10865"/>
+        <location line="+13"/>
         <source>Inspector state</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10863"/>
-        <location line="-3168"/>
+        <location line="+2"/>
+        <location line="+7695"/>
         <source>Settings metadata</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10861"/>
-        <location line="-3166"/>
-        <location line="-2988"/>
+        <location line="-7693"/>
+        <location line="+7695"/>
+        <location line="+178"/>
         <source>Raw diagnostics</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10854"/>
+        <location line="-7866"/>
         <source>Shows settings, recent project, compiler, and project diagnostics.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10847"/>
+        <location line="+7"/>
         <source>Inspector detail drawer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10846"/>
-        <location line="-3033"/>
+        <location line="+1"/>
+        <location line="+7813"/>
         <source>Inspector Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10845"/>
+        <location line="-7812"/>
         <source>Settings, setup, and raw diagnostics.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10841"/>
-        <location line="-3402"/>
-        <location line="-161"/>
+        <location line="+4"/>
+        <location line="+7439"/>
+        <location line="+3242"/>
         <source>Activity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10839"/>
+        <location line="-10679"/>
         <source>Activity panel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10825"/>
+        <location line="+14"/>
         <source>Inspector panel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10809"/>
+        <location line="+16"/>
         <source>&amp;Activity Panel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10807"/>
+        <location line="+2"/>
         <source>Show or hide the task list with progress, logs, warnings, and cancellation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10805"/>
+        <location line="+2"/>
         <source>&amp;Inspector Panel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10803"/>
+        <location line="+2"/>
         <source>Show or hide settings, setup, and project diagnostics.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10679"/>
+        <location line="+124"/>
         <source>No Project Open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10678"/>
+        <location line="+1"/>
         <source>Open a project folder to create or inspect its VibeStudio manifest.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10674"/>
-        <location line="-3800"/>
+        <location line="+4"/>
+        <location line="+6874"/>
         <source>No project is open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10635"/>
+        <location line="-6835"/>
         <source>Manifest not initialized: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10634"/>
+        <location line="+1"/>
         <source>Needs Manifest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10627"/>
-        <location line="-2966"/>
+        <location line="+7"/>
+        <location line="+7661"/>
         <source>Manifest status: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10623"/>
+        <location line="-7657"/>
         <source>Current project path: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10622"/>
+        <location line="+1"/>
         <source>Manifest path: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10621"/>
+        <location line="+1"/>
         <source>Manifest loaded: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10620"/>
+        <location line="+1"/>
         <source>Health ready: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10619"/>
+        <location line="+1"/>
         <source>Health warnings: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10618"/>
+        <location line="+1"/>
         <source>Health failures: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10617"/>
+        <location line="+1"/>
         <source>Effective installation: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10616"/>
+        <location line="+1"/>
         <source>Effective editor profile: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10615"/>
+        <location line="+1"/>
         <source>Package loaded: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10614"/>
+        <location line="+1"/>
         <source>Compiler executables: %1 of %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5006"/>
-        <location line="-4276"/>
-        <location line="-3916"/>
-        <location line="-3324"/>
-        <location filename="../src/app/package_context_actions.cpp" line="-19297"/>
+        <location line="+5608"/>
+        <location line="+730"/>
+        <location line="+360"/>
+        <location line="+592"/>
+        <location filename="../src/app/package_context_actions.cpp" line="-53"/>
         <source>Source: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_context_actions.cpp" line="-19885"/>
-        <location line="-19883"/>
+        <location line="-588"/>
+        <location filename="../src/app/package_context_actions.cpp" line="+2"/>
         <source>Entries: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19893"/>
+        <location filename="../src/app/package_context_actions.cpp" line="-10"/>
         <source>No package is mounted yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19893"/>
+        <location line="+0"/>
         <source>Open a package file or folder to connect package context to the workspace.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -112385,70 +112395,70 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10463"/>
-        <location filename="../src/app/package_context_actions.cpp" line="-19894"/>
+        <location line="+10464"/>
+        <location filename="../src/app/package_context_actions.cpp" line="-1"/>
         <source>No package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_context_actions.cpp" line="-30356"/>
+        <location line="-10463"/>
         <source>Compiler Context</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30356"/>
-        <location line="-22793"/>
+        <location line="+0"/>
+        <location line="+7563"/>
         <source>%1 of %2 executables</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30355"/>
+        <location line="-7562"/>
         <source>Raw Workspace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30343"/>
+        <location line="+12"/>
         <source>Open a project folder before initializing a manifest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30321"/>
+        <location line="+22"/>
         <source>Project Manifest Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30321"/>
-        <location line="-30315"/>
-        <location line="-23627"/>
-        <location line="-23589"/>
-        <location line="-23559"/>
-        <location line="-23475"/>
-        <location line="-23454"/>
+        <location line="+0"/>
+        <location line="+6"/>
+        <location line="+6688"/>
+        <location line="+38"/>
+        <location line="+30"/>
+        <location line="+84"/>
+        <location line="+21"/>
         <source>project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30320"/>
+        <location line="-6866"/>
         <source>Project manifest failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30315"/>
+        <location line="+5"/>
         <source>Project Manifest Saved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30315"/>
+        <location line="+0"/>
         <source>Workspace manifest initialized.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30312"/>
+        <location line="+3"/>
         <source>Project manifest saved: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-30304"/>
+        <location line="+8"/>
         <source>%n remembered</source>
         <translation>
             <numerusform>%n remembered</numerusform>
@@ -112456,52 +112466,52 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         </translation>
     </message>
     <message>
-        <location line="-30299"/>
-        <location line="-30224"/>
-        <location line="-29789"/>
-        <location line="-28829"/>
-        <location line="-24560"/>
-        <location line="-24496"/>
-        <location line="-22761"/>
-        <location line="-22715"/>
-        <location line="-15877"/>
-        <location line="-11501"/>
+        <location line="+5"/>
+        <location line="+75"/>
+        <location line="+435"/>
+        <location line="+960"/>
+        <location line="+4269"/>
+        <location line="+64"/>
+        <location line="+1735"/>
+        <location line="+46"/>
+        <location line="+6839"/>
+        <location line="+4376"/>
         <source>Ready</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30299"/>
-        <location line="-22761"/>
-        <location line="-22715"/>
+        <location line="-18799"/>
+        <location line="+7538"/>
+        <location line="+46"/>
         <source>Missing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30295"/>
-        <location line="-22835"/>
-        <location line="-22750"/>
-        <location line="-22342"/>
+        <location line="-7580"/>
+        <location line="+7460"/>
+        <location line="+85"/>
+        <location line="+408"/>
         <source>missing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30293"/>
+        <location line="-7951"/>
         <source>open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30288"/>
+        <location line="+5"/>
         <source>%1
 %2
 Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30287"/>
-        <location line="-28429"/>
-        <location line="-28086"/>
-        <location line="-28043"/>
-        <location line="-11898"/>
+        <location line="+1"/>
+        <location line="+1858"/>
+        <location line="+343"/>
+        <location line="+43"/>
+        <location line="+16146"/>
         <location filename="../src/app/level_duplicate_move_actions.cpp" line="+189"/>
         <location line="+66"/>
         <location filename="../src/app/level_nudge_actions.cpp" line="+369"/>
@@ -112509,22 +112519,22 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_nudge_actions.cpp" line="-18381"/>
+        <location line="-18382"/>
         <source>No recent projects</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17982"/>
+        <location line="+30"/>
         <source>No install profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17981"/>
+        <location line="+1"/>
         <source>No game installations</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-17963"/>
+        <location line="+18"/>
         <source>%n profiles / selected: %1</source>
         <translation>
             <numerusform>%n profile / selected: %1</numerusform>
@@ -112532,69 +112542,69 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message>
-        <location line="-17962"/>
+        <location line="+1"/>
         <source>%1 profiles / %2 detected / selected: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17957"/>
+        <location line="+5"/>
         <source>Needs Review</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17953"/>
+        <location line="+4"/>
         <source>in use</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17950"/>
+        <location line="+3"/>
         <source>test maps allowed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17944"/>
+        <location line="+6"/>
         <source>%1, %2%3%4, %5, %6</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17944"/>
+        <location line="+0"/>
         <source>, in use</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17943"/>
+        <location line="+1"/>
         <source>, test maps allowed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17931"/>
+        <location line="+12"/>
         <source>Detected candidates</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17925"/>
+        <location line="+6"/>
         <source>%1, %2% match</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17919"/>
+        <location line="+6"/>
         <source>Detected candidate. Use Import Detected to save this profile without modifying game files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17875"/>
-        <location line="+271134"/>
+        <location line="+44"/>
+        <location line="+19769"/>
         <source>Test maps allowed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-289009"/>
+        <location line="-19769"/>
         <source>Installation made read-only</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17875"/>
-        <location line="+306201"/>
+        <location line="+0"/>
+        <location line="+19086"/>
         <location line="+3"/>
         <location line="+8"/>
         <location line="+3"/>
@@ -112603,103 +112613,103 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-324758"/>
+        <location line="-19768"/>
         <source>Built maps may be copied into its maps folder before launching.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17874"/>
+        <location line="+0"/>
         <source>Nothing is copied into it until test maps are allowed again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17873"/>
+        <location line="+1"/>
         <source>Test maps allowed for %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17873"/>
+        <location line="+0"/>
         <source>%1 is read-only again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17845"/>
+        <location line="+28"/>
         <source>Add Game Installation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17837"/>
+        <location line="+8"/>
         <source>%1 [%2]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17832"/>
+        <location line="+5"/>
         <source>Game</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17823"/>
+        <location line="+9"/>
         <source>Installation Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17807"/>
+        <location line="+16"/>
         <source>Game Installation Added</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17807"/>
-        <location line="-17795"/>
-        <location line="-17787"/>
-        <location line="-17761"/>
-        <location line="-17727"/>
+        <location line="+0"/>
+        <location line="+12"/>
+        <location line="+8"/>
+        <location line="+26"/>
+        <location line="+34"/>
         <source>installation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17807"/>
+        <location line="-80"/>
         <source>Manual profile saved: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17802"/>
+        <location line="+5"/>
         <source>Game installation saved: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17795"/>
-        <location line="-17787"/>
+        <location line="+7"/>
+        <location line="+8"/>
         <source>Detect Game Installations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17795"/>
-        <location line="-17787"/>
+        <location line="-8"/>
+        <location line="+8"/>
         <source>Steam and GOG library scan</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17795"/>
+        <location line="-8"/>
         <source>No installation candidates found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17795"/>
+        <location line="+0"/>
         <source>Use Add Install to create a manual profile or try CLI detection with an explicit root.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17790"/>
-        <location line="-14374"/>
-        <location line="-13945"/>
-        <location line="-11827"/>
-        <location line="-6014"/>
-        <location line="-5976"/>
+        <location line="+5"/>
+        <location line="+3416"/>
+        <location line="+429"/>
+        <location line="+2118"/>
+        <location line="+5814"/>
+        <location line="+38"/>
         <source>%1: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-17787"/>
+        <location line="-11812"/>
         <source>Found %n confirmable installation candidates.</source>
         <translation>
             <numerusform>Found %n confirmable installation candidate.</numerusform>
@@ -112707,12 +112717,12 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message>
-        <location line="-17780"/>
+        <location line="+7"/>
         <source>No game installation candidates found</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-17779"/>
+        <location line="+1"/>
         <source>Detected %n game installation candidates</source>
         <translation>
             <numerusform>Detected %n game installation candidate</numerusform>
@@ -112720,138 +112730,138 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message>
-        <location line="-17772"/>
+        <location line="+7"/>
         <source>Select a detected installation candidate first</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17761"/>
+        <location line="+11"/>
         <source>Detected Installation Imported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17761"/>
+        <location line="+0"/>
         <source>Saved read-only profile: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17756"/>
+        <location line="+5"/>
         <source>Detected installation imported: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17749"/>
+        <location line="+7"/>
         <source>Import the detected candidate before selecting it</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17749"/>
-        <location line="-17732"/>
+        <location line="+0"/>
+        <location line="+17"/>
         <source>No game installation selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17739"/>
+        <location line="-7"/>
         <source>Selected game installation: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17732"/>
+        <location line="+7"/>
         <source>Detected candidates are not saved yet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17727"/>
+        <location line="+5"/>
         <source>Game Installation Removed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17727"/>
+        <location line="+0"/>
         <source>Manual profile removed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17722"/>
+        <location line="+5"/>
         <source>Game installation removed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17717"/>
+        <location line="+5"/>
         <source>Open Project Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17694"/>
+        <location line="+23"/>
         <source>Open Folder Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17659"/>
+        <location line="+35"/>
         <source>%1 was opened as a folder package, but %2 could not be shown.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17651"/>
+        <location line="+8"/>
         <source>Wait for the package extraction to finish, or cancel it, before opening another package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17644"/>
+        <location line="+7"/>
         <source>Opening Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17639"/>
+        <location line="+5"/>
         <source>Package Scan</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17639"/>
-        <location line="-12491"/>
-        <location line="-11843"/>
-        <location line="-11751"/>
-        <location line="-11644"/>
-        <location line="-11610"/>
-        <location line="-11595"/>
-        <location line="-11566"/>
-        <location line="-11484"/>
-        <location line="-6534"/>
-        <location line="-4765"/>
-        <location line="-3834"/>
-        <location line="-3731"/>
-        <location line="-3718"/>
-        <location line="-3312"/>
-        <location line="+1278440"/>
+        <location line="+0"/>
+        <location line="+5148"/>
+        <location line="+648"/>
+        <location line="+92"/>
+        <location line="+107"/>
+        <location line="+34"/>
+        <location line="+15"/>
+        <location line="+29"/>
+        <location line="+82"/>
+        <location line="+4951"/>
+        <location line="+1769"/>
+        <location line="+931"/>
+        <location line="+103"/>
+        <location line="+13"/>
+        <location line="+406"/>
+        <location line="+5163"/>
         <location line="+214"/>
-        <location filename="../src/app/package_document_actions.cpp" line="-172"/>
-        <location line="-101"/>
-        <location line="-70"/>
-        <location line="-32"/>
-        <location line="+9805"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-51"/>
+        <location line="+71"/>
+        <location line="+31"/>
+        <location line="+38"/>
+        <location line="+40"/>
         <source>package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_document_actions.cpp" line="-29500"/>
+        <location line="-19704"/>
         <source>Opening package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19620"/>
-        <location line="-19615"/>
-        <location line="-19614"/>
-        <location line="-14936"/>
-        <location line="-14502"/>
+        <location line="+75"/>
+        <location line="+5"/>
+        <location line="+1"/>
+        <location line="+4678"/>
+        <location line="+434"/>
         <source>No package loaded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19684"/>
+        <location line="-5182"/>
         <source>Package open failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-19663"/>
+        <location line="+21"/>
         <source>Indexed %n package entries.</source>
         <translation>
             <numerusform>Indexed %n package entry.</numerusform>
@@ -112859,7 +112869,7 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-19658"/>
+        <location line="+5"/>
         <source>Opened %1 with %n entries.</source>
         <translation>
             <numerusform>Opened %1 with %n entry.</numerusform>
@@ -112867,17 +112877,17 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message>
-        <location line="-19638"/>
+        <location line="+20"/>
         <source>Package opened: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19619"/>
+        <location line="+19"/>
         <source>No Package Loaded</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-19586"/>
+        <location line="+33"/>
         <source>%1 / %n entries</source>
         <translation>
             <numerusform>%1 / %n entry</numerusform>
@@ -112885,329 +112895,329 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message>
-        <location line="-19585"/>
+        <location line="+1"/>
         <source>Package Browser</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19579"/>
-        <location line="-18619"/>
-        <location line="-14516"/>
-        <location line="-13785"/>
-        <location line="-13445"/>
-        <location line="-12850"/>
+        <location line="+6"/>
+        <location line="+960"/>
+        <location line="+4103"/>
+        <location line="+731"/>
+        <location line="+340"/>
+        <location line="+595"/>
         <source>Warnings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19537"/>
+        <location line="-6687"/>
         <source>Open a project folder to activate project health, package roots, and next actions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19536"/>
+        <location line="+1"/>
         <source>No install selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19536"/>
+        <location line="+0"/>
         <source>Add or detect a game installation profile when you are ready.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19535"/>
+        <location line="+1"/>
         <source>No package mounted</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19535"/>
+        <location line="+0"/>
         <source>Open a folder, PAK, WAD, ZIP, or PK3 to inspect package context.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19534"/>
+        <location line="+1"/>
         <source>Compiler discovery</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19534"/>
+        <location line="+0"/>
         <source>%1 of %2 executables found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19525"/>
+        <location line="+9"/>
         <source>Initialize .vibestudio/project.json: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19498"/>
+        <location line="+27"/>
         <source>No compiler executable found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19498"/>
+        <location line="+0"/>
         <source>Compiler sources may be present, but no runnable tool was discovered in known paths or PATH.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19495"/>
+        <location line="+3"/>
         <source>No recent tasks</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19495"/>
+        <location line="+0"/>
         <source>Open a project, package, setup step, or compiler report to populate the activity timeline.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19492"/>
+        <location line="+3"/>
         <source>Project has no blocking problems. Warnings and raw detail remain available in Workspace Details.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19478"/>
+        <location line="+14"/>
         <source>Type to search project files and mounted package entries.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19438"/>
-        <location line="-94"/>
+        <location line="+40"/>
+        <location line="+19345"/>
         <source>Package: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19438"/>
+        <location line="-19345"/>
         <source>%1 / %2 / %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19433"/>
+        <location line="+5"/>
         <source>No workspace search results.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19431"/>
+        <location line="+2"/>
         <source>Search result limit reached; narrow the query for more precise results.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19418"/>
+        <location line="+13"/>
         <source>No project open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19412"/>
+        <location line="+6"/>
         <source>No Git repository detected for the active project.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19397"/>
+        <location line="+15"/>
         <source>Reading Git status...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19382"/>
+        <location line="+15"/>
         <source>Git status is unavailable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19376"/>
+        <location line="+6"/>
         <source>No changed or staged files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19370"/>
-        <location line="-9080"/>
+        <location line="+6"/>
+        <location line="+10291"/>
         <source>modified</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19334"/>
+        <location line="-10255"/>
         <source>No project open. Dependency graph will connect project roots, installs, packages, and compilers.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19315"/>
+        <location line="+19"/>
         <source>Project &gt; Manifest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19315"/>
+        <location line="+0"/>
         <source>Manifest not initialized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19312"/>
+        <location line="+3"/>
         <source>Project &gt; Source Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19309"/>
+        <location line="+3"/>
         <source>Project &gt; Package Folders</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19309"/>
+        <location line="+0"/>
         <source>No package folders configured.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19305"/>
+        <location line="+4"/>
         <source>Project &gt; Package Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19302"/>
+        <location line="+3"/>
         <source>Project &gt; Installation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19302"/>
+        <location line="+0"/>
         <source>No installation linked.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19291"/>
+        <location line="+11"/>
         <source>Project &gt; Compiler Outputs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19291"/>
+        <location line="+0"/>
         <source>No compiler outputs registered.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19287"/>
+        <location line="+4"/>
         <source>Project &gt; Compiler Output</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19284"/>
+        <location line="+3"/>
         <source>Workspace &gt; Mounted Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19284"/>
+        <location line="+0"/>
         <source>No package mounted.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19283"/>
+        <location line="+1"/>
         <source>Workspace &gt; Compiler Registry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19283"/>
+        <location line="+0"/>
         <source>%1 of %2 executables discovered.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19247"/>
+        <location line="+36"/>
         <source>No recent activity yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19207"/>
+        <location line="+40"/>
         <source>Open Level Map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19205"/>
+        <location line="+2"/>
         <source>Level maps (*.map *.wad);;Quake-family maps (*.map);;Doom WAD maps (*.wad);;All files (*.*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19189"/>
+        <location line="+16"/>
         <source>No map is open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19163"/>
+        <location line="+26"/>
         <source>Map closed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19146"/>
+        <location line="+17"/>
         <source>%1, in %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19130"/>
+        <location line="+16"/>
         <source>Path required</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19129"/>
+        <location line="+1"/>
         <source>Choose a Doom WAD map or Quake-family .map source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19124"/>
+        <location line="+5"/>
         <source>Parsing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19123"/>
+        <location line="+1"/>
         <source>Reading %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19103"/>
+        <location line="+20"/>
         <source>Load failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19101"/>
+        <location line="+2"/>
         <source>Level map load failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19067"/>
+        <location line="+34"/>
         <source>Level map inspected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19067"/>
+        <location line="+0"/>
         <source>%1 issues</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19018"/>
+        <location line="+49"/>
         <source>Objects (%1 of %2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18942"/>
+        <location line="+76"/>
         <source>Showing the objects with %1; Enter selects them all.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18896"/>
+        <location line="+46"/>
         <source>Recent queries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18851"/>
+        <location line="+45"/>
         <source>Nothing here has %1; the filter&apos;s tooltip lists the keys it knows.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18764"/>
+        <location line="+87"/>
         <source>Type a filter first; every object it keeps is then selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18733"/>
+        <location line="+31"/>
         <source>Only hidden objects match; Show All Hidden brings them back.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18733"/>
+        <location line="+0"/>
         <source>No object matches the filter.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-18724"/>
+        <location line="+9"/>
         <source>%n matching object(s) selected.</source>
         <translation>
             <numerusform>%n matching object selected.</numerusform>
@@ -113215,10 +113225,10 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-18722"/>
-        <location line="-17304"/>
-        <location line="-15526"/>
-        <location line="-15477"/>
+        <location line="+2"/>
+        <location line="+1418"/>
+        <location line="+1778"/>
+        <location line="+49"/>
         <source>%n hidden one(s) left out; Show All Hidden brings them back.</source>
         <translation>
             <numerusform>%n hidden one left out; Show All Hidden brings them back.</numerusform>
@@ -113226,7 +113236,7 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message>
-        <location line="-18636"/>
+        <location line="-3159"/>
         <source>Open a Doom WAD map or Quake-family .map source to inspect entities, textures, health, and safe edits.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -113286,7 +113296,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+15784"/>
+        <location filename="../src/app/application_shell.cpp" line="+15785"/>
         <location filename="../src/app/level_object_model.cpp" line="-110"/>
         <source>Brush %1</source>
         <translation type="unfinished"></translation>
@@ -113313,22 +113323,22 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_object_model.cpp" line="-14328"/>
-        <location line="-11203"/>
-        <location line="-884"/>
-        <location line="+27857"/>
-        <location line="+1"/>
+        <location line="-14329"/>
+        <location line="+3060"/>
+        <location line="+10320"/>
+        <location line="+2391"/>
+        <location filename="../src/app/level_object_model.cpp" line="+1"/>
         <source>%1, %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-1421"/>
-        <location line="+4"/>
+        <location filename="../src/app/level_object_model.cpp" line="+4"/>
         <source>Linedef %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location filename="../src/app/level_object_model.cpp" line="+1"/>
         <source>%1 &gt; %2 / tag %3</source>
         <translation type="unfinished"></translation>
     </message>
@@ -113361,13 +113371,13 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15429"/>
+        <location filename="../src/app/application_shell.cpp" line="-15430"/>
         <source>LEAK
 The map leaks. The trail from %1 is drawn in the view; press Enter to frame it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/package_context_actions.cpp" line="-11885"/>
+        <location filename="../src/app/package_context_actions.cpp" line="+13"/>
         <source>Staged edits: %n</source>
         <translation>
             <numerusform>Staged edits: %n</numerusform>
@@ -113375,18 +113385,18 @@ The map leaks. The trail from %1 is drawn in the view; press Enter to frame it.<
         </translation>
     </message>
     <message>
-        <location line="-11842"/>
+        <location line="+43"/>
         <source>TEXTURE CHECK [Unavailable]
 %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11837"/>
+        <location line="+5"/>
         <source>Texture check incomplete; partial results cannot confirm that every texture resolves.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-11834"/>
+        <location line="+3"/>
         <source>MISSING TEXTURES [%1]
 %n name(s) referenced by this map are not in %2.</source>
         <translation>
@@ -113397,7 +113407,7 @@ The map leaks. The trail from %1 is drawn in the view; press Enter to frame it.<
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-11828"/>
+        <location line="+6"/>
         <source>%n further missing texture(s) not listed.</source>
         <translation>
             <numerusform>%n further missing texture not listed.</numerusform>
@@ -113405,7 +113415,7 @@ The map leaks. The trail from %1 is drawn in the view; press Enter to frame it.<
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-11826"/>
+        <location line="+2"/>
         <source>  %1 — %n use(s)</source>
         <translation>
             <numerusform>  %1 — %n use</numerusform>
@@ -113413,12 +113423,12 @@ The map leaks. The trail from %1 is drawn in the view; press Enter to frame it.<
         </translation>
     </message>
     <message>
-        <location line="-11825"/>
+        <location line="+1"/>
         <source>Searched: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-11822"/>
+        <location line="+3"/>
         <source>TEXTURES [%1]
 All %n referenced name(s) resolve against %2.</source>
         <translation>
@@ -113429,7 +113439,7 @@ All %n referenced names resolve against %2.</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-11818"/>
+        <location line="+4"/>
         <source>%n further texture warning(s) not listed.</source>
         <translation>
             <numerusform>%n further texture warning not listed.</numerusform>
@@ -113490,77 +113500,77 @@ All %n entities match the loaded definitions.</numerusform>
     </message>
     <message>
         <location line="-3910"/>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-9576"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="-54"/>
         <source>Properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-9576"/>
+        <location line="+0"/>
         <source>Selected object properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9575"/>
+        <location line="+1"/>
         <source>Map statistics summary</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9574"/>
+        <location line="+1"/>
         <source>Texture and material references</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9573"/>
+        <location line="+1"/>
         <source>Validation and compiler preflight warnings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9572"/>
+        <location line="+1"/>
         <source>2D or orthographic preview lines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9571"/>
+        <location line="+1"/>
         <source>Edit state and undo history</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9498"/>
+        <location line="+73"/>
         <source>Select an entity before editing a key.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9442"/>
+        <location line="+56"/>
         <source>Edit Entity Key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9424"/>
-        <location line="-9418"/>
+        <location line="+18"/>
+        <location line="+6"/>
         <source>Edit Entity Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9410"/>
-        <location line="-9401"/>
-        <location line="-6586"/>
-        <location line="-6576"/>
-        <location line="+4436434"/>
+        <location line="+8"/>
+        <location line="+9"/>
+        <location line="+2815"/>
+        <location line="+10"/>
+        <location line="+12576"/>
         <location line="+681"/>
         <location line="+54"/>
         <source>Map edit failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4446576"/>
-        <location line="+4446528"/>
+        <location line="-16142"/>
+        <location line="+16094"/>
         <source>Level map entities edited</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/app/ai_generation_actions.cpp" line="-272"/>
         <location line="+56"/>
-        <location filename="../src/app/application_shell.cpp" line="-16093"/>
+        <location filename="../src/app/application_shell.cpp" line="-16094"/>
         <location line="+9"/>
         <location line="+46"/>
         <location line="+93"/>
@@ -113575,7 +113585,7 @@ All %n entities match the loaded definitions.</numerusform>
         <location line="+41"/>
         <location line="+167"/>
         <location line="+9"/>
-        <location line="+12578"/>
+        <location line="+12579"/>
         <location line="+681"/>
         <location line="+54"/>
         <location line="+439"/>
@@ -113625,14 +113635,14 @@ All %n entities match the loaded definitions.</numerusform>
         <location filename="../src/app/level_entity_connection_actions.cpp" line="+33"/>
         <location filename="../src/app/level_entity_create_actions.cpp" line="+202"/>
         <location filename="../src/app/level_face_flags_actions.cpp" line="+101"/>
-        <location filename="../src/app/level_find_replace_actions.cpp" line="-4445"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40333"/>
-        <location line="-40307"/>
-        <location line="-40279"/>
-        <location line="-40137"/>
-        <location line="-40073"/>
-        <location line="-39614"/>
-        <location line="-39586"/>
+        <location filename="../src/app/level_find_replace_actions.cpp" line="+1"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+329"/>
+        <location line="+26"/>
+        <location line="+28"/>
+        <location line="+142"/>
+        <location line="+64"/>
+        <location line="+459"/>
+        <location line="+28"/>
         <location filename="../src/app/level_grid_round_actions.cpp" line="+125"/>
         <location filename="../src/app/level_material_paint_actions.cpp" line="+264"/>
         <location filename="../src/app/level_merge_actions.cpp" line="+13"/>
@@ -113645,8 +113655,8 @@ All %n entities match the loaded definitions.</numerusform>
         <location filename="../src/app/level_rotation_actions.cpp" line="+101"/>
         <location line="+14"/>
         <location filename="../src/app/level_scene_layer_actions.cpp" line="+20"/>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-14678"/>
-        <location line="-14632"/>
+        <location filename="../src/app/level_shapes_panel.cpp" line="+300"/>
+        <location line="+46"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="-79"/>
         <location line="+94"/>
         <location line="+724"/>
@@ -113665,13 +113675,13 @@ All %n entities match the loaded definitions.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-16577"/>
-        <location line="+16138"/>
+        <location filename="../src/app/application_shell.cpp" line="-16578"/>
+        <location line="+16139"/>
         <source>Level map entity edited</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16130"/>
+        <location line="-16131"/>
         <source>Select map objects before moving them.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -113705,13 +113715,13 @@ All %n entities match the loaded definitions.</numerusform>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+16530"/>
+        <location line="+16531"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="+0"/>
         <source>Level map selection moved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_panels.cpp" line="-16483"/>
+        <location line="-16484"/>
         <location line="+30"/>
         <source>Open a Quake-family .map to add entities.</source>
         <translation type="unfinished"></translation>
@@ -113770,7 +113780,7 @@ All %n entities match the loaded definitions.</numerusform>
     </message>
     <message>
         <location line="+199"/>
-        <location line="+12779"/>
+        <location line="+12780"/>
         <source>Texture</source>
         <translation type="unfinished"></translation>
     </message>
@@ -113780,7 +113790,7 @@ All %n entities match the loaded definitions.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15351"/>
+        <location filename="../src/app/application_shell.cpp" line="-15352"/>
         <location line="+33"/>
         <source>Open a Doom or Hexen map to add things.</source>
         <translation type="unfinished"></translation>
@@ -113831,7 +113841,7 @@ All %n entities match the loaded definitions.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="-553"/>
+        <location line="-553"/>
         <location line="+10"/>
         <source>%1: %2
 %3</source>
@@ -113940,7 +113950,7 @@ All %n entities match the loaded definitions.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_editing_actions.cpp" line="+0"/>
+        <location line="+0"/>
         <source>Works on</source>
         <translation type="unfinished"></translation>
     </message>
@@ -114111,94 +114121,94 @@ All %n entities match the loaded definitions.</numerusform>
         <location line="+31"/>
         <location line="+313"/>
         <location line="+1"/>
-        <location line="+10249"/>
+        <location line="+10250"/>
         <location filename="../src/app/level_plan_pane_actions.cpp" line="+142"/>
         <location line="+1"/>
         <source>, </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_plan_pane_actions.cpp" line="-10556"/>
+        <location line="-10557"/>
         <source>Keys for %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10411"/>
+        <location line="+2"/>
         <source>Press the keys for %1. It has none now.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10410"/>
+        <location line="+1"/>
         <source>Press the keys for %1. It has %2 now.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10405"/>
+        <location line="+5"/>
         <source>New keys for %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10395"/>
+        <location line="+10"/>
         <source>Assign</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10392"/>
+        <location line="+3"/>
         <source>No Keys</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10390"/>
+        <location line="+2"/>
         <source>Leave the command without keys; it still runs from its menu and the command palette.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10366"/>
+        <location line="+24"/>
         <source>%1 without Ctrl or Alt is typed in fields and used by the views, so choose keys with Ctrl or Alt, or a function key.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10364"/>
+        <location line="+2"/>
         <source>%1 belongs to %2, which the studio relies on; choose other keys.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10362"/>
+        <location line="+2"/>
         <source>%1 is free wherever %2 works.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10360"/>
+        <location line="+2"/>
         <source>%1 is used by %2. Assigning it here takes it from them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10334"/>
+        <location line="+26"/>
         <source>%1 has no keys now; it still runs from its menu and the command palette.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10309"/>
+        <location line="+25"/>
         <source>%1 is now %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10308"/>
+        <location line="+1"/>
         <source>%1 is now %2, taken from %3.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10273"/>
+        <location line="+35"/>
         <source>No setting mentions &quot;%1&quot;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10221"/>
+        <location line="+52"/>
         <source>Open a map to see its textures.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-10118"/>
+        <location line="+103"/>
         <source>used %n time(s)</source>
         <translation>
             <numerusform>used %n time</numerusform>
@@ -114206,65 +114216,65 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-10118"/>
+        <location line="+0"/>
         <source>not in the map now</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10116"/>
+        <location line="+2"/>
         <source>applied lately</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10109"/>
+        <location line="+7"/>
         <source>not in the open package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10109"/>
+        <location line="+0"/>
         <source>no package open for its picture</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10103"/>
+        <location line="+6"/>
         <source>This map names no textures.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10080"/>
+        <location line="+23"/>
         <source>Apply to Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10077"/>
+        <location line="+3"/>
         <source>Select Objects Using It</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10075"/>
+        <location line="+2"/>
         <source>Use as Replacement…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10073"/>
+        <location line="+2"/>
         <source>Show in Textures</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10020"/>
-        <location line="-8242"/>
+        <location line="+53"/>
+        <location line="+1778"/>
         <source>Only hidden objects use %1; Show All Hidden brings them back.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10019"/>
-        <location line="-8241"/>
+        <location line="-1777"/>
+        <location line="+1778"/>
         <source>Nothing in the map uses %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-10014"/>
-        <location filename="../src/app/level_find_replace_actions.cpp" line="-4476"/>
+        <location line="-1773"/>
+        <location filename="../src/app/level_find_replace_actions.cpp" line="-31"/>
         <source>Selected the %n object(s) that use %1.</source>
         <translation>
             <numerusform>Selected the %n object that use %1.</numerusform>
@@ -114272,7 +114282,7 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/level_find_replace_actions.cpp" line="-4521"/>
+        <location filename="../src/app/level_find_replace_actions.cpp" line="-45"/>
         <source>%n use(s) will change.</source>
         <translation>
             <numerusform>%n use will change.</numerusform>
@@ -114280,73 +114290,73 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-4693"/>
+        <location line="-172"/>
         <source>Show %1 on the Textures tab and make it the current material.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4691"/>
+        <location line="+2"/>
         <source>Unavailable: the selection mixes %1 and %2. Select surfaces that share one material.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4689"/>
+        <location line="+2"/>
         <source>Select brushes, patches or faces that share one material to show it on the Textures tab.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4672"/>
+        <location line="+17"/>
         <source>The selection mixes %1 and %2, so there is no single material to reveal.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4668"/>
+        <location line="+4"/>
         <source>Select brushes, patches or faces that share one material to reveal it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4644"/>
+        <location line="+24"/>
         <source>%1 is not on the Textures tab.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4633"/>
+        <location line="+11"/>
         <source>Revealed %1 on the Textures tab; it is now the current material.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4627"/>
+        <location line="+6"/>
         <source>Open a map that uses textures to find or replace one.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4557"/>
+        <location line="+70"/>
         <source>Select objects first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4555"/>
+        <location line="+2"/>
         <source>Pick faces first, with Select Textured or in the camera.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4555"/>
+        <location line="+0"/>
         <source>Picked faces belong to Quake-family maps.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4553"/>
+        <location line="+2"/>
         <source>Open a map that uses textures.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4529"/>
-        <location line="-4519"/>
+        <location line="+24"/>
+        <location line="+10"/>
         <source>Nothing in scope uses %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-4529"/>
+        <location line="-10"/>
         <source>%n surface(s) in scope use %1.</source>
         <translation>
             <numerusform>%n surface in scope use %1.</numerusform>
@@ -114354,7 +114364,7 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-4527"/>
+        <location line="+2"/>
         <source>Find leaves out %n in closed groups; open a group to search inside it.</source>
         <translation>
             <numerusform>Find leaves out %n in closed groups; open a group to search inside it.</numerusform>
@@ -114362,18 +114372,18 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-4524"/>
+        <location line="+3"/>
         <source>Find searches the whole map or the selected objects.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4519"/>
+        <location line="+5"/>
         <source>Everything in scope already uses %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-4516"/>
-        <location line="-4441"/>
+        <location line="+3"/>
+        <location line="+75"/>
         <source>%n hidden, locked or out-of-context use(s) stay as they are.</source>
         <translation>
             <numerusform>%n hidden, locked or out-of-context use stay as they are.</numerusform>
@@ -114381,37 +114391,37 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-4504"/>
+        <location line="-63"/>
         <source>Name the texture to find.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4500"/>
+        <location line="+4"/>
         <source>Find searches the whole map or the selected objects; choose one of those.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4482"/>
+        <location line="+18"/>
         <source>Nothing selected uses %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4465"/>
+        <location line="+17"/>
         <source>Finish or cancel the pending surface edit before replacing textures.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4452"/>
+        <location line="+13"/>
         <source>Could not replace the texture: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4446"/>
+        <location line="+6"/>
         <source>Level map texture replaced</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-4443"/>
+        <location line="+3"/>
         <source>Replaced %1 with %2 on %n use(s).</source>
         <translation>
             <numerusform>Replaced %1 with %2 on %n use.</numerusform>
@@ -114419,12 +114429,12 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-4430"/>
+        <location line="+13"/>
         <source>Replace with now reads %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4430"/>
+        <location line="+0"/>
         <source>Find now reads %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -114508,12 +114518,12 @@ All %n entities match the loaded definitions.</numerusform>
         <location line="+14"/>
         <location filename="../src/app/level_editing_actions.cpp" line="+381"/>
         <location line="+573"/>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-14579"/>
+        <location filename="../src/app/level_shapes_panel.cpp" line="+53"/>
         <source>Unsaved map edit; run a node builder before playing</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/level_shapes_panel.cpp" line="-14818"/>
+        <location line="-239"/>
         <source>Drew sector %1 with %n new linedef(s); it is selected. Rebuild the nodes before playing the map.</source>
         <translation>
             <numerusform>Drew sector %1 with %n new linedef; it is selected. Rebuild the nodes before playing the map.</numerusform>
@@ -114521,39 +114531,39 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-14798"/>
+        <location line="+20"/>
         <source>Open a Doom or Hexen map to add sectors.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14783"/>
+        <location line="+15"/>
         <source>Add Sector</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14783"/>
+        <location line="+0"/>
         <source>Corners in order, as x,y pairs separated by spaces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14770"/>
+        <location line="+13"/>
         <source>Could not read the corner &quot;%1&quot;; write each as x,y.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14747"/>
-        <location line="-14597"/>
+        <location line="+23"/>
+        <location line="+150"/>
         <source>Could not merge: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14747"/>
+        <location line="-150"/>
         <source>Could not join: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-14744"/>
-        <location line="-14714"/>
+        <location line="+3"/>
+        <location line="+30"/>
         <source>%n sector(s)</source>
         <translation>
             <numerusform>%n sector</numerusform>
@@ -114561,17 +114571,17 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-14744"/>
+        <location line="-30"/>
         <source>Level map sectors merged</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14744"/>
+        <location line="+0"/>
         <source>Level map sectors joined</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-14741"/>
+        <location line="+3"/>
         <source>Merged %n sector(s) into the one picked last, the lines between them gone.</source>
         <translation>
             <numerusform>Merged %n sector into the one picked last, the lines between them gone.</numerusform>
@@ -114579,7 +114589,7 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-14740"/>
+        <location line="+1"/>
         <source>Joined %n sector(s) into the one picked last.</source>
         <translation>
             <numerusform>Joined %n sector into the one picked last.</numerusform>
@@ -114587,43 +114597,43 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-14730"/>
+        <location line="+10"/>
         <source>Could not change the sectors: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14725"/>
+        <location line="+5"/>
         <source>%1. Shift steps by 1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14717"/>
+        <location line="+8"/>
         <source>Could not grade the sectors: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14714"/>
+        <location line="+3"/>
         <source>Level map sectors graded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14705"/>
+        <location line="+9"/>
         <source>Select the Doom sectors to make doors.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14681"/>
-        <location line="-14648"/>
+        <location line="+24"/>
+        <location line="+33"/>
         <source>Make Door</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14680"/>
+        <location line="-32"/>
         <source>Make door</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-14678"/>
+        <location line="+2"/>
         <source>%n sector(s) become doors: the ceiling comes down to the floor, and the lines around open the door when used from outside.</source>
         <translation>
             <numerusform>%n sector become doors: the ceiling comes down to the floor, and the lines around open the door when used from outside.</numerusform>
@@ -114631,73 +114641,73 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-14665"/>
+        <location line="+13"/>
         <source>Door texture</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14664"/>
+        <location line="+1"/>
         <source>Shown above each door line from outside: the door itself.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14663"/>
+        <location line="+1"/>
         <source>&amp;Door texture</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14662"/>
+        <location line="+1"/>
         <source>Track texture</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14661"/>
+        <location line="+1"/>
         <source>On the door&apos;s own walls, lower unpegged so it stays put as the door rises.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14660"/>
+        <location line="+1"/>
         <source>&amp;Track texture</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14659"/>
-        <location line="-795"/>
+        <location line="+1"/>
+        <location line="+13865"/>
         <source>Ceiling flat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14657"/>
+        <location line="-13863"/>
         <source>Left empty, each door keeps its own ceiling flat.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14656"/>
+        <location line="+1"/>
         <source>Keep each door&apos;s own</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14655"/>
+        <location line="+1"/>
         <source>&amp;Ceiling flat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14654"/>
+        <location line="+1"/>
         <source>&amp;Reset texture offsets</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14652"/>
+        <location line="+2"/>
         <source>Put the door&apos;s and the track&apos;s texture offsets back to 0.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14633"/>
+        <location line="+19"/>
         <source>Could not make doors: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-14629"/>
+        <location line="+4"/>
         <source>%n door(s)</source>
         <translation>
             <numerusform>%n door</numerusform>
@@ -114705,12 +114715,12 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-14629"/>
+        <location line="+0"/>
         <source>Level map doors made</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-14626"/>
+        <location line="+3"/>
         <source>Made %n door(s); use one from outside to open it.</source>
         <translation>
             <numerusform>Made %n door; use one from outside to open it.</numerusform>
@@ -114891,8 +114901,8 @@ All %n entities match the loaded definitions.</numerusform>
         <location filename="../src/app/level_editing_actions.cpp" line="+191"/>
         <location line="+90"/>
         <location line="+15"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40334"/>
-        <location line="-40280"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-748"/>
+        <location line="+54"/>
         <source>%n brush(es)</source>
         <translation>
             <numerusform>%n brush</numerusform>
@@ -114900,12 +114910,12 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40280"/>
+        <location line="+0"/>
         <source>Level map brushes carved</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-40277"/>
+        <location line="+3"/>
         <source>Carved %n brush(es); the carving brushes are still selected, ready to delete.</source>
         <translation>
             <numerusform>Carved %n brush; the carving brushes are still selected, ready to delete.</numerusform>
@@ -114913,33 +114923,33 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-40270"/>
-        <location line="-40315"/>
+        <location line="+7"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-45"/>
         <source>Select brushes, or a brush entity, to hollow.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40309"/>
+        <location line="+6"/>
         <source>Hollow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40309"/>
-        <location line="-40303"/>
+        <location line="+0"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+6"/>
         <source>Wall thickness (units)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40295"/>
+        <location line="+8"/>
         <location filename="../src/app/level_csg_tool_actions.cpp" line="+26"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40287"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+8"/>
         <source>Could not hollow: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-40283"/>
+        <location line="+4"/>
         <location filename="../src/app/level_csg_tool_actions.cpp" line="+3"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40280"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+3"/>
         <source>%n wall(s)</source>
         <translation>
             <numerusform>%n wall</numerusform>
@@ -114947,14 +114957,14 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-40280"/>
+        <location line="+0"/>
         <location filename="../src/app/level_csg_tool_actions.cpp" line="+0"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40280"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+0"/>
         <source>Level map brushes hollowed</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-40277"/>
+        <location line="+3"/>
         <location filename="../src/app/level_csg_tool_actions.cpp" line="+4"/>
         <source>Hollowed %n brush(es) into walls %1 units thick.</source>
         <translation>
@@ -114963,7 +114973,7 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../src/app/level_csg_tool_actions.cpp" line="+10"/>
+        <location line="+10"/>
         <source>Open a Quake-family .map to clip brushes.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -114979,7 +114989,7 @@ All %n entities match the loaded definitions.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_clipper_preferences.cpp" line="+10"/>
+        <location line="+10"/>
         <location line="+1"/>
         <source>Clip Selection</source>
         <translation type="unfinished"></translation>
@@ -115002,37 +115012,37 @@ All %n entities match the loaded definitions.</numerusform>
     <message>
         <location line="+1"/>
         <location line="+7"/>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-15031"/>
+        <location filename="../src/app/level_shapes_panel.cpp" line="-405"/>
         <source>Axis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-15024"/>
-        <location line="-15012"/>
+        <location line="+7"/>
+        <location line="+12"/>
         <source>Position</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14979"/>
+        <location line="+33"/>
         <source>Both parts, as two brushes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14978"/>
-        <location line="-14976"/>
+        <location line="+1"/>
+        <location line="+2"/>
         <source>Keep</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14954"/>
-        <location line="-14945"/>
+        <location line="+22"/>
+        <location line="+9"/>
         <location filename="../src/app/level_clipper_preferences.cpp" line="+27"/>
         <location filename="../src/app/level_view_actions.cpp" line="-428"/>
         <source>Clip</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="+143"/>
+        <location line="+143"/>
         <source>2D view</source>
         <translation type="unfinished"></translation>
     </message>
@@ -115431,7 +115441,7 @@ All %n entities match the loaded definitions.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_panels.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Upper corner</source>
         <translation type="unfinished"></translation>
     </message>
@@ -115476,7 +115486,7 @@ All %n entities match the loaded definitions.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/level_duplicate_move_actions.cpp" line="+4"/>
+        <location line="+4"/>
         <source>%n copies</source>
         <translation>
             <numerusform>%n copies</numerusform>
@@ -115718,7 +115728,7 @@ All %n entities match the loaded definitions.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_panels.cpp" line="-1229"/>
+        <location line="-1229"/>
         <source>Open a level map before planning a compile.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -115769,13 +115779,13 @@ All %n entities match the loaded definitions.</numerusform>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+9993"/>
+        <location line="+9994"/>
         <location line="+2108"/>
         <source>level-map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-12100"/>
+        <location line="-12101"/>
         <location line="+1222"/>
         <source>Planning compiler command.</source>
         <translation type="unfinished"></translation>
@@ -115817,7 +115827,7 @@ All %n entities match the loaded definitions.</numerusform>
     </message>
     <message numerus="yes">
         <location line="+36"/>
-        <location line="+13816"/>
+        <location line="+13817"/>
         <source>%n stage(s)</source>
         <translation>
             <numerusform>%n stage</numerusform>
@@ -115825,7 +115835,7 @@ All %n entities match the loaded definitions.</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-13815"/>
+        <location line="-13816"/>
         <source>%n texture(s)</source>
         <translation>
             <numerusform>%n texture</numerusform>
@@ -116065,7 +116075,7 @@ Open a folder, PAK, WAD, ZIP, or PK3 to see type and size distribution.</source>
         <location line="+23"/>
         <location line="+313"/>
         <location line="+1681"/>
-        <location line="+3697"/>
+        <location line="+3698"/>
         <source>%n entries</source>
         <translation>
             <numerusform>%n entry</numerusform>
@@ -116073,7 +116083,7 @@ Open a folder, PAK, WAD, ZIP, or PK3 to see type and size distribution.</source>
         </translation>
     </message>
     <message>
-        <location line="-5706"/>
+        <location line="-5707"/>
         <source>Package is empty</source>
         <translation type="unfinished"></translation>
     </message>
@@ -116336,18 +116346,18 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+8894"/>
+        <location line="+8895"/>
         <source>Raw Metadata</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8785"/>
-        <location line="+10815"/>
+        <location line="-8786"/>
+        <location line="+10816"/>
         <source>Folder %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10814"/>
+        <location line="-10815"/>
         <source>Package root</source>
         <translation type="unfinished"></translation>
     </message>
@@ -116359,7 +116369,7 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_asset_browsers.cpp" line="+10"/>
+        <location line="+10"/>
         <source>Search results</source>
         <translation type="unfinished"></translation>
     </message>
@@ -116377,12 +116387,12 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     <message>
         <location line="-3"/>
         <location line="+4"/>
-        <location line="+14269"/>
+        <location line="+14270"/>
         <source>not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14270"/>
+        <location line="-14271"/>
         <source>Source only, not built</source>
         <translation type="unfinished"></translation>
     </message>
@@ -116399,12 +116409,12 @@ Executable: %2</source>
     </message>
     <message>
         <location line="+43"/>
-        <location line="+7718"/>
+        <location line="+7719"/>
         <source>Automatic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-7715"/>
+        <location line="-7716"/>
         <source>Project manifest (missing)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -116457,7 +116467,7 @@ Executable: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/code_document_actions.cpp" line="+2"/>
+        <location line="+2"/>
         <source>Locate %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -116471,12 +116481,12 @@ Executable: %2</source>
         <location line="+24"/>
         <location line="+52"/>
         <location line="+10"/>
-        <location line="+5544"/>
+        <location line="+5545"/>
         <source>compiler</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5628"/>
+        <location line="-5629"/>
         <source>%1 now runs %2.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -116588,189 +116598,189 @@ Executable: %2</source>
         <location line="+23"/>
         <location line="+16"/>
         <location line="+343"/>
-        <location filename="../src/app/package_document_actions.cpp" line="-18676"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-40"/>
         <source>%1 -&gt; %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_document_actions.cpp" line="-19034"/>
+        <location line="-358"/>
         <source>Package Extract</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19030"/>
+        <location line="+4"/>
         <source>Starting package extraction.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19029"/>
+        <location line="+1"/>
         <source>Extracting Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19007"/>
+        <location line="+22"/>
         <source>Cancelled after %1 of %2 entries.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19005"/>
+        <location line="+2"/>
         <source>Extracted %1 entries to %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19003"/>
+        <location line="+2"/>
         <source>Cancellation requested.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18985"/>
+        <location line="+18"/>
         <source>Extraction Cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18985"/>
+        <location line="+0"/>
         <source>Extraction Complete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18985"/>
+        <location line="+0"/>
         <source>Extraction Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18966"/>
-        <location line="-18606"/>
+        <location line="+19"/>
+        <location line="+360"/>
         <source>Mode: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18966"/>
-        <location line="-18606"/>
+        <location line="-360"/>
+        <location line="+360"/>
         <source>dry run</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18966"/>
-        <location line="-18606"/>
+        <location line="-360"/>
+        <location line="+360"/>
         <source>write</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18965"/>
+        <location line="-359"/>
         <source>Overwrite existing: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18964"/>
+        <location line="+1"/>
         <source>Requested: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18963"/>
+        <location line="+1"/>
         <source>Processed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18962"/>
+        <location line="+1"/>
         <source>Written: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18961"/>
-        <location line="-6588"/>
+        <location line="+1"/>
+        <location line="+12374"/>
         <source>Skipped: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18960"/>
+        <location line="-12373"/>
         <source>Errors: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18959"/>
-        <location line="-18603"/>
+        <location line="+1"/>
+        <location line="+356"/>
         <source>Bytes written: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18954"/>
+        <location line="-351"/>
         <source>planned</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18952"/>
-        <location line="-18918"/>
-        <location line="-18578"/>
+        <location line="+2"/>
+        <location line="+34"/>
+        <location line="+340"/>
         <source>failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18950"/>
+        <location line="-372"/>
         <source>skipped</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18948"/>
+        <location line="+2"/>
         <source>would create</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18948"/>
+        <location line="+0"/>
         <source>would write</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18946"/>
+        <location line="+2"/>
         <source>created</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18944"/>
+        <location line="+2"/>
         <source>wrote</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18942"/>
+        <location line="+2"/>
         <source>%1: %2 -&gt; %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18942"/>
+        <location line="+0"/>
         <source>no output path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18940"/>
+        <location line="+2"/>
         <source>  %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18937"/>
+        <location line="+3"/>
         <source>  Error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18933"/>
+        <location line="+4"/>
         <source>No output paths were produced.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18928"/>
+        <location line="+5"/>
         <source>No extraction warnings.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18924"/>
+        <location line="+4"/>
         <source>Package Extraction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18921"/>
+        <location line="+3"/>
         <source>%1 entries written</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-18920"/>
+        <location line="+1"/>
         <source>%n paths</source>
         <translation>
             <numerusform>%n path</numerusform>
@@ -116778,14 +116788,14 @@ Executable: %2</source>
         </translation>
     </message>
     <message>
-        <location line="-18920"/>
+        <location line="+0"/>
         <source>Output Paths</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-18919"/>
-        <location line="-18579"/>
-        <location line="-17984"/>
+        <location line="+1"/>
+        <location line="+340"/>
+        <location line="+595"/>
         <source>%n warnings</source>
         <translation>
             <numerusform>%n warning</numerusform>
@@ -116793,152 +116803,152 @@ Executable: %2</source>
         </translation>
     </message>
     <message>
-        <location line="-18918"/>
-        <location line="-18578"/>
+        <location line="-934"/>
+        <location line="+340"/>
         <source>Raw Report</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18918"/>
+        <location line="-340"/>
         <source>cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18918"/>
-        <location line="-18578"/>
+        <location line="+0"/>
+        <location line="+340"/>
         <source>completed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18908"/>
+        <location line="-330"/>
         <source>Block on conflict</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18907"/>
+        <location line="+1"/>
         <source>Replace existing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18906"/>
+        <location line="+1"/>
         <source>Skip conflicting operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18901"/>
+        <location line="+5"/>
         <source>Conflict policy:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18861"/>
+        <location line="+40"/>
         <source>Open a package before staging files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18857"/>
+        <location line="+4"/>
         <source>Stage File Into Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18851"/>
+        <location line="+6"/>
         <source>Stage Add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18851"/>
+        <location line="+0"/>
         <source>Virtual package path:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18846"/>
+        <location line="+5"/>
         <source>Stage Add Conflict Policy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18838"/>
+        <location line="+8"/>
         <source>Stage add blocked: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18835"/>
-        <location line="-11956"/>
+        <location line="+3"/>
+        <location line="+6880"/>
         <source>Package Stage Add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18835"/>
+        <location line="-6880"/>
         <source>File staged for save-as.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18828"/>
+        <location line="+7"/>
         <source>Open a package before staging replacements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18814"/>
+        <location line="+14"/>
         <source>Choose Replacement File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18804"/>
+        <location line="+10"/>
         <source>Stage replace blocked: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18801"/>
+        <location line="+3"/>
         <source>Package Stage Replace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18801"/>
+        <location line="+0"/>
         <source>Replacement staged for save-as.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18815"/>
-        <location line="-18809"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-14"/>
+        <location line="+6"/>
         <source>Stage Rename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18815"/>
-        <location line="-18809"/>
+        <location line="-6"/>
+        <location line="+6"/>
         <source>Rename Package Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18814"/>
+        <location line="-5"/>
         <source>New virtual package path:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18811"/>
+        <location line="+3"/>
         <source>Stage Rename Conflict Policy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18802"/>
+        <location line="+9"/>
         <source>Rename staged: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18801"/>
+        <location line="+1"/>
         <source>Package Stage Rename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18800"/>
+        <location line="+1"/>
         <source>Rename staged for save-as.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18761"/>
+        <location line="+39"/>
         <source>Package Stage Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18761"/>
+        <location line="+0"/>
         <source>Delete staged for save-as.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -117193,7 +117203,7 @@ Edited, not saved:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7838"/>
+        <location line="+7839"/>
         <source>Undo: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -117203,7 +117213,7 @@ Edited, not saved:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-7243"/>
+        <location line="-7244"/>
         <source>Draft: %1
 %2</source>
         <translation type="unfinished"></translation>
@@ -117251,26 +117261,26 @@ Edited, not saved:
     </message>
     <message>
         <location line="+6"/>
-        <location filename="../src/app/package_document_actions.cpp" line="-18817"/>
-        <location line="-18781"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-56"/>
+        <location line="+36"/>
         <source>%1 (source entry %2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_document_actions.cpp" line="-30776"/>
-        <location line="-30774"/>
-        <location line="-30772"/>
+        <location line="-11995"/>
+        <location line="+2"/>
+        <location line="+2"/>
         <source>The studio is closing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18774"/>
-        <location line="-18803"/>
+        <location line="+11998"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-29"/>
         <source>The package changed; select the entry again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18772"/>
+        <location filename="../src/app/package_document_actions.cpp" line="+31"/>
         <source>Delete selected entries</source>
         <translation type="unfinished"></translation>
     </message>
@@ -117402,12 +117412,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+6"/>
-        <location line="+12029"/>
+        <location line="+12030"/>
         <source>Output: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-12024"/>
+        <location line="-12025"/>
         <source>SHA-256: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -117444,7 +117454,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_prefab_actions.cpp" line="+0"/>
+        <location line="+0"/>
         <source>not kept</source>
         <translation type="unfinished"></translation>
     </message>
@@ -117727,12 +117737,12 @@ The new archive is written beside it and verified first; only then does the orig
         <location line="+10"/>
         <location line="+10"/>
         <location line="+26"/>
-        <location line="+4494"/>
+        <location line="+4495"/>
         <source>setup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4561"/>
+        <location line="-4562"/>
         <source>Setup resumed.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -117806,12 +117816,12 @@ The new archive is written beside it and verified first; only then does the orig
     <message>
         <location line="+0"/>
         <location line="+763"/>
-        <location line="+3747"/>
+        <location line="+3748"/>
         <source>settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4508"/>
+        <location line="-4509"/>
         <source>Settings loaded successfully.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -117972,7 +117982,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/code_formatting.cpp" line="+24"/>
+        <location line="+24"/>
         <source>Extraction cancellation requested.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -117983,12 +117993,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+11723"/>
+        <location line="+11724"/>
         <source>Cancellation requested. The current stage is being stopped.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11718"/>
+        <location line="-11719"/>
         <source>Compiler cancellation requested.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -118134,28 +118144,28 @@ The new archive is written beside it and verified first; only then does the orig
     <message>
         <location line="+3"/>
         <location line="+528"/>
-        <location line="+12071"/>
+        <location line="+12072"/>
         <source>Locale: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-12598"/>
+        <location line="-12599"/>
         <location line="+528"/>
-        <location line="+4303"/>
+        <location line="+4304"/>
         <location line="+7768"/>
         <source>Theme: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-12598"/>
+        <location line="-12599"/>
         <location line="+528"/>
-        <location line="+4280"/>
+        <location line="+4281"/>
         <location line="+8"/>
         <source>Text scale: %1%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4815"/>
+        <location line="-4816"/>
         <location line="+528"/>
         <source>Density: %1</source>
         <translation type="unfinished"></translation>
@@ -118484,12 +118494,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+0"/>
-        <location line="+2973"/>
+        <location line="+2974"/>
         <source>AI-free</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2973"/>
+        <location line="-2974"/>
         <source>Experimental opt-in</source>
         <translation type="unfinished"></translation>
     </message>
@@ -119019,12 +119029,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+7497"/>
+        <location line="+7498"/>
         <source>Save File &amp;As…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-7496"/>
+        <location line="-7497"/>
         <source>Save this document to a chosen path, preserving its text format and undo history.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -119276,7 +119286,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_camera_placement_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Place the selected Create class at the surface under the camera centre.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -119322,12 +119332,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+9683"/>
+        <location line="+9684"/>
         <source>Edit Brush Components…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9682"/>
+        <location line="-9683"/>
         <source>Reshape the selected brush&apos;s vertices, edges and faces.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -119343,12 +119353,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+7"/>
-        <location line="+9680"/>
+        <location line="+9681"/>
         <source>Edit Patch Control Points…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9679"/>
+        <location line="-9680"/>
         <source>Reshape, subdivide and texture the selected patch.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -119424,12 +119434,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+9787"/>
+        <location line="+9788"/>
         <source>Rotate Selection…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9784"/>
+        <location line="-9785"/>
         <source>Rotate 90° R&amp;ight</source>
         <translation type="unfinished"></translation>
     </message>
@@ -120128,12 +120138,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+26"/>
-        <location line="+9250"/>
+        <location line="+9251"/>
         <source>Paste with Offset…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9249"/>
+        <location line="-9250"/>
         <source>Preview clipboard objects at an explicit offset, with package materials and one undo step.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -120164,12 +120174,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+9245"/>
+        <location line="+9246"/>
         <source>Duplicate with Offset…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9244"/>
+        <location line="-9245"/>
         <source>Preview copies at an explicit offset, preserving texture alignment and entity ownership.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -120435,12 +120445,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+1"/>
-        <location line="+427"/>
+        <location line="+428"/>
         <source>Type to find any studio command.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-425"/>
+        <location line="-426"/>
         <source>Reset &amp;Layout</source>
         <translation type="unfinished"></translation>
     </message>
@@ -120596,7 +120606,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/audio_browser_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Play the selected sound from the playhead, or pause it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -120801,7 +120811,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+34"/>
         <source>Discover &amp;Extensions</source>
         <translation type="unfinished"></translation>
     </message>
@@ -121206,14 +121216,14 @@ The new archive is written beside it and verified first; only then does the orig
         <location line="+3"/>
         <location line="+3"/>
         <location line="+3"/>
-        <location filename="../src/app/application_shell.cpp" line="-13866"/>
+        <location filename="../src/app/application_shell.cpp" line="-13867"/>
         <location line="+2559"/>
         <location line="+581"/>
         <source>Generate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-9"/>
+        <location line="-9"/>
         <source>Generate Level…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -121229,7 +121239,7 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+1"/>
-        <location line="-578"/>
+        <location filename="../src/app/application_shell.cpp" line="-578"/>
         <source>Draw seamless, game-ready textures with your image model, or make one from a picture.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -121265,7 +121275,7 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+7"/>
-        <location line="+11310"/>
+        <location filename="../src/app/application_shell.cpp" line="+11311"/>
         <source>The request that will be sent</source>
         <translation type="unfinished"></translation>
     </message>
@@ -121276,7 +121286,7 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+3"/>
-        <location line="+1"/>
+        <location filename="../src/app/application_shell.cpp" line="+1"/>
         <source>Don&apos;t ask again for this project and %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -121478,7 +121488,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location filename="../src/app/application_shell.cpp" line="+27"/>
         <source>(your question)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -121615,14 +121625,14 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+3"/>
-        <location line="+103"/>
         <location line="+3"/>
+        <location line="+103"/>
+        <location filename="../src/app/application_shell.cpp" line="+3"/>
         <source>https://… (required)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+48"/>
+        <location filename="../src/app/application_shell.cpp" line="+48"/>
         <source>None needed: the endpoint is on this machine.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -122299,7 +122309,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_asset_browsers.cpp" line="-37"/>
+        <location line="-37"/>
         <source>Reading and preparing %1: %2%</source>
         <translation type="unfinished"></translation>
     </message>
@@ -122310,7 +122320,7 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+10"/>
-        <location line="-21"/>
+        <location filename="../src/app/level_asset_browsers.cpp" line="-21"/>
         <source>No playable audio was prepared.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -122326,7 +122336,7 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+1"/>
-        <location line="+29"/>
+        <location filename="../src/app/level_asset_browsers.cpp" line="+29"/>
         <source>Playing %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -122347,7 +122357,7 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+7"/>
-        <location line="+285"/>
+        <location filename="../src/app/level_asset_browsers.cpp" line="+285"/>
         <source>Preparing %1 for playback…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -122473,7 +122483,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9028"/>
+        <location line="-9029"/>
         <source>Undo &amp;Package Edit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -122494,7 +122504,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="+4621"/>
+        <location line="+4622"/>
         <source>%n code file(s)</source>
         <translation>
             <numerusform>%n code file</numerusform>
@@ -122543,8 +122553,8 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="+0"/>
         <location line="+0"/>
+        <location filename="../src/app/level_view_actions.cpp" line="+0"/>
         <source>off</source>
         <translation type="unfinished"></translation>
     </message>
@@ -122761,13 +122771,13 @@ Used %n times in the open map</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-8642"/>
-        <location line="+8653"/>
+        <location line="-8643"/>
+        <location line="+8654"/>
         <source>%1, %2 x %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5671"/>
+        <location line="-5672"/>
         <source>Fit the selection to a new size. Texture Scale Lock stretches brush textures with it; otherwise their source parameters stay fixed. Viewport handles use the same setting.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -122832,7 +122842,7 @@ Used %n times in the open map</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5650"/>
+        <location line="+5651"/>
         <source>Not decodable</source>
         <translation type="unfinished"></translation>
     </message>
@@ -123182,8 +123192,8 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-437084"/>
-        <location line="+437090"/>
+        <location line="-21512"/>
+        <location line="+21518"/>
         <location line="+3498"/>
         <source>%1 — %2</source>
         <translation type="unfinished"></translation>
@@ -123228,17 +123238,17 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/code_document_actions.cpp" line="-7203"/>
+        <location line="-7204"/>
         <source>Preview and add a box, wedge, cylinder, cone or sphere brush.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5748"/>
+        <location line="+514"/>
         <source>Request language server suggestions, or names from this file, the project index and language keywords.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12067"/>
+        <location line="+5806"/>
         <location line="+171"/>
         <source>Includes pending package changes. Waveforms use PCM; compressed codecs report header metadata.</source>
         <translation type="unfinished"></translation>
@@ -123472,7 +123482,7 @@ Reloading discards them. Reload?</source>
     </message>
     <message>
         <location line="+29"/>
-        <location line="-145"/>
+        <location filename="../src/app/code_document_actions.cpp" line="-145"/>
         <source>No file is open in the editor.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -123483,7 +123493,7 @@ Reloading discards them. Reload?</source>
     </message>
     <message>
         <location line="+33"/>
-        <location line="-12"/>
+        <location filename="../src/app/code_document_actions.cpp" line="-12"/>
         <source>Save Failed</source>
         <translation type="unfinished"></translation>
     </message>
@@ -123494,7 +123504,7 @@ Reloading discards them. Reload?</source>
     </message>
     <message>
         <location line="+26"/>
-        <location line="+70"/>
+        <location filename="../src/app/code_document_actions.cpp" line="+70"/>
         <source>Saved</source>
         <translation type="unfinished"></translation>
     </message>
@@ -123629,7 +123639,7 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_asset_browsers.cpp" line="+105"/>
+        <location line="+105"/>
         <source>Texture export cancelled. No output was written.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -123673,18 +123683,18 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20776"/>
+        <location line="-20777"/>
         <source>Showing an excerpt. The Preview tab contains the full sampled text.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6180"/>
+        <location line="+2388"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="+53"/>
         <source>Layout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="+0"/>
+        <location line="+0"/>
         <source>Arrange the level editor views independently of the interaction profile.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -123777,42 +123787,42 @@ Wall</source>
     </message>
     <message>
         <location line="+3"/>
-        <location filename="../src/app/level_asset_browsers.cpp" line="-6209"/>
+        <location filename="../src/app/level_asset_browsers.cpp" line="-29"/>
         <source>Preview cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_asset_browsers.cpp" line="-6200"/>
+        <location line="+9"/>
         <source>Retry Preview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6163"/>
+        <location line="+37"/>
         <source>Loading…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-454"/>
+        <location line="+5710"/>
         <source>Package copy cancelled. No files were handed off.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-450"/>
+        <location line="+4"/>
         <source>The package changed while preparing copies. Select the entries again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-428"/>
+        <location line="+22"/>
         <source>The selected package entry changed. Select it again in Packages.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-419"/>
+        <location line="+9"/>
         <source>This package path has repeated entries. Select the exact entry in Packages.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+37544"/>
+        <location line="+2892"/>
         <source>Open a package to list its OBJ, MDL, MD2, and MD3 models.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -123844,10 +123854,10 @@ Wall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-51185"/>
-        <location line="-13224"/>
-        <location line="-3559"/>
-        <location line="+67977"/>
+        <location line="-16115"/>
+        <location line="+110"/>
+        <location line="+9665"/>
+        <location line="+6349"/>
         <source>Materials</source>
         <translation type="unfinished"></translation>
     </message>
@@ -123863,163 +123873,163 @@ Wall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-85726"/>
+        <location line="-20539"/>
         <source>Size unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17754"/>
-        <location line="-6510"/>
+        <location line="+1"/>
+        <location line="+11244"/>
         <source>Size exceeds the supported range</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15341"/>
-        <location line="-13676"/>
+        <location line="-8831"/>
+        <location line="+1665"/>
         <source>Customize Gestures…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14760"/>
+        <location line="-1084"/>
         <source>Cancel package entry listing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14759"/>
+        <location line="+1"/>
         <source>Stop preparing the current package entry list.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14757"/>
-        <location filename="../src/tests/package_browser_ui_smoke_test.cpp" line="-15757"/>
+        <location line="+2"/>
+        <location filename="../src/tests/package_browser_ui_smoke_test.cpp" line="+0"/>
         <source>Retry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/package_browser_ui_smoke_test.cpp" line="-15756"/>
+        <location line="+1"/>
         <source>Retry package entry listing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15755"/>
+        <location line="+1"/>
         <source>Prepare the current folder or search again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15614"/>
-        <location line="-6960"/>
+        <location line="+141"/>
+        <location line="+8654"/>
         <source>Preparing…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15565"/>
+        <location line="-8605"/>
         <source>Staged change details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15564"/>
+        <location line="+1"/>
         <source>Full paths, source occurrence, generated content and conflict policy for the current staging row.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14683"/>
+        <location line="+881"/>
         <source>Uses the selected profile&apos;s level views, camera, layout, gestures and keys. Customize Gestures adjusts this profile without changing other profiles.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14674"/>
+        <location line="+9"/>
         <source>Customize editor gestures</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13880"/>
-        <location line="-1699"/>
+        <location line="+794"/>
+        <location line="+12182"/>
         <source>Create a texture or browse images from a package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13761"/>
+        <location line="-12063"/>
         <source>Preview frames per second. Selecting a clip uses its saved rate when specified; this control does not change the source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13639"/>
-        <location line="-1693"/>
+        <location line="+122"/>
+        <location line="+11947"/>
         <source>Create a mesh or browse models from a package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13439"/>
-        <location line="-1687"/>
+        <location line="-11747"/>
+        <location line="+11753"/>
         <source>Open a sound or browse audio from a package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-12179"/>
-        <location line="-7520"/>
-        <location line="-7481"/>
-        <location line="-7310"/>
-        <location line="-7086"/>
-        <location line="-6082"/>
-        <location line="-6081"/>
-        <location line="-1743"/>
-        <location line="-1679"/>
-        <location line="-1675"/>
-        <location filename="../src/app/package_context_actions.cpp" line="-11894"/>
+        <location line="-10493"/>
+        <location line="+4659"/>
+        <location line="+39"/>
+        <location line="+171"/>
+        <location line="+224"/>
+        <location line="+1004"/>
+        <location line="+1"/>
+        <location line="+4339"/>
+        <location line="+64"/>
+        <location line="+4"/>
+        <location filename="../src/app/package_context_actions.cpp" line="-76"/>
         <source>Package view unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_context_actions.cpp" line="-19248"/>
+        <location line="-7355"/>
         <source>Gesture preferences could not be applied: %1. Profile defaults are in use.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18832"/>
+        <location line="+416"/>
         <source>%1 Controls (customized)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18826"/>
+        <location line="+6"/>
         <source>Profile adaptations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18823"/>
+        <location line="+3"/>
         <source>Workflow differences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17735"/>
-        <location line="-17690"/>
+        <location line="+1088"/>
+        <location line="+45"/>
         <source>Preparing package entries…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17583"/>
+        <location line="+107"/>
         <source>Composition unavailable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17681"/>
-        <location line="-17581"/>
-        <location line="-17340"/>
+        <location line="-98"/>
+        <location line="+100"/>
+        <location line="+241"/>
         <source>Total size exceeds the supported range; proportions are unavailable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-25901"/>
+        <location line="-8561"/>
         <source>Package save options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-25898"/>
+        <location line="+3"/>
         <location filename="../src/tests/package_summary_ui_smoke_test.cpp" line="+160"/>
         <source>Include Staging &amp;Manifest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/package_summary_ui_smoke_test.cpp" line="+3"/>
+        <location line="+3"/>
         <source>Write a sidecar with hashes of all original and final entries. Clear this option when repairing damaged source entries that cannot be hashed.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -124041,380 +124051,380 @@ Wall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1131"/>
+        <location line="+112"/>
         <source>Index Assets</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1129"/>
+        <location line="+2"/>
         <source>Index the selected installation&apos;s game assets</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1128"/>
-        <location filename="../src/app/release_actions.cpp" line="-3700"/>
+        <location line="+1"/>
+        <location filename="../src/app/release_actions.cpp" line="-376"/>
         <source>Read the selected installation&apos;s own packages once, so releases leave the game&apos;s files out. Nothing in the installation changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/release_actions.cpp" line="-3667"/>
-        <location line="-3661"/>
+        <location line="+33"/>
+        <location line="+6"/>
         <source>Releases</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3665"/>
+        <location line="-4"/>
         <source>Release summary</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3660"/>
+        <location line="+5"/>
         <source>Unreleased changes and the project&apos;s published releases. Activate a release to open its folder.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3648"/>
+        <location line="+12"/>
         <source>Record Change…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3646"/>
+        <location line="+2"/>
         <source>Record a change for the next release</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3642"/>
+        <location line="+4"/>
         <source>Package and Release…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3640"/>
+        <location line="+2"/>
         <source>Package and release the project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3563"/>
+        <location line="+77"/>
         <source>Open a map before checking its dependencies.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3494"/>
-        <location line="-2108"/>
+        <location line="+69"/>
+        <location line="+1386"/>
         <source>Package Map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3492"/>
+        <location line="-1384"/>
         <source>Package and release this map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3491"/>
+        <location line="+1"/>
         <source>Release the map with its build and every custom asset it uses, leaving the game&apos;s own files out.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3473"/>
+        <location line="+18"/>
         <source>Generate a level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3472"/>
+        <location line="+1"/>
         <source>Plan and build a sealed level from a description, by the rules or with your text model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3469"/>
+        <location line="+3"/>
         <source>Edit with AI</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3467"/>
+        <location line="+2"/>
         <source>Edit the open map with AI</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3466"/>
+        <location line="+1"/>
         <source>Say what should change; review the edits your text model proposes before any is made.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3204"/>
+        <location line="+262"/>
         <source>Side (Y/Z)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3100"/>
+        <location line="+104"/>
         <source>Browse Editor Profiles…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2971"/>
+        <location line="+129"/>
         <source>Selected group %1. Open Group to edit its contents.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2920"/>
+        <location line="+51"/>
         <source>Protected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2106"/>
+        <location line="+814"/>
         <source>Package and release the pipeline&apos;s map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2105"/>
+        <location line="+1"/>
         <source>Release the pipeline&apos;s map with its build and every custom asset it uses, leaving the game&apos;s own files out.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1602"/>
-        <location line="+612236"/>
+        <location line="+503"/>
+        <location line="+9128"/>
         <source>Open Step Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-613795"/>
+        <location line="-9085"/>
         <source>Appearance preferences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1558"/>
+        <location line="+1"/>
         <source>Persistent preferences for theme, text scale, density, typeface, spacing, and the navigation rail.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1544"/>
+        <location line="+14"/>
         <source>System follows the desktop: its light or dark colours, and its high-contrast mode when that is on.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1507"/>
+        <location line="+37"/>
         <source>Interface typeface</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1506"/>
+        <location line="+1"/>
         <source>The typeface menus, labels, and messages are written in. Any installed font can be chosen, including ones made for easier reading such as Atkinson Hyperlegible, Lexend, or OpenDyslexic. Code keeps its fixed-width font.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1505"/>
+        <location line="+1"/>
         <source>System typeface</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1498"/>
+        <location line="+7"/>
         <source>Typeface</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1496"/>
-        <location line="-1494"/>
+        <location line="+2"/>
+        <location line="+2"/>
         <source>Wider letter and word spacing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1493"/>
+        <location line="+1"/>
         <source>Sets letters 0.12 and words 0.16 of the text size further apart, the spacing WCAG 2.2 asks layouts to withstand. Many readers with dyslexia find spaced text easier to follow.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1478"/>
+        <location line="+15"/>
         <source>Language and Region</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1476"/>
+        <location line="+2"/>
         <source>Language and region preferences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1468"/>
+        <location line="+8"/>
         <source>The language of menus, labels, and messages. System language follows the operating system whenever VibeStudio has that language. A new language shows after a restart.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1465"/>
+        <location line="+3"/>
         <source>System language: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1447"/>
+        <location line="+18"/>
         <source>Language restart notice</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1441"/>
-        <location line="-1433"/>
+        <location line="+6"/>
+        <location line="+8"/>
         <source>Region formats</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1440"/>
+        <location line="-7"/>
         <source>How numbers, dates, times, and sizes are written, chosen apart from the language: English menus can show German dates, for example. Type a region&apos;s name to jump to it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1439"/>
+        <location line="+1"/>
         <source>System regional settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1438"/>
+        <location line="+1"/>
         <source>Match the interface language</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1429"/>
+        <location line="+9"/>
         <source>Region format sample</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1425"/>
+        <location line="+4"/>
         <source>Editing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1400"/>
+        <location line="+25"/>
         <source>3D Rendering</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1398"/>
+        <location line="+2"/>
         <source>3D rendering preferences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1390"/>
+        <location line="+8"/>
         <source>3D renderer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1389"/>
+        <location line="+1"/>
         <source>The graphics interface that draws the Levels camera, models, the modeller, and material previews. Automatic uses Vulkan where it works and OpenGL otherwise; on macOS it tries OpenGL first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1383"/>
+        <location line="+6"/>
         <source>Renderer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1377"/>
+        <location line="+6"/>
         <source>3D renderer status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1374"/>
+        <location line="+3"/>
         <source>Check Renderers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1372"/>
+        <location line="+2"/>
         <source>Check 3D renderers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1371"/>
+        <location line="+1"/>
         <source>Start OpenGL and Vulkan again, draw a test image on each, and show what they found. Use it after updating a graphics driver or when 3D views stay empty.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1349"/>
+        <location line="+22"/>
         <source>Accessibility</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1293"/>
+        <location line="+56"/>
         <source>The connector the Texture Generator and ai image draw with; set its model under Image Model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1291"/>
+        <location line="+2"/>
         <source>The connector the Sound Generator asks for sound effects; set its model under Sound Model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1066"/>
+        <location line="+225"/>
         <source>Materials workbench header</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1063"/>
-        <location line="-945"/>
+        <location line="+3"/>
+        <location line="+118"/>
         <source>Open Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1062"/>
+        <location line="-117"/>
         <source>Open material script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1061"/>
+        <location line="+1"/>
         <source>Open a Quake III .shader or Doom 3 .mtr script.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1059"/>
+        <location line="+2"/>
         <source>Open Material Script</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1058"/>
+        <location line="+1"/>
         <source>Material scripts (*.shader *.mtr *.txt);;All files (*.*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-959"/>
+        <location line="+99"/>
         <source>Materials views</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-956"/>
+        <location line="+3"/>
         <source>Script Outline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-947"/>
-        <location line="+675431"/>
+        <location line="+9"/>
+        <location line="+12567"/>
         <source>No materials yet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-676377"/>
+        <location line="-12566"/>
         <source>Open a package, folder or WAD to browse its textures, shaders and materials with a live preview, or open a .shader or .mtr script.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-914"/>
+        <location line="+32"/>
         <source>Generate a texture</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-459"/>
+        <location line="+455"/>
         <source>3D view of the selected model, drawn with OpenGL or Vulkan. Drag to orbit, wheel to zoom, Space to play, Page Up and Page Down to step frames.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-403"/>
+        <location line="+56"/>
         <source>The selected surface material or embedded skin member, decoded from the package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-333"/>
+        <location line="+70"/>
         <source>Generate a sound</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-332"/>
+        <location line="+1"/>
         <source>Make game-ready sound effects from a description, with the synthesizer or your sound model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+667675"/>
+        <location line="+808"/>
         <source>Every project check passes</source>
         <translation type="unfinished"></translation>
     </message>
@@ -124505,7 +124515,7 @@ Wall</source>
     </message>
     <message numerus="yes">
         <location line="+314"/>
-        <location line="+16095"/>
+        <location line="+16096"/>
         <source>%1 set to %2 on %n entit(y)(ies). Use Save Map to update the file after a change check and backup.</source>
         <translation>
             <numerusform>%1 set to %2 on %n entity. Use Save Map to update the file after a change check and backup.</numerusform>
@@ -124513,7 +124523,7 @@ Wall</source>
         </translation>
     </message>
     <message>
-        <location line="-16086"/>
+        <location line="-16087"/>
         <source>Entity key edited; use Save Map to update the file after a change check and backup.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -124552,12 +124562,12 @@ Wall</source>
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="+581"/>
-        <location line="+9577"/>
+        <location line="+9578"/>
         <source>Show in Materials</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9576"/>
+        <location line="-9577"/>
         <source>Preview this texture or shader the way the game draws it, and edit it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -124638,7 +124648,7 @@ Wall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_clipper_preferences.cpp" line="+14"/>
+        <location line="+14"/>
         <source>Clip plane validation</source>
         <translation type="unfinished"></translation>
     </message>
@@ -124682,7 +124692,7 @@ Wall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_duplicate_move_actions.cpp" line="+3674"/>
+        <location line="+3674"/>
         <source>Browse, preview and edit the textures, shaders and materials of idTech 1 to 4, as text or as nodes.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -124718,7 +124728,7 @@ Wall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="+2"/>
+        <location line="+2"/>
         <source>Quick Clip</source>
         <translation type="unfinished"></translation>
     </message>
@@ -124913,7 +124923,7 @@ Wall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+34"/>
         <source>Accessi&amp;bility Settings</source>
         <translation type="unfinished"></translation>
     </message>
@@ -125565,7 +125575,7 @@ Wall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/audio_recovery_actions.cpp" line="+43"/>
+        <location line="+43"/>
         <source>Edited sound staged. Review and save the pending changes in Packages.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -125739,7 +125749,7 @@ Cancel keeps both the disk file and your unsaved edits.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/level_sidebar_actions.cpp" line="+4"/>
+        <location line="+4"/>
         <source>%n entity class(es) loaded.</source>
         <translation>
             <numerusform>%n entity class loaded.</numerusform>
@@ -125768,18 +125778,18 @@ Cancel keeps both the disk file and your unsaved edits.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_editing_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>The way the thing faces, in degrees: 0 east, 90 north, 180 west, 270 south.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <location line="+90"/>
-        <location line="-477"/>
+        <location filename="../src/app/level_editing_actions.cpp" line="-477"/>
         <location line="+455"/>
         <location line="+122"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-39924"/>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-14986"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+353"/>
+        <location filename="../src/app/level_shapes_panel.cpp" line="-41"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="+102"/>
         <location line="+12"/>
         <location line="+100"/>
@@ -125787,7 +125797,7 @@ Cancel keeps both the disk file and your unsaved edits.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_panels.cpp" line="-90"/>
+        <location line="-90"/>
         <source>Where the thing stands across the map.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -125797,8 +125807,8 @@ Cancel keeps both the disk file and your unsaved edits.</source>
         <location filename="../src/app/level_editing_actions.cpp" line="-577"/>
         <location line="+455"/>
         <location line="+122"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-39924"/>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-14985"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+0"/>
+        <location filename="../src/app/level_shapes_panel.cpp" line="+1"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="-112"/>
         <location line="+12"/>
         <location line="+100"/>
@@ -126097,171 +126107,171 @@ Cancel keeps both the disk file and your unsaved edits.</source>
     </message>
     <message>
         <location line="+3"/>
-        <location filename="../src/app/level_plan_pane_actions.cpp" line="-10020"/>
+        <location filename="../src/app/level_plan_pane_actions.cpp" line="-6"/>
         <source>Side</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_plan_pane_actions.cpp" line="-10020"/>
-        <location line="-8337"/>
+        <location line="+0"/>
+        <location line="+1683"/>
         <source>None</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10020"/>
+        <location line="-1683"/>
         <source>None: the line is one-sided</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10017"/>
+        <location line="+3"/>
         <source>%1 (sidedef %2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10015"/>
+        <location line="+2"/>
         <source>Sector</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10015"/>
+        <location line="+0"/>
         <source>The sector this side faces.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10014"/>
+        <location line="+1"/>
         <source>Upper</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10014"/>
+        <location line="+0"/>
         <source>The wall above an opening, where the ceilings differ; - for none.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10012"/>
+        <location line="+2"/>
         <source>Middle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10011"/>
+        <location line="+1"/>
         <source>The wall of a one-sided line, or a see-through texture across an opening; - for none.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10010"/>
+        <location line="+1"/>
         <source>Lower</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10010"/>
+        <location line="+0"/>
         <source>The wall below an opening, where the floors differ; - for none.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10008"/>
+        <location line="+2"/>
         <source>X offset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10008"/>
+        <location line="+0"/>
         <source>How far the textures shift along the line.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10007"/>
+        <location line="+1"/>
         <source>Y offset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10007"/>
+        <location line="+0"/>
         <source>How far the textures shift up or down.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9981"/>
+        <location line="+26"/>
         <source>%1 set on thing %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9981"/>
+        <location line="+0"/>
         <source>%1 cleared on thing %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9967"/>
+        <location line="+14"/>
         <source>%1 set on linedef %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9966"/>
+        <location line="+1"/>
         <source>%1 cleared on linedef %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9943"/>
+        <location line="+23"/>
         <source>%1 is a number.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9930"/>
+        <location line="+13"/>
         <source>A vertex position is a whole number from -32768 to 32767.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9920"/>
+        <location line="+10"/>
         <source>%1 on brush %2 face %3 set to %4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9918"/>
+        <location line="+2"/>
         <source>sector</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9917"/>
+        <location line="+1"/>
         <source>vertex</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9916"/>
+        <location line="+1"/>
         <source>thing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9915"/>
+        <location line="+1"/>
         <source>linedef</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9914"/>
+        <location line="+1"/>
         <source>%1 on %2 %3 set to %4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9904"/>
+        <location line="+10"/>
         <source>Level map edited</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9877"/>
-        <location line="-9415"/>
+        <location line="+27"/>
+        <location line="+462"/>
         <source>entity %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9874"/>
+        <location line="-459"/>
         <source>%1 (entity %2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9864"/>
-        <location line="-9575"/>
+        <location line="+10"/>
+        <location line="+289"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="-89"/>
         <source>Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_panels.cpp" line="-289"/>
+        <location line="-289"/>
         <source>%1 × %2 × %3</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126272,7 +126282,7 @@ Cancel keeps both the disk file and your unsaved edits.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_csg_tool_actions.cpp" line="+15"/>
+        <location line="+15"/>
         <source>sloped</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126517,7 +126527,7 @@ Double-click to pick the colour; Enter edits the numbers.</source>
         </translation>
     </message>
     <message>
-        <location filename="../src/app/level_editing_actions.cpp" line="+0"/>
+        <location line="+0"/>
         <source>Selected</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126652,7 +126662,7 @@ A value set here is set on all %n entities.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="+11"/>
+        <location line="+11"/>
         <source>Add Brush Here…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126673,7 +126683,7 @@ A value set here is set on all %n entities.</numerusform>
     </message>
     <message>
         <location line="+8"/>
-        <location line="-115"/>
+        <location filename="../src/app/level_view_actions.cpp" line="-115"/>
         <source>Draw Sector</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126715,17 +126725,17 @@ A value set here is set on all %n entities.</numerusform>
     <message>
         <location line="+3"/>
         <location filename="../src/app/level_editing_actions.cpp" line="-1211"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40658"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-734"/>
         <source>Select by Region</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40623"/>
+        <location line="+35"/>
         <source>Groups and linked groups</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40605"/>
+        <location line="+18"/>
         <location filename="../src/app/level_axis_transform_actions.cpp" line="-259"/>
         <location line="+36"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="-38"/>
@@ -126734,7 +126744,7 @@ A value set here is set on all %n entities.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Transform the selection</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126745,7 +126755,7 @@ A value set here is set on all %n entities.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Resize…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126796,7 +126806,7 @@ A value set here is set on all %n entities.</numerusform>
     </message>
     <message>
         <location line="+7"/>
-        <location line="-9"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="-9"/>
         <source>Edit Key…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126860,7 +126870,7 @@ A value set here is set on all %n entities.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/level_sidebar_panels.cpp" line="+11"/>
+        <location line="+11"/>
         <source>Moved %n object(s) by %1, %2, %3.</source>
         <translation>
             <numerusform>Moved %n object by %1, %2, %3.</numerusform>
@@ -126919,7 +126929,7 @@ A value set here is set on all %n entities.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15601"/>
+        <location line="-15602"/>
         <source>Surface and component picks cleared. Whole objects remain selected.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126929,7 +126939,7 @@ A value set here is set on all %n entities.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7569"/>
+        <location line="+7570"/>
         <source>Vision</source>
         <comment>accessibility settings group about seeing the screen, not computer vision</comment>
         <translation type="unfinished"></translation>
@@ -127218,7 +127228,7 @@ A value set here is set on all %n entities.</numerusform>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-8689"/>
+        <location line="-8689"/>
         <location line="+8690"/>
         <source>Program</source>
         <translation type="unfinished"></translation>
@@ -128093,7 +128103,7 @@ Working directory: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15136"/>
+        <location filename="../src/app/application_shell.cpp" line="-15137"/>
         <location filename="../src/app/code_document_actions.cpp" line="-109"/>
         <source>Untitled %1</source>
         <translation type="unfinished"></translation>
@@ -128261,7 +128271,7 @@ Cancel keeps both files unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/code_index_ui_smoke_test.cpp" line="+2"/>
+        <location line="+2"/>
         <source>Refresh project source index</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128277,7 +128287,7 @@ Cancel keeps both files unchanged.</source>
     </message>
     <message>
         <location line="+7"/>
-        <location line="+2"/>
+        <location filename="../src/tests/code_index_ui_smoke_test.cpp" line="+2"/>
         <source>Filter symbols and source paths</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128444,34 +128454,34 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_document_actions.cpp" line="-18977"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-205"/>
         <source>Open Package Draft (.vibepackage)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18973"/>
+        <location line="+4"/>
         <source>Open Package Draft</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18973"/>
+        <location line="+0"/>
         <source>Choose the complete .vibepackage draft directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18958"/>
-        <location line="-18929"/>
+        <location line="+15"/>
+        <location line="+29"/>
         <source>Save Package Draft</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18957"/>
+        <location line="-28"/>
         <location filename="../src/app/package_recovery_actions.cpp" line="+117"/>
         <source>Package Draft Directory (*.vibepackage)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_recovery_actions.cpp" line="+4"/>
+        <location line="+4"/>
         <source>Replace Package Draft</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128650,44 +128660,45 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="-8140"/>
-        <location filename="../src/app/package_document_actions.cpp" line="-18956"/>
+        <location filename="../src/app/package_document_actions.cpp" line="+1"/>
         <source>Rename Folder…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_document_actions.cpp" line="-18954"/>
-        <location line="-18953"/>
+        <location line="+2"/>
+        <location filename="../src/app/package_document_actions.cpp" line="+1"/>
         <source>Delete Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_preview_actions.cpp" line="-19232"/>
-        <location line="-19049"/>
+        <location filename="../src/app/level_preview_actions.cpp" line="-49"/>
+        <location line="+186"/>
         <source>Open a package or asset folder for material previews.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19230"/>
+        <location line="-184"/>
         <source>Level material preview status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19226"/>
+        <location line="+4"/>
         <source>Loading level materials</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19220"/>
+        <location line="+6"/>
         <source>Show textures in the level camera</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19219"/>
+        <location line="+1"/>
         <source>Use package images and static shader previews on brushes, patches and placed models.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/app/level_camera_render_actions.cpp" line="+62"/>
+        <location filename="../src/app/material_actions.cpp" line="+187"/>
         <source>Camera Display</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128782,233 +128793,233 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_preview_actions.cpp" line="-19193"/>
+        <location filename="../src/app/level_preview_actions.cpp" line="+26"/>
         <source>Reload material images from the current package and staged changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19185"/>
+        <location line="+8"/>
         <source>Inspect image sources, original dimensions and unsupported material effects.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19183"/>
+        <location line="+2"/>
         <source>Cancel loading the level preview.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19169"/>
+        <location line="+14"/>
         <source>Level Materials</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19163"/>
+        <location line="+6"/>
         <source>Level material resolution details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19162"/>
+        <location line="+1"/>
         <source>Read-only material and model appearance results, including source files, skin hashes, omitted surfaces and diagnostics.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19118"/>
+        <location line="+44"/>
         <source>Loading level materials and geometry…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19085"/>
+        <location line="+34"/>
         <source>Level preview cancelled. Reload to try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19084"/>
+        <location line="+1"/>
         <source>Level preview failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19061"/>
+        <location line="+25"/>
         <source>Materials %1/%2 · Models %3/%4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19055"/>
+        <location line="+6"/>
         <source> · See Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19052"/>
+        <location line="+3"/>
         <source> · First %1 triangles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/code_language_actions.cpp" line="-50144"/>
+        <location filename="../src/app/code_language_actions.cpp" line="-72"/>
         <source>A matching open document is read-only, incomplete or exceeds the language service limits: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="+2478"/>
-        <location filename="../src/app/code_language_actions.cpp" line="-50127"/>
+        <location filename="../src/app/code_language_actions.cpp" line="+17"/>
         <source>Language Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/code_language_actions.cpp" line="-50132"/>
+        <location filename="../src/app/code_language_actions.cpp" line="-5"/>
         <source>The language connection ended. Request Quick Info after reconnecting.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50130"/>
+        <location line="+2"/>
         <source>The language connection ended. Request formatting after reconnecting.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50125"/>
+        <location line="+5"/>
         <source>Connected to %1. Matching open documents are shared with the local server.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50123"/>
+        <location line="+2"/>
         <source>Language server disconnected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50058"/>
+        <location line="+65"/>
         <source>Some language diagnostics were omitted or shortened because their ranges, content or size were invalid.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49953"/>
+        <location line="+105"/>
         <source>The source context changed. Find references again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50085"/>
+        <location line="-132"/>
         <source>Waiting for language server diagnostics…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50129"/>
+        <location line="-44"/>
         <source>The language connection ended. Reconnect and request the language operation again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50109"/>
+        <location line="+20"/>
         <source>The source context changed. Request the language operation again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50089"/>
+        <location line="+20"/>
         <source>Language diagnostics failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50072"/>
+        <location line="+17"/>
         <source>Hint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50072"/>
+        <location line="+0"/>
         <source>Information</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50071"/>
+        <location line="+1"/>
         <source>Language server · %1 · %2:%3 · %4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50070"/>
+        <location line="+1"/>
         <source> (unversioned report; location unavailable)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50048"/>
+        <location line="+22"/>
         <source>The diagnostic has no current document version. Wait for updated language diagnostics.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50030"/>
+        <location line="+18"/>
         <source>The language server returned no definition at this position.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50028"/>
+        <location line="+2"/>
         <source>language server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50024"/>
+        <location line="+4"/>
         <source>Resolving definition with the language server… Keep the caret here to open the result.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50001"/>
+        <location line="+23"/>
         <source>This completion is out of date. Request suggestions again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49997"/>
+        <location line="+4"/>
         <source>Completion applied to the unsaved document. Undo reverts its related edits too.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49988"/>
+        <location line="+9"/>
         <source>Completion ready: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49985"/>
+        <location line="+3"/>
         <source>The language server could not resolve this suggestion. Request completions again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49983"/>
+        <location line="+2"/>
         <source>Resolving %1… Escape cancels.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49981"/>
+        <location line="+2"/>
         <source>Language server suggestions: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49980"/>
+        <location line="+1"/>
         <source> · Partial list; keep typing to request updated suggestions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49979"/>
+        <location line="+1"/>
         <source> · Unsupported or invalid suggestions skipped: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49978"/>
+        <location line="+1"/>
         <source> · Local completion remains available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49977"/>
+        <location line="+1"/>
         <source> · Resolving selected suggestion… Escape cancels.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49973"/>
+        <location line="+4"/>
         <source>Loading language server completions… Escape cancels.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49966"/>
+        <location line="+7"/>
         <source>Wait for the current search, or cancel it before finding references.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49959"/>
+        <location line="+7"/>
         <source>Symbol at caret</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49948"/>
+        <location line="+11"/>
         <source>The language server could not start the reference request.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -129078,7 +129089,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/code_language_actions.cpp" line="-50111"/>
+        <location filename="../src/app/code_language_actions.cpp" line="-163"/>
         <location filename="../src/app/code_quick_info.cpp" line="-3"/>
         <source>The source context changed. Request Quick Info again.</source>
         <translation type="unfinished"></translation>
@@ -129140,22 +129151,22 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location line="+10"/>
-        <location filename="../src/app/code_language_actions.cpp" line="-50112"/>
+        <location filename="../src/app/code_language_actions.cpp" line="-1"/>
         <source>The source context changed. Request formatting again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/code_language_actions.cpp" line="-50107"/>
+        <location line="+5"/>
         <source>The document already matches the formatter&apos;s output.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50097"/>
+        <location line="+10"/>
         <source>Formatting applied to the unsaved document. Undo reverts all formatting edits.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-50094"/>
+        <location line="+3"/>
         <source>The language server could not start formatting.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -129314,7 +129325,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/code_search_actions.cpp" line="+0"/>
+        <location line="+0"/>
         <location line="+3"/>
         <source>New symbol name</source>
         <translation type="unfinished"></translation>
@@ -129534,74 +129545,74 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40751"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-146"/>
         <source>Vertex Editing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+18628"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40750"/>
+        <location filename="../src/app/application_shell.cpp" line="+18629"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+1"/>
         <source>Groups</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40749"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+1"/>
         <source>Wrap/Merge</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40748"/>
+        <location line="+1"/>
         <source>Build a convex hull, filling gaps. Whole brushes are replaced; picked components form a new brush and retain the originals. Uses current material and any placed clipper points.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40746"/>
+        <location line="+2"/>
         <source>Wrap/Merge with Points…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40745"/>
+        <location line="+1"/>
         <source>Preview a convex hull with up to three extra XYZ points. Picked components retain their original objects.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40743"/>
+        <location line="+2"/>
         <source>Open Group</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40743"/>
+        <location line="+0"/>
         <source>Edit the selected group&apos;s contents. Objects outside it remain visible and protected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40741"/>
+        <location line="+2"/>
         <source>Close Group</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40741"/>
+        <location line="+0"/>
         <source>Return to the parent group and select the group just closed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40739"/>
+        <location line="+2"/>
         <source>Close All Groups</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40739"/>
+        <location line="+0"/>
         <source>Return to the map and restore the previous creation destination.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40733"/>
+        <location line="+6"/>
         <location filename="../src/app/level_view_actions.cpp" line="-55"/>
         <source>Edit Vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="+4"/>
+        <location line="+4"/>
         <source>Edit Edges</source>
         <translation type="unfinished"></translation>
     </message>
@@ -130230,27 +130241,27 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40690"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+43"/>
         <source>Could not snap the vertices: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40686"/>
+        <location line="+4"/>
         <source>The selected brushes&apos; vertices are already on grid %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40685"/>
+        <location line="+1"/>
         <source>No brush changed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40681"/>
+        <location line="+4"/>
         <source>Brush vertices snapped to the grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-40678"/>
+        <location line="+3"/>
         <source>Snapped the vertices of %n brush(es) to grid %1.</source>
         <translation>
             <numerusform>Snapped the vertices of %n brush to grid %1.</numerusform>
@@ -130258,12 +130269,12 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-40666"/>
+        <location line="+12"/>
         <source>Hollow Touching</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-40651"/>
+        <location line="+15"/>
         <source>Hollowed %n brush(es) into walls %1 units thick that meet without overlapping.</source>
         <translation>
             <numerusform>Hollowed %n brush into walls %1 units thick that meet without overlapping.</numerusform>
@@ -130271,22 +130282,22 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-40645"/>
+        <location line="+6"/>
         <source>Select brushes, or a brush entity, to make rooms of.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40630"/>
+        <location line="+15"/>
         <source>Could not make the room: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40627"/>
+        <location line="+3"/>
         <source>Level map rooms made</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-40624"/>
+        <location line="+3"/>
         <source>Made %n room(s) with walls %1 units thick outside them.</source>
         <translation>
             <numerusform>Made %n room with walls %1 units thick outside them.</numerusform>
@@ -130294,7 +130305,7 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-40619"/>
+        <location line="+5"/>
         <source>Caulked %n hidden wall face(s) with %1.</source>
         <translation>
             <numerusform>Caulked %n hidden wall face with %1.</numerusform>
@@ -130302,92 +130313,92 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-40617"/>
+        <location line="+2"/>
         <source>This game has no caulk material, so the walls keep their textures; name one in Make Room Options.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40608"/>
+        <location line="+9"/>
         <source>Make Room Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40601"/>
+        <location line="+7"/>
         <source>&amp;Caulk the wall faces the room does not see</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40599"/>
+        <location line="+2"/>
         <source>Every wall face except the one facing the room takes the caulk material, so the compiler leaves it out. Faces lining an open face keep its material.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40595"/>
+        <location line="+4"/>
         <source>Caulk material</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40593"/>
+        <location line="+2"/>
         <source>Leave empty to use the game&apos;s own caulk: common/caulk in Quake III and skip in Quake. Quake II has none, so name a material its assets provide.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40591"/>
+        <location line="+2"/>
         <source>Leave picked faces &amp;open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40589"/>
+        <location line="+2"/>
         <source>Faces picked in face mode, with Select Textured or in the camera get no wall, so they become openings; the walls beside them stop flush with them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40581"/>
+        <location line="+8"/>
         <source>Caulk &amp;material</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40574"/>
+        <location line="+7"/>
         <source>Caulk material in use</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40570"/>
+        <location line="+4"/>
         <source>Make Room options validation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40563"/>
+        <location line="+7"/>
         <source>No game caulk: name a material</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40556"/>
+        <location line="+7"/>
         <source>Walls keep the brush&apos;s textures.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40555"/>
+        <location line="+1"/>
         <source>This map&apos;s game has no caulk material, so walls keep the brush&apos;s textures until you name one.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40554"/>
+        <location line="+1"/>
         <source>Hidden wall faces on this map take %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40530"/>
+        <location line="+24"/>
         <source>Unable to save the Make Room options.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40517"/>
+        <location line="+13"/>
         <source>The selection holds no part of a brush entity.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-40508"/>
+        <location line="+9"/>
         <source>Selected %n object(s), brush entities whole.</source>
         <translation>
             <numerusform>Selected %n object, brush entities whole.</numerusform>
@@ -130395,32 +130406,32 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-40498"/>
+        <location line="+10"/>
         <source>Select Quake III patches first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40492"/>
+        <location line="+6"/>
         <source>Could not change the patches: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40488"/>
+        <location line="+4"/>
         <source>The patches are already that way; nothing changed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40485"/>
+        <location line="+3"/>
         <source>Level patches changed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40479"/>
+        <location line="+6"/>
         <source>%1 × %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-40476"/>
+        <location line="+3"/>
         <source>Changed %n patch(es); now %1.</source>
         <translation>
             <numerusform>Changed %n patch; now %1.</numerusform>
@@ -130428,52 +130439,52 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-40469"/>
+        <location line="+7"/>
         <source>Select Quake III patches to thicken.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40464"/>
+        <location line="+5"/>
         <source>Thicken Patch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40457"/>
+        <location line="+7"/>
         <source>Thickness in map units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40456"/>
+        <location line="+1"/>
         <source>How far behind the surface the copy goes; negative thickens in front of it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40453"/>
+        <location line="+3"/>
         <source>Direction to thicken in</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40452"/>
+        <location line="+1"/>
         <source>Along the surface&apos;s normals</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40451"/>
+        <location line="+1"/>
         <source>Along X</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40450"/>
+        <location line="+1"/>
         <source>Along Y</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40449"/>
+        <location line="+1"/>
         <source>Along Z</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40448"/>
+        <location line="+1"/>
         <source>Close the open edges with walls</source>
         <translation type="unfinished"></translation>
     </message>
@@ -130576,152 +130587,152 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location line="+4"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40445"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+3"/>
         <source>Thickness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40438"/>
+        <location line="+7"/>
         <source>All but the picked faces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40437"/>
+        <location line="+1"/>
         <source>Leave the picked faces alone: they get no wall, or stay where they are. NetRadiant Custom&apos;s -faces.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40436"/>
+        <location line="+1"/>
         <source>Only the picked faces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40435"/>
+        <location line="+1"/>
         <source>Work on the picked faces only; a brush with none picked is left as it is. NetRadiant Custom&apos;s +faces.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40434"/>
+        <location line="+1"/>
         <source>All but those facing the 2D view</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40433"/>
+        <location line="+1"/>
         <source>Leave alone the faces of each brush that face along the active 2D view&apos;s axis, either way: in the top view, the floor and ceiling. NetRadiant Custom&apos;s -proj.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40430"/>
+        <location line="+3"/>
         <source>All but those facing the camera</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40429"/>
+        <location line="+1"/>
         <source>Leave alone the faces of each brush that face along the 3D camera&apos;s view, either way, so hollowing makes a passage the way the camera looks. NetRadiant Custom&apos;s -cam.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40426"/>
+        <location line="+3"/>
         <source>Faces the CSG Tool works on</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40425"/>
+        <location line="+1"/>
         <source>Which faces of each brush the CSG Tool leaves alone.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40421"/>
+        <location line="+4"/>
         <source>Caulk hidden faces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40419"/>
+        <location line="+2"/>
         <source>Hidden wall faces take the caulk material Make Room Options names, or the game&apos;s own. Without the inner brush that is every wall face the room does not see; with it, the faces between the walls and the inner brush.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40417"/>
+        <location line="+2"/>
         <source>Keep inner brush</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40415"/>
+        <location line="+2"/>
         <source>Keep the brush the walls grow from, or what the walls leave of it inside them, instead of removing it. NetRadiant Custom&apos;s Remove inner brush, turned round.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40403"/>
+        <location line="+12"/>
         <source>CSG Tool caulk material</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40369"/>
+        <location line="+34"/>
         <source>Unable to save the CSG Tool&apos;s options.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40356"/>
+        <location line="+13"/>
         <source>CSG Tool thickness set to the grid, %1 units.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40320"/>
+        <location line="+36"/>
         <source>Walls keep the brushes&apos; materials.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40319"/>
+        <location line="+1"/>
         <source>This map&apos;s game has no caulk material, so walls keep their materials until Make Room Options names one.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40318"/>
+        <location line="+1"/>
         <source>Hidden faces take %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40311"/>
+        <location line="+7"/>
         <source>Open the Levels page with a Quake-family map to use the CSG Tool.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40295"/>
+        <location line="+16"/>
         <source>Select brushes, or a brush entity, in a Quake-family map to use the CSG Tool.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40287"/>
+        <location line="+8"/>
         <source>Show a 2D view to leave out the faces facing it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40278"/>
+        <location line="+9"/>
         <source>Show the 3D camera to leave out the faces facing it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40265"/>
+        <location line="+13"/>
         <source>Could not shrink the brushes: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40265"/>
+        <location line="+0"/>
         <source>Could not expand the brushes: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40262"/>
+        <location line="+3"/>
         <source>Level map brushes shrunk</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40262"/>
+        <location line="+0"/>
         <source>Level map brushes expanded</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-40259"/>
+        <location line="+3"/>
         <source>Shrank %n brush(es) by %1 units.</source>
         <translation>
             <numerusform>Shrank %n brush by %1 units.</numerusform>
@@ -130729,7 +130740,7 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-40258"/>
+        <location line="+1"/>
         <source>Expanded %n brush(es) by %1 units.</source>
         <translation>
             <numerusform>Expanded %n brush by %1 units.</numerusform>
@@ -130737,7 +130748,7 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-40228"/>
+        <location line="+30"/>
         <source>Built %n wall(s).</source>
         <translation>
             <numerusform>Built %n wall.</numerusform>
@@ -130745,7 +130756,7 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-40226"/>
+        <location line="+2"/>
         <source>Kept %n inner brush(es).</source>
         <translation>
             <numerusform>Kept %n inner brush.</numerusform>
@@ -130753,8 +130764,8 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-40223"/>
-        <location line="-40400"/>
+        <location line="+3"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-177"/>
         <source>Left %n face(s) open.</source>
         <translation>
             <numerusform>Left %n face open.</numerusform>
@@ -130762,7 +130773,7 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-40397"/>
+        <location line="+3"/>
         <source>Caulked %n hidden face(s) with %1.</source>
         <translation>
             <numerusform>Caulked %n hidden face with %1.</numerusform>
@@ -130770,32 +130781,32 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-40395"/>
+        <location line="+2"/>
         <source>This game has no caulk material, so the walls keep their materials; name one in Make Room Options.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40215"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+180"/>
         <source>Each patch keeps its shape; the thickened copy faces away from it and joins its entity.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40211"/>
+        <location line="+4"/>
         <source>Thicken</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40197"/>
+        <location line="+14"/>
         <source>Could not thicken: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40194"/>
+        <location line="+3"/>
         <source>Level patches thickened</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-40194"/>
+        <location line="+0"/>
         <source>%n patch(es) made</source>
         <translation>
             <numerusform>%n patch made</numerusform>
@@ -130803,7 +130814,7 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-40191"/>
+        <location line="+3"/>
         <source>Thickened %n patch(es); the new pieces are selected.</source>
         <translation>
             <numerusform>Thickened %n patch; the new pieces are selected.</numerusform>
@@ -130811,72 +130822,72 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-40162"/>
+        <location line="+29"/>
         <source>Draw Region on: drag a box in a 2D view to make it the region. Escape leaves.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40123"/>
+        <location line="+39"/>
         <source>The region is set to the box you drew.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40108"/>
+        <location line="+15"/>
         <source>Select a brush with some size on every axis to make the region of.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40103"/>
+        <location line="+5"/>
         <source>Could not take the brush away: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40097"/>
+        <location line="+6"/>
         <source>The region is set to the brush, which is gone; Undo brings it back and keeps the region.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40078"/>
+        <location line="+19"/>
         <source>Region Bounds</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40066"/>
+        <location line="+12"/>
         <source>Lowest %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40066"/>
+        <location line="+0"/>
         <source>Highest %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40059"/>
+        <location line="+7"/>
         <source>Set Region</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40047"/>
+        <location line="+12"/>
         <source>A region needs at least one unit of size on every axis.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40043"/>
+        <location line="+4"/>
         <source>The region is set to the bounds you typed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40037"/>
+        <location line="+6"/>
         <source>Set a region first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40014"/>
+        <location line="+23"/>
         <source>Nothing in the region can be selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-40005"/>
+        <location line="+9"/>
         <source>Selected %n object(s) in the region; hidden ones were left out.</source>
         <translation>
             <numerusform>Selected %n object in the region; hidden ones were left out.</numerusform>
@@ -130884,7 +130895,7 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-40004"/>
+        <location line="+1"/>
         <source>Selected %n object(s) in the region.</source>
         <translation>
             <numerusform>Selected %n object in the region.</numerusform>
@@ -130892,123 +130903,123 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-39944"/>
+        <location line="+60"/>
         <source>The 2D views frame the whole map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39936"/>
+        <location line="+8"/>
         <source>Select something to centre the views on.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39924"/>
+        <location line="+12"/>
         <source>The 2D views are centred on the selection.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39908"/>
+        <location line="+16"/>
         <source>Go to Coordinates</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39904"/>
+        <location line="+4"/>
         <source>Coordinates, x y z</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39903"/>
+        <location line="+1"/>
         <source>Three numbers, such as 128 -64 32, separated by spaces or commas.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39902"/>
+        <location line="+1"/>
         <source>Take the camera there too</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39899"/>
+        <location line="+3"/>
         <source>Point</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39896"/>
+        <location line="+3"/>
         <source>Go</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39878"/>
+        <location line="+18"/>
         <source>Type three numbers, x y z.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39857"/>
+        <location line="+21"/>
         <source>The views are at %1, %2, %3.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39850"/>
+        <location line="+7"/>
         <source>Entity and brush numbers belong to Quake-family maps.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39839"/>
+        <location line="+11"/>
         <source>Find Brush by Number</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39833"/>
+        <location line="+6"/>
         <source>Entity number, worldspawn is 0</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39828"/>
+        <location line="+5"/>
         <source>The entity itself</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39827"/>
+        <location line="+1"/>
         <source>Brush or patch number within the entity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39824"/>
+        <location line="+3"/>
         <source>Or paste a compiler line, such as Entity 0, Brush 12</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39823"/>
+        <location line="+1"/>
         <source>Compiler message to read the numbers from</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39813"/>
+        <location line="+10"/>
         <source>Brush</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39811"/>
+        <location line="+2"/>
         <source>Counted from 0 in the order the map file lists them, brushes and patches together, as compilers count them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39792"/>
+        <location line="+19"/>
         <source>Entity %1, brush %2 is %3.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39780"/>
+        <location line="+12"/>
         <source>Select the objects a prefab should take the place of.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39776"/>
+        <location line="+4"/>
         <location filename="../src/app/level_prefab_actions.cpp" line="+0"/>
         <source>VibeStudio prefabs (*.vprefab)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_prefab_actions.cpp" line="+0"/>
+        <location line="+0"/>
         <source>Replace Selection with Prefab</source>
         <translation type="unfinished"></translation>
     </message>
@@ -131068,7 +131079,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location filename="../src/app/level_prefab_actions.cpp" line="+27"/>
         <source>The map, selection or package changed while this prefab preview was open. Reopen it from the current state.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -131104,13 +131115,13 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location line="+0"/>
-        <location filename="../src/app/material_actions.cpp" line="+58"/>
+        <location filename="../src/app/material_actions.cpp" line="-122"/>
         <location line="+18"/>
         <source>Package save pending</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/material_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Prefab staged at %1. Save the package to publish it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -131266,7 +131277,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-9518"/>
+        <location filename="../src/app/application_shell.cpp" line="-9519"/>
         <location filename="../src/app/level_view_actions.cpp" line="+0"/>
         <source>Maximize Active View</source>
         <translation type="unfinished"></translation>
@@ -131308,7 +131319,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tests/completion_snippet_ui_smoke_test.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Next snippet field</source>
         <translation type="unfinished"></translation>
     </message>
@@ -131405,7 +131416,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40855"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-1079"/>
         <location filename="../src/app/level_material_paint_actions.cpp" line="+15"/>
         <source>Navigate</source>
         <translation type="unfinished"></translation>
@@ -131417,8 +131428,8 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="+0"/>
-        <location line="+2"/>
+        <location line="+0"/>
+        <location filename="../src/app/level_view_actions.cpp" line="+2"/>
         <source>Sample</source>
         <translation type="unfinished"></translation>
     </message>
@@ -131439,7 +131450,7 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="-8"/>
+        <location filename="../src/app/level_view_actions.cpp" line="-8"/>
         <location line="+411"/>
         <source>Draw Brush</source>
         <translation type="unfinished"></translation>
@@ -131502,8 +131513,8 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_surface_stroke_actions.cpp" line="+14"/>
-        <location line="+1"/>
+        <location line="+14"/>
+        <location filename="../src/app/level_surface_stroke_actions.cpp" line="+1"/>
         <source>This paste needs a brush face or a patch for Radiant values/projection. Use material painting for Doom surfaces.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -131519,19 +131530,19 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_material_paint_actions.cpp" line="-34"/>
-        <location line="-29"/>
+        <location line="-3"/>
+        <location filename="../src/app/level_material_paint_actions.cpp" line="+5"/>
         <source>Cancel Stroke</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-28"/>
-        <location line="-27"/>
+        <location line="+1"/>
+        <location filename="../src/app/level_material_paint_actions.cpp" line="+1"/>
         <source>Cancel material stroke</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+239"/>
+        <location filename="../src/app/level_material_paint_actions.cpp" line="+117"/>
         <source>Draw Brush · Drag a footprint; wheel changes depth. Release creates the brush; Escape cancels.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -131994,57 +132005,57 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40289"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+566"/>
         <source>Direction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40283"/>
+        <location line="+6"/>
         <source>Use Work Zone</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40283"/>
+        <location line="+0"/>
         <source>Use the last selection&apos;s depth on the chosen plane, or 0–64 in a new map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40282"/>
+        <location line="+1"/>
         <source>Use Camera Surface</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40282"/>
+        <location line="+0"/>
         <source>Place the construction plane on the surface at the centre of the camera and extend towards the camera. Sloped faces use their nearest axis plane.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40280"/>
+        <location line="+2"/>
         <source>Numeric Brush…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40280"/>
+        <location line="+0"/>
         <source>Create a brush using exact bounds and a primitive preview.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40248"/>
+        <location line="+32"/>
         <source>Cancel Draft</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40247"/>
+        <location line="+1"/>
         <source>Cancel brush draft</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40245"/>
+        <location line="+2"/>
         <source>Brush drawing status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40190"/>
+        <location line="+55"/>
         <source>The map, selection, creation layer or material changed. The brush draft was cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132102,7 +132113,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/level_surface_stroke_actions.cpp" line="+2"/>
+        <location line="+2"/>
         <source>Pasted surfaces and converted %n classic face(s) throughout the map to Valve 220 in one undo step. Unpasted surfaces retain their materials and UVs.</source>
         <translation>
             <numerusform>Pasted surfaces and converted %n classic face throughout the map to Valve 220 in one undo step. Unpasted surfaces retain their materials and UVs.</numerusform>
@@ -132323,7 +132334,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_uv_editor_actions.cpp" line="+2"/>
+        <location line="+2"/>
         <source>Clear every content and surface flag and the value of the picked faces, or of the Surfaces target&apos;s brush faces, keeping the detail flag, as NetRadiant Custom&apos;s Unset does.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132513,8 +132524,8 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_surface_stroke_actions.cpp" line="+4"/>
-        <location line="-1"/>
+        <location line="+4"/>
+        <location filename="../src/app/level_surface_stroke_actions.cpp" line="-1"/>
         <source>Finish or cancel the pending level edit before pasting a surface.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132551,68 +132562,68 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_browser_appearance.cpp" line="-4428"/>
-        <location line="-4372"/>
+        <location filename="../src/app/model_browser_appearance.cpp" line="-36"/>
+        <location line="+56"/>
         <source>Model preview appearance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4406"/>
+        <location line="-34"/>
         <source>Preview surface</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4405"/>
+        <location line="+1"/>
         <source>Material slot</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4404"/>
+        <location line="+1"/>
         <source>MDL skin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4403"/>
+        <location line="+1"/>
         <source>Skin member</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4402"/>
+        <location line="+1"/>
         <source>Changes this preview only. Author material bindings and skins in the Mesh Editor.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4398"/>
+        <location line="+4"/>
         <source>Skin File…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4396"/>
+        <location line="+2"/>
         <source>Preview package skin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4390"/>
+        <location line="+6"/>
         <source>Reset preview appearance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4395"/>
+        <location line="-5"/>
         <source>Choose an exact package entry with Quake III surface-to-shader bindings for this preview.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4389"/>
+        <location line="+6"/>
         <source>Return to the model&apos;s primary material slots and first embedded skin member.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4385"/>
+        <location line="+4"/>
         <source>Preview appearance details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-4384"/>
+        <location line="+1"/>
         <source>Selected material bindings or verified package skin input. Preview choices do not change exported or edited source bindings.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132836,34 +132847,34 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_asset_browsers.cpp" line="-15114"/>
+        <location filename="../src/app/level_asset_browsers.cpp" line="-357"/>
         <source>Package models</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15113"/>
+        <location line="+1"/>
         <source>The models in the open package, by folder. Drag one onto a view to place it there; Enter places it in the middle of the active view.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15104"/>
+        <location line="+9"/>
         <source>Model preview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15103"/>
+        <location line="+1"/>
         <source>The chosen model, shaded with its skin. Drag to turn it; the wheel zooms.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15087"/>
-        <location line="-15017"/>
+        <location line="+16"/>
+        <location line="+70"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="-284"/>
         <source>Place in View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="-69"/>
+        <location line="-69"/>
         <source>Add a model entity for the chosen model in the middle of the active view.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132881,7 +132892,7 @@ Activate to open line %2.</source>
     <message>
         <location line="+8"/>
         <location line="+70"/>
-        <location line="+10"/>
+        <location filename="../src/app/level_sidebar_actions.cpp" line="+10"/>
         <source>Place</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132981,163 +132992,163 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location line="+2"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40742"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-552"/>
         <source>Prefabs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40739"/>
+        <location line="+3"/>
         <source>Library</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40731"/>
+        <location line="+8"/>
         <source>Insert…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40730"/>
+        <location line="+1"/>
         <source>Preview, position and turn the chosen prefab, then insert it as one undo step.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40729"/>
+        <location line="+1"/>
         <source>Save Selection…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40728"/>
+        <location line="+1"/>
         <source>Save the selection as a prefab file, with its asset references and an anchor.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40720"/>
+        <location line="+8"/>
         <source>Reload Prefabs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40720"/>
+        <location line="+0"/>
         <source>Look for prefabs in the project and package again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40668"/>
+        <location line="+52"/>
         <source>Open a package to browse its models.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40664"/>
+        <location line="+4"/>
         <source>This package has no MDL, MD2, MD3 or OBJ models.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40574"/>
+        <location line="+90"/>
         <source>%1 · %2 triangles · %3 × %4 × %5 units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40323"/>
+        <location line="+251"/>
         <source>Models are placed as %1 entities with their model key set; VibeMap3 bakes them into the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40311"/>
+        <location line="+12"/>
         <source>Doom maps take their sounds from sectors and things, not speakers.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40304"/>
+        <location line="+7"/>
         <source>Sounds are placed as %1 entities with their noise key set.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40537"/>
+        <location line="-233"/>
         <source>Open a package to browse its sounds.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40533"/>
+        <location line="+4"/>
         <source>This package has no WAV, Ogg or Doom sounds.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40864"/>
-        <location line="-40502"/>
+        <location line="-331"/>
+        <location line="+362"/>
         <source>Choose a sound to see and hear it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40741"/>
+        <location line="-239"/>
         <source>Prefabs saved in the project folder and in the open package. Drag one onto a 2D view to place it there, or press Enter or double-click to insert it with a preview.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40499"/>
+        <location line="+242"/>
         <source>Reading %1…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40480"/>
+        <location line="+19"/>
         <source>Choose a sound to play.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40435"/>
+        <location line="+45"/>
         <source>Prefabs keep their brushes, entities and asset references; inserting gives their target names fresh, unique values.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40434"/>
+        <location line="+1"/>
         <source>Prefabs are for Quake-family maps.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40417"/>
+        <location line="+17"/>
         <source>Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40376"/>
+        <location line="+41"/>
         <source>Open a project, or a package with prefabs, to see them here. Insert… opens any prefab file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40375"/>
+        <location line="+1"/>
         <source>No prefabs yet. Select some objects and choose Save Selection… to make one.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40331"/>
+        <location line="+44"/>
         <source>Doom maps have no model entities; things take their sprites from the game.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40328"/>
-        <location line="-40308"/>
-        <location line="-40280"/>
+        <location line="+3"/>
+        <location line="+20"/>
+        <location line="+28"/>
         <source>Open a Quake-family map to place models and sounds.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40320"/>
+        <location line="-40"/>
         <source>Models are placed as %1 entities with their model key set.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40317"/>
-        <location line="-40301"/>
+        <location line="+3"/>
+        <location line="+16"/>
         <source>No loaded definition declares %1, so make sure your game or mod has it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40258"/>
+        <location line="+43"/>
         <location filename="../src/app/level_editing_actions.cpp" line="+1301"/>
         <location line="+11"/>
         <source>Could not place it: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_editing_actions.cpp" line="+8"/>
+        <location line="+8"/>
         <source>Placed %1 as %2 (entity:%3). Undo takes it out again.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133165,20 +133176,20 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-1509"/>
+        <location filename="../src/app/level_editing_actions.cpp" line="-1509"/>
         <source>Brush Entity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+26"/>
-        <location filename="../src/app/level_filter_tag_actions.cpp" line="-260"/>
+        <location filename="../src/app/level_filter_tag_actions.cpp" line="-116"/>
         <location filename="../src/app/level_smart_tag_actions.cpp" line="-21"/>
         <location line="+20"/>
         <source>Make %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_smart_tag_actions.cpp" line="+11"/>
+        <location line="+11"/>
         <source>All Brush Classes</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133276,7 +133287,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_editing_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Repeat Transforms</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133356,7 +133367,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_nudge_actions.cpp" line="-41"/>
+        <location line="-41"/>
         <source>Moved the picked components by %1, %2, %3 to centre them on the camera.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133458,7 +133469,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Find a value of one key across the map&apos;s entities, or the selected ones, and replace it, as one undo step.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133605,281 +133616,281 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_region_selection_actions.cpp" line="+3"/>
+        <location line="+3"/>
         <source>Select Partial Tall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40312"/>
-        <location line="-40311"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-54"/>
+        <location line="+1"/>
         <source>Brush Tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-40310"/>
+        <location line="+1"/>
         <source>Make Detail</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40309"/>
+        <location line="+1"/>
         <source>Make the selected brushes detail: the detail content flag in Quake II and III, func_detail in Quake.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40307"/>
+        <location line="+2"/>
         <source>Make Structural</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40303"/>
+        <location line="+4"/>
         <source>CSG Intersect</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40302"/>
+        <location line="+1"/>
         <source>Replace the selected brushes with the one brush where they all overlap, as TrenchBroom&apos;s CSG Intersect does.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40300"/>
+        <location line="+2"/>
         <source>Drop to Floor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40299"/>
+        <location line="+1"/>
         <source>Move the selected point entities straight down onto the surface beneath them, keeping each class&apos;s height above it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40297"/>
+        <location line="+2"/>
         <source>Shear Tool</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40296"/>
+        <location line="+1"/>
         <source>Drag the handle in the middle of a side of the selection in a 2D view to slant the selection about the opposite side, as TrenchBroom&apos;s shear tool does. Escape or the command again turns it off.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40287"/>
+        <location line="+9"/>
         <source>Shear…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40286"/>
+        <location line="+1"/>
         <source>Slant the selection: points slide along one axis by how far they lie along another, as TrenchBroom&apos;s shear tool does.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40284"/>
+        <location line="+2"/>
         <source>Camera Surface</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40283"/>
+        <location line="+1"/>
         <source>Raise Surface at Crosshair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40282"/>
+        <location line="+1"/>
         <source>Raise the Doom floor or ceiling under the camera&apos;s crosshair by 8 units, as Doom Builder&apos;s visual mode does.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40280"/>
+        <location line="+2"/>
         <source>Lower Surface at Crosshair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40279"/>
+        <location line="+1"/>
         <source>Lower the Doom floor or ceiling under the camera&apos;s crosshair by 8 units.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40277"/>
+        <location line="+2"/>
         <source>Brighten Sector at Crosshair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40276"/>
+        <location line="+1"/>
         <source>Raise the light of the Doom sector under the camera&apos;s crosshair by 16.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40274"/>
+        <location line="+2"/>
         <source>Darken Sector at Crosshair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40273"/>
+        <location line="+1"/>
         <source>Lower the light of the Doom sector under the camera&apos;s crosshair by 16.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40270"/>
+        <location line="+3"/>
         <source>Nudge Texture Left at Crosshair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40269"/>
+        <location line="+1"/>
         <source>Slide the texture of the Doom wall under the camera&apos;s crosshair one unit left.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40267"/>
+        <location line="+2"/>
         <source>Nudge Texture Right at Crosshair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40266"/>
+        <location line="+1"/>
         <source>Slide the texture of the Doom wall under the camera&apos;s crosshair one unit right.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40264"/>
+        <location line="+2"/>
         <source>Nudge Texture Up at Crosshair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40263"/>
+        <location line="+1"/>
         <source>Slide the texture of the Doom wall under the camera&apos;s crosshair one unit up.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40261"/>
+        <location line="+2"/>
         <source>Nudge Texture Down at Crosshair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40260"/>
+        <location line="+1"/>
         <source>Slide the texture of the Doom wall under the camera&apos;s crosshair one unit down.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40258"/>
+        <location line="+2"/>
         <source>Drag Textures in Camera</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40257"/>
+        <location line="+1"/>
         <source>Drag a Doom wall&apos;s texture with the left button in the camera to slide its offsets, as in Doom Builder&apos;s visual mode; the camera follows as you drag, letting go makes one undo step and Escape puts the texture back.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40248"/>
+        <location line="+9"/>
         <source>Align Textures at Crosshair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40247"/>
+        <location line="+1"/>
         <source>Line up the textures of the walls joined to the one under the camera&apos;s crosshair, as Doom Builder&apos;s auto-align does: they run on across each join and keep their rows level.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40244"/>
+        <location line="+3"/>
         <source>Align Wall Textures</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40243"/>
+        <location line="+1"/>
         <source>Line up the textures of the walls joined to the first selected linedef, along the selected linedefs when there are several.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40241"/>
+        <location line="+2"/>
         <source>Make Sector Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40240"/>
+        <location line="+1"/>
         <source>Click inside a closed shape of lines in the Top view to make a sector of it, islands of lines inside included, as Doom Builder&apos;s Make Sectors mode does. Escape or the command again turns it off.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40231"/>
+        <location line="+9"/>
         <source>Curve Linedefs…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40230"/>
+        <location line="+1"/>
         <source>Bend the selected Doom linedefs into arcs of several linedefs, as Doom Builder&apos;s curve mode does.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40227"/>
+        <location line="+3"/>
         <source>Align</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40226"/>
+        <location line="+1"/>
         <source>Align Left</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40226"/>
+        <location line="+0"/>
         <source>Line the selected objects up on the selection&apos;s left edge in the active 2D view.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40224"/>
+        <location line="+2"/>
         <source>Align Right</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40224"/>
+        <location line="+0"/>
         <source>Line the selected objects up on the selection&apos;s right edge in the active 2D view.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40222"/>
+        <location line="+2"/>
         <source>Align Top</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40222"/>
+        <location line="+0"/>
         <source>Line the selected objects up on the selection&apos;s top edge in the active 2D view.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40220"/>
+        <location line="+2"/>
         <source>Align Bottom</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40220"/>
+        <location line="+0"/>
         <source>Line the selected objects up on the selection&apos;s bottom edge in the active 2D view.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40218"/>
+        <location line="+2"/>
         <source>Centre Horizontally</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40217"/>
+        <location line="+1"/>
         <source>Line the selected objects&apos; centres up across the active 2D view.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40215"/>
+        <location line="+2"/>
         <source>Centre Vertically</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40214"/>
+        <location line="+1"/>
         <source>Line the selected objects&apos; centres up down the active 2D view.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-40211"/>
-        <location line="-40184"/>
+        <location line="+3"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+27"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="+46"/>
         <source>Region</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Set Region to Selection</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133905,13 +133916,13 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_panels.cpp" line="+0"/>
+        <location line="+0"/>
         <source>Show the whole map again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+3"/>
+        <location filename="../src/app/level_sidebar_panels.cpp" line="+3"/>
         <source>Save Region As…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133922,7 +133933,7 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location line="+2"/>
-        <location line="-2"/>
+        <location filename="../src/app/level_sidebar_panels.cpp" line="-2"/>
         <source>Compile Region</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134184,17 +134195,17 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location line="+11"/>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-39196"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="+988"/>
         <source>Find</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-39195"/>
+        <location line="+1"/>
         <source>Replace with</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-39182"/>
+        <location line="+13"/>
         <source>%n entit(y)(ies) match.</source>
         <translation>
             <numerusform>%n entity match.</numerusform>
@@ -134202,17 +134213,17 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-39167"/>
+        <location line="+15"/>
         <source>Could not replace the values: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39164"/>
+        <location line="+3"/>
         <source>Key values replaced</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-39162"/>
+        <location line="+2"/>
         <source>Replaced %1 on %n entit(y)(ies).</source>
         <translation>
             <numerusform>Replaced %1 on %n entity.</numerusform>
@@ -134220,21 +134231,21 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-39155"/>
+        <location line="+7"/>
         <source>Select objects to shear.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39140"/>
+        <location line="+15"/>
         <source>Shear Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-39593"/>
-        <location line="-39138"/>
-        <location line="-39016"/>
-        <location line="-39284"/>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-14984"/>
+        <location line="-453"/>
+        <location line="+455"/>
+        <location line="+122"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-268"/>
+        <location filename="../src/app/level_shapes_panel.cpp" line="+1"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="+262"/>
         <location line="+12"/>
         <location line="+100"/>
@@ -134242,7 +134253,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_sidebar_panels.cpp" line="-111"/>
+        <location line="-111"/>
         <source>Axis the points slide along</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134333,38 +134344,38 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-14774"/>
-        <location line="-14772"/>
+        <location filename="../src/app/level_shapes_panel.cpp" line="+210"/>
+        <location line="+2"/>
         <source>Segments</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_shapes_panel.cpp" line="-14771"/>
+        <location line="+1"/>
         <source>Bulge</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14770"/>
+        <location line="+1"/>
         <source>A positive bulge curves towards each linedef&apos;s front side, a negative one towards its back. Rebuild the nodes before playing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14765"/>
+        <location line="+5"/>
         <source>Curve</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14755"/>
+        <location line="+10"/>
         <source>Could not curve the linedefs: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14752"/>
+        <location line="+3"/>
         <source>Level map linedefs curved</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-14749"/>
+        <location line="+3"/>
         <source>Curved %n linedef(s). Rebuild the nodes before playing the map.</source>
         <translation>
             <numerusform>Curved %n linedef. Rebuild the nodes before playing the map.</numerusform>
@@ -134372,22 +134383,22 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-14725"/>
+        <location line="+24"/>
         <source>Could not align: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14721"/>
+        <location line="+4"/>
         <source>The selection is already aligned.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14718"/>
+        <location line="+3"/>
         <source>Level map objects aligned</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-14715"/>
+        <location line="+3"/>
         <source>Aligned %n object(s) along %1.</source>
         <translation>
             <numerusform>Aligned %n object along %1.</numerusform>
@@ -134395,43 +134406,43 @@ Activate to open line %2.</source>
         </translation>
     </message>
     <message>
-        <location line="-14590"/>
+        <location line="+125"/>
         <source>Make Brush Entity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14590"/>
+        <location line="+0"/>
         <source>Class of the new brush entity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14580"/>
+        <location line="+10"/>
         <source>Could not make the brush entity: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14576"/>
+        <location line="+4"/>
         <source>Brush entity made</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14571"/>
+        <location line="+5"/>
         <source>Made %1 (entity:%2). Its keys are in the Inspector; Undo puts the brushes back.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14563"/>
-        <location line="-14524"/>
+        <location line="+8"/>
+        <location line="+39"/>
         <source>Could not move to the world: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14560"/>
+        <location line="-36"/>
         <source>Brushes moved to the world</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-14557"/>
+        <location line="+3"/>
         <source>Moved %n brush(es) to the world; their entities went with their keys.</source>
         <translation>
             <numerusform>Moved %n brush to the world; their entities went with their keys.</numerusform>
@@ -135104,13 +135115,13 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_filter_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Show every kind of object</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="-3"/>
+        <location filename="../src/app/level_view_filter_actions.cpp" line="-3"/>
         <source>Invert Filters</source>
         <translation type="unfinished"></translation>
     </message>
@@ -135120,7 +135131,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/level_filter_tag_actions.cpp" line="-142"/>
+        <location filename="../src/app/level_filter_tag_actions.cpp" line="+118"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="+15"/>
         <source>Show %1, %n object(s)</source>
         <translation>
@@ -135184,8 +135195,8 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_geometry_actions.cpp" line="-39390"/>
-        <location line="-39299"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-106"/>
+        <location line="+91"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="+1"/>
         <source>Regions are for Quake-family maps.</source>
         <translation type="unfinished"></translation>
@@ -135398,7 +135409,37 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+103"/>
+        <location line="+99"/>
+        <source>Animate Materials in Camera</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Play scrolling, pulsing and animated materials on the camera&apos;s faces, drawn as the Materials page draws them. Reduce motion keeps them still. The choice is kept.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>The camera shows materials still.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Animate Materials in Camera is on, but Reduce motion keeps them still.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Animated materials play in the camera.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+56"/>
+        <source>The texture is still loading; choose Edit in Texture Editor on the Textures page once it shows.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+28"/>
         <source>Compiled maps do not open in Levels; open the map&apos;s .map source.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -135769,7 +135810,7 @@ SHA-256 %3
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/level_component_transform_actions.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Inserted %n corner(s). The new vertices are selected; Undo restores the edit.</source>
         <translation>
             <numerusform>Inserted %n corner. The new vertices are selected; Undo restores the edit.</numerusform>
@@ -135841,7 +135882,7 @@ SHA-256 %3
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/level_geometry_actions.cpp" line="-39800"/>
+        <location filename="../src/app/level_geometry_actions.cpp" line="-501"/>
         <source>Selection converted: %n component(s).</source>
         <translation>
             <numerusform>Selection converted: %n component.</numerusform>
@@ -135849,7 +135890,7 @@ SHA-256 %3
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-39781"/>
+        <location line="+19"/>
         <source>Selected %n component(s).</source>
         <translation>
             <numerusform>Selected %n component.</numerusform>
@@ -137130,67 +137171,67 @@ SHA-256 %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_plan_pane_actions.cpp" line="-9643"/>
+        <location filename="../src/app/level_plan_pane_actions.cpp" line="-68"/>
         <source>Show Top View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9642"/>
+        <location line="+1"/>
         <source>Show or hide the Top plan pane in the three-plan layouts. One plan pane always stays visible; the map is unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9641"/>
+        <location line="+1"/>
         <source>Show Front View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9640"/>
+        <location line="+1"/>
         <source>Show or hide the Front plan pane in the three-plan layouts. One plan pane always stays visible; the map is unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9639"/>
+        <location line="+1"/>
         <source>Show Side View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9638"/>
+        <location line="+1"/>
         <source>Show or hide the Side plan pane in the three-plan layouts. One plan pane always stays visible; the map is unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9626"/>
+        <location line="+12"/>
         <source>One plan view always stays visible. Show another plan view before hiding this one.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9617"/>
+        <location line="+9"/>
         <source>The plan view choice could not be saved to these settings.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9575"/>
+        <location line="+42"/>
         <source>Top</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9575"/>
+        <location line="+0"/>
         <source>Front</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9570"/>
+        <location line="+5"/>
         <source>%1 view shown. Plan views: %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9569"/>
+        <location line="+1"/>
         <source>%1 view hidden. Plan views: %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9567"/>
+        <location line="+2"/>
         <source>%1 The choice applies to the three-plan layouts.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -137341,7 +137382,7 @@ SHA-256 %3
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/tests/level_filter_tags_ui_smoke_test.cpp" line="+1"/>
+        <location line="+1"/>
         <source>Filters inverted: %n kind(s) and %1 now hidden from the views; the map is unchanged.</source>
         <translation>
             <numerusform>Filters inverted: %n kind and %1 now hidden from the views; the map is unchanged.</numerusform>
@@ -137593,7 +137634,7 @@ SHA-256 %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_view_actions.cpp" line="+0"/>
+        <location line="+0"/>
         <source>Move Textures</source>
         <translation type="unfinished"></translation>
     </message>
@@ -137637,7 +137678,7 @@ SHA-256 %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/level_prism_actions.cpp" line="-3"/>
+        <location line="-3"/>
         <source>Create Assembled Brush</source>
         <translation type="unfinished"></translation>
     </message>
@@ -138037,7 +138078,7 @@ SHA-256 %3
         </translation>
     </message>
     <message>
-        <location filename="../src/tests/qt_runtime_catalog_probe.cpp" line="+3"/>
+        <location line="+3"/>
         <source>Overall sample levels</source>
         <translation type="unfinished"></translation>
     </message>
@@ -138505,47 +138546,47 @@ SHA-256 %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30"/>
+        <location line="+1"/>
         <source>Review audio speaker roles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-24"/>
+        <location line="+6"/>
         <source>Speaker role controls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18"/>
+        <location line="+6"/>
         <source>Assign roles in source channel order. LFE and excluded channels still contribute to true peak, but not integrated loudness.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-17"/>
+        <location line="+1"/>
         <source>Speaker mapping scope</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15"/>
+        <location line="+2"/>
         <source>Measure loudness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13"/>
+        <location line="+2"/>
         <source>Measure integrated loudness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5"/>
+        <location line="+8"/>
         <source>Speaker layout preset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2"/>
+        <location line="+3"/>
         <source>Custom</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+161"/>
+        <location line="+8"/>
         <source>Source channel order: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -145320,7 +145361,7 @@ Invalid or unsupported parts omitted: %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+216"/>
+        <location line="+221"/>
         <source>%1 [destructive]</source>
         <translation type="unfinished"></translation>
     </message>
@@ -149981,19 +150022,19 @@ Direct members: %3</source>
 <context>
     <name>vibestudio::ModelViewport</name>
     <message>
-        <location filename="../src/app/model_viewport.cpp" line="-1439"/>
+        <location filename="../src/app/model_viewport.cpp" line="-1458"/>
         <source>Model viewport</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+570"/>
         <location line="+14"/>
-        <location line="+1699"/>
+        <location line="+1718"/>
         <source>No model loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1710"/>
+        <location line="-1729"/>
         <source>Pointer is over empty space.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -150061,7 +150102,7 @@ Direct members: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/model_viewport_animation.cpp" line="+2"/>
+        <location line="+2"/>
         <source>No skin</source>
         <translation type="unfinished"></translation>
     </message>
@@ -150268,12 +150309,12 @@ Direct members: %3</source>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+965"/>
+        <location line="+984"/>
         <source>Editing group: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-961"/>
+        <location line="-980"/>
         <source>%n independent textured face(s) selected.</source>
         <translation>
             <numerusform>%n independent textured face selected.</numerusform>
@@ -150321,7 +150362,7 @@ Direct members: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+360"/>
+        <location line="+379"/>
         <source>No model is loaded</source>
         <translation type="unfinished"></translation>
     </message>
@@ -150336,14 +150377,14 @@ Direct members: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-481"/>
+        <location line="-500"/>
         <location line="+61"/>
-        <location line="+773"/>
+        <location line="+792"/>
         <source>Rendering model…</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-908"/>
+        <location line="-927"/>
         <location line="+64"/>
         <source>Material images: %Ln surface(s)</source>
         <translation>
@@ -150375,7 +150416,7 @@ Direct members: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+406"/>
+        <location line="+425"/>
         <source>Select a model to preview it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -150395,7 +150436,7 @@ Direct members: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-981"/>
+        <location line="-1000"/>
         <source>Collision selection: choose a box edge or a component-table row. Move and rotate use the chosen transform axes; scale follows the box&apos;s local axes. Geometry provides numeric transforms and pivots.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -150456,7 +150497,7 @@ Direct members: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+752"/>
+        <location line="+771"/>
         <source>The 3D renderer could not draw this view.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -150544,7 +150585,7 @@ Direct members: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/model_viewport.cpp" line="-2261"/>
+        <location filename="../src/app/model_viewport.cpp" line="-2280"/>
         <source>%n surface(s) in the pending stroke.</source>
         <translation>
             <numerusform>%n surface in the pending stroke.</numerusform>
@@ -150685,7 +150726,7 @@ Direct members: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/model_viewport.cpp" line="-394"/>
+        <location filename="../src/app/model_viewport.cpp" line="+1018"/>
         <location filename="../src/app/model_viewport_components.cpp" line="+449"/>
         <source>%n component(s) picked</source>
         <translation>
@@ -150880,12 +150921,15 @@ Direct members: %3</source>
         <source>The camera looks along the extrusion. Turn it to see the outline&apos;s side.</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+10"/>
         <location line="+28"/>
         <location line="+26"/>
-        <source>Assemble at most %1 points within ±32768 units.</source>
-        <translation type="unfinished"></translation>
+        <source>Assemble at most %n point(s) within ±32768 units.</source>
+        <translation>
+            <numerusform>Assemble at most %n point within ±32768 units.</numerusform>
+            <numerusform>Assemble at most %n points within ±32768 units.</numerusform>
+        </translation>
     </message>
     <message>
         <location line="-8"/>
