@@ -365,7 +365,7 @@ void ModelAuditDialog::showEntry()
 	if (entry.skipped)
 		lines << entry.skipReason;
 	if (entry.decoded)
-		lines << QCoreApplication::translate("VibeStudioModelAudit", "%1 surface(s), %2 frame(s), %3 triangle(s).")
+		lines << QCoreApplication::translate("VibeStudioModelAudit", "Surfaces: %1, frames: %2, triangles: %3.")
 					 .arg(QLocale().toString(entry.surfaces), QLocale().toString(entry.frames), QLocale().toString(entry.triangles));
 	lines += modelDecodeIssueLines(entry.issues);
 	if (!entry.editable && !entry.editableError.isEmpty())
@@ -378,7 +378,7 @@ void ModelAuditDialog::showEntry()
 		lines << (!trip.error.isEmpty() ? QCoreApplication::translate("VibeStudioModelAudit", "Round trip as %1 failed: %2").arg(trip.format, trip.error)
 				  : trip.withinTolerance() ? QCoreApplication::translate("VibeStudioModelAudit", "Round trip as %1: every corner within %2.")
 												 .arg(trip.format, QLocale().toString(trip.tolerance, 'g', 4))
-										   : QCoreApplication::translate("VibeStudioModelAudit", "Round trip as %1: a corner moved %2 (tolerance %3), %4 triangle(s) and %5 frame(s) changed.")
+										   : QCoreApplication::translate("VibeStudioModelAudit", "Round trip as %1: a corner moved %2 (tolerance %3); triangle change %4, frame change %5.")
 												 .arg(trip.format, QLocale().toString(trip.maxPositionError, 'g', 4), QLocale().toString(trip.tolerance, 'g', 4),
 													  QLocale().toString(trip.triangleDelta), QLocale().toString(trip.frameDelta)));
 	}

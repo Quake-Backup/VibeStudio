@@ -168,17 +168,15 @@ ModelBakeCliResult runModelBake(const QStringList &arguments)
 	result.payload.insert("output", output.isEmpty() ? QString() : QFileInfo(output).absoluteFilePath());
 	result.payload.insert("high", values.contains("--high"));
 	if (dryRun)
-		result.lines << Text::tr("Would bake %1 (%2 x %3, %4 texel(s)).")
+		result.lines << Text::tr("Would bake %1 (%2 x %3, %n texel(s)).", nullptr, baked.texels)
 							.arg(modelBakeTypeDisplayName(options.type))
 							.arg(baked.image.width())
-							.arg(baked.image.height())
-							.arg(baked.texels);
+							.arg(baked.image.height());
 	else
-		result.lines << Text::tr("Baked %1 (%2 x %3, %4 texel(s)) to %5.")
+		result.lines << Text::tr("Baked %1 (%2 x %3, %n texel(s)) to %4.", nullptr, baked.texels)
 							.arg(modelBakeTypeDisplayName(options.type))
 							.arg(baked.image.width())
 							.arg(baked.image.height())
-							.arg(baked.texels)
 							.arg(QDir::toNativeSeparators(output));
 	result.lines += baked.notes;
 	return result;

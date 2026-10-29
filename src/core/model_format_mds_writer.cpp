@@ -388,7 +388,7 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 	}
 	if (offsetTags > 0) {
 		result.omissions << QCoreApplication::translate("VibeStudioModelMds",
-			"%1 tag(s) sit off their bone; MDS tags follow the bone itself, so the offset is left out.").arg(offsetTags);
+			"%n tag(s) sit off their bone; MDS tags follow the bone itself, so the offset is left out.", nullptr, offsetTags);
 	}
 	if (!mesh.collisionBoxes.isEmpty()) {
 		result.omissions << QCoreApplication::translate("VibeStudioModelMds", "Collision boxes stay in the editable source; MDS does not store them.");
@@ -436,7 +436,7 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 	if (!work.check()) {
 		return {};
 	}
-	result.notes << QCoreApplication::translate("VibeStudioModelMds", "%1 frame(s) of %2 bone(s); angles round to 1/65536 of a turn.")
+	result.notes << QCoreApplication::translate("VibeStudioModelMds", "Frames: %1, bones: %2; angles round to 1/65536 of a turn.")
 		.arg(frames.size()).arg(boneCount);
 	result.maxJointTranslationError = worstStretch;
 	result.maxJointRotationDegrees = std::asin(std::min(1.0, worstRotation)) / kRadians;

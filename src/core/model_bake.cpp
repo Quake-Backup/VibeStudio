@@ -443,13 +443,13 @@ bool bakeModelMaps(const ModelMesh& target, const QVector<int>& surfaces, int fr
 	baked.maxDistance = maxDistance;
 	baked.cageDistance = cage;
 	if (overlaps > 0) {
-		baked.notes << QCoreApplication::translate("VibeStudioModelBake", "%1 texel(s) are covered by more than one triangle; the first one baked wins.").arg(overlaps);
+		baked.notes << QCoreApplication::translate("VibeStudioModelBake", "%n texel(s) are covered by more than one triangle; the first one baked wins.", nullptr, overlaps);
 	}
 	if (outside > 0) {
-		baked.notes << QCoreApplication::translate("VibeStudioModelBake", "%1 triangle(s) reach outside the 0-1 UV square; only the part inside is baked.").arg(outside);
+		baked.notes << QCoreApplication::translate("VibeStudioModelBake", "%n triangle(s) reach outside the 0-1 UV square; only the part inside is baked.", nullptr, outside);
 	}
 	if (misses > 0) {
-		baked.notes << QCoreApplication::translate("VibeStudioModelBake", "%1 texel(s) found no high-poly surface within the cage; they keep the low-poly normal.").arg(misses);
+		baked.notes << QCoreApplication::translate("VibeStudioModelBake", "%n texel(s) found no high-poly surface within the cage; they keep the low-poly normal.", nullptr, misses);
 	}
 	*result = std::move(baked);
 	return true;

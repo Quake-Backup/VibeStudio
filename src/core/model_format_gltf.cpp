@@ -675,7 +675,7 @@ private:
 		}
 		if (omittedModes > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("gltf-primitive-mode"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%1 point or line primitive(s) were left out; only triangles are read.").arg(omittedModes));
+				QCoreApplication::translate("VibeStudioModelMesh", "%n point or line primitive(s) were left out; only triangles are read.", nullptr, omittedModes));
 		}
 		return true;
 	}
@@ -847,7 +847,7 @@ private:
 			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has more triangles than can be decoded.").arg(instance->surface.name));
 		}
 		if (skipped > 0) {
-			instance->surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skipped);
+			instance->surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%n triangle(s) referenced out-of-range indices and were dropped.", nullptr, skipped);
 		}
 		return true;
 	}
@@ -894,7 +894,7 @@ private:
 		m_mesh->skinCount = m_mesh->skinPaths.size();
 		if (embedded > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("gltf-embedded-image"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%1 material(s) use images stored inside the glTF; their names are kept as materials, but the images are not extracted.").arg(embedded));
+				QCoreApplication::translate("VibeStudioModelMesh", "%n material(s) use images stored inside the glTF; their names are kept as materials, but the images are not extracted.", nullptr, embedded));
 		}
 		if (m_missingUvs) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("gltf-no-uvs"),
@@ -1236,8 +1236,8 @@ private:
 				}
 				if (unweighted > 0) {
 					noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("gltf-unweighted-vertices"),
-						QCoreApplication::translate("VibeStudioModelMesh", "%1 vertex(es) of glTF primitive %2 carry no weight; they follow its skin's first joint.")
-							.arg(unweighted).arg(surface.name));
+						QCoreApplication::translate("VibeStudioModelMesh", "%n vertex(es) of glTF primitive %1 carry no weight; they follow its skin's first joint.", nullptr, unweighted)
+							.arg(surface.name));
 				}
 				QString problem;
 				if (!modelSkinningFromBindPose(skeleton, geometry.positions, normals, joints, weights, instance.perVertex, &surface.skinning, &problem)) {
@@ -1289,7 +1289,7 @@ private:
 		}
 		if (morphOmitted > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("gltf-skinned-morphs"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%1 skinned glTF primitive(s) have morph targets; their default weights shape the bind pose, and morph animation is left out.").arg(morphOmitted));
+				QCoreApplication::translate("VibeStudioModelMesh", "%n skinned glTF primitive(s) have morph targets; their default weights shape the bind pose, and morph animation is left out.", nullptr, morphOmitted));
 		}
 
 		// Clips: animations that move a joint.
@@ -1335,12 +1335,12 @@ private:
 		}
 		if (omitted > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("gltf-animations-capped"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%1 glTF animation(s) were left out to keep the clips within %2 frames and %3 joint poses.")
-					.arg(omitted).arg(kMaxFrames).arg(kMaxJointPoses));
+				QCoreApplication::translate("VibeStudioModelMesh", "%n glTF animation(s) were left out to keep the clips within %1 frames and %2 joint poses.", nullptr, omitted)
+					.arg(kMaxFrames).arg(kMaxJointPoses));
 		}
 		if (untouched > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("gltf-animations-unskinned"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%1 glTF animation(s) move no joint (only nodes or morph weights) and were left out of the skeletal model.").arg(untouched));
+				QCoreApplication::translate("VibeStudioModelMesh", "%n glTF animation(s) move no joint (only nodes or morph weights) and were left out of the skeletal model.", nullptr, untouched));
 		}
 		m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Animations read: %1").arg(skeleton.clips.size());
 		QString problem;
@@ -1492,7 +1492,7 @@ private:
 		}
 		if (omitted > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("gltf-animations-capped"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%1 glTF animation(s) were left out to keep the model within %2 frames.").arg(omitted).arg(kMaxVertexFrames));
+				QCoreApplication::translate("VibeStudioModelMesh", "%n glTF animation(s) were left out to keep the model within %1 frames.", nullptr, omitted).arg(kMaxVertexFrames));
 		}
 		m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Animations read: %1").arg(m_mesh->animations.size());
 		return true;

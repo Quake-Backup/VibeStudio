@@ -13073,7 +13073,7 @@ void ApplicationShell::auditPackageModels()
 		m_activity.appendLog(taskId, OperationState::Running, summary);
 		if (!error.isEmpty()) { m_activity.failTask(taskId, error); }
 		else if (report.cancelled) { m_activity.cancelTask(taskId, tr("Model audit cancelled.")); }
-		else { m_activity.completeTask(taskId, tr("Audited %1 model(s).").arg(report.entries.size())); }
+		else { m_activity.completeTask(taskId, tr("Audited %n model(s).", nullptr, int(report.entries.size()))); }
 		persistActivityTask(taskId);
 		refreshActivityCenter(taskId);
 	};

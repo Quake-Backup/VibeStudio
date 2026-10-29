@@ -119,8 +119,8 @@ ModelGameSkinCliResult runModelGameSkin(const QStringList &arguments)
 		if (!mesh.error.isEmpty())
 			return fail(4, mesh.error);
 	}
-	if (surface >= mesh.surfaces.size())
-		return fail(2, Text::tr("The model has %1 surface(s); --surface %2 does not exist.").arg(mesh.surfaces.size()).arg(surface));
+	if (const int surfaceCount = int(mesh.surfaces.size()); surface >= surfaceCount)
+		return fail(2, Text::tr("The model has %n surface(s); --surface %1 does not exist.", nullptr, surfaceCount).arg(surface));
 	// Quake III shaders come from --package, read only.
 	MaterialDefinition definition;
 	MaterialImageSet images;

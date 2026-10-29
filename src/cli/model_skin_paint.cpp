@@ -171,7 +171,7 @@ ModelSkinPaintCliResult runModelSkinPaint(const QStringList &arguments)
 		{"dirty", QJsonArray{dirty.x(), dirty.y(), dirty.width(), dirty.height()}},
 		{"sha256", imageHash(skin)},
 		{"output", target.absoluteFilePath()}};
-	result.lines << Text::tr("Painted %1 texel(s) with %2 stroke(s) into %3.").arg(texels).arg(strokes.size()).arg(QDir::toNativeSeparators(output));
+	result.lines << Text::tr("Painted %n texel(s) into %1 (strokes: %2).", nullptr, texels).arg(QDir::toNativeSeparators(output)).arg(strokes.size());
 	return result;
 }
 } // namespace vibestudio::cli

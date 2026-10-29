@@ -520,8 +520,8 @@ QStringList modelAuditLines(const ModelAuditReport& report)
 	for (const ModelAuditFormatSummary& summary : report.formats) {
 		entries += summary.entries;
 		lines << QCoreApplication::translate("VibeStudioModelAudit",
-			"%1: %2 model(s); %3 decoded, %4 failed; %5 clean, %6 with advisories, %7 need omissions accepted, %8 damaged; %9 editable.")
-			.arg(summary.format).arg(summary.entries).arg(summary.decoded).arg(summary.failed).arg(summary.clean).arg(summary.advisories)
+			"%1: %n model(s); %2 decoded, %3 failed; %4 clean, %5 with advisories, %6 need omissions accepted, %7 damaged; %8 editable.", nullptr, summary.entries)
+			.arg(summary.format).arg(summary.decoded).arg(summary.failed).arg(summary.clean).arg(summary.advisories)
 			.arg(summary.needsAcceptance).arg(summary.damaged).arg(summary.editable);
 		if (summary.roundTrips > 0) {
 			lines << QCoreApplication::translate("VibeStudioModelAudit", "  Round trips: %1 of %2 within tolerance; largest corner error %3.")
@@ -548,13 +548,13 @@ QStringList modelAuditLines(const ModelAuditReport& report)
 		lines << QCoreApplication::translate("VibeStudioModelAudit", "%1 (%2): %3 — %4").arg(entry.path, entry.format, entry.verdict, detail);
 	}
 	if (report.skippedEntries > 0) {
-		lines << QCoreApplication::translate("VibeStudioModelAudit", "%1 more model(s) were not audited (the entry limit).").arg(report.skippedEntries);
+		lines << QCoreApplication::translate("VibeStudioModelAudit", "%n more model(s) were not audited (the entry limit).", nullptr, report.skippedEntries);
 	}
 	for (const QString& problem : report.problems) {
 		lines << problem;
 	}
 	if (report.cancelled) {
-		lines << QCoreApplication::translate("VibeStudioModelAudit", "The audit was cancelled after %1 model(s).").arg(entries);
+		lines << QCoreApplication::translate("VibeStudioModelAudit", "The audit was cancelled after %n model(s).", nullptr, entries);
 	}
 	return lines;
 }
