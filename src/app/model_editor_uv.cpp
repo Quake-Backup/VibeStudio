@@ -475,8 +475,9 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 			   QCoreApplication::translate("ModelUvOps", "Join the selected corners with their split copies where position and normal match in "
 														 "every pose, at their mean UV. Seam marks stay; clear them to merge the islands."));
 	toolButton(QCoreApplication::translate("ModelUvOps", "Stitch UVs"), QStringLiteral("stitchMeshUvs"), ModelEditKind::StitchUv,
-			   QCoreApplication::translate("ModelUvOps", "In edge selection, choose boundary edges of a UV seam. The smaller island turns and "
-														 "moves, never mirrored or scaled, so the edges meet; the corners then weld."));
+			   QCoreApplication::translate("ModelUvOps", "In edge selection, choose boundary edges of UV seams, between as many islands as you "
+														 "like. In each group of joined islands the largest stays put; the others turn and move, "
+														 "never mirrored or scaled, so the edges meet; the corners then weld."));
 	m_uvAlignMode = new QComboBox;
 	m_uvAlignMode->setObjectName(QStringLiteral("meshUvAlignMode"));
 	m_uvAlignMode->addItems({QCoreApplication::translate("ModelUvOps", "U to minimum"), QCoreApplication::translate("ModelUvOps", "U to centre"),
@@ -629,7 +630,12 @@ bool ModelEditorDialog::runUvTool(ModelEditKind kind, QString *error)
 	if (kind == ModelEditKind::SnapUvTexels)
 		tools.snapMode = m_uvSnapMode->currentIndex() == 1 ? ModelUvSnapMode::Corners : ModelUvSnapMode::Centres;
 	QString failure;
-	if (!applyEdit(edit, &failure))
+	// Islands before a stitch, to say how many joined.
+	ModelUvTopology islandsBefore;
+	if (kind == ModelEditKind::StitchUv)
+		buildModelUvTopology(m_document.mesh().surfaces[edit.selection.surface], &islandsBefore);
+	// Through the tools, so Adjust Last Operation can change the settings.
+	if (!(m_tools ? m_tools->runTool(edit, &failure) : applyEdit(edit, &failure)))
 	{
 		if (error)
 			*error = failure;
@@ -645,9 +651,23 @@ bool ModelEditorDialog::runUvTool(ModelEditKind kind, QString *error)
 						  LiveStatus::Result);
 		break;
 	case ModelEditKind::StitchUv:
-		m_status->setText(QCoreApplication::translate("ModelUvOps", "Stitched the seam; the surface now has %Ln vertices.", nullptr, vertices),
+	{
+		ModelUvTopology islandsAfter;
+		buildModelUvTopology(m_document.mesh().surfaces[m_document.selection().surface], &islandsAfter);
+		const int joined = std::max(0, int(islandsBefore.islands.size() - islandsAfter.islands.size()));
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "Stitched %Ln islands onto their neighbours.", nullptr, joined) + QLatin1Char(' ') +
+							  QCoreApplication::translate("ModelUvOps", "The surface now has %Ln vertices.", nullptr, vertices),
 						  LiveStatus::Result);
 		break;
+	}
+	case ModelEditKind::PinUv:
+	case ModelEditKind::UnpinUv:
+	{
+		const int pinned = int(m_document.mesh().surfaces[m_document.selection().surface].uvPins.size());
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "%Ln UV corners on this surface are pinned for a conformal unwrap.", nullptr, pinned),
+						  LiveStatus::Result);
+		break;
+	}
 	case ModelEditKind::AlignUv:
 		m_status->setText(QCoreApplication::translate("ModelUvOps", "Aligned the selected UVs."), LiveStatus::Result);
 		break;

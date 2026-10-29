@@ -663,8 +663,9 @@ In the UV controls on the **Surface** page (or the **UV** menu):
 
 - **Weld UVs** joins split corners again, such as those **Detach UV Faces**
   split; **Weld Distance** joins corners that are slightly apart.
-- **Stitch UVs** joins two islands along the seam edges you select, moving the
-  smaller island without mirroring or scaling it.
+- **Stitch UVs** joins islands along the seam edges you select, as many pairs
+  as you select at once. The largest island of each group stays where it is;
+  the others turn and move into place without mirroring or scaling.
 - **Align UVs** lines corners up on U or V, or straightens them.
 - **Snap UVs to Texels** puts corners on texel centres of the MDL or MD2 skin,
   so the export keeps them exactly.

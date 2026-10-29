@@ -19,6 +19,7 @@
 #include <QTemporaryDir>
 #include <cmath>
 #include <iostream>
+#include <tuple>
 
 using namespace vibestudio;
 using namespace vibestudio::tests;
@@ -161,6 +162,62 @@ int main(int argc, char **argv)
 		auto joined = original;
 		expect(!applyModelEdit(&joined, operation(ModelEditKind::StitchUv, {0, {}, {}, {modelEdge(1, 4)}}), nullptr, &error),
 			   "an edge with no split copy is refused");
+	}
+
+	// One stitch joins several island pairs: three islands in a row, each
+	// moved away, come back together in one run.
+	{
+		const auto original = strip(3);
+		auto mesh = original;
+		expect(applyModelEdit(&mesh, operation(ModelEditKind::DetachUv, {0, {}, {2, 3, 4, 5}}), nullptr, &error) &&
+				   applyModelEdit(&mesh, operation(ModelEditKind::DetachUv, {0, {}, {4, 5}}), nullptr, &error),
+			   "detach two quads into separate islands", error);
+		ModelUvTopology topology;
+		expect(buildModelUvTopology(mesh.surfaces[0], &topology) && topology.islands.size() == 3, "three islands before stitching");
+		for (const auto &[faces, angle, offset] : {std::tuple{QSet<int>{2, 3}, 90.0, ModelTexCoord{.2f, .3f}},
+												   std::tuple{QSet<int>{4, 5}, -45.0, ModelTexCoord{-.1f, .4f}}})
+		{
+			auto turn = operation(ModelEditKind::TransformUv, {0, {}, faces});
+			turn.uvRotation = angle;
+			turn.uvOffset = offset;
+			turn.uvPivotMode = ModelUvPivot::SelectionCentre;
+			expect(applyModelEdit(&mesh, turn, nullptr, &error), "move an island away", error);
+		}
+		const auto &s = mesh.surfaces[0];
+		// The left edge of each moved quad: face 2x's first corner and face
+		// 2x+1's last corner.
+		const QSet<ModelEdge> seams{modelEdge(s.triangles[2].a, s.triangles[3].c), modelEdge(s.triangles[4].a, s.triangles[5].c)};
+		ModelSelection selection;
+		expect(applyModelEdit(&mesh, operation(ModelEditKind::StitchUv, {0, {}, {}, seams}), &selection, &error), "stitch both seams at once",
+			   error);
+		const auto &t = mesh.surfaces[0];
+		bool restored = t.vertexCount == original.surfaces[0].vertexCount;
+		for (int f = 0; restored && f < t.triangles.size(); ++f)
+			restored = t.triangles[f].a == original.surfaces[0].triangles[f].a && t.triangles[f].b == original.surfaces[0].triangles[f].b &&
+					   t.triangles[f].c == original.surfaces[0].triangles[f].c;
+		for (int v = 0; restored && v < t.vertexCount; ++v)
+			restored = distance(t.texCoords[v], original.surfaces[0].texCoords[v]) < 2e-5;
+		expect(restored, "the three islands weld back into the original strip");
+		expect(buildModelUvTopology(t, &topology) && topology.islands.size() == 1 && selection.edges.size() == 2, "one island, both seams selected");
+		// The largest island stays; ties keep the lowest island.
+		expect(t.texCoords[0].u == original.surfaces[0].texCoords[0].u && t.texCoords[4].v == original.surfaces[0].texCoords[4].v,
+			   "the first island did not move");
+		// A mirrored island anywhere in the group refuses the whole stitch.
+		auto mirrored = original;
+		applyModelEdit(&mirrored, operation(ModelEditKind::DetachUv, {0, {}, {2, 3, 4, 5}}), nullptr, &error);
+		applyModelEdit(&mirrored, operation(ModelEditKind::DetachUv, {0, {}, {4, 5}}), nullptr, &error);
+		auto flip = operation(ModelEditKind::TransformUv, {0, {}, {4, 5}});
+		flip.uvScale = {-1, 1};
+		flip.uvPivotMode = ModelUvPivot::SelectionCentre;
+		applyModelEdit(&mirrored, flip, nullptr, &error);
+		const auto &m = mirrored.surfaces[0];
+		const auto kept = source(mirrored);
+		expect(!applyModelEdit(&mirrored,
+							   operation(ModelEditKind::StitchUv,
+										 {0, {}, {}, {modelEdge(m.triangles[2].a, m.triangles[3].c), modelEdge(m.triangles[4].a, m.triangles[5].c)}}),
+							   nullptr, &error) &&
+				   source(mirrored) == kept,
+			   "a mirrored island in the group refuses the stitch");
 	}
 
 	// Align and straighten.

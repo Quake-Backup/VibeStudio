@@ -9,6 +9,7 @@
 #include <QCoreApplication>
 #include <QHash>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstring>
 #include <numbers>
@@ -254,6 +255,8 @@ double islandWinding(const ModelSurface &surface, const ModelUvIsland &island)
 	}
 	return sum;
 }
+int cornerSlot(ModelTriangle t, int vertex) { return t.a == vertex ? 0 : t.b == vertex ? 1 : t.c == vertex ? 2 : -1; }
+int cornerAt(ModelTriangle t, int slot) { return slot == 0 ? t.a : slot == 1 ? t.b : t.c; }
 bool stitch(const ModelMesh &mesh, ModelSurface *surface, ModelSelection *selection, QString *error, const ModelWorkControl &control,
 			ModelWorkProgress &work)
 {
@@ -274,12 +277,21 @@ bool stitch(const ModelMesh &mesh, ModelSurface *surface, ModelSelection *select
 		keys[v] = geometryKey(*surface, v, false);
 		points[keys[v]].append(v);
 	}
+	// Corners are kept as (face, slot): faces keep their indices while
+	// islands move, though a moved corner may be split into a new vertex.
+	struct Corner
+	{
+		int face = -1, slot = 0;
+	};
 	struct Correspondence
 	{
-		ModelEdge selected, counterpart;
-		int selectedIsland, counterpartIsland;
+		// side[0] lies on island[0]; corner k of one side meets corner k of
+		// the other.
+		std::array<std::array<Corner, 2>, 2> side;
+		std::array<int, 2> island{};
 	};
 	QVector<Correspondence> found;
+	QSet<QPair<ModelEdge, ModelEdge>> seen;
 	auto edges = selection->edges.values();
 	std::sort(edges.begin(), edges.end());
 	for (const auto &edge : edges)
@@ -299,9 +311,20 @@ bool stitch(const ModelMesh &mesh, ModelSurface *surface, ModelSelection *select
 				const auto other = edgeFaces.value(modelEdge(c, d));
 				if (other.size() != 1 || topology.faceIsland[other.first()] == topology.faceIsland[faces.first()])
 					continue;
-				// Keep the corner order: edge.first meets c and edge.second meets d.
-				found.append({edge, {c, d}, topology.faceIsland[faces.first()], topology.faceIsland[other.first()]});
+				// Both sides selected name one seam once.
+				const auto counterpart = modelEdge(c, d);
+				const auto key = edge < counterpart ? qMakePair(edge, counterpart) : qMakePair(counterpart, edge);
 				matched = true;
+				if (seen.contains(key))
+					break;
+				seen.insert(key);
+				const auto f = surface->triangles[faces.first()], g = surface->triangles[other.first()];
+				Correspondence match;
+				// Keep the corner order: edge.first meets c and edge.second meets d.
+				match.side[0] = {Corner{faces.first(), cornerSlot(f, edge.first)}, Corner{faces.first(), cornerSlot(f, edge.second)}};
+				match.side[1] = {Corner{other.first(), cornerSlot(g, c)}, Corner{other.first(), cornerSlot(g, d)}};
+				match.island = {topology.faceIsland[faces.first()], topology.faceIsland[other.first()]};
+				found.append(match);
 				break;
 			}
 			if (matched)
@@ -311,106 +334,184 @@ bool stitch(const ModelMesh &mesh, ModelSurface *surface, ModelSelection *select
 	if (found.isEmpty())
 		return fail(error, Text::tr("No selected edge has a split copy on another island. Select boundary edges of a UV seam whose two sides "
 									"lie on different islands."));
-	const int first = std::min(found.first().selectedIsland, found.first().counterpartIsland);
-	const int second = std::max(found.first().selectedIsland, found.first().counterpartIsland);
-	for (const auto &match : found)
-		if (std::min(match.selectedIsland, match.counterpartIsland) != first || std::max(match.selectedIsland, match.counterpartIsland) != second)
-			return fail(error, Text::tr("Stitch joins two islands at a time. Select seam edges between one pair of islands."));
-	const auto &a = topology.islands[first], &b = topology.islands[second];
-	const int moving = b.faces.size() <= a.faces.size() ? second : first, fixed = moving == first ? second : first;
-	if ((islandWinding(*surface, a) < 0) != (islandWinding(*surface, b) < 0))
-		return fail(error, Text::tr("One of these islands is mirrored. Mirror it back (a UV scale of -1) before stitching."));
-	// Moving corner -> fixed corner, from every correspondence.
-	QMap<int, int> pairs;
-	QVector<ModelEdge> fixedEdges, movingEdges;
+	// Islands the seams connect, as a graph. In each connected group the
+	// largest island stays put; the others are placed breadth first, each
+	// fitted to every island already placed that it shares a seam with.
+	const int islands = int(topology.islands.size());
+	QVector<QVector<int>> neighbours(islands);
 	for (const auto &match : found)
 	{
-		const bool selectedFixed = match.selectedIsland == fixed;
-		const auto fixedEdge = selectedFixed ? match.selected : match.counterpart;
-		const auto movingEdge = selectedFixed ? match.counterpart : match.selected;
-		// Both edges are stored in their found corner order, which matches.
-		const int fixedA = selectedFixed ? match.selected.first : match.counterpart.first;
-		const int fixedB = selectedFixed ? match.selected.second : match.counterpart.second;
-		const int movingA = selectedFixed ? match.counterpart.first : match.selected.first;
-		const int movingB = selectedFixed ? match.counterpart.second : match.selected.second;
-		pairs.insert(movingA, fixedA);
-		pairs.insert(movingB, fixedB);
-		fixedEdges.append(modelEdge(fixedEdge.first, fixedEdge.second));
-		movingEdges.append(modelEdge(movingEdge.first, movingEdge.second));
+		neighbours[match.island[0]].append(match.island[1]);
+		neighbours[match.island[1]].append(match.island[0]);
 	}
-	// Rigid fit (rotation and translation) of the moving corners onto the
-	// fixed ones: the two-dimensional orthogonal Procrustes solution.
-	double pu = 0, pv = 0, qu = 0, qv = 0;
-	for (auto it = pairs.cbegin(); it != pairs.cend(); ++it)
+	for (auto &list : neighbours)
 	{
-		pu += surface->texCoords[it.key()].u;
-		pv += surface->texCoords[it.key()].v;
-		qu += surface->texCoords[it.value()].u;
-		qv += surface->texCoords[it.value()].v;
+		std::sort(list.begin(), list.end());
+		list.erase(std::unique(list.begin(), list.end()), list.end());
 	}
-	const double n = double(pairs.size());
-	pu /= n, pv /= n, qu /= n, qv /= n;
-	double dot = 0, cross = 0;
-	for (auto it = pairs.cbegin(); it != pairs.cend(); ++it)
+	QVector<int> order, position(islands, -1), group(islands, -1);
+	QVector<int> roots;
+	for (int start = 0; start < islands; ++start)
 	{
-		const double x = surface->texCoords[it.key()].u - pu, y = surface->texCoords[it.key()].v - pv;
-		const double s = surface->texCoords[it.value()].u - qu, t = surface->texCoords[it.value()].v - qv;
-		dot += x * s + y * t;
-		cross += x * t - y * s;
+		if (group[start] >= 0 || neighbours[start].isEmpty())
+			continue;
+		// The group's members, then its largest island as the root.
+		QVector<int> members{start};
+		group[start] = start;
+		for (int i = 0; i < members.size(); ++i)
+			for (int next : neighbours[members[i]])
+				if (group[next] < 0)
+				{
+					group[next] = start;
+					members.append(next);
+				}
+		int root = members.first();
+		for (int island : members)
+			if (topology.islands[island].faces.size() > topology.islands[root].faces.size() ||
+				(topology.islands[island].faces.size() == topology.islands[root].faces.size() && island < root))
+				root = island;
+		roots.append(root);
+		QVector<int> queue{root};
+		position[root] = int(order.size());
+		order.append(root);
+		for (int i = 0; i < queue.size(); ++i)
+			for (int next : neighbours[queue[i]])
+				if (position[next] < 0)
+				{
+					position[next] = int(order.size());
+					order.append(next);
+					queue.append(next);
+				}
 	}
-	const double angle = (dot == 0 && cross == 0) ? 0 : std::atan2(cross, dot);
-	const double cosine = std::cos(angle), sine = std::sin(angle);
-	// transformModelUvIslands turns about the island's bounds centre p:
-	// R(x - p) + p + offset = R x + T, so offset = T + R p - p.
-	const auto &island = topology.islands[moving];
-	const double cu = (double(island.mins.u) + island.maxs.u) / 2, cv = (double(island.mins.v) + island.maxs.v) / 2;
-	const double tu = qu - (cosine * pu - sine * pv), tv = qv - (sine * pu + cosine * pv);
-	ModelUvIslandTransform transform;
-	transform.rotation = angle * 180 / std::numbers::pi;
-	transform.offset = {float(tu + (cosine * cu - sine * cv) - cu), float(tv + (sine * cu + cosine * cv) - cv)};
+	for (int island : order)
+		if ((islandWinding(*surface, topology.islands[island]) < 0) != (islandWinding(*surface, topology.islands[group[island]]) < 0))
+			return fail(error, Text::tr("One of these islands is mirrored. Mirror it back (a UV scale of -1) before stitching."));
+	const auto uvAt = [](const ModelSurface &s, const Corner &corner) { return s.texCoords[cornerAt(s.triangles[corner.face], corner.slot)]; };
+	// Rigid placements in original UVs: placed(x) = R x + t.
+	struct Placement
+	{
+		double cosine = 1, sine = 0, tu = 0, tv = 0;
+	};
+	QVector<Placement> placement(islands);
+	for (int island : order)
+	{
+		if (!work.step())
+			return false;
+		if (std::find(roots.cbegin(), roots.cend(), island) != roots.cend())
+			continue;
+		// Every corner pair with an island placed before this one.
+		QVector<QPair<ModelTexCoord, ModelTexCoord>> pairs;
+		for (const auto &match : found)
+			for (int s = 0; s < 2; ++s)
+				if (match.island[s] == island && position[match.island[1 - s]] < position[island])
+				{
+					const auto &placed = placement[match.island[1 - s]];
+					for (int k = 0; k < 2; ++k)
+					{
+						const auto from = uvAt(*surface, match.side[s][k]), to = uvAt(*surface, match.side[1 - s][k]);
+						pairs.append({from, {float(placed.cosine * to.u - placed.sine * to.v + placed.tu),
+											 float(placed.sine * to.u + placed.cosine * to.v + placed.tv)}});
+					}
+				}
+		// The two-dimensional orthogonal Procrustes solution: rotation and
+		// translation only.
+		double pu = 0, pv = 0, qu = 0, qv = 0;
+		for (const auto &pair : pairs)
+		{
+			pu += pair.first.u;
+			pv += pair.first.v;
+			qu += pair.second.u;
+			qv += pair.second.v;
+		}
+		const double n = double(std::max<qsizetype>(1, pairs.size()));
+		pu /= n, pv /= n, qu /= n, qv /= n;
+		double dot = 0, cross = 0;
+		for (const auto &pair : pairs)
+		{
+			const double x = pair.first.u - pu, y = pair.first.v - pv, s = pair.second.u - qu, t = pair.second.v - qv;
+			dot += x * s + y * t;
+			cross += x * t - y * s;
+		}
+		const double angle = (dot == 0 && cross == 0) ? 0 : std::atan2(cross, dot);
+		auto &fit = placement[island];
+		fit.cosine = std::cos(angle);
+		fit.sine = std::sin(angle);
+		fit.tu = qu - (fit.cosine * pu - fit.sine * pv);
+		fit.tv = qv - (fit.sine * pu + fit.cosine * pv);
+	}
 	qint64 others = 0;
 	for (const auto &other : mesh.surfaces)
 		others += other.vertexCount;
 	others -= surface->vertexCount;
-	transform.vertexLimit =
+	const int vertexLimit =
 		int(std::min<qint64>(modelDocumentMaxVertices, modelDocumentMaxFrameVertices / std::max<qint64>(1, mesh.frames.size())) - others);
-	if (transform.vertexLimit < surface->vertexCount)
+	if (vertexLimit < surface->vertexCount)
 		return fail(error, Text::tr("Stitching would exceed the vertex or animation storage limit."));
-	const QSet<int> movingFaces(island.faces.cbegin(), island.faces.cend());
-	ModelSurface moved;
-	if (!transformModelUvIslands(*surface, movingFaces, transform, &moved, error, control))
-		return false;
-	QHash<int, int> movedIndex;
-	for (int face : island.faces)
+	ModelSurface moved = *surface;
+	for (int island : order)
 	{
-		const auto before = surface->triangles[face], after = moved.triangles[face];
-		movedIndex.insert(before.a, after.a);
-		movedIndex.insert(before.b, after.b);
-		movedIndex.insert(before.c, after.c);
+		if (std::find(roots.cbegin(), roots.cend(), island) != roots.cend())
+			continue;
+		const auto &fit = placement[island];
+		// transformModelUvIslands turns about the island's bounds centre c:
+		// R(x - c) + c + offset = R x + t, so offset = t + R c - c.
+		const auto &shape = topology.islands[island];
+		const double cu = (double(shape.mins.u) + shape.maxs.u) / 2, cv = (double(shape.mins.v) + shape.maxs.v) / 2;
+		ModelUvIslandTransform transform;
+		transform.rotation = std::atan2(fit.sine, fit.cosine) * 180 / std::numbers::pi;
+		transform.offset = {float(fit.tu + (fit.cosine * cu - fit.sine * cv) - cu), float(fit.tv + (fit.sine * cu + fit.cosine * cv) - cv)};
+		transform.vertexLimit = vertexLimit;
+		const QSet<int> faces(shape.faces.cbegin(), shape.faces.cend());
+		ModelSurface next;
+		if (!transformModelUvIslands(moved, faces, transform, &next, error, control))
+			return false;
+		moved = std::move(next);
 	}
-	// The edges meet exactly; then corners that match in every pose weld.
+	// Later islands' corners meet the earlier ones exactly, in placement
+	// order so a corner copies a UV that is already final; corners that
+	// match in every pose then weld.
+	std::sort(found.begin(), found.end(),
+			  [&](const Correspondence &a, const Correspondence &b)
+			  {
+				  return std::max(position[a.island[0]], position[a.island[1]]) < std::max(position[b.island[0]], position[b.island[1]]);
+			  });
 	QVector<int> mapping(moved.vertexCount);
 	std::iota(mapping.begin(), mapping.end(), 0);
+	QSet<ModelEdge> stitched;
 	bool welded = false;
-	for (auto it = pairs.cbegin(); it != pairs.cend(); ++it)
+	for (const auto &match : found)
 	{
-		const int corner = movedIndex.value(it.key(), -1);
-		if (corner < 0)
-			return fail(error, Text::tr("A stitched corner no longer exists."));
-		moved.texCoords[corner] = moved.texCoords[it.value()];
-		if (corner != it.value() && weldable(moved, corner, it.value()))
+		if (!work.step())
+			return false;
+		const int later = position[match.island[0]] > position[match.island[1]] ? 0 : 1;
+		const auto &from = match.side[later], &to = match.side[1 - later];
+		for (int k = 0; k < 2; ++k)
 		{
-			mapping[corner] = it.value();
-			welded = true;
+			const int corner = cornerAt(moved.triangles[from[k].face], from[k].slot);
+			const int target = cornerAt(moved.triangles[to[k].face], to[k].slot);
+			moved.texCoords[corner] = moved.texCoords[target];
+			if (corner != target && weldable(moved, corner, target))
+			{
+				mapping[corner] = target;
+				welded = true;
+			}
 		}
+		// The stitched edges no longer separate their islands.
+		const auto kept = modelEdge(cornerAt(moved.triangles[to[0].face], to[0].slot), cornerAt(moved.triangles[to[1].face], to[1].slot));
+		moved.uvSeams.remove(kept);
+		moved.uvSeams.remove(modelEdge(cornerAt(moved.triangles[from[0].face], from[0].slot), cornerAt(moved.triangles[from[1].face], from[1].slot)));
+		stitched.insert(kept);
 	}
-	// The stitched edges no longer separate their islands.
-	for (const auto &edge : fixedEdges)
-		moved.uvSeams.remove(edge);
-	for (const auto &edge : movingEdges)
-		moved.uvSeams.remove(modelEdge(movedIndex.value(edge.first), movedIndex.value(edge.second)));
+	// A corner welds to the corner its target welded to.
+	for (int v = 0; v < mapping.size(); ++v)
+	{
+		int root = v;
+		while (mapping[root] != root)
+			root = mapping[root];
+		mapping[v] = root;
+	}
 	ModelSelection result = *selection;
-	result.edges = QSet<ModelEdge>(fixedEdges.cbegin(), fixedEdges.cend());
+	result.edges = stitched;
 	if (welded && !weldMapped(&moved, mapping, &result, error, work))
 		return false;
 	if (!work.check())
