@@ -2,12 +2,14 @@
 
 #include "app/dialog_screen_fit.h"
 #include "app/model_viewport.h"
+#include "core/model_file_io.h"
 
 #include <QAction>
 #include <QCheckBox>
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -259,12 +261,23 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 	m_material = field(QCoreApplication::translate("VibeStudioModelDesignDialog", "Material path"), QStringLiteral("designMaterial"));
 	m_material->setToolTip(QCoreApplication::translate(
 	    "VibeStudioModelDesignDialog", "Package-relative image or Quake III shader name. Assets are checked by Levels → Dependencies."));
-	auto* show = new QPushButton(QCoreApplication::translate("VibeStudioModelDesignDialog", "Show Material"));
+	auto* show = new QPushButton(QCoreApplication::translate("VibeStudioModelDesignDialog", "Show Image"));
+	show->setObjectName(QStringLiteral("showDesignImage"));
 	show->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Show this model part material in Textures"));
 	form->addRow(show);
 	connect(show, &QPushButton::clicked, this, [this]() {
 		if (showMaterial) {
 			showMaterial(m_material->text());
+		}
+	});
+	m_showInMaterials = new QPushButton(QCoreApplication::translate("VibeStudioModelDesignDialog", "Show in Materials"));
+	m_showInMaterials->setObjectName(QStringLiteral("showDesignMaterialInMaterials"));
+	m_showInMaterials->setAccessibleName(
+	    QCoreApplication::translate("VibeStudioModelDesignDialog", "Show this model part's shader or material in Materials"));
+	form->addRow(m_showInMaterials);
+	connect(m_showInMaterials, &QPushButton::clicked, this, [this]() {
+		if (showInMaterials) {
+			showInMaterials(m_material->text());
 		}
 	});
 	m_uvScale[0] =
@@ -620,6 +633,16 @@ void ModelDesignDialog::refreshContext()
 	             state.mapPath.isEmpty() ? QCoreApplication::translate("VibeStudioModelDesignDialog", "none") : state.mapPath));
 	m_stageAction->setEnabled(m_exportMd3->isEnabled() && state.canStage && bool(handoff));
 	m_placeAction->setEnabled(m_exportMd3->isEnabled() && state.canStage && state.canPlace && bool(handoff));
+	// Materials come from the open package; without one there is nothing to show.
+	if (!m_showInMaterials) {
+		return;
+	}
+	m_showInMaterials->setEnabled(bool(showInMaterials) && !state.packagePath.isEmpty());
+	m_showInMaterials->setToolTip(state.packagePath.isEmpty()
+	                                  ? QCoreApplication::translate("VibeStudioModelDesignDialog", "Open the package that holds the material first.")
+	                                  : QCoreApplication::translate("VibeStudioModelDesignDialog",
+	                                                                "Open the shader or material in the Materials workbench to edit its stages and maps."));
+	m_showInMaterials->setAccessibleDescription(m_showInMaterials->toolTip());
 }
 void ModelDesignDialog::changeEvent(QEvent* event)
 {
@@ -643,13 +666,20 @@ bool ModelDesignDialog::saveDesign()
 		return false;
 	}
 	QString error;
-	if (!saveModelDesignBytes(path, QJsonDocument(modelDesignJson(m_design)).toJson(), true, &error)) {
+	// Saving over the file it was opened from refuses one changed on disk since.
+	const QByteArray bytes = QJsonDocument(modelDesignJson(m_design)).toJson();
+	const bool sameFile = !m_path.isEmpty() && modelPathsReferToSameFile(path, m_path);
+	if (!saveModelDesignBytes(path, bytes, true, &error, {}, {}, false, sameFile ? m_sourceSha256 : QByteArray())) {
 		m_status->setText(error, LiveStatus::Problem);
 		return false;
 	}
+	m_sourceSha256 = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256);
 	m_path = path;
 	m_savedDesign = modelDesignJson(m_design);
 	m_dirty = false;
+	if (sourcePathChanged) {
+		sourcePathChanged(QFileInfo(path).absoluteFilePath());
+	}
 	refreshPreview();
 	m_status->setText(QCoreApplication::translate("VibeStudioModelDesignDialog", "Saved design: %1").arg(path), LiveStatus::Result);
 	return true;
@@ -685,13 +715,28 @@ void ModelDesignDialog::openDesign()
 	if (path.isEmpty()) {
 		return;
 	}
-	ModelDesign design;
 	QString error;
-	if (!loadModelDesign(path, &design, &error) || !setDesign(design, &error)) {
+	if (!loadDesignPath(path, &error)) {
 		m_status->setText(error, LiveStatus::Problem);
-		return;
 	}
-	m_path = path;
+}
+bool ModelDesignDialog::openDesignPath(const QString& path, QString* error)
+{
+	return confirmDiscard() && loadDesignPath(path, error);
+}
+bool ModelDesignDialog::loadDesignPath(const QString& path, QString* error)
+{
+	ModelDesign design;
+	QByteArray sha256;
+	if (!loadModelDesign(path, &design, error, &sha256) || !setDesign(design, error)) {
+		return false;
+	}
+	m_path = QFileInfo(path).absoluteFilePath();
+	m_sourceSha256 = sha256;
+	if (sourcePathChanged) {
+		sourcePathChanged(m_path);
+	}
+	return true;
 }
 void ModelDesignDialog::exportDesign(const QString& format)
 {

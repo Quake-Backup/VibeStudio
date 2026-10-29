@@ -5426,7 +5426,7 @@ QWidget* ApplicationShell::buildModelsPage()
 	m_modelState->setProperty("modelBrowserState", true);
 	m_modelState->setAccessibleName(tr("Model browser state"));
 	m_modelState->setTitle(tr("Models"));
-	m_modelState->setDetail(tr("OBJ, MDL, MD2, MD3, and adjacent idTech model metadata with skin and material dependencies."));
+	m_modelState->setDetail(tr("Every model format the studio reads, with skin and material dependencies."));
 	m_modelState->setPlaceholderRows({
 		tr("Model list"),
 		tr("Frames and surfaces"),
@@ -5448,6 +5448,7 @@ QWidget* ApplicationShell::buildModelsPage()
 	connect(m_modelEntries, &QListWidget::itemClicked, this, [this]() {
 		if (m_modelShownKey.isEmpty()) { showSelectedModel(); }
 	});
+	connect(m_modelEntries, &QListWidget::itemActivated, this, [this](QListWidgetItem* item) { openModelSourceItem(item); });
 
 	auto* viewportBar = createPageToolBar(tr("Model viewport controls"));
 	viewportBar->setObjectName(QStringLiteral("viewportToolBar"));
@@ -13367,6 +13368,7 @@ void ApplicationShell::rebuildRecentMenu()
 	addSection(tr("Packages"), m_settings.recentFiles(QStringLiteral("package")), QStringLiteral("package"));
 	addSection(tr("Maps"), m_settings.recentFiles(QStringLiteral("map")), QStringLiteral("map"));
 	addSection(tr("Code Files"), m_settings.recentFiles(QStringLiteral("code")), QStringLiteral("code"));
+	addSection(tr("Models"), m_settings.recentFiles(QStringLiteral("model")), QStringLiteral("model"));
 	if (m_recentMenu->isEmpty()) {
 		QAction* none = m_recentMenu->addAction(tr("Nothing opened yet"));
 		none->setEnabled(false);
@@ -17643,7 +17645,7 @@ void ApplicationShell::showQuickOpen()
 	if (!m_quickOpen) { return; }
 	QuickOpenRequest request;
 	request.rootPath = m_settings.currentProjectPath();
-	for (const QString& kind : {QStringLiteral("map"), QStringLiteral("code"), QStringLiteral("package")}) {
+	for (const QString& kind : {QStringLiteral("map"), QStringLiteral("code"), QStringLiteral("package"), QStringLiteral("model")}) {
 		request.recentPaths += m_settings.recentFiles(kind);
 	}
 	if (packageViewArchive().isOpen()) {
@@ -19904,6 +19906,10 @@ void ApplicationShell::openDroppedPath(const QString& path)
 		setMode(StudioMode::Audio);
 		return;
 	}
+	// Editable model sources open in their editors, not as JSON text.
+	if (openModelSourcePath(info.absoluteFilePath())) {
+		return;
+	}
 	if (info.isFile() && info.suffix().compare(QStringLiteral("vtexture"), Qt::CaseInsensitive) == 0) {
 		showTextureEditor(false);
 		m_textureEditorDialog->openFromPath(info.absoluteFilePath());
@@ -20702,7 +20708,7 @@ void ApplicationShell::refreshModelBrowser()
 	m_modelEntries->clear();
 	if (!packageViewArchive().isOpen()) {
 		m_modelState->setState(OperationState::Idle, tr("No package open"));
-		m_modelState->setDetail(tr("Open a package to list its OBJ, MDL, MD2, and MD3 models."));
+		m_modelState->setDetail(tr("Open a package to list its models: every format the studio reads, from MDL, MD2 and MD3 to MD5, IQM, ASE and OBJ."));
 		m_modelEntries->addItem(disabledListItem(tr("Open a package to list its models.")));
 		if (m_modelDetails) {
 			m_modelDetails->clear();
@@ -20718,6 +20724,7 @@ void ApplicationShell::refreshModelBrowser()
 		if (m_modelViewport) {
 			m_modelViewport->clearMesh();
 		}
+		appendModelSourceItems();
 		refreshModelAppearanceControls();
 		return;
 	}
@@ -20729,6 +20736,7 @@ void ApplicationShell::refreshModelBrowser()
 	if (models.isEmpty()) {
 		m_modelEntries->addItem(disabledListItem(tr("This package has no recognizable model entries.")));
 	}
+	appendModelSourceItems();
 	m_modelState->setState(models.isEmpty() ? OperationState::Warning : OperationState::Completed,
 		tr("%n model(s)", nullptr, static_cast<int>(models.size())));
 	m_modelState->setDetail(tr("Geometry is drawn from the package on the 3D renderer. Skins decode with the package palette; animations come from frame names."));
@@ -20759,6 +20767,8 @@ void ApplicationShell::showModelDesign()
 			return true;
 		};
 		designer->showMaterial = [this](const QString& material) { showTextureReference(material); };
+		designer->showInMaterials = [this](const QString& material) { showModelMaterial(material); };
+		designer->sourcePathChanged = [this](const QString& path) { m_settings.recordRecentFile(QStringLiteral("model"), path); };
 		designer->editMesh = [this](const ModelMesh& mesh) { showModelEditor(&mesh); };
 		if (auto* preview = designer->findChild<ModelViewport*>(QStringLiteral("designPreview"))) {
 			const auto preferences = m_settings.accessibilityPreferences();
@@ -20812,16 +20822,21 @@ void ApplicationShell::showModelAssembly()
 	showStudioEditor(StudioMode::Models, assembly);
 }
 
-void ApplicationShell::showModelEditor(const ModelMesh* initial)
+void ApplicationShell::showModelEditor(const ModelMesh* initial, const QString& source)
 {
 	if (m_modelEditorDialog) {
 		if (initial) { statusBar()->showMessage(tr("Close the current mesh document before opening another baked design.")); }
-		m_modelEditorDialog->refreshContext(); showStudioEditor(StudioMode::Models, m_modelEditorDialog); return;
+		m_modelEditorDialog->refreshContext(); showStudioEditor(StudioMode::Models, m_modelEditorDialog);
+		if (QString error; !source.isEmpty() && !m_modelEditorDialog->openSource(source, &error) && !error.isEmpty()) { statusBar()->showMessage(error); }
+		return;
 	}
-	if (!initial && m_modelPreview && m_modelPreview->busy()) {
+	// A game model whose editable source is known opens from the source, which keeps what the game file cannot.
+	QString openSource = source;
+	if (!initial && openSource.isEmpty() && !chooseModelEditorSource(&openSource)) { return; }
+	if (!initial && openSource.isEmpty() && m_modelPreview && m_modelPreview->busy()) {
 		statusBar()->showMessage(tr("Wait for the model preview to finish, or cancel it before opening the mesh editor.")); return;
 	}
-	if (!initial && !m_modelMesh.geometryAvailable && m_modelEntries && m_modelEntries->currentItem()
+	if (!initial && openSource.isEmpty() && !m_modelMesh.geometryAvailable && m_modelEntries && m_modelEntries->currentItem()
 		&& !m_modelEntries->currentItem()->data(Qt::UserRole).toString().isEmpty()) {
 		statusBar()->showMessage(tr("Select a model with decoded geometry before opening the mesh editor.")); return;
 	}
@@ -20831,7 +20846,7 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial)
 	m_modelEditorDialog = editor;
 	// Modeller: the Models preview navigates like the editor's chosen profile.
 	editor->profileChanged = [this]() { applyModelViewportProfile(); };
-	const ModelMesh* selected = initial ? initial : m_modelMesh.geometryAvailable ? &m_modelMesh : nullptr;
+	const ModelMesh* selected = initial ? initial : openSource.isEmpty() && m_modelMesh.geometryAvailable ? &m_modelMesh : nullptr;
 	QString error;
 	if (selected && !editor->setMesh(*selected, &error)) {
 		delete editor; QMessageBox::warning(this, tr("Model Import Failed"), error); return;
@@ -20862,6 +20877,8 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial)
 		return true;
 	};
 	editor->showMaterial = [this](const QString& path) { showTextureReference(path); };
+	editor->showInMaterials = [this](const QString& path) { showModelMaterial(path); };
+	editor->sourcePathChanged = [this](const QString& path) { m_settings.recordRecentFile(QStringLiteral("model"), path); };
 	// Modeller: an MD3 with stored detail levels stages them in one package step.
 	editor->handoffFiles = [this](const QVector<ModelStagedFile>& files, bool place, const LevelMapVec3& origin, bool replace, QString* outputError) {
 		if (m_packageExtractionRunning || m_packageSaveRunning || m_packageReadRunning) { if (outputError) { *outputError = tr("Wait for the package operation to finish before staging a model."); } return false; }
@@ -20907,6 +20924,7 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial)
 	const auto preferences = m_settings.accessibilityPreferences();
 	editor->setAccessibility(preferences.theme == StudioTheme::HighContrastDark || preferences.theme == StudioTheme::HighContrastLight, preferences.reducedMotion);
 	editor->refreshContext(); showStudioEditor(StudioMode::Models, editor);
+	if (QString openError; !openSource.isEmpty() && !editor->openSource(openSource, &openError) && !openError.isEmpty()) { statusBar()->showMessage(openError); }
 }
 
 void ApplicationShell::showSelectedModel()

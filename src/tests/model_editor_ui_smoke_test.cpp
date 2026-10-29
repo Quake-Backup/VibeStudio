@@ -196,6 +196,12 @@ int main(int argc, char **argv)
 		ok &= expect(editor->setMesh(plane, &error), "authoring source loads");
 		ok &= expect(editor->findChild<QAction *>(QStringLiteral("openMesh"))->text().contains(QChar(0x2026)),
 					 "localized action punctuation retains its Unicode ellipsis");
+		const auto openFilter = modelEditorOpenFilter();
+		ok &= expect(openFilter.contains(QStringLiteral("*.mesh.json")) && openFilter.contains(QStringLiteral("*.md5mesh")) &&
+						 openFilter.contains(QStringLiteral("*.iqm")) && openFilter.contains(QStringLiteral("*.ase")) &&
+						 openFilter.contains(QStringLiteral("*.kvx")) && !openFilter.contains(QStringLiteral("*.md5anim")) &&
+						 openFilter.contains(QStringLiteral(";;")) && openFilter.contains(QStringLiteral("(*)")),
+					 "Open / Import lists every model the importer decodes, then All files");
 		editor->setAccessibility(scale == 200, true);
 		if (scale == 200)
 		{

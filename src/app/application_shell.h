@@ -311,6 +311,11 @@ public:
 	// person driving the window. Returns the files written.
 	QStringList captureUiSnapshots(const QString& directory);
 
+	// Answers "open the editable source of this game model?" without a dialog
+	// when Mesh Editor is chosen on a model whose source is known: 1 opens the
+	// source, 0 imports the game file, -1 cancels. For tests.
+	std::function<int(const QString&)> modelSourcePrompt;
+
 protected:
 	// A change of layout direction mirrors the docked panels with the rest of
 	// the window, which QMainWindow's dock areas would not do by themselves.
@@ -389,7 +394,8 @@ private:
 	void applyModelViewportProfile();
 	void refreshModelSkeletonPanel();
 	void showModelDesign();
-	void showModelEditor(const ModelMesh* initial = nullptr);
+	// `source` opens that .mesh.json instead of the selected model.
+	void showModelEditor(const ModelMesh* initial = nullptr, const QString& source = {});
 	void showModelAssembly();
 	QWidget* buildTexturesPage();
 	void showTextureEditor(bool editSelected = false);
@@ -1465,6 +1471,10 @@ private:
 	void openMaterialScript(const QString& path);
 	void showMaterialsForImage(const QString& virtualPath);
 	void showMaterialNamed(const QString& name);
+	// The modeller's Show in Materials (app/model_browser_appearance.cpp): the
+	// shader or material a surface names, or its image in Textures when no
+	// material declares it.
+	void showModelMaterial(const QString& reference);
 	void createAdvancedSpritePlan();
 	void indexAdvancedCodeWorkspace();
 	void createAdvancedAiProposal();
@@ -1495,6 +1505,13 @@ private:
 	void refreshModelPlaybackControls();
 	QWidget* createModelAppearancePanel();
 	void refreshModelAppearanceControls();
+	// Model sources as documents (app/model_source_actions.cpp).
+	bool openModelSourcePath(const QString& path);
+	[[nodiscard]] QString editableSourceForModelEntry(const QString& virtualPath) const;
+	bool chooseModelEditorSource(QString* source);
+	void appendModelSourceItems();
+	void openModelSourceItem(QListWidgetItem* item);
+	[[nodiscard]] QString modelAppearanceMaterialName() const;
 	void refreshModelAppearanceImage();
 	void refreshAudioBrowser();
 	void showSelectedAudioEntry();
@@ -2360,6 +2377,7 @@ private:
 	QComboBox* m_modelAppearanceMdlMember = nullptr;
 	QPushButton* m_modelAppearanceChoose = nullptr;
 	QPushButton* m_modelAppearanceReset = nullptr;
+	QPushButton* m_modelAppearanceShowMaterial = nullptr;
 	QPlainTextEdit* m_modelAppearanceDetails = nullptr;
 	QTreeWidget* m_modelDetails = nullptr;
 	ModelMesh m_modelMesh;

@@ -1,16 +1,22 @@
 #include "app/application_shell.h"
 #include "app/asset_views.h"
 #include "app/model_preview_worker.h"
+#include "app/material_workbench.h"
 #include "app/model_skin_source_dialog.h"
+#include "core/asset_tools.h"
 #include "core/model_material_slots.h"
 
 #include <QComboBox>
+#include <QDir>
+#include <QFileInfo>
 #include <QFormLayout>
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSignalBlocker>
+#include <QStatusBar>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -62,6 +68,12 @@ QWidget* ApplicationShell::createModelAppearancePanel()
 	m_modelAppearanceReset->setAccessibleName(tr("Reset preview appearance"));
 	m_modelAppearanceReset->setAccessibleDescription(tr("Return to the model's primary material slots and first embedded skin member."));
 	m_modelAppearanceForm->addRow(m_modelAppearanceReset);
+	m_modelAppearanceShowMaterial = new QPushButton(tr("Show in Materials"));
+	m_modelAppearanceShowMaterial->setObjectName("modelAppearanceShowMaterial");
+	m_modelAppearanceShowMaterial->setAccessibleName(tr("Show the surface material in Materials"));
+	m_modelAppearanceShowMaterial->setAccessibleDescription(tr("Open the preview surface's shader or material in the Materials workbench, or its image in Textures when no material declares it."));
+	m_modelAppearanceShowMaterial->setToolTip(m_modelAppearanceShowMaterial->accessibleDescription());
+	m_modelAppearanceForm->addRow(m_modelAppearanceShowMaterial);
 	m_modelAppearanceDetails = new QPlainTextEdit;
 	m_modelAppearanceDetails->setObjectName("modelAppearanceDetails");
 	m_modelAppearanceDetails->setAccessibleName(tr("Preview appearance details"));
@@ -105,6 +117,9 @@ QWidget* ApplicationShell::createModelAppearancePanel()
 	});
 	connect(m_modelAppearanceReset, &QPushButton::clicked, this, [this] {
 		m_modelAppearance = {}; showSelectedModel();
+	});
+	connect(m_modelAppearanceShowMaterial, &QPushButton::clicked, this, [this] {
+		showModelMaterial(modelAppearanceMaterialName());
 	});
 	connect(m_modelAppearanceChoose, &QPushButton::clicked, this, [this] {
 		const auto revision = packageViewKey();
@@ -166,13 +181,62 @@ void ApplicationShell::refreshModelAppearanceControls()
 	}
 	m_modelAppearanceMdlMember->setEnabled(embedded && !busy);
 	m_modelAppearanceChoose->setEnabled(external && !busy);
+	m_modelAppearanceShowMaterial->setEnabled(external && !busy && !modelAppearanceMaterialName().isEmpty());
 	m_modelAppearanceReset->setEnabled(ready && !busy && (!m_modelAppearance.materialSlots.isEmpty() || m_modelAppearance.skin ||
 		m_modelAppearance.mdlSkin >= 0 || m_modelAppearance.mdlMember >= 0));
 	m_modelAppearanceForm->setRowVisible(m_modelAppearanceSurface->parentWidget(), !embedded);
 	m_modelAppearanceForm->setRowVisible(m_modelAppearanceSlot->parentWidget(), !embedded);
 	m_modelAppearanceForm->setRowVisible(m_modelAppearanceChoose, !embedded);
+	m_modelAppearanceForm->setRowVisible(m_modelAppearanceShowMaterial, !embedded);
 	m_modelAppearanceForm->setRowVisible(m_modelAppearanceMdlSkin->parentWidget(), embedded);
 	m_modelAppearanceForm->setRowVisible(m_modelAppearanceMdlMember->parentWidget(), embedded);
+}
+
+QString ApplicationShell::modelAppearanceMaterialName() const
+{
+	if (!m_modelAppearanceSurface || m_modelMesh.mdl.enabled) { return {}; }
+	const int surface = m_modelAppearanceSurface->currentData().toInt();
+	if (surface < 0 || surface >= m_modelMesh.surfaces.size()) { return {}; }
+	// The preview's effective binding (a chosen .skin file included), else the slot.
+	for (const auto& material : m_modelAppearanceAssets.materials) {
+		if (material.key == modelPreviewSurfaceMaterialKey(surface) && !material.name.isEmpty()) { return material.name; }
+	}
+	const auto& paths = m_modelMesh.surfaces[surface].skinPaths;
+	return paths.value(std::clamp(m_modelAppearance.materialSlots.value(surface, 0), 0, std::max(0, int(paths.size()) - 1)));
+}
+
+void ApplicationShell::showModelMaterial(const QString& reference)
+{
+	QString name = QDir::fromNativeSeparators(reference.trimmed());
+	if (name.isEmpty()) {
+		statusBar()->showMessage(tr("This surface names no material."));
+		return;
+	}
+	if (!m_packageArchive.isOpen() || !m_materialWorkbench) {
+		statusBar()->showMessage(tr("Open the package that provides %1 to see it.").arg(reference));
+		return;
+	}
+	// Quake III finds a shader by the name without its image extension.
+	if (assetPreviewKindForPath(name) == AssetPreviewKind::Image) {
+		name.chop(QFileInfo(name).suffix().size() + 1);
+	}
+	syncMaterialWorkbench();
+	m_materialWorkbench->revealMaterial(name, [this, reference](const QString& missing) {
+		const QString image = resolveTextureReference(reference);
+		if (image.isEmpty()) {
+			return false;
+		}
+		// After the Materials page has shown, so Textures is the page left in view.
+		QTimer::singleShot(0, this, [this, image, missing] {
+			showAssetEntry(StudioMode::Textures, image);
+			statusBar()->showMessage(tr("No material declares %1; showing its image %2 in Textures.").arg(missing, image));
+		});
+		return true;
+	});
+	setMode(StudioMode::Shaders);
+	if (m_shaderPageTabs) {
+		m_shaderPageTabs->setCurrentIndex(0);
+	}
 }
 
 void ApplicationShell::refreshModelAppearanceImage()

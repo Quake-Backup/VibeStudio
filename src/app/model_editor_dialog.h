@@ -19,6 +19,7 @@
 #include <QPointer>
 
 #include <functional>
+#include <memory>
 
 class QAction;
 class QBoxLayout;
@@ -50,8 +51,13 @@ class ModelIntersectionList;
 class ModelViewport;
 class ModelUvView;
 class ModelRecoveryWriter;
+struct ModelSourceWatchState;
 class SidebarPage;
 class StudioSidebar;
+
+// The Open / Import… file filter: editable sources, then every model format
+// the importer decodes with geometry, then All files.
+[[nodiscard]] QString modelEditorOpenFilter();
 
 struct ModelCollisionDestination
 {
@@ -157,6 +163,26 @@ class ModelEditorDialog final : public QDialog
 	// already beside it; read on the GUI thread.
 	std::function<QHash<QString, QByteArray>(const QStringList &)> readPackageFiles;
 	std::function<void(const QString &)> showMaterial;
+	// Show in Materials: the surface's shader or material in the Materials
+	// workbench (the shell falls back to its image when none declares it).
+	std::function<void(const QString &)> showInMaterials;
+	// Runs after a .mesh.json source is opened or saved, with its path, so
+	// the studio can list it in its recent files.
+	std::function<void(const QString &)> sourcePathChanged;
+	// External changes to the open .mesh.json (app/model_editor_source_watch.cpp).
+	// Polls the file now; tests pass a monotonic time for pollAt's coalescing.
+	void pollSourceWatch(qint64 monotonicMsecs = -1);
+	// The file at the document's path differs from what was opened or saved.
+	[[nodiscard]] bool sourceChangedOnDisk() const;
+	// Reloads the file from disk, after asking what to do with unsaved edits.
+	bool reloadSource(QString *error = nullptr);
+	// What differs between the file on disk and this document, for Compare.
+	[[nodiscard]] QString sourceComparisonText() const;
+	// Answers the external-change questions without a dialog (tests): for
+	// Save over a changed source, 0 cancels, 1 saves as, 2 replaces the file;
+	// for Reload with unsaved edits, 0 cancels, 1 saves as first, 2 discards.
+	std::function<int(const QString &)> sourceConflictChoice;
+	std::function<int(const QString &)> sourceReloadChoice;
 	// Runs after the user picks another controls profile, so other views
 	// (the Models page preview) can follow it.
 	std::function<void()> profileChanged;
@@ -292,6 +318,19 @@ class ModelEditorDialog final : public QDialog
 	QLineEdit *m_material = nullptr;
 	QComboBox *m_materialSlot = nullptr;
 	QPushButton *m_manageMaterialSlots = nullptr, *m_assignMaterial = nullptr, *m_showMaterial = nullptr, *m_skinVariants = nullptr;
+	QPushButton *m_showInMaterials = nullptr;
+	void refreshShowInMaterials();
+	// The document's file changed (opened, saved, replaced by an import or
+	// recovery): recent files and the external-change watch follow it
+	// (app/model_editor_source_watch.cpp).
+	void sourceBindingChanged();
+	void buildSourceWatch(QBoxLayout *layout);
+	void showSourceChange(int kind, const QString &path);
+	void keepEditingOverSourceChange();
+	// Before saving over the document's own file: 0 cancel, 1 save as, 2 go on.
+	int sourceSaveDecision(const QString &path);
+	std::shared_ptr<ModelSourceWatchState> m_sourceWatch;
+	bool m_discardConfirmed = false;
 	QHash<QString, int> m_previewMaterialSlots;
 	void addMaterialSlotControls(QFormLayout *surface);
 	void refreshMaterialSlots();

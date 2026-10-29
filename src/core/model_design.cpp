@@ -2,6 +2,7 @@
 #include "core/model_file_io.h"
 #include "core/model_document.h"
 
+#include <QCryptographicHash>
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
@@ -325,7 +326,7 @@ QByteArray exportModelDesign(const ModelDesign& design, const QString& format, Q
 }
 
 bool saveModelDesignBytes(const QString& path, const QByteArray& bytes, bool overwrite, QString* error, const QString& protectedSource,
-                          const ModelWorkControl& control, bool dryRun)
+                          const ModelWorkControl& control, bool dryRun, const QByteArray& expectedSha256)
 {
 	if (error) {
 		error->clear();
@@ -343,13 +344,18 @@ bool saveModelDesignBytes(const QString& path, const QByteArray& bytes, bool ove
 		                       "VibeStudioModelDesign",
 		                       "The output exists or is a symbolic link; choose a new path or explicitly enable overwrite."));
 	}
+	// The writer re-checks this identity before publishing (core/model_file_io.h).
+	if (!expectedSha256.isEmpty() && target.existed && target.sha256 != expectedSha256) {
+		return fail(error, QCoreApplication::translate("VibeStudioModelDesign",
+		                                               "The design changed on disk after it was opened. Save to another path, or reopen it."));
+	}
 	if (bytes.size() > modelFileByteLimit) {
 		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "The exported model exceeds the 64 MiB output limit."));
 	}
 	return dryRun ? validateModelWriteTarget(target, error, control) : writeModelFile(target, bytes, error, control);
 }
 
-bool loadModelDesign(const QString& path, ModelDesign* design, QString* error)
+bool loadModelDesign(const QString& path, ModelDesign* design, QString* error, QByteArray* sha256)
 {
 	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly) || file.size() > 1024 * 1024) {
@@ -358,6 +364,9 @@ bool loadModelDesign(const QString& path, ModelDesign* design, QString* error)
 	const auto bytes = file.read(1024 * 1024 + 1);
 	if (file.error() != QFileDevice::NoError) {
 		return fail(error, file.errorString());
+	}
+	if (sha256) {
+		*sha256 = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256);
 	}
 	return parseModelDesign(bytes, design, error);
 }

@@ -885,9 +885,11 @@ app_sources = files(
   'app/model_assembly_recovery_writer.cpp',
   'app/model_assembly_recovery_dialog.cpp',
   'app/model_editor_dialog.cpp',
+  'app/model_editor_source_watch.cpp',
   'app/model_document_work.cpp',
   'app/model_material_worker.cpp',
   'app/model_browser_appearance.cpp',
+  'app/model_source_actions.cpp',
   'app/model_recovery_writer.cpp',
   'app/model_recovery_dialog.cpp',
   'app/package_operation_dialog.cpp',
@@ -3448,6 +3450,12 @@ model_mdl_cli_smoke_test = executable(
   dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-mdl-cli-smoke', model_mdl_cli_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+model_import_cli_smoke_test = executable(
+  'model_import_cli_smoke_test', ['tests/model_import_cli_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-import-cli-smoke', model_import_cli_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
 model_mdl_ui_smoke_test = executable(
   'model_mdl_ui_smoke_test', ['tests/model_mdl_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes,
@@ -4166,6 +4174,12 @@ model_editor_ui_smoke_test = executable(
   install: false,
 )
 test('model-editor-ui-smoke', model_editor_ui_smoke_test, env: model_document_test_env, timeout: 90)
+model_editor_external_change_ui_smoke_test = executable(
+  'model_editor_external_change_ui_smoke_test', ['tests/model_editor_external_change_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-editor-external-change-ui-smoke', model_editor_external_change_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_shell_smoke_test = executable(
   'model_shell_smoke_test', ['tests/model_shell_smoke_test.cpp'],

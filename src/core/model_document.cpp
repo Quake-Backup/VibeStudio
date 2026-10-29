@@ -720,6 +720,28 @@ bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, Mo
 	auto result = looseFile.isAbsolute() && looseFile.isFile()
 					  ? decodeModelMesh(virtualPath, bytes, palette, control, modelCompanionsFromFileSystem(virtualPath))
 					  : decodeModelMesh(virtualPath, bytes, palette, control);
+	return finishEditableModelImport(std::move(result), mesh, options, report, error, control);
+}
+
+bool finishEditableModelImport(ModelMesh result, ModelMesh *mesh, const ModelImportOptions &options, ModelImportReport *report,
+							   QString *error, const ModelWorkControl &control)
+{
+	if (error)
+	{
+		error->clear();
+	}
+	if (report)
+	{
+		*report = {};
+	}
+	const QString notSkeletal = QCoreApplication::translate("VibeStudioModelDocument",
+															"Choosing a working set of clips applies only to importing a skeletal model. "
+															"An editable source changes its working set as a skeletal edit.");
+	if (!mesh)
+	{
+		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Model import requires an output and at most 64 MiB "
+																				  "of source data."));
+	}
 	if (!result.error.isEmpty())
 	{
 		return fail(error, result.error);
@@ -3166,6 +3188,28 @@ bool ModelDocument::restoreDraft(const ModelMesh &mesh, const ModelSelection &se
 	}
 	candidate.m_savedDigest.clear();
 	*this = std::move(candidate);
+	return true;
+}
+bool ModelDocument::adoptSourceOnDisk(QString *error, const ModelWorkControl &control)
+{
+	if (m_path.isEmpty())
+	{
+		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "This mesh has no source file to replace."));
+	}
+	const auto target = inspectModelWriteTarget(m_path, control);
+	if (!target.isValid())
+	{
+		return fail(error, target.error);
+	}
+	if (!target.existed)
+	{
+		m_path.clear();
+		m_resolvedPath.clear();
+		m_sourceFingerprint.clear();
+		return true;
+	}
+	m_resolvedPath = target.resolvedPath;
+	m_sourceFingerprint = target.sha256;
 	return true;
 }
 bool ModelDocument::save(const QString &path, bool overwrite, QString *error, const ModelWorkControl &control, bool dryRun)

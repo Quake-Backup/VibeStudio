@@ -13,6 +13,7 @@ class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
 class QListWidget;
+class QPushButton;
 class QSpinBox;
 
 namespace vibestudio
@@ -34,6 +35,9 @@ class ModelDesignDialog final : public QDialog
 	std::function<ModelDesignContext()> context;
 	std::function<bool(const ModelDesign&, const QString&, bool, const LevelMapVec3&, bool, QString*)> handoff;
 	std::function<void(const QString&)> showMaterial;
+	// Show in Materials: the part's shader or material in the Materials
+	// workbench (the shell falls back to its image when none declares it).
+	std::function<void(const QString&)> showInMaterials;
 	std::function<void(const ModelMesh&)> editMesh;
 	[[nodiscard]] const ModelDesign& design() const { return m_design; }
 	bool setDesign(const ModelDesign& design, QString* error = nullptr);
@@ -43,6 +47,12 @@ class ModelDesignDialog final : public QDialog
 	void undo();
 	void redo();
 	void refreshContext();
+	// Opens a saved .model.json after resolving unsaved changes (dropping a
+	// design on the studio, Quick Open, recent files).
+	bool openDesignPath(const QString& path, QString* error = nullptr);
+	[[nodiscard]] QString path() const { return m_path; }
+	// Runs after a design is opened from or saved to a file, with its path.
+	std::function<void(const QString&)> sourcePathChanged;
 
   protected:
 	void closeEvent(QCloseEvent* event) override;
@@ -58,6 +68,7 @@ class ModelDesignDialog final : public QDialog
 	void refreshSelection();
 	bool confirmDiscard();
 	bool saveDesign();
+	bool loadDesignPath(const QString& path, QString* error);
 	void openDesign();
 	void exportDesign(const QString& format);
 	void stage(bool place);
@@ -71,6 +82,8 @@ class ModelDesignDialog final : public QDialog
 	QJsonObject m_savedDesign;
 	QString m_path;
 	QString m_contextKey;
+	// SHA-256 of the design file as opened or last saved.
+	QByteArray m_sourceSha256;
 	bool m_dirty = false, m_refreshing = false;
 	QListWidget* m_parts = nullptr;
 	ModelViewport* m_preview = nullptr;
@@ -99,5 +112,6 @@ class ModelDesignDialog final : public QDialog
 	QAction* m_exportObj = nullptr;
 	QAction* m_stageAction = nullptr;
 	QAction* m_placeAction = nullptr;
+	QPushButton* m_showInMaterials = nullptr;
 };
 } // namespace vibestudio

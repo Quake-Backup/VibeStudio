@@ -1,4 +1,5 @@
 #include "app/model_editor_dialog.h"
+#include "core/asset_formats.h"
 #include "core/model_lod.h"
 #include "app/dialog_screen_fit.h"
 #include "app/locale_number.h"
@@ -914,10 +915,12 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	surface->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Material"), m_material);
 	m_assignMaterial = button(surface, QCoreApplication::translate("VibeStudioModelEditor", "Assign Material"), QStringLiteral("assignMeshMaterial"),
 		   ModelEditKind::SetMaterial);
-	auto *show = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Show Material"), 2);
+	auto *show = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Show Image"), 2);
 	m_showMaterial = show;
 	show->setObjectName("showMeshMaterial");
 	show->setAccessibleName(show->text());
+	show->setAccessibleDescription(QCoreApplication::translate("VibeStudioModelEditor", "Show the surface's image on the Textures page."));
+	show->setToolTip(show->accessibleDescription());
 	connect(show, &QPushButton::clicked, this,
 			[this]()
 			{
@@ -927,6 +930,18 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 				}
 			});
 	surface->addRow(show);
+	m_showInMaterials = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Show in Materials"), 2);
+	m_showInMaterials->setObjectName("showMeshMaterialInMaterials");
+	m_showInMaterials->setAccessibleName(m_showInMaterials->text());
+	connect(m_showInMaterials, &QPushButton::clicked, this,
+			[this]()
+			{
+				if (showInMaterials)
+				{
+					showInMaterials(m_material->text());
+				}
+			});
+	surface->addRow(m_showInMaterials);
 	addSurfaceControls(surface);
 	addSkinBindingControls(surface);
 	values(surface, QCoreApplication::translate("VibeStudioModelEditor", "UV Scale"), QStringLiteral("meshUvScale"), m_uvScale, 2, 1);
@@ -1033,6 +1048,7 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	}
 	splitter->setStretchFactor(1, 1);
 	splitter->setSizes({260, 620, 330});
+	buildSourceWatch(layout);
 	layout->addWidget(splitter, 1);
 	// One status strip under the panels: the last message, the package and
 	// level, the recovery state and the export report. Each line elides rather
@@ -1778,6 +1794,7 @@ bool ModelEditorDialog::setMesh(const ModelMesh &mesh, QString *error)
 	m_materialAssets = {};
 	refresh(false);
 	reportOpenedModel(*fitted);
+	sourceBindingChanged();
 	return true;
 }
 bool ModelEditorDialog::applyEdit(const ModelEdit &edit, QString *error, ModelEditReport *report)
@@ -2522,6 +2539,7 @@ void ModelEditorDialog::refreshContext()
 			.arg(current.packagePath.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "None") : current.packagePath,
 				 current.mapPath.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "None") : current.mapPath));
 	m_stage->setEnabled(bool(handoff) && current.canStage);
+	refreshShowInMaterials();
 	if (m_collisionPlace) { m_collisionPlace->setEnabled(bool(collisionDestination) && current.canPlaceCollision && !m_document.mesh().collisionBoxes.isEmpty()); }
 	m_place->setEnabled(bool(handoff) && current.canStage && current.canPlace &&
 						m_virtualPath->text().endsWith(QStringLiteral(".md3"), Qt::CaseInsensitive));
@@ -2539,7 +2557,7 @@ bool ModelEditorDialog::maybeSave()
 	{
 		return false;
 	}
-	if (!m_document.isModified())
+	if (!m_document.isModified() || std::exchange(m_discardConfirmed, false))
 	{
 		return true;
 	}
@@ -2565,6 +2583,11 @@ bool ModelEditorDialog::save(bool saveAs)
 	{
 		return false;
 	}
+	// A source changed on disk is replaced only when the user says so.
+	if (const int decision = sourceSaveDecision(path); decision != 2)
+	{
+		return decision == 1 && save(true);
+	}
 	QString error;
 	if (!performWork(
 			QCoreApplication::translate("VibeStudioModelEditor", "Save Mesh"),
@@ -2575,6 +2598,7 @@ bool ModelEditorDialog::save(bool saveAs)
 		return false;
 	}
 	retireRecovery();
+	sourceBindingChanged();
 	refresh();
 	// The status line goes back to the counts, so the save is only spoken.
 	announceStatus(m_status, QCoreApplication::translate("VibeStudioModelEditor", "Saved %1.").arg(QFileInfo(path).fileName()), LiveStatus::Result);
@@ -2588,15 +2612,32 @@ bool ModelEditorDialog::save(bool saveAs)
 void ModelEditorDialog::open()
 {
 	const auto path = QFileDialog::getOpenFileName(
-		this, QCoreApplication::translate("VibeStudioModelEditor", "Open or Import Model"), {},
-		QCoreApplication::translate("VibeStudioModelEditor", "Editable meshes and models (*.mesh.json *.model.json *.obj *.mdl *.md2 *.md3 *.mdc "
-															 "*.md5mesh *.iqm *.mdr *.mds *.mdm *.glm);;All files (*)"));
+		this, QCoreApplication::translate("VibeStudioModelEditor", "Open or Import Model"), {}, modelEditorOpenFilter());
 	if (path.isEmpty())
 	{
 		return;
 	}
 	QString error;
 	openSource(path, &error);
+}
+QString modelEditorOpenFilter()
+{
+	// Every model the importer decodes with geometry (core/asset_formats.cpp),
+	// after the editable sources; animation-only files load beside a mesh.
+	QStringList patterns{QStringLiteral("*.mesh.json"), QStringLiteral("*.model.json")};
+	for (const auto &format : assetFormats())
+	{
+		if (format.preview == AssetPreviewKind::Model && format.readCapability == QStringLiteral("geometry"))
+		{
+			for (const auto &suffix : format.suffixes)
+			{
+				patterns << QStringLiteral("*.") + suffix;
+			}
+		}
+	}
+	patterns.removeDuplicates();
+	return QCoreApplication::translate("VibeStudioModelEditor", "Editable meshes and models (%1)").arg(patterns.join(QLatin1Char(' '))) +
+		   QStringLiteral(";;") + QCoreApplication::translate("VibeStudioModelEditor", "All files (*)");
 }
 bool ModelEditorDialog::openSource(const QString &path, QString *error)
 {
@@ -2638,6 +2679,7 @@ bool ModelEditorDialog::openSource(const QString &path, QString *error)
 	m_materialAssets = {};
 	refresh(false);
 	reportOpenedModel(*imported);
+	sourceBindingChanged();
 	return true;
 }
 void ModelEditorDialog::reportOpenedModel(const ModelImportReport &imported)

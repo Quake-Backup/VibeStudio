@@ -365,6 +365,12 @@ struct ModelImportReport
 bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, ModelMesh *mesh, const ModelImportOptions &options,
 						 ModelImportReport *report, QString *error = nullptr, const IdTechPalette *palette = nullptr,
 						 const ModelWorkControl &control = {});
+// importEditableModel's steps after the native decode, for a model decoded
+// elsewhere, such as a package entry read with its in-package companions and
+// palette (decodeModelMeshFromArchive): the working-set fit or choice,
+// validation and metadata. A decode error in `decoded` is the import error.
+bool finishEditableModelImport(ModelMesh decoded, ModelMesh *mesh, const ModelImportOptions &options = {},
+							   ModelImportReport *report = nullptr, QString *error = nullptr, const ModelWorkControl &control = {});
 // importEditableModel's fit for an already decoded model, such as a package
 // model handed to the Mesh Editor: a skeletal model over the editable frame
 // budget is re-baked into the automatic working set, and `report` says so.
@@ -431,6 +437,10 @@ class ModelDocument
 	// creating files/directories or adopting a saved identity/history baseline.
 	bool save(const QString &path, bool overwrite = false, QString *error = nullptr, const ModelWorkControl &control = {},
 			  bool dryRun = false);
+	// The user chose to replace a source that changed on disk: the file now at
+	// path() becomes the save baseline, so the next save may replace it. A
+	// source that is gone leaves the document unbound, so saving creates it.
+	bool adoptSourceOnDisk(QString *error = nullptr, const ModelWorkControl &control = {});
 	bool edit(const ModelEdit &operation, QString *error = nullptr, const ModelWorkControl &control = {}, ModelEditReport *report = nullptr);
 	// Adopts `mesh`, which a core service built from this document's revision
 	// `baseRevision` by applying several edits (Prepare for target, a stored

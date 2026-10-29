@@ -332,6 +332,11 @@ int main(int argc, char **argv)
 			maxX = std::max(maxX, double(p.x));
 		expect(near(maxX, 132), "resizing the last cube rebuilds it");
 	}
+	// Select > Facing Axis, as model select --operation facing (45 degrees):
+	// only the cube's two +X triangles face +X; the flat grid faces Z.
+	tools->action(QStringLiteral("meshSelectFacingPositiveX"))->trigger();
+	expect(document.selection().faces.size() == 2 && tools->action(QStringLiteral("meshSelectFacingNegativeZ")) != nullptr,
+		   "Facing +X selects the faces whose normals lie within 45 degrees of +X");
 	editor->findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
 
 	// Proportional editing.

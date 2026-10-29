@@ -106,8 +106,11 @@ public:
 	// path or a lump name) and selects the first.
 	void showMaterialsUsingImage(const QString& image);
 	// Selects the material a map names (Quake III maps leave out textures/),
-	// now or once the library is read.
-	void revealMaterial(const QString& name);
+	// now or once the library is read. When no material has that name,
+	// `missing` (when set) runs with it and returns true when it handled the
+	// request (the modeller shows the image instead); otherwise the library
+	// is filtered to the names that contain it.
+	void revealMaterial(const QString& name, std::function<bool(const QString&)> missing = {});
 
 	// Parts, for the shell's focus handling and for tests.
 	[[nodiscard]] MaterialPreviewView* preview() const { return m_preview; }
@@ -214,6 +217,7 @@ private:
 	QString m_materialName;
 	// A material asked for before the library was read.
 	QString m_requestedName;
+	std::function<bool(const QString&)> m_requestedMissing;
 	MaterialEngine m_engine = MaterialEngine::Unknown;
 	// The library's definition, for materials with no text (Quake textures,
 	// implicit shaders) and as the base classic edits change.

@@ -1,20 +1,29 @@
 #include "app/application_shell.h"
+#include "app/material_workbench.h"
 #include "app/model_design_dialog.h"
 #include "app/model_editor_dialog.h"
 #include "app/model_assembly_dialog.h"
 #include "app/studio_theme.h"
+#include "core/model_assembly.h"
 #include "core/studio_settings.h"
 
 #include <QApplication>
 #include <QDir>
 #include <QElapsedTimer>
+#include <QFile>
+#include <QFileInfo>
 #include <QFont>
+#include <QImage>
+#include <QJsonDocument>
+#include <QListWidget>
+#include <QStackedWidget>
 #include <QPointer>
 #include <QPushButton>
 #include <QTemporaryDir>
 #include <QTimer>
 
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #if defined(_MSC_VER) && defined(_DEBUG)
 #include <crtdbg.h>
@@ -160,6 +169,163 @@ int main(int argc, char **argv)
 			}
 			app.sendPostedEvents(nullptr, QEvent::DeferredDelete);
 		}
+	}
+	{
+		// Show in Materials: a folder package whose shader declares
+		// models/props/crate over a differently named image, and an image that
+		// no material declares.
+		const auto package = QDir(temporary.path()).filePath(QStringLiteral("materials-package"));
+		QDir().mkpath(package + QStringLiteral("/scripts"));
+		QDir().mkpath(package + QStringLiteral("/models/props"));
+		QImage pixel(2, 2, QImage::Format_RGB32);
+		pixel.fill(Qt::red);
+		QFile shader(package + QStringLiteral("/scripts/test.shader"));
+		ok &= expect(pixel.save(package + QStringLiteral("/models/props/crate_diffuse.png")) &&
+						 pixel.save(package + QStringLiteral("/models/props/plain.png")) && shader.open(QIODevice::WriteOnly) &&
+						 shader.write("models/props/crate\n{\n\t{\n\t\tmap models/props/crate_diffuse.png\n\t}\n}\n") > 0,
+					 "write the material fixture package");
+		shader.close();
+		const auto waitFor = [&](const std::function<bool()> &condition)
+		{
+			QElapsedTimer clock;
+			clock.start();
+			while (!condition() && clock.elapsed() < 20000)
+			{
+				app.processEvents(QEventLoop::AllEvents, 20);
+			}
+			return condition();
+		};
+		ApplicationShell shell;
+		shell.show();
+		shell.openPathFromCommandLine(package);
+		auto *open = shell.findChild<QPushButton *>(QStringLiteral("openModelEditor"));
+		if (open)
+		{
+			open->click();
+		}
+		QPointer<ModelEditorDialog> editor = static_cast<ModelEditorDialog *>(shell.findChild<QDialog *>(QStringLiteral("modelEditorDialog")));
+		auto *workbench = shell.findChild<MaterialWorkbench *>();
+		auto *stack = shell.findChild<QStackedWidget *>(QStringLiteral("modeStack"));
+		ok &= expect(editor && bool(editor->showInMaterials) && workbench && stack &&
+						 waitFor([&] { return editor->context && !editor->context().packagePath.isEmpty(); }),
+					 "the Mesh Editor sees the open package and offers Show in Materials");
+		if (editor && workbench && stack)
+		{
+			editor->showInMaterials(QStringLiteral("models/props/crate"));
+			ok &= expect(waitFor([&] { return !workbench->isBusy() && workbench->currentMaterial() == QStringLiteral("models/props/crate"); }) &&
+							 stack->currentIndex() == static_cast<int>(StudioMode::Shaders),
+						 "Show in Materials reveals the declared shader in the Materials workbench");
+			editor->showInMaterials(QStringLiteral("models/props/plain.tga"));
+			ok &= expect(waitFor([&] { return stack->currentIndex() == static_cast<int>(StudioMode::Textures); }),
+						 "a material that no script declares falls back to its image in Textures");
+			editor->close();
+		}
+		app.sendPostedEvents(nullptr, QEvent::DeferredDelete);
+	}
+	{
+		// Model sources are documents: a dropped or Quick Open .mesh.json opens
+		// in the Mesh Editor, .model.json in Design Prop and .assembly.json in
+		// Assemble; each is remembered under recent models. Mesh Editor on a
+		// game model with an editable source beside it offers the source.
+		const QDir folder(QDir(temporary.path()).filePath(QStringLiteral("source-package")));
+		QDir().mkpath(folder.filePath(QStringLiteral("models/props")));
+		auto withClip = plane;
+		withClip.animations << ModelAnimation{QStringLiteral("idle"), 0, 1, 10};
+		ModelDocument sourceDocument;
+		const auto meshPath = folder.filePath(QStringLiteral("models/props/crate.mesh.json"));
+		const auto md3 = exportEditableModel(withClip, QStringLiteral("md3"), 0, &error);
+		QFile native(folder.filePath(QStringLiteral("models/props/crate.md3")));
+		ok &= expect(sourceDocument.setMesh(withClip, &error) && sourceDocument.save(meshPath, false, &error) && !md3.isEmpty() &&
+						 native.open(QIODevice::WriteOnly) && native.write(md3) == md3.size(),
+					 "write a source and its MD3 into a folder package");
+		native.close();
+		const auto designPath = QDir(temporary.path()).filePath(QStringLiteral("prop.model.json"));
+		ok &= expect(saveModelDesignBytes(designPath, QJsonDocument(modelDesignJson(design)).toJson(), false, &error), "write a design");
+		ModelAssembly recipe;
+		recipe.name = QStringLiteral("crate");
+		ModelAssemblyPart rootPart;
+		rootPart.id = QStringLiteral("root");
+		rootPart.source = folder.filePath(QStringLiteral("models/props/crate.md3"));
+		recipe.parts << rootPart;
+		const auto assemblyPath = QDir(temporary.path()).filePath(QStringLiteral("crate.assembly.json"));
+		QFile assemblyFile(assemblyPath);
+		ok &= expect(assemblyFile.open(QIODevice::WriteOnly) && assemblyFile.write(QJsonDocument(modelAssemblyJson(recipe)).toJson()) > 0,
+					 "write an assembly");
+		assemblyFile.close();
+
+		ApplicationShell shell;
+		shell.show();
+		shell.openPathFromCommandLine(meshPath);
+		app.processEvents();
+		QPointer<ModelEditorDialog> editor = static_cast<ModelEditorDialog *>(shell.findChild<QDialog *>(QStringLiteral("modelEditorDialog")));
+		ok &= expect(editor && shell.findChildren<QDialog *>(QStringLiteral("modelEditorDialog")).size() == 1 &&
+						 QFileInfo(editor->document().path()) == QFileInfo(meshPath),
+					 "opening a .mesh.json path opens it in the Mesh Editor, not the code editor");
+		ok &= expect(StudioSettings().recentFiles(QStringLiteral("model")).contains(QFileInfo(meshPath).absoluteFilePath()),
+					 "the opened source is a recent model file");
+		if (editor)
+		{
+			editor->close();
+		}
+		app.sendPostedEvents(nullptr, QEvent::DeferredDelete);
+		shell.openPathFromCommandLine(designPath);
+		app.processEvents();
+		auto *designer = static_cast<ModelDesignDialog *>(shell.findChild<QDialog *>(QStringLiteral("modelDesignDialog")));
+		ok &= expect(designer && QFileInfo(designer->path()) == QFileInfo(designPath), "a .model.json opens in Design Prop");
+		shell.openPathFromCommandLine(assemblyPath);
+		app.processEvents();
+		ok &= expect(shell.findChild<QDialog *>(QStringLiteral("modelAssemblyDialog")) != nullptr &&
+						 StudioSettings().recentFiles(QStringLiteral("model")).size() >= 3,
+					 "an .assembly.json opens in Assemble and every source is remembered");
+
+		// The game model offers its editable source, which keeps the clip.
+		shell.openPathFromCommandLine(folder.path());
+		auto *entries = shell.findChild<QListWidget *>(QStringLiteral("modelEntries"));
+		const auto waitFor = [&](const std::function<bool()> &condition)
+		{
+			QElapsedTimer clock;
+			clock.start();
+			while (!condition() && clock.elapsed() < 20000)
+				app.processEvents(QEventLoop::AllEvents, 20);
+			return condition();
+		};
+		const auto findEntry = [&](const QString &path) -> QListWidgetItem *
+		{
+			for (int row = 0; entries && row < entries->count(); ++row)
+				if (entries->item(row)->data(Qt::UserRole).toString() == path)
+					return entries->item(row);
+			return nullptr;
+		};
+		ok &= expect(waitFor([&] { return findEntry(QStringLiteral("models/props/crate.md3")) != nullptr; }),
+					 "the folder package lists the native model");
+		bool listedSource = false;
+		for (int row = 0; entries && row < entries->count(); ++row)
+			listedSource = listedSource || entries->item(row)->toolTip().contains(QStringLiteral("crate.mesh.json"));
+		ok &= expect(listedSource, "the Models list shows the package's editable sources");
+		if (auto *item = findEntry(QStringLiteral("models/props/crate.md3")))
+			entries->setCurrentItem(item);
+		QString offered;
+		shell.modelSourcePrompt = [&](const QString &source)
+		{
+			offered = source;
+			return 1;
+		};
+		auto *openEditor = shell.findChild<QPushButton *>(QStringLiteral("openModelEditor"));
+		// The command waits for the model preview to finish decoding.
+		ok &= expect(openEditor && waitFor([&] { return openEditor->isEnabled(); }), "Mesh Editor is available once the preview is ready");
+		if (openEditor)
+			openEditor->click();
+		app.processEvents();
+		editor = static_cast<ModelEditorDialog *>(shell.findChild<QDialog *>(QStringLiteral("modelEditorDialog")));
+		ok &= expect(QFileInfo(offered) == QFileInfo(meshPath) && editor && QFileInfo(editor->document().path()) == QFileInfo(meshPath) &&
+						 editor->document().mesh().animations.size() == 1,
+					 "Mesh Editor on the game model offers and opens its editable source with its clip");
+		if (editor)
+		{
+			editor->close();
+		}
+		app.sendPostedEvents(nullptr, QEvent::DeferredDelete);
+		shell.modelSourcePrompt = {};
 	}
 	StudioSettings::setOverrideFilePath(QString());
 	timing("complete");
