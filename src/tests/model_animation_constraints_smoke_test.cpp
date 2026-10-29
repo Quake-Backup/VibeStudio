@@ -216,6 +216,73 @@ int main(int argc, char **argv)
 			   sameFrames(layered.skeleton.clips[0].frames, mesh.skeleton.clips[0].frames, 1e-6),
 		   "removing the last layer returns the clip to its base");
 
+	// Weight keys scale a layer sample by sample.
+	auto weighted = mesh;
+	auto rising = stackEdit(ModelClipStackAction::AddLayer);
+	rising.animation.stack.layer = turnLayer(30, 1);
+	expect(parseModelWeightKeys("0:0, 3:1", 4, &rising.animation.stack.layer.weightKeys, &error) &&
+			   rising.animation.stack.layer.weightKeys.size() == 2 && modelWeightKeysText(rising.animation.stack.layer.weightKeys) == "0:0, 3:1",
+		   "weight keys read and write as sample:value pairs");
+	expect(applyModelEdit(&weighted, rising, nullptr, &error), "add a layer with weight keys");
+	const auto weightedLocal = [&](int f) { return modelJointsToLocalSpace(modelJointParents(weighted.skeleton), weighted.skeleton.clips[0].frames[f]); };
+	const auto plainLocal = [&](int f) { return modelJointsToLocalSpace(modelJointParents(mesh.skeleton), mesh.skeleton.clips[0].frames[f]); };
+	const auto turnedBy = [&](int f, double degrees)
+	{
+		const auto e = modelQuatMultiply(modelJointRotation(plainLocal(f)[2]), poseZRotation(degrees));
+		const auto a = modelJointRotation(weightedLocal(f)[2]);
+		return std::abs(std::abs(e.x * a.x + e.y * a.y + e.z * a.z + e.w * a.w) - 1) < 1e-5;
+	};
+	expect(turnedBy(0, 0) && turnedBy(3, 30) && turnedBy(1, 10), "a layer's weight keys blend it in over the clip");
+	QVector<ModelPoseCurveKey> badKeys;
+	expect(!parseModelWeightKeys("0:0, 3:1.5", 4, &badKeys, &error) && !parseModelWeightKeys("0:0, 7:1", 4, &badKeys, &error) &&
+			   !parseModelWeightKeys("zero", 4, &badKeys, &error),
+		   "weight keys above 1, past the clip or unreadable are refused");
+	QVector<ModelPoseCurveKey> cleared{ModelPoseCurveKey{}};
+	expect(parseModelWeightKeys("", 4, &cleared, &error) && cleared.isEmpty(), "empty text clears the weight keys");
+	// ... and a constraint.
+	auto fading = addConstraint(ModelClipConstraintKind::CopyTransform, "r_hand", "l_hand");
+	expect(parseModelWeightKeys("0:1, 1:0", 4, &fading.animation.stack.constraint.weightKeys, &error), "constraint weight keys");
+	ModelMesh faded = mesh;
+	expect(applyModelEdit(&faded, fading, nullptr, &error) && near(at(faded, 0, "r_hand"), at(faded, 0, "l_hand")) &&
+			   near(at(faded, 2, "r_hand"), at(mesh, 2, "r_hand")),
+		   "a constraint's weight keys switch it off where they reach zero");
+	auto limitedCopy = fading;
+	limitedCopy.animation.stack.constraint.limits = true;
+	ModelMesh refused = mesh;
+	expect(!applyModelEdit(&refused, limitedCopy, nullptr, &error), "joint limits apply only to IK and foot lock constraints");
+
+	// Joint limits inside constraint IK.
+	auto limitedRig = mesh;
+	limitedRig.skeleton.joints[2].limits.enabled = true;
+	limitedRig.skeleton.joints[2].limits.minimum = {-5, -5, -5};
+	limitedRig.skeleton.joints[2].limits.maximum = {5, 5, 5};
+	auto reach = addConstraint(ModelClipConstraintKind::Ik, "l_hand");
+	reach.animation.stack.constraint.point = {2, 5, 6};
+	reach.animation.stack.constraint.pole = {0, 4, 16};
+	ModelMesh unlimited = limitedRig;
+	bool outside = applyModelEdit(&unlimited, reach, nullptr, &error);
+	bool anyOutside = false;
+	for (const auto &pose : unlimited.skeleton.clips[0].frames)
+		anyOutside = anyOutside || !modelPoseWithinJointLimits(unlimited.skeleton, pose);
+	expect(outside && anyOutside, "constraint IK without limits turns the arm past them");
+	reach.animation.stack.constraint.limits = true;
+	ModelMesh withinLimits = limitedRig;
+	bool inside = applyModelEdit(&withinLimits, reach, nullptr, &error);
+	for (const auto &pose : withinLimits.skeleton.clips[0].frames)
+		inside = inside && modelPoseWithinJointLimits(withinLimits.skeleton, pose, 1e-3);
+	expect(inside, "constraint IK with limits keeps the chain within them");
+	// Weight keys and limits survive save and reload.
+	auto stackedLimits = withinLimits;
+	expect(applyModelEdit(&stackedLimits, rising, nullptr, &error), "add the weighted layer to the limited stack");
+	ModelDocument limitsDocument, limitsReopened;
+	const auto limitsPath = QDir(tmp.path()).filePath("stack-limits.mesh.json");
+	expect(limitsDocument.setMesh(stackedLimits, &error) && limitsDocument.save(limitsPath, false, &error) && limitsReopened.load(limitsPath, &error) &&
+			   limitsReopened.mesh().skeleton.clips[0].constraints == stackedLimits.skeleton.clips[0].constraints &&
+			   limitsReopened.mesh().skeleton.clips[0].layers == stackedLimits.skeleton.clips[0].layers &&
+			   limitsReopened.mesh().skeleton.clips[0].constraints[0].limits &&
+			   limitsReopened.mesh().skeleton.clips[0].layers[0].weightKeys.size() == 2,
+		   "weight keys and constraint limits survive save and reload");
+
 	// IK, foot lock and weights.
 	auto ik = addConstraint(ModelClipConstraintKind::Ik, "l_hand");
 	ik.animation.stack.constraint.point = {2, 5, 6};
@@ -280,6 +347,25 @@ int main(int argc, char **argv)
 									 "--mode", "additive", "--weight", "0.5", "--name", "turn", "--output", layered2})
 					   .exitCode == 0,
 		   "CLI adds a layer");
+	result = cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind",
+									   "copy-transform", "--joint", "r_hand", "--target", "l_hand", "--weight-keys", "0:1,1:0", "--output", out,
+									   "--overwrite", "--json"});
+	expect(result.exitCode == 0 &&
+			   result.payload["clips"].toArray()[0].toObject()["constraints"].toArray()[0].toObject()["weightKeys"].toString() == "0:1, 1:0",
+		   "CLI adds a constraint with weight keys");
+	expect(cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind",
+									 "copy-transform", "--joint", "r_hand", "--target", "l_hand", "--weight-keys", "0:2", "--output", out, "--overwrite"})
+				   .exitCode == 2,
+		   "CLI refuses weight keys above 1");
+	expect(cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind",
+									 "copy-transform", "--joint", "r_hand", "--target", "l_hand", "--limits", "yes", "--output", out, "--overwrite"})
+				   .exitCode == 4,
+		   "CLI refuses limits on a constraint without a chain");
+	result = cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind", "ik",
+									   "--joint", "l_hand", "--point", "2,5,6", "--pole", "0,4,16", "--limits", "yes", "--output", out, "--overwrite",
+									   "--json"});
+	expect(result.exitCode == 0 && result.payload["clips"].toArray()[0].toObject()["constraints"].toArray()[0].toObject()["limits"].toBool(),
+		   "CLI adds an IK constraint that keeps joint limits");
 	const auto baked = QDir(tmp.path()).filePath("baked.mesh.json");
 	expect(cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", layered2, "--operation", "bake", "--clip", "0", "--output", baked}).exitCode == 0,
 		   "CLI bakes the stack");

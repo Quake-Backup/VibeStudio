@@ -757,7 +757,7 @@ bool applyModelIk(ModelMesh *mesh, const ModelEdit &edit, QString *error, const 
 }
 
 bool solveModelConstraintIk(const ModelSkeleton &skeleton, QVector<ModelJointMatrix> *pose, const QString &rootJoint, const QString &endJoint,
-							const ModelVec3 &target, const ModelVec3 &pole, bool usePole, QString *error)
+							const ModelVec3 &target, const ModelVec3 &pole, bool usePole, bool limits, QString *error)
 {
 	const int end = modelJointIndex(skeleton, endJoint, Qt::CaseSensitive);
 	if (!pose || end < 0 || pose->size() != skeleton.joints.size())
@@ -785,6 +785,7 @@ bool solveModelConstraintIk(const ModelSkeleton &skeleton, QVector<ModelJointMat
 	options.iterations = 64;
 	options.usePole = usePole;
 	options.pole = pole;
+	options.limits = limits;
 	ModelWorkProgress work({}, ModelWorkPhase::Editing, error);
 	return solveChain(skeleton, pose, chain, options, v(target), error, work);
 }

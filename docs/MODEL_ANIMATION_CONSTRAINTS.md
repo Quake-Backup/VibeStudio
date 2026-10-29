@@ -42,7 +42,14 @@ references.
 
 Each constraint has a sample range (the last sample can follow the clip's end),
 a weight from 0 to 1 that blends the moved joints' parent-local poses from the
-unconstrained to the constrained pose, and can be disabled. The constrained
+unconstrained to the constrained pose, and can be disabled. Optional **weight
+keys** (sample:value pairs from 0 to 1, linear between them, such as `0:0,
+12:1`) scale that weight over the clip, so a constraint can blend in and out;
+where they reach zero the sample is left as it was. Inverse kinematics and foot
+lock constraints can **keep joints within their limits**: every chain joint is
+clamped to its [joint limits](MODEL_IK.md#limit-joint-rotation) (Euler or
+swing-twist) after each solver pass, as a chain solve with **Apply joint
+limits** does. The constrained
 joint's descendants follow it. A constraint that would follow a joint it moves
 itself (the joint, its descendants, or its IK chain) is refused: that is a
 dependency cycle.
@@ -52,19 +59,32 @@ dependency cycle.
 A layer keys parent-local channels of some joints with
 [curves](MODEL_ANIMATION_CURVES.md). An additive layer adds its translation and
 Euler degrees and multiplies its scale; an override layer replaces the keyed
-joints' channels. A constant weight blends it in; weight 0 leaves the base.
+joints' channels. Its weight blends it in (weight 0 leaves the base), scaled
+sample by sample by optional weight keys from 0 to 1, keyed and interpolated
+like any other curve.
 
 ## Use it
 
 Open **Skeleton** > **Constraints and Layers…**, choose the clip, describe a
 constraint (**Kind**, **Joint**, **Chain root**, **Target joint** or a
 **Point**, **Pole**, **Aim axis**, **First sample**, **Last sample**,
-**Weight**) and choose **Add Constraint**. Select a listed constraint to load it,
-then **Update Selected** or **Remove Selected**. Layers are listed with their
-mode, weight and enabled state for **Update Layer** and **Remove Layer**; layers
-are added from the command line. **Bake Stack** keeps the evaluated samples
-and drops the stack (and the curves of joints the stack changed). Every button
-is one undo step.
+**Weight**, **Weight keys**, **Keep joints within their limits**) and choose
+**Add Constraint**. Select a listed constraint to load it, then **Update
+Selected** or **Remove Selected**.
+
+Layers are keyed in the same dialog. Select a listed layer to load it as the
+draft, or start a new one: choose a **Keyed joint** and a **Layer channel**
+(the nine joint channels, or **Layer weight**), then set and remove keys with
+**Key**, **Set Key** and **Remove Key** or in the curve graph, which works as
+in **Animation Curves** (drag a key, double-click to add one, Delete to remove
+it). A joint's first key starts it neutral: zero offsets and unit scale on an
+additive layer, or the base pose's own values at every sample on an override
+layer, so keying one channel changes nothing else. **Add Layer** adds the draft
+with its **Layer name**, mode, weight and enabled state; **Update Layer**
+applies it to the selected layer; **Remove Layer** removes it. **Bake Stack**
+keeps the evaluated samples and drops the stack (and the curves of joints the
+stack changed). Every button that changes the clip is one undo step; keys stay
+a draft until then.
 
 ```sh
 vibestudio --cli model constraints models/imp.mesh.json --operation add --clip 0 --kind foot-lock --joint lfoot --first 4 --last 12 --output models/planted.mesh.json --json
@@ -77,17 +97,20 @@ vibestudio --cli model constraints models/breathing.mesh.json --operation bake -
 `--clip`, `--kind ik|aim|child-of|copy-transform|foot-lock` and `--joint`, with
 optional `--root-joint`, `--target`, `--point x,y,z`, `--pole x,y,z`,
 `--no-pole`, `--axis x|y|z|-x|-y|-z`, `--first`, `--last N|end`, `--weight`,
-`--name` and `--disabled`; `update --index N` changes only the given settings;
-`remove --index N`; `add-layer --layer file.json` (curve groups as `model
-curves` writes them) with `--mode additive|override`, `--weight`, `--name`;
-`update-layer` and `remove-layer --index N`; `bake`. Edits need `--output
-.mesh.json`, with `--dry-run` and `--overwrite`.
+`--weight-keys "0:0,12:1"` (`-` clears them), `--limits yes|no` (inverse
+kinematics and foot lock only), `--name` and `--disabled`; `update --index N`
+changes only the given settings; `remove --index N`; `add-layer --layer
+file.json` (curve groups as `model curves` writes them) with `--mode
+additive|override`, `--weight`, `--weight-keys`, `--name`; `update-layer` and
+`remove-layer --index N`; `bake`. Edits need `--output .mesh.json`, with
+`--dry-run` and `--overwrite`. Listings report each entry's `weightKeys` as
+text and each constraint's `limits`.
 
 ## Limits
 
-- Weights are constant per constraint and layer; weight curves are planned.
-- Layers cannot yet be keyed in the editor's curve views; author their curves
-  with `model curves` on a scratch clip and add them as a file.
-- There are no quaternion rotation tracks, and limits are not applied inside
-  constraint IK.
+- Rotation channels are X-then-Y-then-Z Euler degrees; there are no quaternion
+  rotation tracks, so layers blend rotations through Euler offsets.
+- Override layers start from the base pose, not from the layers below them.
+- Constraint weight keys are typed as sample:value pairs (linear); layer
+  weight keys are keyed in the graph and can use any curve interpolation.
 - Stacked clips refuse direct pose edits and hierarchy changes until baked.

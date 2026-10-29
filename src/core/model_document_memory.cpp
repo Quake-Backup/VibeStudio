@@ -126,11 +126,13 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 			string(constraint.joint);
 			string(constraint.rootJoint);
 			string(constraint.target);
+			list(constraint.weightKeys);
 		}
 		list(clip.layers);
 		for (const auto &layer : clip.layers)
 		{
 			string(layer.name);
+			list(layer.weightKeys);
 			list(layer.curves);
 			for (const auto &group : layer.curves)
 			{

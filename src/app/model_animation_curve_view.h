@@ -19,17 +19,19 @@ class ModelAnimationCurveView final : public QWidget
 	}
 	double selectedValue() const;
 	// The values a key on the current channel may hold: scale (channels 6 to
-	// 8) stays above zero, as joint capture requires. Dragging a key, adding
+	// 8) stays above zero, as joint capture requires, and channel 9, a clip
+	// stack weight (core/model_animation_constraints.h), stays within 0 to 1.
+	// Dragging a key, adding
 	// one with a double-click, editSelected() and a screen reader's value
 	// change keep within this range, which the curves dialog's value field
 	// and the graph's accessible value range share.
 	double minimumValue() const
 	{
-		return m_channel >= 6 ? .00000101 : -1000000.0;
+		return m_channel == 9 ? 0.0 : m_channel >= 6 ? .00000101 : -1000000.0;
 	}
 	double maximumValue() const
 	{
-		return 1000000.0;
+		return m_channel == 9 ? 1.0 : 1000000.0;
 	}
 	// What a screen reader hears: the selected key's place ("key 3 of 8,
 	// frame 12") as part of the name, and its value, curve and tangents

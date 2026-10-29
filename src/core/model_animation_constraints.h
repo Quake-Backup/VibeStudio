@@ -37,6 +37,16 @@ bool validModelClipStack(const ModelSkeleton &skeleton, const ModelSkeletalClip 
 // Evaluates `base` (one model-space pose per sample) through the stack.
 bool evaluateModelClipStack(const ModelSkeleton &skeleton, const ModelSkeletalClip &clip, const QVector<QVector<ModelJointMatrix>> &base,
 							QVector<QVector<ModelJointMatrix>> *frames, QString *error = nullptr, const ModelWorkControl &control = {});
+// Weight keys (ModelClipLayer::weightKeys, ModelClipConstraint::weightKeys):
+// the weight a stack entry applies at `frame`, its constant weight scaled by
+// its keys' value there (clamped to 0-1).
+[[nodiscard]] double modelClipStackWeight(double weight, const QVector<ModelPoseCurveKey> &keys, int frame);
+// Valid weight keys: ordered keys inside the clip's samples with values 0-1.
+bool validModelWeightKeys(const QVector<ModelPoseCurveKey> &keys, int frames, QString *error = nullptr);
+// Text form for the CLI and dialogs: "frame:value" pairs separated by commas
+// or spaces, linear between keys, such as "0:0, 12:1, 24:0"; empty clears.
+bool parseModelWeightKeys(const QString &text, int frames, QVector<ModelPoseCurveKey> *keys, QString *error = nullptr);
+[[nodiscard]] QString modelWeightKeysText(const QVector<ModelPoseCurveKey> &keys);
 // Every clip with a stack has a base parallel to its frames and frames equal
 // to the stack's evaluation.
 bool validateModelClipStacks(const ModelMesh &mesh, QString *error = nullptr, const ModelWorkControl &control = {});
@@ -53,9 +63,10 @@ bool rebaseModelClipStack(const ModelSkeleton &skeleton, ModelSkeletalClip *clip
 // The IK solve an Ik or FootLock constraint runs on one pose (defined in
 // core/model_ik.cpp): FABRIK from rootJoint (or the end's grandparent) to
 // endJoint, steered by `pole` when usePole, clamping unreachable targets and
-// keeping the end's orientation.
+// keeping the end's orientation; with `limits`, every chain joint stays
+// within its ModelJoint::limits.
 bool solveModelConstraintIk(const ModelSkeleton &skeleton, QVector<ModelJointMatrix> *pose, const QString &rootJoint, const QString &endJoint,
-							const ModelVec3 &target, const ModelVec3 &pole, bool usePole, QString *error);
+							const ModelVec3 &target, const ModelVec3 &pole, bool usePole, bool limits, QString *error);
 // Source JSON (mesh version 15), inside a clip's entry.
 void writeModelClipStackJson(const ModelSkeletalClip &clip, bool packed, QJsonObject *entry);
 bool readModelClipStackJson(const QJsonObject &entry, int jointCount, bool packedArrays, ModelSkeletalClip *clip);
