@@ -133,6 +133,7 @@
 #include "core/model_topology_health.h"
 #include "core/model_file_io.h"
 #include "core/model_frame_export.h"
+#include "core/model_collision_placement.h"
 #include "core/model_recovery.h"
 #include "core/model_skeletal_export.h"
 #include "core/model_targets.h"
@@ -7647,12 +7648,21 @@ int runMapInspectCommand(const QString& commandName, const QString& path, const 
 	if (!selector.trimmed().isEmpty() && !selectLevelMapObject(&document, selector, &error)) {
 		return printCliError(commandName, CliExitCode::Usage, QStringLiteral("Unable to select map object: %1").arg(error), format);
 	}
+	// Collision placed from models, each checked against its recorded mesh
+	// source (core/model_collision_placement.h); reported only when present.
+	const ModelCollisionRecordHealth collision = levelCollisionRecordHealth(document);
 	if (format == CliOutputFormat::Json) {
 		QJsonObject object = cliResultJson(commandName);
 		object.insert(QStringLiteral("map"), levelMapDocumentJson(document));
+		if (!collision.records.isEmpty()) {
+			object.insert(QStringLiteral("collisionRecords"), modelCollisionRecordHealthJson(collision));
+		}
 		printJson(object);
 	} else {
 		std::cout << text(levelMapReportText(document)) << "\n";
+		if (!collision.records.isEmpty()) {
+			std::cout << text(modelCollisionRecordHealthText(collision).join(QLatin1Char('\n'))) << "\n";
+		}
 	}
 	return exitCodeValue(CliExitCode::Success);
 }

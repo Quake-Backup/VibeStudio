@@ -1466,7 +1466,10 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   Repeat `--set` and `--remove key` as needed; values use UDMF literal syntax.
   `--dry-run` verifies without writing, and `--overwrite` permits an existing
   destination. Inspection and editing reject maps that are not UDMF.
-- [x] `map inspect` for Doom WAD map lumps and Quake-family `.map` files.
+- [x] `map inspect` for Doom WAD map lumps and Quake-family `.map` files. When
+  the map holds collision placed from models, JSON adds `collisionRecords`, each
+  checked against its recorded mesh source (`current`, `stale`, `source-missing`
+  or `invalid`).
 - [x] `map place-sound <map> --package <archive-or-folder> --sound sound/name.wav
   --game quake2|quake3 --origin x,y,z --output <separate.map>` validates a package
   WAV and places a speaker in a separate map output. `--mode` accepts `loop-on`,

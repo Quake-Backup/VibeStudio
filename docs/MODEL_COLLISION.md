@@ -214,8 +214,18 @@ level does not move them: refresh them afterwards. On the command line,
 level editor can further edit inserted brushes using its normal component,
 transform, scene, undo and save services; a later refresh replaces such edits.
 **Export Collision Map…** still writes a plain worldspawn fragment, with no
-record. Placing collision together with **Stage and Place** in one step, and
-reporting records in `map inspect`, are not yet available.
+record.
+
+The level shows the state of its records without the model open: each record is
+checked against the mesh source it names, read from disk (an unchanged file is
+read once). The Levels **Checklist** on the **Map** tab warns when sets are out of
+date with their model, or when their model cannot be found or their keys are
+damaged, and says so when every set matches. `map inspect` adds
+`collisionRecords` (each record's `entity`, `status` of `current`, `stale`,
+`source-missing` or `invalid`, `source`, `frame`, `target` and `brushes`) when the
+map holds any, and a summary line in text output. Refreshing still happens from
+the Mesh Editor or `model collision --operation refresh`. Placing collision
+together with **Stage and Place** in one step is not yet available.
 
 ### Doom 3 collision
 

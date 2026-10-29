@@ -3,15 +3,21 @@
 #include "core/level_paste.h"
 #include "core/level_scene.h"
 #include "core/model_document.h"
+#include "core/model_file_io.h"
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDir>
+#include <QDateTime>
 #include <QFileInfo>
+#include <QHash>
+#include <QJsonArray>
 #include <QJsonDocument>
+#include <QMutex>
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
 
 namespace vibestudio
 {
@@ -166,6 +172,111 @@ QVector<ModelCollisionRecord> levelCollisionRecords(const LevelMapDocument &map,
 		records << record;
 	}
 	return records;
+}
+
+namespace
+{
+// A mesh source's collision fingerprint, cached by path, size and time so a
+// level refresh does not parse an unchanged model again.
+std::optional<QByteArray> sourceFingerprint(const QString &path, const ModelWorkControl &control)
+{
+	struct Entry
+	{
+		qint64 size = -1;
+		QDateTime modified;
+		QByteArray fingerprint;
+	};
+	static QMutex mutex;
+	static QHash<QString, Entry> cache;
+	const QFileInfo info(path);
+	if (!info.isFile())
+		return std::nullopt;
+	{
+		QMutexLocker lock(&mutex);
+		const auto found = cache.constFind(info.absoluteFilePath());
+		if (found != cache.cend() && found->size == info.size() && found->modified == info.lastModified())
+			return found->fingerprint;
+	}
+	QByteArray bytes;
+	ModelMesh mesh;
+	QString error;
+	if (!readModelFile(path, &bytes, &error, control) || !importEditableModel(path, bytes, &mesh, &error, nullptr, control))
+		return std::nullopt;
+	const auto fingerprint = modelCollisionFingerprint(mesh);
+	QMutexLocker lock(&mutex);
+	if (cache.size() > 256)
+		cache.clear();
+	cache.insert(info.absoluteFilePath(), {info.size(), info.lastModified(), fingerprint});
+	return fingerprint;
+}
+} // namespace
+
+ModelCollisionRecordHealth levelCollisionRecordHealth(const LevelMapDocument &map, const ModelWorkControl &control)
+{
+	ModelCollisionRecordHealth health;
+	QHash<QString, std::optional<QByteArray>> fingerprints;
+	for (auto record : levelCollisionRecords(map))
+	{
+		if (record.status != ModelCollisionRecordStatus::Invalid)
+		{
+			std::optional<QByteArray> fingerprint;
+			if (!record.resolvedSource.isEmpty())
+			{
+				if (!fingerprints.contains(record.resolvedSource))
+					fingerprints.insert(record.resolvedSource, sourceFingerprint(record.resolvedSource, control));
+				fingerprint = fingerprints.value(record.resolvedSource);
+			}
+			if (!fingerprint)
+			{
+				record.status = ModelCollisionRecordStatus::OtherSource;
+				record.sourceMissing = true;
+				record.problem = record.source.isEmpty()
+									 ? Text::tr("Collision group entity %1 records no mesh source, so it cannot be checked.").arg(record.entityId)
+									 : Text::tr("The mesh source %1 of collision group entity %2 cannot be read.").arg(record.source).arg(record.entityId);
+			}
+			else
+				record.status = record.revision == *fingerprint ? ModelCollisionRecordStatus::Current : ModelCollisionRecordStatus::Stale;
+		}
+		health.current += record.status == ModelCollisionRecordStatus::Current ? 1 : 0;
+		health.stale += record.status == ModelCollisionRecordStatus::Stale ? 1 : 0;
+		health.missing += record.sourceMissing ? 1 : 0;
+		health.invalid += record.status == ModelCollisionRecordStatus::Invalid ? 1 : 0;
+		health.records << record;
+	}
+	return health;
+}
+
+QJsonArray modelCollisionRecordHealthJson(const ModelCollisionRecordHealth &health)
+{
+	QJsonArray records;
+	for (const auto &record : health.records)
+	{
+		QJsonObject item{{"entity", QStringLiteral("entity:%1").arg(record.entityId)},
+						 {"status", record.sourceMissing ? QStringLiteral("source-missing") : modelCollisionRecordStatusId(record.status)},
+						 {"source", record.source},
+						 {"frame", record.frame},
+						 {"target", record.target},
+						 {"brushes", record.brushCount}};
+		if (!record.problem.isEmpty())
+			item.insert("problem", record.problem);
+		records.append(item);
+	}
+	return records;
+}
+
+QStringList modelCollisionRecordHealthText(const ModelCollisionRecordHealth &health)
+{
+	QStringList lines{Text::tr("Placed collision: %1 current, %2 stale, %3 with a missing source, %4 invalid.")
+						  .arg(health.current)
+						  .arg(health.stale)
+						  .arg(health.missing)
+						  .arg(health.invalid)};
+	for (const auto &record : health.records)
+		if (record.status != ModelCollisionRecordStatus::Current)
+			lines << QStringLiteral("  entity:%1 %2 %3")
+						 .arg(record.entityId)
+						 .arg(record.sourceMissing ? QStringLiteral("source-missing") : modelCollisionRecordStatusId(record.status), record.source);
+	return lines;
 }
 
 bool modelCollisionInstanceFromSelection(const LevelMapDocument &map, ModelCollisionExport *request, int entityId, QString *error)

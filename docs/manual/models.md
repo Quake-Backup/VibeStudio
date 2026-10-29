@@ -778,8 +778,9 @@ follow the instance's position, angles and scale.
 Placed collision remembers which model it came from. When you change the boxes,
 choose **Refresh Placed Collision…**: it lists this model's collision in the open
 level as **Current** or **Stale**, and replaces the set you choose in one undoable
-edit, instead of adding a second set. Moving the prop in the level does not move
-its collision; refresh it afterwards. See
+edit, instead of adding a second set. The Levels **Checklist** warns when a placed
+set is out of date with its model, even with the model closed. Moving the prop in
+the level does not move its collision; refresh it afterwards. See
 [Recorded placement and refresh](../MODEL_COLLISION.md#recorded-placement-and-refresh).
 
 ## Export and build game files

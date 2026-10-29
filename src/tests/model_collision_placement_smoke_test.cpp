@@ -200,6 +200,25 @@ int main(int argc, char **argv)
 	ok &= expect(levelCollisionRecords(reloaded, &renderOnly, source).value(0).status == ModelCollisionRecordStatus::Current,
 				 "a render-only edit keeps the record current");
 
+	// Health from disk, as the level checklist and map inspect read it: each
+	// record against the source it names.
+	auto health = levelCollisionRecordHealth(reloaded);
+	ok &= expect(health.records.size() == 1 && health.current == 1 && health.stale == 0 && health.missing == 0 &&
+					 modelCollisionRecordHealthJson(health)[0].toObject().value("status").toString() == "current",
+				 "from disk the record is current");
+	ok &= expect(write(source, serializeEditableModel(edited, &error)), "a collision edit is saved to the source", error);
+	health = levelCollisionRecordHealth(reloaded);
+	ok &= expect(health.stale == 1 && health.current == 0 && modelCollisionRecordHealthJson(health)[0].toObject().value("status").toString() == "stale" &&
+					 modelCollisionRecordHealthText(health).join('\n').contains("1 stale"),
+				 "the saved collision edit shows the record as stale");
+	ok &= expect(QFile::rename(source, path("moved.mesh.json")), "the source moves away");
+	health = levelCollisionRecordHealth(reloaded);
+	ok &= expect(health.missing == 1 && health.records.value(0).sourceMissing &&
+					 modelCollisionRecordHealthJson(health)[0].toObject().value("status").toString() == "source-missing" &&
+					 health.records.value(0).problem.contains("prop.mesh.json"),
+				 "a moved source is reported as missing");
+	ok &= expect(QFile::remove(path("moved.mesh.json")) && write(source, serializeEditableModel(mesh, &error)), "the source is restored", error);
+
 	// Refresh replaces rather than duplicates, as one undo step.
 	const int reloadedGroup = entityOfClass(reloaded, "func_group")->id;
 	const auto beforeRefresh = serializeLevelMap(reloaded).bytes;
@@ -331,6 +350,11 @@ int main(int argc, char **argv)
 		ok &= expect(run({"model", "collision", "prop.mesh.json", "--operation", "placed", "--map", "cli-placed.map"}) &&
 						 output.value("placed").toArray()[0].toObject().value("status").toString() == "stale",
 					 "CLI sees the record as stale after the edit");
+		ok &= expect(run({"map", "inspect", "cli-placed.map", "--engine", "idtech3"}) &&
+						 output.value("collisionRecords").toArray().size() == 1 &&
+						 output.value("collisionRecords").toArray()[0].toObject().value("status").toString() == "stale" &&
+						 run({"map", "inspect", "level.map", "--engine", "idtech3"}) && !output.contains("collisionRecords"),
+					 "map inspect reports placed collision against its recorded source, only when there is some");
 		const auto beforeCli = read(path("cli-placed.map"));
 		ok &= expect(run({"model", "collision", "prop.mesh.json", "--operation", "refresh", "--map", "cli-placed.map", "--output",
 						  "cli-refreshed.map", "--dry-run"}) &&

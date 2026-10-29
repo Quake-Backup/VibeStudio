@@ -41,6 +41,8 @@ struct ModelCollisionRecord
 	int brushCount = 0;
 	ModelCollisionRecordStatus status = ModelCollisionRecordStatus::Invalid;
 	QString problem;
+	// levelCollisionRecordHealth: no source is recorded, or it cannot be read.
+	bool sourceMissing = false;
 };
 // Keys written on a new placement's func_group.
 QVector<LevelMapProperty> modelCollisionRecordProperties(const ModelMesh &mesh, const ModelCollisionExport &request,
@@ -51,6 +53,21 @@ QVector<LevelMapProperty> modelCollisionRecordProperties(const ModelMesh &mesh, 
 QVector<ModelCollisionRecord> levelCollisionRecords(const LevelMapDocument &map, const ModelMesh *mesh = nullptr,
 													const QString &meshSource = {});
 QString modelCollisionRecordStatusId(ModelCollisionRecordStatus status);
+// Every record checked against the mesh source it names, read from disk: what
+// the level editor's checklist and `map inspect` report. Each source is read
+// once per call, and an unchanged file (same size and time) comes from a cache.
+// A record whose source is not recorded or cannot be read stays OtherSource
+// with sourceMissing set.
+struct ModelCollisionRecordHealth
+{
+	QVector<ModelCollisionRecord> records;
+	int current = 0, stale = 0, missing = 0, invalid = 0;
+};
+ModelCollisionRecordHealth levelCollisionRecordHealth(const LevelMapDocument &map, const ModelWorkControl &control = {});
+// Each record's entity, status ("current", "stale", "source-missing" or
+// "invalid"), source, frame, target and brush count.
+QJsonArray modelCollisionRecordHealthJson(const ModelCollisionRecordHealth &health);
+QStringList modelCollisionRecordHealthText(const ModelCollisionRecordHealth &health);
 // The selected model instance of an open level: the primary selection when it
 // is an entity that places a model. Fills the request's instance and model key.
 bool modelCollisionInstanceFromSelection(const LevelMapDocument &map, ModelCollisionExport *request, int entityId = -1,

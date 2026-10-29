@@ -2017,7 +2017,8 @@ added to worldspawn still shifts the numbers of brushes in later entities.
   every texture the map uses. Press <kbd>Enter</kbd> on an entity problem to select that entity.
 - **Map tab.** **Worldspawn** edits the map's own keys; **Add Key…** suggests the ones its definition knows.
   **Checklist** shows what a build needs and what is missing, such as a player start, lights, a title, a `wad` key
-  for Quake or deathmatch starts for Doom; press <kbd>Enter</kbd> on a row to go to what it is about.
+  for Quake or deathmatch starts for Doom, and placed model collision that is out of date with its model; press
+  <kbd>Enter</kbd> on a row to go to what it is about.
   **View** > **Level Sidebars** > **Show Map Statistics** and **Show Worldspawn Keys** open the tab with that section
   expanded and the keyboard in its list; both are in command search and can be given keys.
 - **Entity definitions.** On the **Map** tab, give a Radiant `.def`, Valve `.fgd` or Quake III `.ent` file, or a
