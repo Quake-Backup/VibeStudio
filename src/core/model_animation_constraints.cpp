@@ -529,7 +529,7 @@ bool validModelClipStack(const ModelSkeleton &skeleton, const ModelSkeletalClip 
 		for (const auto &group : l.curves)
 		{
 			QString problem;
-			if (joints.contains(group.joint) || modelJointIndex(skeleton, group.joint, Qt::CaseSensitive) < 0 ||
+			if (joints.contains(group.joint) || modelJointIndex(skeleton, group.joint, Qt::CaseSensitive) < 0 || !group.rotation.isEmpty() ||
 				!validateModelCurveGroup(group, frames, &problem))
 				return fail(error, Text::tr("Layer %1 keys joint %2 twice, keys a joint this rig lacks, or has invalid keys. %3")
 									   .arg(l.name, group.joint, problem));

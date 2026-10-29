@@ -1030,6 +1030,9 @@ samples the curves and validates the resulting skin and attachments. Compare
 original/result motion in **Preview**, then **Apply** one document undo step.
 Save uses source schema 10 for hold-next curves, or schema 9 for other curves;
 native game exports use dense samples.
+**Rotation keys** switches a joint between Euler angles and quaternion keys,
+which turn along the shortest arc without gimbal lock; the rotation channels
+then show an angle view whose keys set quaternion keys.
 **Copy Keys** (<kbd>Ctrl</kbd>+<kbd>C</kbd>) copies the shown channel and
 **Paste Keys** (<kbd>Ctrl</kbd>+<kbd>V</kbd>) pastes copied keys or a copied
 pose into the draft from the **Sample** field on.

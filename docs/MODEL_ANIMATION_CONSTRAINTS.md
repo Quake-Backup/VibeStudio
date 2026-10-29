@@ -108,8 +108,8 @@ text and each constraint's `limits`.
 
 ## Limits
 
-- Rotation channels are X-then-Y-then-Z Euler degrees; there are no quaternion
-  rotation tracks, so layers blend rotations through Euler offsets.
+- Layers blend rotations through X-then-Y-then-Z Euler offsets, so a layer
+  cannot key a joint with [quaternion rotation keys](MODEL_ANIMATION_CURVES.md#use-quaternion-rotation-keys).
 - Override layers start from the base pose, not from the layers below them.
 - Constraint weight keys are typed as sample:value pairs (linear); layer
   weight keys are keyed in the graph and can use any curve interpolation.

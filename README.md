@@ -252,7 +252,8 @@ model declarations and frame commands, QuakeC `$frame` macros, `m_*.h` frame
 headers) and the ZDoom wiki's [MODELDEF](https://zdoom.org/wiki/MODELDEF) and
 [VOXELDEF](https://zdoom.org/wiki/VOXELDEF) references with GZDoom's VOXELDEF
 parser, read 2026-10-28 and 2026-10-29; swing-twist joint limits use the
-standard swing-twist decomposition. Original code, nothing copied. See
+standard swing-twist decomposition, and quaternion rotation keys follow
+Shoemake's slerp and squad (1985). Original code, nothing copied. See
 [Modeller Animation Authoring](docs/CREDITS.md#modeller-animation-authoring-2026-10-28).
 
 Quake III player package team skins, custom sounds, detail levels and the

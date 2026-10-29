@@ -103,6 +103,7 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 		for (const auto &group : clip.curves)
 		{
 			string(group.joint);
+			list(group.rotation);
 			for (const auto &channel : group.channels)
 			{
 				list(channel);

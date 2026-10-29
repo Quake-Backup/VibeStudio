@@ -1,4 +1,5 @@
 #include "core/model_pose_clipboard.h"
+#include "core/model_rotation_tracks.h"
 #include "core/model_curve_key_tools.h"
 #include "core/model_animation_constraints.h"
 #include "core/model_document.h"
@@ -216,6 +217,11 @@ bool copyModelPose(const ModelMesh &mesh, const ModelPoseCopyOptions &o, ModelPo
 				group = groups[index];
 			else if (!captureModelPoseCurves(mesh, o.clip, skeleton.joints[j].name, &group, error, control))
 				return false;
+			if (modelPoseCurvesUseQuaternion(group) &&
+				std::any_of(copy.channels.cbegin(), copy.channels.cend(), [](int c) { return c >= 3 && c < 6; }))
+				return fail(error, Text::tr("Joint %1 keeps its rotation as quaternion keys, which key copies do not carry yet. Copy its "
+											"translation and scale channels, or copy a pose.")
+									   .arg(group.joint));
 			ModelPoseCurves sliced;
 			sliced.joint = group.joint;
 			for (int c = 0; c < 9; ++c)
@@ -592,8 +598,27 @@ bool applyModelPosePaste(ModelMesh *mesh, const ModelEdit &edit, QString *error,
 				std::array<double, 9> values{};
 				if (!modelPoseCurveValues(pasted, &previous, &values))
 					return fail(error, Text::tr("The pasted pose of joint %1 cannot be held by its curves (shear, reflection or zero scale).").arg(name));
+				const bool quaternion = modelPoseCurvesUseQuaternion(groups[group]);
+				if (quaternion)
+				{
+					// Quaternion rotation keys take the pasted rotation as one key.
+					const auto &rotation = groups[group].rotation;
+					if (!o.replaceKeys &&
+						std::any_of(rotation.cbegin(), rotation.cend(), [&](const ModelPoseQuatKey &k) { return k.frame == frame; }))
+						return fail(error, Text::tr("Joint %1 already has a rotation key at sample %2. Choose to replace keys, or paste elsewhere.")
+											   .arg(name)
+											   .arg(frame));
+					const auto turn = modelJointRotation(pasted);
+					ModelPoseQuatKey key;
+					key.frame = frame;
+					key.value = {turn.x, turn.y, turn.z, turn.w};
+					if (!setModelQuatKey(&groups[group], key, frames, error))
+						return false;
+				}
 				for (int c = 0; c < 9; ++c)
 				{
+					if (quaternion && c >= 3 && c < 6)
+						continue;
 					auto &keys = groups[group].channels[c];
 					auto it = std::lower_bound(keys.begin(), keys.end(), frame, [](const ModelPoseCurveKey &k, int f) { return k.frame < f; });
 					if (it != keys.end() && it->frame == frame)
@@ -645,6 +670,10 @@ bool applyModelPosePaste(ModelMesh *mesh, const ModelEdit &edit, QString *error,
 			}
 			for (int c : clipboard.channels)
 			{
+				if (c >= 3 && c < 6 && modelPoseCurvesUseQuaternion(captured[group]))
+					return fail(error, Text::tr("Joint %1 keeps its rotation as quaternion keys, which key pastes do not change yet. Paste "
+												"translation and scale keys, or paste a pose.")
+										   .arg(name));
 				const auto &old = captured[group].channels[c];
 				const bool inside = std::any_of(old.cbegin(), old.cend(), [&](const auto &key) { return key.frame >= o.first && key.frame <= end; });
 				if (authored && inside && !o.replaceKeys)

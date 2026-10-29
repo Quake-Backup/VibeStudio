@@ -1,5 +1,6 @@
 #include "core/model_curve_transfer.h"
 #include "core/model_document.h"
+#include "core/model_rotation_tracks.h"
 #include "core/model_skeleton.h"
 #include <QCoreApplication>
 #include <algorithm>
@@ -116,6 +117,10 @@ bool applyModelCurveTransfer(ModelMesh *mesh, const ModelEdit &edit, QString *er
 		}
 		for (int c : channels)
 		{
+			if (c >= 3 && c < 6 && (modelPoseCurvesUseQuaternion(from) || modelPoseCurvesUseQuaternion(target)))
+				return fail(error, Text::tr("Joint %1 keeps its rotation as quaternion keys, which range transfer does not carry yet. Transfer "
+											"translation and scale, or convert the rotation to Euler channels first.")
+									   .arg(joint));
 			QVector<ModelPoseCurveKey> copied;
 			if (!sliceModelCurve(from.channels[c], o.first, o.last, o.targetFirst, o.factor, o.reverse, targetFrames, &copied, error,
 								 control))

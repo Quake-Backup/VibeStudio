@@ -8,7 +8,9 @@
 #include "app/model_viewport.h"
 #include "core/model_joint_tools.h"
 #include "core/model_pose_clipboard.h"
+#include "core/model_rotation_tracks.h"
 #include <QAbstractTableModel>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
@@ -152,6 +154,19 @@ ModelAnimationCurvesDialog::ModelAnimationCurvesDialog(const ModelMesh &mesh, co
 		m_channel, Text::tr("Curve channel"),
 		Text::tr("Translations use model units, rotations use unwrapped degrees in X then Y then Z order, and scales remain positive."));
 	row(form, Text::tr("C&hannel"), m_channel);
+	m_rotationMode = new QComboBox;
+	m_rotationMode->setObjectName("curvesRotationMode");
+	m_rotationMode->addItems({Text::tr("Euler angles (X, Y, Z)"), Text::tr("Quaternion keys")});
+	accessible(m_rotationMode, Text::tr("Rotation keys"),
+			   Text::tr("Keep this joint's rotation as three Euler angle channels, or as quaternion keys interpolated along the shortest arc "
+						"(linear: slerp; cubic: squad), which avoid gimbal lock. Changing it stages a conversion to review."));
+	row(form, Text::tr("&Rotation keys"), m_rotationMode);
+	m_everySample = new QCheckBox(Text::tr("Convert with a key at every sample"));
+	m_everySample->setObjectName("curvesConvertEverySample");
+	accessible(m_everySample, m_everySample->text(),
+			   Text::tr("Keeps every sample's rotation exactly. Without it the conversion keys only the samples that hold rotation keys, and "
+						"the motion between them can change slightly."));
+	form->addRow(m_everySample);
 	auto *draftButtons = new QHBoxLayout;
 	layout->addLayout(draftButtons);
 	m_undo = button(Text::tr("Undo draft"), "curvesUndo", Text::tr("Undo the last staged key or curve change."));
@@ -302,6 +317,7 @@ ModelAnimationCurvesDialog::ModelAnimationCurvesDialog(const ModelMesh &mesh, co
 	connect(m_clip, &QComboBox::currentIndexChanged, this, [this] { choose(); });
 	connect(m_joint, &QComboBox::currentIndexChanged, this, [this] { choose(); });
 	connect(m_channel, &QComboBox::currentIndexChanged, this, [this] { refresh(); });
+	connect(m_rotationMode, &QComboBox::currentIndexChanged, this, [this] { convertRotation(); });
 	connect(m_keys->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
 			[this](const QModelIndex &index)
 			{
@@ -430,7 +446,10 @@ void ModelAnimationCurvesDialog::refresh(int selectedFrame)
 	m_undo->setEnabled(m_historyIndex > 0 && !m_busy);
 	m_redo->setEnabled(m_historyIndex + 1 < m_history.size() && !m_busy);
 	m_discard->setEnabled(dirty && !m_busy);
-	const auto &keys = draft().group.channels[m_channel->currentIndex()];
+	m_rotationMode->setCurrentIndex(modelPoseCurvesUseQuaternion(draft().group) ? 1 : 0);
+	m_rotationMode->setEnabled(has && !draft().bake && !m_busy);
+	m_everySample->setEnabled(m_rotationMode->isEnabled());
+	const auto keys = shownKeys();
 	m_table->setKeys(keys);
 	int selected = 0;
 	for (int i = 0; i < keys.size(); ++i)
@@ -444,6 +463,12 @@ void ModelAnimationCurvesDialog::refresh(int selectedFrame)
 		w->setEnabled(editable && !m_busy);
 	m_in->setEnabled(editable && !m_busy && m_tangent->currentIndex() == 2);
 	m_out->setEnabled(m_in->isEnabled());
+	if (quaternionChannel())
+	{
+		// Quaternion keys have no tangents, and key copies do not carry them yet.
+		for (auto *w : QList<QWidget *>{m_tangent, m_in, m_out, m_copyKeys, m_pasteKeys})
+			w->setEnabled(false);
+	}
 	m_review->setEnabled(has && !m_busy);
 	m_apply->setEnabled(m_ready && !m_busy);
 	if (!keys.isEmpty())
@@ -496,10 +521,93 @@ ModelPoseCurveKey ModelAnimationCurvesDialog::keyFromControls() const
 			ModelCurveInterpolation(m_mode->currentIndex()),
 			ModelCurveTangent(m_tangent->currentIndex())};
 }
+bool ModelAnimationCurvesDialog::quaternionChannel() const
+{
+	const int channel = m_channel->currentIndex();
+	return channel >= 3 && channel < 6 && modelPoseCurvesUseQuaternion(draft().group);
+}
+QVector<ModelPoseCurveKey> ModelAnimationCurvesDialog::shownKeys() const
+{
+	const auto &group = draft().group;
+	if (!quaternionChannel())
+		return group.channels[m_channel->currentIndex()];
+	// The angle view: each quaternion key's Euler angle on this axis,
+	// unwrapped from key to key.
+	const auto view = modelQuatTrackEuler(group.rotation);
+	QVector<ModelPoseCurveKey> keys;
+	for (int i = 0; i < group.rotation.size(); ++i)
+	{
+		ModelPoseCurveKey key;
+		key.frame = group.rotation[i].frame;
+		key.value = view[i][m_channel->currentIndex() - 3];
+		key.interpolation = group.rotation[i].interpolation;
+		key.tangent = ModelCurveTangent::Auto;
+		keys.append(key);
+	}
+	return keys;
+}
+void ModelAnimationCurvesDialog::convertRotation()
+{
+	if (m_updating || m_busy)
+		return;
+	const bool toQuaternion = m_rotationMode->currentIndex() == 1;
+	if (draft().group.channels[0].isEmpty() || draft().bake || toQuaternion == modelPoseCurvesUseQuaternion(draft().group))
+	{
+		refresh();
+		return;
+	}
+	auto next = draft();
+	double change = 0;
+	QString error;
+	if (!convertModelPoseCurvesRotation(&next.group, toQuaternion,
+										m_everySample->isChecked() ? ModelRotationKeyTimes::EverySample : ModelRotationKeyTimes::Keys, frameCount(),
+										&change, &error))
+	{
+		refresh();
+		m_status->setText(error, LiveStatus::Problem);
+		return;
+	}
+	stage(next, 0);
+	m_status->setText(Text::tr("Rotation converted. The largest change at any sample is %1 degrees. Choose Review to inspect the motion.")
+						  .arg(localeNumber(change, 6)),
+					  LiveStatus::Result);
+}
 void ModelAnimationCurvesDialog::commitKey(int oldFrame, const ModelPoseCurveKey &key)
 {
 	if (m_busy || draft().bake || draft().group.channels[0].isEmpty())
 		return;
+	if (quaternionChannel())
+	{
+		// Edits on the angle view set quaternion keys; a moved key keeps its rotation.
+		auto next = draft();
+		const int axis = m_channel->currentIndex() - 3;
+		QString error;
+		bool ok = true;
+		if (oldFrame >= 0 && oldFrame != key.frame)
+		{
+			const auto &rotation = next.group.rotation;
+			const auto moving = std::find_if(rotation.cbegin(), rotation.cend(), [&](const ModelPoseQuatKey &k) { return k.frame == oldFrame; });
+			if (std::any_of(rotation.cbegin(), rotation.cend(), [&](const ModelPoseQuatKey &k) { return k.frame == key.frame; }))
+			{
+				m_status->setText(Text::tr("Another key already occupies the destination sample."));
+				refresh(oldFrame);
+				return;
+			}
+			auto moved = moving == rotation.cend() ? ModelPoseQuatKey{} : *moving;
+			ok = moving != rotation.cend() && removeModelQuatKey(&next.group, oldFrame, &error);
+			moved.frame = key.frame;
+			ok = ok && setModelQuatKey(&next.group, moved, frameCount(), &error);
+		}
+		ok = ok && setModelQuatKeyAxis(&next.group, key.frame, axis, key.value, key.interpolation, frameCount(), &error);
+		if (!ok)
+		{
+			refresh(key.frame);
+			m_status->setText(error, LiveStatus::Problem);
+			return;
+		}
+		stage(next, key.frame);
+		return;
+	}
 	auto next = draft();
 	auto &keys = next.group.channels[m_channel->currentIndex()];
 	if (oldFrame >= 0 && oldFrame != key.frame)
@@ -531,6 +639,18 @@ void ModelAnimationCurvesDialog::removeKey(int frame)
 {
 	if (m_busy || draft().bake)
 		return;
+	if (quaternionChannel())
+	{
+		auto next = draft();
+		QString error;
+		if (!removeModelQuatKey(&next.group, frame, &error))
+		{
+			m_status->setText(error, LiveStatus::Problem);
+			return;
+		}
+		stage(next, frame);
+		return;
+	}
 	auto next = draft();
 	ModelCurveEditOptions o;
 	o.action = ModelCurveAction::RemoveKey;
@@ -578,7 +698,7 @@ void ModelAnimationCurvesDialog::capture()
 }
 void ModelAnimationCurvesDialog::copyKeys()
 {
-	if (m_busy || clip() < 0 || draft().bake || draft().group.channels[0].isEmpty())
+	if (m_busy || clip() < 0 || draft().bake || draft().group.channels[0].isEmpty() || quaternionChannel())
 		return;
 	// The rig and clip come from a one-sample pose copy; the keys are the
 	// draft's, so staged changes copy too.
@@ -608,6 +728,13 @@ void ModelAnimationCurvesDialog::pasteKeys()
 	if (draft().group.channels[0].isEmpty())
 	{
 		m_status->setText(Text::tr("Capture sampled motion before pasting keys into this joint."), LiveStatus::Problem);
+		return;
+	}
+	if (modelPoseCurvesUseQuaternion(draft().group))
+	{
+		m_status->setText(Text::tr("This joint keeps quaternion rotation keys, which pasted keys do not change yet. Set its rotation keys, or "
+								   "convert it to Euler angles first."),
+						  LiveStatus::Problem);
 		return;
 	}
 	ModelPoseClipboard copy;

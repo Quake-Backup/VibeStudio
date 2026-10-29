@@ -1,6 +1,7 @@
 #include "core/model_curve_key_tools.h"
 #include "core/model_animation_constraints.h"
 #include "core/model_document.h"
+#include "core/model_rotation_tracks.h"
 #include "core/model_skeleton.h"
 #include <QCoreApplication>
 #include <algorithm>
@@ -141,6 +142,10 @@ bool editModelCurveKeys(QVector<ModelPoseCurves> *groups, int frameCount, const 
 			seen.contains({selection.joint, selection.channel}) || selectionCount > modelCurveMaxKeys)
 			return fail(error, Text::tr("Select distinct existing joint channels and at least one key, within the key budget."));
 		seen.insert({selection.joint, selection.channel});
+		if (selection.channel >= 3 && selection.channel < 6 && modelPoseCurvesUseQuaternion(*it))
+			return fail(error, Text::tr("Joint %1 keeps its rotation as quaternion keys, which these key tools do not edit yet. Convert it to "
+										"Euler channels first.")
+								   .arg(selection.joint));
 		auto &keys = it->channels[selection.channel];
 		const auto original = keys;
 		QVector<int> indices;

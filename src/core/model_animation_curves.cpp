@@ -1,6 +1,7 @@
 #include "core/model_animation_curves.h"
 #include "core/model_animation_constraints.h"
 #include "core/model_document.h"
+#include "core/model_rotation_tracks.h"
 #include "core/model_skeleton.h"
 #include <QCoreApplication>
 #include <algorithm>
@@ -224,6 +225,9 @@ bool editModelCurveGroup(ModelPoseCurves *group, int frameCount, const ModelCurv
 {
 	if (!group || o.channel < 0 || o.channel >= 9 || o.frame < 0 || o.frame >= frameCount || group->joint != o.joint)
 		return fail(error, Text::tr("Choose a valid curve channel and sample on the selected joint."));
+	if (o.channel >= 3 && o.channel < 6 && modelPoseCurvesUseQuaternion(*group))
+		return fail(error, Text::tr("Joint %1 keeps its rotation as quaternion keys. Set rotation keys, or convert it to Euler channels first.")
+							   .arg(group->joint));
 	ModelPoseCurves candidate = *group;
 	auto &keys = candidate.channels[o.channel];
 	auto it = std::lower_bound(keys.begin(), keys.end(), o.frame, [](const ModelPoseCurveKey &k, int f) { return k.frame < f; });

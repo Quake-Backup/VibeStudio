@@ -191,7 +191,7 @@ validated like other skeletal edits.
 | Pose, another rig | Refused unless a joint map names the destination of each differently named joint. Every destination joint must have the parent the copy expects (mapped too). Local poses are pasted as they are, without bind compensation; use retargeting for rigs with different proportions. |
 | Pose, mirrored | Each copied joint lands on its left/right partner, or on itself when it sits on the mirror plane. Its pose becomes `B'p⁻¹ S Bp · local · B⁻¹ S B'`, where `S` reflects across the plane and `B`, `Bp` are the source joint's and parent's binds and `B'`, `B'p` the partner's: the copied motion relative to the bind, reflected. For rigs whose left and right binds mirror each other this is `S M S` in model space. A result with shear or a reflection is refused. |
 | Keys | The copied channel keys replace the destination's keys inside the pasted interval, with the destination's outward tangents kept, as [range transfer](MODEL_ANIMATION_CURVES.md#transfer-or-reverse-a-range) does. A destination joint without curves is captured first. Keys cannot be mirrored. |
-| Onto curves | A pasted pose sets a key on all nine channels of a joint with curves, choosing the rotation solution nearest the curve at that sample. |
+| Onto curves | A pasted pose sets a key on all nine channels of a joint with curves, choosing the rotation solution nearest the curve at that sample; a joint with quaternion rotation keys takes a rotation key instead of rx, ry and rz keys. |
 
 Existing keys at the pasted samples (or, for keys, inside the pasted interval)
 are refused unless the paste replaces keys. The Mesh Editor's viewport

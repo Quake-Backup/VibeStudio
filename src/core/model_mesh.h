@@ -185,11 +185,25 @@ struct ModelPoseCurveKey {
 	ModelCurveTangent tangent = ModelCurveTangent::Clamped;
 	bool operator==(const ModelPoseCurveKey &) const = default;
 };
+// A quaternion rotation key (core/model_rotation_tracks.h): the joint's
+// parent-local rotation at `frame` as x, y, z, w. Linear slerps to the next
+// key, Cubic follows squad through the neighbouring keys, Step holds this key
+// and StepNext the next one.
+struct ModelPoseQuatKey {
+	int frame = 0;
+	std::array<double, 4> value{0.0, 0.0, 0.0, 1.0};
+	ModelCurveInterpolation interpolation = ModelCurveInterpolation::Linear;
+	bool operator==(const ModelPoseQuatKey &) const = default;
+};
 struct ModelPoseCurves {
 	QString joint;
 	// Parent-local tx/ty/tz, rx/ry/rz (degrees, X then Y then Z), sx/sy/sz.
 	// All nine channels are present. Samples outside the key range hold endpoints.
 	std::array<QVector<ModelPoseCurveKey>, 9> channels;
+	// Quaternion rotation keys. When present they hold the joint's rotation
+	// and rx, ry and rz each keep one zero key at sample 0, unused (see
+	// core/model_rotation_tracks.h). Editable sources keep them (mesh version 15).
+	QVector<ModelPoseQuatKey> rotation{};
 	bool operator==(const ModelPoseCurves &) const = default;
 };
 // A persistent constraint of a skeletal clip (core/model_animation_constraints.h),

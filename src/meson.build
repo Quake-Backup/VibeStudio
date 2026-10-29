@@ -504,6 +504,7 @@ core_sources = files(
   'core/model_animation_authoring.cpp',
   'core/model_animation_events.cpp',
   'core/model_animation_constraints.cpp',
+  'core/model_rotation_tracks.cpp',
   'core/model_clip_import.cpp',
   'core/model_game_declarations.cpp',
   'core/model_animation_curves_json.cpp',
@@ -637,7 +638,8 @@ install_headers('core/model_animation_curves.h', subdir: 'vibestudio/core')
 install_headers('core/model_curve_key_tools.h', subdir: 'vibestudio/core')
 install_headers('core/model_curve_transfer.h', subdir: 'vibestudio/core')
 install_headers('core/model_pose_clipboard.h', 'core/model_animation_authoring.h', 'core/model_animation_events.h', subdir: 'vibestudio/core')
-install_headers('core/model_animation_constraints.h', 'core/model_clip_import.h', 'core/model_game_declarations.h', subdir: 'vibestudio/core')
+install_headers('core/model_animation_constraints.h', 'core/model_clip_import.h', 'core/model_game_declarations.h', 'core/model_rotation_tracks.h',
+                subdir: 'vibestudio/core')
 install_headers('core/model_edge_slide.h', subdir: 'vibestudio/core')
 install_headers('core/model_rip.h', subdir: 'vibestudio/core')
 install_headers('core/model_vertex_identity.h', subdir: 'vibestudio/core')
@@ -5408,3 +5410,13 @@ model_animation_constraints_ui_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
 )
 test('model-animation-constraints-ui-smoke', model_animation_constraints_ui_smoke_test, env: model_document_test_env, timeout: 240)
+model_rotation_tracks_smoke_test = executable(
+  'model_rotation_tracks_smoke_test', ['tests/model_rotation_tracks_smoke_test.cpp', 'cli/model_animation_curves.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-rotation-tracks-smoke', model_rotation_tracks_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+model_rotation_tracks_ui_smoke_test = executable(
+  'model_rotation_tracks_ui_smoke_test', ['tests/model_rotation_tracks_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-rotation-tracks-ui-smoke', model_rotation_tracks_ui_smoke_test, env: model_document_test_env, timeout: 240)
