@@ -397,7 +397,48 @@ int main(int argc, char **argv)
 				expect(editor.applyEdit(move, &error) && bytes(editor.document().mesh()) == bytes(expected.mesh()),
 					   QStringLiteral("a move with the range scope edits frames 1 and 2: ") + error);
 				undo->trigger();
+				// The live preview shows the displayed frame's falloff-weighted
+				// share, in a handle drag and in a modal move.
+				auto *falloff = editor.findChild<QComboBox *>("meshRangeFalloff");
+				if (expect(falloff, QStringLiteral("the range falloff exists")))
+				{
+					falloff->setCurrentIndex(int(ModelFrameFalloff::RampIn));
+					frame->setCurrentIndex(1);
+					app.processEvents();
+					const double half = preview->editPreviewWeight();
+					frame->setCurrentIndex(2);
+					app.processEvents();
+					const double full = preview->editPreviewWeight();
+					frame->setCurrentIndex(0);
+					app.processEvents();
+					expect(std::abs(half - 0.5) < 1e-9 && full == 1 && preview->editPreviewWeight() == 0,
+						   QStringLiteral("a drag previews each frame's ramp-in weight, and none outside the range"));
+					frame->setCurrentIndex(1);
+					app.processEvents();
+					const auto plain = editor.document().mesh();
+					expect(editor.tools()->beginModal(ModelModalOperator::Move, QRectF(preview->rect()).center()),
+						   QStringLiteral("start a modal move over the range"));
+					editor.tools()->constrainModal(2, false);
+					editor.tools()->typeModal(QStringLiteral("8"));
+					const auto *shown = editor.tools()->modalPreview();
+					const auto lift = [&](const ModelMesh &mesh, int f)
+					{ return mesh.surfaces[0].frames[f].positions[0].z - plain.surfaces[0].frames[f].positions[0].z; };
+					const bool weighted = editor.tools()->modalPreviewValid() && shown && lift(*shown, 0) == 0 && lift(*shown, 2) > 0 &&
+										  std::abs(lift(*shown, 1) - lift(*shown, 2) / 2) < 1e-4 && lift(*shown, 3) == 0;
+					if (!expect(weighted && editor.tools()->modalText().contains(QStringLiteral("50")),
+								QStringLiteral("the modal move previews half the move on frame 1 of a ramp-in range")))
+						std::cerr << qPrintable(editor.tools()->modalText()) << " frame " << frame->currentIndex() << " lifts "
+								  << (shown ? lift(*shown, 0) : -1) << ' ' << (shown ? lift(*shown, 1) : -1) << ' '
+								  << (shown ? lift(*shown, 2) : -1) << ' ' << (shown ? lift(*shown, 3) : -1) << '\n';
+					const auto previewed = shown ? bytes(*shown) : QByteArray();
+					expect(editor.tools()->finishModal(true, &error) && bytes(editor.document().mesh()) == previewed && frame->currentIndex() == 1,
+						   QStringLiteral("confirming applies the previewed range transform and keeps the displayed frame: ") + error);
+					undo->trigger();
+					falloff->setCurrentIndex(0);
+				}
 				scope->setChecked(false);
+				app.processEvents();
+				expect(preview->editPreviewWeight() == 1, QStringLiteral("without the range scope a drag previews the whole move"));
 				editor.tools()->applySelection(ModelSelection{});
 			}
 			// Refit Anchored Tags after Follow Selection remembered the components.

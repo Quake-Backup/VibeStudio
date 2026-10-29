@@ -499,10 +499,11 @@ void ModelEditorAnimationPanel::buildRangeScope()
 			 QCoreApplication::translate("VibeStudioModelEditor",
 										 "Move, rotate and scale the selected components in every frame of Animation > Frame range, "
 										 "scaled by Range sculpt's falloff, instead of the frames Apply to chooses. The viewport's "
-										 "live preview shows the full amount on the displayed frame. Proportional editing, mirror, tags "
-										 "and collision boxes keep Apply to."));
+										 "live preview shows the displayed frame's share of the change. Proportional editing, mirror, "
+										 "tags and collision boxes keep Apply to."));
 	form->insertRow(row < 0 ? form->rowCount() : row + 1, m_rangeScope);
 	connect(m_rangeScope, &QCheckBox::toggled, this, [this](bool) { refresh(); });
+	connect(m_falloff, &QComboBox::currentIndexChanged, this, [this](int) { refresh(); });
 }
 
 bool ModelEditorAnimationPanel::rangeScopeApplies(const ModelEdit &edit) const
@@ -542,6 +543,32 @@ bool ModelEditorAnimationPanel::rangeScoped(const ModelEdit &edit, ModelEdit *sc
 	result.poseRange.falloff = ModelFrameFalloff(m_falloff->currentIndex());
 	*scoped = result;
 	return true;
+}
+
+QVector<double> ModelEditorAnimationPanel::rangeScopeWeights() const
+{
+	const int frames = int(m_editor->m_document.mesh().frames.size());
+	if (!m_rangeScope || !m_rangeScope->isChecked() || frames <= 0)
+		return {};
+	QVector<double> weights(frames, 0.0);
+	const int first = m_first->value(), last = std::min(m_last->value(), frames - 1);
+	const auto falloff = ModelFrameFalloff(m_falloff->currentIndex());
+	for (int frame = first; frame <= last; ++frame)
+		weights[frame] = modelFrameFalloffWeight(falloff, frame - first, last - first + 1);
+	return weights;
+}
+
+void ModelEditorAnimationPanel::syncPreviewWeights()
+{
+	// A dragged move, rotate or scale previews the displayed frame's share of
+	// the range transform in every view.
+	const auto weights = rangeScopeWeights();
+	auto views = m_editor->panes();
+	if (m_viewport && !views.contains(m_viewport.data()))
+		views.append(m_viewport.data());
+	for (auto *view : std::as_const(views))
+		if (view)
+			view->setEditPreviewWeights(weights);
 }
 
 void ModelEditorAnimationPanel::refreshAnchors()
@@ -932,6 +959,7 @@ void ModelEditorAnimationPanel::refresh()
 											   : summary);
 	}
 	refreshOnion();
+	syncPreviewWeights();
 }
 
 bool ModelEditorAnimationPanel::run(ModelEditKind kind, bool pingPong, QString *error)

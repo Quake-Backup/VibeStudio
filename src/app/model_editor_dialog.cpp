@@ -1540,7 +1540,14 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 															  "Rotation preview: X %1°, Y %2°, Z %3°. Release to apply; Escape cancels.")
 								: QCoreApplication::translate("VibeStudioModelEditor",
 															  "Scale preview: X %1×, Y %2×, Z %3×. Release to apply; Escape cancels.");
-				m_status->setText(pattern.arg(localeNumber(values.x, 7), localeNumber(values.y, 7), localeNumber(values.z, 7)));
+				auto text = pattern.arg(localeNumber(values.x, 7), localeNumber(values.y, 7), localeNumber(values.z, 7));
+				// Over the frame range: the vertices show this frame's share.
+				const auto &selected = m_document.selection();
+				if (m_animationPanel && !m_animationPanel->rangeScopeWeights().isEmpty() && selected.tag.isEmpty() &&
+					selected.joint.isEmpty() && selected.collision.isEmpty())
+					text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelEditor", "This frame shows %1% of it over the frame range.")
+												   .arg(localeNumber(m_preview->editPreviewWeight() * 100, 0, 'f'));
+				m_status->setText(text);
 			});
 	connect(m_preview, &ModelViewport::editTransformRequested, this,
 			[this](const ModelTransform &transform)

@@ -63,6 +63,9 @@ class ModelEditorAnimationPanel final : public QObject
 	// The TransformFrameRange edit for `edit`, with the Range sculpt
 	// falloff; false with a reason when the transform cannot cover a range.
 	bool rangeScoped(const ModelEdit &edit, ModelEdit *scoped, QString *error) const;
+	// Each frame's falloff weight while Over the frame range is on (zero
+	// outside the range); empty when it is off.
+	[[nodiscard]] QVector<double> rangeScopeWeights() const;
 
   private:
 	QPushButton *addButton(QFormLayout *form, const char *id, const QString &label, const QString &description);
@@ -79,6 +82,7 @@ class ModelEditorAnimationPanel final : public QObject
 	void buildRangeScope();
 	void refreshAnchors();
 	void refreshOnion();
+	void syncPreviewWeights();
 	ModelEdit edit(ModelEditKind kind) const;
 	ModelEditorDialog *m_editor = nullptr;
 	QPointer<ModelViewport> m_viewport;
