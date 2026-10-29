@@ -156,6 +156,9 @@ class ModelEditorDialog final : public QDialog
 	// readStagedModelFiles), so staging an MD3 can review the detail files
 	// already beside it; read on the GUI thread.
 	std::function<QHash<QString, QByteArray>(const QStringList &)> readPackageFiles;
+	// Stages one painted skin image at its package path, replacing the entry
+	// there, as one package step (UV > Paint Skin… > Apply to Model).
+	std::function<bool(const QString &, const QByteArray &, QString *)> stageSkinImage;
 	std::function<void(const QString &)> showMaterial;
 	// Runs after the user picks another controls profile, so other views
 	// (the Models page preview) can follow it.

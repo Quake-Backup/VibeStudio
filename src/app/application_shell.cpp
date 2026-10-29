@@ -37,6 +37,7 @@
 #include "app/release_dialog.h"
 #include "app/package_subset_dialog.h"
 #include "app/model_audit_dialog.h"
+#include "core/model_skin_paint.h"
 #include "app/model_design_dialog.h"
 #include "app/model_editor_dialog.h"
 #include "app/model_assembly_dialog.h"
@@ -20902,6 +20903,14 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial)
 		if (place) { refreshLevelMapWorkbench(); frameLevelMapSelection(); }
 		recordActivity(tr("Mesh Handoff"), files.isEmpty() ? QString() : files.first().path, tr("package"), OperationState::Completed,
 		    tr("Edited model and its detail levels staged as one package step."));
+		return true;
+	};
+	// Modeller: a painted skin staged back at the package path it came from.
+	editor->stageSkinImage = [this](const QString& path, const QByteArray& bytes, QString* outputError) {
+		if (m_packageExtractionRunning || m_packageSaveRunning || m_packageReadRunning) { if (outputError) { *outputError = tr("Wait for the package operation to finish before staging a skin."); } return false; }
+		if (!stageModelPaintedSkin(bytes, path, &m_packageStaging, outputError)) { return false; }
+		refreshPackageStagingSummary();
+		recordActivity(tr("Skin Paint"), path, tr("package"), OperationState::Completed, tr("Painted skin staged in the package."));
 		return true;
 	};
 	// Modeller: the detail files already beside a staged MD3, for the editor's review.

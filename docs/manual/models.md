@@ -303,10 +303,16 @@ see it on the model:
 
 1. Turn the model with **Yaw**, **Pitch** and **Zoom**.
 2. Choose **Colour**, **Radius**, **Opacity** and **Hardness**; **Mirror**
-   paints the other side of a symmetric model at the same time.
+   paints the other side of a symmetric model at the same time. **Stamp…**
+   paints an image instead of the colour, and the **Smudge** blend drags the
+   skin along the stroke.
 3. Drag across the model. Strokes cross UV seams without a gap and never
    reach faces hidden behind others. Press <kbd>Esc</kbd> to cancel a stroke.
-4. Choose **Save Skin…** to keep the result as a PNG or TGA.
+   To paint in the Mesh Editor's own view instead, turn on **Paint in View**
+   and drag there; the other mouse buttons still move the view.
+4. Choose **Apply to Model** to put the skin back: a Quake model's skin is
+   replaced as one step you can undo, and an image from the open package is
+   staged at its own path. Or choose **Save Skin…** to keep a copy as a file.
 
 A Quake skin is painted with palette colours only. See
 [Painting Skins](../MODEL_SKIN_PAINT.md).

@@ -2,12 +2,17 @@
 // are named and keyboard reachable, a stroke paints the skin and the preview,
 // Escape cancels a stroke in progress, Undo and Redo step through strokes, the
 // recorded strokes replay through the core service to the same skin, and the
-// Mesh Editor's UV menu opens it; 100% and 200% text, LTR and RTL.
+// Mesh Editor's UV menu opens it; 100% and 200% text, LTR and RTL. In the
+// editor, an MDL model's painted skin applies as one undo step, and Paint in
+// View paints by dragging in the editor's own viewport, orthographic and
+// perspective, with Escape cancelling there too.
 #include "app/model_editor_dialog.h"
 #include "app/model_skin_paint_dialog.h"
+#include "app/model_viewport.h"
 #include "app/studio_theme.h"
 #include "core/studio_settings.h"
 #include "tests/model_q3_animation_test_helpers.h"
+#include "tests/model_viewport_test_helpers.h"
 
 #include <QAction>
 #include <QApplication>
@@ -15,7 +20,9 @@
 #include <QDir>
 #include <QDoubleSpinBox>
 #include <QFont>
+#include <QJsonArray>
 #include <QKeyEvent>
+#include <QMouseEvent>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTemporaryDir>
@@ -69,11 +76,16 @@ int main(int argc, char **argv)
 		auto *mirror = dialog.findChild<QComboBox *>("modelSkinPaintMirror");
 		auto *undo = dialog.findChild<QPushButton *>("modelSkinPaintUndo");
 		auto *redo = dialog.findChild<QPushButton *>("modelSkinPaintRedo");
-		ok &= expect(canvas && radius && pitch && mode && mirror && undo && redo, "the dialog has its controls");
-		if (!(canvas && radius && pitch && mode && mirror && undo && redo))
+		auto *stamp = dialog.findChild<QPushButton *>("modelSkinPaintStamp");
+		auto *apply = dialog.findChild<QPushButton *>("modelSkinPaintApply");
+		auto *inView = dialog.findChild<QPushButton *>("modelSkinPaintInView");
+		ok &= expect(canvas && radius && pitch && mode && mirror && undo && redo && stamp && apply && inView, "the dialog has its controls");
+		if (!(canvas && radius && pitch && mode && mirror && undo && redo && stamp && apply && inView))
 			break;
-		for (QWidget *widget : std::initializer_list<QWidget *>{canvas, radius, pitch, mode, mirror, undo, redo})
+		for (QWidget *widget : std::initializer_list<QWidget *>{canvas, radius, pitch, mode, mirror, undo, redo, stamp, apply, inView})
 			ok &= expect(!widget->accessibleName().isEmpty() && widget->focusPolicy() != Qt::NoFocus, "paint controls are named and keyboard reachable");
+		ok &= expect(mode->count() == 3 && !apply->isEnabled() && !apply->toolTip().isEmpty(),
+					 "Smudge is a blend, and Apply to Model says why it is off without a target");
 		pitch->setValue(89);
 		radius->setValue(30);
 		mode->setCurrentIndex(1);
@@ -136,6 +148,84 @@ int main(int argc, char **argv)
 				opened->close();
 		}
 		editor.close();
+	}
+	{
+		// An MDL model in the editor: paint in its viewport, then apply.
+		ModelMesh quake = mesh;
+		ModelEdit add;
+		add.kind = ModelEditKind::AddMdlSkin;
+		add.mdlSkin.size = {64, 64};
+		add.mdlSkin.pixels = QByteArray(64 * 64, char(0));
+		for (int i = 0; i < 256; ++i)
+			add.mdlSkin.palette.append(QByteArray(3, char(i)));
+		QString error;
+		ok &= expect(applyModelEdit(&quake, add, nullptr, &error), "give the model an MDL skin");
+		ModelEditorDialog editor;
+		editor.resize(1400, 900);
+		editor.show();
+		ok &= expect(editor.setMesh(quake, &error), "load the MDL model");
+		auto *viewport = editor.findChild<ModelViewport *>("meshPreview");
+		auto *top = editor.findChild<QAction *>("meshViewTop");
+		auto *perspective = editor.findChild<QAction *>("meshViewPerspective");
+		auto *undoMesh = editor.findChild<QAction *>("undoMesh");
+		auto *open = editor.findChild<QAction *>("meshPaintSkin");
+		ok &= expect(viewport && top && perspective && undoMesh && open, "the editor has its view, undo and paint actions");
+		if (viewport && top && perspective && undoMesh && open)
+		{
+			top->trigger();
+			open->trigger();
+			auto *dialog = static_cast<ModelSkinPaintDialog *>(editor.findChild<QDialog *>("modelSkinPaintDialog"));
+			auto *apply = dialog ? dialog->findChild<QPushButton *>("modelSkinPaintApply") : nullptr;
+			auto *inView = dialog ? dialog->findChild<QPushButton *>("modelSkinPaintInView") : nullptr;
+			ok &= expect(dialog && apply && inView && apply->isEnabled() && apply->toolTip().contains(QStringLiteral("MDL")),
+						 "Apply to Model replaces the model's MDL skin");
+			if (dialog && apply && inView)
+			{
+				inView->click();
+				ok &= expect(viewport->skinPaintEnabled() && dialog->paintingInView(), "Paint in View hooks the editor's viewport");
+				const auto send = [&](QEvent::Type type, QPointF at, Qt::MouseButton button, Qt::MouseButtons buttons) {
+					QMouseEvent event(type, at, viewport->mapToGlobal(at), button, buttons, Qt::NoModifier);
+					QCoreApplication::sendEvent(viewport, &event);
+				};
+				const auto strokeInView = [&](const char *label) {
+					tests::settleModelViewport(*viewport);
+					QPointF point;
+					if (!expect(viewport->projectToView({10.0f / 3.0f, 10.0f / 3.0f, 0.0f}, &point), "the model shows in the viewport"))
+						return;
+					const QImage before = dialog->skin();
+					const int strokes = int(dialog->strokesJson().value("strokes").toArray().size());
+					send(QEvent::MouseButtonPress, point, Qt::LeftButton, Qt::LeftButton);
+					send(QEvent::MouseMove, point + QPointF(4, 0), Qt::NoButton, Qt::LeftButton);
+					send(QEvent::MouseButtonRelease, point + QPointF(4, 0), Qt::LeftButton, Qt::NoButton);
+					const auto list = dialog->strokesJson().value("strokes").toArray();
+					ok &= expect(dialog->skin() != before && list.size() == strokes + 1 && list.last().toObject().contains("view"), label);
+				};
+				strokeInView("a drag in the orthographic viewport paints through its camera");
+				// Escape in the viewport cancels the stroke in progress.
+				const QImage painted = dialog->skin();
+				QPointF point;
+				if (viewport->projectToView({10.0f / 3.0f, 10.0f / 3.0f, 0.0f}, &point))
+				{
+					send(QEvent::MouseButtonPress, point + QPointF(0, 6), Qt::LeftButton, Qt::LeftButton);
+					QKeyEvent escape(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
+					QCoreApplication::sendEvent(viewport, &escape);
+					send(QEvent::MouseButtonRelease, point + QPointF(0, 6), Qt::LeftButton, Qt::NoButton);
+					ok &= expect(dialog->skin() == painted && !dialog->strokeActive(), "Escape in the viewport cancels the stroke");
+				}
+				perspective->trigger();
+				strokeInView("a drag in the perspective viewport paints through its camera");
+				// Apply to Model is one undo step.
+				const QByteArray revision = editor.document().revisionFingerprint();
+				apply->click();
+				ok &= expect(modelSurfaceIndexedSkin(editor.document().mesh(), 0) == dialog->skin(), "Apply puts the painted skin into the model");
+				undoMesh->trigger();
+				ok &= expect(editor.document().revisionFingerprint() == revision, "one Undo takes the painted skin out again");
+				inView->click();
+				ok &= expect(!viewport->skinPaintEnabled(), "turning Paint in View off frees the viewport");
+				dialog->close();
+				QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+			}
+		}
 	}
 	return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

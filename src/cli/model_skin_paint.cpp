@@ -38,7 +38,8 @@ QString imageHash(const QImage &image)
 ModelSkinPaintCliResult runModelSkinPaint(const QStringList &arguments)
 {
 	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--overwrite"};
-	const QSet<QString> valued{"--strokes", "--surface", "--frame", "--texture", "--size", "--output", "--settings-file", "--locale", "--catalog-root"};
+	const QSet<QString> valued{"--strokes", "--surface", "--frame", "--texture", "--size", "--output", "--model-output", "--settings-file", "--locale",
+		"--catalog-root"};
 	QStringList positional;
 	QHash<QString, QString> values;
 	QSet<QString> seen;
@@ -100,7 +101,8 @@ ModelSkinPaintCliResult runModelSkinPaint(const QStringList &arguments)
 	const QJsonDocument document = QJsonDocument::fromJson(strokesFile.readAll());
 	ModelSkinPaintCamera camera;
 	QVector<ModelSkinPaintStroke> strokes;
-	if (!document.isObject() || !parseModelSkinPaintStrokes(document.object(), &camera, &strokes, &error))
+	if (!document.isObject() ||
+		!parseModelSkinPaintStrokes(document.object(), &camera, &strokes, &error, QFileInfo(values.value("--strokes")).absolutePath()))
 		return fail(2, error.isEmpty() ? Text::tr("The strokes file is not a JSON object.") : error);
 	// The skin: --texture, else the model's own indexed skin, else blank.
 	QImage skin;
@@ -129,23 +131,67 @@ ModelSkinPaintCliResult runModelSkinPaint(const QStringList &arguments)
 	}
 	const QString output = values.value("--output");
 	const QFileInfo target(output);
-	for (const QString &source : {input, values.value("--strokes"), values.value("--texture")})
-		if (!source.isEmpty() && QFileInfo(source).absoluteFilePath().compare(target.absoluteFilePath(), Qt::CaseInsensitive) == 0)
-			return fail(2, Text::tr("Write the painted skin to another file; the inputs are never overwritten."));
-	if (target.exists() && !seen.contains("--overwrite"))
-		return fail(1, Text::tr("%1 exists; add --overwrite to replace it.").arg(QDir::toNativeSeparators(output)));
-	ModelSkinPaintView view;
-	if (!buildModelSkinPaintView(mesh, frame, camera, &view, &error))
+	const QString modelOutput = values.value("--model-output");
+	for (const QString &written : {output, modelOutput})
+	{
+		if (written.isEmpty())
+			continue;
+		for (const QString &source : {input, values.value("--strokes"), values.value("--texture")})
+			if (!source.isEmpty() && QFileInfo(source).absoluteFilePath().compare(QFileInfo(written).absoluteFilePath(), Qt::CaseInsensitive) == 0)
+				return fail(2, Text::tr("Write the painted skin and model to other files; the inputs are never overwritten."));
+		if (QFileInfo::exists(written) && !seen.contains("--overwrite"))
+			return fail(1, Text::tr("%1 exists; add --overwrite to replace it.").arg(QDir::toNativeSeparators(written)));
+	}
+	if (!modelOutput.isEmpty() && !modelOutput.endsWith(".mesh.json", Qt::CaseInsensitive))
+		return fail(2, Text::tr("--model-output writes an editable source (.mesh.json)."));
+	if (!modelOutput.isEmpty() && modelSkinPaintMdlSlot(mesh, surface) < 0)
+		return fail(2, Text::tr("--model-output puts the skin back into a model with an MDL skin; this surface has none."));
+	// The orbit view of the strokes file, and the view each stroke painted
+	// through the Mesh Editor's viewport carries.
+	ModelSkinPaintView orbit;
+	if (!buildModelSkinPaintView(mesh, frame, camera, &orbit, &error))
 		return fail(2, error);
+	QVector<QPair<ModelSkinPaintProjection, ModelSkinPaintView>> views;
 	int texels = 0;
 	QRect dirty;
 	for (const ModelSkinPaintStroke &stroke : std::as_const(strokes))
 	{
+		const ModelSkinPaintView *view = &orbit;
+		if (stroke.hasProjection)
+		{
+			view = nullptr;
+			for (const auto &known : std::as_const(views))
+				if (known.first == stroke.projection)
+					view = &known.second;
+			if (!view)
+			{
+				ModelSkinPaintView built;
+				if (!buildModelSkinPaintView(mesh, frame, stroke.projection, &built, &error))
+					return fail(2, error);
+				views.append({stroke.projection, built});
+				view = &views.last().second;
+			}
+		}
 		ModelSkinPaintResult painted;
-		if (!paintModelSkinStroke(mesh, surface, frame, view, stroke, &skin, &painted, &error))
+		if (!paintModelSkinStroke(mesh, surface, frame, *view, stroke, &skin, &painted, &error))
 			return fail(4, error);
 		texels += painted.texels;
 		dirty = dirty.united(painted.dirty);
+	}
+	// Back into the model: the MDL skin member replaced as one edit.
+	if (!modelOutput.isEmpty())
+	{
+		ModelMesh editable = mesh;
+		if (!input.endsWith(".mesh.json", Qt::CaseInsensitive) &&
+			!importEditableModel(QFileInfo(input).absoluteFilePath(), bytes, &editable, &error))
+			return fail(4, error);
+		ModelEdit edit;
+		if (!modelSkinPaintMdlEdit(editable, surface, skin, &edit, &error) || !applyModelEdit(&editable, edit, nullptr, &error))
+			return fail(4, error);
+		const QByteArray source = serializeEditableModel(editable, &error);
+		QSaveFile savedModel(modelOutput);
+		if (source.isEmpty() || !savedModel.open(QIODevice::WriteOnly) || savedModel.write(source) != source.size() || !savedModel.commit())
+			return fail(1, error.isEmpty() ? Text::tr("The model could not be written to %1.").arg(QDir::toNativeSeparators(modelOutput)) : error);
 	}
 	QByteArray encoded;
 	if (target.suffix().compare("tga", Qt::CaseInsensitive) == 0)
@@ -171,7 +217,14 @@ ModelSkinPaintCliResult runModelSkinPaint(const QStringList &arguments)
 		{"dirty", QJsonArray{dirty.x(), dirty.y(), dirty.width(), dirty.height()}},
 		{"sha256", imageHash(skin)},
 		{"output", target.absoluteFilePath()}};
+	if (!modelOutput.isEmpty())
+	{
+		result.payload.insert("modelOutput", QFileInfo(modelOutput).absoluteFilePath());
+		result.payload.insert("skinSlot", modelSkinPaintMdlSlot(mesh, surface));
+	}
 	result.lines << Text::tr("Painted %n texel(s) into %1 (strokes: %2).", nullptr, texels).arg(QDir::toNativeSeparators(output)).arg(strokes.size());
+	if (!modelOutput.isEmpty())
+		result.lines << Text::tr("Wrote the model with the painted skin to %1.").arg(QDir::toNativeSeparators(modelOutput));
 	return result;
 }
 } // namespace vibestudio::cli

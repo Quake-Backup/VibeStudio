@@ -1003,6 +1003,8 @@ app_sources = files(
   'app/model_editor_game_preview.cpp',
   'app/model_bake_dialog.cpp',
   'app/model_skin_paint_dialog.cpp',
+  'app/model_editor_skin_paint.cpp',
+  'app/model_viewport_skin_paint.cpp',
   'app/model_editor_intersections.cpp',
   'app/model_editor_import_repair.cpp',
   'app/model_import_repair_dialog.cpp',

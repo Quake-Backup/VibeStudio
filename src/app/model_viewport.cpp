@@ -2019,6 +2019,11 @@ ViewportHudLayout ModelViewport::hudLayoutFor(const QPaintDevice* device) const
 void ModelViewport::mousePressEvent(QMouseEvent* event)
 {
 	rememberCommandPointer(event->position());
+	if (m_skinPaintHandler && !m_skinPainting && event->button() == Qt::LeftButton && event->modifiers() == Qt::NoModifier && !m_looking) {
+		setFocus(Qt::MouseFocusReason);
+		m_skinPainting = m_skinPaintHandler(ModelViewportStrokePhase::Begin, event->position());
+		if (m_skinPainting) { event->accept(); return; }
+	}
 	if (!m_clipMode && !m_assembleTool && m_materialGesturesEnabled && cameraMaterialGesture(m_controls, event->button(), event->modifiers()) != CameraMaterialGesture::None) {
 		// Consume a reserved chord even while busy; it must not fall through to
 		// navigation or cancel another pending edit. Multi-button chords do nothing.
@@ -2125,6 +2130,10 @@ void ModelViewport::mouseMoveEvent(QMouseEvent* event)
 {
 	const QPointF position = event->position();
 	rememberCommandPointer(position);
+	if (m_skinPainting) {
+		if (m_skinPaintHandler) { m_skinPaintHandler(ModelViewportStrokePhase::Extend, position); }
+		event->accept(); return;
+	}
 	if (m_vertexInsertion->active()) {
 		if (!m_vertexInsertion->releasePending() && event->buttons() != Qt::LeftButton) { m_vertexInsertion->finish(false); }
 		else if (!m_vertexInsertion->releasePending()) { m_vertexInsertion->updateDrag(position,event->modifiers()); }
@@ -2232,6 +2241,11 @@ void ModelViewport::mouseMoveEvent(QMouseEvent* event)
 
 void ModelViewport::mouseReleaseEvent(QMouseEvent* event)
 {
+	if (m_skinPainting && event->button() == Qt::LeftButton) {
+		m_skinPainting = false;
+		if (m_skinPaintHandler) { m_skinPaintHandler(ModelViewportStrokePhase::Finish, event->position()); }
+		event->accept(); return;
+	}
 	if (isAssemblingBrush()) {
 		if (event->button() == Qt::LeftButton) { updateBrushAssemble(event->position()); finishBrushAssemble(true); }
 		else { finishBrushAssemble(false); }
@@ -2356,6 +2370,11 @@ void ModelViewport::wheelEvent(QWheelEvent* event)
 
 void ModelViewport::keyPressEvent(QKeyEvent* event)
 {
+	if (m_skinPainting && event->key() == Qt::Key_Escape) {
+		m_skinPainting = false;
+		if (m_skinPaintHandler) { m_skinPaintHandler(ModelViewportStrokePhase::Cancel, commandPosition()); }
+		event->accept(); return;
+	}
 	if (updateClipPointModifiers(event->key(),event->modifiers(),true)) { event->accept(); return; }
 	if (updateComponentModifiers(event->key(),event->modifiers(),true)) { event->accept(); return; }
 	if (m_assembleTool && !m_looking) {
@@ -2560,6 +2579,11 @@ void ModelViewport::keyPressEvent(QKeyEvent* event)
 void ModelViewport::resizeEvent(QResizeEvent* event)
 {
 	finishEditTransform(false);
+	// A stroke's view no longer matches the resized one.
+	if (m_skinPainting) {
+		m_skinPainting = false;
+		if (m_skinPaintHandler) { m_skinPaintHandler(ModelViewportStrokePhase::Cancel, commandPosition()); }
+	}
 	QWidget::resizeEvent(event);
 	// The projection is centred on the widget, so any resize invalidates it.
 	invalidateProjection();

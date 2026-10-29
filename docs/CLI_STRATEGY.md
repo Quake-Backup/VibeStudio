@@ -2477,7 +2477,9 @@ Each resolved path may be a definition file or a folder of them.
 - [x] `model paint-skin <model> --strokes <strokes.json> --output <skin.png>`
   replays 3D paint strokes onto a surface's skin (`--texture`, else the MDL
   skin as palette indices, else a blank `--size`), the same service as
-  **UV** > **Paint Skin…**. See [Painting Skins](MODEL_SKIN_PAINT.md).
+  **UV** > **Paint Skin…**, stamps, smudge and strokes painted in the Mesh
+  Editor's viewport included; `--model-output FILE.mesh.json` writes the model
+  with the painted MDL skin. See [Painting Skins](MODEL_SKIN_PAINT.md).
 - [x] `model bake <model> --type ao|object-normal|normal|lighting --output
   <map.png|map.tga>` bakes ambient occlusion, object or Doom 3 tangent-space
   normals (optionally projected from `--high` within `--cage`) or shadowed

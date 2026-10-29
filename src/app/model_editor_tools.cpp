@@ -414,18 +414,9 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshUvDensity"), Text::tr("Texel Density…"), {}, [this] { m_editor->editUvDensity(); });
 	addAction(QStringLiteral("meshPackIslands"), Text::tr("Pack Islands"), {}, [this] { m_editor->execute(ModelEditKind::PackUv); });
 	// Read-only towards the model: the map is saved where the user chooses.
-	// Paints a copy of the surface's skin: its MDL skin as indices, else its
-	// material image, else a blank skin; Save Skin… writes the result.
-	addAction(QStringLiteral("meshPaintSkin"), Text::tr("Paint Skin…"), {}, [this] {
-		const auto &mesh = m_editor->document().mesh();
-		const int surface = std::max(0, m_editor->document().selection().surface);
-		QImage skin = modelSurfaceIndexedSkin(mesh, surface);
-		if (skin.isNull())
-			skin = m_editor->m_surfaceImages.value(surface);
-		auto *dialog = new ModelSkinPaintDialog(mesh, surface, m_editor->m_preview->frame(), skin, m_editor);
-		dialog->setAttribute(Qt::WA_DeleteOnClose);
-		dialog->show();
-	});
+	// Paints the surface's skin: its MDL skin as indices, else its material
+	// image, else a blank skin (model_editor_skin_paint.cpp).
+	addAction(QStringLiteral("meshPaintSkin"), Text::tr("Paint Skin…"), {}, [this] { openSkinPaint(); });
 	addAction(QStringLiteral("meshBakeMaps"), Text::tr("Bake Maps…"), {}, [this] {
 		const auto &document = m_editor->document();
 		auto *dialog = new ModelBakeDialog(document.mesh(), std::max(0, document.selection().surface), m_editor->m_preview->frame(), m_editor);

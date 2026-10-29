@@ -57,6 +57,11 @@ class QThread;
 
 namespace vibestudio {
 
+struct ModelSkinPaintProjection;
+
+// A skin-paint stroke through the viewport (UVSKIN-09).
+enum class ModelViewportStrokePhase { Begin, Extend, Finish, Cancel };
+
 // One presented GPU frame: the colour image (premultiplied ARGB32) and the
 // triangle drawn at each of its pixels (-1 for none), in physical pixels.
 struct ModelRenderFrame {
@@ -532,6 +537,16 @@ public:
 	// Owner-drawn overlay (selection boxes, the 3D cursor, tool guides), painted
 	// last in widget coordinates. An empty function removes it.
 	void setOverlayPainter(std::function<void(QPainter&)> painter);
+	// Skin painting in this view (model_viewport_skin_paint.cpp): while a
+	// handler is set, a plain left-button drag goes to it as a stroke instead
+	// of selecting, Escape cancels the stroke, and the other buttons still
+	// turn and move the view. An empty function ends it.
+	void setSkinPaintHandler(std::function<bool(ModelViewportStrokePhase, const QPointF&)> handler);
+	[[nodiscard]] bool skinPaintEnabled() const { return bool(m_skinPaintHandler); }
+	[[nodiscard]] bool skinPainting() const { return m_skinPainting; }
+	// The camera as a paint projection in widget pixels (orthographic or
+	// perspective); false without a mesh.
+	bool skinPaintProjection(ModelSkinPaintProjection* projection);
 	// Shows what `source` shows (mesh, frame, shading, skins, selection and
 	// overlays) through this viewport's own camera: the modeller's mirror
 	// panes (model_viewport_mirror.cpp).
@@ -1060,6 +1075,8 @@ private:
 	QPointF m_rotationTangent;
 	double m_scaleReference = 1;
 	std::function<void(QPainter&)> m_overlayPainter;
+	std::function<bool(ModelViewportStrokePhase, const QPointF&)> m_skinPaintHandler;
+	bool m_skinPainting = false;
 	LevelLinkedGroupDisplay m_linkedGroups;
 	LinkedGroupPaint m_linkedGroupPaint;
 };

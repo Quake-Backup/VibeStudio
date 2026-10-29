@@ -55,6 +55,7 @@ class QWidget;
 namespace vibestudio
 {
 class ModelEditorDialog;
+class ModelSkinPaintDialog;
 class ModelViewport;
 
 // The navigation gizmo as it is painted and clicked: in the view's trailing
@@ -131,6 +132,9 @@ class ModelEditorTools final : public QObject
 	void typeModal(const QString &text);
 	void adjustModal(int steps);
 	bool finishModal(bool commit, QString *error = nullptr);
+	// UV > Paint Skin… (model_editor_skin_paint.cpp): the paint dialog on the
+	// active surface's skin, wired to Apply to Model and Paint in View.
+	ModelSkinPaintDialog *openSkinPaint();
 	[[nodiscard]] ModelModalOperator modalOperator() const;
 	[[nodiscard]] QString modalText() const;
 	[[nodiscard]] bool modalPreviewValid() const;
