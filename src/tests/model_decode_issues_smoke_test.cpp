@@ -177,9 +177,9 @@ int main(int argc, char **argv)
 		expect(record && record->accepted && accepted.warnings.isEmpty(), "the accepted omission is recorded and warnings clear");
 		const auto json = editableModelJson(accepted, &error);
 		ModelMesh reread;
-		expect(json.value(QStringLiteral("version")).toInt() == 15 && json.value(QStringLiteral("importIssues")).toArray().size() == accepted.issues.size() &&
+		expect(json.value(QStringLiteral("version")).toInt() == 18 && json.value(QStringLiteral("importIssues")).toArray().size() == accepted.issues.size() &&
 				   parseEditableModel(QJsonDocument(json).toJson(), &reread, &error) && reread.issues == accepted.issues,
-			   "the import record round-trips through a version 15 source");
+			   "the import record round-trips through a version 18 source");
 		auto early = json;
 		early.insert(QStringLiteral("version"), 14);
 		expect(!parseEditableModel(QJsonDocument(early).toJson(), &reread, &error), "a version 14 source cannot carry import issues");

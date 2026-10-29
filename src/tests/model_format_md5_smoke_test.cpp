@@ -979,7 +979,7 @@ void testDecodeIssues()
 	if (expect(!source.isEmpty() && parseEditableModel(source, &reread, &error), "a source with import issues saves and reloads")) {
 		expect(reread.issues == accepted.issues, "the import record survives a save");
 		const QJsonObject root = QJsonDocument::fromJson(source).object();
-		expect(root.contains(QStringLiteral("importIssues")) && root.value(QStringLiteral("version")).toInt() == 15, "the record is version 15's importIssues block");
+		expect(root.contains(QStringLiteral("importIssues")) && root.value(QStringLiteral("version")).toInt() == 18, "the record is version 18's importIssues block");
 	}
 
 	// A declaration naming the sibling makes it this model's: an omission.

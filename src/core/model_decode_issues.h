@@ -18,7 +18,7 @@
 //
 // An editable source keeps the advisories and accepted omissions it was
 // imported with in ModelMesh::issues (the "importIssues" block of a
-// .mesh.json, version 15) and carries no warnings.
+// .mesh.json, version modelSourceImportIssuesVersion) and carries no warnings.
 
 #include "core/model_mesh.h"
 
@@ -77,6 +77,9 @@ ModelDecodeIssueCounts countModelDecodeIssues(const QVector<ModelDecodeIssue>& i
 
 // [{id, severity, surface, text, accepted}] in the C locale.
 QJsonArray modelDecodeIssuesJson(const QVector<ModelDecodeIssue>& issues);
+// The editable source version that introduced the importIssues block.
+inline constexpr int modelSourceImportIssuesVersion = 18;
+
 // The importIssues block of an editable source; false with an error when it
 // is malformed (unknown severity, damage, a surface out of range).
 bool parseModelDecodeIssues(const QJsonValue& value, int surfaceCount, QVector<ModelDecodeIssue>* issues, QString* error = nullptr);

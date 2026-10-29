@@ -118,7 +118,7 @@ every issue by severity; **Accept Omissions and Import** goes ahead and
 **Cancel** (the default) keeps the current document.
 
 An editable source records the advisories and accepted omissions it was
-imported with in an `importIssues` block (`.mesh.json` version 15) and carries
+imported with in an `importIssues` block (`.mesh.json` version 18) and carries
 no warnings. The Mesh Editor lists them under **Health** > **Import**. A
 source cannot record damage, and an omission it records must be accepted.
 

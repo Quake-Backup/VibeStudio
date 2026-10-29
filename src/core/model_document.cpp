@@ -845,7 +845,7 @@ int readableSourceVersion(const ModelMesh &mesh)
 	const bool timed = std::any_of(mesh.animations.cbegin(), mesh.animations.cend(), [](const auto &clip) { return clip.framesPerSecond > 0; });
 	const bool collisionAnimation = std::any_of(mesh.collisionBoxes.cbegin(), mesh.collisionBoxes.cend(), [](const auto &box) { return !box.framePoses.isEmpty(); });
 	const bool explicitTopology = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return !s.topologyVertices.isEmpty(); });
-	return !mesh.issues.isEmpty() ? 15 : !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3;
+	return !mesh.issues.isEmpty() ? modelSourceImportIssuesVersion : !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3;
 }
 // Packed sources (version 12) store the bulk arrays as base64 strings of
 // little-endian 32-bit words; the rest of the source is the same JSON.
@@ -1075,7 +1075,7 @@ QJsonObject sourceJson(const ModelMesh &mesh, QString *error, const ModelWorkCon
 	{
 		result.insert(QStringLiteral("skinVariants"), modelSkinVariantsJson(mesh.skinVariants));
 	}
-	// Version 15: the decode advisories and accepted omissions of the import.
+	// Version 18: the decode advisories and accepted omissions of the import.
 	// A surface deleted since then leaves its issues to the whole model.
 	if (!mesh.issues.isEmpty())
 	{
@@ -1240,7 +1240,7 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 		 root.value(QStringLiteral("version")) != QJsonValue(5) && root.value(QStringLiteral("version")) != QJsonValue(6) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(7) && root.value(QStringLiteral("version")) != QJsonValue(8) && root.value(QStringLiteral("version")) != QJsonValue(9) && root.value(QStringLiteral("version")) != QJsonValue(10) && root.value(QStringLiteral("version")) != QJsonValue(11) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(modelSourcePackedVersion) && root.value(QStringLiteral("version")) != QJsonValue(13) && root.value(QStringLiteral("version")) != QJsonValue(14) &&
-		 root.value(QStringLiteral("version")) != QJsonValue(15)) ||
+		 root.value(QStringLiteral("version")) != QJsonValue(modelSourceImportIssuesVersion)) ||
 		!root.value(QStringLiteral("source")).isString())
 	{
 		return malformed();
@@ -1695,11 +1695,11 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 			return variantError.isEmpty() ? malformed() : fail(error, variantError);
 		}
 	}
-	// Version 15 records the import's advisories and accepted omissions.
+	// Version 18 records the import's advisories and accepted omissions.
 	if (root.contains(QStringLiteral("importIssues")))
 	{
 		QString issuesError;
-		if (result.version < 15 || !parseModelDecodeIssues(root.value(QStringLiteral("importIssues")), int(result.surfaces.size()), &result.issues, &issuesError))
+		if (result.version < modelSourceImportIssuesVersion || !parseModelDecodeIssues(root.value(QStringLiteral("importIssues")), int(result.surfaces.size()), &result.issues, &issuesError))
 		{
 			return issuesError.isEmpty() ? malformed() : fail(error, issuesError);
 		}
