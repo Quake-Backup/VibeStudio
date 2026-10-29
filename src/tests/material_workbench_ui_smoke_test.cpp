@@ -60,8 +60,10 @@ bool expect(bool condition, const std::string& message, const QString& detail = 
 }
 
 // Generous: the first frame waits for the 3D renderer to start, and a
-// loaded machine slows every frame.
-bool waitFor(const std::function<bool()>& condition, int timeoutMs = 60000)
+// loaded machine slows every frame. A scan over a base package has taken
+// over a minute beside other sessions' builds, and a step that times out
+// runs against the previous library, so later checks fail with it.
+bool waitFor(const std::function<bool()>& condition, int timeoutMs = 180000)
 {
 	QElapsedTimer timer;
 	timer.start();

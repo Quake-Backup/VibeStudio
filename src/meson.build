@@ -1289,7 +1289,7 @@ if qt6_test_dep.found()
     dependencies: [vibestudio_app_dep, qt6_test_dep],
     install: false,
   )
-  test('material-workbench-ui-smoke', material_workbench_ui_smoke_test, timeout: 300)
+  test('material-workbench-ui-smoke', material_workbench_ui_smoke_test, timeout: 600)
 endif
 
 # Animated materials on the Levels camera.
