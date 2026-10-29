@@ -88,6 +88,15 @@ ModelMesh gridMesh(int cells = 4, double size = 8, bool flat = false)
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
+// The open dialog with this object name. Found before acting on it: a live
+// preview can delete other top-level widgets while the loop would still run.
+QDialog *openDialog(const QString &name)
+{
+	for (auto *widget : QApplication::topLevelWidgets())
+		if (auto *dialog = qobject_cast<QDialog *>(widget); dialog && dialog->objectName() == name)
+			return dialog;
+	return nullptr;
+}
 QDoubleSpinBox *lastField(ModelEditorTools *tools, const QString &name)
 {
 	for (auto *spin : tools->lastOperationPanel()->findChildren<QDoubleSpinBox *>())
@@ -268,24 +277,23 @@ void transformModelChecks(QApplication &app, ModelEditorDialog &editor)
 	QTimer::singleShot(0, &app,
 					   [&]
 					   {
-						   for (auto *widget : QApplication::topLevelWidgets())
-							   if (auto *dialog = qobject_cast<QDialog *>(widget); dialog && dialog->objectName() == QStringLiteral("meshTransformModelDialog"))
+						   if (auto *dialog = openDialog(QStringLiteral("meshTransformModelDialog")))
+						   {
+							   auto *offset = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelOffsetX"));
+							   auto *scale = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelScaleX"));
+							   auto *problem = dialog->findChild<QLabel *>(QStringLiteral("meshTransformModelProblem"));
+							   if (offset && scale && problem && viewport)
 							   {
-								   auto *offset = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelOffsetX"));
-								   auto *scale = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelScaleX"));
-								   auto *problem = dialog->findChild<QLabel *>(QStringLiteral("meshTransformModelProblem"));
-								   if (offset && scale && problem && viewport)
-								   {
-									   offset->setValue(10);
-									   previewed = near(viewport->mesh().surfaces[0].frames[0].positions[1].x, before.x + 10) &&
-												   near(document.mesh().surfaces[0].frames[0].positions[1].x, before.x) && document.undoSteps() == steps;
-									   scale->setValue(0);
-									   refused = !problem->isHidden() && !problem->text().isEmpty();
-									   scale->setValue(1);
-									   restored = problem->isHidden();
-								   }
-								   dialog->accept();
+								   offset->setValue(10);
+								   previewed = near(viewport->mesh().surfaces[0].frames[0].positions[1].x, before.x + 10) &&
+											   near(document.mesh().surfaces[0].frames[0].positions[1].x, before.x) && document.undoSteps() == steps;
+								   scale->setValue(0);
+								   refused = !problem->isHidden() && !problem->text().isEmpty();
+								   scale->setValue(1);
+								   restored = problem->isHidden();
 							   }
+							   dialog->accept();
+						   }
 					   });
 	tools->action(QStringLiteral("meshTransformModel"))->trigger();
 	app.processEvents();
@@ -299,13 +307,12 @@ void transformModelChecks(QApplication &app, ModelEditorDialog &editor)
 	QTimer::singleShot(0, &app,
 					   [&]
 					   {
-						   for (auto *widget : QApplication::topLevelWidgets())
-							   if (auto *dialog = qobject_cast<QDialog *>(widget); dialog && dialog->objectName() == QStringLiteral("meshTransformModelDialog"))
-							   {
-								   if (auto *offset = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelOffsetX")))
-									   offset->setValue(5);
-								   dialog->reject();
-							   }
+						   if (auto *dialog = openDialog(QStringLiteral("meshTransformModelDialog")))
+						   {
+							   if (auto *offset = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelOffsetX")))
+								   offset->setValue(5);
+							   dialog->reject();
+						   }
 					   });
 	tools->action(QStringLiteral("meshTransformModel"))->trigger();
 	app.processEvents();
@@ -727,13 +734,12 @@ void snapChecks(QApplication &app, ModelEditorDialog &editor)
 	QTimer::singleShot(0, &app,
 					   [&]
 					   {
-						   for (auto *widget : QApplication::topLevelWidgets())
-							   if (auto *dialog = qobject_cast<QDialog *>(widget); dialog && dialog->objectName() == QStringLiteral("meshPlaceVertexDialog"))
-							   {
-								   if (auto *z = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshPlaceVertexZ")))
-									   z->setValue(-2.5);
-								   dialog->accept();
-							   }
+						   if (auto *dialog = openDialog(QStringLiteral("meshPlaceVertexDialog")))
+						   {
+							   if (auto *z = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshPlaceVertexZ")))
+								   z->setValue(-2.5);
+							   dialog->accept();
+						   }
 					   });
 	tools->action(QStringLiteral("meshPlaceVertex"))->trigger();
 	app.processEvents();
