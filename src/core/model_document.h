@@ -207,6 +207,8 @@ enum class ModelEditKind
 	ExtrudeFaces,
 	// Removes two face regions and bridges the holes (core/model_boundary_bridge.h).
 	BridgeFaces,
+	// Reflects a detached face selection across an axis plane (core/model_symmetry.h).
+	MirrorFaces,
 };
 
 struct ModelEdit

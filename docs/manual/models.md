@@ -543,6 +543,14 @@ transform runs to use them, so <kbd>G</kbd> <kbd>Z</kbd> <kbd>Z</kbd> moves alon
 the normal. With both, each piece uses its own normal. See
 [Editable Meshes](../MODEL_MESH.md) for the exact rules.
 
+To build half a model and mirror it as you go, turn on **Symmetry X** (or Y or
+Z) in the editing header. Extrusions, insets, loop cuts, bevels, dissolves and
+the other topology tools then change the other side too, from the side you
+selected, in one undo step; moving vertices with <kbd>G</kbd>, <kbd>R</kbd> and
+<kbd>S</kbd> moves their mirror counterparts. **Mesh > Symmetrize > Mirror Faces
+Across X** flips a separate piece, such as an ear or a pauldron, to the other
+side. See [modelling tools](../MODEL_TOOLS.md#proportional-editing-and-symmetry).
+
 The mesh menus (**View**, **Select**, **Add**, **Mesh**, **Vertex**, **Edge**,
 **Face** and **UV**) hold the rest: primitives, merging, dissolving, bisecting,
 symmetrising, smoothing, solidify, decimation, normals, UV projections, seams

@@ -39,7 +39,8 @@ an explicitly selected diagonal remains usable. Inspect the preview before
 confirming. Face-region detachment uses **Separate Faces** instead.
 
 Topology changes in every retained pose regardless of frame scope. Rip does
-not use proportional or mirror-transform settings. Source UV corners stay
+not use proportional editing; with the header's **Symmetry** on, the ripped
+part is mirrored to the other side afterwards. Source UV corners stay
 separate; every filled cut gets its own strip chart, measured in the reference
 pose. **Units per texture repeat** defaults to 64. Pack or edit generated UVs
 for the intended skin layout.

@@ -25,6 +25,7 @@
 #include <QMenuBar>
 #include <QScrollArea>
 #include <QTemporaryDir>
+#include <QToolButton>
 #include <QTranslator>
 #include <iostream>
 
@@ -340,6 +341,55 @@ void bridges(QApplication &app, ModelEditorDialog &editor, ModelEditorTools &too
 	tools.action("meshAdjustLast")->trigger();
 	app.processEvents();
 }
+
+// Symmetry X: E on one side extrudes both; Mirror Faces is in the Symmetrize menu.
+void symmetry(QApplication &app, ModelEditorDialog &editor, ModelEditorTools &tools, ModelViewport &view)
+{
+	QString error;
+	QVector<ModelVec3> p;
+	QVector<ModelTriangle> t;
+	for (int j = 0; j <= 2; ++j)
+		for (int i = 0; i <= 4; ++i)
+			p << ModelVec3{float(-16 + 8 * i), float(8 * j), 0};
+	for (int j = 0; j < 2; ++j)
+		for (int i = 0; i < 4; ++i)
+			t << ModelTriangle{j * 5 + i, j * 5 + i + 1, (j + 1) * 5 + i + 1} << ModelTriangle{j * 5 + i, (j + 1) * 5 + i + 1, (j + 1) * 5 + i};
+	const auto grid = polygonMesh(p, t);
+	expect(editor.setMesh(grid, &error), "open a symmetric grid", error);
+	auto *mirrorX = editor.findChild<QToolButton *>("meshMirrorX");
+	if (!expect(mirrorX != nullptr, "the Symmetry X button exists"))
+		return;
+	mirrorX->setChecked(true);
+	ModelSelection selected;
+	selected.faces = {6, 7};
+	tools.applySelection(selected);
+	expect(settleModelViewport(view), "grid settles");
+	expect(tools.beginModal(ModelModalOperator::Extrude, view.rect().center() + QPointF(40, 0)), "start a symmetric extrusion");
+	type(tools, "4");
+	ModelEdit expectedEdit;
+	expectedEdit.kind = ModelEditKind::Extrude;
+	expectedEdit.selection = selected;
+	expectedEdit.translation = {0, 0, 4};
+	expectedEdit.tool.symmetryAxes = 1;
+	auto expected = grid;
+	expect(applyModelEdit(&expected, expectedEdit, nullptr, &error), "prepare the symmetric extrusion", error);
+	expect(tools.modalPreviewValid() && samePoses(tools.modalPreview()->surfaces[0], expected.surfaces[0], 1e-4) &&
+			   tools.modalPreview()->surfaces[0].triangles.size() == 32,
+		   "the preview extrudes the mirrored quad too");
+	expect(tools.finishModal(true, &error) && editor.document().mesh().surfaces[0].triangles.size() == 32 &&
+			   editor.document().selection().faces.size() == 4,
+		   "the commit mirrors the extrusion and selects both caps", error);
+	editor.findChild<QAction *>("undoMesh")->trigger();
+	app.processEvents();
+	expect(bytes(editor.document().mesh()) == bytes(grid), "the symmetric extrusion is one undo step");
+	mirrorX->setChecked(false);
+	auto *symmetrize = tools.menuBar()->findChild<QMenu *>("meshMenuSymmetrize");
+	expect(symmetrize && symmetrize->actions().contains(tools.action("meshMirrorFacesX")), "Mirror Faces is in the Symmetrize menu");
+	tools.applySelection(selected);
+	tools.action("meshMirrorFacesX")->trigger();
+	app.processEvents();
+	expect(bytes(editor.document().mesh()) == bytes(grid) && !editor.document().canUndo(), "Mirror Faces refuses faces attached to the rest");
+}
 } // namespace
 int main(int argc, char **argv)
 {
@@ -384,6 +434,7 @@ int main(int argc, char **argv)
 		arraysAndScrews(app, editor, *tools, *view);
 		extrudeVariants(app, editor, *tools, *view);
 		bridges(app, editor, *tools);
+		symmetry(app, editor, *tools, *view);
 		editor.close();
 		app.processEvents();
 		if (scenario)

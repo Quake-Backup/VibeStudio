@@ -440,6 +440,7 @@ core_sources = files(
   'core/model_spin.cpp',
   'core/model_array.cpp',
   'core/model_extrude.cpp',
+  'core/model_symmetry.cpp',
   'core/model_rip.cpp',
   'core/model_vertex_identity.cpp',
   'core/model_vertex_origins.cpp',
@@ -661,6 +662,7 @@ install_headers('core/model_transform.h', subdir: 'vibestudio/core')
 install_headers('core/model_trackball.h', subdir: 'vibestudio/core')
 install_headers('core/model_transform_axes.h', subdir: 'vibestudio/core')
 install_headers('core/model_transform_pieces.h', subdir: 'vibestudio/core')
+install_headers('core/model_symmetry.h', subdir: 'vibestudio/core')
 install_headers('core/model_tags.h', subdir: 'vibestudio/core')
 install_headers('core/model_uv.h', subdir: 'vibestudio/core')
 install_headers('core/model_uv_density.h', subdir: 'vibestudio/core')
@@ -3935,6 +3937,12 @@ model_bridge_options_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-bridge-options-smoke', model_bridge_options_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+
+model_symmetry_smoke_test = executable(
+  'model_symmetry_smoke_test', ['tests/model_symmetry_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-symmetry-smoke', model_symmetry_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
 
 model_polygon_tools_ui_smoke_test = executable(
   'model_polygon_tools_ui_smoke_test', ['tests/model_polygon_tools_ui_smoke_test.cpp'],

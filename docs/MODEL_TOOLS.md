@@ -181,6 +181,32 @@ moving a vertex also moves its counterpart on the other side, and vertices on
 the mirror plane stay on it. Counterparts are matched by position in the
 displayed pose.
 
+The same buttons make topology and shape tools symmetric, for models built
+half-and-mirror: extrude (all variants), duplicate, inset, loop cut, edge slide,
+bevel, knife, merge, dissolve, poke, make face, rotate edge, beautify,
+shrink/fatten, smooth, solidify, spin, rip, array, subdivide and delete. The tool
+runs on the side you selected, then the connected part it changed is made
+symmetric with Symmetrize from that side, in every pose and as one undo step;
+the tool's result stays selected on both sides, and F9 replays both. Other
+pieces of the surface keep any deliberate asymmetry, but the edited piece as a
+whole becomes symmetric. Select one side of each active plane: a selection that
+mirrors itself (such as a centre loop) needs no mirroring, and one that spreads
+unevenly across a plane is refused with the plane named. Vertices within the
+merge distance of the plane join both halves. Symmetric edits need the **All
+frames** scope. On a skinned surface the joint mirror map last confirmed for
+**Symmetrize** is used; run Symmetrize once first when joints sit off the plane.
+`model tool` takes `--symmetry x|y|z|xy…` (with `--joint-map`) on these tools.
+The viewport gizmo still moves only the selection, without symmetry or
+proportional falloff: use the G, R and S keys for those.
+
+**Mesh > Symmetrize > Mirror Faces Across X/Y/Z** reflects the selected faces
+across the plane through the 3D cursor, flipping their winding so they keep
+facing outward, in every pose. The faces must form a detached piece: a face
+outside the selection that shares a corner would tear, so it is refused. On a
+skinned surface the plane must pass through the origin and the joints follow
+the confirmed joint mirror map. F9 sets the axis and the plane point;
+`model tool --tool mirror --axis x --point x,y,z` is the CLI form.
+
 ### Individual origins and normal axes
 
 **Shift+S > Pivot at Individual Origins** (or **Pivot > Individual origins** in
@@ -500,6 +526,8 @@ its `binding`.
 | `make-face` | `--vertices` or `--edges` |
 | `extrude-edges` | `--edges`, `--offset x,y,z` |
 | `inset` | `--faces`, `--thickness`, `--depth`, `--individual`, `--no-even` |
+| `mirror` | `--faces`, `--axis x\|y\|z`, `--point x,y,z` (default the origin), `--joint-map`, `--keep-joint-names` |
+| any symmetric tool | `--symmetry x\|y\|z\|xy…` (with `--joint-map`/`--keep-joint-names` on skinned surfaces) |
 | `extrude` | `--faces`, `--mode region\|normals\|individual`, `--distance` (required), `--tile-size` (side-wall UV strips; omitted copies the border's UVs), `--no-even` |
 | `array` | `--faces`, `--count 2..256`, `--offset x,y,z`, `--relative x,y,z` (default 1,0,0), `--rotate x,y,z`, `--scale`, `--centre x,y,z` (default the selection's centre), `--merge distance` |
 | `shrink-fatten` | selection, `--distance`, `--no-even`, `--frame all\|N` |

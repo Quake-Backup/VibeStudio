@@ -7,6 +7,7 @@
 #include "core/model_lod.h"
 #include "core/model_mesh_tools.h"
 #include "core/model_selection_tools.h"
+#include "core/model_symmetry.h"
 #include "core/model_target_prepare.h"
 #include "core/model_targets.h"
 #include "core/model_vertex_origins.h"
@@ -302,7 +303,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		QStringLiteral("--steps"), QStringLiteral("--centre"), QStringLiteral("--axis-vector"), QStringLiteral("--joint-map"),
 		QStringLiteral("--bind"), QStringLiteral("--bind-joint"), QStringLiteral("--new-surface"),
 		QStringLiteral("--transform-space"), QStringLiteral("--axis-rotation"), QStringLiteral("--axes-frame"),
-		QStringLiteral("--count"), QStringLiteral("--relative"), QStringLiteral("--axial-offset"), QStringLiteral("--mode")};
+		QStringLiteral("--count"), QStringLiteral("--relative"), QStringLiteral("--axial-offset"), QStringLiteral("--mode"),
+		QStringLiteral("--symmetry")};
 	Arguments args;
 	QString error;
 	if (!parse(arguments, flags, options, &args, &error))
@@ -314,6 +316,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("spin"), ModelEditKind::Spin},
 		{QStringLiteral("array"), ModelEditKind::Array},
 		{QStringLiteral("extrude"), ModelEditKind::ExtrudeFaces},
+		{QStringLiteral("mirror"), ModelEditKind::MirrorFaces},
 		{QStringLiteral("rip"), ModelEditKind::Rip},
 		{QStringLiteral("knife"), ModelEditKind::Knife},
 		{QStringLiteral("bevel-edges"), ModelEditKind::BevelEdges},
@@ -359,6 +362,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("spin"), {QStringLiteral("--faces"), QStringLiteral("--edges"), QStringLiteral("--angle"), QStringLiteral("--steps"),
 			QStringLiteral("--centre"), QStringLiteral("--axis"), QStringLiteral("--axis-vector"), QStringLiteral("--duplicate"),
 			QStringLiteral("--no-close"), QStringLiteral("--tile-size"), QStringLiteral("--axial-offset")}},
+		{QStringLiteral("mirror"), {QStringLiteral("--faces"), QStringLiteral("--axis"), QStringLiteral("--point"), QStringLiteral("--joint-map"),
+			QStringLiteral("--keep-joint-names")}},
 		{QStringLiteral("extrude"), {QStringLiteral("--faces"), QStringLiteral("--mode"), QStringLiteral("--distance"), QStringLiteral("--tile-size"),
 			QStringLiteral("--no-even")}},
 		{QStringLiteral("array"), {QStringLiteral("--faces"), QStringLiteral("--count"), QStringLiteral("--offset"), QStringLiteral("--relative"),
@@ -391,7 +396,10 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 							   QStringLiteral("--input"),   QStringLiteral("--output"),		  QStringLiteral("--tool"),
 							   QStringLiteral("--surface"), QStringLiteral("--reference-frame"), QStringLiteral("--settings-file"),
 							   QStringLiteral("--locale"),  QStringLiteral("--catalog-root")};
-	const auto allowed = accepted.value(toolName);
+	auto allowed = accepted.value(toolName);
+	// Live symmetry on topology and shape tools, with a joint map for skinned surfaces.
+	if (modelSymmetrySupported(kind))
+		allowed << QStringLiteral("--symmetry") << QStringLiteral("--joint-map") << QStringLiteral("--keep-joint-names");
 	for (const auto &key : std::as_const(args.seen))
 	{
 		if (!shared.contains(key) && !allowed.contains(key))
@@ -670,6 +678,16 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		if (!falloffs.contains(text))
 			return fail(2, Text::tr("Use --falloff smooth|sphere|root|inverse-square|sharp|linear|constant."));
 		tool.falloff = falloffs.value(text);
+	}
+	if (args.values.contains(QStringLiteral("--symmetry")))
+	{
+		for (const QChar axis : args.values.value(QStringLiteral("--symmetry")).toLower())
+		{
+			const int value = axisFrom(QString(axis));
+			if (value < 0 || (tool.symmetryAxes & (1 << value)))
+				return fail(2, Text::tr("Use --symmetry with axes x, y and/or z, such as x or xy."));
+			tool.symmetryAxes |= 1 << value;
+		}
 	}
 	if (args.values.contains(QStringLiteral("--mirror")))
 	{

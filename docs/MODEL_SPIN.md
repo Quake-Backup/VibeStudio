@@ -23,8 +23,9 @@ pre-alpha; [release acceptance](MODELLER_RELEASE.md) is still open.
 Angles range from −360 to 360 degrees and steps from 1 to 256. A connected
 extrusion needs less than 180 degrees per step. A closed full turn needs at
 least three steps. Zero-angle extrusion makes no change. Topology changes in
-every retained pose, regardless of the current frame scope. Proportional and
-mirror transforms do not modify Spin.
+every retained pose, regardless of the current frame scope. Proportional
+editing does not modify Spin; with the header's **Symmetry** on, the spun part is
+mirrored to the other side afterwards.
 
 A partial face extrusion replaces the original selected faces with side bands
 and an end cap. On a detached sheet, the starting end remains open. A complete

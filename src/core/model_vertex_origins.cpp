@@ -776,6 +776,7 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::Array:
 	case ModelEditKind::ExtrudeFaces:
 	case ModelEditKind::BridgeFaces:
+	case ModelEditKind::MirrorFaces:
 		return ModelEditSkinHandling::Provenance;
 	}
 	return ModelEditSkinHandling::Provenance;

@@ -1592,6 +1592,7 @@ bool isModelMeshToolEdit(ModelEditKind kind)
 	case ModelEditKind::ProjectUvMapping:
 	case ModelEditKind::Array:
 	case ModelEditKind::ExtrudeFaces:
+	case ModelEditKind::MirrorFaces:
 		return true;
 	default:
 		return false;
@@ -1633,7 +1634,7 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 		return fail(error, Text::tr("Knife settings apply only to the knife tool."));
 	if (edit.kind != ModelEditKind::SlideEdges && options.slideByDistance)
 		return fail(error, Text::tr("Slide distance mode applies only to edge sliding."));
-	if (edit.kind != ModelEditKind::Symmetrize && (!options.mirrorJoints.isEmpty() || options.keepJointNames))
+	if (edit.kind != ModelEditKind::Symmetrize && edit.kind != ModelEditKind::MirrorFaces && (!options.mirrorJoints.isEmpty() || options.keepJointNames))
 		return fail(error, Text::tr("Joint mirror maps apply only to Symmetrize."));
 	if (edit.kind != ModelEditKind::AddPrimitive &&
 		(options.newGeometryBinding != ModelNewGeometryBinding::None || !options.bindJoint.isEmpty() || !options.newSurface.isEmpty()))
@@ -1742,6 +1743,8 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 		return arrayFaces(candidate, edit, selection, error, control, report);
 	case ModelEditKind::ExtrudeFaces:
 		return extrudeFaces(candidate, edit, selection, error, control, report);
+	case ModelEditKind::MirrorFaces:
+		return mirrorFaces(candidate, edit, selection, error, work);
 	default:
 		return fail(error, Text::tr("Unknown mesh tool."));
 	}

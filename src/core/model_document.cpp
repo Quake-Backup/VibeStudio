@@ -8,6 +8,7 @@
 #include "core/model_source_decode.h"
 #include "core/model_geometry_helpers.h"
 #include "core/model_surface_selection.h"
+#include "core/model_symmetry.h"
 #include "core/model_material_slots.h"
 #include "core/model_surfaces.h"
 #include "core/model_skin_bindings.h"
@@ -1757,6 +1758,9 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	{
 		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "No editable model is open."));
 	}
+	// Live symmetry: the tool, then Symmetrize on the edited part (core/model_symmetry.h).
+	if (edit.tool.symmetryAxes != 0)
+		return applySymmetricModelEdit(mesh, edit, resultingSelection, error, control, report, applyModelEditUnreconciled);
 	const auto originalErrors = validateEditableModel(*mesh, control);
 	if (!originalErrors.isEmpty())
 	{

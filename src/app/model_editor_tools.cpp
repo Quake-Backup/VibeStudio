@@ -10,6 +10,7 @@
 #include "core/model_geometric_topology.h"
 #include "core/model_file_io.h"
 #include "core/model_lod.h"
+#include "core/model_symmetry.h"
 #include "core/model_targets.h"
 #include "core/model_transform_axes.h"
 
@@ -658,6 +659,25 @@ void ModelEditorTools::buildActions()
 			  },
 			  QStringLiteral("repeat"));
 	// Context menus opened from the keyboard.
+	// Mirror Faces: reflect a detached face selection across the 3D cursor's plane.
+	for (int axis = 0; axis < 3; ++axis)
+	{
+		const QString axisName = QStringLiteral("XYZ").mid(axis, 1);
+		addAction(QStringLiteral("meshMirrorFaces%1").arg(axisName), Text::tr("Mirror Faces Across %1").arg(axisName), {},
+				  [this, axis]
+				  {
+					  runKind(ModelEditKind::MirrorFaces,
+							  [this, axis](ModelEdit &e)
+							  {
+								  e.selection = selectionFor(ModelEditKind::Extrude);
+								  e.selection.vertices.clear();
+								  e.selection.edges.clear();
+								  e.tool.axis = axis;
+								  e.tool.point = {m_cursor.x, m_cursor.y, m_cursor.z};
+							  });
+				  },
+				  QStringLiteral("mirror"));
+	}
 	addAction(QStringLiteral("meshAddMenu"), Text::tr("Add Menu"), QStringLiteral("Shift+A"),
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuAdd"))->popup(QCursor::pos()); });
 	addAction(QStringLiteral("meshDeleteMenu"), Text::tr("Delete Menu"), QStringLiteral("X|Del"),
@@ -763,7 +783,9 @@ void ModelEditorTools::buildMenus()
 						  QStringLiteral("meshMenuNormals"));
 	auto *symmetry = named(menu(Text::tr("Symmetrize"), {QStringLiteral("meshSymmetrizePositiveX"), QStringLiteral("meshSymmetrizeNegativeX"),
 														  QStringLiteral("meshSymmetrizePositiveY"), QStringLiteral("meshSymmetrizeNegativeY"),
-														  QStringLiteral("meshSymmetrizePositiveZ"), QStringLiteral("meshSymmetrizeNegativeZ")}),
+														  QStringLiteral("meshSymmetrizePositiveZ"), QStringLiteral("meshSymmetrizeNegativeZ"), {},
+														  QStringLiteral("meshMirrorFacesX"), QStringLiteral("meshMirrorFacesY"),
+														  QStringLiteral("meshMirrorFacesZ")}),
 						   QStringLiteral("meshMenuSymmetrize"));
 	auto *cleanup = named(menu(Text::tr("Clean Up"), {QStringLiteral("meshDecimate"), QStringLiteral("meshDecimateMd3"),
 													  QStringLiteral("meshBeautify"), QStringLiteral("meshMergeDistance"), {},
@@ -945,7 +967,8 @@ void ModelEditorTools::buildHeader()
 		button->setText(name);
 		button->setCheckable(true);
 		button->setAutoRaise(true);
-		button->setToolTip(Text::tr("Mesh symmetry across %1: moving a vertex also moves its mirror counterpart.").arg(name));
+		button->setToolTip(Text::tr("Mesh symmetry across %1: moving a vertex also moves its mirror counterpart, and extrude, inset, loop cut, bevel, "
+									"dissolve and other topology tools mirror what they change from the selection's side.").arg(name));
 		button->setAccessibleName(Text::tr("Mirror editing across %1").arg(name));
 		row->addWidget(button);
 		m_mirror[axis] = button;
@@ -1326,6 +1349,17 @@ ModelEdit ModelEditorTools::toolEdit(ModelEditKind kind) const
 		edit.tool.insetThickness = std::max(0.5, double(m_editor->m_document.mesh().boundingRadius()) / 32);
 	if (kind == ModelEditKind::SmoothVertices)
 		edit.tool.pinBoundary = true;
+	// Live symmetry: the header's Symmetry buttons mirror topology and shape
+	// tools too, with the joint map last confirmed for Symmetrize.
+	if (modelSymmetrySupported(kind) && m_mirror[0])
+	{
+		edit.tool.symmetryAxes = (m_mirror[0]->isChecked() ? 1 : 0) | (m_mirror[1]->isChecked() ? 2 : 0) | (m_mirror[2]->isChecked() ? 4 : 0);
+		if (edit.tool.symmetryAxes != 0)
+		{
+			edit.tool.mirrorJoints = m_mirrorJoints;
+			edit.tool.keepJointNames = m_keepJointNames;
+		}
+	}
 	return edit;
 }
 
@@ -1365,7 +1399,7 @@ void ModelEditorTools::runKind(ModelEditKind kind, std::function<void(ModelEdit 
 	auto edit = toolEdit(kind);
 	if (configure)
 		configure(edit);
-	if (kind == ModelEditKind::Symmetrize && !confirmMirrorJoints(edit))
+	if ((kind == ModelEditKind::Symmetrize || kind == ModelEditKind::MirrorFaces) && !confirmMirrorJoints(edit))
 		return;
 	QString error;
 	runTool(edit, &error);
@@ -2011,6 +2045,10 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 			+ array3(Text::tr("Axis"), &ModelMeshToolOptions::normal, -1, 1)
 			+ QVector<LastField>{{Text::tr("Axial offset (screw)"), -100000, 100000, 3, [](const E &e) { return e.tool.spinAxialOffset; },
 								  [](E &e, double v) { e.tool.spinAxialOffset = v; }}};
+	case ModelEditKind::MirrorFaces:
+		return QVector<LastField>{{Text::tr("Axis"), 0, 2, 0, [](const E &e) { return double(e.tool.axis); }, [](E &e, double v) { e.tool.axis = int(v); }, false,
+								   {QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")}}}
+			+ array3(Text::tr("Plane point"), &ModelMeshToolOptions::point, -100000, 100000);
 	case ModelEditKind::BridgeBoundaryLoops:
 	case ModelEditKind::BridgeFaces:
 	{
@@ -2220,6 +2258,8 @@ QString kindTitle(ModelEditKind kind)
 		return Text::tr("Bridge Edge Loops");
 	case ModelEditKind::BridgeFaces:
 		return Text::tr("Bridge Faces");
+	case ModelEditKind::MirrorFaces:
+		return Text::tr("Mirror Faces");
 	case ModelEditKind::Rip:
 		return Text::tr("Rip");
 	case ModelEditKind::Solidify:

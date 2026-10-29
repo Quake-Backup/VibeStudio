@@ -200,6 +200,10 @@ struct ModelMeshToolOptions
 	// zero copies the border's UVs onto the walls, as Extrude does.
 	ModelExtrudeMode extrudeMode = ModelExtrudeMode::Region;
 	double extrudeTileSize = 0;
+	// Live symmetry (core/model_symmetry.h): after the tool, the edited part
+	// is mirrored across these model planes (bit mask X = 1, Y = 2, Z = 4),
+	// using mergeThreshold and, on skinned surfaces, mirrorJoints.
+	int symmetryAxes = 0;
 	// Rip selected vertices/edges toward the incident side face, optionally
 	// bridge the opening. The translation is carried by ModelEdit::translation.
 	int ripFace = -1;

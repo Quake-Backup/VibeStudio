@@ -34,8 +34,9 @@ quadratic profile. Roundness ranges from 0 (straight) to 1 (rounded), with 1 as
 the default. It is not an exact circular radius.
 
 Topology changes in every retained pose regardless of the current frame scope.
-Axis constraints, proportional editing and mirrored transforms do not alter
-a bevel. Zero width makes no change; setting it through F9 removes that last
+Axis constraints and proportional editing do not alter a bevel; with the
+header's **Symmetry** on, the bevel is mirrored to the other side afterwards
+(see [symmetric editing](MODEL_TOOLS.md#proportional-editing-and-symmetry)). Zero width makes no change; setting it through F9 removes that last
 operation and clears its adjustment controls. The named command is available
 in all profiles; 3ds Max and MilkShape keep their existing shortcuts.
 
