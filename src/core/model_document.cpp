@@ -1815,6 +1815,7 @@ bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resu
 			}
 			remapModelTagAnchors(before, mesh, pending.sourceFaces);
 			clearModelVertexOrigins(mesh);
+			if (!pins.isEmpty()) carryModelUvPins(pins, mesh);
 			if (report) *report = std::move(pending);
 			return true;
 		}
