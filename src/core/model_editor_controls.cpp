@@ -82,6 +82,9 @@ constexpr CommandEntry kCommands[] = {
 	// Mesh editing.
 	{"meshExtrude", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Extrude"), "E"},
 	{"meshInset", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Inset Faces"), "I"},
+	{"meshExtrudeMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Extrude Menu"), "Alt+E"},
+	{"meshExtrudeNormals", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Extrude Faces Along Normals"), ""},
+	{"meshExtrudeIndividual", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Extrude Individual Faces"), ""},
 	{"meshDuplicate", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Duplicate"), "Shift+D"},
 	{"meshLoopCut", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Loop Cut"), "Ctrl+R"},
 	{"meshEdgeSlide", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Edge Slide"), ""},

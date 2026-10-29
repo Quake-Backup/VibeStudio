@@ -97,7 +97,10 @@ enum class ModelModalOperator
 	Spin,
 	SpinDuplicate,
 	Rip,
-	RipFill
+	RipFill,
+	// Extrude Faces along each vertex's region normal, or each face on its own.
+	ExtrudeNormals,
+	ExtrudeIndividual
 };
 
 class ModelEditorTools final : public QObject

@@ -614,6 +614,14 @@ teeth: **F9** sets the **Count**, the **Offset** and **Relative offset**, a
 per-copy **Rotation** and **Scale** about the **Centre**, and a **Merge
 distance** that joins neighbouring copies into one piece. Each is one undo step.
 
+<kbd>Alt</kbd>+<kbd>E</kbd> opens the extrude variants. **Extrude Faces Along
+Normals** pushes panels and armour plates out along their own normals, keeping
+an even thickness at corners; **Extrude Individual Faces** turns each face into
+its own spike or block. Move the pointer or type a distance, then press
+<kbd>Enter</kbd>. Their side walls get their own UV strips, so they do not smear
+the skin; **F9** changes the mode and the wall UV scale (0 keeps the old copied
+UVs).
+
 **Vertex → Rip** and **Edge → Rip** open a selected vertex or connected edge
 chain; **Rip and Fill** bridges the gap. **V/Alt+V** start these in the studio
 and Blender profiles. The starting pointer chooses the side; **B** swaps it

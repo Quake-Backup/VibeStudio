@@ -10,6 +10,7 @@
 #include "core/model_geometry_helpers.h"
 
 #include <QDir>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>

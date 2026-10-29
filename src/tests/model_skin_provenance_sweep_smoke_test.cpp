@@ -780,6 +780,13 @@ void checkSweep()
 		e.tool.arrayOffset = {0, 0, 4};
 		e.tool.arrayRelative = {0, 0, 0};
 		add(QStringLiteral("Array"), e);
+		e = kindEdit(ModelEditKind::ExtrudeFaces, {0, {}, {0, 1}});
+		e.tool.offset = 2;
+		e.tool.extrudeMode = ModelExtrudeMode::AlongNormals;
+		e.tool.extrudeTileSize = 8;
+		add(QStringLiteral("Extrude Faces along normals with UV walls"), e);
+		e.tool.extrudeMode = ModelExtrudeMode::Individual;
+		add(QStringLiteral("Extrude Individual Faces"), e);
 	}
 	for (const auto &item : cases)
 		runCase(item);

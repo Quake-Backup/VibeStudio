@@ -117,6 +117,7 @@ right-click to start another path; **Enter/Space** confirms and **Esc** cancels.
 | **R** | Rotate (around the view axis unless constrained) |
 | **S** | Scale |
 | **E** | Extrude faces along their normal, or open border edges |
+| Alt+**E** | Extrude menu: along normals, individual faces, edges |
 | **I** | Inset faces (press **I** again for individual faces) |
 | Alt+**S** | Shrink/Fatten along vertex normals |
 | Shift+**D** | Duplicate faces and move them |
@@ -338,6 +339,7 @@ weights. See [skin weights through mesh edits](MODEL_SKIN_PROVENANCE.md) and the
 | Poke Faces | Adds a centre vertex to each face, optionally lifted along the face normal. |
 | Beautify Faces | Flips diagonals inside the selection to make triangles more even. |
 | Extrude Edges | Pulls open border edges out into a new strip. |
+| Extrude Faces Along Normals / Extrude Individual Faces | **Alt+E** or the **Face** menu. Along normals moves each vertex along the selected region's own vertex normal; with **Even thickness** (on by default) every face moves the whole distance along its own normal, so panels on a box corner stay parallel to their faces. Individual faces turns every selected face into its own prism with new vertex identities. Move along the averaged normal or type a distance; X/Y/Z do not apply. **F9** switches between **Region**, **Along normals** and **Individual faces** and sets **Wall UV units per repeat**: from the menu the side walls get their own UV strips at 64 units per repeat, marked as seams at their rows and closing column, instead of the zero-area walls that copy the border's UVs (enter 0 for those). Hard edges stay between the walls, the cap and the base; the walls stay smooth around each loop. Every pose moves along that pose's own normals, and copies keep their source's skin weights. A closed region has no direction to extrude in Region mode; extrude it along normals. |
 | Spin / Spin Duplicates | Curved face/open-border extrusion or radial face copies around the 3D cursor. Type degrees, choose X/Y/Z, adjust steps with Page Up/Down, then confirm or cancel. F9 exposes centre, axis, closure, copies, UV scale and the screw's axial offset. See [Spin](MODEL_SPIN.md) for all-pose and skinning semantics. |
 | Screw | A spin that climbs: one full turn around the 3D cursor's Z axis, 16 steps, 16 units of climb; F9 sets the climb (**Axial offset**), turn, steps, centre and axis. Springs, threads and spiral horns. See [Spin](MODEL_SPIN.md#make-a-screw-spring-or-spiral). |
 | Array | Copies the selected faces in a row in one step: each copy repeats the per-copy rotation and uniform scale (about the selection's centre, or F9's **Centre**) and moves by the **Offset** plus the **Relative offset** times the selection's size (one width along X by default). **Merge distance** joins each copy's border vertices to the copy before it when they lie that close in every pose, so chains of segments become one strip; joined vertices share a position and connectivity and keep their own UVs. Copies get their own vertex identities, keep their source's UVs, seams and skin weights (rebound where they land) and follow every pose. 2–256 copies; capacity is checked first. |
@@ -497,6 +499,7 @@ its `binding`.
 | `make-face` | `--vertices` or `--edges` |
 | `extrude-edges` | `--edges`, `--offset x,y,z` |
 | `inset` | `--faces`, `--thickness`, `--depth`, `--individual`, `--no-even` |
+| `extrude` | `--faces`, `--mode region\|normals\|individual`, `--distance` (required), `--tile-size` (side-wall UV strips; omitted copies the border's UVs), `--no-even` |
 | `array` | `--faces`, `--count 2..256`, `--offset x,y,z`, `--relative x,y,z` (default 1,0,0), `--rotate x,y,z`, `--scale`, `--centre x,y,z` (default the selection's centre), `--merge distance` |
 | `shrink-fatten` | selection, `--distance`, `--no-even`, `--frame all\|N` |
 | `smooth` | selection, `--factor`, `--iterations`, `--pin-boundary`, `--frame` |

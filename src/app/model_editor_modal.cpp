@@ -43,6 +43,7 @@ struct Text
 using V = ModelVec3;
 bool isSpin(ModelModalOperator op) { return op == ModelModalOperator::Spin || op == ModelModalOperator::SpinDuplicate; }
 bool isRip(ModelModalOperator op) { return op == ModelModalOperator::Rip || op == ModelModalOperator::RipFill; }
+bool isFaceExtrude(ModelModalOperator op) { return op == ModelModalOperator::ExtrudeNormals || op == ModelModalOperator::ExtrudeIndividual; }
 double dot(V a, V b)
 {
 	return double(a.x) * b.x + double(a.y) * b.y + double(a.z) * b.z;
@@ -220,6 +221,14 @@ bool ModelEditorTools::beginModal(ModelModalOperator op, const QPointF &pointer,
 		else
 			refusal = Text::tr("Extrude needs selected faces or open border edges.");
 	}
+	if (isFaceExtrude(op))
+	{
+		modal->selection = selectionFor(ModelEditKind::Extrude);
+		modal->selection.vertices.clear();
+		modal->selection.edges.clear();
+		if (modal->selection.faces.isEmpty())
+			refusal = Text::tr("Extrude along normals and extrude individual faces need selected faces.");
+	}
 	if (op == ModelModalOperator::Inset || op == ModelModalOperator::Duplicate)
 	{
 		modal->selection = selectionFor(ModelEditKind::InsetFaces);
@@ -322,7 +331,7 @@ bool ModelEditorTools::beginModal(ModelModalOperator op, const QPointF &pointer,
 	modal->startDistance = std::max(QLineF(pointer, modal->pivotScreen).length(), op == ModelModalOperator::Inset ? 48.0 : 1.0);
 	const QPointF offset = pointer - modal->pivotScreen;
 	modal->lastAngle = std::atan2(-offset.y(), offset.x());
-	if (op == ModelModalOperator::Extrude && !modal->edges)
+	if ((op == ModelModalOperator::Extrude && !modal->edges) || isFaceExtrude(op))
 	{
 		const auto &surface = mesh.surfaces[modal->selection.surface];
 		V normal{};
@@ -462,6 +471,12 @@ QString ModelEditorTools::modalText() const
 	case ModelModalOperator::EdgeSlide:
 		name = Text::tr("Edge Slide");
 		break;
+	case ModelModalOperator::ExtrudeNormals:
+		name = Text::tr("Extrude Along Normals");
+		break;
+	case ModelModalOperator::ExtrudeIndividual:
+		name = Text::tr("Extrude Individual Faces");
+		break;
 	case ModelModalOperator::None:
 		break;
 	}
@@ -490,6 +505,8 @@ QString ModelEditorTools::modalText() const
 		value = Text::tr("Thickness %1").arg(localeNumber(e.tool.insetThickness, 3, 'f'));
 		break;
 	case ModelModalOperator::ShrinkFatten:
+	case ModelModalOperator::ExtrudeNormals:
+	case ModelModalOperator::ExtrudeIndividual:
 		value = Text::tr("Distance %1").arg(localeNumber(e.tool.offset, 3, 'f'));
 		break;
 	case ModelModalOperator::BevelVertices:
@@ -549,6 +566,9 @@ QString ModelEditorTools::modalText() const
 									(adjust.isEmpty() ? Text::tr("View > Adjust Last Operation then sets the roundness") : Text::tr("%1 adjusts roundness").arg(adjust))
 							  : m.op == ModelModalOperator::EdgeSlide
 							  ? Text::tr("Follow the rails or type a signed fraction · Ctrl snaps to tenths · Shift is precise · Enter confirms · Esc cancels")
+							  : isFaceExtrude(m.op)
+							  ? Text::tr("Move along the normal or type a distance · Ctrl snaps · Shift is precise · Enter or click confirms · Esc cancels") + QStringLiteral(" · ") +
+									(adjust.isEmpty() ? Text::tr("View > Adjust Last Operation then sets the mode and wall UVs") : Text::tr("%1 adjusts the mode and wall UVs").arg(adjust))
 							  : Text::tr("X/Y/Z constrain (Shift: plane) · type a value · Ctrl snaps · Shift is precise · Enter or click confirms · Esc cancels");
 	return status + QStringLiteral("\n") + hints;
 }
@@ -611,7 +631,7 @@ void ModelEditorTools::moveModal(const QPointF &pointer, Qt::KeyboardModifiers m
 
 void ModelEditorTools::constrainModal(int axis, bool plane)
 {
-	if (!m_modal || m_editor->m_working || m_modal->op == ModelModalOperator::Knife || m_modal->op == ModelModalOperator::EdgeSlide || m_modal->op == ModelModalOperator::BevelEdges || axis < 0 || axis > 2)
+	if (!m_modal || m_editor->m_working || m_modal->op == ModelModalOperator::Knife || m_modal->op == ModelModalOperator::EdgeSlide || m_modal->op == ModelModalOperator::BevelEdges || isFaceExtrude(m_modal->op) || axis < 0 || axis > 2)
 		return;
 	auto &m = *m_modal;
 	if (isSpin(m.op)) plane = false;
@@ -979,6 +999,30 @@ void ModelEditorTools::updateModalPreview()
 		m.editReady = isRip(m.op) || length(delta) > 1e-6;
 		break;
 	}
+	case ModelModalOperator::ExtrudeNormals:
+	case ModelModalOperator::ExtrudeIndividual:
+	{
+		// The pointer's travel along the selection's averaged normal, or a typed distance.
+		edit = toolEdit(ModelEditKind::ExtrudeFaces);
+		edit.selection = m.selection;
+		double distance = 0;
+		if (hasTyped)
+			distance = typed;
+		else
+		{
+			double t0 = 0, t1 = 0;
+			if (!closestOnLine(startRay, m.pivot, m.normal, &t0) || !closestOnLine(ray, m.pivot, m.normal, &t1))
+				break;
+			distance = t1 - t0;
+		}
+		if (snapping)
+			distance = snapValue(distance, grid);
+		edit.tool.offset = distance;
+		edit.tool.extrudeMode = m.op == ModelModalOperator::ExtrudeNormals ? ModelExtrudeMode::AlongNormals : ModelExtrudeMode::Individual;
+		edit.tool.extrudeTileSize = 64;
+		m.editReady = std::abs(distance) > 1e-6;
+		break;
+	}
 	case ModelModalOperator::Inset:
 	{
 		edit = toolEdit(ModelEditKind::InsetFaces);
@@ -1237,6 +1281,7 @@ bool ModelEditorTools::finishModal(bool commit, QString *error)
 		setSelectionMode(2);
 	if (isSpin(modal->op)) setSelectionMode(m_editor->m_document.selection().faces.isEmpty() ? 2 : 0);
 	if (isRip(modal->op)) setSelectionMode(m_editor->m_document.selection().edges.isEmpty() ? 1 : 2);
+	if (isFaceExtrude(modal->op)) setSelectionMode(0);
 	return true;
 }
 

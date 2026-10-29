@@ -1591,6 +1591,7 @@ bool isModelMeshToolEdit(ModelEditKind kind)
 	case ModelEditKind::Rip:
 	case ModelEditKind::ProjectUvMapping:
 	case ModelEditKind::Array:
+	case ModelEditKind::ExtrudeFaces:
 		return true;
 	default:
 		return false;
@@ -1625,6 +1626,8 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 			(options.arrayCount != defaults.arrayCount || options.arrayOffset != defaults.arrayOffset || options.arrayRelative != defaults.arrayRelative ||
 			 options.arrayRotation != defaults.arrayRotation || options.arrayScale != defaults.arrayScale || options.arrayMerge != defaults.arrayMerge))
 			return fail(error, Text::tr("Array settings apply only to the array tool."));
+		if (edit.kind != ModelEditKind::ExtrudeFaces && (options.extrudeMode != defaults.extrudeMode || options.extrudeTileSize != defaults.extrudeTileSize))
+			return fail(error, Text::tr("Extrusion settings apply only to Extrude Faces."));
 	}
 	if (edit.kind != ModelEditKind::Knife && !(options.knife == ModelKnifeOptions{}))
 		return fail(error, Text::tr("Knife settings apply only to the knife tool."));
@@ -1737,6 +1740,8 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 		return projectUvs(candidate, edit, selection, error, work);
 	case ModelEditKind::Array:
 		return arrayFaces(candidate, edit, selection, error, control, report);
+	case ModelEditKind::ExtrudeFaces:
+		return extrudeFaces(candidate, edit, selection, error, control, report);
 	default:
 		return fail(error, Text::tr("Unknown mesh tool."));
 	}

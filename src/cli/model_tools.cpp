@@ -302,7 +302,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		QStringLiteral("--steps"), QStringLiteral("--centre"), QStringLiteral("--axis-vector"), QStringLiteral("--joint-map"),
 		QStringLiteral("--bind"), QStringLiteral("--bind-joint"), QStringLiteral("--new-surface"),
 		QStringLiteral("--transform-space"), QStringLiteral("--axis-rotation"), QStringLiteral("--axes-frame"),
-		QStringLiteral("--count"), QStringLiteral("--relative"), QStringLiteral("--axial-offset")};
+		QStringLiteral("--count"), QStringLiteral("--relative"), QStringLiteral("--axial-offset"), QStringLiteral("--mode")};
 	Arguments args;
 	QString error;
 	if (!parse(arguments, flags, options, &args, &error))
@@ -313,6 +313,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	const QHash<QString, ModelEditKind> tools{
 		{QStringLiteral("spin"), ModelEditKind::Spin},
 		{QStringLiteral("array"), ModelEditKind::Array},
+		{QStringLiteral("extrude"), ModelEditKind::ExtrudeFaces},
 		{QStringLiteral("rip"), ModelEditKind::Rip},
 		{QStringLiteral("knife"), ModelEditKind::Knife},
 		{QStringLiteral("bevel-edges"), ModelEditKind::BevelEdges},
@@ -358,6 +359,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("spin"), {QStringLiteral("--faces"), QStringLiteral("--edges"), QStringLiteral("--angle"), QStringLiteral("--steps"),
 			QStringLiteral("--centre"), QStringLiteral("--axis"), QStringLiteral("--axis-vector"), QStringLiteral("--duplicate"),
 			QStringLiteral("--no-close"), QStringLiteral("--tile-size"), QStringLiteral("--axial-offset")}},
+		{QStringLiteral("extrude"), {QStringLiteral("--faces"), QStringLiteral("--mode"), QStringLiteral("--distance"), QStringLiteral("--tile-size"),
+			QStringLiteral("--no-even")}},
 		{QStringLiteral("array"), {QStringLiteral("--faces"), QStringLiteral("--count"), QStringLiteral("--offset"), QStringLiteral("--relative"),
 			QStringLiteral("--rotate"), QStringLiteral("--scale"), QStringLiteral("--centre"), QStringLiteral("--merge")}},
 		{QStringLiteral("inset"), {QStringLiteral("--faces"), QStringLiteral("--thickness"), QStringLiteral("--depth"), QStringLiteral("--individual"), QStringLiteral("--no-even")}},
@@ -593,6 +596,24 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		(args.values.contains(QStringLiteral("--u-axis")) && !triple(args.values.value(QStringLiteral("--u-axis")), &tool.uvAxisU)) ||
 		(args.values.contains(QStringLiteral("--v-axis")) && !triple(args.values.value(QStringLiteral("--v-axis")), &tool.uvAxisV)))
 		return fail(2, Text::tr("Coordinates use three comma-separated finite numbers, such as 0,0,16."));
+	// Extrude Faces: the mode, and wall UV strips only when --tile-size is given.
+	if (kind == ModelEditKind::ExtrudeFaces)
+	{
+		const auto mode = args.values.value(QStringLiteral("--mode"), QStringLiteral("region"));
+		if (mode == QStringLiteral("region"))
+			tool.extrudeMode = ModelExtrudeMode::Region;
+		else if (mode == QStringLiteral("normals"))
+			tool.extrudeMode = ModelExtrudeMode::AlongNormals;
+		else if (mode == QStringLiteral("individual"))
+			tool.extrudeMode = ModelExtrudeMode::Individual;
+		else
+			return fail(2, Text::tr("Use --mode region|normals|individual."));
+		if (args.values.contains(QStringLiteral("--tile-size")))
+		{
+			tool.extrudeTileSize = tool.uvTileSize;
+			tool.uvTileSize = ModelMeshToolOptions{}.uvTileSize;
+		}
+	}
 	// Array: the offset and rotation are per copy.
 	if (kind == ModelEditKind::Array)
 	{
@@ -723,6 +744,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	if ((kind == ModelEditKind::ExtrudeEdges && !required(QStringLiteral("--offset"))) ||
 		(kind == ModelEditKind::Rip && (!required(QStringLiteral("--offset")) || !required(QStringLiteral("--side-face")))) ||
 		(kind == ModelEditKind::ShrinkFatten && !required(QStringLiteral("--distance"))) ||
+		(kind == ModelEditKind::ExtrudeFaces && !required(QStringLiteral("--distance"))) ||
 		(kind == ModelEditKind::Bisect && !required(QStringLiteral("--plane-normal"))) ||
 		(kind == ModelEditKind::Decimate && !required(QStringLiteral("--ratio")) && !required(QStringLiteral("--target-triangles"))) ||
 		(kind == ModelEditKind::WeightedTransform && !required(QStringLiteral("--offset")) && !required(QStringLiteral("--rotate")) &&

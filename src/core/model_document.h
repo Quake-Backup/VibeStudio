@@ -203,6 +203,8 @@ enum class ModelEditKind
 	SetSkeletalWorkingSet,
 	// Copies of the selected faces along a per-copy transform (core/model_array.cpp).
 	Array,
+	// Region, along-normal or individual face extrusion with UV walls (core/model_extrude.cpp).
+	ExtrudeFaces,
 };
 
 struct ModelEdit

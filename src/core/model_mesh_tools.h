@@ -83,6 +83,15 @@ enum class ModelUvProjection
 	Cylinder,
 	Sphere
 };
+// Extrude Faces (core/model_extrude.cpp): the whole region along its averaged
+// normal, each vertex along the region's own vertex normal, or every face
+// along its own normal as a separate prism.
+enum class ModelExtrudeMode
+{
+	Region,
+	AlongNormals,
+	Individual
+};
 enum class ModelBisectKeep
 {
 	Both,
@@ -186,6 +195,11 @@ struct ModelMeshToolOptions
 	int arrayCount = 2;
 	std::array<double, 3> arrayOffset{0, 0, 0}, arrayRelative{1, 0, 0}, arrayRotation{0, 0, 0};
 	double arrayScale = 1, arrayMerge = 0;
+	// Extrude Faces: the distance is `offset` (Along Normals keeps `evenThickness`).
+	// Side walls get their own UV strips at this many units per texture repeat;
+	// zero copies the border's UVs onto the walls, as Extrude does.
+	ModelExtrudeMode extrudeMode = ModelExtrudeMode::Region;
+	double extrudeTileSize = 0;
 	// Rip selected vertices/edges toward the incident side face, optionally
 	// bridge the opening. The translation is carried by ModelEdit::translation.
 	int ripFace = -1;

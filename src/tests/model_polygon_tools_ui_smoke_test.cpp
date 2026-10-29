@@ -250,6 +250,58 @@ void arraysAndScrews(QApplication &app, ModelEditorDialog &editor, ModelEditorTo
 	expect(editor.setMesh(profile, &error), "restore the profile", error);
 	(void)view;
 }
+
+// Alt+E: Extrude Along Normals with a typed distance, F9 mode and wall UVs.
+void extrudeVariants(QApplication &app, ModelEditorDialog &editor, ModelEditorTools &tools, ModelViewport &view)
+{
+	QString error;
+	const auto grid = polygonGrid(2, 1);
+	expect(editor.setMesh(grid, &error), "open a grid to extrude", error);
+	tools.applySelection(facesOf(grid));
+	expect(settleModelViewport(view), "grid settles");
+	auto *menu = tools.menuBar()->findChild<QMenu *>("meshMenuExtrude");
+	expect(menu && menu->actions().contains(tools.action("meshExtrudeNormals")) && menu->actions().contains(tools.action("meshExtrudeIndividual")) &&
+			   tools.action("meshExtrudeMenu")->shortcut() == QKeySequence(QStringLiteral("Alt+E")),
+		   "Alt+E opens the extrude variants");
+	const QPointF start = view.rect().center() + QPointF(40, 0);
+	expect(tools.beginModal(ModelModalOperator::ExtrudeNormals, start), "start extrude along normals");
+	tools.constrainModal(0, false);
+	type(tools, "2");
+	ModelEdit expectedEdit;
+	expectedEdit.kind = ModelEditKind::ExtrudeFaces;
+	expectedEdit.selection = facesOf(grid);
+	expectedEdit.tool.offset = 2;
+	expectedEdit.tool.extrudeMode = ModelExtrudeMode::AlongNormals;
+	expectedEdit.tool.extrudeTileSize = 64;
+	auto expected = grid;
+	expect(applyModelEdit(&expected, expectedEdit, nullptr, &error), "prepare the shared extrusion", error);
+	expect(tools.modalPreviewValid() && bytes(*tools.modalPreview()) == bytes(expected) && tools.modalText().contains(QStringLiteral("2")),
+		   "the typed distance previews the shared result; axis keys do not apply");
+	expect(tools.finishModal(true, &error) && bytes(editor.document().mesh()) == bytes(expected) &&
+			   editor.document().selection().faces.size() == 4,
+		   "the extrusion commits with its caps selected", error);
+	tools.action("meshAdjustLast")->trigger();
+	app.processEvents();
+	auto *panel = tools.lastOperationPanel();
+	auto *mode = panel ? panel->findChild<QComboBox *>() : nullptr;
+	if (!expect(mode && mode->count() == 3 && panel->findChildren<QCheckBox *>().size() == 1, "F9 offers the mode and even thickness"))
+		return;
+	mode->setCurrentIndex(int(ModelExtrudeMode::Individual));
+	app.processEvents();
+	expectedEdit.tool.extrudeMode = ModelExtrudeMode::Individual;
+	expected = grid;
+	expect(applyModelEdit(&expected, expectedEdit, nullptr, &error) && bytes(editor.document().mesh()) == bytes(expected) &&
+			   editor.document().mesh().surfaces[0].triangles.size() == 28,
+		   "F9 switches to individual faces and replays once", error);
+	editor.findChild<QAction *>("undoMesh")->trigger();
+	app.processEvents();
+	expect(bytes(editor.document().mesh()) == bytes(grid) && !editor.document().canUndo(), "the extrusion is one undo step");
+	tools.action("meshAdjustLast")->trigger();
+	app.processEvents();
+	// Without faces the variants refuse with a reason.
+	tools.applySelection({});
+	expect(!tools.beginModal(ModelModalOperator::ExtrudeIndividual, start), "individual extrusion needs faces");
+}
 } // namespace
 int main(int argc, char **argv)
 {
@@ -292,6 +344,7 @@ int main(int argc, char **argv)
 		tools->applyControls(modelEditorControlsForProfile("studio"));
 		individualOrigins(app, editor, *tools, *view);
 		arraysAndScrews(app, editor, *tools, *view);
+		extrudeVariants(app, editor, *tools, *view);
 		editor.close();
 		app.processEvents();
 		if (scenario)

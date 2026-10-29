@@ -288,6 +288,10 @@ void ModelEditorTools::buildActions()
 			  QStringLiteral("extrude"));
 	addAction(QStringLiteral("meshInset"), Text::tr("Inset Faces"), QStringLiteral("I"), [this] { startModalAtPointer(ModelModalOperator::Inset); },
 			  QStringLiteral("inset"));
+	addAction(QStringLiteral("meshExtrudeNormals"), Text::tr("Extrude Faces Along Normals"), {},
+			  [this] { startModalAtPointer(ModelModalOperator::ExtrudeNormals); });
+	addAction(QStringLiteral("meshExtrudeIndividual"), Text::tr("Extrude Individual Faces"), {},
+			  [this] { startModalAtPointer(ModelModalOperator::ExtrudeIndividual); });
 	addAction(QStringLiteral("meshInsetIndividual"), Text::tr("Inset Faces Individually"), {},
 			  [this] { runKind(ModelEditKind::InsetFaces, [](ModelEdit &e) { e.tool.inset = ModelInsetMode::Individual; }); });
 	addAction(QStringLiteral("meshDuplicate"), Text::tr("Duplicate"), QStringLiteral("Shift+D"),
@@ -646,6 +650,8 @@ void ModelEditorTools::buildActions()
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuSimilar"))->popup(QCursor::pos()); });
 	addAction(QStringLiteral("meshShadingMenu"), Text::tr("Shading Menu"), QStringLiteral("Z"),
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuShading"))->popup(QCursor::pos()); });
+	addAction(QStringLiteral("meshExtrudeMenu"), Text::tr("Extrude Menu"), QStringLiteral("Alt+E"),
+			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuExtrude"))->popup(QCursor::pos()); });
 	addAction(QStringLiteral("meshUvMenu"), Text::tr("UV Mapping Menu"), QStringLiteral("U"),
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuUv"))->popup(QCursor::pos()); });
 	buildProfileActions();
@@ -761,12 +767,18 @@ void ModelEditorTools::buildMenus()
 													   QStringLiteral("meshSelectLoopPick"), QStringLiteral("meshSelectRingPick"),
 													   QStringLiteral("meshSelectLoop"), QStringLiteral("meshSelectRing")}),
 							 QStringLiteral("meshMenuEdge")));
-	m_menuBar->addMenu(named(menu(Text::tr("&Face"), {QStringLiteral("meshExtrude"), QStringLiteral("meshInset"), QStringLiteral("meshInsetIndividual"),
+	auto *extrude = named(menu(Text::tr("Extrude"), {QStringLiteral("meshExtrude"), QStringLiteral("meshExtrudeNormals"),
+													  QStringLiteral("meshExtrudeIndividual"), QStringLiteral("meshExtrudeEdges")}),
+						  QStringLiteral("meshMenuExtrude"));
+	auto *faceMenu = named(menu(Text::tr("&Face"), {QStringLiteral("meshExtrude"), QStringLiteral("meshExtrudeNormals"), QStringLiteral("meshExtrudeIndividual"), QStringLiteral("meshInset"), QStringLiteral("meshInsetIndividual"),
 													   QStringLiteral("meshSpin"), QStringLiteral("meshSpinDuplicate"), QStringLiteral("meshScrew"), QStringLiteral("meshArray"), QStringLiteral("meshPoke"), QStringLiteral("meshSolidify"), QStringLiteral("meshSubdivide"), QStringLiteral("meshDissolveFaces"),
 													   QStringLiteral("meshBeautify"), QStringLiteral("meshMakeFace"), {}, QStringLiteral("meshFlip"),
 													   QStringLiteral("meshShadeSmooth"), QStringLiteral("meshShadeFlat"), QStringLiteral("meshAutoSmooth"), {},
 													   QStringLiteral("meshDeleteFaces")}),
-							 QStringLiteral("meshMenuFace")));
+							 QStringLiteral("meshMenuFace"));
+	m_menuBar->addMenu(faceMenu);
+	// Alt+E pops the extrude variants up at the pointer.
+	Q_UNUSED(extrude);
 	m_menuBar->addMenu(named(menu(Text::tr("&UV"), {QStringLiteral("meshUnwrap"), {}, QStringLiteral("meshUvCube"), QStringLiteral("meshUvCylinder"),
 													 QStringLiteral("meshUvSphere"), {}, QStringLiteral("meshUvView"), QStringLiteral("meshUvViewBounds"), {},
 													 QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSeam"), {}, QStringLiteral("meshUvDensity"), QStringLiteral("meshPackIslands")}),
@@ -1946,6 +1958,20 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 	case ModelEditKind::DuplicateFaces:
 	case ModelEditKind::ExtrudeEdges:
 		return vector3(Text::tr("Offset"), &E::translation, -100000, 100000);
+	case ModelEditKind::ExtrudeFaces:
+	{
+		QVector<LastField> fields{
+			{Text::tr("Distance"), -100000, 100000, 3, [](const E &e) { return e.tool.offset; }, [](E &e, double v) { e.tool.offset = v; }},
+			{Text::tr("Mode"), 0, 2, 0, [](const E &e) { return double(int(e.tool.extrudeMode)); },
+			 [](E &e, double v) { e.tool.extrudeMode = ModelExtrudeMode(int(v)); }, false,
+			 {Text::tr("Region"), Text::tr("Along normals"), Text::tr("Individual faces")}, true}};
+		if (edit.tool.extrudeMode == ModelExtrudeMode::AlongNormals)
+			fields.append({Text::tr("Even thickness"), 0, 1, 0, [](const E &e) { return double(e.tool.evenThickness); },
+						   [](E &e, double v) { e.tool.evenThickness = v > 0.5; }, true});
+		fields.append({Text::tr("Wall UV units per repeat (0 copies border UVs)"), 0, 100000, 3, [](const E &e) { return e.tool.extrudeTileSize; },
+					   [](E &e, double v) { e.tool.extrudeTileSize = v; }});
+		return fields;
+	}
 	case ModelEditKind::Spin:
 		return QVector<LastField>{
 			{Text::tr("Angle"), -360, 360, 3, [](const E &e) { return e.tool.spinAngle; }, [](E &e, double v) { e.tool.spinAngle = v; }},
@@ -2140,6 +2166,8 @@ QString kindTitle(ModelEditKind kind)
 		return Text::tr("Spin");
 	case ModelEditKind::Array:
 		return Text::tr("Array");
+	case ModelEditKind::ExtrudeFaces:
+		return Text::tr("Extrude Faces");
 	case ModelEditKind::Rip:
 		return Text::tr("Rip");
 	case ModelEditKind::Solidify:
