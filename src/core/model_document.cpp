@@ -756,7 +756,16 @@ bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, Mo
 		result = loose ? decodeModelMesh(virtualPath, bytes, palette, control, modelCompanionsFromFileSystem(virtualPath))
 					   : decodeModelMesh(virtualPath, bytes, palette, control);
 	}
-	return finishEditableModelImport(std::move(result), mesh, options, report, error, control);
+	if (!finishEditableModelImport(std::move(result), mesh, options, report, error, control))
+	{
+		return false;
+	}
+	// What the OBJ decoder converted or dropped (finishing resets the report).
+	if (report)
+	{
+		report->notes = notes;
+	}
+	return true;
 }
 
 bool finishEditableModelImport(ModelMesh result, ModelMesh *mesh, const ModelImportOptions &options, ModelImportReport *report,
@@ -849,10 +858,6 @@ bool finishEditableModelImport(ModelMesh result, ModelMesh *mesh, const ModelImp
 	if (!modelWorkCheckpoint(control, ModelWorkPhase::Reading, 1, 1, error))
 	{
 		return false;
-	}
-	if (report)
-	{
-		report->notes = notes;
 	}
 	*mesh = std::move(result);
 	return true;
