@@ -38,6 +38,11 @@ class ModelAnimationCurvesDialog final : public QDialog
 	void capture();
 	void review();
 	void reject() override;
+	// Copy Keys (Ctrl+C) puts the shown channel's draft keys on the pose
+	// clipboard; Paste Keys (Ctrl+V) splices a key or pose copy into the draft
+	// from the key sample, replacing the keys in the pasted span.
+	void copyKeys();
+	void pasteKeys();
 
   private:
 	struct Draft
@@ -60,7 +65,7 @@ class ModelAnimationCurvesDialog final : public QDialog
 	QSpinBox *m_frame = nullptr, *m_sample = nullptr;
 	QDoubleSpinBox *m_value = nullptr, *m_in = nullptr, *m_out = nullptr;
 	QPushButton *m_capture = nullptr, *m_bake = nullptr, *m_set = nullptr, *m_move = nullptr, *m_remove = nullptr, *m_undo = nullptr,
-				*m_redo = nullptr, *m_discard = nullptr, *m_review = nullptr, *m_apply = nullptr;
+				*m_redo = nullptr, *m_discard = nullptr, *m_review = nullptr, *m_apply = nullptr, *m_copyKeys = nullptr, *m_pasteKeys = nullptr;
 	LiveStatusLabel *m_status = nullptr;
 	QTabWidget *m_tabs = nullptr;
 	QTableView *m_keys = nullptr;

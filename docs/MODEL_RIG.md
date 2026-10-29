@@ -188,6 +188,15 @@ commands do replace them, as setting a key would; **Edit Skeletal Animation**
 asks with **Replace keys already there**. A paste that would run past the end
 of its clip is refused; extend the clip first.
 
+**Paste pose or keys** in **Edit Skeletal Animation** lists every copied joint
+in a **Joint map** with the joint of this model it lands on. Same names match,
+ignoring case and a `prefix:` or `prefix|` namespace (so `mixamorig:Hips`
+finds `Hips`); choose the others. **Apply** waits until every copied joint has a
+joint. A copy from this same rig with every joint on its own name pastes
+without a map, so whole parent chains keep their exact poses. **Animation
+Curves** pastes copied keys or poses into one joint's draft curves too; see
+[copy and paste keys](MODEL_ANIMATION_CURVES.md).
+
 **Skeleton** > **Copy Pose**, **Paste Pose**, **Paste Pose Mirrored** and
 **Mirror Pose** are also commands (category Animation) that every control
 profile can bind. Copy Pose takes the selected joint with its descendants, or

@@ -228,6 +228,27 @@ int main(int argc, char **argv)
 		   "CLI paste refuses to overwrite its input");
 	expect(runJson({"vibestudio", "--cli", "model", "pose", source, "--operation", "copy-out", "--clip", "0", "--first", "0", "--replace-keys", "--output", poseFile, "--overwrite"}, &code).isEmpty() && code == 2,
 		   "CLI refuses inapplicable flags");
+	// The shared key splice: the pasted span replaces the keys inside it.
+	{
+		const auto key = [](int frame, double value)
+		{
+			ModelPoseCurveKey k;
+			k.frame = frame;
+			k.value = value;
+			return k;
+		};
+		const QVector<ModelPoseCurveKey> destination{key(0, 0), key(5, 5), key(10, 10)}, copied{key(0, 100), key(2, 102)};
+		QVector<ModelPoseCurveKey> merged;
+		QString spliceError;
+		expect(spliceModelCurveKeys(destination, copied, 2, 4, 11, &merged, &spliceError) && merged.size() == 4 && merged[0].frame == 0 &&
+				   merged[1].frame == 4 && merged[1].value == 100 && merged[2].frame == 6 && merged[2].value == 102 && merged[3].frame == 10,
+			   "the splice replaces the keys inside the pasted span and keeps the rest");
+		expect(spliceModelCurveKeys(destination, copied, 1, 4, 11, &merged) && merged.size() == 4 && merged[2].frame == 5 &&
+				   std::abs(merged[2].value - 101) < 1e-9,
+			   "a shorter span crops the copied curve with its exact boundary value");
+		expect(!spliceModelCurveKeys(destination, copied, 2, 9, 11, &merged, &spliceError) && !spliceError.isEmpty(),
+			   "a span past the clip end is refused");
+	}
 	if (argc > 1)
 	{
 		QProcess process;

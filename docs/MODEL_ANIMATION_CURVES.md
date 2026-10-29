@@ -281,6 +281,19 @@ The captured destination baseline and transferred curves must fit the model's
 a dense baseline; capture and reduce those destination curves first if the
 budget is exceeded.
 
+**Animation Curves** copies and pastes keys too. **Copy Keys**
+(<kbd>Ctrl</kbd>+<kbd>C</kbd>) puts the shown joint's shown channel, staged
+changes included, on the pose clipboard over the whole clip. **Paste Keys**
+(<kbd>Ctrl</kbd>+<kbd>V</kbd>) splices the clipboard into the draft from the
+**Sample** field on: the copied keys replace the draft's keys inside the pasted
+span, with the outward tangents kept, as a range transfer does. One copied
+channel lands on the shown channel (copy rotation X, paste it into rotation Y);
+several land on their own channels; a copied pose keys all nine channels at
+each copied sample, choosing the rotation nearest the curve. The keys come from
+the copied joint with this joint's name, or from the only copied joint. Keys
+past the clip's last sample are left out and reported. The paste is a draft
+change: **Undo draft** reverses it and **Review** checks it like any other.
+
 This transfers local channel values within one rig. To move keys between
 models, select them in **Edit Animation Keys** and choose **Copy Keys**
 (<kbd>Ctrl</kbd>+<kbd>C</kbd>: the selected joints and channels over the samples the

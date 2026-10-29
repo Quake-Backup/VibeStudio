@@ -430,6 +430,34 @@ bool parseModelJointMapJson(const QByteArray &bytes, QMap<QString, QString> *map
 	return true;
 }
 
+bool spliceModelCurveKeys(const QVector<ModelPoseCurveKey> &destination, const QVector<ModelPoseCurveKey> &copied, int last, int first,
+						  int frames, QVector<ModelPoseCurveKey> *result, QString *error, const ModelWorkControl &control)
+{
+	if (!result || destination.isEmpty() || copied.isEmpty() || last < 0 || first < 0 || first + qint64(last) >= frames)
+		return fail(error, Text::tr("The pasted keys must fit inside the clip: samples %1 to %2 of %3.").arg(first).arg(first + qint64(last)).arg(frames));
+	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
+	const int end = first + last;
+	QVector<ModelPoseCurveKey> pasted;
+	if (!sliceModelCurve(copied, 0, last, first, 1, false, frames, &pasted, error, control))
+		return false;
+	// Keep the destination's outward tangent sides, as range transfer does.
+	pasted.first().inSlope = sampleModelCurveKey(destination, first).inSlope;
+	const auto right = sampleModelCurveKey(destination, end);
+	pasted.last().outSlope = right.outSlope;
+	pasted.last().interpolation = right.interpolation;
+	QVector<ModelPoseCurveKey> merged;
+	for (const auto &key : destination)
+	{
+		if (!work.step())
+			return false;
+		if (key.frame < first || key.frame > end)
+			merged.append(sampleModelCurveKey(destination, key.frame));
+	}
+	merged += pasted;
+	std::sort(merged.begin(), merged.end(), [](const auto &a, const auto &b) { return a.frame < b.frame; });
+	*result = std::move(merged);
+	return true;
+}
 bool applyModelPosePaste(ModelMesh *mesh, const ModelEdit &edit, QString *error, const ModelWorkControl &control)
 {
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
@@ -624,24 +652,9 @@ bool applyModelPosePaste(ModelMesh *mesh, const ModelEdit &edit, QString *error,
 										   .arg(name, modelCurveChannelId(c))
 										   .arg(o.first)
 										   .arg(end));
-				QVector<ModelPoseCurveKey> copied;
-				if (!sliceModelCurve(clipboard.curves[t].channels[c], 0, clipboard.samples - 1, o.first, 1, false, frames, &copied, error, control))
-					return false;
-				// Keep the destination's outward tangent sides, as range transfer does.
-				copied.first().inSlope = sampleModelCurveKey(old, o.first).inSlope;
-				const auto right = sampleModelCurveKey(old, end);
-				copied.last().outSlope = right.outSlope;
-				copied.last().interpolation = right.interpolation;
 				QVector<ModelPoseCurveKey> merged;
-				for (const auto &key : old)
-				{
-					if (!work.step())
-						return false;
-					if (key.frame < o.first || key.frame > end)
-						merged.append(sampleModelCurveKey(old, key.frame));
-				}
-				merged += copied;
-				std::sort(merged.begin(), merged.end(), [](const auto &a, const auto &b) { return a.frame < b.frame; });
+				if (!spliceModelCurveKeys(old, clipboard.curves[t].channels[c], clipboard.samples - 1, o.first, frames, &merged, error, control))
+					return false;
 				total += merged.size() - old.size();
 				if (total > modelCurveMaxKeys)
 					return fail(error, Text::tr("The pasted keys exceed the model's 1,048,576 key budget. Paste fewer joints or reduce curves first."));
