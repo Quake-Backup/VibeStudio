@@ -291,7 +291,11 @@ from opening. `model assembly --new --from-player NAME --package PATH --output
 FILE.assembly.json` opens one as a new assembly: three package parts on
 `tag_torso` and `tag_head`, the `--skin-name` skin (by default `default`) linked
 to each part, and native animation from the player's `animation.cfg`. The package
-is never written. JSON `player.publication.arguments` holds the `player-review`
+is never written. `--operation doom3-entities --package PATH` lists the Doom 3
+entityDefs with a head or attachments, and `--new --from-def NAME --package PATH
+--output FILE.assembly.json` opens one with its head and attachments on their
+joints (see [opening a Doom 3 entity](../MODEL_ASSEMBLY.md#opening-a-doom-3-entity)).
+JSON `player.publication.arguments` holds the `player-review`
 options that publish the player again. `animation-set --config-entry PATH` reads
 an `animation.cfg` entry from `--package`; add `--config-entry-index N` when the
 path is repeated. A missing player, model, `animation.cfg` or complete skin exits
@@ -311,16 +315,20 @@ as one undo step each. See
 [recorded placement and refresh](../MODEL_COLLISION.md#recorded-placement-and-refresh).
 
 `model collision --operation fit-hull --name N [--profile quake3|doom3-trace]
-[--max-faces K]` fits a convex hull within a face budget; `--operation export-ase
---target doom3` writes an ASE with collision surfaces and `--operation
-export-clipmodel --target doom3 --box N` a Doom 3 clip model. See
+[--max-faces K]` fits a convex hull within a face budget (`fit-animated-hull`
+fits one in every frame); `--operation export-ase
+--target doom3` writes an ASE with collision surfaces (`--package PATH` checks the
+material's `collision` keyword), `--operation export-clipmodel --target doom3
+--box N` a Doom 3 clip model and `--operation export-cm --target doom3
+--model-path models/X.ase` a Doom 3 `.cm` collision model file. See
 [convex hulls](../MODEL_COLLISION.md#convex-hulls) and
 [Doom 3 collision](../MODEL_COLLISION.md#doom-3-collision).
 
 `model assembly --operation weapon-review|weapon-export --weapon-name W
---weapon-part P` publishes a Quake III weapon set, and `--operation
+--weapon-part P` publishes a Quake III weapon set, with optional `--lod-levels N`
+or `--lod-recipes` and repeatable `--sound NAME=PATH`, and `--operation
 q2-player-review|q2-player-export --player-name N --body B --weapon W --q2-skin
-NAME=IMAGE` a Quake II player. See [weapon packages](../MODEL_ASSEMBLY.md#weapon-packages)
+NAME=IMAGE` a Quake II player, whose inputs may also be `package:PATH` entries. See [weapon packages](../MODEL_ASSEMBLY.md#weapon-packages)
 and [Quake II player packages](../MODEL_ASSEMBLY.md#quake-ii-player-packages).
 
 VibeStudio includes a full command line that runs the same services as the studio. Use it to script

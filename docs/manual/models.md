@@ -890,8 +890,10 @@ older assemblies keep **Shortest arc**. See
 [Attachment blend](../MODEL_ASSEMBLY.md#attachment-blend).
 
 A part can also hang from a joint of a skeletal parent (MD5, IQM): choose
-`joint:<name>` as its **Parent tag**, such as `joint:hand` for a weapon. See
-[Joint attachments](../MODEL_ASSEMBLY.md#joint-attachments).
+`joint:<name>` as its **Parent tag**, such as `joint:hand` for a weapon. For a
+Doom 3 character, **Open Doom 3 Entity…** builds the recipe from the package's
+`def/` files: the body, its `def_head` on the head joint and each `def_attach`
+on its joint. See [Joint attachments](../MODEL_ASSEMBLY.md#joint-attachments).
 
 To keep the parts' collision in a bake, tick **Include part collision in bakes**:
 each part's boxes and hulls are placed as the part is and named after it. See
@@ -921,8 +923,11 @@ spinning barrel and its muzzle flash. Build the weapon as an assembly with the
 barrel on the weapon's `tag_barrel` and the flash on its `tag_flash`, choose the
 part for each role, then **Review Package** and **Export PK3…**. The review
 refuses a weapon without `tag_flash` and other missing tags, so the flash and
-barrel cannot end up in the wrong place. Set **Spin about X (rpm)** on the barrel
-to see it roll in the preview. See [Weapon packages](../MODEL_ASSEMBLY.md#weapon-packages).
+barrel cannot end up in the wrong place. **Detail levels** adds lower-detail
+models beside each one, and **Weapon sounds** adds named sounds under
+`sound/weapons/<id>/` for the weapon's game code to use. Set **Spin about X
+(rpm)** on the barrel to see it roll in the preview, and clear **Show muzzle
+flash** to see the weapon between shots. See [Weapon packages](../MODEL_ASSEMBLY.md#weapon-packages).
 
 ### Publish a Quake II player
 
@@ -931,7 +936,8 @@ with the 198 standard player frames, `weapon.md2` playing in step with it, each
 skin and icon as a PCX in the game's palette, and optional sounds and view
 weapons. Open the game's `pak0.pak` (or a package with `pics/colormap.pcx`) first
 for the palette. A wrong frame count names the standard ranges so you can see
-what is missing. See [Quake II player packages](../MODEL_ASSEMBLY.md#quake-ii-player-packages).
+what is missing. Type `package:PATH` in any path to use a model, image or sound
+already in the open package. See [Quake II player packages](../MODEL_ASSEMBLY.md#quake-ii-player-packages).
 
 ### Publish a Quake III player
 
@@ -987,12 +993,16 @@ The Mesh Editor's **Collision** page creates static, oriented collision boxes:
 add or fit a box to the selection, then move, rotate and size it. For round or
 sloped props, **Fit New Hull** fits a convex hull instead, kept within the
 **Hull budget** you choose (a map brush, or a Doom 3 trace model's 16 faces); it
-moves, scales and animates like a box.
+moves, scales and animates like a box. **Fit New Animated Hull** fits a separate
+hull in every frame, for props that bend or stretch.
 
 For Doom 3, **Export ASE with Collision…** writes the model with one
 collision surface per box or hull, so the game collides with those instead of the
-render triangles, and **Export Doom 3 Clip Model…** writes the selected volume for
-an entity's `clipmodel` key. See [Doom 3 collision](../MODEL_COLLISION.md#doom-3-collision).
+render triangles, and warns when the open package's material scripts do not give
+the collision material the `collision` keyword. **Export Doom 3 Clip Model…**
+writes the selected volume for an entity's `clipmodel` key, and **Export Doom 3
+.cm File…** writes a collision model file that Doom 3 reads beside a static model
+instead of converting its surfaces. See [Doom 3 collision](../MODEL_COLLISION.md#doom-3-collision).
 **Export Collision Map…** writes the boxes as brushes in a separate `.map`
 file, and **Place Collision in Level** adds them to the open Quake, Quake II or
 Quake III map as one undoable edit. To fit a prop placed in the level, select its
@@ -1002,8 +1012,9 @@ follow the instance's position, angles and scale.
 Placed collision remembers which model it came from. When you change the boxes,
 choose **Refresh Placed Collision…**: it lists this model's collision in the open
 level as **Current** or **Stale**, and replaces the set you choose in one undoable
-edit, instead of adding a second set. Moving the prop in the level does not move
-its collision; refresh it afterwards. See
+edit, instead of adding a second set. The Levels **Checklist** warns when a placed
+set is out of date with its model, even with the model closed. Moving the prop in
+the level does not move its collision; refresh it afterwards. See
 [Recorded placement and refresh](../MODEL_COLLISION.md#recorded-placement-and-refresh).
 
 ## Export and build game files

@@ -150,6 +150,13 @@ int main(int argc, char **argv)
 					 write(path("split.mesh.json"), serializeEditableModel(animated(198, 2), &error)) && write(path("red.png"), image(Qt::red)) &&
 					 write(path("blue.png"), image(Qt::blue)) && write(path("big.png"), image(Qt::green, 64)) && write(path("death.wav"), wav()),
 				 "fixtures written", error);
+	// The same inputs as entries of the game package, for package:PATH.
+	ok &= expect(QDir().mkpath(path("game/src")) && write(path("game/src/body.mesh.json"), read(path("body.mesh.json"))) &&
+					 write(path("game/src/gun.mesh.json"), read(path("gun.mesh.json"))) &&
+					 write(path("game/src/shotgun.mesh.json"), read(path("shotgun.mesh.json"))) &&
+					 write(path("game/src/red.png"), read(path("red.png"))) && write(path("game/src/blue.png"), read(path("blue.png"))) &&
+					 write(path("game/src/death.wav"), read(path("death.wav"))),
+				 "package inputs written");
 	auto archive = std::make_shared<PackageArchive>();
 	auto empty = std::make_shared<PackageArchive>();
 	ok &= expect(archive->load(path("game"), &error) && empty->load(path("empty"), &error), "packages open", error);
@@ -198,6 +205,30 @@ int main(int argc, char **argv)
 		const bool failed = !prepareModelQ2PlayerBundle(changed, temporary.path(), package, &rejected, &error);
 		ok &= expect(failed && (!contains || error.contains(QString::fromUtf8(contains))), message, error);
 	};
+
+	// Package entries as inputs: the same bytes give the same package.
+	auto packaged = options;
+	packaged.bodySource = QStringLiteral("package:src/body.mesh.json");
+	packaged.weaponSource = QStringLiteral("package:src/gun.mesh.json");
+	packaged.skins = {{QStringLiteral("red"), QStringLiteral("package:src/red.png"), {}},
+					  {QStringLiteral("blue"), QStringLiteral("package:src/blue.png"), QStringLiteral("package:src/blue.png")}};
+	packaged.sounds = {{QStringLiteral("death1"), QStringLiteral("package:src/death.wav")}};
+	packaged.viewWeapons = {{QStringLiteral("shotgun"), QStringLiteral("package:src/shotgun.mesh.json")}};
+	ModelQ2PlayerBundle fromPackage;
+	ok &= expect(prepareModelQ2PlayerBundle(packaged, temporary.path(), archive, &fromPackage, &error), "package entries review as inputs",
+				 error);
+	bool identical = fromPackage.package.files.size() == bundle.package.files.size();
+	for (int i = 0; identical && i < bundle.package.files.size(); ++i)
+		identical = fromPackage.package.files[i].path == bundle.package.files[i].path &&
+					fromPackage.package.files[i].sha256 == bundle.package.files[i].sha256;
+	ok &= expect(identical && !fromPackage.package.protectedPaths.join(' ').contains("body.mesh.json"),
+				 "package entries give the same files as the files they copy, and protect no local path");
+	auto missingEntry = packaged;
+	missingEntry.bodySource = QStringLiteral("package:src/missing.mesh.json");
+	refused(missingEntry, archive, "a missing package entry is refused");
+	auto escaping = packaged;
+	escaping.skins[0].image = QStringLiteral("package:../red.png");
+	refused(escaping, archive, "an unnormalized package path is refused", "package:");
 	auto shortBody = options;
 	shortBody.bodySource = QStringLiteral("short.mesh.json");
 	refused(shortBody, archive, "a body without 198 frames is refused with the standard ranges", "stand 0–39");
@@ -257,6 +288,11 @@ int main(int argc, char **argv)
 		ok &= expect(run(exportArgs + QStringList{"--output", "cli-vamp.pak"}) && output.value("written").toBool() &&
 						 QFileInfo::exists(path("cli-vamp.pak")),
 					 "CLI exports the PAK");
+		ok &= expect(run({"model", "assembly", "--operation", "q2-player-review", "--player-name", "vamp", "--body",
+						  "package:src/body.mesh.json", "--weapon", "package:src/gun.mesh.json", "--q2-skin",
+						  "red=package:src/red.png", "--sound", "death1=package:src/death.wav", "--package", "game"}) &&
+						 output.value("files").toArray().size() == 6,
+					 "CLI takes package entries as Quake II player inputs");
 		ok &= expect(run(exportArgs + QStringList{"--output", "cli-vamp.pk3"}, 2) &&
 						 run({"model", "assembly", "--operation", "q2-player-review", "--player-name", "vamp", "--package", "game"}, 2),
 					 "CLI needs a Quake II package extension and the models");

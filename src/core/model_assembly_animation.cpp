@@ -148,15 +148,13 @@ bool bakeModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAssemb
 		for (int v = 0; v < volumes.size(); ++v)
 		{
 			const auto &box = pose.mesh.collisionBoxes[v];
-			// A hull mirrored in one sample and not in another cannot be one track.
-			if (box.name != volumes[v].name || !std::equal(box.hull.cbegin(), box.hull.cend(), volumes[v].hull.cbegin(), volumes[v].hull.cend(),
-													  [](ModelVec3 a, ModelVec3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; }))
-				return fail(error, QCoreApplication::translate("VibeStudioModelAssemblyAnimation",
-															   "Sample %1 changes the handedness of collision volume %2. Bake separate "
-															   "intervals.")
-									   .arg(index)
-									   .arg(box.name));
-			tracks[v] << ModelCollisionPose{box.centre, box.size, box.rotation};
+			// A hull whose shape changes between samples (a mirrored attachment,
+			// or a part's own per-frame hull) keeps that sample's shape in its pose.
+			if (box.name != volumes[v].name || box.hull.isEmpty() != volumes[v].hull.isEmpty())
+				return fail(error, QCoreApplication::translate("VibeStudioModelAssemblyAnimation", "The sampled assembly changes its collision."));
+			const bool reshaped = !std::equal(box.hull.cbegin(), box.hull.cend(), volumes[v].hull.cbegin(), volumes[v].hull.cend(),
+											 [](ModelVec3 a, ModelVec3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; });
+			tracks[v] << ModelCollisionPose{box.centre, box.size, box.rotation, reshaped ? box.hull : QVector<ModelVec3>()};
 		}
 		pose.mesh.frames[0].name = QStringLiteral("bake%1").arg(index, 4, 10, QLatin1Char('0'));
 		if (index == 0)

@@ -3,6 +3,7 @@
 #include "app/studio_theme.h"
 #include "core/model_collision_hull.h"
 #include "core/model_design.h"
+#include "core/package_archive.h"
 #include "core/model_recovery.h"
 #include "tests/model_viewport_test_helpers.h"
 #include "tests/render_test_support.h"
@@ -26,9 +27,11 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <memory>
 
 using namespace vibestudio;
 namespace
@@ -472,6 +475,20 @@ int main(int argc, char **argv)
 								 "the overlay draws the hull's edges");
 					editor.findChild<QAction *>("undoMesh")->trigger();
 					ok &= expect(!findModelCollisionBox(editor.document().mesh(), "shell"), "undo removes the fitted hull");
+				auto *fitAnimatedHull = editor.findChild<QPushButton *>("fitAnimatedMeshCollisionHull");
+				ok &= expect(fitAnimatedHull && !fitAnimatedHull->accessibleDescription().isEmpty(), "Fit New Animated Hull is described");
+				if (fitAnimatedHull)
+				{
+					name->setText("stride");
+					fitAnimatedHull->click();
+					const auto *stride = findModelCollisionBox(editor.document().mesh(), "stride");
+					ok &= expect(stride && !stride->hull.isEmpty() && stride->framePoses.size() == editor.document().mesh().frames.size() &&
+									 std::all_of(stride->framePoses.cbegin(), stride->framePoses.cend(),
+												 [](const ModelCollisionPose &pose) { return !pose.hull.isEmpty(); }),
+								 "Fit New Animated Hull fits a shape in every frame");
+					editor.findChild<QAction *>("undoMesh")->trigger();
+					ok &= expect(!findModelCollisionBox(editor.document().mesh(), "stride"), "undo removes the animated hull");
+				}
 					boxes->setCurrentIndex(boxes->findData("extra"));
 				}
 			}
@@ -488,6 +505,27 @@ int main(int argc, char **argv)
 				ok &= expect(!editor.exportCollisionAse(path("prop.ase"), {}, false, &error), "an existing ASE needs approval");
 				ok &= expect(editor.exportCollisionClipModel(path("clip.ase"), "extra", {}, false, &error) && QFileInfo::exists(path("clip.ase")),
 							 "GUI writes a Doom 3 clip model", error);
+				// With a package open, the export checks the material's collision keyword.
+				QDir().mkpath(path("package/materials"));
+				bool written = false;
+				{
+					QFile script(path("package/materials/props.mtr"));
+					written = script.open(QIODevice::WriteOnly) && script.write("textures/props/clip_bad\n{\n\tnoshadows\n}\n") > 0;
+				}
+				auto package = std::make_shared<PackageArchive>();
+				ok &= expect(written && package->load(path("package"), &error), "material package written and opened", error);
+				editor.setMaterialSource({package, QStringLiteral("collision-materials"), {}});
+				auto *meshStatus = editor.findChild<QLabel *>(QStringLiteral("meshStatus"));
+				ok &= expect(editor.exportCollisionAse(path("checked.ase"), {QStringLiteral("textures/props/clip_bad"), 0}, false, &error) &&
+								 meshStatus && meshStatus->text().contains("collision keyword") && meshStatus->text().contains("props.mtr"),
+							 "GUI export warns when the package's material lacks the collision keyword", error);
+				editor.setMaterialSource({});
+				auto *cmButton = editor.findChild<QPushButton *>("exportMeshCollisionCm");
+				ok &= expect(cmButton && !cmButton->accessibleDescription().isEmpty() &&
+								 editor.exportCollisionModelFile(path("prop.cm"), "models/props/prop.ase", {}, false, &error) &&
+								 QFileInfo::exists(path("prop.cm")) &&
+								 !editor.exportCollisionModelFile(path("prop.cm"), "models/props/prop.ase", {}, false, &error),
+							 "GUI writes a Doom 3 .cm file and protects an existing one", error);
 			}
 			editor.collisionDestination = [&]
 			{

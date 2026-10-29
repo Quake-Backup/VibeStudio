@@ -252,7 +252,11 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 					if (!sampleModelCollisionBox(box, edit.frame, inserted, double(n) / (count + 1), &generated))
 						return fail(error,
 									QT_TRANSLATE_NOOP("VibeStudioModelAnimation", "Collision endpoint poses cannot be interpolated."));
-					poses << ModelCollisionPose{generated.centre, generated.size, generated.rotation};
+					// A shaped hull track keeps the nearer endpoint's shape.
+					poses << ModelCollisionPose{generated.centre, generated.size, generated.rotation,
+												box.framePoses[edit.frame].hull.isEmpty() && box.framePoses[inserted].hull.isEmpty()
+													? QVector<ModelVec3>()
+													: generated.hull};
 				}
 			}
 			poses << box.framePoses[frame];

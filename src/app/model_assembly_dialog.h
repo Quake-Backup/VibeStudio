@@ -65,6 +65,9 @@ class ModelAssemblyDialog final : public QDialog
 	// assembly (core/model_player_import.h) and fills Player Package from it.
 	// The package is read, never changed. An empty skin takes default.
 	bool openPlayer(const QString &player, const QString &skin = {}, QString *error = nullptr);
+	// A Doom 3 entityDef's body, head and attachments from the current package
+	// (core/model_doom3_entity_import.h), as a new unsaved assembly.
+	bool openDoom3Entity(const QString &entity, QString *error = nullptr);
 	const ModelPlayerBundleOptions &playerBundleOptions() const
 	{
 		return m_playerBundleOptions;
@@ -144,6 +147,12 @@ class ModelAssemblyDialog final : public QDialog
 	QComboBox *m_tagInterpolation = nullptr;
 	// Session choice: carry part collision into pose and animation bakes.
 	QCheckBox *m_includeCollision = nullptr;
+	// Preview only: parts on a tag_flash (muzzle flashes) can be hidden, as the
+	// game shows them only for a moment after each shot. The preview's surface
+	// i is the pose's surface m_displaySurfaces[i].
+	QCheckBox *m_showFlash = nullptr;
+	QVector<int> m_displaySurfaces;
+	ModelMesh displayMesh();
 	QDoubleSpinBox *m_translation[3]{}, *m_rotation[3]{};
 	QDoubleSpinBox *m_scale = nullptr, *m_fps = nullptr, *m_phase = nullptr, *m_time = nullptr, *m_spin = nullptr;
 	QSpinBox *m_first = nullptr, *m_last = nullptr;
@@ -179,6 +188,7 @@ class ModelAssemblyDialog final : public QDialog
 	bool chooseSave(bool saveAs = false);
 	void chooseOpen();
 	void choosePlayer();
+	void chooseDoom3Entity();
 	void chooseExport();
 	void bake();
 	void chooseAnimationBake(bool exporting);

@@ -84,6 +84,10 @@ bool same(ModelVec3 a, ModelVec3 b)
 {
 	return a.x == b.x && a.y == b.y && a.z == b.z;
 }
+bool sameHull(const QVector<ModelVec3> &a, const QVector<ModelVec3> &b)
+{
+	return std::equal(a.cbegin(), a.cend(), b.cbegin(), b.cend(), [](ModelVec3 x, ModelVec3 y) { return same(x, y); });
+}
 QString poseError(const ModelCollisionBox &box)
 {
 	if (!finite(box.centre, 32768) || !finite(box.size, 65536) || !finite(box.rotation, 36000) || box.size.x < 1 || box.size.y < 1 ||
@@ -115,6 +119,9 @@ void setModelCollisionFrames(ModelCollisionBox *box, QVector<ModelCollisionPose>
 		box->centre = poses[0].centre;
 		box->size = poses[0].size;
 		box->rotation = poses[0].rotation;
+		// A per-pose hull shape: the volume's own shape mirrors pose zero.
+		if (!poses[0].hull.isEmpty())
+			box->hull = poses[0].hull;
 	}
 	box->framePoses = std::move(poses);
 }
@@ -133,7 +140,7 @@ bool sampleModelCollisionBox(const ModelCollisionBox &box, int frame, int nextFr
 	{
 		const auto &pose = amount == 1 ? b : a;
 		*result = {box.name, pose.centre, pose.size, pose.rotation};
-		result->hull = box.hull;
+		result->hull = pose.hull.isEmpty() ? box.hull : pose.hull;
 		return true;
 	}
 	ModelTag first, second, blended;
@@ -153,7 +160,9 @@ bool sampleModelCollisionBox(const ModelCollisionBox &box, int frame, int nextFr
 	const auto *axis = blended.axis;
 	*result = {box.name, interpolateModelPosition(a.centre, b.centre, amount), interpolateModelPosition(a.size, b.size, amount),
 			   orientation({axis[0], axis[1], axis[2]}, {axis[3], axis[4], axis[5]}, {axis[6], axis[7], axis[8]})};
-	result->hull = box.hull;
+	// Shapes cannot blend; between stored poses the nearer pose's shape holds.
+	const auto &shape = amount < .5 ? a.hull : b.hull;
+	result->hull = shape.isEmpty() ? box.hull : shape;
 	return true;
 }
 
@@ -318,14 +327,18 @@ QStringList validateModelCollision(const ModelMesh &mesh, const ModelWorkControl
 		}
 		if (box.framePoses.size() != mesh.frames.size() || box.framePoses.size() > modelDocumentMaxFrames ||
 			!same(box.centre, box.framePoses[0].centre) || !same(box.size, box.framePoses[0].size) ||
-			!same(box.rotation, box.framePoses[0].rotation))
+			!same(box.rotation, box.framePoses[0].rotation) ||
+			(!box.framePoses[0].hull.isEmpty() && !sameHull(box.hull, box.framePoses[0].hull)))
 			return {Text::tr("Animated collision boxes need one pose per mesh frame and scalar fields matching pose zero.")};
 		for (int frame = 0; frame < box.framePoses.size(); ++frame)
 		{
 			if (!modelWorkCheckpoint(control, ModelWorkPhase::Validating, frame, box.framePoses.size(), &error))
 				return {error};
 			const auto &pose = box.framePoses[frame];
-			const auto problem = poseError({box.name, pose.centre, pose.size, pose.rotation});
+			auto problem = poseError({box.name, pose.centre, pose.size, pose.rotation});
+			if (problem.isEmpty() && !pose.hull.isEmpty())
+				problem = box.hull.isEmpty() ? Text::tr("A box cannot take a hull shape in one pose only.")
+											 : validateModelCollisionHull({box.name, pose.centre, pose.size, pose.rotation, {}, pose.hull});
 			if (!problem.isEmpty())
 				return {Text::tr("Collision box %1, frame %2: %3").arg(box.name).arg(frame).arg(problem)};
 		}
@@ -344,7 +357,7 @@ bool isModelCollisionEdit(ModelEditKind kind)
 		   kind == ModelEditKind::DuplicateCollisionBox || kind == ModelEditKind::DeleteCollisionBox ||
 		   kind == ModelEditKind::TransformCollisionBox || kind == ModelEditKind::AnimateCollisionBox ||
 		   kind == ModelEditKind::FreezeCollisionBox || kind == ModelEditKind::FitAnimatedCollisionBox ||
-		   kind == ModelEditKind::FitCollisionHull;
+		   kind == ModelEditKind::FitCollisionHull || kind == ModelEditKind::FitAnimatedCollisionHull;
 }
 bool applyModelCollisionEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSelection *selection, QString *error,
 							 const ModelWorkControl &control)
@@ -356,7 +369,8 @@ bool applyModelCollisionEdit(ModelMesh *candidate, const ModelEdit &edit, ModelS
 	}
 	const auto existing = findModelCollisionBox(*candidate, edit.selection.collision);
 	const bool add = kind == ModelEditKind::AddCollisionBox || kind == ModelEditKind::FitCollisionBox ||
-					 kind == ModelEditKind::FitAnimatedCollisionBox || kind == ModelEditKind::FitCollisionHull;
+					 kind == ModelEditKind::FitAnimatedCollisionBox || kind == ModelEditKind::FitCollisionHull ||
+					 kind == ModelEditKind::FitAnimatedCollisionHull;
 	const bool animated = existing && !existing->framePoses.isEmpty();
 	if (!add && !existing)
 	{
@@ -435,7 +449,9 @@ bool applyModelCollisionEdit(ModelMesh *candidate, const ModelEdit &edit, ModelS
 				if (!sampleModelCollisionBox(*existing, frame, frame, 0, &pose) ||
 					!transformModelCollisionBox(pose, transform, &transformed, error))
 					return false;
-				poses[frame] = values(transformed);
+				auto moved = values(transformed);
+				moved.hull = poses[frame].hull;
+				poses[frame] = moved;
 			}
 			setModelCollisionFrames(&box, std::move(poses));
 		}
@@ -482,9 +498,10 @@ bool applyModelCollisionEdit(ModelMesh *candidate, const ModelEdit &edit, ModelS
 			box = {box.name, pose.centre, pose.size, pose.rotation, {}, box.hull};
 		}
 	}
-	if (kind == ModelEditKind::FitCollisionHull)
+	if (kind == ModelEditKind::FitCollisionHull || kind == ModelEditKind::FitAnimatedCollisionHull)
 	{
-		// Every selected (or every) vertex of the chosen frame, or of all frames.
+		// Every selected (or every) vertex of the chosen frame, or of all frames;
+		// an animated hull fits each frame on its own.
 		const bool components = !edit.selection.vertices.isEmpty() || !edit.selection.edges.isEmpty() || !edit.selection.faces.isEmpty();
 		if (components && (edit.selection.surface < 0 || edit.selection.surface >= candidate->surfaces.size()))
 			return fail(error, Text::tr("Select components of an existing surface."));
@@ -496,31 +513,58 @@ bool applyModelCollisionEdit(ModelMesh *candidate, const ModelEdit &edit, ModelS
 			const auto t = candidate->surfaces[edit.selection.surface].triangles.value(face);
 			selected << t.a << t.b << t.c;
 		}
-		QVector<ModelVec3> points;
-		for (int s = 0; s < candidate->surfaces.size(); ++s)
-		{
-			if (components && s != edit.selection.surface)
-				continue;
-			const auto &surface = candidate->surfaces[s];
-			for (int f = 0; f < surface.frames.size(); ++f)
+		const bool track = kind == ModelEditKind::FitAnimatedCollisionHull;
+		const auto gather = [&](int frame, QVector<ModelVec3> *points) {
+			for (int s = 0; s < candidate->surfaces.size(); ++s)
 			{
-				if (edit.frame >= 0 && f != edit.frame)
+				if (components && s != edit.selection.surface)
 					continue;
-				const auto &positions = surface.frames[f].positions;
-				for (int v = 0; v < positions.size(); ++v)
+				const auto &surface = candidate->surfaces[s];
+				for (int f = 0; f < surface.frames.size(); ++f)
 				{
-					if (!work.step())
-						return false;
-					if (!components || selected.contains(v))
-						points << positions[v];
+					if (frame >= 0 && f != frame)
+						continue;
+					const auto &positions = surface.frames[f].positions;
+					for (int v = 0; v < positions.size(); ++v)
+					{
+						if (!work.step())
+							return false;
+						if (!components || selected.contains(v))
+							*points << positions[v];
+					}
 				}
 			}
-		}
+			return true;
+		};
 		ModelCollisionHullBudget budget;
-		ModelCollisionHullFit fit;
-		if (!modelCollisionHullBudget(edit.collisionHullProfile, edit.collisionHullMaxFaces, &budget, error) ||
-			!fitModelCollisionHull(points, budget, &fit, error, control) || !makeModelCollisionHull(box.name, fit.vertices, &box, error))
+		if (!modelCollisionHullBudget(edit.collisionHullProfile, edit.collisionHullMaxFaces, &budget, error))
 			return false;
+		const QString name = box.name;
+		QVector<ModelCollisionPose> poses;
+		for (int frame = track ? 0 : edit.frame; frame < (track ? int(candidate->frames.size()) : edit.frame + 1); ++frame)
+		{
+			QVector<ModelVec3> points;
+			ModelCollisionHullFit fit;
+			ModelCollisionBox shaped;
+			if (!gather(frame, &points) || !fitModelCollisionHull(points, budget, &fit, error, control) ||
+				!makeModelCollisionHull(name, fit.vertices, &shaped, error))
+			{
+				if (track && error && !error->isEmpty())
+					*error = Text::tr("Frame %1: %2").arg(frame).arg(*error);
+				return false;
+			}
+			if (!track)
+			{
+				box = shaped;
+				break;
+			}
+			poses << ModelCollisionPose{shaped.centre, shaped.size, shaped.rotation, shaped.hull};
+		}
+		if (track)
+		{
+			box = {name, poses[0].centre, poses[0].size, poses[0].rotation, {}, poses[0].hull};
+			setModelCollisionFrames(&box, std::move(poses));
+		}
 	}
 	if (kind == ModelEditKind::FitCollisionBox || kind == ModelEditKind::FitAnimatedCollisionBox)
 	{
@@ -642,7 +686,15 @@ QJsonArray modelCollisionJson(const ModelMesh &mesh, QString *error, const Model
 			{
 				if (!work.step())
 					return {};
-				poses << poseJson(pose);
+				auto object = poseJson(pose);
+				if (!pose.hull.isEmpty())
+				{
+					QJsonArray shape;
+					for (const auto &point : pose.hull)
+						shape << xyz(point);
+					object.insert("hull", shape);
+				}
+				poses << object;
 			}
 			QJsonObject object{{"name", box.name}, {"poses", poses}};
 			if (!hull.isEmpty())
@@ -701,8 +753,23 @@ bool parseModelCollision(const QJsonValue &value, ModelMesh *mesh, QString *erro
 				if (!work.step())
 					return false;
 				ModelCollisionPose pose;
-				if (!item.isObject() || item.toObject().size() != 3 || !readPose(item.toObject(), &pose))
+				const auto poseObject = item.toObject();
+				const bool shaped = poseObject.contains("hull");
+				if (!item.isObject() || poseObject.size() != (shaped ? 4 : 3) || !readPose(poseObject, &pose) || (shaped && !hasHull))
 					return fail(error, Text::tr("A collision pose has malformed or unsupported fields."));
+				if (shaped)
+				{
+					const auto points = poseObject.value("hull").toArray();
+					if (!poseObject.value("hull").isArray() || points.size() < 4 || points.size() > modelCollisionHullMaxPoints)
+						return fail(error, Text::tr("A collision hull needs 4 to 256 points."));
+					for (const auto &value : points)
+					{
+						ModelVec3 point;
+						if (!vector(value, &point))
+							return fail(error, Text::tr("A collision hull point is malformed."));
+						pose.hull << point;
+					}
+				}
 				poses << pose;
 			}
 			setModelCollisionFrames(&box, std::move(poses));

@@ -434,7 +434,7 @@ vibestudio --cli asset route textures/wall.dds --json
 ```
 
 `model collision` shares mesh validation/edit history and level placement with
-the GUI. Operations inspect, add, fit, fit-animated, fit-hull, export-ase, export-clipmodel, animate, freeze, update,
+the GUI. Operations inspect, add, fit, fit-animated, fit-hull, fit-animated-hull, export-ase, export-cm, export-clipmodel, animate, freeze, update,
 transform, duplicate, delete, export-map,
 place, placed and refresh have strict applicable options, text/JSON diagnostics and guarded outputs.
 Placement records its source in one `func_group` and accepts `--instance entity:N`
@@ -1468,7 +1468,10 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   Repeat `--set` and `--remove key` as needed; values use UDMF literal syntax.
   `--dry-run` verifies without writing, and `--overwrite` permits an existing
   destination. Inspection and editing reject maps that are not UDMF.
-- [x] `map inspect` for Doom WAD map lumps and Quake-family `.map` files.
+- [x] `map inspect` for Doom WAD map lumps and Quake-family `.map` files. When
+  the map holds collision placed from models, JSON adds `collisionRecords`, each
+  checked against its recorded mesh source (`current`, `stale`, `source-missing`
+  or `invalid`).
 - [x] `map place-sound <map> --package <archive-or-folder> --sound sound/name.wav
   --game quake2|quake3 --origin x,y,z --output <separate.map>` validates a package
   WAV and places a speaker in a separate map output. `--mode` accepts `loop-on`,
@@ -2220,9 +2223,11 @@ Each resolved path may be a definition file or a folder of them.
   `bake` and `bake-animation` accept `--collision include|omit` to carry part
   collision into the bake; JSON reports `collisionVolumes`. `--tag joint:NAME`
   attaches a part to a skeletal parent's joint. `--operation weapon-review|weapon-export`
-  reviews and publishes a Quake III weapon set (see
+  reviews and publishes a Quake III weapon set, with detail levels (`--lod-levels`,
+  `--lod-ratio`, `--lod-recipes`) and repeatable `--sound NAME=PATH` (see
   [Weapon packages](MODEL_ASSEMBLY.md#weapon-packages)), and
-  `--operation q2-player-review|q2-player-export` a Quake II player (see
+  `--operation q2-player-review|q2-player-export` a Quake II player, from files or
+  `package:PATH` entries of `--package` (see
   [Quake II player packages](MODEL_ASSEMBLY.md#quake-ii-player-packages)).
 - [x] `model assembly --operation bake-animation` requires `--frames` and
   `--sample-fps`, with optional `--time` and `--clip-name`. It writes a sampled
@@ -2242,6 +2247,11 @@ Each resolved path may be a definition file or a folder of them.
   three package parts, the linked skin, native animation from the package's
   `animation.cfg` and the `player-review` options to publish it again. The package
   is never written.
+- [x] `model assembly --operation doom3-entities --package <pk4|folder>` and
+  `--new --from-def NAME` share the GUI's Open Doom 3 Entity: the entityDefs of
+  `def/*.def` with `def_head` or `def_attach`, opened as the md5mesh body with the
+  head and attachments on their joints. JSON `doom3Entity` lists the parts and
+  notes. The package is never written.
 - [x] `model recoveries [--directory <folder>]` lists bounded recovery headers.
   JSON distinguishes header validity from payload verification. `model recover
   <copy.vsmeshrecovery> --output <new.mesh.json>` verifies the payload and writes

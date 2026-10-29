@@ -73,13 +73,36 @@ animation bakes then work as for tags.
 
 A joint that does not exist, or that has no pose in every baked frame, is
 reported by name and leaves the recipe editable for repair, as a missing tag
-does. Joint attachments use assembly schema 4; older schemas refuse them. Reading
-a Doom 3 `.def` entity declaration's head and attachment keys into a recipe is
-not yet available.
+does. Joint attachments use assembly schema 4; older schemas refuse them.
+
+### Opening a Doom 3 entity
+
+**Open Doom 3 Entity…** reads the `def/*.def` files of the current package or
+folder and lists every `entityDef` with a `def_head` or `def_attach` key, after
+`inherit`. Choosing one opens a new, unsaved assembly of package parts, placed as
+Doom 3's `idActor` places them when the actor spawns (`game/Actor.cpp`):
+
+| Part | From | Placement |
+| --- | --- | --- |
+| Body (root) | The entity's `model`: a model declaration's `mesh`, or an `.md5mesh` path. | Its bind pose. |
+| Head | `def_head`: a model declaration or a model path. | On `joint:<head_joint>` with the actor's own axes, as `SetupHead` puts it, so its rotation undoes the joint's. |
+| Attachments | Each `def_attach*` entityDef's `model`. | On `joint:<joint>`, offset by its `origin` in the actor's model space and turned by its `angles` (pitch, yaw, roll) within the joint's axes, as `Attach` does. |
+
+Keys follow `inherit` (a missing key comes from the parent) and the first
+definition of a name wins, as in the game. An entity without an `.md5mesh` body,
+a head without `head_joint` and a joint the body lacks are refused, as the game
+stops on them. An attachment without a model (an attached light or effect) is
+left out with a note. The model declaration's `offset` moves the whole actor in
+game and is left out, so the parts keep their places relative to each other;
+skin keys are not applied, and the recipe shows the bind pose rather than the
+declaration's animations.
 
 ```sh
 vibestudio --cli model assembly ./marine.assembly.json --operation add \
   --part rifle --model ./models/rifle.mesh.json --parent body --tag joint:Rhand \
+  --output ./marine.assembly.json --json
+vibestudio --cli model assembly --operation doom3-entities --package ./base --json
+vibestudio --cli model assembly --new --from-def char_marine --package ./base \
   --output ./marine.assembly.json --json
 ```
 
@@ -570,13 +593,31 @@ Weapon IDs follow the player ID rules and every path fits 63 characters. The
 receipt `vibestudio/weapon-<w>.json` records source identities and file hashes.
 **Export PK3…** uses the same atomic, deterministic package writer as players;
 inputs are never replaced. Register the weapon in the game code that loads its
-path; detail levels, sounds and effects are not part of the package.
+path; effects are not part of the package.
+
+**Detail levels** works as for players: **Generate** reduces every role model
+(one or two levels, each keeping **Share kept per level** of the one above), and
+**Each part's stored detail levels** uses each part's own recipe. The renderer's
+`RE_RegisterModel` loads `<name>_1.md3` and `<name>_2.md3` beside any model it
+registers, so each role gets `<w>_1.md3`, `<w>_hand_1.md3` and so on, placed like
+the role model and keeping its surfaces and tags; a level that would not load
+correctly is refused.
+
+**Weapon sounds** lists named sounds, each a file or `package:PATH`, published at
+`sound/weapons/<w>/<name>.wav` and delivered as player sounds are: mono PCM WAV is
+kept, other audio is converted to 22,050 Hz mono 16-bit PCM. Names use 1–32 ASCII
+letters, digits, underscores or hyphens; a package carries at most 16. Quake III
+assigns a weapon's flash, firing, ready and missile sounds in
+`CG_RegisterWeapon`, so point the game code that registers the weapon at these
+files. With detail levels or sounds the receipt uses schema 2 and adds
+`detailLevels` and `sounds`.
 
 **Spin about X (rpm)** on a part rolls it about its own X axis in the preview and
 the bakes, as the game rolls a barrel while firing (about 150 rpm for the
 machine gun). It is stored in assembly schema 4 as `spinRpm` and is not written
-to MD3. A flash visibility toggle is not yet available; remove the flash part to
-preview without it.
+to MD3. **Show muzzle flash**, under the preview, hides parts attached to a
+`tag_flash` from the preview, as the game shows a flash only for a moment after
+each shot; it lasts for the session and does not change bakes or packages.
 
 ```sh
 vibestudio --cli model assembly ./rail.assembly.json --operation weapon-review \
@@ -587,8 +628,11 @@ vibestudio --cli model assembly ./rail.assembly.json --operation weapon-export \
 ```
 
 `weapon-review` takes no output options; `weapon-export` requires an `--output`
-ending in `.pk3` and accepts `--dry-run` and `--overwrite`. `--spin-rpm` sets a
-part's preview spin on `add` and `update`.
+ending in `.pk3` and accepts `--dry-run` and `--overwrite`. Both accept
+`--lod-levels N` with an optional `--lod-ratio R`, or `--lod-recipes`, for detail
+levels, and repeatable `--sound NAME=PATH` (a file or `package:PATH`); JSON adds
+`detailLevels` and `sounds`. `--spin-rpm` sets a part's preview spin on `add` and
+`update`.
 
 ## Quake II Player Packages
 
@@ -617,6 +661,12 @@ packages, through the same atomic, deterministic writer as Quake III packages;
 inputs are never replaced. Select the player as `<player>/<skin>`. The skins'
 colours, animation timing and gameplay still need testing in the game.
 
+Every model, image and sound may instead be `package:PATH`, an entry of the open
+package (the one that supplies the palette), so a player can be rebuilt from
+files already in `pak0.pak` or a project package. The path must be normalized
+and name exactly one entry, as for linked skins; entries are read, never
+changed, and the same bytes give the same package as local files.
+
 ```sh
 vibestudio --cli model assembly --operation q2-player-review --player-name vamp \
   --body ./vamp/body.mesh.json --weapon ./vamp/gun.mesh.json \
@@ -629,7 +679,8 @@ vibestudio --cli model assembly --operation q2-player-export --player-name vamp 
 ```
 
 The operations take no assembly source. Paths resolve from the working
-directory; JSON adds `frameRanges`, the 20 standard ranges.
+directory, and `package:PATH` names an entry of `--package`; JSON adds
+`frameRanges`, the 20 standard ranges.
 
 ## Baking And Studio Handoff
 
@@ -703,7 +754,10 @@ skewed basis, which the Quake III attachment blend can give between frames, is
 refused when it is skewed by more than 1%; smaller drift is straightened.
 
 Animation bakes give each volume a track with one pose per sample (editable
-mesh version 7); a hull whose handedness changes between samples is refused.
+mesh version 7). A hull whose shape changes between samples, because an
+attachment's handedness flips or the part's own hull has a
+[shape per frame](MODEL_COLLISION.md#convex-hulls), keeps each sample's shape in
+that pose.
 The bake's geometry is byte for byte the same with or without collision. The
 editable mesh keeps the volumes; MD2, MD3 and OBJ leave them out with the usual
 note. The choice lasts for the session and is not stored in the recipe; the

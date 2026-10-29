@@ -284,6 +284,8 @@ enum class ModelEditKind
 	AddFace,
 	// Cuts (and optionally unites or subtracts) where faces pass through each other (core/model_intersect_cut.cpp).
 	IntersectCut,
+	// A hull fitted separately in every frame, one shape per pose.
+	FitAnimatedCollisionHull,
 };
 
 struct ModelEdit

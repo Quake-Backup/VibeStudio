@@ -4,6 +4,7 @@
 #include "app/model_assembly_recovery_dialog.h"
 #include "app/model_assembly_recovery_writer.h"
 #include "app/model_viewport.h"
+#include "core/model_document.h"
 #include "core/studio_settings.h"
 
 #include <QAction>
@@ -118,6 +119,9 @@ ModelAssemblyDialog::ModelAssemblyDialog(QWidget *parent) : QDialog(parent)
 	action(QCoreApplication::translate("ModelAssemblyDialog", "Open Player…"), "assemblyOpenPlayer", [this] { choosePlayer(); })
 		->setToolTip(QCoreApplication::translate("ModelAssemblyDialog",
 												 "Open a Quake III player of the current package or folder as a new assembly. The package is not changed."));
+	action(QCoreApplication::translate("ModelAssemblyDialog", "Open Doom 3 Entity…"), "assemblyOpenDoom3Entity", [this] { chooseDoom3Entity(); })
+		->setToolTip(QCoreApplication::translate("ModelAssemblyDialog", "Open a Doom 3 entityDef's body, head and attachments from the current "
+																		"package's def files as a new assembly. The package is not changed."));
 	action(QCoreApplication::translate("ModelAssemblyDialog", "Recoveries…"), "assemblyRecoveries", [this] { chooseRecovery(); });
 	action(QCoreApplication::translate("ModelAssemblyDialog", "Save"), "assemblySave", [this] { chooseSave(); }, QKeySequence::Save);
 	action(
@@ -246,6 +250,21 @@ ModelAssemblyDialog::ModelAssemblyDialog(QWidget *parent) : QDialog(parent)
 							   "placed as the parts are and named part_volume. Animation bakes give each one a pose per sample."));
 	m_includeCollision->setAccessibleDescription(m_includeCollision->toolTip());
 	timeline->addWidget(m_includeCollision, 3, 0, 1, 2);
+	m_showFlash = new QCheckBox(QCoreApplication::translate("ModelAssemblyDialog", "Show muzzle flash"));
+	m_showFlash->setObjectName(QStringLiteral("assemblyShowFlash"));
+	m_showFlash->setChecked(true);
+	m_showFlash->setAccessibleName(m_showFlash->text());
+	m_showFlash->setToolTip(QCoreApplication::translate(
+		"ModelAssemblyDialog", "Draw parts attached to a tag_flash. Quake III shows a weapon's flash only for a moment after each shot; "
+							   "clear this to see the weapon between shots. Bakes and packages are not affected."));
+	m_showFlash->setAccessibleDescription(m_showFlash->toolTip());
+	timeline->addWidget(m_showFlash, 4, 0, 1, 2);
+	connect(m_showFlash, &QCheckBox::toggled, this, [this] {
+		if (m_refreshing)
+			return;
+		refresh(false);
+		applyMaterialImages();
+	});
 	centreLayout->addWidget(m_timeline);
 	m_materialStatus = new QLabel;
 	m_materialStatus->setTextFormat(Qt::PlainText);
@@ -471,9 +490,11 @@ ModelAssemblyDialog::ModelAssemblyDialog(QWidget *parent) : QDialog(parent)
 		}
 	});
 	connect(m_preview, &ModelViewport::trianglePicked, this, [this](int surface, int, int) {
-		if (!m_working && surface >= 0 && surface < m_pose.surfaceParts.size())
+		// The preview may leave out hidden flash surfaces.
+		const int posed = m_displaySurfaces.value(surface, -1);
+		if (!m_working && posed >= 0 && posed < m_pose.surfaceParts.size())
 		{
-			selectPart(m_document.assembly().parts[m_pose.surfaceParts[surface]].id);
+			selectPart(m_document.assembly().parts[m_pose.surfaceParts[posed]].id);
 		}
 	});
 	m_materialWorker = new ModelMaterialWorker(this);
@@ -972,10 +993,11 @@ void ModelAssemblyDialog::refresh(bool rebuildTree)
 	}
 	if (previewReady())
 	{
-		m_preview->setMesh(m_pose.mesh, m_preview->hasMesh());
+		m_preview->setMesh(displayMesh(), m_preview->hasMesh());
 	}
 	else
 	{
+		m_displaySurfaces.clear();
 		m_preview->clearMesh();
 	}
 	refreshSelection();
@@ -1071,12 +1093,49 @@ void ModelAssemblyDialog::refreshTags(const QString &selected)
 		m_tag->setCurrentText(selected);
 	}
 }
+ModelMesh ModelAssemblyDialog::displayMesh()
+{
+	m_displaySurfaces.clear();
+	const auto &parts = m_document.assembly().parts;
+	const auto flash = [&](int surface) {
+		const int part = m_pose.surfaceParts.value(surface, -1);
+		return part >= 0 && part < parts.size() && parts[part].tag == QStringLiteral("tag_flash");
+	};
+	bool hide = m_showFlash && !m_showFlash->isChecked();
+	// Never hide everything: an assembly of flashes alone stays visible.
+	if (hide)
+	{
+		bool other = false;
+		for (int surface = 0; surface < m_pose.mesh.surfaces.size(); ++surface)
+			other |= !flash(surface);
+		hide = other;
+	}
+	if (!hide)
+	{
+		for (int surface = 0; surface < m_pose.mesh.surfaces.size(); ++surface)
+			m_displaySurfaces << surface;
+		return m_pose.mesh;
+	}
+	auto mesh = m_pose.mesh;
+	mesh.surfaces.clear();
+	for (int surface = 0; surface < m_pose.mesh.surfaces.size(); ++surface)
+	{
+		if (flash(surface))
+			continue;
+		mesh.surfaces << m_pose.mesh.surfaces[surface];
+		m_displaySurfaces << surface;
+	}
+	updateEditableModelMetadata(&mesh);
+	return mesh;
+}
 void ModelAssemblyDialog::refreshSelection()
 {
 	QVector<int> triangles;
 	int offset = 0;
-	for (int surface = 0; surface < m_pose.mesh.surfaces.size(); ++surface)
+	for (const int surface : std::as_const(m_displaySurfaces))
 	{
+		if (surface >= m_pose.mesh.surfaces.size() || surface >= m_pose.surfaceParts.size())
+			break;
 		const auto count = m_pose.mesh.surfaces[surface].triangles.size();
 		if (m_document.assembly().parts[m_pose.surfaceParts[surface]].id == m_document.selectedPart())
 		{
@@ -1224,7 +1283,12 @@ void ModelAssemblyDialog::applyMaterialImages()
 			images.insert(i.key(), i.value());
 		}
 	}
-	m_preview->setSurfaceSkins(images);
+	// Images are keyed by pose surface; the preview may leave some out.
+	QHash<int, QImage> shown;
+	for (int surface = 0; surface < m_displaySurfaces.size(); ++surface)
+		if (images.contains(m_displaySurfaces[surface]))
+			shown.insert(surface, images.value(m_displaySurfaces[surface]));
+	m_preview->setSurfaceSkins(shown);
 	m_preview->setRenderMode(m_render->currentIndex() == 0	 ? ModelViewportRenderMode::FlatShaded
 							 : m_render->currentIndex() == 1 ? ModelViewportRenderMode::Wireframe
 															 : ModelViewportRenderMode::Textured);

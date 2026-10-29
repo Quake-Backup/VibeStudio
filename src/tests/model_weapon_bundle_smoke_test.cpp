@@ -63,6 +63,38 @@ const ModelPlayerBundleFile *fileAt(const ModelWeaponBundle &bundle, const QStri
 			return &file;
 	return nullptr;
 }
+// A short 16-bit PCM WAV: mono is kept as it is, stereo is converted.
+QByteArray wav(int rate, int channels)
+{
+	QByteArray pcm;
+	for (int i = 0; i < 400 * channels; ++i)
+	{
+		const auto value = qint16(1000 * std::sin(i * 0.3));
+		pcm.append(char(value & 0xff));
+		pcm.append(char((value >> 8) & 0xff));
+	}
+	QByteArray out("RIFF");
+	const auto u32 = [&](quint32 v) {
+		for (int i = 0; i < 4; ++i)
+			out.append(char((v >> (8 * i)) & 0xff));
+	};
+	const auto u16 = [&](quint16 v) {
+		out.append(char(v & 0xff));
+		out.append(char(v >> 8));
+	};
+	u32(quint32(36 + pcm.size()));
+	out.append("WAVEfmt ");
+	u32(16);
+	u16(1);
+	u16(quint16(channels));
+	u32(quint32(rate));
+	u32(quint32(rate * 2 * channels));
+	u16(quint16(2 * channels));
+	u16(16);
+	out.append("data");
+	u32(quint32(pcm.size()));
+	return out + pcm;
+}
 bool closeTo(ModelVec3 a, ModelVec3 b, double tolerance)
 {
 	return std::abs(a.x - b.x) <= tolerance && std::abs(a.y - b.y) <= tolerance && std::abs(a.z - b.z) <= tolerance;
@@ -92,6 +124,9 @@ int main(int argc, char **argv)
 					 write(path("bare.mesh.json"), serializeEditableModel(part({}), &error)) &&
 					 write(path("flash2.mesh.json"), serializeEditableModel(part({}, 2), &error)),
 				 "fixtures written", error);
+	ok &= expect(write(path("fire.wav"), wav(22050, 1)) && QDir().mkpath(path("assets/sound/source")) &&
+					 write(path("assets/sound/source/ready.wav"), wav(44100, 2)),
+				 "sound fixtures written");
 	auto archive = std::make_shared<PackageArchive>();
 	ok &= expect(archive->load(path("assets"), &error), "asset folder opens", error);
 	const ModelAssemblyContext context{temporary.path(), archive, {}};
@@ -195,6 +230,45 @@ int main(int argc, char **argv)
 					 lone.package.notes.join(' ').contains("No hand model"),
 				 "a weapon alone packages with notes for the missing roles", error);
 
+	// Detail levels and sounds: levels beside every role model, sounds under
+	// sound/weapons/<w>/, receipt schema 2.
+	auto detailed = options;
+	detailed.detailLevels = ModelPlayerDetailLevels::Generated;
+	detailed.lodLevels = 1;
+	detailed.sounds = {{QStringLiteral("fire"), modelPlayerReference(path("fire.wav"))},
+					   {QStringLiteral("ready"), modelPlayerReference(QStringLiteral("package:sound/source/ready.wav"))}};
+	ModelWeaponBundle rich;
+	ok &= expect(prepareModelWeaponBundle(recipe, resolved, context, detailed, path("rail.assembly.json"), &rich, &error) &&
+					 fileAt(rich, base + "_1.md3") && fileAt(rich, base + "_hand_1.md3") && fileAt(rich, base + "_barrel_1.md3") &&
+					 fileAt(rich, base + "_flash_1.md3") && !fileAt(rich, base + "_2.md3") && fileAt(rich, "sound/weapons/rail/fire.wav") &&
+					 fileAt(rich, "sound/weapons/rail/ready.wav") && rich.package.files.size() == 12,
+				 "detail levels sit beside each role model and sounds under sound/weapons", error);
+	if (fileAt(rich, "sound/weapons/rail/fire.wav") && fileAt(rich, base + "_1.md3"))
+	{
+		ok &= expect(fileAt(rich, "sound/weapons/rail/fire.wav")->bytes == read(path("fire.wav")) &&
+						 fileAt(rich, "sound/weapons/rail/ready.wav")->bytes.mid(22, 2) == QByteArray("\x01\x00", 2) &&
+						 rich.package.notes.join(' ').contains("converted") && rich.package.notes.join(' ').contains("CG_RegisterWeapon"),
+					 "mono PCM is kept, stereo is converted to mono, and the notes say the game code assigns the sounds");
+		ok &= expect(rich.package.receipt.value("schemaVersion").toInt() == 2 && rich.package.receipt.value("sounds").toArray().size() == 2 &&
+						 rich.package.receipt.value("detailLevels").toArray().size() == 4 &&
+						 modelWeaponBundleJson(rich).value("detailLevels").toString() == "generated",
+					 "the receipt and review record the levels and sounds");
+		ModelMesh level;
+		ok &= expect(importEditableModel("rail_1.md3", fileAt(rich, base + "_1.md3")->bytes, &level, &error) &&
+						 findModelTag(level, QStringLiteral("tag_flash"), 0) && findModelTag(level, QStringLiteral("tag_barrel"), 0) &&
+						 closeTo(findModelTag(level, QStringLiteral("tag_flash"), 0)->origin, expected, 1e-3),
+					 "a detail level keeps the weapon's baked tags", error);
+	}
+	auto noisy = options;
+	noisy.sounds = {{QStringLiteral("../fire"), modelPlayerReference(path("fire.wav"))}};
+	refused(recipe, resolved, noisy, "an unsafe sound name is refused");
+	noisy.sounds = {{QStringLiteral("fire"), modelPlayerReference(path("fire.wav"))}, {QStringLiteral("FIRE"), modelPlayerReference(path("fire.wav"))}};
+	refused(recipe, resolved, noisy, "a sound named twice is refused");
+	auto deep = options;
+	deep.detailLevels = ModelPlayerDetailLevels::Generated;
+	deep.lodLevels = 3;
+	refused(recipe, resolved, deep, "more detail levels than Quake III loads are refused");
+
 	// Preview spin about the part's own X axis.
 	ModelAssembly spinning;
 	spinning.name = QStringLiteral("Spin");
@@ -253,6 +327,11 @@ int main(int argc, char **argv)
 		ok &= expect(run(exportArgs + QStringList{"--output", "cli-rail.pk3"}) && output.value("written").toBool() &&
 						 QFileInfo::exists(path("cli-rail.pk3")),
 					 "CLI exports the weapon PK3");
+		ok &= expect(run(review + QStringList{"--lod-levels", "1", "--sound", "fire=fire.wav", "--sound", "ready=package:sound/source/ready.wav"}) &&
+						 output.value("files").toArray().size() == 12 && output.value("sounds").toArray().size() == 2,
+					 "CLI reviews detail levels and sounds");
+		ok &= expect(run(review + QStringList{"--sound", "fire"}, 2) && run(review + QStringList{"--lod-ratio", "0.5"}, 2),
+					 "CLI refuses a sound without a source and a ratio without levels");
 		ok &= expect(run(exportArgs + QStringList{"--output", "cli-rail.zip"}, 2) &&
 						 run({"model", "assembly", "rail.assembly.json", "--operation", "weapon-review", "--weapon-name", "rail",
 							  "--package", "assets"},

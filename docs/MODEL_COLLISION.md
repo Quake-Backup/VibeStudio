@@ -112,7 +112,17 @@ and rotation) and shares the 64-volume limit and the name rules. Its points
 are stored inside that frame, so **Apply Box**, the transform tools, **Animate
 Box**, **Make Static from Current Frame**, duplicate and delete all work on it;
 **Scale** stretches it along its local axes. The shape stays the same in every
-pose; an animated hull moves, turns and scales with its poses. The inspector
+pose; an animated hull moves, turns and scales with its poses.
+
+**Fit New Animated Hull** fits a hull separately in every stored frame instead,
+each within the budget, so a prop that bends or stretches keeps a tight hull in
+every frame. Each pose stores its own shape beside its centre, size and
+rotation. Shapes cannot be blended, so between stored frames the nearer frame's
+shape holds while the frame itself is interpolated; in-between frames take the
+nearer stored frame's shape too. The pose transform tools keep a pose's shape.
+Doom 3 exports write one surface per volume and a surface keeps one topology,
+so they use the exported frame's shape. **Animate Box** on a static hull still
+copies one shape into every pose. The inspector
 lists its vertex, edge and face counts and whether it fits the Doom 3 trace
 model budget. The overlay draws its edges with the box styles. Map export and
 placement turn each hull into one convex brush through the level editor's
@@ -204,8 +214,18 @@ level does not move them: refresh them afterwards. On the command line,
 level editor can further edit inserted brushes using its normal component,
 transform, scene, undo and save services; a later refresh replaces such edits.
 **Export Collision Map…** still writes a plain worldspawn fragment, with no
-record. Placing collision together with **Stage and Place** in one step, and
-reporting records in `map inspect`, are not yet available.
+record.
+
+The level shows the state of its records without the model open: each record is
+checked against the mesh source it names, read from disk (an unchanged file is
+read once). The Levels **Checklist** on the **Map** tab warns when sets are out of
+date with their model, or when their model cannot be found or their keys are
+damaged, and says so when every set matches. `map inspect` adds
+`collisionRecords` (each record's `entity`, `status` of `current`, `stale`,
+`source-missing` or `invalid`, `source`, `frame`, `target` and `brushes`) when the
+map holds any, and a summary line in text output. Refreshing still happens from
+the Mesh Editor or `model collision --operation refresh`. Placing collision
+together with **Stage and Place** in one step is not yet available.
 
 ### Doom 3 collision
 
@@ -217,21 +237,44 @@ Collision…** writes the current frame as an ASE model with one closed surface
 per box or hull, named `collision_<volume>`, with triangles wound outwards and
 **Doom 3 collision material** as its material. The render surfaces are written
 exactly as a plain ASE export writes them. Define the material with the
-`collision` keyword in the game's material scripts; the export does not check
-them. A render surface already named `collision_<volume>`, more than 32
-surfaces in all, or an unsafe material path is refused.
+`collision` keyword in the game's material scripts. When a package is open, the
+export reads that package's Doom 3 material scripts and warns, in the status
+line, when none defines the material or its definition lacks the keyword; the
+file is still written, since the game's own materials may define it. A render
+surface already named `collision_<volume>`, more than 32 surfaces in all, or an
+unsafe material path is refused.
 
 **Export Doom 3 Clip Model…** writes the selected box or hull alone as an ASE
 for an entity's `clipmodel` key: Doom 3 builds a trace model from its single
 convex volume. The volume must fit the trace model budget of 16 faces, 32 edges
 and 32 vertices (fit a hull with the **Doom 3 trace model** budget); a larger
 one is refused. For an axis-aligned static box the review also gives the
-equivalent `mins` and `maxs` keys. Neither export runs the game; in-game
-collision and physics are not verified.
+equivalent `mins` and `maxs` keys.
+
+**Export Doom 3 .cm File…** writes every box and hull as a Doom 3 collision
+model file. When Doom 3 loads a static model's collision
+(`idCollisionModelManagerLocal::LoadModel`), it first reads the model's path with
+the extension changed to `.cm`, without comparing its CRC, and converts the
+model's surfaces only when there is no such file. Give the static model's game
+path, ending `.ase`, `.lwo` or `.ma` (the formats Doom 3 converts), such as
+`models/props/crate.ase`: it names the collision model, and the file belongs at
+`models/props/crate.cm` in the package. The file follows the reader in
+`CollisionModel_files.cpp`: `CM "1.00"`, a CRC of 0, and one `collisionModel`
+with its vertices, edges (edge 0 is the reserved dummy; every edge has two users
+and none is internal), a single leaf node and one polygon per volume face,
+wound counter-clockwise seen from outside, with its plane, bounds and the
+**Doom 3 collision material**, whose definition gives the contents. Animated
+volumes are written at the current frame. Keep the `.cm` file in step with the
+model; Doom 3 does not regenerate it. Map collision files, which dmap writes
+for a whole map with the map's CRC, are not written.
+
+None of these exports runs the game; in-game collision and physics are not
+verified.
 
 ```sh
 vibestudio --cli model collision models/crate.mesh.json --operation export-ase --target doom3 --output models/crate.ase --json
 vibestudio --cli model collision models/crate.mesh.json --operation export-clipmodel --target doom3 --box body --output models/crate_clip.ase --json
+vibestudio --cli model collision models/crate.mesh.json --operation export-cm --target doom3 --model-path models/props/crate.ase --output models/props/crate.cm --json
 ```
 
 MDL, MD2, MD3 and OBJ exports do not embed these boxes and report the omission.
@@ -259,7 +302,10 @@ Animated collision uses version **7**, retaining optional saved FPS and MDL data
 Its required `collisionBoxes` array accepts the static object above or an animated
 object containing exactly `name` and `poses`. `poses` is a nonempty array with
 exactly one object per mesh frame, each containing exactly `centre`, `size` and
-`rotation`. Track objects do not repeat those vectors outside the array. Older
+`rotation`. A pose of a hull may add its own `hull` array, in the form above,
+for a shape per frame; pose zero's shape is the volume's own `hull`, and a box
+refuses a pose shape. Releases from before per-frame shapes refuse such a pose.
+Track objects do not repeat those vectors outside the array. Older
 versions reject tracks. Mixed sources round-trip without flattening static or
 animated data. In memory, scalar box fields mirror pose zero; validation enforces
 that invariant. Use `setModelCollisionFrames` when replacing a track. History
@@ -287,9 +333,11 @@ the loaded source use its guarded source fingerprint.
 | `add` | Required `--name`; optional `--centre X,Y,Z`, `--size X,Y,Z`, `--rotation X,Y,Z`. Defaults: centre/rotation zero, size 16. |
 | `fit` | Required `--name`; optional `--frame all\|N`, `--surface N`, `--vertices all\|N,…`, `--faces all\|N,…`, `--edges A-B,…`. Indices are zero-based; edges have ascending endpoints. A surface without components is refused; use `--vertices all`. |
 | `fit-animated` | Required `--name`; same component selectors as `fit`, always samples every frame. No `--frame` option. |
-| `export-ase` | Required `--target doom3` and an `.ase` `--output`; optional `--material` (default `textures/common/collision`) and `--frame N` (required for animated volumes). Writes the render surfaces plus one collision surface per volume. JSON reports `collisionSurfaces`, the material and notes. |
+| `export-ase` | Required `--target doom3` and an `.ase` `--output`; optional `--material` (default `textures/common/collision`), `--frame N` (required for animated volumes) and `--package PATH`, a folder or archive whose Doom 3 material scripts are checked for the material's `collision` keyword. Writes the render surfaces plus one collision surface per volume. JSON reports `collisionSurfaces`, the material, notes and, with `--package`, `materialCheck.state` (`defined`, `undefined` or `no-collision-keyword`) and `materialCheck.source`. |
+| `export-cm` | Required `--target doom3`, `--model-path` (the static model's game path, ending `.ase`, `.lwo` or `.ma`) and a `.cm` `--output`; optional `--material` and `--frame N`. JSON `collisionModel` gives `modelPath`, `gamePath` (where Doom 3 looks for the file) and its polygon, edge and vertex counts. |
 | `export-clipmodel` | Required `--target doom3`, `--box NAME` and an `.ase` `--output`; optional `--material` and `--frame N`. Writes that volume alone and refuses one over the trace model budget. JSON `clipModel` gives its faces, edges and vertices, and `mins`/`maxs` for an axis-aligned static box. |
 | `fit-hull` | Required `--name`; the selectors and `--frame all\|N` of `fit`; `--profile quake\|quake2\|quake3\|doom3-trace` (default `quake3`) and optional `--max-faces K` (4 to the profile's limit). JSON adds `hull` with its vertex, edge and face counts and volume. The other operations accept hulls as they accept boxes. |
+| `fit-animated-hull` | As `fit-hull`, without `--frame`: fits a separate shape in every stored frame. JSON `hull.frames` gives each frame's vertex and face counts. |
 | `animate` | Required static `--box`; copies it into every frame. |
 | `freeze` | Required animated `--box` and `--frame N`; keeps that pose as a static box. |
 | `update` | Required `--box existing-name`; optional new `--name`, centre, size and rotation. Omitted fields retain their per-pose values, including under all-frame scope. Animated value updates require explicit `--frame all\|N`; rename alone needs no scope. |

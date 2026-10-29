@@ -21,6 +21,9 @@ inline constexpr int modelQ2PlayerFrameCount = 198;
 // The sexed sounds the game plays for a player ("*death1.wav" and so on).
 const QStringList &modelQ2PlayerSoundNames();
 
+// Every input below is a file, relative to the directory given to
+// prepareModelQ2PlayerBundle, or "package:PATH", one entry of the open package
+// (the one holding the palette), found as linked skins are.
 struct ModelQ2PlayerSkin
 {
 	QString name;  // 1-24 ASCII letters, digits, underscores or hyphens
@@ -30,13 +33,12 @@ struct ModelQ2PlayerSkin
 struct ModelQ2PlayerExtra
 {
 	QString name;	// a sound name, or a view weapon name (w_<name>.md2)
-	QString source; // a file
+	QString source; // a file or package:PATH
 };
 struct ModelQ2PlayerOptions
 {
 	QString modelName;
-	// Files: editable sources or native models (MD2, MD3, OBJ...), relative to
-	// the directory given to prepareModelQ2PlayerBundle.
+	// Editable sources or native models (MD2, MD3, OBJ...).
 	QString bodySource, weaponSource;
 	// Optional image for players/<model>/weapon.pcx, the weapon model's skin.
 	QString weaponSkin;

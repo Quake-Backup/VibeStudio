@@ -422,6 +422,7 @@ core_sources = files(
   'core/model_weapon_bundle.cpp',
   'core/model_q2_player_bundle.cpp',
   'core/model_player_import.cpp',
+  'core/model_doom3_entity_import.cpp',
   'core/model_assembly_q3_animation.cpp',
   'core/model_q3_animation.cpp',
   'core/model_assembly_animation.cpp',
@@ -649,6 +650,7 @@ install_headers('core/model_player_bundle.h', subdir: 'vibestudio/core')
 install_headers('core/model_weapon_bundle.h', subdir: 'vibestudio/core')
 install_headers('core/model_q2_player_bundle.h', subdir: 'vibestudio/core')
 install_headers('core/model_player_import.h', subdir: 'vibestudio/core')
+install_headers('core/model_doom3_entity_import.h', subdir: 'vibestudio/core')
 install_headers('core/model_q3_animation.h', subdir: 'vibestudio/core')
 install_headers('core/model_assembly_animation.h', subdir: 'vibestudio/core')
 install_headers('core/model_collision.h', subdir: 'vibestudio/core')
@@ -940,6 +942,7 @@ app_sources = files(
   'app/model_q2_player_dialog.cpp',
   'app/model_assembly_q3_animation.cpp',
   'app/model_assembly_player_import.cpp',
+  'app/model_assembly_doom3_import.cpp',
   'app/model_q3_animation_dialog.cpp',
   'app/model_assembly_animation_dialog.cpp',
   'app/model_assembly_recovery_writer.cpp',
@@ -4592,6 +4595,11 @@ model_collision_doom3_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-collision-doom3-smoke', model_collision_doom3_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+model_doom3_entity_import_smoke_test = executable(
+  'model_doom3_entity_import_smoke_test', ['tests/model_doom3_entity_import_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-doom3-entity-import-smoke', model_doom3_entity_import_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
 
 model_collision_cli_smoke_test = executable(
   'model_collision_cli_smoke_test', ['tests/model_collision_cli_smoke_test.cpp'],

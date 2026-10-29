@@ -377,6 +377,9 @@ struct ModelCollisionPose {
 	ModelVec3 centre;
 	ModelVec3 size{16, 16, 16};
 	ModelVec3 rotation;
+	// A hull's shape in this pose (ModelCollisionBox::hull layout); empty keeps
+	// the volume's own shape, which mirrors pose zero.
+	QVector<ModelVec3> hull{};
 };
 
 // Source-only collision boxes. Rotation is in model axes,

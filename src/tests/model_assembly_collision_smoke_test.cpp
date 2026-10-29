@@ -2,6 +2,7 @@
 #include "core/model_assembly_animation.h"
 #include "core/model_collision.h"
 #include "core/model_collision_hull.h"
+#include "core/model_document.h"
 #include "tests/model_assembly_test_helpers.h"
 
 #include <QCoreApplication>
@@ -13,6 +14,7 @@
 #include <QProcess>
 #include <QTemporaryDir>
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -49,6 +51,11 @@ ModelVec3 rotateZ(ModelVec3 v, double degrees)
 {
 	const double r = degrees * 3.14159265358979323846 / 180, c = std::cos(r), s = std::sin(r);
 	return {float(c * v.x - s * v.y), float(s * v.x + c * v.y), v.z};
+}
+bool sameShape(const QVector<ModelVec3> &a, const QVector<ModelVec3> &b)
+{
+	return std::equal(a.cbegin(), a.cend(), b.cbegin(), b.cend(),
+					  [](ModelVec3 x, ModelVec3 y) { return x.x == y.x && x.y == y.y && x.z == y.z; });
 }
 } // namespace
 
@@ -158,6 +165,37 @@ int main(int argc, char **argv)
 	ok &= expect(sampleModelAssembly(recipe, hullResolved, 0, &hullPose, &error, {}, true) &&
 					 isModelCollisionHull(hullPose.mesh.collisionBoxes.value(1)),
 				 "hulls are carried with their points", error);
+
+	// A part's hull with a shape per frame bakes each sample's own shape.
+	ModelCollisionBox shapeOne;
+	ok &= expect(makeModelCollisionHull(QStringLiteral("hull"), {{0, 0, 0}, {4, 0, 0}, {0, 4, 0}, {4, 4, 4}}, &shapeOne, &error), "second shape", error);
+	auto shaped = hull;
+	setModelCollisionFrames(&shaped, {ModelCollisionPose{hull.centre, hull.size, hull.rotation, hull.hull},
+									  ModelCollisionPose{shapeOne.centre, shapeOne.size, shapeOne.rotation, shapeOne.hull}});
+	auto shapedResolved = resolved;
+	for (auto &input : shapedResolved.inputs)
+		input.mesh.collisionBoxes = {shaped};
+	ModelAssemblyAnimation shapedBake;
+	ModelAssemblyAnimationOptions shapedOptions{0, 3, 2, QStringLiteral("swing")};
+	shapedOptions.includeCollision = true;
+	ok &= expect(bakeModelAssemblyAnimation(recipe, shapedResolved, shapedOptions, &shapedBake, &error) &&
+					 shapedBake.mesh.collisionBoxes.size() == 2 && shapedBake.mesh.collisionBoxes[0].framePoses.size() == 3,
+				 "an assembly whose part hulls change shape bakes", error);
+	if (shapedBake.mesh.collisionBoxes.size() == 2 && shapedBake.mesh.collisionBoxes[0].framePoses.size() == 3)
+	{
+		bool agrees = validateEditableModel(shapedBake.mesh).isEmpty();
+		QVector<QVector<ModelVec3>> shapes;
+		for (int i = 0; i < 3; ++i)
+		{
+			ModelAssemblyPose sample;
+			ModelCollisionBox baked;
+			agrees &= sampleModelAssembly(recipe, shapedResolved, i / 2.0, &sample, &error, {}, true) &&
+					  sampleModelCollisionBox(shapedBake.mesh.collisionBoxes[0], i, i, 0, &baked) &&
+					  sameShape(baked.hull, sample.mesh.collisionBoxes[0].hull);
+			shapes << baked.hull;
+		}
+		ok &= expect(agrees && !sameShape(shapes[0], shapes[2]), "each baked pose keeps the shape sampled at that time");
+	}
 
 	// The 64-volume limit.
 	auto crowded = resolved;

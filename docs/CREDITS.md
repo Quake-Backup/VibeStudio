@@ -157,6 +157,10 @@ follow `CG_RegisterWeapon` (the `<w>.md3`, `_flash`, `_barrel` and `_hand` model
 names), `CG_AddPlayerWeapon` (`tag_weapon`, `tag_barrel`, `tag_flash` and the
 barrel roll) and `CG_MapTorsoToWeaponFrame` in
 [`cg_weapons.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_weapons.c).
+Their detail levels follow `RE_RegisterModel`, which loads `<name>_1.md3` and
+`<name>_2.md3` beside any model
+([`tr_model.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/renderer/tr_model.c)),
+and their sounds the player packages' delivery (`snd_mem.c`), reviewed 2026-10-29.
 Behaviour only; the implementation is original.
 
 The native animation roster, lower-body frame adjustment, legacy gesture
@@ -244,7 +248,21 @@ the rule in `idCollisionModelManagerLocal::LoadRenderModel`
 ([`neo/cm/CollisionModel_load.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/cm/CollisionModel_load.cpp)):
 when any surface's material has the `collision` keyword, only those surfaces
 collide; the `clipmodel` key and trace model come from the same release's game
-code. Behaviour only; no code is copied. Recording placements in a
+code. The `.cm` collision model files follow the reader and writer in
+[`neo/cm/CollisionModel_files.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/cm/CollisionModel_files.cpp),
+`LoadModel`'s lookup of `<model>.cm` with CRC 0 before `LoadRenderModel`, and the
+polygon winding of `LoadRenderModel` with `idWinding::GetPlane`
+([`neo/idlib/geometry/Winding.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/idlib/geometry/Winding.cpp)),
+reviewed 2026-10-29. The material check reads the `collision` infoParm of
+[`neo/renderer/Material.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/renderer/Material.cpp)
+through the materials module's existing parser. Opening a Doom 3 entity as an
+assembly (`core/model_doom3_entity_import`) follows `idActor::SetupHead` (the
+`def_head` model at `head_joint` with the actor's axes), the `def_attach` loop of
+`idActor::Spawn` and `idActor::Attach` (`joint`, `origin` in model space,
+`angles` within the joint) in
+[`neo/game/Actor.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/game/Actor.cpp),
+`inherit` in `neo/framework/DeclEntityDef.cpp`, and `idAngles::ToMat3` in
+`neo/idlib/math/Angles.cpp`, reviewed 2026-10-29. Behaviour only; no code is copied. Recording placements in a
 `func_group` relies on the compilers merging `func_group` into the world, as
 ericw-tools `qbsp`, Quake II `qbsp3` and q3map2 do and as
 [TrenchBroom](https://github.com/TrenchBroom/TrenchBroom) uses it for groups.

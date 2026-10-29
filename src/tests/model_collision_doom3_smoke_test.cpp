@@ -3,6 +3,7 @@
 #include "core/model_collision_doom3.h"
 #include "core/model_collision_hull.h"
 #include "core/model_document.h"
+#include "core/package_archive.h"
 #include "tests/model_assembly_test_helpers.h"
 
 #include <QCoreApplication>
@@ -12,6 +13,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QTemporaryDir>
 
 #include <cmath>
@@ -73,6 +75,118 @@ bool closedOutward(const ModelSurface &surface, ModelVec3 centre)
 			return false;
 	}
 	return true;
+}
+// Reads a .cm file as Doom 3's CollisionModel_files.cpp grammar lays it out
+// and checks the model is closed, convex-wound and consistent: every edge used
+// once each way, polygons counter-clockwise about their outward normal, planes
+// and bounds matching their vertices.
+struct CmSummary
+{
+	bool valid = false;
+	QString name, material;
+	int vertices = 0, edges = 0, polygons = 0;
+};
+CmSummary readCm(const QByteArray &bytes)
+{
+	CmSummary summary;
+	QString text = QString::fromUtf8(bytes);
+	static const QRegularExpression comment(QStringLiteral("/\\*.*?\\*/"));
+	text.remove(comment);
+	const auto tokens = text.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
+	int at = 0;
+	const auto next = [&] { return at < tokens.size() ? tokens[at++] : QString(); };
+	const auto expectToken = [&](const char *token) { return next() == QLatin1String(token); };
+	const auto number = [&] { return next().toDouble(); };
+	const auto readVector = [&](ModelVec3 *v) {
+		if (!expectToken("("))
+			return false;
+		v->x = float(number());
+		v->y = float(number());
+		v->z = float(number());
+		return expectToken(")");
+	};
+	if (!expectToken("CM") || !expectToken("\"1.00\"") || !expectToken("0") || !expectToken("collisionModel"))
+		return summary;
+	summary.name = next();
+	QVector<ModelVec3> vertices;
+	QVector<QPair<int, int>> edges;
+	if (!expectToken("{") || !expectToken("vertices") || !expectToken("{"))
+		return summary;
+	for (int n = next().toInt(); n > 0; --n)
+	{
+		ModelVec3 v;
+		if (!readVector(&v))
+			return summary;
+		vertices << v;
+	}
+	if (!expectToken("}") || !expectToken("edges") || !expectToken("{"))
+		return summary;
+	QVector<int> users;
+	for (int n = next().toInt(); n > 0; --n)
+	{
+		if (!expectToken("("))
+			return summary;
+		const int a = next().toInt(), b = next().toInt();
+		if (!expectToken(")") || next() != "0")
+			return summary;
+		users << next().toInt();
+		edges << QPair<int, int>{a, b};
+	}
+	if (edges.isEmpty() || edges[0] != QPair<int, int>{0, 0} || !expectToken("}") || !expectToken("nodes") || !expectToken("{") ||
+		!expectToken("(") || !expectToken("-1") || !expectToken("0") || !expectToken(")") || !expectToken("}") || !expectToken("polygons") ||
+		!expectToken("{"))
+		return summary;
+	QVector<int> forward(edges.size()), backward(edges.size());
+	while (at < tokens.size() && tokens[at] != "}")
+	{
+		const int count = next().toInt();
+		if (count < 3 || !expectToken("("))
+			return summary;
+		QVector<int> ring;
+		for (int i = 0; i < count; ++i)
+		{
+			const int e = next().toInt();
+			if (e == 0 || std::abs(e) >= edges.size())
+				return summary;
+			++(e > 0 ? forward : backward)[std::abs(e)];
+			ring << (e > 0 ? edges[e].first : edges[-e].second);
+			const int end = e > 0 ? edges[e].second : edges[-e].first;
+			ring << end;
+		}
+		ModelVec3 normal, lo, hi;
+		if (!expectToken(")") || !readVector(&normal))
+			return summary;
+		const double dist = number();
+		if (!readVector(&lo) || !readVector(&hi))
+			return summary;
+		summary.material = next();
+		// Consecutive edges join, and the ring closes.
+		for (int i = 0; i < count; ++i)
+			if (ring[2 * i + 1] != ring[(2 * i + 2) % (2 * count)])
+				return summary;
+		const auto p = [&](int i) { return vertices[ring[2 * i]]; };
+		const ModelVec3 a = p(0), b = p(1), c = p(2);
+		const double ux = b.x - a.x, uy = b.y - a.y, uz = b.z - a.z, vx = c.x - a.x, vy = c.y - a.y, vz = c.z - a.z;
+		if ((uy * vz - uz * vy) * normal.x + (uz * vx - ux * vz) * normal.y + (ux * vy - uy * vx) * normal.z <= 0)
+			return summary;
+		for (int i = 0; i < count; ++i)
+		{
+			const auto q = p(i);
+			if (std::abs(double(normal.x) * q.x + double(normal.y) * q.y + double(normal.z) * q.z - dist) > 1e-3 || q.x < lo.x - 1e-4 ||
+				q.y < lo.y - 1e-4 || q.z < lo.z - 1e-4 || q.x > hi.x + 1e-4 || q.y > hi.y + 1e-4 || q.z > hi.z + 1e-4)
+				return summary;
+		}
+		++summary.polygons;
+	}
+	if (!expectToken("}") || !expectToken("}") || at != tokens.size())
+		return summary;
+	for (int e = 1; e < edges.size(); ++e)
+		if (forward[e] != 1 || backward[e] != 1 || users[e] != 2)
+			return summary;
+	summary.vertices = int(vertices.size());
+	summary.edges = int(edges.size()) - 1;
+	summary.valid = true;
+	return summary;
 }
 ModelMesh fixture()
 {
@@ -173,6 +287,44 @@ int main(int argc, char **argv)
 					 !exportModelDoom3ClipModel(mesh, "missing", {}, &clip, &error),
 				 "an over-budget hull and a missing volume are refused");
 
+	// Collision model files (.cm): the format Doom 3 reads beside a static model.
+	ModelDoom3CollisionModelFile cm;
+	ok &= expect(exportModelDoom3CollisionModelFile(mesh, "models/props/prop.ase", {}, &cm, &error) && cm.polygons == 20 && cm.edges == 36 &&
+					 cm.vertices == 22 && cm.filePath == "models/props/prop.cm",
+				 "every volume's faces become polygons of one collision model", error);
+	const auto summary = readCm(cm.bytes);
+	ok &= expect(summary.valid && summary.name == "\"models/props/prop.ase\"" && summary.material == "\"textures/common/collision\"" &&
+					 summary.polygons == 20 && summary.edges == 36 && summary.vertices == 22,
+				 "the .cm file is closed, wound outwards and consistent", QString::fromUtf8(cm.bytes.left(400)));
+	ok &= expect(!exportModelDoom3CollisionModelFile(mesh, "models/props/prop.md5mesh", {}, &cm, &error) &&
+					 !exportModelDoom3CollisionModelFile(mesh, "../prop.ase", {}, &cm, &error) &&
+					 !exportModelDoom3CollisionModelFile(mesh, "models/props/prop.ase", {QStringLiteral("textures/common/collision"), 9}, &cm,
+														  &error),
+				 "model paths other than static .ase/.lwo/.ma, unsafe paths and missing frames are refused");
+
+	// The project's material scripts: the collision keyword decides whether
+	// Doom 3 treats the surfaces as collision.
+	ok &= expect(QDir().mkpath(path("package/materials")) &&
+					 write(path("package/materials/props.mtr"), "textures/props/clip_good\n{\n\tnoshadows\n\tcollision\n}\n"
+																 "textures/props/clip_bad\n{\n\tnoshadows\n\tnonsolid\n}\n"),
+				 "material script written");
+	PackageArchive package;
+	ok &= expect(package.load(path("package"), &error), "folder package opens", error);
+	const auto good = checkModelDoom3CollisionMaterial(package, "textures/props/clip_good");
+	const auto bad = checkModelDoom3CollisionMaterial(package, "textures/props/clip_bad");
+	const auto missing = checkModelDoom3CollisionMaterial(package, "textures/props/clip_none");
+	ok &= expect(good.state == ModelDoom3CollisionMaterialState::Defined && good.note.isEmpty() && good.sourcePath.contains("props.mtr"),
+				 "a material with the collision keyword passes", good.note);
+	ok &= expect(bad.state == ModelDoom3CollisionMaterialState::NoCollisionKey && bad.note.contains("collision keyword") &&
+					 modelDoom3CollisionMaterialStateId(bad.state) == "no-collision-keyword",
+				 "a material without the collision keyword is reported", bad.note);
+	ok &= expect(missing.state == ModelDoom3CollisionMaterialState::Undefined && !missing.note.isEmpty(), "an undefined material is reported");
+	ModelWorkControl cancelled;
+	cancelled.cancelled = [] { return true; };
+	ok &= expect(checkModelDoom3CollisionMaterial(package, "textures/props/clip_bad", cancelled).state ==
+					 ModelDoom3CollisionMaterialState::Unchecked,
+				 "a cancelled scan reports nothing");
+
 	if (argc > 1)
 	{
 		ok &= expect(write(path("prop.mesh.json"), serializeEditableModel(mesh, &error)), "CLI fixture written", error);
@@ -207,6 +359,29 @@ int main(int argc, char **argv)
 					 "CLI writes a clip model and reports equivalent bounds");
 		ok &= expect(run({"model", "collision", "prop.mesh.json", "--operation", "export-clipmodel", "--target", "doom3", "--output", "clip2.ase"}, 2),
 					 "CLI export-clipmodel requires --box");
+		// A fresh output each time: the check reports, the export still writes.
+		const QStringList checked{"model", "collision", "prop.mesh.json", "--operation", "export-ase", "--target", "doom3", "--output", "checked.ase"};
+		ok &= expect(run(checked + QStringList{"--material", "textures/props/clip_bad", "--package", "package"}) &&
+						 output.value("materialCheck").toObject().value("state").toString() == "no-collision-keyword" &&
+						 output.value("notes").toArray().size() > 1 && QFileInfo::exists(path("checked.ase")),
+					 "CLI reports a collision material without the keyword and still writes the export");
+		ok &= expect(run(checked + QStringList{"--material", "textures/props/clip_good", "--package", "package", "--overwrite", "--dry-run"}) &&
+						 output.value("materialCheck").toObject().value("state").toString() == "defined" &&
+						 run({"model", "collision", "prop.mesh.json", "--operation", "export-clipmodel", "--target", "doom3", "--box", "upright",
+							  "--package", "package", "--output", "clip3.ase"},
+							 2),
+					 "CLI checks a defined material; --package applies to export-ase only");
+		ok &= expect(run({"model", "collision", "prop.mesh.json", "--operation", "export-cm", "--target", "doom3", "--model-path",
+						  "models/props/prop.ase", "--output", "prop.cm"}) &&
+						 output.value("collisionModel").toObject().value("polygons").toInt() == 20 &&
+						 output.value("collisionModel").toObject().value("gamePath").toString() == "models/props/prop.cm" &&
+						 read(path("prop.cm")) == cm.bytes,
+					 "CLI writes the same .cm file as the shared service");
+		ok &= expect(run({"model", "collision", "prop.mesh.json", "--operation", "export-cm", "--target", "doom3", "--output", "x.cm"}, 2) &&
+						 run({"model", "collision", "prop.mesh.json", "--operation", "export-cm", "--target", "doom3", "--model-path",
+							  "models/props/prop.ase", "--output", "x.ase"},
+							 2),
+					 "CLI export-cm requires --model-path and a .cm output");
 	}
 	std::cout << checks << " Doom 3 collision checks\n";
 	return ok ? 0 : 1;

@@ -17,6 +17,7 @@
 #include "core/level_filter_tags.h"
 #include "core/level_placement.h"
 #include "core/level_view_filters.h"
+#include "core/model_collision_placement.h"
 
 #include <QAction>
 #include <QCheckBox>
@@ -416,6 +417,21 @@ void ApplicationShell::refreshLevelMapSettings()
 											   : tr("%n entity class(es) defined", nullptr, static_cast<int>(m_entityDefinitions.classes.size())),
 				m_entityDefinitions.isEmpty() ? QStringLiteral("definitions") : QString());
 		}
+	}
+	// Collision placed from models (core/model_collision_placement.h): a set
+	// whose model's collision changed, or whose model is gone, needs a refresh.
+	const ModelCollisionRecordHealth collision = levelCollisionRecordHealth(document);
+	if (collision.stale > 0) {
+		checklistRow(m_levelChecklist, OperationState::Warning,
+			tr("%n placed collision set(s) out of date with their model: refresh them from the Mesh Editor", nullptr, collision.stale), QString());
+	}
+	if (collision.missing > 0 || collision.invalid > 0) {
+		checklistRow(m_levelChecklist, OperationState::Warning,
+			tr("%n placed collision set(s) whose model cannot be checked", nullptr, collision.missing + collision.invalid), QString());
+	}
+	if (!collision.records.isEmpty() && collision.stale == 0 && collision.missing == 0 && collision.invalid == 0) {
+		checklistRow(m_levelChecklist, OperationState::Completed,
+			tr("%n placed collision set(s) match their models", nullptr, collision.current), QString());
 	}
 	if (!m_leakTrailPath.isEmpty()) {
 		checklistRow(m_levelChecklist, OperationState::Failed, tr("The last build leaked: follow the trail to the hole"), QStringLiteral("leak"));

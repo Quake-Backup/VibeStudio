@@ -3,11 +3,14 @@
 #include "app/wrapping_action_button.h"
 #include "app/wrapping_check_box.h"
 #include "core/model_collision_hull.h"
+#include "core/package_archive.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
+#include <QDir>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QFormLayout>
 #include <QInputDialog>
 #include <QLabel>
@@ -149,6 +152,10 @@ void ModelEditorDialog::addCollisionControls(QFormLayout *form)
 	fitHull->setToolTip(Text::tr("Fit a convex hull to the selected vertices, edges or faces, or to the whole model, over the poses Fit "
 								 "poses chooses. Transform, animate and export it like a box; its shape stays the same in every pose."));
 	fitHull->setAccessibleDescription(fitHull->toolTip());
+	auto *fitAnimatedHull = button("fitAnimatedMeshCollisionHull", Text::tr("Fit New Animated Hull"), ModelEditKind::FitAnimatedCollisionHull, false);
+	fitAnimatedHull->setToolTip(Text::tr("Fit a convex hull separately in every stored frame, each within the budget, so its shape "
+										 "follows the animation. Between stored frames the nearer frame's shape holds."));
+	fitAnimatedHull->setAccessibleDescription(fitAnimatedHull->toolTip());
 	m_collisionTarget = combo("meshCollisionTarget", Text::tr("Map target"));
 	m_collisionTarget->addItem(Text::tr("Quake clip hull"), "quake");
 	m_collisionTarget->addItem(Text::tr("Quake II player clip"), "quake2");
@@ -198,7 +205,7 @@ void ModelEditorDialog::addCollisionControls(QFormLayout *form)
 	m_collisionDoom3Material->setLayoutDirection(Qt::LeftToRight);
 	m_collisionDoom3Material->setText(QStringLiteral("textures/common/collision"));
 	m_collisionDoom3Material->setToolTip(Text::tr("A material whose definition has the collision keyword. In Doom 3, when a model has "
-												  "such surfaces, only they collide."));
+												  "such surfaces, only they collide. With a package open, the export checks its material scripts."));
 	m_collisionDoom3Material->setAccessibleDescription(m_collisionDoom3Material->toolTip());
 	form->addRow(Text::tr("Doom 3 collision material"), m_collisionDoom3Material);
 	m_collisionAseExport = new WrappingActionButton(Text::tr("Export ASE with Collision…"), 2);
@@ -216,6 +223,13 @@ void ModelEditorDialog::addCollisionControls(QFormLayout *form)
 	m_collisionClipExport->setAccessibleDescription(m_collisionClipExport->toolTip());
 	form->addRow(m_collisionClipExport);
 	m_collisionSelectedButtons << m_collisionClipExport;
+	m_collisionCmExport = new WrappingActionButton(Text::tr("Export Doom 3 .cm File…"), 2);
+	m_collisionCmExport->setObjectName("exportMeshCollisionCm");
+	m_collisionCmExport->setAccessibleName(m_collisionCmExport->text());
+	m_collisionCmExport->setToolTip(Text::tr("Write every box and hull as a Doom 3 collision model file. Doom 3 reads it beside a static "
+											 "model instead of converting the model's surfaces."));
+	m_collisionCmExport->setAccessibleDescription(m_collisionCmExport->toolTip());
+	form->addRow(m_collisionCmExport);
 	const auto doom3Export = [this](bool clip) {
 		if (m_working)
 			return;
@@ -235,6 +249,34 @@ void ModelEditorDialog::addCollisionControls(QFormLayout *form)
 	};
 	connect(m_collisionAseExport, &QPushButton::clicked, this, [doom3Export] { doom3Export(false); });
 	connect(m_collisionClipExport, &QPushButton::clicked, this, [doom3Export] { doom3Export(true); });
+	connect(m_collisionCmExport, &QPushButton::clicked, this, [this] {
+		if (m_working)
+			return;
+		m_preview->pause();
+		const auto path =
+			QFileDialog::getSaveFileName(this, Text::tr("Export Doom 3 Collision Model"), {}, Text::tr("Doom 3 collision model (*.cm)"));
+		if (path.isEmpty())
+			return;
+		// The collisionModel name is the model's game path: guess it from a
+		// models/ folder in the chosen path, then let the user confirm it.
+		const auto normal = QDir::fromNativeSeparators(path);
+		const int models = normal.lastIndexOf(QStringLiteral("/models/"), -1, Qt::CaseInsensitive);
+		auto guess = models >= 0 ? normal.mid(models + 1) : QStringLiteral("models/") + QFileInfo(normal).fileName();
+		guess = guess.left(guess.lastIndexOf(QLatin1Char('.'))) + QStringLiteral(".ase");
+		bool accepted = false;
+		const auto modelPath = QInputDialog::getText(this, Text::tr("Model Game Path"),
+													 Text::tr("The static model's path in the game, which Doom 3 matches to this file:"),
+													 QLineEdit::Normal, guess, &accepted)
+								   .trimmed();
+		if (!accepted || modelPath.isEmpty())
+			return;
+		ModelCollisionSurfaceExport request;
+		request.material = m_collisionDoom3Material->text().trimmed();
+		request.frame = m_frame->currentIndex();
+		QString error;
+		if (!exportCollisionModelFile(path, modelPath, request, true, &error))
+			m_status->setText(error, LiveStatus::Problem);
+	});
 	connect(m_collisionExport, &QPushButton::clicked, this, [this] { handoffCollision(false); });
 	connect(m_collisionPlace, &QPushButton::clicked, this, [this] { handoffCollision(true); });
 	connect(m_collisionPlaceInstance, &QPushButton::clicked, this, [this] {
@@ -346,7 +388,7 @@ void ModelEditorDialog::executeCollision(ModelEditKind kind)
 	edit.collisionBox = {m_collisionName->text(), vector(m_collisionCentre), vector(m_collisionSize), vector(m_collisionRotation)};
 	if ((kind == ModelEditKind::AddCollisionBox || kind == ModelEditKind::FitCollisionBox ||
 		 kind == ModelEditKind::FitAnimatedCollisionBox || kind == ModelEditKind::FitCollisionHull ||
-		 kind == ModelEditKind::DuplicateCollisionBox) &&
+		 kind == ModelEditKind::FitAnimatedCollisionHull || kind == ModelEditKind::DuplicateCollisionBox) &&
 		findModelCollisionBox(m_document.mesh(), edit.collisionBox.name))
 	{
 		const auto stem = edit.collisionBox.name.left(115);
@@ -360,7 +402,7 @@ void ModelEditorDialog::executeCollision(ModelEditKind kind)
 	edit.frame = (kind == ModelEditKind::FitCollisionBox || kind == ModelEditKind::FitCollisionHull) && m_collisionFitScope->currentIndex() == 1
 					 ? m_frame->currentIndex()
 					 : -1;
-	if (kind == ModelEditKind::FitCollisionHull)
+	if (kind == ModelEditKind::FitCollisionHull || kind == ModelEditKind::FitAnimatedCollisionHull)
 	{
 		edit.collisionHullProfile = m_collisionHullProfile->currentData().toString();
 		edit.collisionHullMaxFaces = m_collisionHullFaces->value();
@@ -376,7 +418,8 @@ void ModelEditorDialog::executeCollision(ModelEditKind kind)
 	{
 		m_status->setText(error);
 	}
-	else if (kind == ModelEditKind::AnimateCollisionBox || kind == ModelEditKind::FitAnimatedCollisionBox)
+	else if (kind == ModelEditKind::AnimateCollisionBox || kind == ModelEditKind::FitAnimatedCollisionBox ||
+			 kind == ModelEditKind::FitAnimatedCollisionHull)
 		m_frameScope->setCurrentIndex(1);
 }
 ModelCollisionExport ModelEditorDialog::collisionRequest() const
@@ -449,10 +492,13 @@ bool ModelEditorDialog::exportCollisionAse(const QString &path, const ModelColli
 		return false;
 	}
 	const auto recoverySource = m_recoverySourcePath;
+	const auto archive = m_materialSource.archive;
 	ModelExportReport report;
+	ModelDoom3CollisionMaterialCheck material;
 	const bool ok = performWork(
 		Text::tr("Export ASE with Collision"),
-		[path, request, overwrite, recoverySource, &report](ModelDocument &candidate, QString *failure, const ModelWorkControl &control) {
+		[path, request, overwrite, recoverySource, archive, &report, &material](ModelDocument &candidate, QString *failure,
+																			   const ModelWorkControl &control) {
 			const auto target = inspectModelWriteTarget(path, control);
 			if (!target.isValid())
 			{
@@ -466,10 +512,19 @@ bool ModelEditorDialog::exportCollisionAse(const QString &path, const ModelColli
 				return false;
 			}
 			const auto bytes = exportModelAseWithCollision(candidate.mesh(), request, failure, control, &report);
-			return !bytes.isEmpty() && writeModelFile(target, bytes, failure, control);
+			if (bytes.isEmpty() || !writeModelFile(target, bytes, failure, control))
+				return false;
+			// The open package's material scripts decide whether Doom 3 treats
+			// these surfaces as collision; a missing keyword is reported, not refused.
+			if (archive && archive->isOpen())
+				material = checkModelDoom3CollisionMaterial(*archive, request.material, control);
+			return true;
 		},
 		error, true);
-	if (ok)
+	if (ok && !material.note.isEmpty())
+		m_status->setText(Text::tr("Exported %1 with collision surfaces, but check the material: %2").arg(path, material.note),
+						  LiveStatus::Problem);
+	else if (ok)
 		m_status->setText(Text::tr("Exported %1 with collision surfaces. %2").arg(path, report.notes.join(' ')), LiveStatus::Result);
 	return ok;
 }
@@ -509,6 +564,45 @@ bool ModelEditorDialog::exportCollisionClipModel(const QString &path, const QStr
 		m_status->setText(Text::tr("Exported clip model %1 (%2, %3, %4). %5")
 							  .arg(path, Text::tr("%n face(s)", nullptr, clip.faces), Text::tr("%n edge(s)", nullptr, clip.edges),
 								   Text::tr("%n vertex(es)", nullptr, clip.vertices), clip.notes.join(' ')),
+						  LiveStatus::Result);
+	return ok;
+}
+bool ModelEditorDialog::exportCollisionModelFile(const QString &path, const QString &modelPath, const ModelCollisionSurfaceExport &request,
+												 bool overwrite, QString *error)
+{
+	QString localError;
+	if (!error)
+		error = &localError;
+	if (m_working || !path.endsWith(".cm", Qt::CaseInsensitive))
+	{
+		*error = Text::tr("Choose a .cm output while the modeller is idle.");
+		return false;
+	}
+	const auto recoverySource = m_recoverySourcePath;
+	ModelDoom3CollisionModelFile file;
+	const bool ok = performWork(
+		Text::tr("Export Doom 3 Collision Model"),
+		[path, modelPath, request, overwrite, recoverySource, &file](ModelDocument &candidate, QString *failure,
+																	  const ModelWorkControl &control) {
+			const auto target = inspectModelWriteTarget(path, control);
+			if (!target.isValid())
+			{
+				*failure = target.error;
+				return false;
+			}
+			if ((target.existed && !overwrite) || modelPathsReferToSameFile(path, candidate.path()) ||
+				modelPathsReferToSameFile(path, candidate.mesh().sourcePath) || modelPathsReferToSameFile(path, recoverySource))
+			{
+				*failure = Text::tr("Protect source inputs and approve any existing derivative before replacing it.");
+				return false;
+			}
+			return exportModelDoom3CollisionModelFile(candidate.mesh(), modelPath, request, &file, failure, control) &&
+				   writeModelFile(target, file.bytes, failure, control);
+		},
+		error, true);
+	if (ok)
+		m_status->setText(Text::tr("Exported collision model %1 (%2). %3")
+							  .arg(path, Text::tr("%n polygon(s)", nullptr, file.polygons), file.notes.join(' ')),
 						  LiveStatus::Result);
 	return ok;
 }

@@ -1,6 +1,7 @@
 // Convex hull collision volumes with per-target budgets (ATT-COLL-01).
 #include "core/level_brush.h"
 #include "core/model_collision.h"
+#include "core/model_collision_doom3.h"
 #include "core/model_collision_hull.h"
 #include "core/model_document.h"
 #include "tests/model_assembly_test_helpers.h"
@@ -14,6 +15,7 @@
 #include <QProcess>
 #include <QTemporaryDir>
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -244,6 +246,90 @@ int main(int argc, char **argv)
 					 "each hull brush is closed (Euler 2) and within the trace budget", error);
 	}
 
+	// Animated hull: one fitted shape per stored frame.
+	ModelEdit animatedFit;
+	animatedFit.kind = ModelEditKind::FitAnimatedCollisionHull;
+	animatedFit.collisionBox.name = QStringLiteral("stride");
+	animatedFit.collisionHullProfile = QStringLiteral("quake3");
+	animatedFit.selection = document.selection();
+	animatedFit.selection.vertices.clear();
+	animatedFit.selection.edges.clear();
+	animatedFit.selection.faces.clear();
+	ok &= expect(document.edit(animatedFit, &error), "Fit New Animated Hull", error);
+	const auto *stride = findModelCollisionBox(document.mesh(), "stride");
+	ok &= expect(stride && stride->framePoses.size() == 2 && stride->framePoses[0].size.x == 20 && stride->framePoses[1].size.x == 24 &&
+					 stride->framePoses[1].centre.x == 2 && !stride->framePoses[1].hull.isEmpty() &&
+					 sameHull(stride->hull, stride->framePoses[0].hull) && !sameHull(stride->framePoses[0].hull, stride->framePoses[1].hull) &&
+					 validateEditableModel(document.mesh()).isEmpty(),
+				 "each frame keeps its own fitted shape and the volume mirrors frame zero");
+	if (!stride || stride->framePoses.size() != 2)
+		return 1;
+	ModelCollisionBox early, late, stored;
+	ok &= expect(sampleModelCollisionBox(*stride, 0, 1, .25, &early) && sampleModelCollisionBox(*stride, 0, 1, .75, &late) &&
+					 sampleModelCollisionBox(*stride, 1, 1, 0, &stored) && sameHull(early.hull, stride->framePoses[0].hull) &&
+					 sameHull(late.hull, stride->framePoses[1].hull) && sameHull(stored.hull, stride->framePoses[1].hull),
+				 "between frames the nearer frame's shape holds");
+	const auto reach = modelCollisionPoints(stored);
+	ok &= expect(std::any_of(reach.cbegin(), reach.cend(),
+							 [](const ModelVec3 &p) { return std::abs(p.x - 14) < 1e-3 && std::abs(p.y) < 1e-3 && std::abs(p.z) < 1e-3; }),
+				 "frame one's world shape reaches the stretched corner");
+	const auto strideJson = editableModelJson(document.mesh());
+	ok &= expect(parseEditableModel(QJsonDocument(strideJson).toJson(), &parsed, &error) &&
+					 findModelCollisionBox(parsed, "stride") && findModelCollisionBox(parsed, "stride")->framePoses.size() == 2 &&
+					 sameHull(findModelCollisionBox(parsed, "stride")->framePoses[1].hull, stride->framePoses[1].hull),
+				 "per-frame shapes round trip in the source", error);
+	{
+		auto shapeless = strideJson;
+		auto list = shapeless.value("collisionBoxes").toArray();
+		for (int i = 0; i < list.size(); ++i)
+		{
+			auto object = list[i].toObject();
+			if (object.value("name").toString() != "stride")
+				continue;
+			object.remove("hull");
+			list[i] = object;
+		}
+		shapeless.insert("collisionBoxes", list);
+		ok &= expect(!parseEditableModel(QJsonDocument(shapeless).toJson(), &parsed, &error), "a pose shape on a box is refused");
+	}
+	const auto frameOneShape = stride->framePoses[1].hull;
+	ModelEdit nudge;
+	nudge.kind = ModelEditKind::TransformCollisionBox;
+	nudge.selection = document.selection();
+	nudge.selection.collision = QStringLiteral("stride");
+	nudge.frame = 1;
+	nudge.translation = {1, 0, 0};
+	ok &= expect(document.edit(nudge, &error) && findModelCollisionBox(document.mesh(), "stride")->framePoses[1].centre.x == 3 &&
+					 sameHull(findModelCollisionBox(document.mesh(), "stride")->framePoses[1].hull, frameOneShape),
+				 "a frame-local transform keeps that frame's shape", error);
+	// Doom 3 surfaces keep one topology, so they take the exported frame's shape:
+	// frame one's shape puts the (0,12,0) corner at x=1 there, frame zero's at x=3.
+	ModelCollisionSurfaceExport surfaces;
+	QVector<ModelSurface> atZero, atOne;
+	surfaces.frame = 1;
+	ok &= expect(modelCollisionSurfaces(document.mesh(), {}, &atZero, &error) && modelCollisionSurfaces(document.mesh(), surfaces, &atOne, &error),
+				 "Doom 3 collision surfaces export at both frames", error);
+	const auto corner = [](const QVector<ModelSurface> &list, float x) {
+		for (const auto &surface : list)
+			if (surface.name == QStringLiteral("collision_stride") && surface.frames.size() == 2)
+				return std::any_of(surface.frames[1].positions.cbegin(), surface.frames[1].positions.cend(), [&](const ModelVec3 &p) {
+					return std::abs(p.x - x) < 1e-3 && std::abs(p.y - 12) < 1e-3 && std::abs(p.z) < 1e-3;
+				});
+		return false;
+	};
+	ok &= expect(corner(atOne, 1) && corner(atZero, 3) && !corner(atZero, 1), "Doom 3 export uses the exported frame's hull shape");
+	ModelEdit inbetween;
+	inbetween.kind = ModelEditKind::InsertInbetweens;
+	inbetween.frame = 0;
+	inbetween.inbetweenCount = 1;
+	inbetween.selection = document.selection();
+	ok &= expect(document.edit(inbetween, &error) && findModelCollisionBox(document.mesh(), "stride")->framePoses.size() == 3 &&
+					 sameHull(findModelCollisionBox(document.mesh(), "stride")->framePoses[1].hull, frameOneShape) &&
+					 validateEditableModel(document.mesh()).isEmpty(),
+				 "an in-between takes the nearer stored frame's shape", error);
+	ok &= expect(document.undo() && document.undo() && document.undo() && !findModelCollisionBox(document.mesh(), "stride"),
+				 "undo removes the animated hull");
+
 	if (argc > 1)
 	{
 		ok &= expect(write(path("prop.mesh.json"), serializeEditableModel(octahedronModel(), &error)), "CLI fixture written", error);
@@ -285,6 +371,17 @@ int main(int argc, char **argv)
 		ModelMesh written;
 		ok &= expect(parseEditableModel(read(path("hull2.mesh.json")), &written, &error) && isModelCollisionHull(written.collisionBoxes.value(0)),
 					 "the CLI source keeps the hull", error);
+		ok &= expect(run({"model", "collision", "prop.mesh.json", "--operation", "fit-animated-hull", "--name", "stride", "--output",
+						  "stride.mesh.json"}) &&
+						 output.value("hull").toObject().value("frames").toArray().size() == 2 &&
+						 parseEditableModel(read(path("stride.mesh.json")), &written, &error) &&
+						 !written.collisionBoxes.value(0).framePoses.value(1).hull.isEmpty(),
+					 "CLI fits a hull shape in every frame", error);
+		ok &= expect(run({"model", "collision", "prop.mesh.json", "--operation", "fit-animated-hull", "--name", "stride", "--frame", "0",
+						  "--output", "bad.mesh.json"},
+						 2) &&
+						 !QFileInfo::exists(path("bad.mesh.json")),
+					 "CLI refuses a frame scope for an animated hull");
 	}
 	std::cout << checks << " collision hull checks\n";
 	return ok ? 0 : 1;
