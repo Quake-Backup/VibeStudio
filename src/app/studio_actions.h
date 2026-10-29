@@ -115,6 +115,14 @@ public:
 	// this way inside Levels while Ctrl+3 keeps switching to Models elsewhere.
 	static constexpr const char* kShortcutFocusClaims = "focus";
 	void setShortcutScopeClaims(const QString& commandId, bool claims, const QString& layer = {});
+	// Editing commands (StudioCommandGroup::Edit) never take a key from a
+	// field that types inside one of these surfaces, such as a line edit or
+	// spin box, even a key the field itself ignores, such as TrenchBroom's
+	// Ctrl+P (Convert Selection to Patches) or Ctrl+D: the field keeps it,
+	// and a window-wide command that shares the key, such as Go to File,
+	// still runs. Commands of other groups, such as Show Face Inspector, act
+	// from the field as before.
+	void setShortcutTypingGuards(const QList<QWidget*>& surfaces);
 	// Embedded documents keep their local keys; identical shell keys remain
 	// available in menus and resume when focus leaves the document.
 	void setShortcutFocusSurface(QWidget* surface);
@@ -164,8 +172,13 @@ private:
 	void installShortcuts();
 	void refreshShortcutFocus();
 	// The enabled focus-layer command whose surface holds `focus` and whose
-	// key is `pressed`, or null.
-	[[nodiscard]] QAction* focusClaimFor(const QWidget* focus, const QKeySequence& pressed) const;
+	// key is `pressed`, or null. With `typing` (the focus is a field that
+	// types), editing commands claim nothing.
+	[[nodiscard]] QAction* focusClaimFor(const QWidget* focus, const QKeySequence& pressed, bool typing) const;
+	// Whether an enabled editing command would take `pressed` from the field
+	// `focus` through Qt's own shortcut map, inside a typing-guard surface.
+	[[nodiscard]] bool typingGuardTakes(const QWidget* focus, const QKeySequence& pressed) const;
+	void ensureFocusWatcher();
 	// The keys the selected editor profile gives commands, by normalized
 	// command id: a profile's keys replace the command's own, and an empty
 	// list takes them away.
@@ -185,9 +198,14 @@ private:
 	// Normalized ids of commands whose surfaces claim their keys, with the
 	// claim layer each claims in.
 	QHash<QString, QString> m_scopeClaims;
-	// The application event filter that runs kShortcutFocusClaims, installed
-	// with the first such claim and removed with the registry.
+	// The application event filter that runs kShortcutFocusClaims and the
+	// typing guards, installed with the first claim or guard and removed with
+	// the registry.
 	std::unique_ptr<QObject> m_focusWatcher;
+	QList<QPointer<QWidget>> m_typingGuards;
+	// The installed keys of editing commands Qt's own map can run (scoped,
+	// outside the focus layer), by normalized key, for the typing guards.
+	QHash<QString, QStringList> m_typingGuardKeys;
 	QString m_editorProfileId;
 	QHash<QString, QStringList> m_userShortcuts;
 	QStringList m_conflicts;

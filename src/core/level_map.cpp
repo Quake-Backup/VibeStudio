@@ -5130,7 +5130,19 @@ LevelMapStatistics statisticsWithTextureCount(const LevelMapDocument& document, 
 			counts.groupCount += group ? 1 : 0;
 			counts.inGameCount += inGame ? 1 : 0;
 		}
-		std::sort(stats.entityClasses.begin(), stats.entityClasses.end(), [](const LevelMapEntityClassCount& left, const LevelMapEntityClassCount& right) {
+		// Doom thing types sort by number (thing:9 before thing:3001), the rest
+		// by name without case.
+		const auto thingType = [](const QString& className, int* type) {
+			bool number = false;
+			*type = className.startsWith(QLatin1String("thing:")) ? className.mid(6).toInt(&number) : 0;
+			return number;
+		};
+		std::sort(stats.entityClasses.begin(), stats.entityClasses.end(), [&thingType](const LevelMapEntityClassCount& left, const LevelMapEntityClassCount& right) {
+			int leftType = 0;
+			int rightType = 0;
+			if (thingType(left.className, &leftType) && thingType(right.className, &rightType) && leftType != rightType) {
+				return leftType < rightType;
+			}
 			const int folded = left.className.compare(right.className, Qt::CaseInsensitive);
 			return folded != 0 ? folded < 0 : left.className < right.className;
 		});
@@ -5185,6 +5197,14 @@ QStringList levelMapStatisticsLines(const LevelMapDocument& document, const Leve
 		lines << QCoreApplication::translate("VibeStudioLevelMap", "Group entities: %1 (%2 in game)").arg(stats.groupEntityCount).arg(stats.inGameGroupEntityCount);
 		lines << QCoreApplication::translate("VibeStudioLevelMap", "Entity classes: %1").arg(stats.entityClasses.size());
 		lines << QCoreApplication::translate("VibeStudioLevelMap", "Target links: %1").arg(levelMapTargetLinks(document).size());
+		// A TrenchBroom-format map keeps each layer and group as a func_group
+		// entity. VibeStudio reads them as layers and groups, so the counts
+		// above leave them out, where NetRadiant Custom's Map Info counts them
+		// as func_group group entities; neither reaches the game.
+		if (document.sceneStorage == LevelSceneStorage::TrenchBroom && !document.scene.nodes.isEmpty()) {
+			lines << QCoreApplication::translate("VibeStudioLevelMap", "Layer and group entities (func_group, not counted above): %1")
+				.arg(document.scene.nodes.size());
+		}
 	}
 	lines << QCoreApplication::translate("VibeStudioLevelMap", "Brushes: %1 (%2 solved, %3 degenerate)").arg(stats.brushCount).arg(stats.solvedBrushCount).arg(stats.degenerateBrushCount);
 	lines << QCoreApplication::translate("VibeStudioLevelMap", "Brush faces: %1").arg(stats.brushFaceCount);

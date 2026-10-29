@@ -304,6 +304,103 @@ void layerTests()
 		"inspector lines", lines.join('\n'));
 }
 
+// Map settings with a group open: TrenchBroom's Map Properties and Mods
+// change the world node whatever group is open, and so do the soft bounds,
+// the mods and the Worldspawn list here. The group stays open, each change is
+// one undo step, and edits outside the group are still refused.
+void groupOpenTests()
+{
+	LevelMapDocument document = fixture();
+	QString error;
+	QString group;
+	const QString door = QStringLiteral("entity:%1").arg(entityId(document, QStringLiteral("func_door")));
+	expect(createLevelSceneNode(&document, LevelSceneNodeKind::Group, QStringLiteral("Door group"), {}, &group, &error)
+			&& assignLevelSceneObjects(&document, group, {door}, &error) && changeLevelSceneGroupContext(&document, group, false, &error),
+		"group opened", error);
+	expect(document.openSceneGroups == QStringList {group}, "the door's group is open");
+	const QByteArray original = serializeLevelMap(document).bytes;
+	const int depth = static_cast<int>(document.undoStack.size());
+
+	// Outside the group, an entity edit is still refused.
+	const int light = entityId(document, QStringLiteral("light"));
+	expect(!setLevelMapEntityProperty(&document, light, QStringLiteral("light"), QStringLiteral("500"), &error) && !error.isEmpty(),
+		"an edit outside the open group is refused", error);
+
+	LevelMapSoftBoundsChange change;
+	change.mode = LevelMapSoftBoundsMode::Custom;
+	change.mins = {-2048, -2048, -512, true};
+	change.maxs = {2048, 2048, 512, true};
+	expect(setLevelMapSoftBounds(&document, change, &error), "soft bounds change with a group open", error);
+	expect(setLevelMapEnabledMods(&document, {QStringLiteral("hipnotic")}, &error), "mods change with a group open", error);
+	const int world = entityId(document, QStringLiteral("worldspawn"));
+	expect(editLevelMapWorldSettings(&document, [&](LevelMapDocument* edited) {
+		return setLevelMapEntityProperty(edited, world, QStringLiteral("message"), QStringLiteral("Open group"), &error);
+	}), "a Worldspawn key changes with a group open", error);
+	expect(document.openSceneGroups == QStringList {group} && document.activeSceneNode == group, "the group stays open and active");
+	expect(document.undoStack.size() == depth + 3 && document.undoStack.constLast().description != QString(), "three undo steps",
+		QString::number(document.undoStack.size() - depth));
+	expect(worldValue(document, QString::fromLatin1(kLevelMapSoftBoundsKey)) == QStringLiteral("-2048 -2048 -512 2048 2048 512")
+			&& worldValue(document, QString::fromLatin1(kLevelMapModsKey)) == QStringLiteral("hipnotic")
+			&& worldValue(document, QStringLiteral("message")) == QStringLiteral("Open group"),
+		"worldspawn holds the settings");
+	const QByteArray edited = serializeLevelMap(document).bytes;
+	for (int step = 0; step < 3; ++step) {
+		expect(undoLevelMapEdit(&document, &error), "undo with the group open", error);
+	}
+	expect(serializeLevelMap(document).bytes == original && document.openSceneGroups == QStringList {group}, "undo restores the map exactly, group still open");
+	for (int step = 0; step < 3; ++step) {
+		expect(redoLevelMapEdit(&document, &error), "redo with the group open", error);
+	}
+	expect(serializeLevelMap(document).bytes == edited, "redo", error);
+	// The open group still keeps new objects and other edits inside it.
+	expect(!setLevelMapEntityProperty(&document, light, QStringLiteral("light"), QStringLiteral("500"), &error), "the boundary is back after the edit");
+}
+
+// TrenchBroom-format maps keep each layer and group as a func_group entity.
+// Map Info counts them as layers and groups, not entities (NetRadiant Custom
+// counts them as func_group group entities), and names them in a line of
+// their own. Doom thing types sort by number.
+void containerAndThingTests()
+{
+	LevelMapDocument document = fixture();
+	QString error;
+	QString layer;
+	QString group;
+	expect(createLevelSceneNode(&document, LevelSceneNodeKind::Layer, QStringLiteral("Lights"), {}, &layer, &error)
+			&& createLevelSceneNode(&document, LevelSceneNodeKind::Group, QStringLiteral("Door group"), layer, &group, &error)
+			&& assignLevelSceneObjects(&document, group, {QStringLiteral("entity:%1").arg(entityId(document, QStringLiteral("func_door")))}, &error),
+		"layer and group", error);
+	const QByteArray trenchBroom = serializeLevelMap(document, LevelSceneStorage::TrenchBroom).bytes;
+	expect(trenchBroom.count("\"_tb_type\"") == 2, "two containers written", QString::number(trenchBroom.count("\"_tb_type\"")));
+	LevelMapDocument reloaded;
+	if (expect(loadLevelMapBytes({QStringLiteral("layered.map"), {}, {}}, trenchBroom, &reloaded, &error), "TrenchBroom map loads", error)) {
+		const LevelMapStatistics statistics = levelMapStatistics(reloaded);
+		const auto* groups = classRow(statistics, QStringLiteral("func_group"));
+		expect(reloaded.sceneStorage == LevelSceneStorage::TrenchBroom && statistics.entityCount == 10 && groups && groups->count == 1,
+			"containers are not entities", QString::number(statistics.entityCount));
+		const QStringList lines = levelMapStatisticsLines(reloaded, statistics);
+		expect(lines.contains(QStringLiteral("Layer and group entities (func_group, not counted above): 2")), "containers named", lines.join('\n'));
+		expect(!levelMapStatisticsLines(document).join('\n').contains(QStringLiteral("Layer and group entities")), "no line for VibeStudio storage");
+	}
+
+	LevelMapDocument doom;
+	LevelMapCreateRequest create;
+	create.game = QStringLiteral("doom");
+	if (expect(createLevelMap(create, &doom, &error), "Doom map", error)) {
+		for (const int type : {3001, 9, 2001, 9}) {
+			expect(addLevelMapDoomThing(&doom, type, 64, 64, 0, nullptr, &error), "thing", error);
+		}
+		QStringList names;
+		for (const LevelMapEntityClassCount& row : levelMapStatistics(doom).entityClasses) {
+			names << row.className;
+		}
+		const qsizetype nine = names.indexOf(QStringLiteral("thing:9"));
+		const qsizetype shotgun = names.indexOf(QStringLiteral("thing:2001"));
+		const qsizetype imp = names.indexOf(QStringLiteral("thing:3001"));
+		expect(nine >= 0 && nine < shotgun && shotgun < imp, "thing types sort by number", names.join(' '));
+	}
+}
+
 void cliTests(const QString& executable, const QString& folder)
 {
 	const auto run = [&](const QStringList& args, int code = 0, QByteArray* text = nullptr) {
@@ -426,6 +523,8 @@ int main(int argc, char** argv)
 	softBoundsTests();
 	modsTests(temp.path());
 	layerTests();
+	groupOpenTests();
+	containerAndThingTests();
 	if (argc >= 2) {
 		cliTests(QFileInfo(QString::fromLocal8Bit(argv[1])).absoluteFilePath(), temp.path());
 	}

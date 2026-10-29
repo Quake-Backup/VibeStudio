@@ -589,7 +589,19 @@ plans a VibeMap3 build.
   - Right drag strafes, and Alt+right drag orbits.
   - The wheel moves toward the pointer.
   - When not looking, the arrows drive: Up and Down move, and Left and Right
-    turn.
+    turn; A and D strafe. Each press or repeat steps 32 units or 22.5
+    degrees, as NRC's default discrete camera does (`camwindow.cpp`
+    m_bCamDiscrete at `449778b3`), and looking up or down stops 1 degree
+    short of its 90 (`camera.discreteDriveKeys`,
+    `CameraViewControls::drivePitchLimitDegrees`).
+  - A and D, and any up, down or pitch drive key the user binds, also work
+    from the 2D views while no command there can act on the key, as NRC's
+    camera accelerators do (`plan.cameraDriveKeys`).
+  - Held keys fly at 500 units per second (CamMoveSpeed); Increase and
+    Decrease Camera Speed (Shift+keypad + and -, CameraSpeedInc and
+    CameraSpeedDec) step it through 50, 250 to 9750 by 250, and 9999 (NRC
+    adds or takes 250, so it goes 50 to 300 and 9999 to 9749) and keep it with the
+    profile's gestures (`camera.moveSpeed`).
   - Holding Tab while looking keeps the selection in view along the camera's
     heading, and the wheel moves nearer or farther (NRC `camwindow.cpp`
     CameraFreeFocus at `449778b3`; `camera.focusHoldKey`). Outside mouse look
@@ -644,6 +656,13 @@ plans a VibeMap3 build.
   - UV tool: G turns the camera's **UV** tool on, or back to **Select**
     (`"MouseUV"` in `radiant/tools.cpp` at `449778b3`). The NetRadiant
     baseline, which has no UV tool, leaves it unbound.
+  - Drag and Build tools: **Select** drags the brush planes facing a press
+    beside the selection, Alt drags vertices in a 2D view and one plane in
+    the camera, and Ctrl+Alt extrudes (`DragManipulatorImpl::testSelect` in
+    `radiant/selection_mtor_drag.cpp` at `449778b3`); B turns the **Build**
+    tool on, or back to **Select** (`"MouseBuild"`). The NetRadiant and
+    GtkRadiant profiles keep the plane drag, every Radiant's QE4 drag, but
+    leave the modifier drags and B unbound.
   - Simple Patch Mesh: Shift+P opens **Add Patch…** (`"SimplePatchMesh"` in
     `radiant/patchmanip.cpp` at `449778b3`). It was audited against NRC only,
     so the NetRadiant baseline leaves it unbound. The other Patch menu prefabs
@@ -1258,13 +1277,55 @@ layer, so Ctrl+1 shows the Map tab while the keyboard is inside Levels and
 **Workspace** keeps Ctrl+1 everywhere else. Other profiles leave Show Map
 without a key.
 
+TB's "Menu/Edit/Convert Selection to Patches" at the same revision has
+Ctrl+P. `trenchbroom` binds it to **Convert Selection to Patches**
+(`map.convertToPatches`) in the same focus layer: Ctrl+P converts the selected
+brushes or picked faces while the keyboard is inside Levels and the command
+can act, and **Go to File** keeps Ctrl+P everywhere else. Other profiles leave
+it without a key.
+
+Editing keys never act from a field that types on the Levels page
+(`StudioCommandRegistry::setShortcutTypingGuards`, set on the Levels page):
+while a line edit, spin box, text edit or editable combo box there has the
+focus, a focus-layer claim of a `StudioCommandGroup::Edit` command claims
+nothing, and the registry gives such claims Qt's `WidgetShortcut` context so
+Qt's own map cannot run them there either; Ctrl+P in the map path field is
+**Go to File**. The same filter accepts the shortcut override for any other
+key an enabled, Levels-scoped editing command would take there, such as
+TrenchBroom's Ctrl+D or a profile's single-key or Return binding, so the key
+reaches the field as a plain key press and no edit runs. Claims of other
+groups, such as Ctrl+3 and Ctrl+1 for the inspectors, still act from a field,
+and keys the field takes itself (letters, Delete, Ctrl+Z) stay the field's as
+before.
+
+### Patch cap key
+
+NRC's "CapCurrentCurve" in radiant/patchmanip.cpp at `449778b3` is bound to
+Shift+C. `netradiant-custom` binds it to **Cap Patch…** (`map.capPatch`), as
+the GtkRadiant 1.4/1.5 and Q3Radiant profiles already did. It was audited
+against NRC only, so the NetRadiant baseline leaves it unbound. **Deform
+Patch…** has no default key, as upstream's PatchDeform has none.
+
 ### Map Info key
 
 NRC's "MapInfo" in radiant/map.cpp `Map_Construct` at `449778b3` is bound to
 M. `netradiant-custom` binds M to **Map Info** (`map.mapInfo`), which opens the
 Map tab's Statistics section with the keyboard in its class table, scoped to
 the Levels page like the profile's other single-letter keys, so M still types
-into fields. `netradiant` and the other profiles leave it without a key.
+into fields. `netradiant` inherits the key, as NetRadiant `b4b295d7`
+radiant/mainframe.cpp binds "MapInfo" to M too; the other profiles leave it
+without a key (the GtkRadiant 1.6 source was not at hand to confirm its key).
+
+### Run Last Build key
+
+NRC's "Build_runRecentExecutedBuild" in radiant/mainframe.cpp at `449778b3`
+runs the build menu entry executed last on F5, as NetRadiant `b4b295d7` does.
+`netradiant-custom` binds F5 to **Run Last Build** (`build.runLast`), which runs
+the last build pipeline (with its launch) or Levels compiler profile again on the
+open map, and gives **Build and Launch** no key there; `netradiant` inherits
+both. Elsewhere F5 stays **Build and Launch** and Run Last Build has no key.
+TrenchBroom's "Menu/Run/Rerun..." has no default key, so **Re-run Last Compile**
+(`compiler.rerunLast`) has none either.
 
 ### Surface inspector key
 

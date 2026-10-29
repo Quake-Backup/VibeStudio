@@ -84,6 +84,46 @@ If the map has unsaved edits, VibeStudio asks first, because the compilers read 
 | **Doom nodes (ZDBSP)** | Nodes | `.wad` |
 | **Doom nodes (ZokumBSP)** | Nodes | `.wad` |
 
+### Make the project's own pipelines
+
+With a project open, **Pipelines…** beside the **Pipeline** list, or **Build** > **Build Pipelines…**, keeps
+pipelines of your own in the project, as NetRadiant Custom's **Build** > **Customize…** keeps build menu entries.
+Choose **Add**: a new pipeline starts with the stages of the pipeline chosen on the Build page. Then:
+
+1. Give it a **Name** (and a **Description** if you like).
+2. In **Stages**, clear a stage's check box to turn it off, use **Add Stage**, **Remove Stage**, **Move Up** and
+   **Move Down**, and for the selected stage choose its **Compiler**, its **Input** (the map, or the previous
+   stage's output) and its **Arguments**, added to the compiler's own. Quotes keep spaces.
+3. In **Variables**, add values of your own and use them as `${NAME}` in the arguments.
+4. Choose **OK**. The pipelines are saved in the project manifest and appear at the end of **Pipeline**.
+
+Arguments can use these variables, and a switch whose variable is empty is left out with its value:
+
+| Variable | Becomes |
+| --- | --- |
+| `${MAP}`, `${MAP_DIR}`, `${MAP_NAME}` | The input map, its folder, and its name without the extension |
+| `${OUTPUT}` | The file the first stage writes, such as `maps/start.bsp` |
+| `${PROJECT_DIR}` | The project folder |
+| `${GAME_DIR}`, `${MOD}` | The installation folder, and the **Game folder** on **Launch and Test** |
+| `${CPU_COUNT}` | The number of processor threads |
+
+**Preview** shows each stage's command line for the Build page's input, and the stages turned off. An
+unknown variable, an unclosed quote, a compiler for another game or a name used twice is named under
+the fields and keeps **OK** unavailable. Each stage still runs a compiler profile, so its program comes
+from the Toolchain settings.
+
+### When a build asks before running a program
+
+A project folder, or the saved runs beside a map, can come from someone else, and both can name a
+program: a project's own compiler paths, a pipeline's compiler, or the program a saved run replays.
+VibeStudio starts such a program without asking only when it is one of your configured compilers for
+that game: one set on the **Toolchain** tab or with `compiler set-path`, or one found in VibeStudio's
+compiler folders or on your PATH. Otherwise **Run Pipeline**, **Run Profile** and
+**Re-run Last Compile** first show the program, its full command line and its folder.
+**Cancel**, the default, runs nothing. **Trust and Run** runs it and remembers the choice in your own
+settings, never in the project, for that project (or the map's folder without one) until the program
+file changes.
+
 The **Stages** tab lists each stage's input, output, tool and any reason it was skipped. Press
 <kbd>Enter</kbd> on a stage, or double-click it, to see its command, captured output and diagnostics
 in **Build Details**. A Quake-family build writes the BSP beside the source map, for example
@@ -131,17 +171,58 @@ Launching needs a game installation profile; add one on the Workspace page first
 [Projects and game installations](projects.md#add-your-game-installations). VibeStudio launches the
 installation marked **in use**, or the first one when none is. Then open the **Launch and Test** tab:
 
-1. **Launch profile**: keep **Automatic (matches the installation)**, or choose a source port style.
+1. **Launch profile**: keep **Automatic (matches the installation)**, choose a source port style, or choose one of
+   your own launch profiles (see below).
 2. **Map**: the map to load. It defaults to the map the build produces.
 3. **Game folder**: the folder inside the installation the game loads, such as your mod's folder.
    Leave it empty for the base game. VibeStudio remembers it for each installation.
-4. Keep **Copy build to game** ticked to copy the built map into the game first.
-5. Choose **Launch Game** (<kbd>Ctrl</kbd>+<kbd>G</kbd>).
+4. **Extra arguments**: engine arguments added after the profile's, such as `+set developer 1`. Quotes keep spaces,
+   as in `+set name "Test Player"`. VibeStudio remembers them for each installation; text with an unclosed quote
+   is neither kept nor used until the quote is closed.
+5. Keep **Copy build to game** ticked to copy the built map into the game first.
+6. Choose **Launch Game** (<kbd>Ctrl</kbd>+<kbd>G</kbd>).
    VibeStudio shows the exact command line, working folder and any file copies, and starts the game
-   only when you choose **Launch**.
+   only when you choose **Launch**. From the Levels page, **Launch Game** shows this review over the map without
+   switching pages.
 
 **Launch plan** shows the program, arguments and working folder, the copy into the game, and anything
 that blocks the launch. **Copy Command Line** copies the command for a shell or script.
+
+### Make your own launch profiles
+
+**Launch Profiles…** on the **Launch and Test** tab, or **Build** > **Launch Profiles…**, keeps engine command lines
+of your own, as TrenchBroom's game engine profiles do. Choose **Add**: a new profile starts with the installation's
+usual arguments. Give it a **Name**, an **Engine** (or **Any game**) and the **Arguments**, using these tokens:
+
+| Token | Becomes |
+| --- | --- |
+| `{map}` | The **Map** field, or the map the build produces |
+| `{mod}` | The **Game folder** |
+| `{basedir}` | The installation folder |
+| `{bsp}` | The built map file |
+| `{iwad}` | A Doom installation's IWAD |
+| `{warp}` | A Doom map's `-warp` numbers, such as `2 3` for E2M3 |
+
+**Preview** shows the arguments with the current values. Arguments are grouped from each switch (a word starting with
+`-` or `+`) to the next, and a group whose token has no value is left out: with no **Game folder**,
+`+set fs_game {mod}` is dropped and the base game loads. A token VibeStudio does not know, or an unclosed quote, is
+named under the fields and keeps **OK** unavailable. Your profiles then appear at the end of **Launch profile**:
+those made for **Any game**, and those made for the engine of the installation in use.
+
+### Build again
+
+- **Build** > **Run Last Build** runs again the build you ran last for the project, on the open map: the pipeline,
+  with its launch when it was **Build and Launch**, or the compiler profile run with **Run Profile** in Levels. In the
+  NetRadiant Custom profile it is <kbd>F5</kbd>, as in NetRadiant Custom, and **Build and Launch** has no key there.
+- **Build** > **Re-run Last Compile** replays the open map's newest saved compile, the same program, arguments and
+  folder, as TrenchBroom's **Re-run Compilation** does. **Run Profile** saves each run under
+  `.vibestudio/compiler-runs` in the project, or beside the map with no project open, and the command is available
+  once the open map has a saved run there. If saving your edits writes a new file, that file is compiled with the same
+  profile instead. A saved run whose program is not one of your configured compilers asks first, as described in
+  [When a build asks before running a program](#when-a-build-asks-before-running-a-program).
+
+Both keep you on the page you are on; the Activity Center shows their progress and the **Problems** tab what the
+compiler reported.
 
 <details>
 <summary>What each launch profile passes to the game</summary>
@@ -152,7 +233,7 @@ that blocks the launch. **Copy Command Line** copies the command for a shell or 
 | **Quake II source port** | `+set basedir <installation> +set game <game folder> +map <map>` |
 | **Quake III source port** | `+set fs_basepath <installation> +set fs_game <game folder> +devmap <map>` |
 | **Doom source port** | `-iwad <IWAD> -file <built WAD> -warp <map>`, where `MAP07` becomes `-warp 07` and `E2M3` becomes `-warp 2 3` |
-| **Custom launch** | Only the extra arguments you supply |
+| **Custom launch** | Only your **Extra arguments** |
 
 </details>
 
@@ -171,10 +252,12 @@ To take the permission back, clear **Allow test maps** for the installation on t
 
 ## Build and launch in one step
 
-**Build and Launch** (<kbd>F5</kbd>) on the Build header runs the pipeline and, when it succeeds,
-launches the game with the built map, with the same confirmation as **Launch Game**. This is the
-quickest edit, build and test loop. The keys on this page are the defaults: an editor profile or your
-own key choices can change them, and **Help** > **Keyboard Shortcuts** lists the keys in effect.
+**Build and Launch** (<kbd>F5</kbd>, except in the NetRadiant Custom and NetRadiant profiles, where
+F5 is **Run Last Build**) on the Build header runs the pipeline and, when it succeeds, launches the
+game with the built map, with the same confirmation as **Launch Game**. This is the quickest edit,
+build and test loop. The keys on this page are the defaults: an editor profile or your own key
+choices can change them, and **Help** > **Keyboard Shortcuts** lists the keys in effect; the
+button's tooltip shows its key in the profile you use.
 
 ## Share the result
 
@@ -197,15 +280,19 @@ details.
 
 | Task | Command |
 | --- | --- |
-| List pipelines | `vibestudio --cli build list` |
+| List pipelines, the project's own too | `vibestudio --cli build list --workspace-root <project>` |
 | Plan a build without running it | `vibestudio --cli build plan <pipeline> --input <map>` |
 | Run a build | `vibestudio --cli build run <pipeline> --input <map> --watch` |
+| Add, change or remove a project pipeline | `vibestudio --cli build pipeline-set <id> --workspace-root <project> --name <name> --from <pipeline>`, `build pipeline-remove <id> --workspace-root <project>` |
 | Show compiler discovery | `vibestudio --cli compiler list` |
 | Choose or forget a compiler | `vibestudio --cli compiler set-path <tool> --executable <path>`, `compiler clear-path <tool>` |
 | Run one compiler step | `vibestudio --cli compiler run <profile> --input <map>` |
+| Replay a map's newest saved compile | `vibestudio --cli compiler rerun --last <map> --workspace-root <project>` |
 | Inspect a compiled map | `vibestudio --cli bsp inspect <bsp>` |
 | Draw a leak trail to a picture | `vibestudio --cli map render <map> --leak <file.pts> --output <file.svg>` |
 | Plan or start a launch | `vibestudio --cli launch plan --map <name>`, `launch run --map <name>` |
+| List, add or remove launch profiles | `vibestudio --cli launch profiles`, `launch profile-set <id> --name <name> --arguments "<line>"`, `launch profile-remove <id>` |
+| Show or set an installation's extra arguments | `vibestudio --cli launch extra-args --arguments "+set developer 1"`, `launch extra-args --clear` |
 | Release the built map | `vibestudio --cli release publish <project> --map <map> --release-version <version>` |
 
 For example:
@@ -219,11 +306,16 @@ vibestudio --cli launch run --bsp ./maps/start.bsp --deploy --allow-test-maps
 ```
 
 The pipeline names are `quake-full`, `quake-fast`, `quake-bsp-only`, `quake3-full`,
-`quake3-bsp-only`, `doom-zdbsp` and `doom-zokumbsp`. `build plan` and `build run` look for compilers
-on your PATH, in the folders given with `--compiler-search-paths`, and in the manifest of a project
-given with `--workspace-root`. `launch` uses the installation selected on the Workspace page unless
+`quake3-bsp-only`, `doom-zdbsp` and `doom-zokumbsp`; with `--workspace-root`, the project's own
+pipelines can be named too, and `--variable NAME=VALUE` sets a variable such as `MOD` for one run.
+`build plan` and `build run` use your compiler paths, look for compilers on your PATH and in the
+folders given with `--compiler-search-paths`, and use the manifest of a project given with
+`--workspace-root`. When a run would start a program that needs trusting, `build run` and
+`compiler rerun` stop with exit code 4 and show its command line; add `--trust-programs` to trust it
+for that project in your settings and run. `launch` uses the installation selected on the Workspace page unless
 you pass `--installation <id>`. `launch run --deploy --allow-test-maps` saves the test-map permission
-on the profile, as the Build page does.
+on the profile, as the Build page does. `launch plan` and `launch run` add the installation's saved extra
+arguments unless you pass `--extra-args`, and `--launch-profile` takes your own profiles' ids too.
 
 ## Learn more
 

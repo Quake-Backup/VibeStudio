@@ -25,6 +25,7 @@
 #include "cli/level_smart_tags.h"
 #include "cli/level_uv_edit.h"
 #include "cli/level_grid_round.h"
+#include "cli/level_patch_convert_deform.h"
 #include "cli/level_nudge.h"
 #include "cli/level_move_repeat.h"
 #include "cli/level_view_transform.h"
@@ -37,6 +38,8 @@
 #include "cli/level_clipboard.h"
 #include "cli/level_map_transfer.h"
 #include "cli/level_map_properties.h"
+#include "cli/launch_profiles.h"
+#include "cli/build_pipelines.h"
 #include "cli/level_region_selection.h"
 #include "cli/level_object_selection.h"
 #include "cli/level_visibility.h"
@@ -91,6 +94,7 @@
 #include "core/audio_recovery_store.h"
 #include "core/bsp_inspect.h"
 #include "core/build_pipeline.h"
+#include "core/build_program_trust.h"
 #include "core/compiler_profiles.h"
 #include "core/compiler_registry.h"
 #include "core/compiler_runner.h"
@@ -377,15 +381,18 @@ QVector<CliCommandDescriptor> cliCommandDescriptors()
 		{QStringLiteral("map"), QStringLiteral("move-components"), QStringLiteral("Move or snap brush vertices, edges or faces and rebuild their convex hull."), {QStringLiteral("vibestudio --cli map move-components ./maps/start.map --brush 0 --kind vertex --component 0 --delta 0,0,16 --output ./maps/reshaped.map")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("transform-components"), QStringLiteral("Transform up to 256 objects' picked components atomically. Repeat --set brush:ID/vertex|edge|face/IDs or patch:ID/vertex/IDs. --operation move requires --delta; snap requires --target brush:ID/vertex/INDEX and one geometric source vertex (merges valid corners, no --grid/--pivot); rotate requires --axis and --angle; scale requires --factors; shear requires --axis, --along and --factor. Optional --pivot, --grid, --allow-collapse, --uv-lock off|on|fit (default off; fit keeps three corners where an exact lock cannot hold, instead of refusing) and explicit --allow-valve220 for map-wide UV conversion. Repeat --face face:BRUSH:FACE (one-based, as map select-textured prints it) to transform independently picked faces without selecting their brushes, with optional --context GROUP; JSON then lists the faces after the edit. Requires --output."), {QStringLiteral("vibestudio --cli map transform-components ./maps/start.map --set brush:0/face/4 --operation rotate --axis z --angle 15 --output ./maps/reshaped.map"),QStringLiteral("vibestudio --cli map transform-components ./maps/start.map --face face:0:1 --face face:3:6 --operation move --delta 0,0,16 --uv-lock on --output ./maps/raised.map")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("extrude-faces"), QStringLiteral("Move brush planes along the first face's normal. Repeat --face brush:face for parallel faces, one per brush; --distance is signed. --split creates separate solids, --grid snaps distance/vertex crossings, --no-texture-lock keeps source parameters. Requires --output."), {QStringLiteral("vibestudio --cli map extrude-faces ./maps/start.map --face 0:4 --distance 16 --split --output ./maps/extruded.map")}, true, true, true},
+		{QStringLiteral("map"), QStringLiteral("drag-planes"), QCoreApplication::translate("LevelPlaneDragCli", "Drag brush planes as the Levels Select and Build tools do, after NetRadiant Custom's drag tool. --from x,y,z is the press point and --view top|front|side (or --direction x,y,z with --camera and --forward) the line of sight. --mode facing-planes moves the planes of the --object brushes that face the press point, and those back to back with them, by --delta dx,dy,dz; plane moves the plane under the press by --delta or --distance; vertices moves the vertices under it (within --tolerance) or the corners of the plane under it by --delta; extrude pulls the faces on the plane under it out into new brushes, or pushes them in to split a slab off, by --distance. A plane drag that would make a face vanish stops at the furthest --grid step that keeps every face. Requires --output."), {QStringLiteral("vibestudio --cli map drag-planes ./maps/start.map --object brush:0 --from 200,0,0 --view top --delta 32,0,0 --output ./maps/start-dragged.map"), QStringLiteral("vibestudio --cli map drag-planes ./maps/start.map --object brush:0 --mode extrude --from 80,0,200 --direction 0,0,-1 --camera --distance 16 --output ./maps/start-extruded.map")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("split-components"), QStringLiteral("Insert corners at edge midpoints or face centres plus --delta x,y,z. Repeat --component; --kind requires edge or face. Optional --grid and --allow-collapse follow insert-vertices."), {QStringLiteral("vibestudio --cli map split-components ./maps/start.map --brush 0 --kind face --component 4 --delta 0,0,16 --output ./maps/split.map")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("insert-vertices"), QStringLiteral("Insert brush corners at repeatable --position x,y,z coordinates. Repeat --brush for one atomic batch using the same positions. Optional --grid snaps new corners; --allow-collapse permits existing corners to disappear."), {QStringLiteral("vibestudio --cli map insert-vertices ./maps/start.map --brush 0 --position 32,32,80 --output ./maps/inserted.map")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("remove-components"), QStringLiteral("Remove vertices incident to repeatable --component IDs of --kind vertex, edge or face; the brush must remain three-dimensional."), {QStringLiteral("vibestudio --cli map remove-components ./maps/start.map --brush 0 --kind vertex --component 7 --output ./maps/trimmed.map")}, true, true, true},
-		{QStringLiteral("map"), QStringLiteral("add-patch"), QStringLiteral("Create a plane, cylinder, square-cylinder, cone, classic-cone, sphere, bevel or endcap patch in a Quake III map; --axis x|y|z turns it, --segments N sets the spans round a cylinder, cone or sphere and --bands N a sphere's spans from pole to pole. New patches are mapped as NetRadiant Custom maps them (Cap Texture on a plane, Natural on the rest) by --texture-size W,H (64,64 by default); --mapping natural|cap|stretch chooses another layout. --rows N sets the control rows along a cylinder or cone, --square re-disperses every span once mapped, as NetRadiant Custom's Square box on its Exact shapes does, and --ring-start exact starts a round ring at angle 0, as its Exact Cylinder, Cone and Sphere do (auto, the default, starts Radiant's nine-column cylinder and 9x5 sphere half a turn round, as its fixed prefabs do)."), {QStringLiteral("vibestudio --cli map add-patch ./maps/start.map --shape cylinder --size 128,128,256 --texture textures/base/metal --texture-size 256,256 --output ./maps/curves.map"), QStringLiteral("vibestudio --cli map add-patch ./maps/start.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --output ./maps/cone.map --json"), QStringLiteral("vibestudio --cli map add-patch ./maps/start.map --shape sphere --segments 6 --bands 3 --ring-start exact --square --texture textures/base/metal --output ./maps/orb.map --json")}, true, true, true},
+		{QStringLiteral("map"), QStringLiteral("add-patch"), QStringLiteral("Create a plane, cylinder, square-cylinder, cone, classic-cone, sphere, bevel or endcap patch in a Quake III map; --axis x|y|z turns it, --segments N sets the spans round a cylinder, cone or sphere and --bands N a sphere's spans from pole to pole. New patches are mapped as NetRadiant Custom maps them (Cap Texture on a plane, Natural on the rest) by --texture-size W,H (64,64 by default); --mapping natural|cap|stretch chooses another layout. --rows N sets the control rows along a cylinder or cone, --square re-disperses every span once mapped, as NetRadiant Custom's Square box on its Exact shapes does, and --ring-start exact starts a round ring at angle 0, as its Exact Cylinder, Cone and Sphere do (auto, the default, starts the 9x3 cylinder, the 9x5 sphere and every classic cone half a turn round, as its fixed prefabs do; a cylinder of more rows starts at angle 0)."), {QStringLiteral("vibestudio --cli map add-patch ./maps/start.map --shape cylinder --size 128,128,256 --texture textures/base/metal --texture-size 256,256 --output ./maps/curves.map"), QStringLiteral("vibestudio --cli map add-patch ./maps/start.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --output ./maps/cone.map --json"), QStringLiteral("vibestudio --cli map add-patch ./maps/start.map --shape sphere --segments 6 --bands 3 --ring-start exact --square --texture textures/base/metal --output ./maps/orb.map --json")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("edit-patch"), QStringLiteral("Edit patch control points, UV coordinates, material, facing or control-grid subdivision."), {QStringLiteral("vibestudio --cli map edit-patch ./maps/curves.map --patch 0 --point 1,1 --delta 0,0,32 --output ./maps/curves-edited.map")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("stitch-patches"), QStringLiteral("Join two patch boundaries with exact refinement, optional UV matching and tangent continuity."), {QStringLiteral("vibestudio --cli map stitch-patches ./maps/curves.map --first 0:last-column --second 1:first-column --max-gap 8 --output ./maps/joined.map --json")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("patch-matrix"), QStringLiteral("Change the control grids of --patch ids, repeatable, as Radiant's Patch menu does: --op insert-columns, add-columns, insert-rows, add-rows, delete-first-columns, delete-last-columns, delete-first-rows, delete-last-rows, transpose, invert, redisperse-columns, redisperse-rows, smooth-columns or smooth-rows, as one undo step."), {QStringLiteral("vibestudio --cli map patch-matrix ./maps/curves.map --patch 0 --op insert-columns --output ./maps/curves-denser.map --json")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("thicken-patch"), QStringLiteral("Thicken --patch ids, repeatable, by --thickness units behind their surface, or along --axis x, y or z, with walls closing the open edges unless --no-seams, as NetRadiant Custom's Thicken does."), {QStringLiteral("vibestudio --cli map thicken-patch ./maps/curves.map --patch 0 --thickness 8 --output ./maps/curves-thick.map --json")}, true, true, true},
-		{QStringLiteral("map"), QStringLiteral("cap-patch"), QStringLiteral("Cap curved patch boundaries with planar surfaces, optional boundary UVs and one atomic map edit."), {QStringLiteral("vibestudio --cli map cap-patch ./maps/curves.map --patch 0 --boundary first-row --boundary last-row --output ./maps/capped.map --json")}, true, true, true},
+		{QStringLiteral("map"), QStringLiteral("cap-patch"), QCoreApplication::translate("LevelPatchCapCli", "Cap the boundaries of repeatable --patch ids as one map edit, selecting the caps: --style radial (the default, planar radial caps that close loops as discs and arcs on their chord) or NetRadiant Custom's bevel, endcap, inverted-bevel, inverted-endcap and cylinder seams; the bevels need boundaries of 3 or 5 control points, the end caps 5 and cylinder 9. Repeatable --boundary first-row|last-row|first-column|last-column, optional --texture, --uv planar|boundary, --units-per-tile N, --center X,Y,Z (radial, one boundary) and --invert. Patches a style cannot cap are skipped and listed."), {QStringLiteral("vibestudio --cli map cap-patch ./maps/curves.map --patch 0 --boundary first-row --boundary last-row --output ./maps/capped.map --json"), QStringLiteral("vibestudio --cli map cap-patch ./maps/curves.map --patch 0 --patch 3 --style cylinder --texture base/pipe_cap --output ./maps/capped.map --json")}, true, true, true},
+		{QStringLiteral("map"), QStringLiteral("convert-patches"), QCoreApplication::translate("LevelPatchToolsCli", "Convert brush faces of a Quake III map to flat patches in their materials, keeping their texture mapping, as TrenchBroom's Convert Selection to Patches does: every face of repeatable --object brush:ID or entity:ID brushes (removed unless --keep-brushes) and repeatable --face face:brushId:faceNumber faces (one-based; their brushes stay). A face of more than four corners becomes several patches. --columns and --rows set each patch's odd grid, 3 to 31 (3 by 3 by default); --texture-size W,H or --package gives classic and Valve 220 faces their image sizes (64 by 64 otherwise). One undo step; requires --output."), {QStringLiteral("vibestudio --cli map convert-patches ./maps/arena.map --object brush:4 --texture-size 256,256 --output ./maps/arena-patches.map --json"), QStringLiteral("vibestudio --cli map convert-patches ./maps/arena.map --face face:4:6 --columns 5 --rows 5 --package ./baseq3 --output ./maps/arena-patches.map")}, true, true, true},
+		{QStringLiteral("map"), QStringLiteral("deform-patch"), QCoreApplication::translate("LevelPatchToolsCli", "Move every control point of repeatable --patch ids (or --object patch:ID or entity:ID) along --axis x, y or z (default z) by a random whole number of units from 0 to --max (default 64; negative moves the other way), as NetRadiant Custom's Deform does. --seed N repeats a run; without it a seed is drawn and reported. Texture coordinates stay. One undo step; requires --output."), {QStringLiteral("vibestudio --cli map deform-patch ./maps/cave.map --patch 2 --max 16 --axis z --seed 7 --output ./maps/cave-rough.map --json")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("add-thing"), QStringLiteral("Add a thing to a Doom or Hexen map by DoomEd number and save to a new WAD."), {QStringLiteral("vibestudio --cli map add-thing ./maps/e1.wad --map E1M1 --type 3004 --origin 64,96 --angle 90 --output ./maps/e1-more.wad")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("add-entity"), QStringLiteral("Add a point entity to a Quake-family .map and save to a new path."), {QStringLiteral("vibestudio --cli map add-entity ./maps/start.map --class light --origin 64,0,96 --set light=300 --output ./maps/start-lit.map")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("place-sound"), QStringLiteral("Validate a package WAV and place a Quake II/III speaker in a separate map output. Supports --game quake2|quake3, --mode loop-on|loop-off|triggered and --targetname; inactive sounds require a target name."), {QStringLiteral("vibestudio --cli map place-sound ./maps/start.map --package ./assets --sound sound/ambient/hum.wav --game quake3 --origin 64,0,96 --output ./maps/start-sound.map --dry-run --json")}, true, true, true},
@@ -491,7 +498,7 @@ QVector<CliCommandDescriptor> cliCommandDescriptors()
 		{QStringLiteral("compiler"), QStringLiteral("plan"), QStringLiteral("Build a reviewable compiler command plan."), {QStringLiteral("vibestudio --cli compiler plan vibemap2-bsp --input ./maps/start.map --dry-run")}, true, true, true},
 		{QStringLiteral("compiler"), QStringLiteral("manifest"), QStringLiteral("Print or write a compiler command manifest."), {QStringLiteral("vibestudio --cli compiler manifest vibemap2-bsp --input ./maps/start.map --manifest ./build/start.compiler.json")}, true, true, true},
 		{QStringLiteral("compiler"), QStringLiteral("run"), QStringLiteral("Execute a compiler command with logs, diagnostics, task state, and manifest capture."), {QStringLiteral("vibestudio --cli compiler run vibemap2-bsp --input ./maps/start.map --watch --manifest ./build/start.run.json")}, true, true, true, true},
-		{QStringLiteral("compiler"), QStringLiteral("rerun"), QStringLiteral("Re-run a saved compiler command manifest."), {QStringLiteral("vibestudio --cli compiler rerun ./build/start.run.json --watch")}, true, true, false, true},
+		{QStringLiteral("compiler"), QStringLiteral("rerun"), QStringLiteral("Re-run a saved compiler command manifest; with --last <map>, the map's newest saved run under .vibestudio/compiler-runs (--workspace-root and the map's folder), as Re-run Last Compile does. The manifest's program must be a compiler from your own configuration (compiler set-path, --compiler-search-paths, the studio's compiler folders or PATH) for its game, or trusted before for that project; otherwise it exits 4 showing the command line, and --trust-programs trusts it in your settings and runs it."), {QStringLiteral("vibestudio --cli compiler rerun ./build/start.run.json --watch"), QStringLiteral("vibestudio --cli compiler rerun --last ./maps/start.map --workspace-root ./mymod --json")}, true, true, false, true},
 		{QStringLiteral("compiler"), QStringLiteral("copy-command"), QStringLiteral("Print shell-ready command line from a manifest or profile."), {QStringLiteral("vibestudio --cli compiler copy-command vibemap2-bsp --input ./maps/start.map")}},
 		{QStringLiteral("ai"), QStringLiteral("status"), QStringLiteral("Print AI preferences, credentials, models, tools, and connector metadata."), {QStringLiteral("vibestudio --cli ai status --json")}},
 		{QStringLiteral("ai"), QStringLiteral("tools"), QStringLiteral("Print AI-callable VibeStudio tool descriptors."), {QStringLiteral("vibestudio --cli ai tools")}},
@@ -590,17 +597,23 @@ QVector<CliCommandDescriptor> cliCommandDescriptors()
 		{QStringLiteral("model"), QStringLiteral("edit"), QCoreApplication::translate("ModelSurfaceSelection", "Apply a validated mesh, UV, material, animation-frame, or attachment-tag edit. Transforms support --transform-space world|selection|custom (default world), custom --axis-rotation X,Y,Z and selection --axes-frame N. Axes also apply to face extrusion and duplication. One reference pose fixes selection axes across affected frames; default is the edited frame or pivot reference pose. Pivots remain in model coordinates. Transforms support snapping, explicit pivots, and --surfaces all or unique comma-separated indices for whole surfaces sharing one pivot. Do not mix --surfaces with component selectors. Boundary operations fill-boundary-loops and bridge-boundary-loops require --edges and cover all frames; --source-frame chooses a reference pose (default 0). Bridging joins exactly two loops, supports unequal counts and accepts --bridge-twist -1023 to 1023 (default 0). UV atlas operations accept --uv-atlas-size N or WIDTHxHEIGHT and --uv-padding pixels. uv-pack-around packs complete islands around fixed unselected and shared-material regions in the 0–1 tile; --uv-pack-scale fit|preserve chooses uniform fit (default) or unchanged UV scale. Clip timing: set-clip-fps requires --clip and --clip-fps; add-clip optionally accepts --clip-fps. Zero leaves timing unspecified, otherwise use 0.001–1000 FPS. On skeletal models JSON adds skinProvenance (kept, interpolated, mirrored, rebound, merged and bound weights per skinned surface); while a surface is skinned, duplicate-frame, delete-frame, insert-inbetweens and copy-frame-pose refuse the bind frame and frames baked from a skeletal clip, and keep every other frame's clip mapping; once every surface is unbound they apply to any frame."), {QStringLiteral("vibestudio --cli model edit ./out/pillar.mesh.json --operation transform --faces all --offset 0,0,8 --snap-grid 1 --output ./out/raised.mesh.json --dry-run --json")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("place-model"), QStringLiteral("Place a package MD3 in a Quake III map as a misc_model entity."), {QStringLiteral("vibestudio --cli map place-model ./maps/arena.map --engine idTech3 --package ./assets --entry models/props/pillar.md3 --origin 64,0,0 --output ./out/arena.map")}, true, true, true},
 		{QStringLiteral("bsp"), QStringLiteral("inspect"), QStringLiteral("Inspect a compiled BSP plus any leak and portal files beside it."), {QStringLiteral("vibestudio --cli bsp inspect ./out/start.bsp --json")}},
-		{QStringLiteral("build"), QStringLiteral("list"), QStringLiteral("List chained build pipelines and their stages."), {QStringLiteral("vibestudio --cli build list --json")}},
+		{QStringLiteral("build"), QStringLiteral("list"), QStringLiteral("List chained build pipelines and their stages; with --workspace-root, the project's own pipelines too (source project), with their stage arguments, on/off switches and variables."), {QStringLiteral("vibestudio --cli build list --json"), QStringLiteral("vibestudio --cli build list --workspace-root ./mymod --json")}},
+		{QStringLiteral("build"), QStringLiteral("pipeline-set"), QCoreApplication::translate("BuildPipelinesCli", "Add or change one of the project's own build pipelines, kept in its manifest, as Build Pipelines… does: <id> --workspace-root DIR with --name, --description, --from PIPELINE (start from a built-in or project pipeline), --stage ID=PROFILE in order (replaces the stages; each later stage reads the previous output unless --map-input ID), --stage-args ID=ARGUMENTS (quotes keep spaces; ${MAP}, ${MAP_DIR}, ${MAP_NAME}, ${OUTPUT}, ${PROJECT_DIR}, ${GAME_DIR}, ${MOD}, ${CPU_COUNT} and the pipeline's variables), --disable-stage ID, --enable-stage ID and --variable NAME=VALUE, each repeatable. Exits 4 naming the problems of a pipeline that cannot be saved. Supports --dry-run."), {QStringLiteral("vibestudio --cli build pipeline-set fast-light --workspace-root ./mymod --name \"Fast light\" --from quake-full --disable-stage vis --stage-args 'light=-extra -threads ${CPU_COUNT}' --json")}, true, true, true},
+		{QStringLiteral("build"), QStringLiteral("pipeline-remove"), QCoreApplication::translate("BuildPipelinesCli", "Remove one of the project's own build pipelines from its manifest: <id> --workspace-root DIR. Built-in pipelines cannot be removed. Supports --dry-run."), {QStringLiteral("vibestudio --cli build pipeline-remove fast-light --workspace-root ./mymod --dry-run --json")}, true, true, true},
 		{QStringLiteral("build"), QStringLiteral("artifacts"), QStringLiteral("Verify the captured inputs and last successful compiler output inventory."), {QStringLiteral("vibestudio --cli build artifacts ./builds/arena --json")}},
 		{QStringLiteral("build"), QStringLiteral("deploy-plan"), QStringLiteral("Review a verified prepared build, installation, package destination and windowed launch command."), {QStringLiteral("vibestudio --cli build deploy-plan ./builds/arena --installation quake3 --mod studio --json")}},
 		{QStringLiteral("build"), QStringLiteral("deploy-prepared"), QStringLiteral("Deploy a verified complete PAK or PK3 into an installation; optionally launch after publication."), {QStringLiteral("vibestudio --cli build deploy-prepared ./builds/arena --installation quake3 --mod studio --dry-run --json")}, true, true, true},
 		{QStringLiteral("build"), QStringLiteral("publish-prepared"), QStringLiteral("Publish captured assets, BSP and engine runtime lighting as a verified PAK or PK3; optionally include build sources."), {QStringLiteral("vibestudio --cli build publish-prepared ./builds/arena --output ./arena.pk3 --dry-run --json")}, true, true, true},
 		{QStringLiteral("build"), QStringLiteral("prepare"), QStringLiteral("Capture a Quake, Quake II or Quake III map and package draft as a new compiler workspace with verified input hashes."), {QStringLiteral("vibestudio --cli build prepare ./maps/arena.map --package ./assets.vibepackage --output ./builds/arena --json")}, true, true, true},
 		{QStringLiteral("build"), QStringLiteral("run-prepared"), QStringLiteral("Verify a prepared workspace and run its Quake III compiler pipeline with captured assets."), {QStringLiteral("vibestudio --cli build run-prepared ./builds/arena --pipeline quake3-full --dry-run --json")}, true, true, true},
-		{QStringLiteral("build"), QStringLiteral("plan"), QStringLiteral("Plan a chained build pipeline without running anything."), {QStringLiteral("vibestudio --cli build plan quake-full --input ./maps/start.map --json")}, true, true, true},
-		{QStringLiteral("build"), QStringLiteral("run"), QStringLiteral("Run a chained build pipeline stage by stage with logs, diagnostics, and manifests."), {QStringLiteral("vibestudio --cli build run quake-full --input ./maps/start.map --watch")}, true, true, true, true},
+		{QStringLiteral("build"), QStringLiteral("plan"), QStringLiteral("Plan a chained build pipeline without running anything: a built-in one, or with --workspace-root one of the project's own. --variable NAME=VALUE (repeatable) sets a pipeline variable such as MOD; GAME_DIR defaults to the selected installation. JSON programTrust tells whether a run would need --trust-programs."), {QStringLiteral("vibestudio --cli build plan quake-full --input ./maps/start.map --json"), QStringLiteral("vibestudio --cli build plan fast-light --workspace-root ./mymod --input ./mymod/maps/start.map --variable MOD=mymod --json")}, true, true, true},
+		{QStringLiteral("build"), QStringLiteral("run"), QStringLiteral("Run a chained build pipeline stage by stage with logs, diagnostics, and manifests: a built-in one, or with --workspace-root one of the project's own, with --variable as for build plan. A stage whose program is not a compiler from your own configuration (a project's compiler path, say) exits 4 showing the command lines unless trusted before for that project; --trust-programs trusts them in your settings and runs."), {QStringLiteral("vibestudio --cli build run quake-full --input ./maps/start.map --watch"), QStringLiteral("vibestudio --cli build run fast-light --workspace-root ./mymod --input ./mymod/maps/start.map --json")}, true, true, true, true},
 		{QStringLiteral("launch"), QStringLiteral("plan"), QStringLiteral("Build a reviewable game launch command line without starting anything; --deploy also shows where the built map would be copied."), {QStringLiteral("vibestudio --cli launch plan --map start --json"), QStringLiteral("vibestudio --cli launch plan --bsp maps/start.bsp --deploy")}, true, true, true},
 		{QStringLiteral("launch"), QStringLiteral("run"), QStringLiteral("Start the configured game installation with the planned command line; --deploy first copies the built map into the game folder."), {QStringLiteral("vibestudio --cli launch run --map start"), QStringLiteral("vibestudio --cli launch run --bsp maps/start.bsp --deploy --allow-test-maps")}, true, true, false},
+		{QStringLiteral("launch"), QStringLiteral("profiles"), QCoreApplication::translate("LaunchProfilesCli", "List the built-in launch profiles and your own, with their arguments and the tokens {map}, {mod}, {basedir}, {bsp}, {iwad} and {warp}."), {QStringLiteral("vibestudio --cli launch profiles --json")}, true, true, false},
+		{QStringLiteral("launch"), QStringLiteral("profile-set"), QCoreApplication::translate("LaunchProfilesCli", "Add or replace one of your launch profiles: launch profile-set <id> --name NAME --arguments \"LINE\" [--engine idTech1|idTech2|idTech3|any]; launch plan --launch-profile <id> then uses it. Supports --dry-run."), {QStringLiteral("vibestudio --cli launch profile-set user-dev --name \"Developer\" --arguments \"+set fs_game {mod} +set developer 1 +devmap {map}\" --engine idTech3")}, true, true, true},
+		{QStringLiteral("launch"), QStringLiteral("profile-remove"), QCoreApplication::translate("LaunchProfilesCli", "Remove one of your launch profiles. Supports --dry-run."), {QStringLiteral("vibestudio --cli launch profile-remove user-dev --dry-run")}, true, true, true},
+		{QStringLiteral("launch"), QStringLiteral("extra-args"), QCoreApplication::translate("LaunchProfilesCli", "Show or set the extra arguments every launch of an installation adds, as the Build page's Extra arguments field keeps them: --arguments \"ARGS\" or --clear, for --installation ID or the selected one. Supports --dry-run."), {QStringLiteral("vibestudio --cli launch extra-args --arguments \"+set developer 1\" --json")}, true, true, true},
 		{QStringLiteral("texture"), QStringLiteral("decode"), QStringLiteral("Decode an idTech texture, flat, sprite, or image entry and optionally write a PNG."), {QStringLiteral("vibestudio --cli texture decode ./id1/pak0.pak progs/player.mdl --output ./out/player.png --dry-run")}, true, true, true},
 		{QStringLiteral("texture"), QStringLiteral("palette"), QStringLiteral("Resolve the palette used to decode indexed art and report where it came from."), {QStringLiteral("vibestudio --cli texture palette ./id1/pak0.pak --palette quake --json")}},
 		{QStringLiteral("texture"), QStringLiteral("create"), QStringLiteral("Create a bounded PNG or layered texture project with optional ordered operations."), {QStringLiteral("vibestudio --cli texture create --size 64x64 --color transparent --output ./texture.vtexture --dry-run --json")}, true, true, true},
@@ -784,6 +797,12 @@ QStringList commandTokens(const QStringList& args)
 			QStringLiteral("--whole-map"), QStringLiteral("--keep-proportions"),
 			// map add-patch and add-shape (Square re-disperse)
 			QStringLiteral("--square"),
+			// compiler rerun --last (the newest saved run of a map)
+			QStringLiteral("--last"),
+			// compiler rerun and build run: trust a program named by project data
+			QStringLiteral("--trust-programs"),
+			// map convert-patches (cli/level_patch_convert_deform.cpp)
+			QStringLiteral("--keep-brushes"),
 	};
 
 	static const QSet<QString> valueFlags = {
@@ -1134,6 +1153,12 @@ QStringList commandTokens(const QStringList& args)
 			QStringLiteral("--exclude-facing"),
 			// map shear's side shear (cli/level_move_repeat.cpp)
 			QStringLiteral("--side"),
+			// launch profile-set and launch extra-args (cli/launch_profiles.cpp)
+			QStringLiteral("--arguments"),
+			// build plan/run and build pipeline-set (cli/build_pipelines.cpp)
+			QStringLiteral("--variable"), QStringLiteral("--enable-stage"), QStringLiteral("--map-input"),
+			// map deform-patch (cli/level_patch_convert_deform.cpp)
+			QStringLiteral("--max"),
 	};
 
 	QStringList tokens;
@@ -8923,7 +8948,13 @@ int runMapPatchCommand(const QString& commandName, const QString& path, const QS
 		create.mapping = LevelPatchCreateMapping::Radiant;
 		if (const int code = parsePatchCreateMappingOptions(args, &create.mapping, &create.imageSize, usage); code >= 0) { return code; }
 		// NetRadiant Custom's Exact shapes start their rings at angle 0, and its
-		// Square box re-disperses every span once the patch is mapped.
+		// Square box re-disperses every span once the patch is mapped. Only the
+		// round shapes read them, as map add-shape and the Shapes tab agree.
+		const bool roundShape = QStringList {QStringLiteral("cylinder"), QStringLiteral("cone"), QStringLiteral("classic-cone"), QStringLiteral("sphere")}
+			.contains(create.shape);
+		for (const QString& option : {QStringLiteral("--square"), QStringLiteral("--ring-start")}) {
+			if (hasOption(args, option) && !roundShape) { return usage(QStringLiteral("%1 does not apply to a %2.").arg(option, create.shape)); }
+		}
 		if (hasOption(args, QStringLiteral("--ring-start")) && !parseLevelPatchRingStart(optionValue(args, QStringLiteral("--ring-start")), &create.ringStart)) {
 			return usage(QStringLiteral("--ring-start takes auto or exact."));
 		}
@@ -8992,19 +9023,33 @@ int runMapCapPatchCommand(const QString& path, const QStringList& args, CliOutpu
 {
 	const QString command=QStringLiteral("map cap-patch");
 	const auto usage=[&](const QString& message){return printCliError(command,CliExitCode::Usage,message,format);};
-	for (const auto& option : {QStringLiteral("--patch"),QStringLiteral("--output"),QStringLiteral("--texture"),QStringLiteral("--uv"),QStringLiteral("--units-per-tile"),QStringLiteral("--center"),QStringLiteral("--boundary")}) {
+	for (const auto& option : {QStringLiteral("--patch"),QStringLiteral("--output"),QStringLiteral("--texture"),QStringLiteral("--uv"),QStringLiteral("--units-per-tile"),QStringLiteral("--center"),QStringLiteral("--boundary"),QStringLiteral("--style")}) {
 		const auto count=std::count_if(args.cbegin(),args.cend(),[&](const auto& token){return token==option || token.startsWith(option+QLatin1Char('='));});
 		const auto values=optionValues(args,option);
-		if (count!=values.size() || (count>1 && option!=QStringLiteral("--boundary")) ||
+		if (count!=values.size() || (count>1 && option!=QStringLiteral("--boundary") && option!=QStringLiteral("--patch")) ||
 			std::any_of(values.cbegin(),values.cend(),[](const auto& value){return value.isEmpty() || value.startsWith(QStringLiteral("--"));})) {
-			return usage(QStringLiteral("%1 requires a value and may be repeated only for --boundary.").arg(option));
+			return usage(QStringLiteral("%1 requires a value and may be repeated only for --patch and --boundary.").arg(option));
 		}
 	}
 	const auto output=optionValue(args,QStringLiteral("--output"));
-	bool valid=false; const int id=optionValue(args,QStringLiteral("--patch")).toInt(&valid);
-	if (path.isEmpty() || output.isEmpty() || !valid || id<0) { return usage(QStringLiteral("A map path, non-negative --patch ID, and --output are required.")); }
+	bool valid=false;
+	// NetRadiant Custom's Cap Selection caps every selected patch.
+	QVector<int> ids;
+	for (const auto& token : optionValues(args,QStringLiteral("--patch"))) {
+		const int id=token.toInt(&valid);
+		if (!valid || id<0) { return usage(QStringLiteral("--patch requires a non-negative patch ID.")); }
+		if (ids.contains(id)) { return usage(QStringLiteral("Patch %1 is named more than once.").arg(id)); }
+		ids << id;
+	}
+	if (path.isEmpty() || output.isEmpty() || ids.isEmpty()) { return usage(QStringLiteral("A map path, a non-negative --patch ID, and --output are required.")); }
 	LevelPatchCapRequest request;
-	request.boundaries.clear();
+	if (hasOption(args,QStringLiteral("--style")) && !parseLevelPatchCapStyle(optionValue(args,QStringLiteral("--style")),&request.style)) {
+		return usage(QStringLiteral("--style accepts %1.").arg(levelPatchCapStyleIds().join(QStringLiteral(", "))));
+	}
+	// First and last rows unless --boundary names others, as upstream caps.
+	if (hasOption(args,QStringLiteral("--boundary"))) {
+		request.boundaries.clear();
+	}
 	for (const auto& token : optionValues(args,QStringLiteral("--boundary"))) {
 		LevelPatchBoundary edge;
 		if (!parseLevelPatchBoundary(token,&edge)) { return usage(QStringLiteral("--boundary accepts first-row, last-row, first-column or last-column.")); }
@@ -9031,10 +9076,11 @@ int runMapCapPatchCommand(const QString& path, const QStringList& args, CliOutpu
 	LevelMapDocument document; QString error; const auto load=levelMapLoadRequestFromArgs(path,args);
 	if (!loadLevelMap(load,&document,&error)) { return printCliError(command,levelMapLoadFailureCode(load),error,format); }
 	LevelPatchCapResult result;
-	if (!capLevelMapPatch(&document,id,request,&result,&error)) { return printCliError(command,CliExitCode::ValidationFailed,error,format); }
+	if (!capLevelMapPatches(&document,ids,request,&result,&error)) { return printCliError(command,CliExitCode::ValidationFailed,error,format); }
 	if (format!=CliOutputFormat::Json) {
 		std::cout << text(QCoreApplication::translate("LevelPatchCap","Added %1 patch caps.").arg(result.caps.size())) << '\n';
 		for (const auto& warning : result.warnings) { std::cout << text(warning) << '\n'; }
+		for (const auto& reason : result.skipped) { std::cout << text(QCoreApplication::translate("LevelPatchCap","Not capped: %1").arg(reason)) << '\n'; }
 	}
 	return printLevelMapSaveResult(command,document,saveLevelMapAs(document,output,hasOption(args,QStringLiteral("--dry-run")),hasOption(args,QStringLiteral("--overwrite"))),format,
 		{{QStringLiteral("cap"),levelPatchCapReportJson(result)}});
@@ -13318,17 +13364,92 @@ int runCompilerRunCommand(const QString& commandName, const QString& profileId, 
 	return exitCodeValue(code);
 }
 
+// A program named by a saved run or a project starts only when it is a
+// compiler from the user's own configuration for its game, was trusted for
+// `scope` before, or --trust-programs trusts it now; the trust is kept in the
+// user's settings (core/build_program_trust.h). -1 when the command may go
+// ahead, else the exit code of the refusal it printed.
+int checkCliProgramTrust(const QString& commandName, const QVector<BuildProgramUse>& uses, const QString& scope, const QStringList& args, CliOutputFormat format)
+{
+	StudioSettings settings;
+	const CompilerRegistryOptions mine = userCompilerRegistryOptions(settings.compilerToolPathOverrides(), optionPathList(args, QStringLiteral("--compiler-search-paths")));
+	const BuildProgramReview review = reviewBuildPrograms(uses, scope, knownCompilerPrograms(mine), settings.trustedBuildPrograms());
+	if (!review.needsConfirmation()) {
+		return -1;
+	}
+	if (hasOption(args, QStringLiteral("--trust-programs"))) {
+		settings.setTrustedBuildPrograms(withTrustedPrograms(review, settings.trustedBuildPrograms()));
+		settings.sync();
+		if (format == CliOutputFormat::Text && !quietOutput()) {
+			std::cout << "Trusted for " << text(nativePath(review.scope)) << ":\n" << text(buildProgramReviewText(review)) << "\n";
+		}
+		return -1;
+	}
+	const QString message = QStringLiteral("%1 would start a program that is not one of your configured compilers; a saved run or a project named it. "
+		"Check the command line, then pass --trust-programs to trust it for %2 in your settings, or set the compiler with `compiler set-path`.\n%3")
+		.arg(commandName, nativePath(review.scope), buildProgramReviewText(review));
+	if (format == CliOutputFormat::Json) {
+		QJsonObject object = cliResultJson(commandName, CliExitCode::ValidationFailed);
+		object.insert(QStringLiteral("message"), message);
+		object.insert(QStringLiteral("programTrust"), buildProgramReviewJson(review));
+		printJson(object);
+	} else {
+		std::cerr << text(message) << "\n";
+	}
+	return exitCodeValue(CliExitCode::ValidationFailed);
+}
+
 int runCompilerRerunCommand(const QString& commandName, const QString& manifestInputPath, const QStringList& args, CliOutputFormat format)
 {
+	// --last: the positional names a map, and its newest saved run (the one
+	// Re-run Last Compile replays) is found in the compiler-runs folders of
+	// --workspace-root and the map's folder.
+	const bool last = hasOption(args, QStringLiteral("--last"));
 	if (manifestInputPath.trimmed().isEmpty()) {
-		return printCliError(commandName, CliExitCode::Usage, QStringLiteral("%1 requires a manifest path.").arg(commandName), format);
+		return printCliError(commandName, CliExitCode::Usage, last
+			? QStringLiteral("%1 --last requires the map whose newest saved run to replay.").arg(commandName)
+			: QStringLiteral("%1 requires a manifest path.").arg(commandName), format);
 	}
 	CompilerCommandManifest manifest;
 	QString error;
-	if (!loadCompilerCommandManifest(manifestInputPath, &manifest, &error)) {
+	QString outputManifestPath = optionValue(args, QStringLiteral("--manifest"));
+	QString replayedPath = last ? QString() : manifestInputPath;
+	if (last) {
+		QStringList roots;
+		if (hasOption(args, QStringLiteral("--workspace-root"))) {
+			roots << optionValue(args, QStringLiteral("--workspace-root"));
+		}
+		roots << QFileInfo(manifestInputPath).absolutePath();
+		CompilerRunManifestMatch match;
+		if (!findNewestCompilerRunManifest(roots, manifestInputPath, &match)) {
+			return printCliError(commandName, CliExitCode::NotFound,
+				QStringLiteral("No saved compiler run of %1 was found under .vibestudio/compiler-runs.").arg(nativePath(manifestInputPath)), format);
+		}
+		manifest = match.manifest;
+		replayedPath = match.path;
+		if (outputManifestPath.trimmed().isEmpty()) {
+			// Beside the run it repeats, where it becomes the newest.
+			outputManifestPath = newCompilerRunManifestPath(QDir::cleanPath(QFileInfo(match.path).absolutePath() + QStringLiteral("/../..")), manifest.profileId);
+		}
+		if (format == CliOutputFormat::Text && !quietOutput()) {
+			std::cout << "Replaying: " << text(nativePath(match.path)) << "\n";
+		}
+	} else if (!loadCompilerCommandManifest(manifestInputPath, &manifest, &error)) {
 		return printCliError(commandName, CliExitCode::NotFound, QStringLiteral("Unable to load compiler manifest: %1").arg(error), format);
 	}
-	const QString outputManifestPath = optionValue(args, QStringLiteral("--manifest"));
+	// Trust applies to the folder the saved runs belong to: the root above
+	// .vibestudio/compiler-runs, else --workspace-root, else the manifest's folder.
+	const QFileInfo replayed(replayedPath);
+	QString trustScope = replayed.absolutePath();
+	if (replayed.absoluteDir().dirName() == QLatin1String("compiler-runs") && QFileInfo(replayed.absolutePath()).absoluteDir().dirName() == QLatin1String(".vibestudio")) {
+		trustScope = QDir::cleanPath(replayed.absolutePath() + QStringLiteral("/../.."));
+	} else if (hasOption(args, QStringLiteral("--workspace-root"))) {
+		trustScope = optionValue(args, QStringLiteral("--workspace-root"));
+	}
+	const int refused = checkCliProgramTrust(commandName, {compilerManifestProgramUse(manifest)}, trustScope, args, format);
+	if (refused >= 0) {
+		return refused;
+	}
 	CompilerRunCallbacks callbacks;
 	if (hasOption(args, QStringLiteral("--watch")) && format == CliOutputFormat::Text && !quietOutput()) {
 		callbacks.logEntry = [](const CompilerTaskLogEntry& entry) {
@@ -13340,6 +13461,7 @@ int runCompilerRerunCommand(const QString& commandName, const QString& manifestI
 	const CliExitCode code = compilerRunExitCode(result);
 	if (format == CliOutputFormat::Json) {
 		QJsonObject object = cliResultJson(commandName, code);
+		object.insert(QStringLiteral("replayedManifestPath"), QFileInfo(replayedPath).absoluteFilePath());
 		object.insert(QStringLiteral("run"), compilerRunResultJson(result));
 		if (hasOption(args, QStringLiteral("--task-state")) || hasOption(args, QStringLiteral("--watch"))) {
 			object.insert(QStringLiteral("taskState"), taskStateJson(result.manifest.manifestId, result.state, result.error.isEmpty() ? compilerRunResultText(result).split('\n').value(0) : result.error, result.durationMs, false));
@@ -13599,55 +13721,80 @@ BuildPipelineRequest buildPipelineRequestFromArgs(const QString& pipelineId, con
 		request.stageTimeoutMs = timeout;
 	}
 
+	// The user's compiler paths, as the Build page uses them, under the
+	// project's own.
+	const StudioSettings settings;
+	request.executableOverrides = settings.compilerToolPathOverrides();
 	if (!request.workspaceRootPath.trimmed().isEmpty()) {
 		ProjectManifest manifest;
 		if (loadProjectManifest(request.workspaceRootPath, &manifest)) {
 			request.extraSearchPaths = effectiveProjectCompilerSearchPaths(manifest, request.extraSearchPaths);
 			request.executableOverrides = effectiveProjectCompilerToolOverrides(manifest, request.executableOverrides);
+			request.projectPipelines = projectBuildPipelines(manifest);
+		}
+	}
+	// ${GAME_DIR} is the selected installation's folder unless --variable
+	// says otherwise.
+	const QString installationId = settings.selectedGameInstallationId();
+	for (const GameInstallationProfile& installation : settings.gameInstallations()) {
+		if (sameGameInstallationId(installation.id, installationId)) {
+			request.variables.insert(QStringLiteral("GAME_DIR"), installation.rootPath);
+		}
+	}
+	for (int index = 0; index + 1 < args.size(); ++index) {
+		const QString value = args.at(index + 1);
+		const qsizetype equals = value.indexOf(QLatin1Char('='));
+		if (args.at(index) == QStringLiteral("--variable") && equals > 0) {
+			request.variables.insert(value.left(equals).trimmed(), value.mid(equals + 1));
 		}
 	}
 	return request;
 }
 
-int runBuildListCommand(const QString& commandName, CliOutputFormat format)
+int runBuildListCommand(const QString& commandName, const QStringList& args, CliOutputFormat format)
 {
-	const QVector<BuildPipelineDescriptor> pipelines = buildPipelineDescriptors();
+	// The built-in pipelines, then the project's own with --workspace-root.
+	QVector<BuildPipelineDescriptor> pipelines = buildPipelineDescriptors();
+	QStringList warnings;
+	const QString project = optionValue(args, QStringLiteral("--workspace-root"));
+	if (!project.trimmed().isEmpty()) {
+		ProjectManifest manifest;
+		QString error;
+		if (!loadProjectManifest(project, &manifest, &error)) {
+			return printCliError(commandName, CliExitCode::NotFound, QStringLiteral("No project manifest in %1: %2").arg(nativePath(project), error), format);
+		}
+		pipelines += projectBuildPipelines(manifest, &warnings);
+	}
 	if (format == CliOutputFormat::Json) {
 		QJsonObject object = cliResultJson(commandName);
 		QJsonArray array;
-		for (const BuildPipelineDescriptor& pipeline : pipelines) {
-			QJsonObject entry;
-			entry.insert(QStringLiteral("id"), pipeline.id);
-			entry.insert(QStringLiteral("displayName"), pipeline.displayName);
-			entry.insert(QStringLiteral("engineFamily"), pipeline.engineFamily);
-			entry.insert(QStringLiteral("description"), pipeline.description);
-			entry.insert(QStringLiteral("inputExtensions"), QJsonArray::fromStringList(pipeline.inputExtensions));
-			QJsonArray stages;
-			for (const BuildPipelineStage& stage : pipeline.stages) {
-				QJsonObject stageObject;
-				stageObject.insert(QStringLiteral("id"), stage.id);
-				stageObject.insert(QStringLiteral("profileId"), stage.profileId);
-				stageObject.insert(QStringLiteral("displayName"), stage.displayName);
-				stageObject.insert(QStringLiteral("optional"), stage.optional);
-				stageObject.insert(QStringLiteral("enabledByDefault"), stage.enabledByDefault);
-				stageObject.insert(QStringLiteral("inputFromStageId"), stage.inputFromStageId);
-				stages.append(stageObject);
-			}
-			entry.insert(QStringLiteral("stages"), stages);
-			array.append(entry);
+		for (const BuildPipelineDescriptor& pipeline : std::as_const(pipelines)) {
+			array.append(buildPipelineDescriptorJson(pipeline));
 		}
 		object.insert(QStringLiteral("pipelines"), array);
+		object.insert(QStringLiteral("warnings"), QJsonArray::fromStringList(warnings));
 		printJson(object);
 		return exitCodeValue(CliExitCode::Success);
 	}
 
 	std::cout << "Build pipelines\n";
-	for (const BuildPipelineDescriptor& pipeline : pipelines) {
-		std::cout << text(QStringLiteral("- %1 (%2, %3)\n").arg(pipeline.id, pipeline.displayName, pipeline.engineFamily));
+	for (const BuildPipelineDescriptor& pipeline : std::as_const(pipelines)) {
+		std::cout << text(QStringLiteral("- %1 (%2, %3%4)\n").arg(pipeline.id, pipeline.displayName, pipeline.engineFamily,
+			pipeline.projectDefined ? QStringLiteral(", project") : QString()));
 		for (const BuildPipelineStage& stage : pipeline.stages) {
-			std::cout << text(QStringLiteral("    %1 -> %2%3\n")
-				.arg(stage.id, stage.profileId, stage.optional ? QStringLiteral(" [optional]") : QString()));
+			QString note = stage.optional && !pipeline.projectDefined ? QStringLiteral(" [optional]") : QString();
+			if (pipeline.projectDefined && !stage.enabledByDefault) {
+				note = QStringLiteral(" [off]");
+			}
+			std::cout << text(QStringLiteral("    %1 -> %2%3%4\n")
+				.arg(stage.id, stage.profileId, note, stage.argumentLine.isEmpty() ? QString() : QStringLiteral(" ") + stage.argumentLine));
 		}
+		for (auto it = pipeline.variables.cbegin(); it != pipeline.variables.cend(); ++it) {
+			std::cout << text(QStringLiteral("    ${%1} = %2\n").arg(it.key(), it.value()));
+		}
+	}
+	for (const QString& warning : std::as_const(warnings)) {
+		std::cout << text(QStringLiteral("Warning: %1\n").arg(warning));
 	}
 	return exitCodeValue(CliExitCode::Success);
 }
@@ -13669,6 +13816,13 @@ int runBuildPlanCommand(const QString& commandName, const QString& pipelineId, c
 	if (format == CliOutputFormat::Json) {
 		QJsonObject object = cliResultJson(commandName);
 		object.insert(QStringLiteral("pipeline"), buildPipelineResultJson(result));
+		// Whether `build run` would start a program that needs trusting first.
+		const StudioSettings settings;
+		const QString scope = !request.workspaceRootPath.trimmed().isEmpty() ? request.workspaceRootPath : QFileInfo(request.inputPath).absolutePath();
+		object.insert(QStringLiteral("programTrust"),
+			buildProgramReviewJson(reviewBuildPrograms(buildPipelineProgramUses(result), scope,
+				knownCompilerPrograms(userCompilerRegistryOptions(settings.compilerToolPathOverrides(), optionPathList(args, QStringLiteral("--compiler-search-paths")))),
+				settings.trustedBuildPrograms())));
 		printJson(object);
 	} else {
 		std::cout << text(buildPipelineResultText(result)) << "\n";
@@ -13685,6 +13839,14 @@ int runBuildRunCommand(const QString& commandName, const QString& pipelineId, co
 	BuildPipelineRequest request = buildPipelineRequestFromArgs(pipelineId, args);
 	if (request.inputPath.trimmed().isEmpty()) {
 		return printCliError(commandName, CliExitCode::Usage, QStringLiteral("%1 requires --input <map path>.").arg(commandName), format);
+	}
+	if (!request.dryRun) {
+		// A stage's program that the project names starts only once trusted.
+		const QString scope = !request.workspaceRootPath.trimmed().isEmpty() ? request.workspaceRootPath : QFileInfo(request.inputPath).absolutePath();
+		const int refused = checkCliProgramTrust(commandName, buildPipelineProgramUses(planBuildPipeline(request)), scope, args, format);
+		if (refused >= 0) {
+			return refused;
+		}
 	}
 
 	const bool watch = hasOption(args, QStringLiteral("--watch")) && format != CliOutputFormat::Json;
@@ -13766,10 +13928,12 @@ int runLaunchCommand(const QString& commandName, const QStringList& args, bool e
 		request.mapName = QFileInfo(request.bspPath).completeBaseName();
 	}
 	request.workingDirectory = optionValue(args, QStringLiteral("--working-directory"));
-	const QString extraArgs = optionValue(args, QStringLiteral("--extra-args"));
-	if (!extraArgs.trimmed().isEmpty()) {
-		request.extraArguments = extraArgs.split(QLatin1Char(' '), Qt::SkipEmptyParts);
-	}
+	// Split as a shell would, so quotes keep spaces. Without --extra-args the
+	// installation's saved extra arguments apply, as on the Build page.
+	request.extraArguments = splitGameLaunchArguments(hasOption(args, QStringLiteral("--extra-args"))
+		? optionValue(args, QStringLiteral("--extra-args"))
+		: settings.launchExtraArguments(installation.id));
+	request.userProfiles = settings.userGameLaunchProfiles();
 	request.dryRun = !execute;
 
 	// --deploy copies the built map into the game folder the engine loads maps
@@ -16580,6 +16744,17 @@ int runSubcommand(const QStringList& args)
 			return runMapAddBrushCommand(QStringLiteral("map add-brush"), mapPath, args, format);
 		}
 		if (action == QStringLiteral("extrude-faces")) { return runMapExtrudeCommand(mapPath,args,format); }
+		if (action == QStringLiteral("drag-planes")) {
+			// NetRadiant Custom's QE4 plane drag and its Alt and Ctrl+Alt drags (core/level_plane_drag.h).
+			const auto result = runLevelPlaneDrag(args); const auto command = QStringLiteral("map drag-planes");
+			if (result.exitCode) { return printCliError(command,static_cast<CliExitCode>(result.exitCode),result.error,format); }
+			if (format == CliOutputFormat::Json) {
+				auto output = cliResultJson(command);
+				for (auto it = result.payload.begin(); it != result.payload.end(); ++it) { output.insert(it.key(),it.value()); }
+				printJson(output);
+			} else { std::cout << text(result.lines.join(QLatin1Char('\n'))) << '\n'; }
+			return 0;
+		}
 		if (action == QStringLiteral("transform-components")) { return runMapComponentTransformCommand(mapPath,args,format); }
 		if (action == QStringLiteral("select-components")) {
 			const auto result = runLevelComponentSelection(args); const auto command = QStringLiteral("map select-components");
@@ -16730,6 +16905,19 @@ int runSubcommand(const QStringList& args)
 			if (format == CliOutputFormat::Json) {
 				auto output = cliResultJson(command);
 				for (auto it = result.payload.begin(); it != result.payload.end(); ++it) { output.insert(it.key(),it.value()); }
+				printJson(output);
+			} else { std::cout << text(result.lines.join(QLatin1Char('\n'))) << '\n'; }
+			return 0;
+		}
+		// TrenchBroom's Convert Selection to Patches and NetRadiant Custom's Deform
+		// (cli/level_patch_convert_deform.cpp).
+		if (action == QStringLiteral("convert-patches") || action == QStringLiteral("deform-patch")) {
+			const auto result = action == QStringLiteral("convert-patches") ? cli::runLevelPatchConvert(args) : cli::runLevelPatchDeform(args);
+			const QString command = QStringLiteral("map ") + action;
+			if (result.exitCode) { return printCliError(command, static_cast<CliExitCode>(result.exitCode), result.error, format); }
+			if (format == CliOutputFormat::Json) {
+				auto output = cliResultJson(command);
+				for (auto it = result.payload.begin(); it != result.payload.end(); ++it) { output.insert(it.key(), it.value()); }
 				printJson(output);
 			} else { std::cout << text(result.lines.join(QLatin1Char('\n'))) << '\n'; }
 			return 0;
@@ -17173,7 +17361,28 @@ int runSubcommand(const QStringList& args)
 			return result.exitCode;
 		}
 		if (action == QStringLiteral("list") || action == QStringLiteral("pipelines")) {
-			return runBuildListCommand(QStringLiteral("build list"), format);
+			return runBuildListCommand(QStringLiteral("build list"), args, format);
+		}
+		if (action == QStringLiteral("pipeline-set") || action == QStringLiteral("pipeline-remove")) {
+			// The project's own pipelines (cli/build_pipelines.cpp).
+			const auto result = cli::runBuildPipelines(args);
+			const auto command = QStringLiteral("build ") + action;
+			if (result.exitCode != 0) {
+				if (format == CliOutputFormat::Json) {
+					auto output = cliResultJson(command, static_cast<CliExitCode>(result.exitCode));
+					output.insert(QStringLiteral("message"), result.error);
+					for (auto it = result.payload.begin(); it != result.payload.end(); ++it) { output.insert(it.key(), it.value()); }
+					printJson(output);
+					return result.exitCode;
+				}
+				return printCliError(command, static_cast<CliExitCode>(result.exitCode), result.error, format);
+			}
+			if (format == CliOutputFormat::Json) {
+				auto output = cliResultJson(command);
+				for (auto it = result.payload.begin(); it != result.payload.end(); ++it) { output.insert(it.key(), it.value()); }
+				printJson(output);
+			} else if (!quietOutput()) { std::cout << text(result.lines.join(QLatin1Char('\n'))) << '\n'; }
+			return 0;
 		}
 		const QString pipelineId = hasOption(args, QStringLiteral("--pipeline")) ? optionValue(args, QStringLiteral("--pipeline")) : tokens.value(2);
 		if (action == QStringLiteral("plan")) {
@@ -17190,6 +17399,19 @@ int runSubcommand(const QStringList& args)
 		}
 		if (action == QStringLiteral("run") || action == QStringLiteral("start")) {
 			return runLaunchCommand(QStringLiteral("launch run"), args, true, format);
+		}
+		if (action == QStringLiteral("profiles") || action == QStringLiteral("profile-set") || action == QStringLiteral("profile-remove")
+			|| action == QStringLiteral("extra-args")) {
+			// The user's launch profiles and extra arguments (cli/launch_profiles.cpp).
+			const auto result = cli::runLaunchProfiles(args);
+			const auto command = QStringLiteral("launch ") + action;
+			if (result.exitCode != 0) { return printCliError(command, static_cast<CliExitCode>(result.exitCode), result.error, format); }
+			if (format == CliOutputFormat::Json) {
+				auto output = cliResultJson(command);
+				for (auto it = result.payload.begin(); it != result.payload.end(); ++it) { output.insert(it.key(), it.value()); }
+				printJson(output);
+			} else { std::cout << text(result.lines.join(QLatin1Char('\n'))) << '\n'; }
+			return 0;
 		}
 	}
 

@@ -721,6 +721,29 @@ the GtkRadiant contributors), compatible with this GPL-3.0 repository:
   code in `src/core/level_patch.cpp`, `src/core/level_shapes.cpp` and
   `src/app/level_patch_prefab_actions.cpp`. Unlike upstream, selected point
   entities are kept rather than deleted.
+- Patch caps and Deform (2026-10-29), read at `449778b3`: in
+  [`radiant/patch.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/patch.cpp)
+  `Patch::MakeCap` (the first row taken forwards, the last backwards) and
+  `Patch::ConstructSeam`'s Bevel, Inverted Bevel, Endcap, Inverted Endcap and
+  Cylinder control layouts, mapped with Cap Texture; and in
+  [`radiant/patchmanip.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/patchmanip.cpp)
+  `Patch_makeCaps`'s width checks (3 or 5, 5 and 9), `Scene_PatchDoCap_Selected`
+  (every visible selected patch, caps selected), the Cap dialog's five types,
+  Cap Selection on Shift+C, and `Patch_deform` with `DoPatchDeformDlg` (a whole
+  random offset from 0 to the Max deform, 64 to start, along X, Y or Z, Z to
+  start, for each control point). Behaviour only; original code in
+  `src/core/level_patch_cap.cpp`, `src/core/level_patch_tools.cpp`,
+  `src/app/patch_cap_dialog.cpp` and
+  `src/app/level_patch_convert_deform_actions.cpp`. VibeStudio's Deform draws
+  from a seeded 32-bit Mersenne Twister rather than `rand()`, so a run can be
+  repeated.
+- TrenchBroom's Convert Selection to Patches (2026-10-29), read at
+  [`4c756be1`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1/lib/TbUiLib/src/MapWindow.cpp)
+  (GPL-3.0-or-later): `MapWindow::convertSelectionToPatches` (3 by 3 patches,
+  then the Control Point Tool) and its Ctrl+P in `ActionManager.cpp`.
+  Behaviour only; the face-to-patch construction in
+  `src/core/level_patch_convert.cpp` is VibeStudio's own, as TrenchBroom's
+  model library was not in the reviewed checkout.
 - [`radiant/csg.cpp`](https://github.com/Garux/netradiant-custom/blob/8216133984031afaa9a857b56ea66dd9c3d54b26/radiant/csg.cpp): `CSG_Hollow`'s wrapped walls
   (`eWrap`), which meet without overlapping, and `CSG_MakeRoom`, which builds
   the walls outside the brush.
@@ -2441,6 +2464,38 @@ round the box rather than the whole view, a Transform move in the camera
 starts from the point under the pointer on the box, and the camera's shear
 previews a dashed wire rather than the sheared surfaces.
 
+The plane drags of the Levels **Select** tool (the `drag-planes` empty drag,
+the Alt vertex and plane drags and the Ctrl+Alt extrusion), the **Build Tool**
+(`map.buildTool`, <kbd>B</kbd> in the NetRadiant Custom profile) and
+`map drag-planes` follow the behaviour of NetRadiant Custom's `MouseDrag` and
+`MouseBuild` toggles in
+[`radiant/tools.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/tools.cpp),
+`DragManipulatorImpl::testSelect`, `Scene_forEachPlaneSelectable_selectPlanes`,
+`Scene_forEachPlaneSelectable_bestPlane`, `selection_selectVerticesOrFaceVertices`
+and `Scene_forEachBrush_setupExtrude` in
+[`radiant/selection_mtor_drag.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtor_drag.cpp),
+`BrushInstance::selectPlanes`, `FaceInstance::trySelectPlane`,
+`EdgeInstance::bestPlaneIndirect` and the grid search of
+`BrushInstance::transformComponents` in
+[`radiant/brush.h`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/brush.h)
+and [`radiant/brush.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/brush.cpp),
+and `DragExtrudeFaces` in
+[`radiant/selection_mtable_extrude.h`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtable_extrude.h)
+(the planes facing the press point and seen most nearly edge-on, one per
+brush in the camera, with the planes back to back on other selected brushes;
+the plane hit or the one behind the nearest edge; texture lock off while
+resizing; an extrusion out into new brushes or in to split a slab), revision
+`449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later), reviewed
+2026-10-29. GtkRadiant 1.6.0's QE4 drag in `radiant/selection.cpp` is the
+same plane drag. Behaviour only: the picks, plane moves and chain record in
+`core/level_plane_drag.*`, the controller in
+`app/level_plane_drag_controller.*`, the view and shell wiring, the CLI route
+and the tests are original. At the pinned revision NetRadiant Custom's
+Build manipulator is a placeholder, so the Build tool follows its stated
+purpose ("extrude, build chains, clone"); a drag that would make a face vanish
+stops rather than keeping the face as a redundant plane, and patches and
+light radii are not dragged.
+
 The fitted UV lock (**Fit UVs When Lock Fails**, `--uv-lock fit`) follows the
 behaviour of NetRadiant Custom's texture vertex lock: `TogTexVertexLock` in
 [`radiant/brushmanip.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/brushmanip.cpp)
@@ -3295,7 +3350,61 @@ coordinates as 1/8-unit shorts, and ±65536 for Quake III maps, from
 facts were used; no source was copied. `src/core/level_map_inspector.*`, the
 Map Info counts in `src/core/level_map.cpp`, `src/app/level_map_inspector*.*`,
 `map properties` in `src/cli/level_map_properties.*` and the `level-map-info`
-tests are original VibeStudio work.
+tests are original VibeStudio work. Map settings changing with a group open
+follow the same `MapPropertiesEditor` and `ModEditor`, which change the world
+node whatever group is open.
+
+### Run Last Build, Re-run Last Compile and launch profiles
+
+Reviewed on 2026-10-29. **Run Last Build** on <kbd>F5</kbd> in the NetRadiant
+Custom profile follows `Build_runRecentExecutedBuild` and `g_lastExecutedBuild`
+in
+[`radiant/build.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/build.cpp)
+and its F5 key in `radiant/mainframe.cpp` of NetRadiant Custom revision
+`449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later), also checked
+against NetRadiant `b4b295d7a37797cc2752e48aa8ce42492e7016f0`
+(GPL-2.0-or-later), which binds it and Map Info's M the same way.
+**Re-run Last Compile**, enabled only when there is something to run, and the
+compiler profile remembered for each game follow
+`MapWindow::rerunLastCompilation`, `hasLastCompilationProfile` and
+`setLastCompilationProfileName` in
+[`lib/TbUiLib/src/MapWindow.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapWindow.cpp)
+and the `"Menu/Run/Rerun..."` action in `lib/TbUiLib/src/ActionManager.cpp`;
+the user's launch profiles (a named engine with a parameter line of variables)
+follow TrenchBroom's game engine profiles and Launch Engine dialog
+(`GameEngineProfile`, `GameEngineDialog`, `GameEngineProfileEditor` and
+`LaunchGameEngineDialog` in `lib/TbUiLib/src`), all of TrenchBroom v2026.2
+(`4c756be1a54a28d921d18c77716a5f170bdc31d0`, GPL-3.0-or-later). VibeStudio
+replays the saved command manifest rather than re-planning, and its tokens
+(`{map}`, `{mod}`, `{basedir}`, `{bsp}`, `{iwad}`, `{warp}`) are its own. Only
+behavioural facts were used; no source was copied.
+`src/app/build_rerun_actions.cpp`, `src/app/game_launch_profiles_dialog.*`,
+`src/core/studio_settings_build.cpp`, the user-profile and manifest functions
+in `src/core/build_pipeline.cpp` and `src/core/compiler_runner.cpp`,
+`src/cli/launch_profiles.*` and the `build-rerun` tests are original
+VibeStudio work.
+
+### Project build pipelines
+
+Reviewed on 2026-10-29. **Build Pipelines…**, pipelines of the project's own
+with stages that can be added, reordered and turned off, typed arguments and
+variables, follows NetRadiant Custom's **Build** > **Customize…**
+(`DoBuildMenu`, `BuildMenuDialog_construct`, `build_commands_parse` and
+`build_commands_write` in
+[`radiant/build.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/build.cpp),
+registered as `BuildMenuCustomize` in `radiant/mainframe.cpp`, revision
+`449778b3840f8f2062daab15c87cb012f2ac945c`, GPL-2.0-or-later) and
+TrenchBroom's compilation profiles (`CompilationProfileManager`,
+`CompilationProfileEditor` and the `${MAP_BASE_NAME}`- and `${CPU_COUNT}`-style
+variables of `CompilationVariables` in `lib/TbUiLib/src` of TrenchBroom v2026.2,
+`4c756be1a54a28d921d18c77716a5f170bdc31d0`, GPL-3.0-or-later). VibeStudio's
+pipelines are lists of its own compiler profiles kept in the project manifest,
+with variable names, switch-group dropping and the program trust check of its
+own. Only behavioural facts were used; no source was copied.
+`src/app/build_pipelines_dialog.*`, `src/app/build_pipeline_actions.cpp`,
+`src/core/build_program_trust.*`, the project-pipeline functions in
+`src/core/build_pipeline.cpp`, `src/cli/build_pipelines.*` and the
+`build-project-pipelines` tests are original VibeStudio work.
 
 ## View-relative turns and flips
 
@@ -3534,6 +3643,26 @@ selected brush entities counting through their brushes, definition boxes for
 point entities, hidden and filtered objects left out, the plan-view key
 hand-off to Raise and Lower Floor, `levelCameraFloorStep`, `map camera-focus
 --floor` and the `level-camera-floor` tests are original VibeStudio work.
+
+Reviewed on 2026-10-29. The camera's drive keys working from the 2D views
+follow `CamWnd_Move_Discrete_Enable` and `CamWnd_Move_Enable`, which connect
+`CameraStrafeLeft`, `CameraStrafeRight`, `CameraUp`, `CameraDown`,
+`CameraAngleUp` and `CameraAngleDown` as main-window accelerators and key
+events, in `radiant/camwindow.cpp` of NetRadiant Custom (same revision and
+licence as above). The NetRadiant Custom profile's discrete 32-unit and
+22.5-degree drive steps, their 90-degree pitch stop and the 500-unit starting
+speed follow `m_bCamDiscrete`, `SPEED_MOVE`, `SPEED_TURN`,
+`Camera_PitchUp_Discrete`, `Camera_PitchDown_Discrete` and `m_nMoveSpeed`
+there; **Increase Camera Speed** and **Decrease Camera Speed** on
+<kbd>Shift</kbd>+<kbd>Keypad +</kbd> and <kbd>Shift</kbd>+<kbd>Keypad -</kbd>
+follow `CameraSpeed_increase`, `CameraSpeed_decrease`, `CAM_MIN_SPEED`,
+`CAM_MAX_SPEED`, `CAM_SPEED_STEP` and the `CameraSpeedInc` and `CameraSpeedDec`
+commands. Only behavioural and key facts were used; no source was copied. The
+fixed speed list, stepping from the map-scaled speed, the command hand-off in
+the 2D views, the 89-degree camera stop, the readout,
+`src/app/level_camera_drive_actions.cpp`, the `camera.moveSpeed` and
+`plan.cameraDriveKeys` gestures and the `level-camera-drive-keys` tests are
+original VibeStudio work.
 
 ## Level camera display modes
 

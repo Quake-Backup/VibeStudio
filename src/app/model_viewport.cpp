@@ -259,6 +259,14 @@ ModelViewport::ModelViewport(QWidget* parent)
 		*wasActive = m_objectGizmo->active();
 		update();
 	});
+	// The drag-tool gestures and Build tool (model_viewport_plane_drag.cpp).
+	m_planeDrag = new LevelPlaneDragController(this);
+	connect(m_planeDrag,&LevelPlaneDragController::changed,this,[this] {
+		setAccessibleDescription(accessibleSummary());
+		if (m_planeDrag->active()) { Q_EMIT hoverChanged(m_planeDrag->summary()); }
+		update();
+	});
+	connect(m_planeDrag,&LevelPlaneDragController::activeChanged,this,[this](bool active) { if (!active && !m_looking) { unsetCursor(); } });
 	m_vertexInsertion = new LevelVertexInsertion(this);
 	connect(m_vertexInsertion,&LevelVertexInsertion::changed,this,[this] {
 		setAccessibleDescription(accessibleSummary()); Q_EMIT hoverChanged(componentSummary()); update();
@@ -1124,6 +1132,11 @@ QString ModelViewport::accessibleSummary() const
 	if (m_pointerDriving) { summary += QStringLiteral(" ") + tr("Position steering; release or Escape stops movement."); }
 	if (m_componentMode) { summary += QStringLiteral(" ") + componentSummary(); }
 	if (objectGizmoShown()) { summary += QStringLiteral(" ") + m_objectGizmo->summary(); }
+	if (m_planeDrag->active()) { summary += QStringLiteral(" ") + m_planeDrag->summary(); }
+	else if (m_buildMode) {
+		summary += QStringLiteral(" ") + tr("Build tool: drag a selected brush's face out to extrude a new brush, or in to split a slab off; "
+			"Shift and a drag on the selection lay copies end to end.");
+	}
 	if (!m_groupContextLabel.isEmpty()) { summary += QStringLiteral(" ") + tr("Editing group: %1").arg(m_groupContextLabel); }
 	if (m_hasMesh && m_linkedGroups.drawsAnything()) {
 		summary += QStringLiteral(" ") + levelLinkedGroupsDescription(m_linkedGroups.boxes, m_linkedGroups.inUse, m_linkedGroups.showAll);
@@ -2073,6 +2086,7 @@ void ModelViewport::paintEvent(QPaintEvent*)
 		paintSelectionResize(painter);
 		paintComponents(painter);
 		paintObjectGizmo(painter);
+		paintPlaneDrag(painter);
 		paintClip(painter);
 	}
 	paintBrushDraw(painter);
@@ -2149,6 +2163,7 @@ void ModelViewport::mousePressEvent(QMouseEvent* event)
 	m_materialGestureButtons.setFlag(event->button(), false);
 	if (isMovingComponents() || m_componentNativeArmed) { finishComponentMove(false); event->accept(); return; }
 	if (m_objectGizmo->active()) { m_objectGizmo->finish(false); event->accept(); return; }
+	if (m_planeDrag->active()) { planeDragMousePress(event); return; }
 	if (m_componentBanding) { m_componentBanding = false; update(); event->accept(); return; }
 	if (m_pointerDriving) { endPointerDrive(); event->accept(); return; }
 	if (isDrawingBrush()) { finishBrushDraw(false); event->accept(); return; }
@@ -2191,6 +2206,8 @@ void ModelViewport::mousePressEvent(QMouseEvent* event)
 	if (button == Qt::LeftButton && (event->modifiers() & ~Qt::KeypadModifier) == Qt::NoModifier && !m_looking && beginObjectTransform(event->position())) {
 		event->accept(); return;
 	}
+	// NetRadiant Custom's plane and extrude drags, and the Build tool's.
+	if (planeDragMousePress(event)) { return; }
 	// TrenchBroom's Shear Tool also takes a face with Alt held: up and down.
 	const bool shearAlt = m_selectionShearMode && (event->modifiers() & ~Qt::KeypadModifier) == Qt::AltModifier;
 	if (button == Qt::LeftButton && (event->modifiers() == Qt::NoModifier || shearAlt) && beginSelectionResize(event->position())) {
@@ -2239,6 +2256,7 @@ void ModelViewport::mousePressEvent(QMouseEvent* event)
 		if (!isRendering() && hit.valid && hit.triangle >= 0 && hit.triangle < m_highlighted.size() && m_highlighted.at(hit.triangle)) {
 			m_dragAction = DragAction::Move;
 			m_moveVertical = keys == Qt::AltModifier;
+			m_moveBase = makeVec(0.0, 0.0, 0.0);
 			m_moveStart = orbitPivotAt(event->position());
 			m_moveOffset = makeVec(0.0, 0.0, 0.0);
 		}
@@ -2261,6 +2279,7 @@ void ModelViewport::mouseMoveEvent(QMouseEvent* event)
 		else if (!m_componentGizmo->releasePending()) { m_componentGizmo->updateDrag(position); }
 		event->accept(); return;
 	}
+	if (planeDragMouseMove(event)) { return; }
 	if (m_objectGizmo->active()) {
 		if (!m_objectGizmo->releasePending() && !event->buttons().testFlag(Qt::LeftButton)) { m_objectGizmo->finish(false); }
 		else if (!m_objectGizmo->releasePending()) { m_objectGizmo->updateDrag(position,event->modifiers()); }
@@ -2326,6 +2345,15 @@ void ModelViewport::mouseMoveEvent(QMouseEvent* event)
 			}
 		}
 		if (m_dragAction == DragAction::Move) {
+			// Where an Alt press drags a plane, Alt during the move lifts it, as
+			// NetRadiant Custom's TranslateFreeXY_Z does, keeping the move so far.
+			const bool vertical = event->modifiers().testFlag(Qt::AltModifier);
+			ModelVec3 here;
+			if (m_controls.planeDragModifiers.testFlag(Qt::AltModifier) && vertical != m_moveVertical && movePlanePoint(position, &here)) {
+				m_moveBase = m_moveOffset;
+				m_moveStart = here;
+				m_moveVertical = vertical;
+			}
 			updateMove(position);
 			event->accept();
 			return;
@@ -2347,7 +2375,8 @@ void ModelViewport::mouseMoveEvent(QMouseEvent* event)
 			if (motion == CameraFreeLookMotion::Pan) {
 				panPerspective(delta);
 			} else if (motion == CameraFreeLookMotion::Dolly) {
-				moveCamera(-delta.y() * flySpeed() / 600.0, delta.x() * flySpeed() / 600.0, 0.0);
+				// The pointer's own scale, not the saved key speed.
+				moveCamera(-delta.y() * automaticFlySpeed() / 600.0, delta.x() * automaticFlySpeed() / 600.0, 0.0);
 			} else {
 				turnCamera(-delta.x() * kLookDegreesPerPixel, -delta.y() * kLookDegreesPerPixel);
 			}
@@ -2382,6 +2411,7 @@ void ModelViewport::mouseReleaseEvent(QMouseEvent* event)
 	if (m_vertexInsertion->active() && event->button() == Qt::LeftButton) { m_vertexInsertion->updateDrag(event->position(),event->modifiers()); m_vertexInsertion->finish(true); event->accept(); return; }
 	if (m_componentGizmo->active() && event->button() == Qt::LeftButton) { m_componentGizmo->updateDrag(event->position()); m_componentGizmo->finish(true); event->accept(); return; }
 	if (m_objectGizmo->active() && event->button() == Qt::LeftButton) { m_objectGizmo->updateDrag(event->position(),event->modifiers()); m_objectGizmo->finish(true); event->accept(); return; }
+	if (planeDragMouseRelease(event)) { return; }
 	if ((m_componentMoving || m_componentNativeArmed) && event->button() == Qt::LeftButton) { updateComponentMove(event->position(),event->modifiers()); finishComponentMove(true); event->accept(); return; }
 	if (m_componentBanding && event->button() == Qt::LeftButton) {
 		m_componentBanding = false;
@@ -2496,6 +2526,10 @@ void ModelViewport::keyPressEvent(QKeyEvent* event)
 {
 	// Every key belongs to an object manipulator drag: Escape calls it off,
 	// and Shift and Ctrl change its snapping at once.
+	if (m_planeDrag->active()) {
+		if (event->key() == Qt::Key_Escape) { m_planeDrag->finish(false); m_planeDragClick = false; }
+		event->accept(); return;
+	}
 	if (m_objectGizmo->active()) {
 		if (event->key() == Qt::Key_Escape) { m_objectGizmo->finish(false); }
 		else if (levelComponentModifierKey(event->key())) { m_objectGizmo->updateModifiers(levelComponentModifierState(event->key(),event->modifiers(),true)); }
@@ -3295,6 +3329,16 @@ bool ModelViewport::claimsKey(int key, Qt::KeyboardModifiers modifiers) const
 
 double ModelViewport::flySpeed() const
 {
+	// The saved camera speed (Increase/Decrease Camera Speed, editor gestures
+	// camera.moveSpeed) when there is one.
+	if (m_controls.moveSpeed > 0) {
+		return std::clamp(static_cast<double>(m_controls.moveSpeed), static_cast<double>(kLevelCameraMinMoveSpeed), static_cast<double>(kLevelCameraMaxMoveSpeed));
+	}
+	return automaticFlySpeed();
+}
+
+double ModelViewport::automaticFlySpeed() const
+{
 	// Units per second: about a Quake player's run for a room-sized scene,
 	// quicker across a large one.
 	return std::clamp(m_radius * 0.35, 192.0, 1600.0);
@@ -3431,6 +3475,9 @@ void ModelViewport::updateMove(const QPointF& viewPoint)
 		dy = std::round(dy / m_moveGrid) * m_moveGrid;
 		dz = std::round(dz / m_moveGrid) * m_moveGrid;
 	}
+	dx += m_moveBase.x;
+	dy += m_moveBase.y;
+	dz += m_moveBase.z;
 	const ModelVec3 offset = makeVec(dx, dy, dz);
 	if (offset.x == m_moveOffset.x && offset.y == m_moveOffset.y && offset.z == m_moveOffset.z) {
 		return;
@@ -3533,7 +3580,7 @@ bool ModelViewport::event(QEvent* event)
 		if (key->key() == Qt::Key_Escape || key->matches(QKeySequence::SelectAll) || isMovingComponents() || m_componentBanding || m_componentNativeArmed) { event->accept(); return true; }
 	}
 	if (event->type() == QEvent::ShortcutOverride && m_materialStrokeRaster) { event->accept(); return true; }
-	if (event->type() == QEvent::ShortcutOverride && m_objectGizmo->active()) { event->accept(); return true; }
+	if (event->type() == QEvent::ShortcutOverride && (m_objectGizmo->active() || m_planeDrag->active())) { event->accept(); return true; }
 	if (event->type() == QEvent::ShortcutOverride && m_pointerDriving && static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape) {
 		event->accept(); return true;
 	}
@@ -3543,6 +3590,7 @@ bool ModelViewport::event(QEvent* event)
 		finishBrushAssemble(false);
 		finishComponentMove(false); m_componentBanding = false;
 		m_objectGizmo->finish(false);
+		m_planeDrag->finish(false); m_planeDragClick = false;
 		m_materialGestureButtons = {};
 		if (event->type() != QEvent::UngrabMouse || materialStrokeActive()) { finishMaterialStroke(false); }
 		endPointerDrive();

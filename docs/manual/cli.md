@@ -470,6 +470,38 @@ III, so its `textures/` images resolve. JSON reports `brushes`, `patches`, `poly
 `--overwrite` to replace either file; Doom maps are refused with exit code 4.
 See [Export geometry to a modeller](levels.md#export-geometry-to-a-modeller).
 
+## Repeat a compile and set launch arguments
+
+```sh
+vibestudio --cli compiler rerun --last maps/start.map --workspace-root . --json
+vibestudio --cli launch profiles --json
+vibestudio --cli launch profile-set user-dev --name "Developer" --arguments "+set fs_game {mod} +set developer 1 +devmap {map}" --engine idTech3
+vibestudio --cli launch extra-args --arguments "+set developer 1"
+vibestudio --cli launch plan --map start --launch-profile user-dev --json
+```
+
+`compiler rerun --last <map>` replays the map's newest saved compile, as
+**Re-run Last Compile** does: it looks in `.vibestudio/compiler-runs` under
+`--workspace-root` and the map's folder, and saves the new run beside the one it
+repeats (or at `--manifest`). JSON adds `replayedManifestPath`; no saved run of
+the map exits with code 3. A saved run can come from someone else, so its
+program must be one of your configured compilers for its game (`compiler
+set-path`, `--compiler-search-paths`, VibeStudio's compiler folders or PATH) or
+trusted before for that project; otherwise the command exits with code 4,
+prints the command line and JSON `programTrust`, and `--trust-programs` trusts
+it in your settings and replays it. `launch profiles` lists the built-in launch profiles
+and your own, with the tokens `{map}`, `{mod}`, `{basedir}`, `{bsp}`, `{iwad}`
+and `{warp}`. `launch profile-set <id> --name NAME --arguments "LINE"` adds or
+replaces one of your profiles (`--engine idTech1|idTech2|idTech3|any`); a
+built-in id, a repeated name, an unknown token or an unclosed quote exits with
+code 4. `launch profile-remove <id>` removes one. `launch extra-args` shows the
+extra arguments of the selected installation (or `--installation ID`), and
+`--arguments "ARGS"` or `--clear` sets them, as the Build page's **Extra
+arguments** field does. Changes take `--dry-run`. `launch plan` and `launch
+run` add the saved extra arguments unless you pass `--extra-args`, which is now
+split as a shell would, so quotes keep spaces. See
+[Build again](build-and-launch.md#build-again).
+
 ## Replay level edits
 
 For a one-off unique copy or array, use the same operation as **Duplicate, Make
@@ -691,6 +723,26 @@ vibestudio --cli build list
 vibestudio --cli build plan quake-full --input ./maps/start.map
 vibestudio --cli build run quake-full --input ./maps/start.map --watch
 ```
+
+Keep pipelines of your own in a project, as **Build Pipelines…** does, and run them:
+
+```sh
+vibestudio --cli build pipeline-set fast-light --workspace-root ./mymod --name "Fast light" --from quake-full --disable-stage vis --stage-args 'light=-extra -threads ${CPU_COUNT}'
+vibestudio --cli build list --workspace-root ./mymod
+vibestudio --cli build run fast-light --workspace-root ./mymod --input ./mymod/maps/start.map --variable MOD=mymod
+vibestudio --cli build pipeline-remove fast-light --workspace-root ./mymod --dry-run
+```
+
+`build pipeline-set` starts a new pipeline from `--from` (a built-in or project
+pipeline) or from ordered `--stage ID=PROFILE` options, then applies
+`--stage-args ID=ARGUMENTS`, `--disable-stage ID`, `--enable-stage ID`,
+`--map-input ID` and `--variable NAME=VALUE`; problems exit with code 4 and are
+listed in JSON `problems`. In a POSIX shell, put `${...}` in single quotes, as
+above, so the shell leaves it alone. `build run` stops with code 4 when a stage
+would start a program that is not one of your configured compilers, such as one
+named by the project's own compiler paths, and shows its command line; add
+`--trust-programs` to trust it for that project in your settings. See
+[Make the project's own pipelines](build-and-launch.md#make-the-projects-own-pipelines).
 
 Ask a model through your Claude Code login, or build a level with Quake-MapGen:
 
@@ -1381,6 +1433,48 @@ vibestudio --cli map shear room.map --object brush:3 --object brush:4 --side z+ 
 
 See [Transform the selection with the Transform tool](levels.md#transform-the-selection-with-the-transform-tool).
 
+## Drag brush planes as the Select and Build tools do
+
+`map drag-planes` makes the drags of NetRadiant Custom's drag tool and the
+**Build** tool. **--from x,y,z** is the point you press and **--view
+top|front|side** the 2D view's line of sight (top by default); for the
+camera give **--direction x,y,z**, the ray through the press point, with
+**--camera** and, if it differs, **--forward x,y,z**, the camera's line of
+sight. The **--object** brushes, and the brushes of **--object** entities,
+are what the drag may move. **--mode** chooses the drag:
+
+- **facing-planes** (the default) moves the planes facing the press point,
+  and planes lying against them on the other brushes, by **--delta
+  dx,dy,dz**. Each plane moves by the part of the delta along its normal.
+- **plane** moves the plane under the press point, or behind the nearest
+  edge, with the planes lying on it either way round, by **--delta** or
+  **--distance N** along its normal.
+- **vertices** moves the vertices within **--tolerance** units (4 by default)
+  across the view from the press point, or else the corners of the plane
+  under it, by **--delta**.
+- **extrude** pulls the faces on the plane under the press point out into
+  new brushes, or pushes them in to split a slab off, by **--distance**;
+  **--texture-lock on|off** (on by default) decides the moved face's mapping.
+
+A plane drag that would make a face vanish stops at the furthest **--grid**
+step that keeps every face (64 steps when **--grid** is 0, the default), and
+the report counts the brushes that stopped short. Plane drags leave textures
+where they lie in the world. **--context GROUP** works in an open group. A
+hidden, locked or out-of-group brush, or a press that picks nothing, fails
+with exit code 4 and writes nothing. Quake-family maps only. JSON reports
+`mode`, `picked` (the faces or vertices as `brush:ID/face/...`), `planes`,
+`brushes`, `movedPlanes`, `vertices`, `clampedBrushes`, `createdBrushes`,
+`translation` or `distance` and `normal`, and `selection`:
+
+```sh
+vibestudio --cli map drag-planes room.map --object brush:0 --from 200,0,0 --view top --delta 32,0,0 --grid 16 --output wider.map
+vibestudio --cli map drag-planes room.map --object brush:0 --mode extrude --from 80,0,200 --direction 0,0,-1 --camera --distance 16 --output raised.map --json
+```
+
+The **Build** tool's chain of copies is `map duplicate` with **--delta** set
+to one box length and **--copies**. See [Drag brush planes and build from
+faces](levels.md#drag-brush-planes-and-build-from-faces).
+
 ## Repeat transforms on copies or components
 
 `map repeat-transforms` is the command line form of **Repeat Transforms**. Name
@@ -1573,10 +1667,12 @@ on a plane and **Natural** on the rest, by the material's image size
 the layout. `--ring-start exact` starts a round ring at angle 0, on the
 positive side of the first axis across, as NetRadiant Custom's **Exact
 Cylinder**, **Cone** and **Sphere** do; `auto`, the default, starts the
-nine-column cylinder and the 9x5 sphere half a turn round, as its fixed
-prefabs do. `--square` re-disperses every span once the patch is mapped, as
-its **Square** box does, so the patch is faceted but keeps its round texture
-coordinates. JSON reports `patchId`, `selector`, `mapping`, `ringStart`,
+9x3 cylinder, the 9x5 sphere and every classic cone half a turn round, as
+its fixed prefabs do. `--square` re-disperses every span once the patch is
+mapped, as its **Square** box does, so the patch is faceted but keeps its
+round texture coordinates. Both apply to the round shapes only: `cylinder`,
+`cone`, `classic-cone` and `sphere`; on another shape they are refused with
+exit code 2, as `map add-shape` refuses them. JSON reports `patchId`, `selector`, `mapping`, `ringStart`,
 `square`, `columns` and `rows`.
 
 `map add-shape` with a `patch-` shape does the same in a box, and with
@@ -1599,6 +1695,53 @@ with a brush shape, or `--rows`, `--square` or `--ring-start` with an
 `add-shape` shape that does not read it, is a usage error (exit 2); an `--object` that does not exist, or a brush or patch
 the map's layers lock, exits 1 and nothing is written. See
 [Add Radiant's patch shapes](levels.md#add-radiants-patch-shapes).
+
+**Status: Partial.** The CLI and the Levels editor share the same services.
+
+## Cap, convert and deform patches
+
+`map cap-patch` is **Cap Patch…**. Repeat `--patch ID` to cap several
+patches in one edit, as NetRadiant Custom's **Cap Selection** caps every
+selected patch. `--style radial` (the default) closes a boundary with a flat
+radial cap; `bevel`, `endcap`, `inverted-bevel`, `inverted-endcap` and
+`cylinder` build NetRadiant Custom's seams: the bevels need boundaries of 3
+or 5 control points, the end caps 5 and `cylinder` 9. The first and last rows are capped unless
+repeatable `--boundary first-row|last-row|first-column|last-column` names
+others. `--texture`, `--uv planar|boundary`, `--units-per-tile N`, `--invert`
+and, for radial caps of one boundary, `--center X,Y,Z` work as the dialog's
+controls. A patch the style cannot cap is skipped and listed in the `cap`
+report's `skipped`; when none can be capped nothing is written (exit 4).
+
+`map convert-patches` is **Convert Selection to Patches**: every face of
+repeatable `--object brush:ID` or `entity:ID` brushes, which are removed
+unless `--keep-brushes` is given, and repeatable `--face face:brushId:faceNumber`
+faces (one-based), whose brushes stay, become flat patches in their
+materials, keeping each face's texture mapping. `--columns` and `--rows` set
+each patch's grid, odd numbers from 3 to 31 (3 by 3 by default). Classic and
+Valve 220 faces need their image sizes to turn texels into patch repeats:
+`--texture-size W,H` gives one for every material, or `--package` reads each
+from an archive or folder; otherwise 64 by 64 is used and reported in
+`unsizedMaterials`. JSON also reports `patches`, `faces`, `brushesRemoved` and
+`skipped`.
+
+`map deform-patch` is **Deform Patch…**: every control point of repeatable
+`--patch ID`, or `--object patch:ID` or `entity:ID`, moves along `--axis x`,
+`y` or `z` (default `z`) by a random whole number of units from 0 to `--max`
+(default 64, from -9999 to 9999). `--seed N` repeats a run exactly; without it
+a seed is drawn, and JSON reports it as `seed` with `max`, `axis`, `changed`
+and `skipped` (hidden patches).
+
+```sh
+vibestudio --cli map cap-patch curves.map --patch 0 --patch 3 --style cylinder --texture base/pipe_cap --output capped.map --json
+vibestudio --cli map convert-patches arena.map --object brush:4 --face face:7:2 --columns 5 --rows 5 --package ./baseq3 --output arena-patches.map --json
+vibestudio --cli map deform-patch cave.map --patch 2 --max 16 --axis z --seed 7 --output cave-rough.map --json
+```
+
+All three run as one undo step through the Levels editor's services and need
+`--output`; `--dry-run` writes nothing and an existing output needs
+`--overwrite`. Bad options exit 2, and a brush or patch that does not exist,
+or one on a locked layer, exits 4 with nothing written. See
+[Cap, convert and deform patches](levels.md#cap-convert-and-deform-patches).
 
 **Status: Partial.** The CLI and the Levels editor share the same services.
 

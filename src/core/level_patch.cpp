@@ -278,13 +278,14 @@ bool createLevelPatch(const LevelPatchCreateRequest& request, LevelMapPatch* pat
 	// column. Bevel, end cap and square cylinder follow Radiant's prefabs.
 	QVector<QPointF> ring;
 	if (round) {
-		// NetRadiant Custom's fixed Cylinder, Sphere and Cone prefabs begin
-		// their rows half a turn round (Patch::ConstructPrefab's pCylIndex,
-		// the first control on the negative side of the first axis across);
-		// its Exact Cylinder, Sphere and Cone, the only way to other
-		// densities and to a straight cone, begin at angle 0.
+		// NetRadiant Custom's fixed Cylinder (9 by 3), Sphere (9 by 5) and Cone
+		// prefabs begin their rows half a turn round (Patch::ConstructPrefab's
+		// pCylIndex, the first control on the negative side of the first axis
+		// across); its Exact Cylinder, Sphere and Cone, the only way to other
+		// densities and to a straight cone, begin at angle 0. A four-segment
+		// cylinder of more than three rows is one only Exact Cylinder makes.
 		const bool prefab = request.ringStart == LevelPatchRingStart::Auto
-			&& (classicCone || (shape == QStringLiteral("cylinder") && request.segments == 4)
+			&& (classicCone || (shape == QStringLiteral("cylinder") && request.segments == 4 && request.rows == 3)
 				|| (shape == QStringLiteral("sphere") && request.segments == 4 && request.bands == 2));
 		ring = circleControls(request.segments, prefab ? request.segments : 0, request.segments * 2);
 	} else if (shape == QStringLiteral("square-cylinder")) {

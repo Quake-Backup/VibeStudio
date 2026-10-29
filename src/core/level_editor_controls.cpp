@@ -1,4 +1,5 @@
 #include "core/level_editor_controls.h"
+#include "core/level_camera_keys.h"
 #include "core/level_camera_texture.h"
 
 #include "core/level_map.h"
@@ -412,6 +413,11 @@ LevelEditorControls trenchBroomLevelControls()
 		// Ctrl+3, so Ctrl+1 still switches to Workspace outside Levels. Key
 		// facts only; see docs/CREDITS.md.
 		bind("map.sidebar.map", {QStringLiteral("Ctrl+1")}),
+		// TB ActionManager "Menu/Edit/Convert Selection to Patches" at 4c756be1
+		// (GPL-3.0-or-later) has Ctrl+P, in the same focus layer: it converts
+		// while focus is in Levels and Go to File keeps it elsewhere. Key facts
+		// only; see docs/CREDITS.md.
+		bind("map.convertToPatches", {QStringLiteral("Ctrl+P")}),
 	};
 	controls.keys += gridDigitKeys();
 	return controls;
@@ -465,10 +471,23 @@ LevelEditorControls netRadiantCustomLevelControls()
 	plan.addModifiers = Qt::NoModifier;
 	plan.bandModifiers = Qt::ShiftModifier;
 	plan.emptyDrag = PlanEmptyDrag::DrawBrush;
-	plan.emptyDragWithSelection = PlanEmptyDrag::ResizeSelection;
+	// NRC radiant/selection_mtor_drag.cpp DragManipulator::testSelect at
+	// 449778b3 (GPL-2.0-or-later): a drag beside the selection moves the brush
+	// planes facing the press point, Alt drags vertices in a 2D view and one
+	// plane in the camera, and Ctrl+Alt extrudes. Workflow reference; see
+	// docs/CREDITS.md.
+	plan.emptyDragWithSelection = PlanEmptyDrag::DragPlanes;
+	plan.vertexDragModifiers = Qt::AltModifier;
+	plan.extrudeDragModifiers = Qt::ControlModifier | Qt::AltModifier;
+	controls.camera.planeDragModifiers = Qt::AltModifier;
+	controls.camera.extrudeDragModifiers = Qt::ControlModifier | Qt::AltModifier;
 	plan.clickCyclesStack = true;
 	plan.middleButtonDrivesCamera = true;
 	plan.arrowsDriveCamera = true;
+	// NRC camwindow.cpp CamWnd_Move_Discrete_Enable at 449778b3
+	// (GPL-2.0-or-later) makes the camera keys main-window accelerators, so A
+	// and D strafe the camera from a 2D view too.
+	plan.cameraDriveKeys = true;
 	plan.squareModifiers = Qt::ShiftModifier;
 	plan.cubeModifiers = Qt::ControlModifier;
 	// NRC xywindow.cpp XY_Focus, XYWnd::FocusOnBounds and XY_SetViewType at
@@ -507,6 +526,14 @@ LevelEditorControls netRadiantCustomLevelControls()
 	camera.flyKeys = {QStringLiteral("W"), QStringLiteral("S"), QStringLiteral("A"), QStringLiteral("D"), QString(), QString(), QString(), QString()};
 	camera.flyNeedsLook = true;
 	camera.driveKeys = {QStringLiteral("Up"), QStringLiteral("Down"), QStringLiteral("A"), QStringLiteral("D"), QString(), QString(), QStringLiteral("Left"), QStringLiteral("Right")};
+	// NRC camwindow.cpp camwindow_globals_private_t at 449778b3
+	// (GPL-2.0-or-later): m_bCamDiscrete is on, so each drive key press or
+	// repeat steps 32 units or 22.5 degrees, and Camera_PitchUp_Discrete and
+	// Camera_PitchDown_Discrete stop at 90 degrees; m_nMoveSpeed starts at 500
+	// units per second (CamMoveSpeed). Key facts only; see docs/CREDITS.md.
+	camera.discreteDriveKeys = true;
+	camera.drivePitchLimitDegrees = 90.0;
+	camera.moveSpeed = 500;
 	// NRC camwindow.cpp CameraFreeFocus at 449778b3 (GPL-2.0-or-later): Tab
 	// held in free move keeps the selection framed. It acts only during mouse
 	// look here, so Tab still moves keyboard focus everywhere else. Key facts
@@ -587,10 +614,17 @@ LevelEditorControls netRadiantCustomLevelControls()
 		// NRC radiant/tools.cpp MouseUV at 449778b3 (GPL-2.0-or-later) turns
 		// the UV tool on and off with G. Key facts only; see docs/CREDITS.md.
 		bind("map.uvTool", {QStringLiteral("G")}),
+		// NRC radiant/tools.cpp MouseBuild at 449778b3 (GPL-2.0-or-later) turns
+		// the Build tool on and off with B. Key facts only; see docs/CREDITS.md.
+		bind("map.buildTool", {QStringLiteral("B")}),
 		// NRC radiant/patchmanip.cpp SimplePatchMesh at 449778b3
 		// (GPL-2.0-or-later) opens its patch density dialog on Shift+P; Add
 		// Patch… is that dialog here. Key facts only; see docs/CREDITS.md.
 		bind("map.addPatch", {QStringLiteral("Shift+P")}),
+		// NRC radiant/patchmanip.cpp CapCurrentCurve at 449778b3
+		// (GPL-2.0-or-later): Cap Selection on Shift+C. Key facts only; see
+		// docs/CREDITS.md.
+		bind("map.capPatch", {QStringLiteral("Shift+C")}),
 		// NRC camwindow.cpp CameraModeNext and CameraModePrev at 449778b3
 		// (GPL-2.0-or-later) step the camera's draw mode on Shift+] and
 		// Shift+[ (core/level_camera_render.h). Key facts only; see
@@ -612,6 +646,12 @@ LevelEditorControls netRadiantCustomLevelControls()
 		// them while they can act. Key facts only; see docs/CREDITS.md.
 		bind("map.cameraFloorUp", {QStringLiteral("PgUp")}),
 		bind("map.cameraFloorDown", {QStringLiteral("PgDown")}),
+		// NRC camwindow.cpp CameraSpeedInc and CameraSpeedDec at 449778b3
+		// (GPL-2.0-or-later) step CamMoveSpeed by 250 on Shift+keypad + and
+		// Shift+keypad - (core/level_camera_keys.h). Key facts only; see
+		// docs/CREDITS.md.
+		bind("map.cameraSpeedUp", {QStringLiteral("Shift+Num++")}),
+		bind("map.cameraSpeedDown", {QStringLiteral("Shift+Num+-")}),
 		// NRC 449778b3 (GPL-2.0-or-later): tools.cpp DragVertices, DragEdges
 		// and DragFaces; patchmanip.cpp's patch matrix, Invert, Transpose and
 		// Thicken and Smooth Columns keys and InvertCurveTextureY;
@@ -656,6 +696,12 @@ LevelEditorControls netRadiantCustomLevelControls()
 		// (GPL-2.0-or-later): Map Info opens the Map tab's Statistics at its
 		// class table. Key facts only; see docs/CREDITS.md.
 		bind("map.mapInfo", {QStringLiteral("M")}),
+		// NRC mainframe.cpp registers Build_runRecentExecutedBuild on F5 at
+		// 449778b3 (GPL-2.0-or-later): Run Last Build takes F5 here, so Build
+		// and Launch keeps no key in this scheme. Key facts only; see
+		// docs/CREDITS.md.
+		bind("build.runLast", {QStringLiteral("F5")}),
+		bind("build.runAndLaunch", {}),
 		bind("map.textureLock", {QStringLiteral("Shift+T")}),
 		bind("map.makeDetail", {QStringLiteral("Alt+D")}),
 		bind("map.makeStructural", {QStringLiteral("Alt+S")}),
@@ -752,9 +798,15 @@ LevelEditorControls gtkRadiantLevelControls()
 	// Alt+drag is its area selection, "completely tall".
 	plan.bandModifiers = Qt::AltModifier;
 	plan.emptyDrag = PlanEmptyDrag::DrawBrush;
-	plan.emptyDragWithSelection = PlanEmptyDrag::ResizeSelection;
+	// GtkRadiant 1.6.0 radiant/selection.cpp DragManipulator (the QE4 drag
+	// NetRadiant Custom inherits): a drag beside the selection moves the brush
+	// planes facing the press point. Workflow reference; see docs/CREDITS.md.
+	plan.emptyDragWithSelection = PlanEmptyDrag::DragPlanes;
 	plan.middleButtonDrivesCamera = true;
 	plan.arrowsDriveCamera = true;
+	// Its camera keys are main-window keys, so the other drive keys (comma,
+	// period, D and C) move the camera from the 2D view too.
+	plan.cameraDriveKeys = true;
 	// Its new-brush drag keeps no aspect.
 	plan.squareModifiers = Qt::NoModifier;
 	plan.cubeModifiers = Qt::NoModifier;
@@ -1004,6 +1056,8 @@ QString planEmptyDragId(PlanEmptyDrag drag)
 		return QStringLiteral("draw-brush");
 	case PlanEmptyDrag::ResizeSelection:
 		return QStringLiteral("resize-selection");
+	case PlanEmptyDrag::DragPlanes:
+		return QStringLiteral("drag-planes");
 	case PlanEmptyDrag::BoxSelect:
 		break;
 	}
@@ -1152,6 +1206,18 @@ QVector<LevelEditorControlRow> levelEditorControlRows(const LevelEditorControls&
 	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Resize the selection"), p.emptyDragWithSelection == PlanEmptyDrag::ResizeSelection
 			? QCoreApplication::translate("VibeStudioLevelControls", "Left drag its handles, or over empty space beside it")
 			: QCoreApplication::translate("VibeStudioLevelControls", "Left drag its handles"));
+	if (p.emptyDragWithSelection == PlanEmptyDrag::DragPlanes) {
+		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Drag the brush planes facing the pointer"),
+			QCoreApplication::translate("VibeStudioLevelControls", "Left drag over empty space beside the selection"));
+	}
+	if (p.vertexDragModifiers != Qt::NoModifier) {
+		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Drag the selection's vertices under the pointer, or the corners of the plane under it"),
+			mouseGestureText(Qt::LeftButton, p.vertexDragModifiers, drag));
+	}
+	if (p.extrudeDragModifiers != Qt::NoModifier) {
+		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Extrude the faces on the plane under the pointer"),
+			mouseGestureText(Qt::LeftButton, p.extrudeDragModifiers, drag));
+	}
 	if (p.middleButtonDrivesCamera) {
 		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Aim the 3D camera here"), mouseGestureText(Qt::MiddleButton, Qt::NoModifier, click));
 		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Move the 3D camera here"), mouseGestureText(Qt::MiddleButton, Qt::ControlModifier, click));
@@ -1160,6 +1226,10 @@ QVector<LevelEditorControlRow> levelEditorControlRows(const LevelEditorControls&
 	if (p.arrowsDriveCamera) {
 		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Drive the 3D camera"), QCoreApplication::translate("VibeStudioLevelControls", "Arrow keys"));
 		if (p.fixedCameraSteps) { row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Camera step"), QCoreApplication::translate("VibeStudioLevelControls", "32 units / 22.5 degrees on the ground plane")); }
+	}
+	if (const CameraFlyKeys routed = planRoutedCameraDriveKeys(controls); !routed.isEmpty()) {
+		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Camera drive keys"),
+			QCoreApplication::translate("VibeStudioLevelControls", "%1, while no command here uses the key").arg(keysText(routed)));
 	}
 	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Map actions menu"), mouseGestureText(Qt::RightButton, Qt::NoModifier, click));
 	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Frame Selection"), p.radiantFraming
@@ -1277,6 +1347,13 @@ QVector<LevelEditorControlRow> levelEditorControlRows(const LevelEditorControls&
 		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Drive"), keysText(c.driveKeys));
 		if (c.discreteDriveKeys) { row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Drive key movement"), QCoreApplication::translate("VibeStudioLevelControls", "Each press/repeat steps 32 units or 22.5 degrees; movement stays on the ground plane")); }
 	}
+	// The speed of held keys; fixed drive steps do not use it.
+	if (c.perspective && (!c.flyKeys.isEmpty() || (!c.discreteDriveKeys && !c.driveKeys.isEmpty()))) {
+		const int speed = c.moveSpeed;
+		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Camera speed"), speed > 0
+				? QCoreApplication::translate("VibeStudioLevelControls", "%n unit(s) per second; Increase and Decrease Camera Speed change it", nullptr, speed)
+				: QCoreApplication::translate("VibeStudioLevelControls", "Scales with the size of the map; Increase and Decrease Camera Speed set it"));
+	}
 	if (c.turnKeysPanModifiers != Qt::NoModifier) {
 		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Translate with turn / look keys"),
 			QCoreApplication::translate("VibeStudioLevelControls", "%1turn keys strafe; %1look keys move vertically").arg(modifierPrefix(c.turnKeysPanModifiers)));
@@ -1302,7 +1379,17 @@ QVector<LevelEditorControlRow> levelEditorControlRows(const LevelEditorControls&
 		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Pick a face"), mouseGestureText(Qt::LeftButton, c.faceModifiers, click));
 	}
 	if (c.dragMovesSelection) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Move the selection"), QCoreApplication::translate("VibeStudioLevelControls", "Left drag the selection; with Alt, up and down"));
+		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Move the selection"), c.planeDragModifiers.testFlag(Qt::AltModifier)
+				? QCoreApplication::translate("VibeStudioLevelControls", "Left drag the selection; press Alt during the drag for up and down")
+				: QCoreApplication::translate("VibeStudioLevelControls", "Left drag the selection; with Alt, up and down"));
+	}
+	if (c.planeDragModifiers != Qt::NoModifier) {
+		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Drag the selected brushes' plane under the pointer"),
+			mouseGestureText(Qt::LeftButton, c.planeDragModifiers, drag));
+	}
+	if (c.extrudeDragModifiers != Qt::NoModifier) {
+		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Extrude the faces on the plane under the pointer"),
+			mouseGestureText(Qt::LeftButton, c.extrudeDragModifiers, drag));
 	}
 
 	QHash<QString, QString> labels;
@@ -1336,7 +1423,24 @@ QStringList levelEditorControlProblems(const LevelEditorControls& controls)
 	if (plan.zoomDragButton != Qt::NoButton && plan.zoomDragModifiers == Qt::NoModifier && plan.panButtons.contains(plan.zoomDragButton)) {
 		problems << QCoreApplication::translate("VibeStudioLevelControls", "One 2D drag both pans and zooms.");
 	}
+	// The plane drags take a left press with their keys before anything else.
+	for (const Qt::KeyboardModifiers drag : {plan.vertexDragModifiers, plan.extrudeDragModifiers}) {
+		if (drag != Qt::NoModifier && (drag == plan.bandModifiers || drag == plan.cycleModifiers || drag == plan.toggleModifiers
+				|| drag == plan.addModifiers || drag == plan.quickClipModifiers
+				|| (plan.zoomDragButton == Qt::LeftButton && drag == plan.zoomDragModifiers))) {
+			problems << QCoreApplication::translate("VibeStudioLevelControls", "A 2D vertex or extrude drag uses the keys of another left-button gesture.");
+		}
+	}
+	if (plan.vertexDragModifiers != Qt::NoModifier && plan.vertexDragModifiers == plan.extrudeDragModifiers) {
+		problems << QCoreApplication::translate("VibeStudioLevelControls", "One 2D drag both drags vertices and extrudes.");
+	}
 	const CameraViewControls& camera = controls.camera;
+	if (camera.moveSpeed != 0 && !levelCameraMoveSpeeds().contains(camera.moveSpeed)) {
+		problems << QCoreApplication::translate("VibeStudioLevelControls", "The camera speed must be automatic or a listed speed from 50 to 9999 units per second.");
+	}
+	if (!std::isfinite(camera.drivePitchLimitDegrees) || camera.drivePitchLimitDegrees <= 0.0 || camera.drivePitchLimitDegrees > 90.0) {
+		problems << QCoreApplication::translate("VibeStudioLevelControls", "The drive-key pitch limit must be above 0 and at most 90 degrees.");
+	}
 	const QVector<QPair<Qt::MouseButton, Qt::KeyboardModifiers>> materialGestures{
 		{camera.materialSampleButton, camera.materialSampleModifiers}, {camera.materialPaintButton, camera.materialPaintModifiers},
 		{camera.surfacePasteFaceButton, camera.surfacePasteFaceModifiers}, {camera.surfacePasteBrushButton, camera.surfacePasteBrushModifiers},
@@ -1378,6 +1482,17 @@ QStringList levelEditorControlProblems(const LevelEditorControls& controls)
 	}
 	if (camera.toggleModifiers != Qt::NoModifier && camera.leftPanModifiers.testAnyFlags(camera.toggleModifiers)) {
 		problems << QCoreApplication::translate("VibeStudioLevelControls", "A 3D click that toggles would pan instead.");
+	}
+	for (const Qt::KeyboardModifiers drag : {camera.planeDragModifiers, camera.extrudeDragModifiers}) {
+		if (drag != Qt::NoModifier && (drag == camera.toggleModifiers || drag == camera.faceModifiers || camera.leftPanModifiers.testAnyFlags(drag)
+				|| (camera.orbitButton == Qt::LeftButton && drag == camera.orbitModifiers)
+				|| (camera.lookButton == Qt::LeftButton && drag == camera.lookModifiers)
+				|| cameraMaterialGesture(camera, Qt::LeftButton, drag) != CameraMaterialGesture::None)) {
+			problems << QCoreApplication::translate("VibeStudioLevelControls", "A 3D plane or extrude drag uses the keys of another left-button gesture.");
+		}
+	}
+	if (camera.planeDragModifiers != Qt::NoModifier && camera.planeDragModifiers == camera.extrudeDragModifiers) {
+		problems << QCoreApplication::translate("VibeStudioLevelControls", "One 3D drag both drags a plane and extrudes.");
 	}
 	// No key may belong to two commands. The camera's texture moves and flips
 	// are apart: they take their keys only while faces are picked there, and

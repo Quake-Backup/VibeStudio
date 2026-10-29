@@ -1880,6 +1880,19 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   move, a side on the plane that stays and a slant over 16 units per unit
   fail and write nothing. Reports `side`, `offset`, `anchor`, `factors`,
   `matrix`, `mins`, `maxs`, `objects` and `selection`.
+- [x] `map drag-planes <map> --object brush:3 --from x,y,z [--view top|front|side |
+  --direction x,y,z [--camera] [--forward x,y,z]] [--mode facing-planes|plane|vertices|extrude]
+  (--delta dx,dy,dz | --distance N) [--grid N] [--tolerance N] [--texture-lock on|off]
+  [--context GROUP] --output <path>` makes NetRadiant Custom's drag-tool drags
+  as the Levels Select and Build tools do (core/level_plane_drag.h): the
+  planes facing the press point (with planes back to back on other selected
+  brushes), the plane under it, the vertices under it or the corners of that
+  plane, or an extrusion of its faces into new brushes or split slabs. Plane
+  drags stop at the furthest grid step that keeps every face. One undo step;
+  hidden, locked or out-of-group brushes and presses that pick nothing exit 4
+  and write nothing. Reports `mode`, `picked`, `planes`, `brushes`,
+  `movedPlanes`, `vertices`, `clampedBrushes`, `createdBrushes`, the
+  `translation` or `distance` and `normal`, and `selection`.
 - [x] `map curve-linedefs <map> [--map-name MAP01] --object linedef:4 --segments N
   --bulge units --output <path>` bends Doom linedefs into N pieces along an arc
   bulging towards their front sides (negative: the back), as Doom Builder's
@@ -2053,7 +2066,21 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   angular order and source ownership are validated before any edit. JSON includes
   a `cap` report. `--dry-run` writes nothing; existing outputs need `--overwrite`.
   Usage returns 2, geometry/save failure 4, source-read failure 1 and success 0.
+  `--patch` repeats to cap several patches in one step (NetRadiant Custom's
+  Cap Selection), `--boundary` defaults to the first and last rows, and
+  `--style radial|bevel|endcap|inverted-bevel|inverted-endcap|cylinder` picks
+  NetRadiant Custom's seams with their 3/5, 5 and 9 width checks; patches a
+  style cannot cap are listed in `cap.skipped`.
   See [Patch Caps](LEVEL_EDITOR.md#patch-caps).
+- [x] `map convert-patches <map> --object brush:ID|entity:ID --face face:brushId:faceNumber
+  --output <path>`: TrenchBroom's Convert Selection to Patches through the
+  Levels service: flat patches per face in the face's material and mapping,
+  whole brushes removed unless `--keep-brushes`, `--columns`/`--rows` odd 3 to
+  31, image sizes from `--texture-size W,H` or `--package`. One undo step;
+  `--dry-run`, `--overwrite` and `--json` as other map edits.
+- [x] `map deform-patch <map> --patch ID --max N --axis x|y|z --seed N --output <path>`:
+  NetRadiant Custom's Deform through the Levels service, seeded so a run
+  repeats; the drawn seed is reported when `--seed` is left out.
 - [x] `map stitch-patches <map> --first patchId:boundary --second patchId:boundary
   --output <path>` joins two patch edges with exact grid refinement and one shared
   document operation. Boundary tokens are `first-row`, `last-row`, `first-column`
@@ -2818,7 +2845,20 @@ package, and level CLI example and the editable JSON schema.
   accepts 64 hexadecimal digits. Both commands reject unknown, repeated and
   inapplicable options. Publication JSON includes reviewed artifacts, package
   paths, output/backup paths, bytes, hash and committed/dry-run state.
-- [x] `build list` for chained pipelines and their stages.
+- [x] `build list` for chained pipelines and their stages; with
+  `--workspace-root`, the project's own pipelines too (`source` project, with
+  their stage arguments, on/off switches and variables; a pipeline with problems
+  is left out and named in `warnings`).
+- [x] `build pipeline-set <id> --workspace-root <project>` adds or changes one of
+  the project's own pipelines in its manifest, as **Build Pipelines…** does:
+  `--name`, `--description`, `--from <pipeline>`, ordered `--stage ID=PROFILE`
+  (replaces the stages), `--stage-args ID=ARGUMENTS`, `--disable-stage ID`,
+  `--enable-stage ID`, `--map-input ID` and `--variable NAME=VALUE`, with
+  `--dry-run`. Exit codes: 2 usage, 3 no project manifest or no `--from`
+  pipeline, 4 a pipeline with problems (built-in id, unknown compiler or
+  variable, another game's compiler, unclosed quote, name or id used twice).
+- [x] `build pipeline-remove <id> --workspace-root <project>` removes one, with
+  `--dry-run`; a built-in or missing pipeline exits with code 3.
 - [x] `build deploy-plan <directory>` verifies a prepared build and reviews its
   installation target. `--installation <id>` selects a saved profile; otherwise
   the selected/first saved installation is used. `--mod <folder>` overrides the
@@ -2855,9 +2895,17 @@ package, and level CLI example and the editable JSON schema.
   inapplicable options fail. Protected source/workspace/registered-package paths
   and links are refused. See [deployment limits](LEVEL_EDITOR.md#prepared-builds-with-current-assets).
 - [x] `build plan` to resolve stage inputs, outputs, and tool availability
-  without running anything.
+  without running anything; the project's own pipelines with
+  `--workspace-root`, `--variable NAME=VALUE` for one run (`GAME_DIR` defaults
+  to the selected installation), and JSON `programTrust` saying whether a run
+  would need `--trust-programs`.
 - [x] `build run` to run every enabled stage in order with streamed logs,
-  diagnostics, hashes, and per-stage command manifests.
+  diagnostics, hashes, and per-stage command manifests. It uses the user's
+  compiler paths under a project's own. A stage whose program is not a
+  compiler of the user's own configuration for its game (a project's compiler
+  path, for one) and was not trusted for the project before exits with code 4,
+  showing the command lines; `--trust-programs` trusts them in the user's
+  settings (never the project) and runs.
 - [x] `launch plan` to build a reviewable engine command line.
   Doom WAD plans inspect the selected map's node records and refuse missing or
   malformed data. JSON includes `nodeBuild`, `validatedArtifactPath`, and
@@ -2870,6 +2918,16 @@ package, and level CLI example and the editable JSON schema.
 - [x] `--deploy` on both to copy the built map (`--bsp`) into the game folder the
   engine loads maps from; `--allow-test-maps` lets a run save permission on a
   read-only installation profile, the choice the Build page asks for once.
+- [x] `launch profiles` to list the built-in launch profiles and the user's own,
+  with the `{map}`, `{mod}`, `{basedir}`, `{bsp}`, `{iwad}` and `{warp}` tokens.
+- [x] `launch profile-set` to add or replace a user launch profile (`<id> --name
+  --arguments [--engine]`, `--dry-run`); `launch plan --launch-profile <id>` and
+  the Build page's Launch profile list use it.
+- [x] `launch profile-remove` to remove a user launch profile (`--dry-run`).
+- [x] `launch extra-args` to show or set (`--arguments`, `--clear`, `--dry-run`)
+  the extra arguments an installation's launches add, the Build page's Extra
+  arguments field. `launch plan` and `launch run` add them unless `--extra-args`
+  is given; `--extra-args` is split as a shell would.
 
 ### Textures And Palettes
 - [x] `texture decode` for idTech textures, flats, Doom patches, WAL, MIP, LMP,
@@ -3082,7 +3140,12 @@ platform, only Vulkan can draw.
 - [ ] `compiler detect`
 - [ ] `compiler probe`
 - [x] `compiler run`
-- [x] `compiler rerun`
+- [x] `compiler rerun` (with `--last <map>`, the map's newest saved run under
+  `.vibestudio/compiler-runs`, as the GUI's Re-run Last Compile replays it). The
+  manifest's program must be a compiler of the user's own configuration for
+  the manifest's game, or trusted before for the folder the runs belong to;
+  otherwise it exits with code 4 showing the command line, and
+  `--trust-programs` trusts it in the user's settings and replays it.
 - [x] `compiler manifest`
 - [x] `compiler copy-command`
 - [ ] `compiler explain-log`

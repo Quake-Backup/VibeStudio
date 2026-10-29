@@ -432,6 +432,14 @@ MapViewport::MapViewport(QWidget* parent)
 	// However a manipulator drag ends (release, Escape, another button, focus
 	// loss, hiding), the drag cursor goes with it.
 	connect(m_objectGizmo,&LevelComponentGizmo::activeChanged,this,[this](bool active) { if (!active) { unsetCursor(); } });
+	// The drag-tool gestures and Build tool (map_viewport_plane_drag.cpp).
+	m_planeDrag = new LevelPlaneDragController(this);
+	connect(m_planeDrag,&LevelPlaneDragController::changed,this,[this] {
+		setAccessibleDescription(accessibleSummary());
+		if (m_planeDrag->active()) { Q_EMIT hoverChanged(m_planeDrag->summary()); }
+		update();
+	});
+	connect(m_planeDrag,&LevelPlaneDragController::activeChanged,this,[this](bool active) { if (!active) { unsetCursor(); } });
 	m_vertexInsertion = new LevelVertexInsertion(this);
 	connect(m_vertexInsertion,&LevelVertexInsertion::changed,this,[this] {
 		setAccessibleDescription(accessibleSummary()); Q_EMIT hoverChanged(componentSummary()); update();
@@ -1056,6 +1064,9 @@ void MapViewport::cancelInteraction()
 	m_vertexInsertion->finish(false); m_vertexInsertion->clearHover();
 	m_componentGizmo->finish(false);
 	m_objectGizmo->finish(false);
+	m_planeDrag->finish(false);
+	m_pendingPlaneDrag = false;
+	m_planeDragClick = false;
 	finishClipPoint(false);
 	finishBrushAssemble(false);
 	setTemporaryPan(false);
@@ -1843,6 +1854,12 @@ QString MapViewport::accessibleSummary() const
 	}
 	if (objectGizmoShown()) {
 		overlays += QStringLiteral(" ") + m_objectGizmo->summary();
+	}
+	if (m_planeDrag->active()) {
+		overlays += QStringLiteral(" ") + m_planeDrag->summary();
+	} else if (m_buildMode) {
+		overlays += QStringLiteral(" ") + tr("Build tool: drag a selected brush's face out to extrude a new brush, or in to split a slab off; "
+			"Shift and a drag on the selection lay copies end to end.");
 	}
 	if (m_assembleTool) {
 		overlays += QStringLiteral(" ") + brushAssembleSummary();
@@ -3641,6 +3658,7 @@ void MapViewport::paintOverlay(QPainter& painter, const Palette& palette) const
 		}
 		paintComponents(painter, palette);
 		paintObjectGizmo(painter, palette);
+		paintPlaneDrag(painter);
 		if (m_dragging) {
 			paintDragPreview(painter, palette);
 		}
@@ -3705,6 +3723,9 @@ QStringList MapViewport::hudTags() const
 	if (m_componentMode == ComponentMode::Off && m_objectGizmo->objectToolOn()) {
 		leftParts << (m_objectGizmo->active() ? m_objectGizmo->summary() : m_objectGizmo->toolName());
 	}
+	if (m_buildMode) {
+		leftParts << tr("Build");
+	}
 	if (!m_leakTrail.isEmpty()) {
 		leftParts << tr("Leak trail");
 	}
@@ -3751,7 +3772,7 @@ void MapViewport::announceSelection()
 
 bool MapViewport::event(QEvent* event)
 {
-	if (event->type() == QEvent::ShortcutOverride && m_objectGizmo->active()) {
+	if (event->type() == QEvent::ShortcutOverride && (m_objectGizmo->active() || m_planeDrag->active())) {
 		event->accept();
 		return true;
 	}
@@ -3776,6 +3797,8 @@ bool MapViewport::event(QEvent* event)
 	}
 	if (event->type() == QEvent::FocusOut || event->type() == QEvent::Hide || (event->type() == QEvent::EnabledChange && !isEnabled())) {
 		m_objectGizmo->finish(false);
+		m_planeDrag->finish(false);
+		m_planeDragClick = false;
 		finishComponentMove(false);
 		finishClipPoint(false);
 		finishBrushAssemble(false);
@@ -4200,6 +4223,9 @@ void MapViewport::mousePressEvent(QMouseEvent* event)
 	if (objectGizmoMousePress(event)) {
 		return;
 	}
+	if (planeDragMousePress(event)) {
+		return;
+	}
 	// Radiant's middle button drives the 3D camera instead of panning: a
 	// plain press aims it at the point, Ctrl moves it there, and a drag
 	// keeps doing so.
@@ -4240,7 +4266,7 @@ void MapViewport::mousePressEvent(QMouseEvent* event)
 	}
 	if (button == Qt::RightButton
 		&& (m_dragging || m_banding || m_pressArmed || m_resizing || m_clipDrawing || m_brushArmed || m_brushDrawing || m_clickArmed
-			|| m_pendingResizeEdges != 0)) {
+			|| m_pendingResizeEdges != 0 || m_pendingPlaneDrag)) {
 		// A right press in the middle of a drag, resize, or rubber band calls it
 		// off, as Escape does, rather than changing what the gesture acts on;
 		// the menu this click would open stays shut.
@@ -4495,6 +4521,9 @@ void MapViewport::mouseMoveEvent(QMouseEvent* event)
 	if (objectGizmoMouseMove(event)) {
 		return;
 	}
+	if (planeDragMouseMove(event)) {
+		return;
+	}
 
 	if (m_clickArmed) {
 		const QPointF travel = position - m_pressViewPoint;
@@ -4511,6 +4540,8 @@ void MapViewport::mouseMoveEvent(QMouseEvent* event)
 				beginDrag(position);
 			} else if (m_brushArmed) {
 				beginBrushDraw(position, event->modifiers());
+			} else if (beginPendingPlaneDrag(m_pressViewPoint, position)) {
+				// The drag-planes empty drag moves the planes facing the press.
 			} else if (m_pendingResizeEdges != 0) {
 				const int edges = m_pendingResizeEdges;
 				m_pendingResizeEdges = 0;
@@ -4530,6 +4561,13 @@ void MapViewport::mouseMoveEvent(QMouseEvent* event)
 
 	if (m_banding) {
 		const QPointF travel = position - m_bandAnchorView;
+		if (m_pendingPlaneDrag && !m_brushArmed && std::hypot(travel.x(), travel.y()) >= kDragThresholdPixels
+			&& beginPendingPlaneDrag(m_bandAnchorView, position)) {
+			m_banding = false;
+			m_bandSector = -1;
+			event->accept();
+			return;
+		}
 		if ((m_brushArmed || m_pendingResizeEdges != 0) && std::hypot(travel.x(), travel.y()) >= kDragThresholdPixels) {
 			// A drag over empty space that draws or resizes instead of banding.
 			m_banding = false;
@@ -4668,6 +4706,9 @@ void MapViewport::mouseReleaseEvent(QMouseEvent* event)
 	if (objectGizmoMouseRelease(event)) {
 		return;
 	}
+	if (planeDragMouseRelease(event)) {
+		return;
+	}
 	if (m_brushDrawing) {
 		commitBrushDraw();
 		event->accept();
@@ -4679,6 +4720,7 @@ void MapViewport::mouseReleaseEvent(QMouseEvent* event)
 		m_pressArmed = false;
 		m_brushArmed = false;
 		m_pendingResizeEdges = 0;
+		m_pendingPlaneDrag = false;
 		const MapViewportHit hit = hitTest(event->position());
 		if (m_clickBands) {
 			if (hit.kind != LevelMapSelectionKind::None) {
@@ -4733,6 +4775,7 @@ void MapViewport::mouseReleaseEvent(QMouseEvent* event)
 	if (m_banding) {
 		m_brushArmed = false;
 		m_pendingResizeEdges = 0;
+		m_pendingPlaneDrag = false;
 		QVector<LevelMapSelectionRef> inside = objectsInWorldRect(bandWorldRect());
 		m_banding = false;
 		// A click, not a drag, inside a Doom sector picks the sector, as Doom
@@ -4795,6 +4838,15 @@ void MapViewport::keyPressEvent(QKeyEvent* event)
 		return;
 	}
 	if (objectGizmoKey(event, true)) {
+		return;
+	}
+	// Every key belongs to a plane drag while it lasts; Escape calls it off.
+	if (m_planeDrag->active()) {
+		if (event->key() == Qt::Key_Escape) {
+			m_planeDrag->finish(false);
+			m_planeDragClick = false;
+		}
+		event->accept();
 		return;
 	}
 	if (m_resizing && levelComponentModifierKey(event->key())) {
@@ -5315,6 +5367,12 @@ void MapViewport::armEmptyDrag(PlanEmptyDrag action, const QPointF& viewPoint)
 			m_brushToPlane = m_brushFromPlane;
 		}
 		break;
+	case PlanEmptyDrag::DragPlanes:
+		// The brush planes facing the press point follow the pointer once it
+		// moves (beginPendingPlaneDrag()); a selection without them resizes
+		// its box instead.
+		m_pendingPlaneDrag = true;
+		[[fallthrough]];
 	case PlanEmptyDrag::ResizeSelection: {
 		// The sides of the selection's box that face the press point follow
 		// the pointer, as Radiant drags the faces a press is outside of.

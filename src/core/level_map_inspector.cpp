@@ -113,8 +113,10 @@ bool writeWorldKey(LevelMapDocument* document, const char* key, const QString& v
 	if (remove ? !present : (present && current == value)) {
 		return true;
 	}
-	return remove ? removeLevelMapEntitiesProperty(document, {worldId}, QString::fromLatin1(key), error)
-				  : setLevelMapEntitiesProperty(document, {worldId}, QString::fromLatin1(key), {value}, error);
+	return editLevelMapWorldSettings(document, [&](LevelMapDocument* edited) {
+		return remove ? removeLevelMapEntitiesProperty(edited, {worldId}, QString::fromLatin1(key), error)
+					  : setLevelMapEntitiesProperty(edited, {worldId}, QString::fromLatin1(key), {value}, error);
+	});
 }
 
 QJsonArray vectorJson(const LevelMapVec3& vector)
@@ -123,6 +125,21 @@ QJsonArray vectorJson(const LevelMapVec3& vector)
 }
 
 } // namespace
+
+bool editLevelMapWorldSettings(LevelMapDocument* document, const std::function<bool(LevelMapDocument*)>& edit)
+{
+	if (!document || !edit) {
+		return false;
+	}
+	// The open-group boundary is set aside for this one edit and put back;
+	// nothing here opens or closes a group, and the undo step records no
+	// change of context.
+	const QStringList openGroups = document->openSceneGroups;
+	document->openSceneGroups.clear();
+	const bool edited = edit(document);
+	document->openSceneGroups = openGroups;
+	return edited;
+}
 
 LevelMapSoftBounds levelMapGameSoftBounds(const LevelMapDocument& document)
 {

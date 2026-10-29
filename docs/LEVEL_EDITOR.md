@@ -426,8 +426,8 @@ to pole (`bands`, 2 to 15). Round shapes are exact circles of quadratic spans:
 on-curve points at exact quarter turns, each middle control on the tangents at
 its span's ends at `(P0 + P1) / (1 + cos Δ)`, after NetRadiant Custom's exact
 cylinders. Where a ring starts follows `LevelPatchRingStart`. With `Auto`,
-the fixed prefabs of NetRadiant Custom's Patch menu (the four-span cylinder,
-the four-span two-band sphere and every `classic-cone`) start half a turn
+the fixed prefabs of NetRadiant Custom's Patch menu (the four-span three-row
+cylinder, the four-span two-band sphere and every `classic-cone`) start half a turn
 round, on the negative side of the first axis across, as
 `Patch::ConstructPrefab`'s `pCylIndex` layout does. Every other density, and
 the straight `cone`, can only come from NRC's Exact Cylinder, Sphere and Cone,
@@ -1091,6 +1091,55 @@ as the matching tool, CLI route and dialog. **Select or Transform Tool**
 Select otherwise, or between Move and Shear Components in a component mode.
 Object tools and the Shear Tool exclude each other. Tests:
 `level-object-transform-smoke` and `level-object-transform-ui-smoke`.
+
+### Plane drags and the Build tool
+
+Status: Partial. `core/level_plane_drag.h` is NetRadiant Custom's drag tool as
+data. `pickLevelPlaneDrag()` takes a probe (a point on the press ray, its
+direction and the view's line of sight) and picks, on the selected brushes and
+the brushes of selected entities (hidden ones left out, at most 256): the
+facing planes (`DragManipulator`'s `selectPlanes`: the press point at each face
+centroid's view depth must lie at least 0.005 in front of the plane, the faces
+seen most nearly edge-on within 0.03 win, one per brush in the camera, and the
+planes back to back with a picked one on other selected brushes join); the best
+plane (the face the ray meets first, a 2D view passing faces it sees flat, or
+else the face behind the nearest edge: in a 2D view the adjacent face more
+nearly edge-on, in the camera the one the viewer is behind), with planes lying
+on it either way round (Plane), the same way round (Extrude) or their corners
+(Vertices, after the vertices stacked under the pointer within the tolerance).
+`moveLevelBrushPlanes()` moves the plane points by the translation and keeps
+texture parameters, so textures stay put in the world; where a face would lose
+its polygon it searches each axis in turn for the furthest grid step (or 1/64
+of the travel) that keeps every face, as `BrushInstance::transformComponents`
+does for a collapsing brush. `applyLevelPlaneDrag()` is one undo step through
+`replaceLevelMapComponentGeometry()`, `transformLevelMapComponents()` or
+`extrudeLevelMapFaces()` (split), after refusing unselected, hidden, locked
+and out-of-group brushes. `app/level_plane_drag_controller.*` is the view-side
+controller shared by `MapViewport` and `ModelViewport`: begin picks through a
+`LevelComponentGizmoFrame`, an axis drag (`beginModelAxisMoveDrag`, distance
+snapped by `snapLevelBrushExtrusionDistance`) or a view-plane drag
+(`beginModelMoveDrag` with the grid) follows the pointer, and each move
+previews synchronously from the brushes the pick copied
+(`previewLevelPlaneDrag()`). The plan views arm the facing-planes drag as the
+`DragPlanes` empty drag, falling back to the box resize when nothing faces the
+press; `PlanViewControls::vertexDragModifiers`/`extrudeDragModifiers` and
+`CameraViewControls::planeDragModifiers`/`extrudeDragModifiers` are gesture
+fields (inherited ones yield to conflicting older customisations). The camera
+reads the shell's document through `setPlaneDragDocument()`; where its Alt
+press drags a plane, Alt during a selection move lifts it (`m_moveBase` keeps
+the move so far). The Build tool (`m_levelBuildToolOn`, `map.buildTool`) puts
+both views in Build mode: a plain drag extrudes, a Shift drag from the
+selection lays `levelCloneChain()` copies through Duplicate with Offset's
+array placement, and `recordLevelCloneChainRepeat()` records them as duplicate
+steps for Repeat Last Commands (arrays made elsewhere stay unrecorded). It
+excludes the object tools and the Shear Tool and hides the camera's resize
+box. CLI: `map drag-planes`. Tests: `level-plane-drag-smoke` and
+`level-plane-drag-ui-smoke`. Limits: patches and light radii are not dragged;
+a drag stops before a face vanishes instead of keeping a redundant plane; the
+camera has no facing-planes drag over empty space, no Shift-chain preview of
+the copies' surfaces (boxes only) and no brush creation from an empty drag;
+NetRadiant Custom's component-mode drags and vertex insertion are not part of
+the Select tool here (the component modes keep their own tools).
 
 ## Camera selection resizing
 
@@ -2426,6 +2475,86 @@ Limits: model entities count by their definition box, not their model's
 bounds; the orthographic orbit camera has no floor stepping; and physical
 keyboards and macOS/Linux still need acceptance.
 
+### Camera drive keys from the 2D views and camera speed
+
+Status: Partial. NetRadiant Custom connects its camera keys as main-window
+accelerators (`camwindow.cpp` CamWnd_Move_Discrete_Enable and
+CamWnd_Move_Enable at `449778b3`), so they move the camera from a 2D view too.
+`PlanViewControls::cameraDriveKeys` (gesture `plan.cameraDriveKeys`, on in
+`netRadiantCustomLevelControls()` and `gtkRadiantLevelControls()` and so in
+the nine Radiant-family profiles) does the same here.
+`planRoutedCameraDriveKeys()` (`core/level_editor_controls.h`) is the camera's
+drive keys minus what `planViewKeepsKey()` says a 2D view keeps for itself (its
+arrows, which already drive through `planCameraStep`, + - = _, Home, F, Space,
+Backspace, Delete, Escape, Enter, Tab and the temporary pan key);
+`levelPlanCameraDriveKey()` (`core/level_camera_keys.h`) resolves an
+unmodified press (the keypad flag aside) to its motion. Fly keys stay the
+camera's own. The shell's `handleLevelCameraDriveKey`
+(`app/level_camera_drive_actions.cpp`) runs in the plan views' event filter
+after the nudge and floor handlers. It leaves the key to the view while it is
+dragging or its object gizmo is active, and to any enabled command whose key it
+is and that reaches the plan view (window-wide, or scoped to the view or a
+widget holding it): a Doom map's Draw Sector keeps D, a user's key keeps its
+command. Otherwise it accepts the shortcut override, so a disabled command's
+shortcut cannot swallow the key, and hands the press to
+`ModelViewport::driveCameraFromKey`. With `discreteDriveKeys` that is a fixed
+`stepCameraDrive` step on every press and repeat. Otherwise the key joins the
+camera's held keys and flies on its own timer until the release
+(`releaseCameraDriveKey`) or the plan view's focus loss
+(`releaseCameraDriveKeys`). `levelCameraShortcutWarnings` reports a routed key
+that a command can take, unless both are the profile's own. Command
+availability is refreshed (`refreshCommandEnablement`) on the shortcut override
+of any key a command reaching the view uses, so a selection change never leaves
+a stale enabled state deciding who keeps the key. During mouse look the camera
+flies with its own keys, so a routed key is left to the view, and a press
+`driveCameraFromKey` refuses goes back to the view rather than being dropped.
+Increase and Decrease Camera Speed refresh the camera's spoken controls help,
+which names the speed.
+
+NetRadiant Custom now defaults to discrete drive steps (its m_bCamDiscrete),
+and `CameraViewControls::drivePitchLimitDegrees` is 90 there
+(Camera_PitchUp_Discrete); the camera itself stops at 89 degrees so it keeps
+its heading, which `stepCameraDrive` respects. Other profiles keep 85 (Q3Radiant).
+The NetRadiant profile keeps continuous drive, the 85-degree stop and the
+map-scaled speed, which were audited against NetRadiant Custom only.
+
+`CameraViewControls::moveSpeed` (gesture `camera.moveSpeed`, `auto` or one of
+`levelCameraMoveSpeeds()`: 50, 250 to 9750 by 250, 9999) replaces the
+map-scaled `ModelViewport::flySpeed()` for held keys; mouse look's dolly keeps
+the map scale (`automaticFlySpeed`). NetRadiant Custom starts at 500
+(CamMoveSpeed). `map.cameraSpeedUp` and `map.cameraSpeedDown` (View > Camera,
+the Tools tab's Navigate group, Shift+keypad + and - in NetRadiant Custom as
+CameraSpeedInc and CameraSpeedDec) step through the list with
+`levelCameraSteppedMoveSpeed()`, from the map-scaled speed in use when none is
+saved. They write the profile's gesture overrides, so the speed persists per
+profile and `editor gestures --set camera.moveSpeed=N` is the command-line
+route, and they set the camera without resetting navigation
+(`ModelViewport::setCameraMoveSpeed`). The `levelCameraSpeed` label beside
+Textures above the views shows the speed, marking a map-scaled one; each step
+is announced in the status bar. They grey out at the ends of the list and
+without a first-person camera. Neither the speed nor the drive keys touch the
+map, its selection or its undo history.
+
+`level-camera-drive-keys-smoke` covers the speed list and its steps, the routed
+keys and motions of every profile, that across all 24 profiles a routed key
+overlaps only Draw Sector's D and never a window-wide or accessibility key, and
+that the speed keys belong to the speed commands alone. It also covers the
+gesture fields, the controls rows, the overlap warnings and `editor gestures` /
+`editor controls`. `level-camera-drive-keys-ui-smoke` drives the shell under
+NetRadiant Custom at 100% and at 200% with high contrast, right-to-left and
+expanded text, GtkRadiant 1.6.0 and TrenchBroom. It checks the commands, menus,
+accessible Tools buttons, keys, readout and saved speed, A and D steps from the
+top view, bound up, down and pitch keys with the 89-degree stop, GtkRadiant's
+held glide stopping on release and on focus loss, a user's key and a Doom map's
+Draw Sector keeping their keys, real Shift+keypad presses, and the map
+unchanged.
+
+Limits: NetRadiant Custom's exact 90-degree pitch, its acceleration to the
+held speed (m_time_toMaxSpeed) and its plan arrows' fixed 32-unit steps
+(`plan.fixedCameraSteps` stays off there) are not reproduced; TrenchBroom's
+wheel speed adjustment during fly is not added; and physical keyboards (keypad
+Shift chords, held keys) and macOS/Linux still need acceptance.
+
 ## Patch Caps
 
 **Edit → Cap Patch…**, the command palette and the map context menu cap a
@@ -2492,6 +2621,68 @@ correct facing and planar UVs retained. Dependency subset export and full PK3
 validation verified six payloads with no warnings. Only generated fixtures were
 used; no game was launched. Exact commands, outputs and measurements are under
 `.agents/tmp/patch-caps/compiler-all/`.
+
+### Cap styles, Convert Selection to Patches and Deform (2026-10-29)
+
+`LevelPatchCapRequest::style` adds NetRadiant Custom's Cap Selection seams
+beside the radial cap (`LevelPatchCapStyle`, `--style`). Each is built from
+the boundary's controls taken as `Patch::MakeCap` takes them (first row
+forwards, last row backwards; first column backwards and last column
+forwards, so column seams face as radial caps do) in `Patch::ConstructSeam`'s
+layouts: Bevel (3x3, the arc down the last column, closing on `p2 + p0 - p1`),
+Inverted Bevel (3x3, out to the middle control), Endcap (3x3, closing on the
+chord midpoint), Inverted Endcap (5x3, out to the line through the corner
+controls) and Cylinder (3x5, each half of the ring down a side and the middle
+column re-dispersed). `levelPatchCapStyleWidths()` holds upstream's width
+checks (3 or 5, 5, 9; a five-wide bevel uses the boundary's first span, as
+upstream does). The plain seams face out of the patch and the inverted ones
+the other way, as upstream's. Planar mapping is Radiant's Cap Texture
+(`planarLevelPatchTexture`) at units per tile; Boundary mapping carries the
+boundary's coordinates to each derived control with the same affine weights
+as its position. `capLevelMapPatches()` is Cap Selection: every patch, hidden
+ones and ones the style cannot cap skipped with reasons, one undo step, caps
+selected in their sources' entities. The dialog's **Cap style** and **All
+selected patches** choices and the NetRadiant Custom profile's Shift+C use it.
+
+`convertLevelMapFacesToPatches()` (`src/core/level_patch_convert.cpp`) is
+TrenchBroom's Convert Selection to Patches. Each face polygon of the solved
+brush is fanned from its first corner into quadrilaterals and at most one
+triangle (its last edge collapsed); each becomes a bilinear patch of the
+requested odd grid, so every span's middle control is its midpoint and the
+patch is exactly the face. The patch faces away from the brush's centroid
+(columns crossed with rows), takes the face's material as a patchDef2 token,
+and takes texture coordinates from `levelTextureProjection()` at each control
+point, divided by the image size for classic and Valve 220 faces (64 by 64
+when unknown, reported). Whole brushes are removed once every face with area
+converted, unless `keepBrushes`; picked faces keep their brush. Hidden
+brushes and brushes outside the open group are skipped, brushDef3 faces are
+refused, locks refuse the edit, and the patch additions and removal fold into
+one undo step. The GUI command converts picked faces or selected brushes at
+3x3 and then enters Edit Vertices; the TrenchBroom profile binds Ctrl+P in the
+`kShortcutFocusClaims` layer, so Go to File keeps it outside Levels, and the
+registry's typing guard keeps it, like every editing key, from acting while a
+text field on the page has the focus (`setShortcutTypingGuards`).
+
+`deformLevelMapPatches()` is NetRadiant Custom's Deform: one draw per control
+point, patch after patch in document order, from `levelPatchDeformOffsets()`,
+a `std::mt19937` stream scaled to 0..maximum and truncated as upstream scales
+`rand()`, so a seed repeats a run on every platform. Only the chosen axis
+moves; texture coordinates stay; hidden and out-of-group patches are skipped;
+one undo step.
+
+`patch-cap-smoke` checks every seam against upstream's layouts written out
+independently, facing, boundary mapping, width refusals, column seams, Cap
+Selection's skipping and undo, and `map cap-patch --style`.
+`level-patch-convert-deform-smoke` checks the converted box's planarity,
+facing and per-control mapping against the classic Quake formula, octagon
+coverage, triangles, brush-primitive repeats, hidden/locked handling, the
+seeded draws (seed 5489's first draw is 52 of 64), Deform's undo and the two
+commands' output. `level-patch-convert-deform-ui-smoke` and `patch-cap-ui-smoke`
+cover the dialogs and keys at 100% and 200% high-contrast RTL. Limits: the
+GUI converts at 3x3 only (other grids through the command line), face picks
+convert only from the Levels selection and component face picks, brushDef3
+(idTech 4) faces are not converted, and native input and macOS/Linux
+acceptance remain open.
 
 ## Patch Stitching
 
@@ -4306,6 +4497,24 @@ Inspector** does with Ctrl+3. Enter on a class runs the Outliner query
 `kind=entity class=<name>` (`kind=thing type=<n>` on Doom maps); Enter on a
 layer selects it in the Outliner's Layers and Groups tree
 (`LevelScenePanel::showNode()`).
+
+Two counting decisions. A TrenchBroom-format map (`LevelSceneStorage::TrenchBroom`)
+keeps each layer and group as a `func_group` entity with `_tb_type`; the loader
+turns those into scene nodes, so the totals and the class table do not count
+them, where NetRadiant Custom counts each as a `func_group` group entity. The
+statistics lines name them instead ("Layer and group entities (func_group, not
+counted above)", one per scene node); neither count reaches the game, so the
+in-game totals agree. Doom thing types sort by number (`thing:9` before
+`thing:3001`).
+
+Map settings and an open group: `editLevelMapWorldSettings()` runs a
+worldspawn-only edit with `openSceneGroups` set aside and restored, so the soft
+bounds, the mods and the Worldspawn list change whatever group is open, as
+TrenchBroom's MapPropertiesEditor and ModEditor change the world node. The
+edit records no change of context (the group stays open and active, undo and
+redo leave it so), scene locks are still checked by the shared guard, and every
+other edit outside the open group is still refused. The Mods list refreshes when
+the installation changes (`refreshGameInstallations()`), not only on map edits.
 
 Limits: the soft bounds are not drawn in the views and nothing outside them is
 reported on Health; VibeStudio keeps the enabled mods but does not load assets

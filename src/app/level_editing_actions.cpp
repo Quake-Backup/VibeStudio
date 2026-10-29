@@ -564,6 +564,11 @@ void ApplicationShell::setLevelShearMode(bool enabled)
 			setLevelObjectTool(0);
 			refreshLevelToolShelf();
 		}
+		// And the Build tool.
+		if (m_levelBuildToolOn) {
+			setLevelBuildTool(false);
+			refreshLevelToolShelf();
+		}
 	}
 	for (MapViewport* view : std::as_const(m_levelPlanViews)) {
 		const QSignalBlocker blocker(view);

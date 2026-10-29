@@ -1393,6 +1393,33 @@ QVector<CommandPaletteEntry> commandPaletteEntries()
 			QCoreApplication::translate("VibeStudioSemantics", "Launch Game"),
 			QCoreApplication::translate("VibeStudioSemantics", "Game"),
 			QCoreApplication::translate("VibeStudioSemantics", "Launch the selected installation with the current mod and map arguments.")),
+		// NetRadiant Custom's Run Recent Build (F5) and TrenchBroom's Re-run
+		// Compilation (app/build_rerun_actions.cpp).
+		paletteEntry(
+			QStringLiteral("build-run-last"),
+			QStringLiteral("build.run-last"),
+			QCoreApplication::translate("VibeStudioSemantics", "Run Last Build"),
+			QCoreApplication::translate("VibeStudioSemantics", "Build"),
+			QCoreApplication::translate("VibeStudioSemantics", "Run again the build you ran last for this project on the open map: the build pipeline, with its launch, or the Levels compiler profile.")),
+		paletteEntry(
+			QStringLiteral("compiler-rerun-last"),
+			QStringLiteral("compiler.rerun-last"),
+			QCoreApplication::translate("VibeStudioSemantics", "Re-run Last Compile"),
+			QCoreApplication::translate("VibeStudioSemantics", "Compilers"),
+			QCoreApplication::translate("VibeStudioSemantics", "Replay the open map's newest saved compiler run exactly as it ran, with the same program, arguments and folder.")),
+		paletteEntry(
+			QStringLiteral("game-edit-launch-profiles"),
+			QStringLiteral("game.edit-launch-profiles"),
+			QCoreApplication::translate("VibeStudioSemantics", "Launch Profiles"),
+			QCoreApplication::translate("VibeStudioSemantics", "Game"),
+			QCoreApplication::translate("VibeStudioSemantics", "Make your own launch profiles: a name and the engine arguments, with {map}, {mod}, {basedir} and {bsp} filled in at launch.")),
+		// NetRadiant Custom's Build > Customize… (app/build_pipeline_actions.cpp).
+		paletteEntry(
+			QStringLiteral("build-edit-pipelines"),
+			QStringLiteral("build.edit-pipelines"),
+			QCoreApplication::translate("VibeStudioSemantics", "Build Pipelines"),
+			QCoreApplication::translate("VibeStudioSemantics", "Build"),
+			QCoreApplication::translate("VibeStudioSemantics", "Make the project's own build pipelines: compiler stages with your arguments, on/off switches and variables, kept in the project.")),
 		paletteEntry(
 			QStringLiteral("cancel-task"),
 			QStringLiteral("activity.cancel"),
@@ -1501,6 +1528,11 @@ QVector<CommandPaletteEntry> commandPaletteEntries()
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Lift the 3D camera to the next floor above it: 32 units over the next top under the camera or selected, or eye height over a Doom sector floor.")},
 		{"map-camera-floor-down", "map.camera-floor-down", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Camera Floor Down"),
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Drop the 3D camera to the next floor below it: 32 units over the next lower top under the camera or selected, or eye height over a Doom sector floor.")},
+		// NetRadiant Custom's CameraSpeedInc and CameraSpeedDec (core/level_camera_keys.h).
+		{"map-camera-speed-up", "map.camera-speed-up", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Increase Camera Speed"),
+			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Make the 3D camera's held keys fly and drive one step faster, up to 9999 units per second; the speed is kept with the editor profile's gestures.")},
+		{"map-camera-speed-down", "map.camera-speed-down", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Decrease Camera Speed"),
+			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Make the 3D camera's held keys fly and drive one step slower, down to 50 units per second; the speed is kept with the editor profile's gestures.")},
 		// View > Camera Display (core/level_camera_render.h): TrenchBroom's
 		// face modes and edges, NetRadiant Custom's camera mode cycle.
 		{"map-preview-textures", "map.preview-textures", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Textures in Camera"),
@@ -1726,7 +1758,9 @@ QVector<CommandPaletteEntry> commandPaletteEntries()
 		{"map-edit-patch", "map.edit-patch", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Edit Patch Control Points"),
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Reshape, subdivide and texture the selected patch.")},
 		{"map-cap-patch", "map.cap-patch", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Cap Patch"),
-			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Close curved patch boundaries with planar caps and review their material mapping.")},
+			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Close the boundaries of the selected patches with radial caps or NetRadiant Custom's bevel, endcap and cylinder seams, and review their material mapping.")},
+		{"map-convert-to-patches", "map.convert-to-patches", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Convert Selection to Patches"),
+			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Turn the selected brushes, or the picked faces, of a Quake III map into flat patches with their materials and texture mapping, then edit their control points, as TrenchBroom does.")},
 		{"map-hollow", "map.hollow-selection", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Hollow"),
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Turn the selected brushes into rooms with walls one grid step thick.")},
 		{"map-select-similar", "map.select-similar", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Select All of This Class"),
@@ -1886,6 +1920,9 @@ QVector<CommandPaletteEntry> commandPaletteEntries()
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Skew the selection by its box's sides, turn it by the corners, move it from inside and scale it from just outside, about a pivot you can drag; choose again for Select.")},
 		{"map.select-or-transform-tool", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Select or Transform Tool"),
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Switch to the Transform tool from Select, and back to Select from any other tool; in component modes, between Move and Shear Components.")},
+		// NetRadiant Custom's Build tool (MouseBuild).
+		{"map.build-tool", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Build Tool"),
+			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Drag a selected brush's face out into a new brush or in to split a slab off, or Shift-drag the selection to lay copies end to end for Repeat; choose again for Select.")},
 		{"map.rotate-or-scale-tool", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Rotate or Scale Tool"),
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Switch to the Scale tool from the Rotate tool, and to the Rotate tool otherwise; in component modes, between Rotate and Scale Components.")},
 		{"map.set-object-pivot",QT_TRANSLATE_NOOP("VibeStudioSemantics", "Set Object Pivot"),
@@ -2121,6 +2158,8 @@ QVector<CommandPaletteEntry> commandPaletteEntries()
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Join two patch boundaries with exact grid refinement and optional tangent or UV matching.")},
 		{"map.thicken-patch", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Thicken Patch"),
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Give the selected patches thickness: a copy behind each and walls along their open edges.")},
+		{"map.deform-patch", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Deform Patch"),
+			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Move every control point of the selected patches along one axis by a random amount up to a maximum, from a seed that repeats the result, as NetRadiant Custom's Deform does.")},
 		// Textures and surface mapping.
 		{"map.apply-texture", QT_TRANSLATE_NOOP("VibeStudioSemantics", "Apply Texture"),
 			QT_TRANSLATE_NOOP("VibeStudioSemantics", "Put a texture on every face of the selected brushes and on the selected patches.")},

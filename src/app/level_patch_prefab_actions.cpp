@@ -22,6 +22,7 @@
 #include "app/studio_actions.h"
 #include "core/level_materials.h"
 #include "core/level_shapes.h"
+#include "core/level_visibility.h"
 #include "core/package_staging.h"
 
 #include <QCheckBox>
@@ -243,9 +244,21 @@ void ApplicationShell::addLevelExactPatchFromUi(const QString& shape)
 	request.shape = shape;
 	levelPatchCreationBox(&request.mins, &request.maxs);
 	request.axis = levelShapeViewAxis();
+	// The selected brushes and patches the patch takes the place of: hidden
+	// ones stay, as replaceLevelMapSelectionWithPatch leaves them.
+	const QSet<QString> hidden = levelMapHiddenObjects(m_levelMapDocument);
 	int replacing = 0;
 	for (const LevelMapSelectionRef& ref : std::as_const(m_levelMapDocument.selection)) {
-		replacing += ref.kind == LevelMapSelectionKind::QuakeBrush || ref.kind == LevelMapSelectionKind::QuakePatch ? 1 : 0;
+		if (hidden.contains(levelMapSelectionRefId(ref))) {
+			continue;
+		}
+		if (ref.kind == LevelMapSelectionKind::QuakeBrush) {
+			replacing += std::any_of(m_levelMapDocument.brushes.cbegin(), m_levelMapDocument.brushes.cend(),
+				[&ref](const LevelMapBrush& brush) { return brush.id == ref.objectId; }) ? 1 : 0;
+		} else if (ref.kind == LevelMapSelectionKind::QuakePatch) {
+			replacing += std::any_of(m_levelMapDocument.patches.cbegin(), m_levelMapDocument.patches.cend(),
+				[&ref](const LevelMapPatch& patch) { return patch.id == ref.objectId; }) ? 1 : 0;
+		}
 	}
 
 	QDialog dialog(this);

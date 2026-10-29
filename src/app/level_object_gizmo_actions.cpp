@@ -219,6 +219,8 @@ void ApplicationShell::refreshLevelObjectGizmos()
 	m_levelMap3D->objectGizmo()->setFreeTurn(m_levelControls.objectRotateFreeTurn);
 	m_levelMap3D->objectGizmo()->setObjectContext(target.mins, target.maxs, boundsGrid, m_levelObjectPivot.valid);
 	m_levelMap3D->objectGizmo()->setContext(tool, pivot, available, snap ? m_levelMapViewport->gridSize() : 0, snap ? angleStep : 0);
+	// The drag-tool gestures share the selection, grid and views.
+	refreshLevelPlaneDrags();
 }
 
 void ApplicationShell::connectLevelObjectGizmo(LevelComponentGizmo* gizmo, MapViewport* plan)

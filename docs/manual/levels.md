@@ -87,7 +87,8 @@ The tool bar above the views says what the mouse does. **Select** picks, moves a
 moves them with axis arrows about a pivot you can place (see [Move the selection with the Translate tool](#move-the-selection-with-the-translate-tool)),
 **Rotate** turns them with rings about the same pivot (see [Turn the selection with the Rotate tool](#turn-the-selection-with-the-rotate-tool)),
 **Scale** sizes them with axis handles and box handles (see [Scale the selection with the Scale tool](#scale-the-selection-with-the-scale-tool)),
-and **Transform** skews, turns, moves and scales them by their box (see [Transform the selection with the Transform tool](#transform-the-selection-with-the-transform-tool)). **Draw Brush**
+and **Transform** skews, turns, moves and scales them by their box (see [Transform the selection with the Transform tool](#transform-the-selection-with-the-transform-tool)).
+**Build** extrudes faces and lays chains of copies (see [Drag brush planes and build from faces](#drag-brush-planes-and-build-from-faces)). **Draw Brush**
 draws the shape chosen on the **Shapes** tab in the 3D view; its icon shows which. **Clip** cuts brushes along a line,
 **Paint** and **Sample** put on and pick up materials in the 3D view, **UV** drags a face's or patch's texture there (see
 [Drag textures with the UV tool](#drag-textures-with-the-uv-tool)), and **Draw Sector** traces Doom sectors. Only
@@ -209,6 +210,29 @@ the tools the open map can use are shown, and the material strip below holds the
   <kbd>Page Down</kbd> while sectors are selected; in the camera the keys always step floors. Both commands are in the
   **Tools** tab's **Navigate** group, and `map camera-focus --floor up|down` reports the same height from the command
   line.
+- **Drive the camera from a 2D view.** In the Radiant profiles (NetRadiant Custom, NetRadiant, GtkRadiant, Q3Radiant,
+  QeRadiant, DoomEdit and DarkRadiant) the camera's drive keys work while a 2D view has the keyboard, as Radiant's
+  camera keys do: the arrows drive it as before, and in NetRadiant Custom <kbd>A</kbd> and <kbd>D</kbd> strafe it.
+  A drive key you bind for up, down, look up or look down on the **Camera Keys** tab of **Customize Gestures…** works
+  there too. A command that can act keeps its key: on a Doom map **Draw Sector** keeps <kbd>D</kbd>, and a key you give
+  a command in **Keyboard Shortcuts** stays that command's. The 2D view keeps its own keys (the arrows, <kbd>+</kbd>,
+  <kbd>-</kbd>, <kbd>Home</kbd>, <kbd>F</kbd>, <kbd>Space</kbd>, <kbd>Delete</kbd> and the like), and the fly keys
+  still need the camera. NetRadiant Custom steps 32 units or 22.5 degrees per press, as it does, and stops looking up
+  or down 1 degree short of vertical; turn **Drive keys step 32 units / 22.5 degrees** off for held, gliding motion.
+  Turn the 2D views' share off with **Camera drive keys also work here while no command uses the key** on the
+  **2D Plan** tab. **Customize Gestures…** lists any key a command now takes from the camera under **possible shortcut
+  overlaps**.
+- **Set the camera speed.** **View** > **Camera** > **Increase Camera Speed** and **Decrease Camera Speed**
+  (<kbd>Shift</kbd>+<kbd>Keypad +</kbd> and <kbd>Shift</kbd>+<kbd>Keypad -</kbd> in the NetRadiant Custom profile)
+  step the speed held camera keys fly and drive at through a fixed list: 50, then 250 to 9750 units per second in steps
+  of 250, then 9999. NetRadiant Custom adds or takes 250 within the same limits, so from 50 it goes to 300 and from 9999
+  to 9749 where VibeStudio goes to 250 and 9750. **Speed** beside **Textures** above the views shows it, and the status bar
+  says each new speed. Each profile keeps its own speed, NetRadiant Custom starting at 500 and the others scaling with
+  the size of the map until you change it; **Camera speed for held keys** on the **3D Camera** tab of **Customize
+  Gestures…** sets it directly or returns it to **Scale with the map**, and `editor gestures <profile> --set
+  camera.moveSpeed=750` does the same from the command line. The fast and slow keys still multiply it while you hold
+  them, and mouse look's own movement keeps the map's scale. Both commands are in the **Tools** tab's **Navigate**
+  group.
 - **Keep the selection in view.** In the NetRadiant Custom and NetRadiant profiles, hold <kbd>Tab</kbd> during mouse
   look: the camera stays on the line through the selection's centre as you turn and fly, and the wheel moves it nearer
   or farther, eight notches halving or doubling the distance. Release the key, or leave mouse look, to fly freely
@@ -514,7 +538,7 @@ Most actions are in the **Edit** menu, the right-click menu of the views and the
 | Align textures | Edit a classic or Valve 220 face's shift, rotation and scale on the **Inspector** tab, or use the **Surfaces** tab. In Face mode, both targets use exactly the [picked face components](#edit-surfaces-from-component-faces). In object mode, **Target** chooses the selection, patches included, or **Picked Faces**: the faces you pick in the camera with your profile's face-pick click, holding its add key to gather more, or else the face in the **Inspector**. **Adjust** shifts, rotates, scales, fits or centres in steps, adds or subtracts a Radiant **Scale step** (see [Step textures by Radiant increments](#step-textures-by-radiant-increments)), and has one-click **Flip U** and **Flip V**, **Fit U** and **Fit V** (one repeat across that axis only), **Fit Width** and **Fit Height** (one repeat, keeping the texture's proportions), **Justify Left**, **Right**, **Top** and **Bottom**, **Natural** (the texture at its natural scale, square to the world, as Radiant's Natural does), **Align to Face** (the texture laid along the face's own slope), **Axial**, **2D View** and **Camera** under **Project texture** (see [Fit and project textures](#fit-and-project-textures)), and **Reset** and **Radiant Reset** (see [Reset textures](#reset-textures)). **Copy and Paste** carries one face's material, mapping and flags to others. **Surface Alignment…** gives a detailed preview, and **UV Editor…** drags one face's or patch's points over its texture (see [Edit texture coordinates in the UV Editor](#edit-texture-coordinates-in-the-uv-editor)). To move or flip textures the way the camera shows them, see [Move and flip textures from the camera](#move-and-flip-textures-from-the-camera). |
 | Paint materials | Choose a material in the **Material** box above the views, set the camera tool to **Paint**, then click or drag across surfaces in the 3D view. Each stroke is one undo step. **Sample** picks up a surface's material instead. |
 | Reshape a brush | Turn on **Edit Vertices**, **Edit Edges** or **Edit Faces** (**Geometry** or **Tools > Vertices**) to show corners, edge middles or face centres in the plan views and camera. Picks are shared between panes. In a plan view, click stacked handles, use the profile's add/toggle modifier or drag a selection band, then drag them or nudge them with your profile's **Nudge** keys (<kbd>Shift</kbd>: eight grid steps; see [Nudge the selection](#nudge-the-selection)). The camera supports visible/X-ray picks and XYZ movement; see [camera components](#move-components-in-the-camera). A corner moved onto another merges with it; **Undo** restores it. **Snap Vertices to Grid** rounds brush corners onto the grid. **Edit Brush Components…** provides exact numbers and a preview. |
-| Make curves (Quake III) | **Add Patch…** (<kbd>Shift</kbd>+<kbd>P</kbd> in the NetRadiant Custom profile) creates a plane, cylinder, square cylinder, cone, classic cone, sphere, bevel or end cap fitted to the selection, its cylinders, cones and spheres true circles of as many spans as you choose, and can replace the selection; the **Shapes** tab draws them too, and **Patch Cylinder**, **Patch Sphere** and the other patch shape commands replace the selection with Radiant's own, or, as **Exact Patch Cylinder…**, **Exact Patch Cone…** and **Exact Patch Sphere…**, with the columns, rows and **Square** you choose. New patches are mapped as Radiant maps them: **Natural** on curves and **Cap Texture** on planes ([Add Radiant's patch shapes](#add-radiants-patch-shapes)). **Edit Patch Control Points…**, **Stitch Patches…** and **Cap Patch…** reshape, join and close patches, and **Edit Vertices** drags their control points in the plan views and camera. The **Patch Rows and Columns** commands, also in the patch editor, insert, add or delete rows and columns without changing the surface, **Transpose**, **Re-disperse** and **Smooth** them, as Radiant's Patch menu does, and **Thicken Patch…** gives patches a back and walls along their open edges, as NetRadiant Custom does. |
+| Make curves (Quake III) | **Add Patch…** (<kbd>Shift</kbd>+<kbd>P</kbd> in the NetRadiant Custom profile) creates a plane, cylinder, square cylinder, cone, classic cone, sphere, bevel or end cap fitted to the selection, its cylinders, cones and spheres true circles of as many spans as you choose, and can replace the selection; the **Shapes** tab draws them too, and **Patch Cylinder**, **Patch Sphere** and the other patch shape commands replace the selection with Radiant's own, or, as **Exact Patch Cylinder…**, **Exact Patch Cone…** and **Exact Patch Sphere…**, with the columns, rows and **Square** you choose. New patches are mapped as Radiant maps them: **Natural** on curves and **Cap Texture** on planes ([Add Radiant's patch shapes](#add-radiants-patch-shapes)). **Edit Patch Control Points…**, **Stitch Patches…** and **Cap Patch…** reshape, join and close patches, with Radiant's bevel, end cap and cylinder seams among the caps, **Convert Selection to Patches** turns brushes or picked faces into flat patches, **Deform Patch…** roughens them from a repeatable seed ([Cap, convert and deform patches](#cap-convert-and-deform-patches)), and **Edit Vertices** drags their control points in the plan views and camera. The **Patch Rows and Columns** commands, also in the patch editor, insert, add or delete rows and columns without changing the surface, **Transpose**, **Re-disperse** and **Smooth** them, as Radiant's Patch menu does, and **Thicken Patch…** gives patches a back and walls along their open edges, as NetRadiant Custom does. |
 | Link entities | Pick the source objects first and the destination last, then choose **Connect Entities**. NRC requires exactly two objects; see the connection rules below. |
 | Replace key values | **Edit** > **Replace Key Values…**, or the search button on the **Inspector**'s **Properties** section, finds a value of one key across the map's entities (or the selected ones) and replaces it: the whole value, or with **Match the whole value** off, every occurrence, such as a name's prefix. It counts the matches as you type, and the change is one undo step. |
 | Colour lights and entities | Select lights or other entities, or brushes of a brush entity, and choose **Set Entity Colour…** (**Edit** > **Keys**, the right-click menu, or <kbd>K</kbd> in the NetRadiant Custom and NetRadiant profiles). The picker opens on the colour of the entity you picked last, or on the colour you chose last, and the choice is written to the `_color` key of every one of those entities as one undo step. A key already written as 0-255 stays 0-255; a new one is written as 0-1 fractions. **Normalise Entity Colour** scales the last-picked entity's colour so its brightest channel is 1 (black becomes white) and sets it on all of them, as NetRadiant Custom does. World brushes and hidden entities are left alone, and a locked entity refuses the change. |
@@ -763,6 +787,51 @@ the manipulator. **Transform** replaces the resize handles and the **Shear Tool*
 To make the same edits from a script, slide a side with `map shear` `--side` and `--offset`, and turn, scale or move
 with `map rotate --around`, `map resize --factors` and `map move`, each with `--pivot`; see [the command
 line](cli.md#slant-a-selection-as-the-shear-and-transform-tools-do).
+
+### Drag brush planes and build from faces
+
+In the NetRadiant Custom and GtkRadiant profiles, **Select** drags brush planes as Radiant's drag tool does. Quake-family
+maps only.
+
+1. Select brushes, or a brush entity.
+2. In a 2D view, press over empty space beside the selection and drag. The planes of the selected brushes that face
+   the point you pressed, and are seen most nearly edge-on, follow the pointer. Press beyond a corner to take both
+   sides there. A sloped face moves out along its own slope, so a wedge grows rather than stretches. A plane of
+   another selected brush lying against a dragged one moves with it, so touching brushes stay touching.
+3. A dashed wire shows the result and the status line names the planes and the distance. Release to apply it as one
+   undo step, or press <kbd>Escape</kbd> to cancel it.
+
+While **Snap** is on the drag follows the grid. A drag that would make a face vanish stops at the furthest grid step
+that keeps every face, and the status line says so. Textures stay where they lie in the world, as in NetRadiant
+Custom. When no plane faces the press point, for example with only point entities selected, the drag resizes the
+selection's box instead.
+
+The NetRadiant Custom profile adds its modifier drags:
+
+| To | Do this |
+| --- | --- |
+| Drag corners in a 2D view | Hold <kbd>Alt</kbd> and drag from a corner of a selected brush: every corner stacked under the pointer moves. Away from any corner, the corners of the plane under the pointer, or behind the nearest edge, move instead. |
+| Drag one plane in the camera | Hold <kbd>Alt</kbd> and drag a face of a selected brush, or just beside it: that plane moves along its own normal, with the planes lying on it, either way round, on the other selected brushes. Press <kbd>Alt</kbd> after you start dragging the selection to lift or lower it instead. |
+| Extrude faces | Hold <kbd>Ctrl</kbd>+<kbd>Alt</kbd> and drag the face under the pointer, in a 2D view or the camera. Pull it out to make a new brush from it, or push it in to split a slab off; the selected brushes' faces on the same plane go too. The extrusion follows **Texture Lock**. |
+
+**Customize Editor Gestures** sets these for any profile: **Drag the brush planes facing the pointer** under
+**Empty-space drag with selection**, and the keys for the vertex, plane and extrude drags in the 2D views and the
+camera. A hidden or locked brush in the selection, one outside the open group, or a vertex, edge or face mode refuses
+the drag with the reason.
+
+**Build** on the tool bar, or **Build Tool** in **Edit** > **Manipulators**, the **Transform** menu above the views,
+the **Tools** tab or command search (<kbd>B</kbd> in the NetRadiant Custom profile), builds from the selection, after
+NetRadiant Custom's Build tool. Choose it again to go back to **Select**.
+
+- Drag a face of a selected brush, or just beside it, in a 2D view or the camera: pull it out to extrude a new brush,
+  or push it in to split a slab off, as <kbd>Ctrl</kbd>+<kbd>Alt</kbd> does above.
+- Hold <kbd>Shift</kbd> and drag from the selection to lay copies of it end to end along the main direction of the
+  drag, each one box length on, as many as the drag covers (up to 64). Dashed boxes show them. Release to add them as
+  one undo step. The last copy stays selected, so **Repeat Last Commands** carries the chain on from it.
+- A click without a drag selects what is under the pointer, as **Select** does. <kbd>Escape</kbd> cancels a drag.
+
+To make the same edits from a script, use `map drag-planes`, and `map duplicate` with `--delta` and `--copies` for a
+chain; see [the command line](cli.md#drag-brush-planes-as-the-select-and-build-tools-do).
 
 ### Nudge the selection
 
@@ -1808,9 +1877,10 @@ control grid, and **Rows** also the control rows along a patch cylinder or cone.
 columns and rows of a round patch once it is mapped, as NetRadiant Custom's **Square** box does: each span's middle
 control point goes halfway between its ends, so the patch is made of flat facets but keeps its round texture
 mapping. **Patch Cone** narrows in a straight line, as NetRadiant Custom's **Exact Cone** does; **Classic Patch
-Cone** is Radiant's cone, full width until its last row, so its sides bulge. A four-segment cylinder or sphere starts
-its ring where Radiant's **Cylinder** and **Sphere** do, half a turn round; other segment and band counts, and the
-straight cone, start where NetRadiant Custom's **Exact** shapes do. For a patch shape, **Replace Selected Brushes** also replaces selected patches, and brushes
+Cone** is Radiant's cone, full width until its last row, so its sides bulge. Radiant's own densities start their ring
+half a turn round, where its **Cylinder**, **Sphere** and **Cone** do: a cylinder of four segments and three rows, a
+sphere of four segments and two bands, and every classic cone. Other densities, and the straight cone, start where
+NetRadiant Custom's **Exact** shapes do. For a patch shape, **Replace Selected Brushes** also replaces selected patches, and brushes
 of a brush entity, putting the patch in that entity.
 
 1. Choose a shape. Its settings appear below it; the box has none.
@@ -1859,8 +1929,9 @@ For other densities, choose **Exact Patch Cylinder…**, **Exact Patch Cone…**
 Custom's **Exact** shapes, from the same places. A **Patch Density** dialog asks first:
 
 1. Choose **Columns** round the ring, an odd number from 7 to 31 (13 to start), and **Rows**, from 3 to 31 along a
-   cylinder or cone (3 to start) or from 5 to 31 from pole to pole of a sphere (7 to start). Each two columns or rows
-   are one span of the true circle. The dialog says which bounds the patch fills and what it replaces.
+   cylinder or cone (3 to start) or from 5 to 31 from pole to pole of a sphere (7 to start). Each two columns are one
+   span of the true circle round the ring, and each two rows of a sphere one span of its half circle from pole to
+   pole; a cylinder's or cone's rows run straight along it. The dialog says which bounds the patch fills and what it replaces.
 2. Tick **Square** to re-disperse the columns and rows once the patch is mapped, for a faceted shape.
 3. Choose **OK**. The patch fills the bounds as above, its ring starting on the positive side of the first axis
    across, as NetRadiant Custom's **Exact** shapes do. **Cancel** changes nothing.
@@ -1892,6 +1963,52 @@ patches the same way. For an **Exact** shape, add `--ring-start exact`, and `--s
 vibestudio --cli map add-patch base.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --texture-size 256,256 --output base-cone.map
 vibestudio --cli map add-shape base.map --shape patch-cylinder --object brush:3 --object patch:1 --texture base/pipe --texture-size 128,128 --output base-pipe.map
 vibestudio --cli map add-shape base.map --shape patch-sphere --sides 6 --bands 3 --ring-start exact --square --object brush:3 --texture base/orb --output base-orb.map
+```
+
+### Cap, convert and deform patches
+
+**Partial:** NetRadiant Custom's **Cap Selection** and **Deform…** and TrenchBroom's **Convert Selection to Patches**,
+on Quake III maps.
+
+To close the ends of curved patches, select them and choose **Cap Patch…** (<kbd>Shift</kbd>+<kbd>C</kbd> in the
+NetRadiant Custom, GtkRadiant and Q3Radiant profiles):
+
+1. Choose a **Cap style**. **Radial** closes a ring as a flat disc and an open arch along its chord. **Bevel**,
+   **Endcap**, **Inverted Bevel**, **Inverted Endcap** and **Cylinder** are NetRadiant Custom's seams: Bevel fills a
+   quarter round out to the corner opposite its curve, Endcap closes a half round, the inverted ones fill the space
+   outside the curve to its corner controls, and Cylinder closes a ring with straight rows across it. They need
+   boundaries of 3 or 5 control points for the bevels, 5 for the end caps and 9 for Cylinder, as Radiant's bevel,
+   end cap and cylinder have; a patch whose boundary is another width is left uncapped and the status says why.
+2. **Source patch** starts at **All selected patches** when several are selected; hidden patches are not offered.
+   The first and last rows are capped unless you choose another **Boundary**.
+3. The seam styles take the current material from the **Textures** tab, as Radiant's do, unless you choose another
+   **Material**. **Planar** mapping projects the texture flat across each cap at **Map units per tile**; **Match
+   boundary** keeps the boundary's texture coordinates.
+4. Review the hatched caps in the preview and choose **Add Caps**. All caps are one undo step, each in its source's
+   entity, and they are selected.
+
+To turn brushes into patches, select them, or pick faces, and choose **Convert Selection to Patches**
+(<kbd>Ctrl</kbd>+<kbd>P</kbd> in the TrenchBroom profile while the focus is in Levels, outside its text fields;
+elsewhere, and in a field such as the map path, it stays **Go to File**). Each face becomes a flat 3 by 3 patch in its material, mapped as the face was; a face of more than four
+corners becomes several patches, and a triangle one patch with an edge closed to a point. Selected brushes are
+replaced, and picked faces keep their brush. The patches are selected and **Edit Vertices** turns on, so you can
+reshape them at once. Hidden brushes stay as they are, a brush on a locked layer stops the change, and one **Undo**
+brings the brushes back. When the material's image is not found, the patch is mapped as 64 by 64 texels and the
+status bar says so.
+
+To roughen patches, select them and choose **Deform Patch…**:
+
+1. Set **Maximum**, in map units (64 to start), and **Axis** (Z to start). Each control point moves along the axis by
+   a whole number of units from 0 to the maximum, chosen at random; a negative maximum moves them the other way.
+2. **Seed** starts at a new random number each time, and **New Seed** draws another. The same seed, patches and
+   settings give the same result, so note it to repeat a deformation.
+3. Choose **Deform**. All patches change in one undo step; texture coordinates stay where they were, and hidden
+   patches are left alone. The dialog remembers the maximum and axis.
+
+```sh
+vibestudio --cli map cap-patch base.map --patch 2 --patch 5 --style cylinder --texture base/pipe_cap --output base-capped.map
+vibestudio --cli map convert-patches base.map --object brush:4 --texture-size 256,256 --output base-patches.map
+vibestudio --cli map deform-patch base.map --patch 2 --max 16 --axis z --seed 7 --output base-rough.map
 ```
 
 ### Rebuild brushes as prisms, cones and spheres
@@ -2383,7 +2500,10 @@ added to worldspawn still shifts the numbers of brushes in later entities.
   (lights, `misc_model`, `info_null`) or merges it into the world (`func_group`, `func_detail`, `_decal`), by
   NetRadiant Custom's rule. The table lists every class with its count and how many reach the game; choose a heading
   to sort by it, and press <kbd>Enter</kbd> on a class to list its entities in the **Outliner**. On a Doom map it
-  counts thing types.
+  counts thing types, in number order. A map saved in TrenchBroom's format keeps each layer and group as a
+  `func_group` entity: VibeStudio counts those as layers and groups, not entities, and lists them on a line of their
+  own (**Layer and group entities**), so its entity and `func_group` totals are lower than NetRadiant Custom's by that
+  number. Neither reaches the game.
 - **Layers.** The **Map** tab's **Layers** section lists each layer with its objects and groups, and says in words
   whether it is hidden, locked, left out of exports or where new objects go. Press <kbd>Enter</kbd> on a layer, or
   choose **Manage Layers**, to work on it in the **Outliner**'s **Layers and Groups** section.
@@ -2395,7 +2515,10 @@ added to worldspawn still shifts the numbers of brushes in later entities.
 - **Mods.** **Partial.** Open **Mods**, choose one of the game installation's other folders or type a folder name,
   and choose **Enable**; the buttons under the list disable the chosen mod or move it up or down. The list is saved in
   worldspawn's `_tb_mod` key, which TrenchBroom reads to load the mods' assets. VibeStudio keeps the list with the
-  map but does not load assets from it yet.
+  map but does not load assets from it yet. The folders offered follow the installation in use.
+- **Map settings with a group open.** **Map Properties**, **Mods** and the **Worldspawn** keys belong to the whole
+  map, so they change while a group is open, as in TrenchBroom, and the group stays open. Other edits outside the
+  open group are still refused.
 - **Entity definitions.** On the **Map** tab, give a Radiant `.def`, Valve `.fgd` or Quake III `.ent` file, or a
   folder of them, under **Entity Definitions** and choose **Load** (**Browse** picks a file). Left empty, VibeStudio
   looks in the project's `.vibestudio/definitions`, `definitions`, `defs`, `scripts`, `base/scripts` and `entities`
@@ -2424,6 +2547,19 @@ added to worldspawn still shifts the numbers of brushes in later entities.
 
 - On the document bar, pick a compiler profile and choose **Run Profile** to review and run a compile of the open map.
   The compiler reads the saved file, so VibeStudio asks you to save first. **Copy CLI** copies the matching command.
+  The profile you run is remembered for that game (Quake, Quake II, Quake III Arena or Doom), and the next map of the
+  game opens with it chosen when it can compile that map.
+- **Build** > **Run Last Build** runs again the build you ran last for the project, on the open map: the build
+  pipeline, with its launch when it was **Build and Launch**, or the **Run Profile** compile. In the NetRadiant Custom
+  profile it is <kbd>F5</kbd>, as there, and **Build and Launch** has no key. **Build** > **Re-run Last Compile**
+  replays the open map's newest saved compile exactly as it ran, as TrenchBroom's **Re-run Compilation** does; it is
+  available once the map has one. Both run without leaving Levels, and the **Tools** tab's **Region and Build** group
+  holds them with **Launch Game**. A saved run, like a project, can come from someone else: when its program is not
+  one of your configured compilers, VibeStudio shows the command line and runs it only if you choose **Trust and
+  Run** (see [Build and launch](build-and-launch.md#when-a-build-asks-before-running-a-program)).
+- **Launch Game** from Levels shows the launch review, with the exact command line, over the map. The launch uses
+  the **Launch and Test** settings on the **Build** page, including your own launch profiles and extra arguments;
+  see [Build and launch](build-and-launch.md#launch-the-game).
 - On the **Build** page, **Use Open Map** builds the map open in Levels and follows it when you open another.
 - For Quake, Quake II and Quake III maps, **Build** > **Prepare Build Workspace…** captures the map, unsaved edits
   included, with the open package into a new build folder. **Use in Build** makes it the build input; **Publish
@@ -2486,6 +2622,11 @@ so scripts and editor profiles name each one by the same id, such as `map.vertex
 
 </details>
 
+Keys that edit the map never act while you type in a text field on the Levels page, such as the map path or a
+property value, even keys the field has no use for, such as TrenchBroom's <kbd>Ctrl</kbd>+<kbd>P</kbd> or
+<kbd>Ctrl</kbd>+<kbd>D</kbd>: the field keeps them, and a key the whole window shares, such as **Go to File**, still
+works. Keys that only show something, such as the Face and Map inspectors, still work from a field.
+
 ## Use the command line
 
 The `map` commands use the same services as the page. Commands that change a map write a new file named by
@@ -2529,7 +2670,7 @@ vibestudio --cli map move ./maps/start.map --object brush:12 --delta 16,0,0 --ou
 | `map replace-key` | Find and replace a key's values across the entities |
 | `map entity-colour` | Set the `_color` of entities and of the entities holding brushes (`--colour`), or normalise it (`--normalise`, `--each` for each its own) |
 | `map apply-texture`, `map replace-texture`, `map align-textures` | Texture tools; `map replace-texture --face` replaces only picked faces |
-| `map add-patch`, `map edit-patch`, `map stitch-patches`, `map cap-patch`, `map patch-matrix`, `map thicken-patch` | Quake III patch tools |
+| `map add-patch`, `map edit-patch`, `map stitch-patches`, `map cap-patch`, `map patch-matrix`, `map thicken-patch`, `map convert-patches`, `map deform-patch` | Quake III patch tools |
 | `map export-prefab`, `map inspect-prefab`, `map insert-prefab` | Save objects as a prefab, inspect one, and place one at `--position` or in place of objects with `--replace` |
 | `map connect` | Connect entity owners to the last selected destination; `--profile netradiant-custom` selects NRC naming and two-object rules, `--kill-target` selects KillConnect, and `--game` supplies game context |
 | `map draw-sector`, `map draw-stairs`, `map draw-grid`, `map split-linedef`, `map curve-linedefs`, `map flip-linedef`, `map merge-vertices` | Doom geometry tools |

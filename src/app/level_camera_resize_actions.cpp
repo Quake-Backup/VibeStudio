@@ -57,7 +57,7 @@ void ApplicationShell::refreshLevelCameraResize()
 	const bool quake = m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map;
 	m_levelMap3D->setSelectionShearMode(quake && m_levelMapViewport && m_levelMapViewport->shearMode());
 	if (!levelMap3DShowing() || !m_levelMap3D->isEnabled() || !m_levelMap3D->hasMesh() || m_levelMap3D->componentMode() || m_levelMap3D->clipMode()
-		|| (levelObjectToolActive() && !scaleTool) || m_levelUvToolOn || !levelMapSelectionResizable() || !levelMapSelectionBounds(m_levelMapDocument,&low,&high)) {
+		|| (levelObjectToolActive() && !scaleTool) || m_levelUvToolOn || levelBuildToolActive() || !levelMapSelectionResizable() || !levelMapSelectionBounds(m_levelMapDocument,&low,&high)) {
 		m_levelMap3D->clearSelectionResizeBox(); return;
 	}
 	// Doom geometry can share vertices with unselected walls and sectors.

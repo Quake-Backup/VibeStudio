@@ -76,6 +76,9 @@ QWidget* ApplicationShell::buildLevelAuthoringBar()
 	tool(QStringLiteral("sample"), QStringLiteral("eyedropper"), tr("Sample"),
 		tr("Click a surface in the camera to choose its material."));
 	// NetRadiant Custom's UV tool (level_camera_uv_tool_actions.cpp).
+	// NetRadiant Custom's Build tool (level_plane_drag_actions.cpp).
+	tool(QStringLiteral("build"), QStringLiteral("extrude"), tr("Build"),
+		tr("Drag a selected brush's face out into a new brush, or in to split a slab off; Shift and a drag on the selection lay copies of it end to end, which Repeat Last Commands lays again."));
 	tool(QStringLiteral("uv"), QStringLiteral("uv"), tr("UV"),
 		tr("Drag the picked face's or selected patch's texture in the camera: move it, turn it with the ring, stretch it by a repeat line and skew it with Alt, about a pivot you can place."));
 	tool(QStringLiteral("sector"), QStringLiteral("polygon"), tr("Draw Sector"),
@@ -135,7 +138,7 @@ QWidget* ApplicationShell::buildLevelAuthoringBar()
 		 QStringLiteral("map.zoomActualSize"), QStringLiteral("map.resetPlanViews")});
 	group(QStringLiteral("levelTransformTools"), tr("Transform"), QStringLiteral("move"), tr("Move, resize, rotate and repeat the selection with exact values."),
 		{QStringLiteral("map.translateTool"), QStringLiteral("map.rotateTool"), QStringLiteral("map.scaleTool"), QStringLiteral("map.rotateOrScaleTool"),
-		 QStringLiteral("map.transformTool"), QStringLiteral("map.selectOrTransformTool"),
+		 QStringLiteral("map.transformTool"), QStringLiteral("map.selectOrTransformTool"), QStringLiteral("map.buildTool"),
 		 QStringLiteral("map.setObjectPivot"), QStringLiteral("map.resetObjectPivot"), {},
 		 QStringLiteral("map.moveSelection"), QStringLiteral("map.resizeSelection"), QStringLiteral("map.scaleSelection"), QStringLiteral("map.rotatePrecisely"),
 		 QStringLiteral("map.duplicateWithOffset"), QStringLiteral("map.duplicateUnique"), QStringLiteral("map.snapToGrid"), QStringLiteral("map.roundToGrid"), QStringLiteral("map.dropToFloor"), {},
@@ -159,7 +162,7 @@ QWidget* ApplicationShell::buildLevelAuthoringBar()
 		 QStringLiteral("map.makeDetail"), QStringLiteral("map.makeStructural"), {},
 		 QStringLiteral("map.makePrism"), QStringLiteral("map.makeCone"), QStringLiteral("map.makeSphere"), {},
 		 QStringLiteral("map.editPatch"), QStringLiteral("map.stitchPatches"), QStringLiteral("map.capPatch"), QStringLiteral("map.thickenPatch"),
-		 QStringLiteral("map.patchInvert"), QStringLiteral("map.patchTranspose"), {},
+		 QStringLiteral("map.deformPatch"), QStringLiteral("map.convertToPatches"), QStringLiteral("map.patchInvert"), QStringLiteral("map.patchTranspose"), {},
 		 QStringLiteral("map.splitLinedefs"), QStringLiteral("map.curveLinedefs"), QStringLiteral("map.flipLinedefs"), QStringLiteral("map.mergeVertices"),
 		 QStringLiteral("map.joinSectors"), QStringLiteral("map.mergeSectors"), QStringLiteral("map.makeDoor"), {},
 		 QStringLiteral("map.raiseCameraSurface"), QStringLiteral("map.lowerCameraSurface"), QStringLiteral("map.brightenCameraSurface"),
@@ -254,6 +257,7 @@ MapViewport *ApplicationShell::createLevelPlanViewport(int index)
 	view->setContextMenuPolicy(Qt::CustomContextMenu);
 	m_levelPlanViews.append(view);
 	connectLevelObjectGizmo(view->objectGizmo(), view);
+	connectLevelPlaneDrag(view->planeDrag(), view);
 	connect(view,&MapViewport::groupContextRequested,this,[this,view](const QString& id) { activateLevelPlanViewport(view); changeLevelGroupContext(id); });
 	connect(view, &MapViewport::viewChanged, this, [this, view] {
 		if (!m_applyingLevelViewLayout) { synchronizeLevelViewNavigation(view); }
@@ -395,6 +399,9 @@ QString ApplicationShell::currentLevelTool() const
 	if (levelCameraUvToolActive()) {
 		return QStringLiteral("uv");
 	}
+	if (levelBuildToolActive()) {
+		return QStringLiteral("build");
+	}
 	if (levelObjectToolActive()) {
 		// "translate", "rotate", "scale" or "transform", the object tool's button.
 		return levelObjectToolId(static_cast<LevelObjectTool>(m_levelObjectTool));
@@ -430,6 +437,9 @@ void ApplicationShell::chooseLevelTool(const QString &toolId)
 	if (toolId != QLatin1String("uv") && m_levelUvToolOn) {
 		setLevelCameraUvTool(false);
 	}
+	if (toolId != QLatin1String("build") && m_levelBuildToolOn) {
+		setLevelBuildTool(false);
+	}
 	const LevelObjectTool objectTool = levelObjectToolFromId(toolId);
 	if (objectTool != static_cast<LevelObjectTool>(m_levelObjectTool) && m_levelObjectTool != 0) {
 		setLevelObjectTool(0);
@@ -449,6 +459,8 @@ void ApplicationShell::chooseLevelTool(const QString &toolId)
 			setLevelObjectTool(static_cast<int>(objectTool));
 		} else if (toolId == QLatin1String("uv")) {
 			setLevelCameraUvTool(true);
+		} else if (toolId == QLatin1String("build")) {
+			setLevelBuildTool(true);
 		} else if (toolId == QLatin1String("clip") && !m_levelMapViewport->clipMode()) {
 			setLevelMapClipMode(true);
 		} else if (toolId == QLatin1String("vertex") && m_levelMapViewport->componentMode() == MapViewport::ComponentMode::Off) {
@@ -482,6 +494,10 @@ void ApplicationShell::refreshLevelToolShelf()
 	if (m_levelUvToolOn && currentLevelTool() != QLatin1String("uv")) {
 		setLevelCameraUvTool(false);
 	}
+	// And the Build tool.
+	if (m_levelBuildToolOn && currentLevelTool() != QLatin1String("build")) {
+		setLevelBuildTool(false);
+	}
 	if (!m_levelToolActions) {
 		return;
 	}
@@ -501,6 +517,7 @@ void ApplicationShell::refreshLevelToolShelf()
 		{QStringLiteral("sector"), doomPlan},
 		{QStringLiteral("translate"), quake},
 		{QStringLiteral("uv"), quake},
+		{QStringLiteral("build"), quake},
 		{QStringLiteral("rotate"), quake},
 		{QStringLiteral("scale"), quake},
 		{QStringLiteral("transform"), quake},
@@ -514,6 +531,7 @@ void ApplicationShell::refreshLevelToolShelf()
 		{QStringLiteral("sector"), QStringLiteral("map.drawSector")},
 		{QStringLiteral("translate"), QStringLiteral("map.translateTool")},
 		{QStringLiteral("uv"), QStringLiteral("map.uvTool")},
+		{QStringLiteral("build"), QStringLiteral("map.buildTool")},
 		{QStringLiteral("rotate"), QStringLiteral("map.rotateTool")},
 		{QStringLiteral("scale"), QStringLiteral("map.scaleTool")},
 		{QStringLiteral("transform"), QStringLiteral("map.transformTool")},

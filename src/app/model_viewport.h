@@ -30,6 +30,7 @@
 #include "app/level_component_gizmo.h"
 #include "app/level_linked_group_boxes.h"
 #include "app/level_vertex_insertion.h"
+#include "app/level_plane_drag_controller.h"
 #include "core/model_trackball.h"
 #include "app/model_vertex_overlay.h"
 #include "app/level_clip_state.h"
@@ -355,6 +356,19 @@ public:
 	void advancePointerDrive(double seconds);
 	void endPointerDrive();
 	[[nodiscard]] bool isPointerDriving() const;
+	// A drive key pressed in another view, a 2D view passing on Radiant's
+	// global camera keys (core/level_camera_keys.h levelPlanCameraDriveKey):
+	// a fixed step with discreteDriveKeys, otherwise held flight until
+	// releaseCameraDriveKey(). False when the key drives nothing here.
+	bool driveCameraFromKey(int key, Qt::KeyboardModifiers modifiers, bool autoRepeat);
+	void releaseCameraDriveKey(int key);
+	// Ends every held key, as losing focus does.
+	void releaseCameraDriveKeys();
+	// The saved speed held keys fly and drive at (CameraViewControls::moveSpeed,
+	// 0 to scale with the map), changed without resetting navigation, and the
+	// speed in units per second now in use.
+	void setCameraMoveSpeed(int unitsPerSecond);
+	[[nodiscard]] double cameraMoveSpeed() const;
 	// Mouse look: the pointer turns the camera without a button held
 	// (Radiant's free look), until a click of the look button or Escape.
 	void setLooking(bool looking);
@@ -433,6 +447,18 @@ public:
 	// turn shows the controller's dashed wire.
 	[[nodiscard]] LevelComponentGizmo* objectGizmo() const { return m_objectGizmo; }
 	bool beginObjectTransform(const QPointF& point);
+	// NetRadiant Custom's drag-tool gestures and the Build tool in the level
+	// camera (model_viewport_plane_drag.cpp, app/level_plane_drag_controller.h):
+	// the plane-drag keys move the selected brushes' plane under the pointer
+	// along its normal, the extrude keys extrude it, and in Build mode a plain
+	// drag on a selected brush extrudes the plane under the pointer and a
+	// Shift drag on the selection lays copies end to end. Picks read
+	// `document`, which must outlive the camera's use of it (null turns the
+	// gestures off); the shell applies the controller's requests.
+	[[nodiscard]] LevelPlaneDragController* planeDrag() const { return m_planeDrag; }
+	void setPlaneDragDocument(const LevelMapDocument* document);
+	void setBuildMode(bool enabled);
+	[[nodiscard]] bool buildMode() const { return m_buildMode; }
 	[[nodiscard]] ModelVec3 componentMoveDelta() const { return m_componentDelta; }
 	[[nodiscard]] bool componentPreviewPending() const { return m_componentPending; }
 	// A response to componentMovePreviewChanged. Stale deltas are ignored;
@@ -751,6 +777,16 @@ private:
 	[[nodiscard]] bool objectGizmoShown() const;
 	void syncObjectGizmoPreview();
 	void paintObjectGizmo(QPainter& painter);
+	// The drag-tool gestures and Build tool (model_viewport_plane_drag.cpp).
+	LevelPlaneDragController* m_planeDrag = nullptr;
+	const LevelMapDocument* m_planeDragDocument = nullptr;
+	bool m_buildMode = false, m_planeDragClick = false;
+	QPointF m_planeDragPress;
+	Qt::KeyboardModifiers m_planeDragKeys = Qt::NoModifier;
+	bool planeDragMousePress(QMouseEvent* event);
+	bool planeDragMouseMove(QMouseEvent* event);
+	bool planeDragMouseRelease(QMouseEvent* event);
+	void paintPlaneDrag(QPainter& painter);
 	LevelVertexInsertion* m_vertexInsertion = nullptr;
 	QVector<ModelVec3> m_componentPositions;
 	QSet<int> m_componentPicks;
@@ -880,6 +916,7 @@ private:
 	[[nodiscard]] bool claimsLookToggle(int key, Qt::KeyboardModifiers modifiers) const;
 	void flyStep();
 	[[nodiscard]] double flySpeed() const;
+	[[nodiscard]] double automaticFlySpeed() const;
 	void frameModelPerspective();
 	void recentreLookCursor(const QPointF& position);
 	[[nodiscard]] QString accessibleSummaryWithoutHelp() const;
@@ -1082,6 +1119,9 @@ private:
 	Qt::KeyboardModifiers m_motionModifiers = Qt::NoModifier;
 	ModelVec3 m_moveStart;
 	ModelVec3 m_moveOffset;
+	// What a move kept when Alt turned it up and down, or back, part way
+	// (profiles whose Alt press drags a plane: NetRadiant Custom's live Alt).
+	ModelVec3 m_moveBase;
 	bool m_moveVertical = false;
 	double m_moveGrid = 0.0;
 	QSet<int> m_heldKeys;

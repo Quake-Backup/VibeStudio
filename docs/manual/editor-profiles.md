@@ -14,7 +14,7 @@ profiles, then adjust its gestures and keys to suit you.
 
 - **2D views:** which buttons pan and zoom; how a click selects, adds or toggles; what a drag over empty space does
   (select an area, draw a brush or resize the selection); and, in the Radiant-style profiles, middle-click and arrow-key
-  control of the 3D camera.
+  control of the 3D camera, and its other drive keys while no command uses the key.
 - **3D camera:** an orthographic view that orbits the map (VibeStudio Default) or a first-person camera with its own
   field of view; the look, orbit and pan drags; what the wheel does; and the keys that fly or drive the camera.
 - **Material clicks:** Q3Radiant, GtkRadiant and both NetRadiant profiles sample, paint and paste materials with the
@@ -118,6 +118,13 @@ ways. <kbd>Esc</kbd>, <kbd>Tab</kbd>, modifier keys and lock keys are reserved, 
 selection in view** may be <kbd>Tab</kbd>, since it acts only during mouse look. **Toggle mouse look** may use modifiers.
 **Hold to pan** (2D Plan) and **Hold for mouse look** (Camera Keys) work while you hold the key, and stop when you
 release it or the view loses focus.
+
+**Camera speed for held keys** (**3D Camera**) is the speed the camera keys fly and drive at: **Scale with the map**,
+or a speed from 50 to 9999 units per second. **Increase Camera Speed** and **Decrease Camera Speed** change the same
+value. **Camera drive keys also work here while no command uses the key** (**2D Plan**) lets a 2D view pass the
+camera's drive keys on, as Radiant's camera keys do; it is on in the Radiant profiles. From the command line,
+`camera.moveSpeed=750` (or `auto`) and `plan.cameraDriveKeys=off` set them; see
+[Look around the map](levels.md#look-around-the-map).
 
 **Export…** saves your changes to a VibeStudio `.json` file, and **Import…** loads one into the window for you to
 apply. A file only imports into the profile it was made for.
@@ -363,6 +370,7 @@ for cap movement, rotation, scaling and cancellation.
 | Duplicate and Move Depth Up / Depth Down | <kbd>Ctrl</kbd>+<kbd>Page Up</kbd> / <kbd>Ctrl</kbd>+<kbd>Page Down</kbd> (Doom maps keep them for the ceilings) |
 | Show Face Inspector | <kbd>Ctrl</kbd>+<kbd>3</kbd> while the keyboard focus is in **Levels**; elsewhere it still opens **Models** |
 | Show Map (the **Map** tab, TrenchBroom's Map inspector) | <kbd>Ctrl</kbd>+<kbd>1</kbd> while the keyboard focus is in **Levels**; elsewhere it still opens **Workspace** |
+| Convert Selection to Patches | <kbd>Ctrl</kbd>+<kbd>P</kbd> while the keyboard focus is in **Levels**, outside its text fields, and brushes or faces are selected; elsewhere, and in a text field, it still opens **Go to File** |
 
 **3D Wireframe**, **Draw Sector** and **Grid 0.125** to **Grid 0.5** have no key, as in TrenchBroom;
 <kbd>-</kbd> and <kbd>[</kbd> reach the fractional grids. <kbd>V</kbd>, <kbd>E</kbd> and
@@ -397,13 +405,13 @@ ID `netradiant-custom`. 3D camera beside a 2D view, 16-unit grid. 3D camera: fir
 | Draw a brush | Left drag over empty space, nothing selected (<kbd>Shift</kbd> square, <kbd>Ctrl</kbd> cube) | — |
 | Move the selection | <kbd>Alt</kbd>+arrow keys nudge it; keypad <kbd>+</kbd> and <kbd>-</kbd> along Z | <kbd>Alt</kbd>+arrow keys nudge it in the last 2D view's axes, keypad <kbd>+</kbd> and <kbd>-</kbd> along Z; left drag it; with <kbd>Alt</kbd>, up and down |
 | Resize the selection | Left drag its handles, or over empty space beside it | — |
-| Steer the 3D camera | Middle click aims it at the point; <kbd>Ctrl</kbd>+middle click moves it there; arrow keys drive it | — |
+| Steer the 3D camera | Middle click aims it at the point; <kbd>Ctrl</kbd>+middle click moves it there; arrow keys drive it; <kbd>A</kbd> and <kbd>D</kbd> strafe it while no command there can act on the key | — |
 | Look around | — | Right click to start or stop, then move the mouse |
 | Orbit | — | <kbd>Alt</kbd>+right drag |
 | Move forward and back | — | Wheel, toward the pointer |
 | Fly while looking | — | <kbd>W</kbd> forward, <kbd>S</kbd> back, <kbd>A</kbd> left, <kbd>D</kbd> right; <kbd>Shift</kbd> faster, <kbd>Alt</kbd> slower |
 | Keep the selection in view | — | Hold <kbd>Tab</kbd> while looking; the wheel moves nearer or farther |
-| Drive | — | <kbd>Up</kbd> forward, <kbd>Down</kbd> back, <kbd>A</kbd> left, <kbd>D</kbd> right, <kbd>Left</kbd> turn left, <kbd>Right</kbd> turn right; while looking, the turn keys strafe |
+| Drive | — | <kbd>Up</kbd> forward, <kbd>Down</kbd> back, <kbd>A</kbd> left, <kbd>D</kbd> right, <kbd>Left</kbd> turn left, <kbd>Right</kbd> turn right; each press steps 32 units or 22.5 degrees; while looking, the turn keys strafe |
 | Material and surface clicks | — | Middle click: sample the material and copy the surface; <kbd>Ctrl</kbd>+middle click: wrap the copied surface onto one face; <kbd>Shift</kbd>+middle click: paste values onto the hit and the selection; <kbd>Shift</kbd>+<kbd>Alt</kbd>+middle click: paste mapping values only; <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+middle click: wrap mapping only; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+middle click: project the copied surface onto the hit and the selection; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Alt</kbd>+middle click: project mapping only |
 
 | Command | Keys |
@@ -424,6 +432,7 @@ ID `netradiant-custom`. 3D camera beside a 2D view, 16-unit grid. 3D camera: fir
 | Far Clip in Camera (cubic clip) | <kbd>Ctrl</kbd>+<kbd>\\</kbd> |
 | Shorter Draw Distance / Longer Draw Distance | <kbd>Ctrl</kbd>+<kbd>[</kbd> / <kbd>Ctrl</kbd>+<kbd>]</kbd> |
 | Camera Floor Up / Camera Floor Down | <kbd>Page Up</kbd> / <kbd>Page Down</kbd> |
+| Increase Camera Speed / Decrease Camera Speed (from 500 units per second) | <kbd>Shift</kbd>+<kbd>Keypad +</kbd> / <kbd>Shift</kbd>+<kbd>Keypad -</kbd> |
 | Carve | <kbd>Shift</kbd>+<kbd>U</kbd> |
 | Round Selection to Grid | <kbd>Ctrl</kbd>+<kbd>G</kbd> |
 | Repeat Transforms | <kbd>Ctrl</kbd>+<kbd>R</kbd> |
@@ -442,6 +451,7 @@ ID `netradiant-custom`. 3D camera beside a 2D view, 16-unit grid. 3D camera: fir
 | Transform Tool | No default key, as in NetRadiant Custom |
 | UV Tool (on, or back to **Select**) | <kbd>G</kbd> |
 | Add Patch… (Simple Patch Mesh) | <kbd>Shift</kbd>+<kbd>P</kbd> |
+| Cap Patch… (Cap Selection) | <kbd>Shift</kbd>+<kbd>C</kbd> |
 | Centre Views on Selection | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> |
 | Insert Patch Rows / Insert Patch Columns | <kbd>Ctrl</kbd>+<kbd>Keypad +</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Keypad +</kbd> |
 | Delete Last Patch Rows / Delete Last Patch Columns | <kbd>Ctrl</kbd>+<kbd>Keypad -</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Keypad -</kbd> |
@@ -455,6 +465,7 @@ ID `netradiant-custom`. 3D camera beside a 2D view, 16-unit grid. 3D camera: fir
 | Texture Lock | <kbd>Shift</kbd>+<kbd>T</kbd> |
 | Show Surfaces (shows the **Surface** tab, or hides it again; in mouse look <kbd>S</kbd> moves the camera back) | <kbd>S</kbd> |
 | Map Info (the **Map** tab's **Statistics**, at its class table) | <kbd>M</kbd> |
+| Run Last Build (**Build and Launch** has no key here) | <kbd>F5</kbd> |
 | Make Detail / Make Structural | <kbd>Alt</kbd>+<kbd>D</kbd> / <kbd>Alt</kbd>+<kbd>S</kbd> |
 | Move to Layer menu / Expand Selection to Layers | <kbd>Shift</kbd>+<kbd>Q</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> (NetRadiant Custom's <kbd>Ctrl</kbd>+<kbd>Q</kbd> stays **Quit**) |
 
@@ -486,7 +497,7 @@ ID `netradiant`, also `net-radiant`, `xonotic-netradiant`, `netradiant-classic`.
 | Draw a brush | Left drag over empty space, nothing selected (<kbd>Shift</kbd> square, <kbd>Ctrl</kbd> cube) | — |
 | Move the selection | <kbd>Alt</kbd>+arrow keys nudge it; keypad <kbd>+</kbd> and <kbd>-</kbd> along Z | <kbd>Alt</kbd>+arrow keys nudge it in the last 2D view's axes, keypad <kbd>+</kbd> and <kbd>-</kbd> along Z; left drag it; with <kbd>Alt</kbd>, up and down |
 | Resize the selection | Left drag its handles, or over empty space beside it | — |
-| Steer the 3D camera | Middle click aims it at the point; <kbd>Ctrl</kbd>+middle click moves it there; arrow keys drive it | — |
+| Steer the 3D camera | Middle click aims it at the point; <kbd>Ctrl</kbd>+middle click moves it there; arrow keys drive it; <kbd>A</kbd> and <kbd>D</kbd> strafe it while no command there can act on the key | — |
 | Look around | — | Right click to start or stop, then move the mouse |
 | Move forward and back | — | Wheel, toward the pointer |
 | Fly while looking | — | <kbd>W</kbd> forward, <kbd>S</kbd> back, <kbd>A</kbd> left, <kbd>D</kbd> right; <kbd>Shift</kbd> faster, <kbd>Alt</kbd> slower |
@@ -518,6 +529,8 @@ ID `netradiant`, also `net-radiant`, `xonotic-netradiant`, `netradiant-classic`.
 | Select All of This Class | <kbd>Shift</kbd>+<kbd>A</kbd> |
 | Zoom In / Zoom Out | <kbd>Delete</kbd> / <kbd>Insert</kbd> |
 | Show Surfaces (shows the **Surface** tab, or hides it again; in mouse look <kbd>S</kbd> moves the camera back) | <kbd>S</kbd> |
+| Map Info (the **Map** tab's **Statistics**, at its class table) | <kbd>M</kbd> |
+| Run Last Build (**Build and Launch** has no key here) | <kbd>F5</kbd> |
 | Grid 1 to 256 | <kbd>1</kbd> to <kbd>9</kbd> |
 
 **Select All** and **3D Wireframe** have no key. The NetRadiant Custom keys for vertex, edge and face editing, the
@@ -542,7 +555,7 @@ ID `gtkradiant-1-6`. 3D camera beside a 2D view, 8-unit grid. 3D camera: first-p
 | Draw a brush | Left drag over empty space, nothing selected | — |
 | Move the selection | <kbd>Alt</kbd>+arrow keys nudge it; keypad <kbd>+</kbd> and <kbd>-</kbd> along Z | <kbd>Alt</kbd>+arrow keys nudge it in the last 2D view's axes, keypad <kbd>+</kbd> and <kbd>-</kbd> along Z; left drag it; with <kbd>Alt</kbd>, up and down |
 | Resize the selection | Left drag its handles, or over empty space beside it | — |
-| Steer the 3D camera | Middle click aims it at the point; <kbd>Ctrl</kbd>+middle click moves it there; arrow keys drive it | — |
+| Steer the 3D camera | Middle click aims it at the point; <kbd>Ctrl</kbd>+middle click moves it there; arrow keys drive it; <kbd>,</kbd>, <kbd>.</kbd>, <kbd>D</kbd> and <kbd>C</kbd> strafe, raise and lower it while no command there can act on the key | — |
 | Look around | — | Right click to start or stop, then move the mouse |
 | Move forward and back | — | Wheel |
 | Fly while looking | — | <kbd>Up</kbd> forward, <kbd>Down</kbd> back, <kbd>,</kbd> left, <kbd>.</kbd> right, <kbd>D</kbd> up, <kbd>C</kbd> down, <kbd>Left</kbd> turn left, <kbd>Right</kbd> turn right; <kbd>Shift</kbd> faster, <kbd>Alt</kbd> slower |
@@ -588,7 +601,7 @@ and GtkRadiant 1.5 sources; the original editor's complete toolset is not reprod
 | Select by area | <kbd>Alt</kbd>+left drag | <kbd>Shift</kbd>+left drag |
 | Plan pan / zoom | Right drag / <kbd>Shift</kbd>+right drag or wheel | Same |
 | Camera look | Right click starts/stops free look | Same |
-| Camera steps outside free look | Arrows move/turn, comma/period strafe, <kbd>D</kbd>/<kbd>C</kbd> rise/sink, <kbd>A</kbd>/<kbd>Z</kbd> pitch up/down | Same |
+| Camera steps outside free look | Arrows move/turn, comma/period strafe, <kbd>D</kbd>/<kbd>C</kbd> rise/sink, <kbd>A</kbd>/<kbd>Z</kbd> pitch up/down, from the 2D view too while no command there can act on the key | Same |
 | Camera flight during free look | Arrows move/strafe; comma/period, <kbd>D</kbd>/<kbd>C</kbd> also move | Arrow-key translation |
 | Sample a surface | Middle click | Middle click |
 | Paint material only | <kbd>Shift</kbd>+middle click | Unassigned |
@@ -647,7 +660,7 @@ ID `q3radiant`, also `q3-radiant`, `quake3-radiant`, `quake-iii-radiant`. 3D cam
 | Draw a brush | Left drag over empty space, nothing selected | — |
 | Move the selection | <kbd>Alt</kbd>+arrow keys nudge it; keypad <kbd>+</kbd> and <kbd>-</kbd> along Z | <kbd>Alt</kbd>+arrow keys nudge it in the last 2D view's axes, keypad <kbd>+</kbd> and <kbd>-</kbd> along Z; left drag it; with <kbd>Alt</kbd>, up and down |
 | Resize the selection | Left drag its handles, or over empty space beside it | — |
-| Steer the 3D camera | Middle click aims it at the point; <kbd>Ctrl</kbd>+middle click moves it there; arrow keys drive it in fixed steps of 32 units or 22.5 degrees | — |
+| Steer the 3D camera | Middle click aims it at the point; <kbd>Ctrl</kbd>+middle click moves it there; arrow keys drive it in fixed steps of 32 units or 22.5 degrees; <kbd>,</kbd>, <kbd>.</kbd>, <kbd>D</kbd>, <kbd>C</kbd>, <kbd>A</kbd> and <kbd>Z</kbd> strafe, raise, lower and pitch it while no command there can act on the key | — |
 | Steer | — | Hold the right button: above or below the centre moves forward or back, left or right turns; the centre stops, and releasing or <kbd>Esc</kbd> ends it |
 | Move forward and back | — | Wheel |
 | Drive | — | <kbd>Up</kbd> forward, <kbd>Down</kbd> back, <kbd>,</kbd> left, <kbd>.</kbd> right, <kbd>D</kbd> up, <kbd>C</kbd> down, <kbd>Left</kbd> turn left, <kbd>Right</kbd> turn right, <kbd>A</kbd> look up, <kbd>Z</kbd> look down; each press steps 32 units or 22.5 degrees on the ground plane |
@@ -700,7 +713,7 @@ ID `darkradiant`, also `dark-radiant`. 3D camera beside a 2D view, 8-unit grid. 
 | Draw a brush | Left drag over empty space, nothing selected | — |
 | Move the selection | <kbd>Alt</kbd>+arrow keys nudge it; keypad <kbd>+</kbd> and <kbd>-</kbd> along Z | <kbd>Alt</kbd>+arrow keys nudge it in the last 2D view's axes, keypad <kbd>+</kbd> and <kbd>-</kbd> along Z; left drag it; with <kbd>Alt</kbd>, up and down |
 | Resize the selection | Left drag its handles, or over empty space beside it | — |
-| Steer the 3D camera | Middle click aims it at the point; <kbd>Ctrl</kbd>+middle click moves it there; arrow keys drive it | — |
+| Steer the 3D camera | Middle click aims it at the point; <kbd>Ctrl</kbd>+middle click moves it there; arrow keys drive it; <kbd>,</kbd>, <kbd>.</kbd>, <kbd>D</kbd> and <kbd>C</kbd> strafe, raise and lower it while no command there can act on the key | — |
 | Look around | — | Right click to start or stop, then move the mouse |
 | Move forward and back | — | Wheel |
 | Fly while looking | — | <kbd>W</kbd> forward, <kbd>S</kbd> back, <kbd>A</kbd> left, <kbd>D</kbd> right; <kbd>Shift</kbd> faster, <kbd>Alt</kbd> slower |

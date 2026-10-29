@@ -21,6 +21,7 @@
 #include "core/level_brush.h"
 #include "core/level_object_manipulator.h"
 #include "core/level_paste.h"
+#include "core/level_plane_drag.h"
 #include "core/level_placement.h"
 #include "core/level_repeat.h"
 #include "core/level_scene.h"
@@ -961,6 +962,193 @@ LevelMoveRepeatCliResult runLevelRepeatTransforms(const QStringList& arguments)
 		const int copied = static_cast<int>(copies.size());
 		result.lines << Text::tr("Copied %n object(s) and repeated %1 about %2, %3, %4.", nullptr, copied)
 			.arg(applied).arg(prepared.repeatPivot.x).arg(prepared.repeatPivot.y).arg(prepared.repeatPivot.z);
+	}
+	addSave(saved, &result);
+	return result;
+}
+
+LevelMoveRepeatCliResult runLevelPlaneDrag(const QStringList& arguments)
+{
+	LevelMoveRepeatCliResult result;
+	const auto fail = [&result](int code, const QString& message) {
+		result.exitCode = code;
+		result.error = message;
+		return result;
+	};
+	const QString command = QStringLiteral("map drag-planes");
+	QSet<QString> options = commonOptions();
+	options += QSet<QString> {"--mode", "--from", "--view", "--direction", "--forward", "--delta", "--distance", "--grid", "--tolerance"};
+	const Parsed parsed =
+		parseArguments(arguments, command, {"--cli", "--json", "--quiet", "--verbose", "--overwrite", "--dry-run", "--camera"}, options, {"--object"});
+	if (!parsed.error.isEmpty()) {
+		return fail(2, parsed.error);
+	}
+	if (parsed.positional.size() != (parsed.seen.contains(QStringLiteral("--input")) ? 2 : 3)) {
+		return fail(2, Text::tr("map drag-planes needs one input map, positionally or with --input, plus --object, --from, a drag and --output."));
+	}
+	const QString path = parsed.seen.contains(QStringLiteral("--input")) ? parsed.values.value(QStringLiteral("--input")).first() : parsed.positional[2];
+	const QString output = parsed.values.value(QStringLiteral("--output")).value(0);
+	if (output.isEmpty()) {
+		return fail(2, Text::tr("map drag-planes requires --output <save-as path>."));
+	}
+	const auto value = [&parsed](const char* name) { return parsed.values.value(QLatin1String(name)).value(0); };
+	LevelPlaneDragKind kind = LevelPlaneDragKind::FacingPlanes;
+	if (parsed.seen.contains(QStringLiteral("--mode")) && !levelPlaneDragKindFromId(value("--mode"), &kind)) {
+		return fail(2, Text::tr("--mode takes facing-planes, plane, vertices or extrude."));
+	}
+	LevelPlaneDragProbe probe;
+	probe.origin.valid = parseTriple(value("--from"), &probe.origin.x, &probe.origin.y, &probe.origin.z);
+	if (!probe.origin.valid) {
+		return fail(2, Text::tr("--from takes the press point as x,y,z."));
+	}
+	probe.camera = parsed.seen.contains(QStringLiteral("--camera"));
+	if (parsed.seen.contains(QStringLiteral("--direction"))) {
+		probe.direction.valid = parseTriple(value("--direction"), &probe.direction.x, &probe.direction.y, &probe.direction.z)
+			&& (probe.direction.x != 0 || probe.direction.y != 0 || probe.direction.z != 0);
+		if (!probe.direction.valid || parsed.seen.contains(QStringLiteral("--view"))) {
+			return fail(2, Text::tr("--direction takes the press ray's direction as x,y,z, not zero, instead of --view."));
+		}
+	} else {
+		// The 2D views' lines of sight, as the Levels views use them.
+		const QString view = value("--view").isEmpty() ? QStringLiteral("top") : value("--view").trimmed().toLower();
+		if (view == QLatin1String("top")) {
+			probe.direction = {0, 0, -1, true};
+		} else if (view == QLatin1String("front")) {
+			probe.direction = {0, -1, 0, true};
+		} else if (view == QLatin1String("side")) {
+			probe.direction = {-1, 0, 0, true};
+		} else {
+			return fail(2, Text::tr("--view takes top, front or side."));
+		}
+		if (probe.camera) {
+			return fail(2, Text::tr("--camera needs --direction, the camera ray through the press point."));
+		}
+	}
+	probe.forward = probe.direction;
+	if (parsed.seen.contains(QStringLiteral("--forward"))) {
+		probe.forward.valid = parseTriple(value("--forward"), &probe.forward.x, &probe.forward.y, &probe.forward.z)
+			&& (probe.forward.x != 0 || probe.forward.y != 0 || probe.forward.z != 0);
+		if (!probe.forward.valid) {
+			return fail(2, Text::tr("--forward takes the camera's line of sight as x,y,z, not zero."));
+		}
+	}
+	const auto number = [&](const char* name, double low, double high, double fallback, bool* ok) {
+		if (!parsed.seen.contains(QLatin1String(name))) {
+			*ok = true;
+			return fallback;
+		}
+		const double parsedValue = value(name).toDouble(ok);
+		*ok = *ok && std::isfinite(parsedValue) && parsedValue >= low && parsedValue <= high;
+		return parsedValue;
+	};
+	bool ok = true;
+	LevelPlaneDragRequest request;
+	request.kind = kind;
+	request.grid = number("--grid", 0, 32768, 0, &ok);
+	if (!ok) {
+		return fail(2, Text::tr("--grid takes the search step in units, from 0 (64 steps) to 32768."));
+	}
+	probe.tolerance = number("--tolerance", 0, 32768, 4, &ok);
+	if (!ok) {
+		return fail(2, Text::tr("--tolerance takes how far from the press point a vertex may lie, from 0 to 32768 units."));
+	}
+	const bool hasDelta = parsed.seen.contains(QStringLiteral("--delta"));
+	const bool hasDistance = parsed.seen.contains(QStringLiteral("--distance"));
+	if (hasDelta == hasDistance || (kind == LevelPlaneDragKind::Extrude && hasDelta)
+		|| ((kind == LevelPlaneDragKind::FacingPlanes || kind == LevelPlaneDragKind::Vertices) && hasDistance)) {
+		return fail(2, Text::tr("Give --delta dx,dy,dz for facing-planes, plane and vertices, or --distance N for plane and extrude."));
+	}
+	if (hasDelta && !parseTriple(value("--delta"), &request.translation.x, &request.translation.y, &request.translation.z)) {
+		return fail(2, Text::tr("--delta takes dx,dy,dz."));
+	}
+	const double distance = number("--distance", -32768, 32768, 0, &ok);
+	if (!ok) {
+		return fail(2, Text::tr("--distance takes units from -32768 to 32768."));
+	}
+	const QString textureLock = value("--texture-lock").isEmpty() ? QStringLiteral("on") : value("--texture-lock");
+	if (textureLock != QLatin1String("on") && textureLock != QLatin1String("off")) {
+		return fail(2, Text::tr("--texture-lock requires on or off."));
+	}
+	request.textureLock = textureLock == QLatin1String("on");
+	const QStringList objects = parsed.values.value(QStringLiteral("--object"));
+	if (objects.isEmpty()) {
+		return fail(2, Text::tr("map drag-planes requires --object kind:id, repeatable."));
+	}
+
+	LevelMapDocument document;
+	if (!loadMap(parsed, path, &document, &result)) {
+		return result;
+	}
+	QString error;
+	if (!selectObjects(&document, objects, &error)) {
+		return fail(2, error);
+	}
+	const LevelPlaneDragPick pick = pickLevelPlaneDrag(document, document.selection, kind, probe);
+	if (!pick.valid()) {
+		return fail(4, pick.reason);
+	}
+	request.sets = pick.sets;
+	request.normal = pick.normal;
+	if (hasDistance) {
+		request.distance = distance;
+		if (kind == LevelPlaneDragKind::Plane) {
+			request.translation = {pick.normal.x * distance, pick.normal.y * distance, pick.normal.z * distance, true};
+		}
+	}
+	LevelPlaneDragReport report;
+	if (!applyLevelPlaneDrag(&document, request, &report, &error)) {
+		return fail(4, error);
+	}
+	const LevelMapSaveReport saved = saveLevelMapAs(document, output, parsed.seen.contains(QStringLiteral("--dry-run")), parsed.seen.contains(QStringLiteral("--overwrite")));
+	if (!saved.succeeded()) {
+		return fail(4, saved.errors.join(QLatin1Char('\n')));
+	}
+	QJsonArray sets;
+	for (const LevelMapComponentSet& set : pick.sets) {
+		QStringList ids;
+		for (const int component : set.components) {
+			ids << QString::number(component);
+		}
+		sets.append(QStringLiteral("brush:%1/%2/%3")
+				.arg(set.object.objectId)
+				.arg(set.kind == LevelBrushComponent::Vertex ? QStringLiteral("vertex") : QStringLiteral("face"), ids.join(QLatin1Char(','))));
+	}
+	QJsonArray selection;
+	for (const LevelMapSelectionRef& ref : document.selection) {
+		selection.append(levelMapSelectionRefId(ref));
+	}
+	result.payload = QJsonObject {{QStringLiteral("placement"), QStringLiteral("plane-drag")}, {QStringLiteral("mode"), levelPlaneDragKindId(kind)},
+		{QStringLiteral("from"), vectorJson(probe.origin)}, {QStringLiteral("direction"), vectorJson(probe.direction)},
+		{QStringLiteral("camera"), probe.camera}, {QStringLiteral("picked"), sets}, {QStringLiteral("planes"), pick.planes},
+		{QStringLiteral("brushes"), report.brushes}, {QStringLiteral("movedPlanes"), report.planes}, {QStringLiteral("vertices"), report.vertices},
+		{QStringLiteral("clampedBrushes"), report.clampedBrushes}, {QStringLiteral("createdBrushes"), report.createdBrushes},
+		{QStringLiteral("grid"), request.grid}, {QStringLiteral("selection"), selection},
+		{QStringLiteral("textureLockPolicy"), kind != LevelPlaneDragKind::Extrude ? QStringLiteral("world")
+			: request.textureLock ? QStringLiteral("locked") : QStringLiteral("source-parameters")}};
+	if (kind == LevelPlaneDragKind::Extrude) {
+		result.payload.insert(QStringLiteral("distance"), request.distance);
+		result.payload.insert(QStringLiteral("normal"), vectorJson(pick.normal));
+	} else {
+		result.payload.insert(QStringLiteral("translation"), vectorJson(request.translation));
+	}
+	if (kind == LevelPlaneDragKind::Plane) {
+		result.payload.insert(QStringLiteral("normal"), vectorJson(pick.normal));
+	}
+	if (parsed.seen.contains(QStringLiteral("--context"))) {
+		result.payload.insert(QStringLiteral("context"), value("--context"));
+	}
+	if (kind == LevelPlaneDragKind::Extrude) {
+		result.lines << Text::tr("Extruded %n face(s) by %1 units; %2 new brush(es).", nullptr, report.planes)
+			.arg(request.distance).arg(report.createdBrushes);
+	} else if (kind == LevelPlaneDragKind::Vertices) {
+		result.lines << Text::tr("Dragged %n vertex(es) by %1, %2, %3.", nullptr, report.vertices)
+			.arg(request.translation.x).arg(request.translation.y).arg(request.translation.z);
+	} else {
+		result.lines << Text::tr("Dragged %n brush plane(s) by %1, %2, %3.", nullptr, report.planes)
+			.arg(request.translation.x).arg(request.translation.y).arg(request.translation.z);
+		if (report.clampedBrushes > 0) {
+			result.lines << Text::tr("%n brush(es) stopped short so that none of their faces vanished.", nullptr, report.clampedBrushes);
+		}
 	}
 	addSave(saved, &result);
 	return result;

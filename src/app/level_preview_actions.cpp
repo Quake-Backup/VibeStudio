@@ -39,6 +39,7 @@ QWidget *ApplicationShell::buildLevelPreviewStatus()
 	m_levelPreviewProgress = new QProgressBar;
 	m_levelPreviewProgress->setAccessibleName(tr("Loading level materials"));
 	m_levelPreviewProgress->setMaximumWidth(100);
+	m_levelPreviewProgress->setMinimumWidth(1);
 	m_levelPreviewProgress->hide();
 	layout->addWidget(m_levelPreviewProgress);
 	auto *textured = new QCheckBox(tr("Textures"));
@@ -60,6 +61,18 @@ QWidget *ApplicationShell::buildLevelPreviewStatus()
 		});
 	}
 	layout->addWidget(textured);
+	// The speed held camera keys fly and drive at (level_camera_drive_actions.cpp).
+	m_levelCameraSpeedLabel = new QLabel;
+	m_levelCameraSpeedLabel->setObjectName(QStringLiteral("levelCameraSpeed"));
+	m_levelCameraSpeedLabel->setAccessibleName(tr("Camera speed"));
+	m_levelCameraSpeedLabel->setTextFormat(Qt::PlainText);
+	// Long translations and large text must not widen the Levels page past its
+	// window (which shifts every view under the pointer): when the strip is
+	// short of room the speed readout gives way first, clipped, with its
+	// accessible name kept, as the progress bar does.
+	m_levelCameraSpeedLabel->setMinimumWidth(1);
+	m_levelCameraSpeedLabel->hide();
+	layout->addWidget(m_levelCameraSpeedLabel);
 	const auto button = [&](const QString &name, const QString &text, const QString &help) {
 		auto *control = new QToolButton;
 		control->setObjectName(name);

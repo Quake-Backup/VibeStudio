@@ -254,6 +254,13 @@ QStringList levelCameraShortcutWarnings(const EditorProfileDescriptor& profile, 
 					|| !planArrowPanDirection(plan, key[0].key(), key[0].keyboardModifiers()).isNull();
 			};
 			const bool plan = planClaims(controls.plan);
+			// A drive key a 2D view passes to the camera yields to a command
+			// that can act there, so the camera is what loses the key.
+			if (levelPlanCameraDriveKey(controls, key[0].key(), key[0].keyboardModifiers())
+				&& (custom || !levelPlanCameraDriveKey(profile.controls, key[0].key(), key[0].keyboardModifiers()))) {
+				warnings << QCoreApplication::translate("LevelCameraKeys", "%1 drives the 3D camera from a 2D view only while %2 cannot act there.")
+					.arg(key.toString(QKeySequence::NativeText), command.label);
+			}
 			if ((!always && !looking && !plan) || (!custom && (!always || claims(profile.controls.camera, key[0], false))
 				&& (!looking || claims(profile.controls.camera, key[0], true)) && (!plan || planClaims(profile.controls.plan)))) { continue; }
 			warnings << (plan ? QCoreApplication::translate("LevelCameraKeys", "%1 may take priority over %2 while a plan view has focus.")
@@ -264,5 +271,51 @@ QStringList levelCameraShortcutWarnings(const EditorProfileDescriptor& profile, 
 	}
 	warnings.removeDuplicates();
 	return warnings;
+}
+
+bool levelPlanCameraDriveKey(const LevelEditorControls& controls, int key, Qt::KeyboardModifiers modifiers, CameraKeyMotion* motion)
+{
+	if ((modifiers & ~Qt::KeypadModifier) != Qt::NoModifier) { return false; }
+	// Only the drive keys the 2D view passes on, never the fly keys, and as
+	// they act while the camera is idle.
+	CameraViewControls camera = controls.camera;
+	camera.driveKeys = planRoutedCameraDriveKeys(controls);
+	camera.flyKeys = {};
+	if (camera.driveKeys.isEmpty()) { return false; }
+	const auto motions = cameraKeyMotions(camera, false, Qt::NoButton, Qt::NoModifier, modifiers);
+	const auto found = motions.constFind(key);
+	if (found == motions.constEnd()) { return false; }
+	if (motion) { *motion = found.value(); }
+	return true;
+}
+
+const QVector<int>& levelCameraMoveSpeeds()
+{
+	// Workflow reference: NRC camwindow.cpp CameraSpeed_increase and
+	// CameraSpeed_decrease at 449778b3 (GPL-2.0-or-later) step CamMoveSpeed by
+	// 250 between 50 and 9999 from its default of 500. Original Qt
+	// implementation; see docs/CREDITS.md.
+	static const QVector<int> speeds = [] {
+		QVector<int> list {kLevelCameraMinMoveSpeed};
+		for (int speed = kLevelCameraMoveSpeedStep; speed < kLevelCameraMaxMoveSpeed; speed += kLevelCameraMoveSpeedStep) { list << speed; }
+		list << kLevelCameraMaxMoveSpeed;
+		return list;
+	}();
+	return speeds;
+}
+
+int levelCameraSteppedMoveSpeed(int speed, int direction, double automaticSpeed)
+{
+	const QVector<int>& speeds = levelCameraMoveSpeeds();
+	const double from = speed > 0 ? double(speed) : (std::isfinite(automaticSpeed) && automaticSpeed > 0.0 ? automaticSpeed : 500.0);
+	if (direction > 0) {
+		const auto faster = std::find_if(speeds.cbegin(), speeds.cend(), [from](int listed) { return double(listed) > from; });
+		return faster != speeds.cend() ? *faster : speed;
+	}
+	if (direction < 0) {
+		const auto slower = std::find_if(speeds.crbegin(), speeds.crend(), [from](int listed) { return double(listed) < from; });
+		return slower != speeds.crend() ? *slower : speed;
+	}
+	return speed;
 }
 } // namespace vibestudio

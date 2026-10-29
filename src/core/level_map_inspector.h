@@ -23,6 +23,8 @@
 #include <QStringList>
 #include <QVector>
 
+#include <functional>
+
 namespace vibestudio {
 
 inline constexpr auto kLevelMapSoftBoundsKey = "_tb_soft_map_bounds";
@@ -99,6 +101,13 @@ bool setLevelMapEnabledMods(LevelMapDocument* document, const QStringList& mods,
 [[nodiscard]] QStringList levelMapAvailableMods(const QString& gameRoot, const QStringList& excluded);
 // Every known game's base folder (id1, baseq2, baseq3, ...): never a mod.
 [[nodiscard]] QStringList levelMapBaseGameFolders();
+
+// Runs an edit of worldspawn's keys (the soft bounds, the mods, the Map tab's
+// Worldspawn list) as a map setting: it applies whatever group is open, as
+// TrenchBroom's Map Properties and Mods change the world node with a group
+// open, and the group stays open. Only the open-group boundary is set aside,
+// so scene locks still apply; `edit` must change nothing but worldspawn.
+bool editLevelMapWorldSettings(LevelMapDocument* document, const std::function<bool(LevelMapDocument*)>& edit);
 
 // One layer of the map, as the Map tab sums it up.
 struct LevelMapLayerSummary {

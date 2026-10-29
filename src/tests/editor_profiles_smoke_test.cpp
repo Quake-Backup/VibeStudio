@@ -262,8 +262,16 @@ bool runControlsSmoke()
 	ok &= expect(radiant.plan.toggleModifiers == Qt::ShiftModifier && radiant.plan.panButtons == QVector<Qt::MouseButton> {Qt::RightButton}
 			&& radiant.plan.zoomDragButton == Qt::RightButton && radiant.plan.zoomDragModifiers == Qt::AltModifier
 			&& radiant.plan.clickCyclesStack && radiant.plan.middleButtonDrivesCamera && radiant.plan.arrowsDriveCamera
-			&& radiant.plan.emptyDrag == PlanEmptyDrag::DrawBrush && radiant.plan.emptyDragWithSelection == PlanEmptyDrag::ResizeSelection,
-		"Expected Radiant's 2D view: Shift selects, right drag pans, Alt+right zooms, clicks tunnel, the middle button drives the camera.");
+			&& radiant.plan.emptyDrag == PlanEmptyDrag::DrawBrush && radiant.plan.emptyDragWithSelection == PlanEmptyDrag::DragPlanes
+			&& radiant.plan.vertexDragModifiers == Qt::AltModifier && radiant.plan.extrudeDragModifiers == (Qt::ControlModifier | Qt::AltModifier)
+			&& radiant.camera.planeDragModifiers == Qt::AltModifier && radiant.camera.extrudeDragModifiers == (Qt::ControlModifier | Qt::AltModifier),
+		"Expected Radiant's 2D view: Shift selects, right drag pans, Alt+right zooms, clicks tunnel, the middle button drives the camera, a drag beside the selection drags its planes, Alt drags vertices and Ctrl+Alt extrudes.");
+	const LevelEditorControls netRadiantBaseline = levelEditorControlsForProfile(QStringLiteral("netradiant"));
+	ok &= expect(netRadiantBaseline.plan.emptyDragWithSelection == PlanEmptyDrag::DragPlanes && netRadiantBaseline.plan.vertexDragModifiers == Qt::NoModifier
+			&& netRadiantBaseline.plan.extrudeDragModifiers == Qt::NoModifier && netRadiantBaseline.camera.planeDragModifiers == Qt::NoModifier
+			&& gtkRadiantLevelControls().plan.emptyDragWithSelection == PlanEmptyDrag::DragPlanes
+			&& levelEditorControlsForProfile(QStringLiteral("trenchbroom")).plan.emptyDragWithSelection != PlanEmptyDrag::DragPlanes,
+		"Expected the QE4 plane drag in every Radiant, the modifier drags only in NetRadiant Custom.");
 	ok &= expect(radiant.camera.lookClickToggles && radiant.camera.flyNeedsLook && radiant.camera.panButtons == QVector<Qt::MouseButton> {Qt::RightButton}
 			&& radiant.camera.wheel == CameraWheel::DollyToPointer && radiant.camera.faceModifiers == Qt::ControlModifier,
 		"Expected Radiant's camera: a right click toggles mouse look, a right drag strafes, the wheel moves toward the pointer.");

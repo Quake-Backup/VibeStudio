@@ -29,8 +29,8 @@ bool parseLevelPatchCreateMapping(const QString& id, LevelPatchCreateMapping* ma
 //
 // Where a round shape's ring starts. Auto follows NetRadiant Custom's Patch
 // menu (radiant/patch.cpp Patch::ConstructPrefab at 449778b3): its fixed
-// prefabs, the four-segment cylinder, the four-segment two-band sphere and
-// the classic cone, start half a turn round, on the negative side of the
+// prefabs, the four-segment three-row cylinder, the four-segment two-band
+// sphere and the classic cone, start half a turn round, on the negative side of the
 // first axis across; every other density, and the straight cone, can only be
 // made by its Exact Cylinder, Sphere and Cone, which start at angle 0, on the
 // positive side. Exact always starts at angle 0.

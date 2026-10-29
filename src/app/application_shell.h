@@ -5,6 +5,7 @@
 #include "core/asset_tools.h"
 #include "core/bsp_inspect.h"
 #include "core/build_pipeline.h"
+#include "core/build_program_trust.h"
 #include "core/compiler_runner.h"
 #include "core/deflate.h"
 #include "core/document_watch.h"
@@ -108,6 +109,8 @@ enum class LevelNudgeDirection;
 class LevelSweepDialog;
 class LevelSweepGizmo;
 class LevelComponentGizmo;
+class LevelPlaneDragController;
+struct LevelPlaneDragRequest;
 class LevelCameraUvTool;
 class LevelFindReplaceDialog;
 struct LevelComponentTransformRequest;
@@ -281,7 +284,8 @@ public:
 	void checkpointLevelDocument();
 	bool applyLevelPatch(const LevelMapPatch& patch, int patchId = -1, QString* error = nullptr);
 	bool applyLevelPatchStitch(int first, int second, const LevelPatchStitchRequest& request, QString* error = nullptr);
-	bool applyLevelPatchCaps(int patchId, const LevelPatchCapRequest& request, QString* error = nullptr);
+	// Caps every patch of `patchIds` as one undo step (core capLevelMapPatches).
+	bool applyLevelPatchCaps(const QVector<int>& patchIds, const LevelPatchCapRequest& request, QString* error = nullptr);
 	bool applyLevelBrushGeometry(const LevelMapBrush& brush, int brushId, QString* error = nullptr);
 	bool applyLevelRotation(const LevelMapRotationRequest& request, QString* error = nullptr);
 	// Scale Selection…'s commit: factors about a pivot, or the picked components' scale.
@@ -846,6 +850,14 @@ private:
 	// a Doom map's Raise and Lower Floor.
 	void stepLevelCameraFloor(bool up);
 	bool handleLevelCameraFloorKey(QObject* watched, QEvent* event);
+	// Increase and Decrease Camera Speed, the camera speed readout, and the
+	// camera drive keys a 2D view passes on to the camera while no command
+	// there uses the key (level_camera_drive_actions.cpp,
+	// core/level_camera_keys.h).
+	void registerLevelCameraDriveCommands();
+	void refreshLevelCameraDriveCommands();
+	void stepLevelCameraSpeed(int direction);
+	bool handleLevelCameraDriveKey(QObject* watched, QEvent* event);
 	// View > Camera Display: the camera's saved face mode (textured, flat or
 	// hidden), Edges in Camera and the four-mode cycle. They change only the
 	// picture (level_camera_render_actions.cpp, core/level_camera_render.h).
@@ -1037,6 +1049,11 @@ private:
 	void selectLevelWholeEntitiesFromUi();
 	void applyLevelPatchMatrixFromUi(LevelPatchMatrixOperation operation);
 	void thickenLevelPatchesFromUi();
+	// TrenchBroom's Convert Selection to Patches and NetRadiant Custom's
+	// Deform… (app/level_patch_convert_deform_actions.cpp).
+	void convertLevelSelectionToPatchesFromUi();
+	void deformLevelPatchesFromUi();
+	[[nodiscard]] bool levelSelectionConvertibleToPatches() const;
 	void setLevelRegionDrawMode(bool enabled);
 	void setLevelRegionFromDrawnBox(MapViewport* view, const QRectF& box);
 	void setLevelRegionFromBrushes();
@@ -1494,6 +1511,19 @@ private:
 	// slant textures, as the plan views' Shear Tool does.
 	void shearLevelObjectsFromView(int axis, int side, const LevelMapVec3& offset, const LevelMapVec3& pivot, MapViewport* plan);
 	void editLevelObjectPivotFromUi();
+	// NetRadiant Custom's drag-tool gestures and Build tool (B), shared by the
+	// plan views and the camera (level_plane_drag_actions.cpp,
+	// core/level_plane_drag.h): plane drags, vertex drags and extrusions go
+	// through applyLevelPlaneDrag(), copy chains through Duplicate with
+	// Offset, so Repeat Last Commands replays them.
+	bool m_levelBuildToolOn = false;
+	void registerLevelPlaneDragCommands();
+	void connectLevelPlaneDrag(LevelPlaneDragController* controller, MapViewport* plan);
+	void refreshLevelPlaneDrags();
+	void setLevelBuildTool(bool enabled);
+	[[nodiscard]] bool levelBuildToolActive() const;
+	void applyLevelPlaneDragFromView(const LevelPlaneDragRequest& request, MapViewport* plan);
+	void buildLevelCloneChainFromView(const LevelMapVec3& step, int copies, MapViewport* plan);
 	std::function<void()> m_levelComponentsRefresh;
 	void refreshLevelCameraComponents();
 	void connectLevelClipper();
@@ -1867,6 +1897,28 @@ private:
 	// Shows the game folder the installation was last launched into, once per
 	// change of installation, so a mod's folder is not retyped every session.
 	void syncLaunchGameDirectory(const GameInstallationProfile& installation);
+	// Run Last Build, Re-run Last Compile, launch extra arguments and the
+	// user's launch profiles (build_rerun_actions.cpp).
+	void runLastBuild();
+	void rerunLastCompile();
+	void refreshBuildRerunCommands();
+	void noteBuildRunStarted(const QString& kind, const QString& id, bool launch, const QString& inputPath);
+	void selectLevelCompilerProfileForMap();
+	void refreshLaunchProfileChoices();
+	void editGameLaunchProfiles();
+	[[nodiscard]] QStringList levelCompileManifestRoots() const;
+	// The project's own build pipelines and the check before a build starts a
+	// program named by project data (build_pipeline_actions.cpp).
+	[[nodiscard]] QVector<BuildPipelineDescriptor> projectBuildPipelinesForBuild() const;
+	[[nodiscard]] bool buildPipelineDescriptorForId(const QString& id, BuildPipelineDescriptor* out = nullptr) const;
+	void refreshBuildPipelineChoices();
+	void editBuildPipelines();
+	// The project, else the input's folder: where trust in a program applies.
+	[[nodiscard]] QString buildProgramScopeFor(const QString& inputPath) const;
+	// True when every program may start: a compiler from the user's own
+	// configuration, one trusted before for `scope`, or one the user trusts
+	// now after seeing the command lines (the default answer is not to run).
+	bool confirmBuildProgramsTrusted(const QVector<BuildProgramUse>& uses, const QString& scope);
 	QString selectedWorkspaceFilePath() const;
 	QString selectedWorkspaceVirtualPath() const;
 	void revealSelectedWorkspacePath();
@@ -2714,6 +2766,13 @@ private:
 	QComboBox* m_launchProfileChoice = nullptr;
 	QLineEdit* m_launchMapName = nullptr;
 	QLineEdit* m_launchGameDirectory = nullptr;
+	// Extra engine arguments, kept per installation like the game folder.
+	QLineEdit* m_launchExtraArguments = nullptr;
+	// The newest saved compiler run of the open map (Re-run Last Compile), and
+	// what it was looked up for: the map, the project and the run count.
+	QString m_lastCompileManifestPath;
+	QString m_lastCompileManifestKey;
+	int m_compilerRunsFinished = 0;
 	QCheckBox* m_launchDeploy = nullptr;
 	QAbstractButton* m_buildAndLaunch = nullptr;
 	// Set by Build and Launch; the finished build then starts the launch.
@@ -2832,6 +2891,8 @@ private:
 	LevelPreviewWorker* m_levelPreviewWorker = nullptr;
 	QWidget* m_levelPreviewStatus = nullptr;
 	QLabel* m_levelPreviewLabel = nullptr;
+	// The camera speed held keys fly and drive at (level_camera_drive_actions.cpp).
+	QLabel* m_levelCameraSpeedLabel = nullptr;
 	QProgressBar* m_levelPreviewProgress = nullptr;
 	QToolButton* m_levelPreviewCancel = nullptr;
 	// The map.previewTextures command, also behind the status strip's box.

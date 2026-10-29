@@ -1768,29 +1768,36 @@
     {
       "id": "nrc:BuildMenuCustomize",
       "status": "Partial",
-      "workflow": "The **Build** page runs fixed pipelines for each game (BSP, VIS, light), chosen in its **Pipeline** list; compiler paths are set on the **Toolchain** tab. `build plan` and `build run` accept --disable-stage and --stage-args stage=arguments for one run, and `compiler set-path` overrides executables.",
+      "workflow": "**Build** > **Build Pipelines\u2026** (or **Pipelines\u2026** beside the Build page's **Pipeline** list) keeps pipelines of the project's own in its manifest: a name, compiler-profile stages that can be added, removed, reordered and turned off, each with typed arguments and its input (the map or the previous output), and variables used as ${NAME}, beside built-in ${MAP}, ${MAP_NAME}, ${OUTPUT}, ${GAME_DIR}, ${MOD} and ${CPU_COUNT}. A live preview shows the command lines, and problems are named with OK held. They appear in the Pipeline list after the built-in ones and run through Run Pipeline, Build and Launch and Run Last Build. `build list/plan/run --workspace-root` read them (with --variable), and `build pipeline-set` and `build pipeline-remove` edit them. A program named by project data runs only once trusted.",
       "gui": [
+        "build.edit-pipelines",
+        "build.run-pipeline",
         "shell.mode.build"
       ],
       "cli": [
         "build list",
         "build plan",
         "build run",
-        "compiler set-path"
+        "build pipeline-set",
+        "build pipeline-remove"
       ],
-      "limitation": "Users cannot create, rename or save their own pipelines or stage arguments in the GUI. Stage switches and arguments exist only for a single CLI run and in prepared workspaces. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add user-defined pipelines stored in the project manifest, each with a stage list, per-stage arguments and enabled flags. Edit them in a Build page dialog, and have build list, plan and run read them.",
+      "limitation": "Pipelines are per project rather than per game, and a project must be open. Stages run VibeStudio compiler profiles only, not free command lines or copy steps. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/build_pipeline.cpp",
-        "src/cli/cli.cpp",
-        "src/tests/build_pipeline_smoke_test.cpp",
-        "src/tests/level_build_artifacts_compiler_workflow.py"
+        "src/core/build_program_trust.cpp",
+        "src/app/build_pipelines_dialog.cpp",
+        "src/app/build_pipeline_actions.cpp",
+        "src/cli/build_pipelines.cpp",
+        "src/tests/build_project_pipelines_smoke_test.cpp",
+        "src/tests/build_project_pipelines_ui_smoke_test.cpp"
       ]
     },
     {
       "id": "nrc:Build_runRecentExecutedBuild",
       "status": "Partial",
-      "workflow": "**Run Build Pipeline** (F7) runs the pipeline chosen on the Build page, which follows the open map's game, and offers to save unsaved map edits to a new file first. **Build and Launch** (F5) also starts the game. `compiler rerun` replays a saved command manifest, and `build run` runs a pipeline again.",
+      "workflow": "**Build** > **Run Last Build** runs again the build you ran last for the project, on the open map: the build pipeline (with its launch when it was **Build and Launch**) or the Levels **Run Profile** compile, recorded per project. It is <kbd>F5</kbd> in the NetRadiant Custom profile, as NRC's Build_runRecentExecutedBuild, and in NetRadiant, which binds it too; there **Build and Launch** has no key, elsewhere F5 stays Build and Launch. It stays in Levels (also on the **Tools** tab's Region and Build group and in command search) and is enabled once something has been built. **Run Build Pipeline** (F7) still runs the Build page's pipeline. `build run` runs a pipeline again and `compiler rerun --last` replays a map's newest saved compile.",
       "gui": [
+        "build.run-last",
         "build.run-pipeline",
         "build.run-and-launch"
       ],
@@ -1798,12 +1805,14 @@
         "build run",
         "compiler rerun"
       ],
-      "limitation": "The chosen pipeline is not remembered across sessions, and F7 does not replay a single compiler-profile run. F5 means Build and Launch rather than a plain rerun, and the NRC profile does not rebind it. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Record the last executed pipeline or compiler profile for each project, and add a build.runLast command bound to F5 in the Radiant profiles.",
+      "limitation": "Run Last Build re-plans the recorded pipeline or profile with the current settings rather than replaying it exactly (Re-run Last Compile does that), and refuses when the last build was for another game. A region compile is not recorded as the last build. NRC's customisable build menu entries are VibeStudio's fixed pipelines and profiles. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/application_shell.cpp",
-        "src/core/build_pipeline.cpp",
-        "src/tests/build_pipeline_smoke_test.cpp",
-        "src/tests/level_build_workspace_ui_smoke_test.cpp"
+        "src/app/build_rerun_actions.cpp",
+        "src/core/studio_settings_build.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/core/studio_semantics.cpp",
+        "src/tests/build_rerun_smoke_test.cpp",
+        "src/tests/build_rerun_ui_smoke_test.cpp"
       ]
     },
     {
@@ -1915,7 +1924,7 @@
     {
       "id": "nrc:CameraAngleDown",
       "status": "Partial",
-      "workflow": "Drive: Look down in **Customize Editor Gestures** (Camera Keys), or `editor gestures --set camera.driveKeys.pitchDown=KEY`, binds downward pitch. It is unbound in **NetRadiant Custom Style**, as upstream; the GtkRadiant 1.4/1.5 and Q3Radiant presets use Z. camera.discreteDriveKeys gives 22.5-degree steps.",
+      "workflow": "Drive: Look down is unbound in **NetRadiant Custom Style**, as upstream; bind it in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.pitchDown=KEY`. In NRC's default discrete mode each press pitches down 22.5 degrees, stopping at -89 (NRC's -90 less the camera's margin), from the camera or from a 2D view while no command there can act on the key. The GtkRadiant 1.4/1.5, Q3Radiant, QeRadiant and DoomEdit presets use Z, which works from their 2D views too.",
       "gui": [
         "editor.gestures"
       ],
@@ -1923,21 +1932,20 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "Discrete pitch stops at -85 degrees and held pitch at -89, not NRC's -90. A bound key needs camera focus, so it does not work from plan views, and it is continuous unless discrete steps are on. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route bound pitch keys from plan views when no plan command claims them, matching NRC's global scope. Consider a -90-degree discrete limit for NRC-family profiles (currently -85), with clamp tests. Optionally default the NRC profile to discrete steps.",
+      "limitation": "The camera stops 1 degree short of NRC's -90 degrees so it keeps its heading. A command that can act in a 2D view keeps its key there. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
+        "src/core/level_editor_controls.cpp",
         "src/core/level_camera_keys.cpp",
-        "src/core/level_gestures.cpp",
-        "src/core/level_editor_familiar_controls.cpp",
-        "src/app/model_viewport.cpp",
         "src/app/model_viewport_drive.cpp",
-        "src/tests/level_camera_drive_ui_smoke_test.cpp",
-        "src/tests/level_gestures_ui_smoke_test.cpp"
+        "src/app/level_camera_drive_actions.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/LEVEL_EDITOR.md"
       ]
     },
     {
       "id": "nrc:CameraAngleUp",
       "status": "Partial",
-      "workflow": "Drive: Look up in **Customize Editor Gestures** (Camera Keys), or `editor gestures --set camera.driveKeys.pitchUp=KEY`, binds pitch. It is unbound in **NetRadiant Custom Style**, as upstream; the GtkRadiant 1.4/1.5 and Q3Radiant presets use A. camera.discreteDriveKeys gives 22.5-degree steps.",
+      "workflow": "Drive: Look up is unbound in **NetRadiant Custom Style**, as upstream; bind it in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.pitchUp=KEY`. In NRC's default discrete mode each press pitches up 22.5 degrees, stopping at NRC's 90 less the camera's 1-degree margin (89), from the camera or from a 2D view while no command there can act on the key. The GtkRadiant 1.4/1.5, Q3Radiant, QeRadiant and DoomEdit presets use A, which now works from their 2D views too and keeps Q3Radiant's 85-degree stop.",
       "gui": [
         "editor.gestures"
       ],
@@ -1945,15 +1953,15 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "Discrete pitch stops at 85 degrees and held pitch at 89, not NRC's 90. A bound key needs camera focus, so it does not work from plan views, and it is continuous unless discrete steps are on. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route bound pitch keys from plan views when no plan command claims them, matching NRC's global scope. Consider a 90-degree discrete limit for NRC-family profiles (currently 85), with clamp tests. Optionally default the NRC profile to discrete steps.",
+      "limitation": "The camera stops 1 degree short of NRC's 90 degrees so it keeps its heading. A command that can act in a 2D view keeps its key there. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
+        "src/core/level_editor_controls.cpp",
         "src/core/level_camera_keys.cpp",
-        "src/core/level_gestures.cpp",
-        "src/core/level_editor_familiar_controls.cpp",
-        "src/app/model_viewport.cpp",
         "src/app/model_viewport_drive.cpp",
+        "src/app/level_camera_drive_actions.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
         "src/tests/level_camera_drive_ui_smoke_test.cpp",
-        "src/tests/level_gestures_ui_smoke_test.cpp"
+        "docs/LEVEL_EDITOR.md"
       ]
     },
     {
@@ -1984,7 +1992,7 @@
     {
       "id": "nrc:CameraDown",
       "status": "Partial",
-      "workflow": "Drive: Down and Fly: Down are available in **Customize Editor Gestures** (Camera Keys) and are unbound in **NetRadiant Custom Style**, as upstream. Bind one there or with `editor gestures --set camera.driveKeys.down=KEY`. It moves along world Z; camera.discreteDriveKeys gives 32-unit steps. GtkRadiant-family profiles bind C.",
+      "workflow": "Drive: Down is unbound in **NetRadiant Custom Style**, as upstream. Bound in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.down=KEY`, it lowers the camera 32 units along world Z per press in NRC's default discrete mode, from the camera or from a 2D view while no command there can act on the key; GtkRadiant-family profiles bind C, which works from their 2D views too. `camera.discreteDriveKeys=off` sinks while held.",
       "gui": [
         "editor.gestures"
       ],
@@ -1992,16 +2000,15 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "A bound key works only while the camera has focus, not from plan views as NRC's accelerator does. It is continuous unless discrete drive steps are enabled. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route bound vertical drive keys from plan views when no plan command claims them, matching NRC's global scope, with overlap warnings and tests. Optionally default the NRC profile to discrete drive steps.",
+      "limitation": "A key a 2D view uses itself stays the view's, and a command that can act there keeps its key. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_keys.cpp",
-        "src/core/level_gestures.cpp",
-        "src/app/level_gestures_dialog.cpp",
-        "src/app/model_viewport.cpp",
+        "src/core/level_editor_familiar_controls.cpp",
+        "src/app/level_camera_drive_actions.cpp",
         "src/app/model_viewport_drive.cpp",
-        "src/tests/level_gestures_smoke_test.cpp",
-        "src/tests/level_gestures_ui_smoke_test.cpp",
-        "src/tests/level_camera_drive_ui_smoke_test.cpp"
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -2377,41 +2384,53 @@
     {
       "id": "nrc:CameraSpeedDec",
       "status": "Partial",
-      "workflow": "Holding the profile's slow flight modifier (Alt by default) cuts the map-scaled flying speed to 0.3. **Customize Editor Gestures** or `editor gestures` changes which modifier does this.",
+      "workflow": "**View** > **Camera** > **Decrease Camera Speed** (also the **Tools** tab's **Navigate** group and command search; <kbd>Shift</kbd>+<kbd>Keypad -</kbd> in the NetRadiant Custom profile) steps the saved camera speed down NRC's list to its 50-unit minimum, where the command greys out. It shares the per-profile `camera.moveSpeed` setting, the **Speed** readout and the status announcement with Increase Camera Speed; from the map-scaled speed it goes to the next lower listed speed.",
       "gui": [
+        "map.camera-speed-down",
         "editor.gestures"
       ],
       "cli": [
         "editor gestures"
       ],
-      "limitation": "There is no persistent lower speed, no decrease command, no keypad binding and no readout. The slow modifier works only while it is held. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Build this with Increase Camera Speed as a Decrease Camera Speed command over the same saved setting, clamped to a minimum, with a palette entry, a status readout and Shift+Keypad - in the NRC profile.",
+      "limitation": "NRC's acceleration to the held speed is not reproduced, and mouse look's own dolly keeps the map's scale. Physical keypad Shift chords and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/model_viewport.cpp",
+        "src/core/level_camera_keys.cpp",
         "src/core/level_gestures.cpp",
-        "src/tests/level_gestures_smoke_test.cpp"
+        "src/app/level_camera_drive_actions.cpp",
+        "src/app/model_viewport.cpp",
+        "src/core/studio_semantics.cpp",
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:CameraSpeedInc",
       "status": "Partial",
-      "workflow": "Flying speed scales with the size of the map. Holding the profile's fast modifier (Shift by default) triples it, and holding the slow modifier (Alt) cuts it to 0.3. Both modifiers are set in **Customize Editor Gestures** or with `editor gestures`.",
+      "workflow": "**View** > **Camera** > **Increase Camera Speed** (also the **Tools** tab's **Navigate** group and command search; <kbd>Shift</kbd>+<kbd>Keypad +</kbd> in the NetRadiant Custom profile) steps the speed held camera keys fly and drive at through NRC's list: 50, then 250 to 9750 by 250, then 9999. The NRC profile starts at 500 (CamMoveSpeed); other profiles scale with the map until changed, and a step from there goes to the next listed speed. The speed is kept per profile with the gestures (`camera.moveSpeed`), shown as **Speed** beside **Textures** above the views and announced in the status bar; the command greys out at 9999. The fast and slow modifiers still multiply it. `editor gestures --set camera.moveSpeed=N|auto` sets it from the command line.",
       "gui": [
+        "map.camera-speed-up",
         "editor.gestures"
       ],
       "cli": [
         "editor gestures"
       ],
-      "limitation": "There is no stepped speed that persists, no increase command, no NRC keypad binding and no speed readout. A modifier changes the speed only while it is held. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a saved camera speed setting used by ModelViewport::flySpeed, with an Increase Camera Speed command and palette entry. Show the speed in the status bar, expose a field through `editor gestures`, and bind Shift+Keypad + in the NRC profile.",
+      "limitation": "The list is fixed, so 50 steps up to 250 rather than NRC's 300, and NRC's acceleration to the held speed is not reproduced. Mouse look's own dolly keeps the map's scale. Physical keypad Shift chords and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/model_viewport.cpp",
+        "src/core/level_camera_keys.cpp",
         "src/core/level_gestures.cpp",
-        "src/tests/level_gestures_smoke_test.cpp"
+        "src/app/level_camera_drive_actions.cpp",
+        "src/app/model_viewport.cpp",
+        "src/core/studio_semantics.cpp",
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:CameraStrafeLeft",
       "status": "Partial",
-      "workflow": "**NetRadiant Custom Style** binds A to Drive: Left while the camera has focus, and to Fly: Left during mouse look. Rebind it in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.left=KEY`. camera.discreteDriveKeys switches to 32-unit ground-plane steps.",
+      "workflow": "**NetRadiant Custom Style** binds A to Drive: Left. Each press or repeat steps 32 units along the negative ground-plane right vector, as NRC's default discrete camera does; during mouse look A is Fly: Left. A also strafes the camera from a 2D view while no command there can act on the key, as NRC's global accelerator does. Rebind it in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.left=KEY`; `camera.discreteDriveKeys=off` glides instead and `plan.cameraDriveKeys=off` keeps the key in the camera.",
       "gui": [
         "editor.gestures"
       ],
@@ -2419,23 +2438,21 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "The key strafes only while the camera has focus; plan views do not route it as NRC's global accelerator does. The default is continuous held motion rather than NRC's discrete steps. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route the bound camera strafe keys from plan views when no plan command claims them, with overlap warnings and plan-focus tests. Optionally default the NRC profile to discrete drive steps.",
+      "limitation": "A command the user gives A keeps it in the 2D views while it can act; the overlap is listed in Customize Gestures and `editor gestures`. NRC's acceleration to the held speed is not reproduced. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_keys.cpp",
         "src/core/level_editor_controls.cpp",
-        "src/core/level_gestures.cpp",
-        "src/app/model_viewport.cpp",
+        "src/app/level_camera_drive_actions.cpp",
         "src/app/model_viewport_drive.cpp",
-        "src/app/map_viewport.cpp",
-        "src/tests/level_gestures_smoke_test.cpp",
-        "src/tests/level_camera_drive_ui_smoke_test.cpp",
-        "src/tests/editor_profiles_smoke_test.cpp"
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:CameraStrafeRight",
       "status": "Partial",
-      "workflow": "**NetRadiant Custom Style** binds D to Drive: Right while the camera has focus; during mouse look, D is Fly: Right. **Customize Editor Gestures** (Camera Keys) or `editor gestures --set camera.driveKeys.right=KEY` rebinds it. camera.discreteDriveKeys gives 32-unit ground-plane steps.",
+      "workflow": "**NetRadiant Custom Style** binds D to Drive: Right. Each press or repeat steps 32 units along the ground-plane right vector, as NRC's default discrete camera does; during mouse look D is Fly: Right and glides. D also strafes the camera from a 2D view, as NRC's global accelerator does, while no command there can act on the key (on a Doom map **Draw Sector** keeps D). **Customize Editor Gestures** (Camera Keys) or `editor gestures --set camera.driveKeys.right=KEY` rebinds it; `camera.discreteDriveKeys=off` gives held, gliding motion, and `plan.cameraDriveKeys=off` keeps the key in the camera.",
       "gui": [
         "editor.gestures"
       ],
@@ -2443,23 +2460,22 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "Strafing works only while the camera has focus; plan views do not route D as NRC's global accelerator does, so a 2D-focused user must click the camera first. The default is held, continuous motion rather than NRC's discrete steps. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route the bound camera strafe keys from plan views when no plan command claims them, reporting overlaps through levelCameraShortcutWarnings, with plan-focus tests. Optionally default the NRC profile to discrete drive steps.",
+      "limitation": "A command that can act in a 2D view keeps the key there, which overlap diagnostics report when the user changes either binding. NRC's acceleration to the held speed is not reproduced. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_keys.cpp",
         "src/core/level_editor_controls.cpp",
-        "src/core/level_gestures.cpp",
-        "src/app/model_viewport.cpp",
+        "src/core/level_editor_familiar_controls.cpp",
+        "src/app/level_camera_drive_actions.cpp",
         "src/app/model_viewport_drive.cpp",
-        "src/app/map_viewport.cpp",
-        "src/tests/level_gestures_smoke_test.cpp",
-        "src/tests/level_camera_drive_ui_smoke_test.cpp",
-        "src/tests/editor_profiles_smoke_test.cpp"
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:CameraUp",
       "status": "Partial",
-      "workflow": "Drive: Up and Fly: Up exist in **Customize Editor Gestures** (Camera Keys) and are unbound in **NetRadiant Custom Style**, as upstream. Bind one there or with `editor gestures --set camera.driveKeys.up=KEY`. Motion follows world Z, and camera.discreteDriveKeys gives 32-unit steps. GtkRadiant-family profiles bind D.",
+      "workflow": "Drive: Up is unbound in **NetRadiant Custom Style**, as upstream. Bound in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.up=KEY`, it raises the camera 32 units along world Z per press in NRC's default discrete mode, from the camera or from a 2D view while no command there can act on the key, as NRC's accelerator does; GtkRadiant-family profiles bind D, which works from their 2D views too. `camera.discreteDriveKeys=off` rises while held.",
       "gui": [
         "editor.gestures"
       ],
@@ -2467,37 +2483,36 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "A bound key works only while the camera has focus, not from plan views as NRC's accelerator does. It moves continuously unless discrete drive steps are enabled. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route bound vertical drive keys from plan views when no plan command claims them, matching NRC's global accelerator scope, with overlap warnings and tests. Optionally default the NRC profile to discrete drive steps.",
+      "limitation": "A key a 2D view uses itself (arrows, + -, Home, F, Space, Delete and the like) stays the view's, and a command that can act there keeps its key. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_keys.cpp",
-        "src/core/level_gestures.cpp",
-        "src/app/level_gestures_dialog.cpp",
-        "src/app/model_viewport.cpp",
+        "src/core/level_editor_familiar_controls.cpp",
+        "src/app/level_camera_drive_actions.cpp",
         "src/app/model_viewport_drive.cpp",
-        "src/tests/level_gestures_smoke_test.cpp",
-        "src/tests/level_gestures_ui_smoke_test.cpp",
-        "src/tests/level_camera_drive_ui_smoke_test.cpp"
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:CapCurrentCurve",
       "status": "Partial",
-      "workflow": "**Cap Patch\u2026** previews and adds planar radial caps on chosen boundaries of one source patch (first and last rows by default), in the source or a chosen material, with planar or boundary UVs, an optional centre and Invert, as one undo step. Closed ends become discs and open arcs close along their chord. Shift+C opens it in the GtkRadiant 1.4/1.5 and Q3Radiant profiles. `map cap-patch` does the same.",
+      "workflow": "Select patches and choose **Cap Patch\u2026** (Shift+C in the NetRadiant Custom, GtkRadiant 1.4/1.5 and Q3Radiant profiles). **Cap style** offers Radial (VibeStudio's planar disc and chord caps) and NetRadiant Custom's Bevel, Endcap, Inverted Bevel, Inverted Endcap and Cylinder seams with upstream's control layouts and width checks (3 or 5, 5 and 9). **All selected patches** caps every visible selected patch, first and last rows by default, the seam styles in the current material, with planar (Cap Texture) or boundary UVs, as one undo step that selects the caps; patches of the wrong width are left uncapped with the reason. `map cap-patch --style` with repeatable `--patch` does the same.",
       "gui": [
         "map.cap-patch"
       ],
       "cli": [
         "map cap-patch"
       ],
-      "limitation": "Cylinder and Endcap ends close as discs and half-discs, but NRC's Bevel (quarter sector to the arc's centre), Inverted Bevel and Inverted Endcap fills cannot be made, because an open arc always closes on its chord. Each run caps one patch, not every selected patch in the current texture, and the NetRadiant Custom profile does not bind Shift+C. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add NRC cap styles as seam patches built from each first and last row with NRC's width checks: Bevel (sector to the corner opposite the arc's middle control), Inverted Bevel and Inverted Endcap, plus matching Endcap and Cylinder topology. Apply them to every selected patch in the current material, expose them in the dialog and `map cap-patch --style`, and bind Shift+C in the NetRadiant Custom profile.",
+      "limitation": "Seam caps are mapped at map units per tile (128 by default) rather than by the material image's size at Radiant's default scale, and the dialog previews before applying rather than acting at once. The NetRadiant baseline profile leaves Shift+C unbound (audited against NRC only). Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch_cap.cpp",
         "src/app/patch_cap_dialog.cpp",
         "src/app/patch_cap_actions.cpp",
         "src/cli/cli.cpp",
+        "src/core/level_editor_controls.cpp",
         "src/tests/patch_cap_smoke_test.cpp",
-        "src/tests/patch_cap_ui_smoke_test.cpp",
-        "src/tests/patch_cap_compiler_workflow.py"
+        "src/tests/patch_cap_ui_smoke_test.cpp"
       ]
     },
     {
@@ -3775,7 +3790,7 @@
     {
       "id": "nrc:MapInfo",
       "status": "Partial",
-      "workflow": "**Map Info** (<kbd>M</kbd> in the NetRadiant Custom profile, also in **View** > **Level Sidebars**, the **Tools** tab and command search) opens the Levels **Map** tab's **Statistics** with the keyboard in a sortable class table. The totals cover brushes, patches, entities, in-game entities and group entities (worldspawn and entities that hold brushes or patches) with how many of them reach the game, by NetRadiant Custom's rule (no func_group, _decal or func_detail*, no light*, misc_model or info_null). The table lists Class, Count and In game for each class; press Enter on a class to list its entities in the Outliner. `map inspect` prints the totals and the class lines, and its --json `statistics` has groupEntityCount, inGameEntityCount, inGameGroupEntityCount and entityClasses.",
+      "workflow": "**Map Info** (<kbd>M</kbd> in the NetRadiant Custom and NetRadiant profiles, also in **View** > **Level Sidebars**, the **Tools** tab and command search) opens the Levels **Map** tab's **Statistics** with the keyboard in a sortable class table. The totals cover brushes, patches, entities, in-game entities and group entities (worldspawn and entities that hold brushes or patches) with how many of them reach the game, by NetRadiant Custom's rule (no func_group, _decal or func_detail*, no light*, misc_model or info_null). The table lists Class, Count and In game for each class; press Enter on a class to list its entities in the Outliner. Doom thing types sort by number. On a TrenchBroom-format map, layers and groups (func_group with _tb_type) count as layers and groups rather than entities, and a line of their own names how many there are. `map inspect` prints the totals and the class lines, and its --json `statistics` has groupEntityCount, inGameEntityCount, inGameGroupEntityCount and entityClasses.",
       "gui": [
         "map.map-info",
         "map.statistics"
@@ -3783,16 +3798,15 @@
       "cli": [
         "map inspect"
       ],
-      "limitation": "A section of the Map tab rather than NetRadiant Custom's modal dialog. Group status comes from primitives, not entity definitions, so a brush entity with no brushes counts as a point entity. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "A section of the Map tab rather than NetRadiant Custom's modal dialog. Group status comes from primitives, not entity definitions, so a brush entity with no brushes counts as a point entity. TrenchBroom layer and group containers are left out of the entity totals by design, so those totals are lower than NRC's by that number (the in-game totals agree). Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/app/level_map_inspector.cpp",
         "src/app/level_map_inspector_actions.cpp",
-        "src/app/level_sidebar_actions.cpp",
         "src/core/level_editor_controls.cpp",
-        "src/cli/cli.cpp",
         "src/tests/level_map_info_smoke_test.cpp",
-        "src/tests/level_map_info_ui_smoke_test.cpp"
+        "src/tests/level_map_info_ui_smoke_test.cpp",
+        "src/tests/build_rerun_smoke_test.cpp"
       ]
     },
     {
@@ -3950,35 +3964,34 @@
     {
       "id": "nrc:MouseBuild",
       "status": "Partial",
-      "workflow": "**Extrude Faces** pushes or pulls picked brush faces along their normals, **Split Extrusion** creates a separate brush, and **Extrude Faces Precisely\u2026** takes an exact distance. **Duplicate with Offset\u2026** builds linear arrays, and **Repeat Last Commands** replays a recorded clone and transform on a new selection. `map extrude-faces`, `map duplicate` and `map repeat` automate them.",
+      "workflow": "**Build** on the Levels tool bar (**Build Tool**; <kbd>B</kbd> in the NetRadiant Custom profile) extrudes and chains. A drag on or beside a selected brush's face, in a 2D view or the camera, pulls it out into a new brush or pushes it in to split a slab off through the shared extrusion service; Shift and a drag from the selection lays copies end to end, one box length apart, as one Duplicate with Offset array, the last copy left selected so **Repeat Last Commands** carries the chain on; a click selects. It excludes the object tools and the Shear Tool. **Extrude Faces**, **Duplicate with Offset\u2026** and **Repeat Last Commands** remain. `map drag-planes --mode extrude`, `map duplicate --copies` and `map repeat` automate them.",
       "gui": [
-        "map.duplicate-selection",
-        "map.repeat",
+        "map.build-tool",
         "map.extrude-faces",
         "map.extrude-split",
-        "map.extrude-precisely",
-        "map.duplicate-with-offset"
+        "map.duplicate-with-offset",
+        "map.repeat"
       ],
       "cli": [
+        "map drag-planes",
         "map extrude-faces",
         "map duplicate",
         "map repeat"
       ],
-      "limitation": "There is no single Build mode and no chain-building gesture: extrusion is a component-mode tool, and clones come from separate commands. Upstream's own behaviour is a placeholder at the pinned revision, so parity is judged against its stated intent. Native physical-input and macOS/Linux acceptance remain open. Remaining work: If NRC finishes the tool, add a Build entry to the Levels tool bar. A face drag would go to the shared extrusion service and a modified drag would build an offset clone chain recorded for Repeat. Until then, keep the existing commands.",
+      "limitation": "Upstream's Build manipulator is a placeholder at the pinned revision, so the tool follows its stated purpose (extrude, build chains, clone). A chain follows the drag's main axis only, with no spacing, and copies preview as boxes. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/level_geometry_actions.cpp",
-        "src/app/level_camera_component_actions.cpp",
-        "src/core/level_map.cpp",
-        "src/tests/level_brush_smoke_test.cpp",
-        "src/tests/level_camera_components_smoke_test.cpp",
-        "src/tests/level_duplicate_ui_smoke_test.cpp",
-        "src/tests/level_repeat_smoke_test.cpp"
+        "src/app/level_plane_drag_actions.cpp",
+        "src/core/level_plane_drag.cpp",
+        "src/app/map_viewport_plane_drag.cpp",
+        "src/app/model_viewport_plane_drag.cpp",
+        "src/tests/level_plane_drag_smoke_test.cpp",
+        "src/tests/level_plane_drag_ui_smoke_test.cpp"
       ]
     },
     {
       "id": "nrc:MouseDrag",
       "status": "Partial",
-      "workflow": "The Levels **Select** tool is the default and behaves like the QE4 drag. A drag on the selection moves it, a drag beside it resizes the sides facing the pointer (the `resize-selection` gesture), and an empty 2D drag draws a brush. In the camera, a drag moves the selection across the ground, or vertically with Alt. **Edit Faces** moves single brush planes. **Customize Editor Gestures** and `editor gestures` adjust these per profile.",
+      "workflow": "The Levels **Select** tool is NetRadiant Custom's QE4 drag. A drag on the selection moves it. In the NetRadiant Custom, NetRadiant and GtkRadiant profiles a drag over empty space beside the selection moves the selected brushes' planes that face the press point (the `drag-planes` gesture), sloped faces along their own normals and planes back to back on other selected brushes with them, stopping at the furthest grid step that keeps every face; with nothing facing the press the box resizes. In the NetRadiant Custom profile Alt drags the vertices under the pointer, or the corners of the plane under it, in a 2D view and the plane under the pointer in the camera, Ctrl+Alt extrudes the plane under the pointer into new brushes or splits a slab off, and Alt during a camera move lifts the selection. An empty 2D drag draws a brush. **Customize Editor Gestures** and `editor gestures` set the empty drag and the vertex, plane and extrude keys per profile; `map drag-planes` makes the same drags.",
       "gui": [
         "editor.gestures",
         "map.draw-brush",
@@ -3987,19 +4000,22 @@
       "cli": [
         "editor gestures",
         "editor controls",
+        "map drag-planes",
         "map move",
         "map resize"
       ],
-      "limitation": "Resizing remaps the selection's box instead of translating the brush planes that face the pointer, so oblique brushes stretch rather than moving their sloped faces. The Select tool has no Alt plane or vertex drags and no Ctrl+Alt extrude gesture, and camera brush creation needs **Draw Brush**. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Offer an NRC-style plane-drag resize that translates the brush planes facing the press point. Add the Alt plane/vertex and Ctrl+Alt extrude modifiers to the Select tool's gesture table, routed through the existing face-extrusion and component services.",
+      "limitation": "In the camera a plain drag over empty space does not pick the planes facing it (Alt picks one plane), and an empty camera drag does not create a brush (use **Draw Brush**). Patches and light radii are not plane-dragged, and a drag stops before a face would vanish rather than keeping a redundant plane. NetRadiant Custom's component-mode drags stay with the component tools. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/map_viewport.cpp",
-        "src/app/model_viewport.cpp",
-        "src/app/level_view_actions.cpp",
+        "src/core/level_plane_drag.cpp",
+        "src/app/level_plane_drag_controller.cpp",
+        "src/app/map_viewport_plane_drag.cpp",
+        "src/app/model_viewport_plane_drag.cpp",
         "src/core/level_editor_controls.cpp",
         "src/core/level_gestures.cpp",
-        "src/tests/editor_profiles_smoke_test.cpp",
+        "src/tests/level_plane_drag_smoke_test.cpp",
+        "src/tests/level_plane_drag_ui_smoke_test.cpp",
         "src/tests/level_gestures_smoke_test.cpp",
-        "src/tests/level_camera_resize_ui_smoke_test.cpp"
+        "src/tests/editor_profiles_smoke_test.cpp"
       ]
     },
     {
@@ -4490,15 +4506,21 @@
     },
     {
       "id": "nrc:PatchDeform",
-      "status": "Planned",
-      "workflow": "No equivalent. Patch control points can only be moved deliberately, through **Edit Patch Control Points\u2026**, **Edit Vertices** in the views, or `map edit-patch` and `map transform-components`. Existing control: None",
-      "gui": [],
-      "cli": [],
-      "limitation": "Nothing randomises patch control points, so roughening a surface means moving many points by hand. Once built, native physical-input and macOS/Linux acceptance would also be open. Remaining work: Add **Deform Patch\u2026**: offset every control point of the selected patches by a random amount up to a maximum along X, Y or Z, with a seed so runs repeat, as one undo step. Add a `map deform-patch` CLI command and core, UI and CLI tests.",
+      "status": "Partial",
+      "workflow": "Select patches and choose **Deform Patch\u2026**: **Maximum** (64), **Axis** (Z) and a **Seed** (a new random one each time, **New Seed**, or typed to repeat a result). Every control point moves along the axis by a random whole number of units from 0 to the maximum (a negative maximum moves them the other way), texture coordinates stay and hidden patches are left alone, as one undo step; the dialog remembers the maximum and axis. `map deform-patch` takes `--max`, `--axis` and `--seed` and reports a drawn seed.",
+      "gui": [
+        "map.deform-patch"
+      ],
+      "cli": [
+        "map deform-patch"
+      ],
+      "limitation": "The offsets come from VibeStudio's seeded Mersenne Twister, so the same settings do not reproduce upstream's rand() results. No profile binds a key, as upstream has none. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch_tools.cpp",
-        "src/app/patch_editor_dialog.cpp",
-        "docs/LEVEL_EDITOR.md"
+        "src/app/level_patch_convert_deform_actions.cpp",
+        "src/cli/level_patch_convert_deform.cpp",
+        "src/tests/level_patch_convert_deform_smoke_test.cpp",
+        "src/tests/level_patch_convert_deform_ui_smoke_test.cpp"
       ]
     },
     {
@@ -11271,18 +11293,21 @@
     {
       "id": "tb:Menu/Edit/Convert Selection to Patches",
       "status": "Partial",
-      "workflow": "In a Quake III map, select world brushes, choose a patch shape such as **Patch Plane** in the Levels Shapes tab and press **Replace Selected Brushes**. One patch fills their combined bounds (a plane lies across the top) and is selected, as one undo step. `map add-shape --object` does the same headlessly. **Edit Vertices** then reshapes its control points.",
-      "gui": [],
-      "cli": [
-        "map add-shape"
+      "workflow": "In a Quake III map, select brushes or pick faces and choose **Convert Selection to Patches** (Ctrl+P in the TrenchBroom profile while the focus is in Levels; Go to File keeps Ctrl+P elsewhere). Each face becomes flat 3x3 patches covering it exactly, in its material with its texture mapping (classic, Valve 220 or brush primitives), facing out; selected brushes are replaced and picked faces keep their brush, as one undo step; the patches are selected and **Edit Vertices** turns on. `map convert-patches` does the same with `--columns`, `--rows`, `--keep-brushes` and `--texture-size` or `--package`.",
+      "gui": [
+        "map.convert-to-patches"
       ],
-      "limitation": "Whole brushes are replaced by one patch; selected faces are not each turned into their own patch. Face materials and alignment are not carried over (the shape's texture is used), brush-entity brushes are refused and control-point editing is not entered automatically. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a core conversion for Quake III maps that emits one planar patch per selected brush face (or per face of selected brushes), with configurable rows and columns and with material and UVs projected from the face mapping, as one undo step. Expose it as a GUI command with a palette entry, a TrenchBroom binding (Ctrl+P is the global **Go to File**, so scope it to the map context) and a map convert-patches CLI command, then enter Edit Vertices.",
+      "cli": [
+        "map convert-patches"
+      ],
+      "limitation": "The Levels command converts at 3x3 only (other grids through the command line); a face of more than four corners becomes several patches; brushDef3 (idTech 4) faces are not converted; classic and Valve 220 faces whose image size is unknown are mapped as 64 by 64 texels. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/core/level_shapes.cpp",
-        "src/app/level_shapes_panel.cpp",
-        "src/core/level_patch.cpp",
-        "src/tests/level_shapes_smoke_test.cpp",
-        "src/tests/level_patch_tools_smoke_test.cpp"
+        "src/core/level_patch_convert.cpp",
+        "src/app/level_patch_convert_deform_actions.cpp",
+        "src/cli/level_patch_convert_deform.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/tests/level_patch_convert_deform_smoke_test.cpp",
+        "src/tests/level_patch_convert_deform_ui_smoke_test.cpp"
       ]
     },
     {
@@ -11933,45 +11958,51 @@
     {
       "id": "tb:Menu/Run/Launch...",
       "status": "Partial",
-      "workflow": "**Launch Game** (Ctrl+G) uses the **Launch and Test** tab in Build mode: launch profile, map name (defaulting to the compiled map), game folder and **Copy build to game**. VibeStudio validates the plan and shows the exact command line, plus any files it will copy, for confirmation before starting the game. **Build and Launch** runs the pipeline first. The launch plan and launch run commands use the same service.",
+      "workflow": "**Launch Game** (Ctrl+G) uses the **Launch and Test** tab: launch profile (Automatic, the built-in source ports or your own), map name (defaulting to the compiled map), game folder, **Extra arguments** (kept per installation, split as a shell would) and **Copy build to game**. **Launch Profiles\u2026** (also **Build** > **Launch Profiles\u2026**) edits your own engine profiles, as TrenchBroom's game engine profiles: a name, an engine and an argument line with {map}, {mod}, {basedir}, {bsp}, {iwad} and {warp}, a live preview with the current values and problems named in words. VibeStudio validates the plan and shows the exact command line, plus any files it will copy, before starting the game; from Levels this review appears over the map without changing mode. `launch plan`/`launch run` use the same service with your profiles and the saved extra arguments, and `launch profiles`, `launch profile-set`, `launch profile-remove` and `launch extra-args` manage them.",
       "gui": [
         "game.launch",
+        "game.edit-launch-profiles",
         "build.run-and-launch"
       ],
       "cli": [
         "launch plan",
-        "launch run"
+        "launch run",
+        "launch profiles",
+        "launch profile-set",
+        "launch profile-remove",
+        "launch extra-args"
       ],
-      "limitation": "Launch profiles are built-in argument templates. The GUI has no field for extra engine arguments, so the **Custom launch** profile it offers passes nothing; only the CLI's --extra-args fills it. There is no editor for your own engine profiles. Launching switches to Build mode rather than opening a dialog over Levels. Native physical input and macOS/Linux engine acceptance remain open. Remaining work: Add an Extra arguments field to Launch and Test, saved per installation, that feeds GameLaunchRequest::extraArguments. Allow user-defined launch profiles using the {map}, {mod}, {basedir} and {bsp} tokens. Offer the launch review from Levels without changing mode, and extend the shell tests.",
+      "limitation": "Your launch profiles share the installation's executable and are kept for every game rather than per game; they are not read from or written to TrenchBroom's preferences. The review is a confirmation rather than TrenchBroom's editable Launch Engine dialog, and the map's enabled mods are not yet offered as {mod}. Native physical input and macOS/Linux engine acceptance remain open.",
       "evidence": [
         "src/core/build_pipeline.cpp",
-        "src/app/game_launch_task_dialog.cpp",
+        "src/core/studio_settings_build.cpp",
+        "src/app/game_launch_profiles_dialog.cpp",
+        "src/app/build_rerun_actions.cpp",
         "src/app/application_shell.cpp",
-        "src/core/level_build_deployment.cpp",
-        "src/tests/build_pipeline_smoke_test.cpp",
-        "src/tests/shell_interaction_smoke_test.cpp",
-        "src/tests/level_build_deployment_ui_smoke_test.cpp",
+        "src/cli/launch_profiles.cpp",
+        "src/tests/build_rerun_smoke_test.cpp",
+        "src/tests/build_rerun_ui_smoke_test.cpp",
         "docs/manual/build-and-launch.md"
       ]
     },
     {
       "id": "tb:Menu/Run/Rerun...",
       "status": "Partial",
-      "workflow": "The chosen compiler profile stays on the Levels document bar, so choosing **Run Profile** again recompiles the saved map in one click. **Run Build Pipeline** (F7) and **Run Compiler Profile** (Ctrl+R) repeat the Build page selection. Run Profile and Run Compiler Profile write a command manifest under .vibestudio/compiler-runs, which the compiler rerun command replays.",
+      "workflow": "**Build** > **Re-run Last Compile** (command search, the **Tools** tab, no default key as in TrenchBroom) replays the open map's newest saved compile from .vibestudio/compiler-runs (in the project, or beside the map with no project open) exactly as it ran, the same program, arguments and folder, through the shared rerunCompilerCommandManifest(), and saves the replay beside it as the new newest run. It is enabled only when the open map has a saved run, asks to save unsaved edits first and, when saving writes a new file, compiles that file with the same profile. Run Profile remembers the profile for each game, and the next map of that game opens with it chosen. `compiler rerun --last <map>` does the same from the command line.",
       "gui": [
-        "build.run-pipeline",
-        "compiler.run"
+        "compiler.rerun-last"
       ],
       "cli": [
         "compiler rerun"
       ],
-      "limitation": "No GUI command replays the last manifest: Run Profile rebuilds the plan from current settings. Loading a map resets the profile list to that format's default, so the last profile used is not remembered. There is no dedicated re-run command, palette entry or key. Native physical input and macOS/Linux acceptance remain open. Remaining work: Add a Re-run Last Compile command, with a palette entry and optional key, that replays the newest .vibestudio/compiler-runs manifest for the open map through rerunCompilerCommandManifest. Enable it only when such a manifest exists, remember the last Levels profile for each game, and add a shell test.",
+      "limitation": "It replays the saved command rather than reopening a compile dialog, offers only the newest run (the enablement check reads the newest 64 runs per folder), and build pipelines' own stage manifests are not replayed. VibeStudio's remembered profile must suit the map's format. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/compiler_runner.cpp",
+        "src/app/build_rerun_actions.cpp",
         "src/app/application_shell.cpp",
-        "src/app/level_document_actions.cpp",
         "src/cli/cli.cpp",
-        "src/tests/compiler_profiles_smoke_test.cpp"
+        "src/tests/build_rerun_smoke_test.cpp",
+        "src/tests/build_rerun_ui_smoke_test.cpp"
       ]
     },
     {
@@ -12486,7 +12517,7 @@
     {
       "id": "tb:Menu/View/Switch to Map Inspector",
       "status": "Partial",
-      "workflow": "**Show Map** opens the Levels **Map** tab, bound to <kbd>Ctrl</kbd>+<kbd>1</kbd> in the TrenchBroom profile while the keyboard is inside Levels; elsewhere Ctrl+1 still opens Workspace. Besides worldspawn keys, the checklist, statistics and definitions, the tab now holds a **Layers** summary (objects, groups and, in words, hidden, locked, omitted from export and where new objects go; Enter or **Manage Layers** opens it in the Outliner's Layers and Groups), **Map Properties** with TrenchBroom's soft bounds (**No soft bounds**, **The game's bounds** or **Custom bounds**, kept as _tb_soft_map_bounds, with the count of objects outside) and **Mods** (an ordered _tb_mod list from the installation's folders or typed), each change one undo step. `map properties` reports and sets the same, and `map inspect --json` includes them as mapProperties.",
+      "workflow": "**Show Map** opens the Levels **Map** tab, bound to <kbd>Ctrl</kbd>+<kbd>1</kbd> in the TrenchBroom profile while the keyboard is inside Levels; elsewhere Ctrl+1 still opens Workspace. Besides worldspawn keys, the checklist, statistics and definitions, the tab holds a **Layers** summary, **Map Properties** with TrenchBroom's soft bounds (kept as _tb_soft_map_bounds, with the count of objects outside) and **Mods** (an ordered _tb_mod list from the installation's folders, refreshed when the installation changes, or typed), each change one undo step. As in TrenchBroom, Map Properties, Mods and the Worldspawn keys change while a group is open, and the group stays open. `map properties` reports and sets the same, and `map inspect --json` includes them as mapProperties.",
       "gui": [
         "map.sidebar.map"
       ],
@@ -12500,11 +12531,11 @@
         "src/core/level_map_inspector.cpp",
         "src/app/level_map_inspector.cpp",
         "src/app/level_map_inspector_actions.cpp",
-        "src/app/level_sidebar_actions.cpp",
-        "src/core/level_editor_controls.cpp",
+        "src/app/level_sidebar_panels.cpp",
         "src/cli/level_map_properties.cpp",
         "src/tests/level_map_info_smoke_test.cpp",
-        "src/tests/level_map_info_ui_smoke_test.cpp"
+        "src/tests/level_map_info_ui_smoke_test.cpp",
+        "src/tests/build_rerun_ui_smoke_test.cpp"
       ]
     },
     {

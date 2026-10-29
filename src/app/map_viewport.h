@@ -26,6 +26,7 @@
 #include "app/level_component_gizmo.h"
 #include "app/level_linked_group_boxes.h"
 #include "app/level_vertex_insertion.h"
+#include "app/level_plane_drag_controller.h"
 #include "core/map_geometry.h"
 #include "core/map_geometry_cache.h"
 #include "app/map_viewport_scene_index.h"
@@ -411,6 +412,18 @@ public:
 	// outranks the resize handles, which it hides while its tool is on.
 	[[nodiscard]] LevelComponentGizmo* objectGizmo() const { return m_objectGizmo; }
 	bool beginObjectTransform(const QPointF& point);
+	// NetRadiant Custom's drag-tool gestures and the Build tool
+	// (map_viewport_plane_drag.cpp, app/level_plane_drag_controller.h): with
+	// the drag-planes empty drag, a drag beside the selection moves the brush
+	// planes facing the press point; the vertex and extrude keys drag the
+	// selection's vertices or extrude the plane under the pointer; in Build
+	// mode a plain drag on or beside a selected brush extrudes the plane under
+	// the pointer and a Shift drag on the selection lays copies end to end.
+	// The view previews; the shell applies the controller's requests.
+	[[nodiscard]] LevelPlaneDragController* planeDrag() const { return m_planeDrag; }
+	void setBuildMode(bool enabled);
+	[[nodiscard]] bool buildMode() const { return m_buildMode; }
+	bool beginPlaneDrag(LevelPlaneDragKind kind, const QPointF& point);
 	void setComponentSplit(bool enabled);
 	[[nodiscard]] bool componentSplit() const { return m_componentSplit; }
 	void setComponentExtrusion(int mode, const LevelMapVec3& normal = {}, const QVector<LevelMapVec3>& vertices = {});
@@ -918,6 +931,19 @@ private:
 	bool objectGizmoMouseRelease(QMouseEvent* event);
 	bool objectGizmoKey(QKeyEvent* event, bool pressed);
 	void paintObjectGizmo(QPainter& painter, const Palette& palette) const;
+	// The drag-tool gestures and Build tool (map_viewport_plane_drag.cpp).
+	LevelPlaneDragController* m_planeDrag = nullptr;
+	bool m_buildMode = false;
+	// A drag-planes empty drag waiting for the pointer to move.
+	bool m_pendingPlaneDrag = false;
+	// A Build press that is a click unless it drags, and its keys.
+	bool m_planeDragClick = false;
+	Qt::KeyboardModifiers m_planeDragKeys = Qt::NoModifier;
+	bool planeDragMousePress(QMouseEvent* event);
+	bool planeDragMouseMove(QMouseEvent* event);
+	bool planeDragMouseRelease(QMouseEvent* event);
+	bool beginPendingPlaneDrag(const QPointF& press, const QPointF& current);
+	void paintPlaneDrag(QPainter& painter) const;
 	LevelVertexInsertion* m_vertexInsertion = nullptr;
 	std::shared_ptr<LevelVertexInsertionData> m_componentInsertionData;
 	bool m_componentHandlesLimited = false;

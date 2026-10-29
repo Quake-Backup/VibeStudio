@@ -51,6 +51,10 @@ enum class PlanEmptyDrag {
 	// The sides of the selection's box that face the press point follow the
 	// pointer (Radiant's face dragging, on the selection's box).
 	ResizeSelection,
+	// The selected brushes' planes that face the press point follow the
+	// pointer, sloped ones too (NetRadiant Custom's QE4 drag,
+	// core/level_plane_drag.h); a selection with no such plane resizes its box.
+	DragPlanes,
 };
 
 struct PlanViewControls {
@@ -76,6 +80,13 @@ struct PlanViewControls {
 	Qt::KeyboardModifiers bandModifiers = Qt::NoModifier;
 	PlanEmptyDrag emptyDrag = PlanEmptyDrag::BoxSelect;
 	PlanEmptyDrag emptyDragWithSelection = PlanEmptyDrag::BoxSelect;
+	// NetRadiant Custom's drag tool (core/level_plane_drag.h). With these
+	// held, a left drag moves the selected brushes' vertices under the
+	// pointer, or the corners of the plane under it; with the extrude keys it
+	// pulls the faces on that plane out into new brushes, or pushes them in to
+	// split a slab off. NoModifier disables either.
+	Qt::KeyboardModifiers vertexDragModifiers = Qt::NoModifier;
+	Qt::KeyboardModifiers extrudeDragModifiers = Qt::NoModifier;
 	// A plain click on objects stacked under the pointer steps through them,
 	// one per click (Radiant's tunnel selection).
 	bool clickCyclesStack = false;
@@ -95,6 +106,10 @@ struct PlanViewControls {
 	bool arrowsDriveCamera = false;
 	// Fixed 32-unit / 22.5-degree camera steps instead of grid-relative steps.
 	bool fixedCameraSteps = false;
+	// The camera's other drive keys (strafe, up and down, look up and down)
+	// work from the 2D view too, as Radiant's global camera keys do, while no
+	// command there uses the key (planRoutedCameraDriveKeys()).
+	bool cameraDriveKeys = false;
 	// While drawing a brush: keep the box square in the view, or make it a
 	// cube.
 	Qt::KeyboardModifiers squareModifiers = Qt::ShiftModifier;
@@ -218,6 +233,13 @@ struct CameraViewControls {
 	// and with Alt up and down (TrenchBroom, Radiant). The orbit view's left
 	// drag orbits instead.
 	bool dragMovesSelection = false;
+	// NetRadiant Custom's drag tool in the camera (core/level_plane_drag.h):
+	// with these held, a left drag moves the selected brushes' plane under the
+	// pointer (or behind the edge nearest it) along its normal; with the
+	// extrude keys it pulls the faces on that plane out into new brushes, or
+	// pushes them in to split a slab off. NoModifier disables either.
+	Qt::KeyboardModifiers planeDragModifiers = Qt::NoModifier;
+	Qt::KeyboardModifiers extrudeDragModifiers = Qt::NoModifier;
 	// Keys held while the 3D view has focus fly the camera; with
 	// `flyNeedsLook` only while looking.
 	CameraFlyKeys flyKeys;
@@ -226,6 +248,12 @@ struct CameraViewControls {
 	CameraFlyKeys driveKeys;
 	// Drive keys step on each press/repeat instead of using held-key flight.
 	bool discreteDriveKeys = false;
+	// How far a drive-key step pitches the camera, in degrees from level; the
+	// camera itself stops 1 degree short of vertical.
+	double drivePitchLimitDegrees = 85.0;
+	// Units per second held camera keys fly and drive at; 0 scales the speed
+	// with the size of the map. One of levelCameraMoveSpeeds() otherwise.
+	int moveSpeed = 0;
 	bool turnKeysStrafeInLook = true;
 	// Turn/pitch keys translate horizontally/vertically with these modifiers.
 	Qt::KeyboardModifiers turnKeysPanModifiers = Qt::NoModifier;
@@ -343,6 +371,15 @@ enum class CameraFreeLookMotion { Look, Pan, Dolly };
 [[nodiscard]] QPoint planArrowPanDirection(const PlanViewControls& controls, int key, Qt::KeyboardModifiers modifiers);
 // Forward units and yaw degrees for a plan's camera arrow command.
 [[nodiscard]] QPointF planCameraStep(const PlanViewControls& controls, int key, Qt::KeyboardModifiers modifiers, double gridUnits);
+// Keys a 2D view keeps for itself whatever the profile: the arrows, + - = _,
+// Home, F, Space, Backspace, Delete, Escape, Enter, Tab and its temporary pan
+// key. Camera drive keys passed on from a 2D view never take these.
+[[nodiscard]] bool planViewKeepsKey(const PlanViewControls& controls, int key, Qt::KeyboardModifiers modifiers);
+// The camera's drive keys a 2D view passes on to the camera (Radiant's
+// global camera keys): with `plan.cameraDriveKeys` and a first-person
+// camera, every drive key the 2D view does not keep. Fly keys stay the
+// camera's own.
+[[nodiscard]] CameraFlyKeys planRoutedCameraDriveKeys(const LevelEditorControls& controls);
 // Shared, input-independent routing used by the viewport and regression tests.
 [[nodiscard]] CameraNavigationDrag cameraNavigationDrag(const CameraViewControls& controls,
 	Qt::MouseButton button, Qt::KeyboardModifiers modifiers);

@@ -31,4 +31,8 @@ LevelMoveRepeatCliResult runLevelObjectShear(const QStringList& arguments);
 // map repeat-transforms: NetRadiant Custom's Repeat Transforms
 // (core/level_repeat.h) with the transforms named on the command line.
 LevelMoveRepeatCliResult runLevelRepeatTransforms(const QStringList& arguments);
+// map drag-planes: NetRadiant Custom's QE4 plane drag, Alt plane and vertex
+// drags and Ctrl+Alt extrusion as the Levels Select and Build tools make
+// them (core/level_plane_drag.h).
+LevelMoveRepeatCliResult runLevelPlaneDrag(const QStringList& arguments);
 } // namespace vibestudio::cli

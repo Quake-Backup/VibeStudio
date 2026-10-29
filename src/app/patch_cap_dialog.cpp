@@ -1,5 +1,7 @@
 #include "app/patch_cap_dialog.h"
 #include "app/model_viewport.h"
+#include "core/level_patch_tools.h"
+#include "core/level_visibility.h"
 #include "core/studio_settings.h"
 #include <QCheckBox>
 #include <QComboBox>
@@ -12,8 +14,10 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QLineEdit>
 #include <QScrollBar>
 #include <QSet>
+#include <QSignalBlocker>
 #include <QSplitter>
 #include <QThread>
 #include <QTimer>
@@ -68,12 +72,33 @@ PatchCapDialog::PatchCapDialog(const LevelMapDocument &source, std::shared_ptr<c
 		form->addRow(label, box);
 		return box;
 	};
-	m_patch = combo(QStringLiteral("capPatch"), tr("Source patch"), {});
-	for (const auto &p : source.patches) {
-		m_patch->addItem(tr("Patch %1 · %2").arg(p.id).arg(p.textureName), p.id);
+	// NetRadiant Custom's Cap Selection types beside the radial cap.
+	m_style = combo(QStringLiteral("capStyle"), tr("Cap style"), {});
+	for (int style = 0; style < levelPatchCapStyleIds().size(); ++style) {
+		m_style->addItem(levelPatchCapStyleLabel(static_cast<LevelPatchCapStyle>(style)), style);
 	}
-	if (source.selectionKind == LevelMapSelectionKind::QuakePatch) {
-		m_patch->setCurrentIndex(m_patch->findData(source.selectedObjectId));
+	m_style->setToolTip(tr("Radial closes a boundary with a flat fan to its centre. Bevel, Endcap, Inverted Bevel, Inverted Endcap and "
+						   "Cylinder are NetRadiant Custom's seams: the bevels need boundaries of 3 or 5 control points, the end caps 5 and Cylinder 9."));
+	m_patch = combo(QStringLiteral("capPatch"), tr("Source patch"), {});
+	// Hidden patches are neither offered nor capped.
+	const QSet<QString> hidden = levelMapHiddenObjects(source);
+	const auto shown = [&hidden](int id) { return !hidden.contains(levelMapSelectionRefId({LevelMapSelectionKind::QuakePatch, id})); };
+	for (int id : levelMapSelectedPatchIds(source)) {
+		if (shown(id)) {
+			m_selected << id;
+		}
+	}
+	if (m_selected.size() > 1) {
+		const int count = static_cast<int>(m_selected.size());
+		m_patch->addItem(tr("All %n selected patches", nullptr, count), -1);
+	}
+	for (const auto &p : source.patches) {
+		if (shown(p.id)) {
+			m_patch->addItem(tr("Patch %1 · %2").arg(p.id).arg(p.textureName), p.id);
+		}
+	}
+	if (m_selected.size() == 1) {
+		m_patch->setCurrentIndex(m_patch->findData(m_selected.first()));
 	}
 	m_boundary =
 		combo(QStringLiteral("capBoundary"), tr("Boundary"), {tr("First row"), tr("Last row"), tr("First column"), tr("Last column")});
@@ -178,6 +203,10 @@ PatchCapDialog::PatchCapDialog(const LevelMapDocument &source, std::shared_ptr<c
 	for (auto *c : {m_patch, m_boundary, m_uv, m_view}) {
 		connect(c, &QComboBox::currentIndexChanged, this, [this] { schedule(); });
 	}
+	connect(m_style, &QComboBox::currentIndexChanged, this, [this] { styleChanged(); });
+	// A material the user picks or types stays whatever the style.
+	connect(m_texture, &QComboBox::activated, this, [this] { m_materialChosen = true; });
+	connect(m_texture->lineEdit(), &QLineEdit::textEdited, this, [this] { m_materialChosen = true; });
 	connect(m_texture, &QComboBox::currentTextChanged, this, [this] { schedule(); });
 	for (auto *c : {m_units, m_x, m_y, m_z}) {
 		connect(c, &QDoubleSpinBox::valueChanged, this, [this] { schedule(); });
@@ -204,10 +233,46 @@ PatchCapDialog::~PatchCapDialog()
 		m_work->cancelled = true;
 	}
 }
-int PatchCapDialog::patchId() const { return m_patch->currentIndex() < 0 ? -1 : m_patch->currentData().toInt(); }
+QVector<int> PatchCapDialog::patchIds() const
+{
+	if (m_patch->currentIndex() < 0) {
+		return {};
+	}
+	const int id = m_patch->currentData().toInt();
+	return id < 0 ? m_selected : QVector<int>{id};
+}
+void PatchCapDialog::setCurrentMaterial(const QString &material)
+{
+	if (material.trimmed().isEmpty() || m_currentMaterialIndex >= 0) {
+		return;
+	}
+	const QSignalBlocker blocker(m_texture);
+	m_texture->insertItem(1, tr("Current material · %1").arg(material.trimmed()), material.trimmed());
+	m_currentMaterialIndex = 1;
+	if (m_style->currentIndex() > 0 && !m_materialChosen) {
+		m_texture->setCurrentIndex(m_currentMaterialIndex);
+		schedule();
+	}
+}
+void PatchCapDialog::styleChanged()
+{
+	// Only radial caps take a centre; the seams close where their layout
+	// does, in the current material as NetRadiant Custom's do.
+	const bool radial = m_style->currentIndex() <= 0;
+	if (!radial) {
+		m_custom->setChecked(false);
+	}
+	m_custom->setEnabled(radial);
+	if (!m_materialChosen && m_currentMaterialIndex >= 0) {
+		const QSignalBlocker blocker(m_texture);
+		m_texture->setCurrentIndex(radial ? 0 : m_currentMaterialIndex);
+	}
+	schedule();
+}
 LevelPatchCapRequest PatchCapDialog::request() const
 {
 	LevelPatchCapRequest r;
+	r.style = static_cast<LevelPatchCapStyle>(std::max(0, m_style->currentData().toInt()));
 	const int edge = m_boundary->currentIndex();
 	r.boundaries = {static_cast<LevelPatchBoundary>(edge)};
 	if (m_opposite->isChecked()) {
@@ -217,7 +282,7 @@ LevelPatchCapRequest PatchCapDialog::request() const
 																						   : m_texture->currentText();
 	r.uv = static_cast<LevelPatchCapUv>(m_uv->currentIndex());
 	r.unitsPerTile = m_units->value();
-	r.customCenter = m_custom->isChecked();
+	r.customCenter = m_custom->isChecked() && r.style == LevelPatchCapStyle::Radial;
 	r.center = {m_x->value(), m_y->value(), m_z->value(), true};
 	r.invert = m_invert->isChecked();
 	return r;
@@ -264,30 +329,23 @@ void PatchCapDialog::startPreview()
 	work->generation = m_generation;
 	m_work = work;
 	auto visible = m_source;
-	const int id = patchId(), view = m_view->currentIndex();
+	const QVector<int> ids = patchIds();
+	const int view = m_view->currentIndex();
 	const auto r = request();
 	const auto palette = m_palette;
 	const auto archive = m_archive;
-	m_thread = QThread::create([work, visible, id, view, r, archive, palette]() mutable {
+	m_thread = QThread::create([work, visible, ids, view, r, archive, palette]() mutable {
 		const auto cancelled = [work] { return work->cancelled.load(); };
-		const auto source = std::find_if(visible.patches.cbegin(), visible.patches.cend(), [&](const auto &p) { return p.id == id; });
-		if (source == visible.patches.cend()) {
+		if (ids.isEmpty()) {
 			work->error = QCoreApplication::translate("PatchCapDialog", "Choose an existing patch.");
 		} else {
-			work->valid = prepareLevelPatchCaps(*source, r, &work->result, &work->error, cancelled);
-			if (work->valid && !cancelled()) {
-				QVector<int> ids;
-				work->valid = addLevelMapPatches(&visible, work->result.caps, source->entityId, &ids, &work->error);
-				if (work->valid) {
-					for (int i = 0; i < ids.size(); ++i) {
-						work->result.caps[i].id = ids[i];
-					}
-				}
-			}
+			// The same document operation Add Caps runs, on a copy.
+			work->valid = capLevelMapPatches(&visible, ids, r, &work->result, &work->error);
 		}
 		if (cancelled()) {
 			return;
 		}
+		const QSet<int> sourceIds(ids.cbegin(), ids.cend());
 		QSet<int> capIds;
 		if (work->valid) {
 			for (const auto &p : work->result.caps) {
@@ -299,7 +357,8 @@ void PatchCapDialog::startPreview()
 		visible.patches.erase(std::remove_if(visible.patches.begin(), visible.patches.end(),
 											 [&](const auto &p) {
 												 return !validateLevelPatch(p) ||
-														(p.id == id ? view == 1 && work->valid : view == 2 || !capIds.contains(p.id));
+														(sourceIds.contains(p.id) ? view == 1 && work->valid
+																				  : view == 2 || !capIds.contains(p.id));
 											 }),
 							  visible.patches.end());
 		if (archive) {
@@ -344,7 +403,11 @@ void PatchCapDialog::startPreview()
 		m_preview->setHighlightedTriangles(work->highlights);
 		QString text = work->error;
 		if (m_valid) {
-			text = tr("%1 caps ready. The source patch stays intact.").arg(m_result.caps.size());
+			const int count = static_cast<int>(m_result.caps.size());
+			text = tr("%n cap(s) ready. The source patches stay as they are.", nullptr, count);
+			for (const auto &reason : std::as_const(m_result.skipped)) {
+				text += '\n' + tr("Not capped: %1").arg(reason);
+			}
 			text += '\n' + m_result.warnings.join('\n');
 			if (!m_archive) {
 				text += '\n' + tr("Open a package or asset folder for material images.");
@@ -356,7 +419,7 @@ void PatchCapDialog::startPreview()
 	connect(m_thread, &QThread::finished, m_thread, &QObject::deleteLater);
 	m_thread->start();
 }
-void PatchCapDialog::setApplyHandler(std::function<bool(int, const LevelPatchCapRequest &, QString *)> handler)
+void PatchCapDialog::setApplyHandler(std::function<bool(const QVector<int> &, const LevelPatchCapRequest &, QString *)> handler)
 {
 	m_handler = std::move(handler);
 }
@@ -366,7 +429,7 @@ void PatchCapDialog::accept()
 		return;
 	}
 	QString error;
-	if (m_handler && !m_handler(patchId(), request(), &error)) {
+	if (m_handler && !m_handler(patchIds(), request(), &error)) {
 		m_status->setPlainText(error);
 		return;
 	}

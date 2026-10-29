@@ -149,6 +149,22 @@ void checkRingStartIds()
 			&& parseLevelPatchRingStart(QStringLiteral("auto"), &start) && start == LevelPatchRingStart::Auto
 			&& !parseLevelPatchRingStart(QStringLiteral("sideways"), &start) && start == LevelPatchRingStart::Auto,
 		"ring start ids parse and print");
+	// Auto starts half a turn round only for NetRadiant Custom's fixed 9x3
+	// Cylinder; a nine-column cylinder of five rows is one only its Exact
+	// Cylinder makes, which starts at angle 0.
+	for (const int rows : {3, 5}) {
+		LevelPatchCreateRequest automatic;
+		automatic.shape = QStringLiteral("cylinder");
+		automatic.rows = rows;
+		LevelPatchCreateRequest exact = automatic;
+		exact.ringStart = LevelPatchRingStart::Exact;
+		LevelMapPatch autoPatch;
+		LevelMapPatch exactPatch;
+		const bool built = createLevelPatch(automatic, &autoPatch) && createLevelPatch(exact, &exactPatch);
+		const double startX = built ? autoPatch.controlPoints.first().x : 0;
+		expect(built && (rows == 3 ? startX < 0 : startX > 0) && (rows == 3) != (startX == exactPatch.controlPoints.first().x),
+			"Auto starts the 9x3 cylinder half a turn round and the 9x5 one at angle 0", QString::number(startX));
+	}
 }
 
 // Exact shapes at NetRadiant Custom's density choices, through the shape
@@ -421,6 +437,15 @@ void checkCli(const QString& binary)
 	run({QStringLiteral("add-patch"), source, QStringLiteral("--ring-start"), QStringLiteral("sideways"), QStringLiteral("--texture"), QStringLiteral("x"),
 			QStringLiteral("--output"), tube, QStringLiteral("--overwrite")},
 		2);
+	// As map add-shape does, add-patch takes Square and the ring start only
+	// for the round shapes.
+	for (const QStringList& extra : {QStringList {QStringLiteral("--shape"), QStringLiteral("bevel"), QStringLiteral("--square")},
+			 QStringList {QStringLiteral("--ring-start"), QStringLiteral("exact")},
+			 QStringList {QStringLiteral("--shape"), QStringLiteral("square-cylinder"), QStringLiteral("--square")}}) {
+		run(QStringList {QStringLiteral("add-patch"), source} + extra
+				+ QStringList {QStringLiteral("--texture"), QStringLiteral("x"), QStringLiteral("--output"), tube, QStringLiteral("--overwrite")},
+			2);
+	}
 	// map add-shape: a squared Exact 13x7 sphere replaces brush 0, exactly as
 	// the service does, and a patch cone takes rows.
 	const QString orb = root.filePath(QStringLiteral("orb.map"));
