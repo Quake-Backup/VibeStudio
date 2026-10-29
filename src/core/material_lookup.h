@@ -21,6 +21,10 @@ namespace vibestudio {
 // diffuse map, else the first stage image, else (classic textures and
 // implicit materials) the name itself.
 QString materialDisplayImage(const MaterialDefinition& definition);
+// The same, empty when the definition names no image of its own (where
+// materialDisplayImage falls back to the name). The Levels preview takes a
+// shader's still image from here.
+QString materialDeclaredDisplayImage(const MaterialDefinition& definition);
 
 struct MaterialLookupResult {
 	// True when a script, decl or classic texture defines the name; false

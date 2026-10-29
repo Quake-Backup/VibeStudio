@@ -8,6 +8,12 @@ namespace vibestudio {
 
 QString materialDisplayImage(const MaterialDefinition& definition)
 {
+	const QString image = materialDeclaredDisplayImage(definition);
+	return image.isEmpty() ? definition.name : image;
+}
+
+QString materialDeclaredDisplayImage(const MaterialDefinition& definition)
+{
 	if (!definition.editorImage.isEmpty()) {
 		return definition.editorImage;
 	}
@@ -38,7 +44,7 @@ QString materialDisplayImage(const MaterialDefinition& definition)
 			return image;
 		}
 	}
-	return definition.name;
+	return QString();
 }
 
 MaterialLookup::MaterialLookup(MaterialLibraryOptions options)

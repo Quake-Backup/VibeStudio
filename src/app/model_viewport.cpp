@@ -1136,7 +1136,11 @@ void ModelViewport::invalidateProjection()
 {
 	m_componentCycle.reset();
 	finishClipPoint(false);
-	finishComponentMove(false); m_componentBanding = false;
+	// A released move only waits for its draft: its delta is in world units,
+	// and the owner checks the map and selection again before committing, so
+	// a resize or camera change after release keeps the edit.
+	if (!m_componentReleasePending) { finishComponentMove(false); }
+	m_componentBanding = false;
 	if (!m_materialStrokePreviewChange) { finishMaterialStroke(false); clearMaterialStrokePreview(); }
 	finishBrushDraw(false);
 	finishSelectionResize(false);

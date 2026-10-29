@@ -189,6 +189,7 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Models:** For `.md5anim`, `model build --frame N` now selects the clip that frame belongs to rather than clip N, and out-of-range clips are refused instead of clamped. MD3 surfaces are limited to Quake III's working 999 vertices and 1,999 triangles. Quake III detail sets stop at the two levels the game loads (`model lod --levels 3` exits 2), are prepared and checked as a whole, and ask before replacing files. `model targets --target` with an id that several formats share needs `--format`.
 - **Levels:** Linked groups use TrenchBroom's terms: commands and help speak of linked groups and link sets rather than linked copies. Scene metadata version 6 saves each linked group's affine frame; maps saved with earlier versions still open, and the CLI keeps the old `link`, `update-links`, `unlink` and `extract-linked` names.
 - **Levels:** **Extract Linked Groups** now takes closed groups nested in the open linked group, moving each whole into the new linked groups with its links, and works inside a linked group nested in another, whose set takes the same new structure and stays in sync.
+- **Levels:** The camera and its texture list read the selected game installation's base packages beneath the open package, and take each Quake III shader's image as the Materials page does, for the game chosen there; a shader that game throws away keeps its editor image, with a warning in Details.
 
 ### Removed
 
@@ -251,5 +252,6 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Levels:** An edit to one of two linked groups that sit inside the same linked group now reaches every copy of both, and members changed the same way at once are no longer marked out of sync because their protected values differ.
 - **Levels:** The 3D camera no longer waits indefinitely to rebuild after an edit when its repaints are slow, as with a large map, a debug build or a busy machine; on Windows the rebuild's start timer could be held back until the camera stopped repainting.
 - **Command Palette:** a command named exactly what you type comes first, so typing Models opens the Models page again rather than the Levels Models filter.
+- **Levels:** A component move released in the camera is no longer dropped when the camera resizes or moves while the move is still being checked; the map and selection are still checked before it applies.
 
 [Unreleased]: https://github.com/themuffinator/VibeStudio/commits/main

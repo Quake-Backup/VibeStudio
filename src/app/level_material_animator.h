@@ -38,8 +38,11 @@ public:
 	// Reduced motion keeps every face still.
 	void setReducedMotion(bool reduced);
 	// The package the map's materials come from and the packages beneath it
-	// (file paths, lowest first). Read in the background when next needed.
-	void setPackage(std::shared_ptr<const PackageArchiveReader> reader, const QStringList& basePaths);
+	// (file paths, lowest first), read for the Materials page's Quake III
+	// game. Read in the background when next needed.
+	void setPackage(std::shared_ptr<const PackageArchiveReader> reader, const QStringList& basePaths,
+		MaterialDialect dialect = MaterialDialect::Automatic);
+	[[nodiscard]] MaterialDialect dialect() const { return m_dialect; }
 	// The camera's mesh now shown, its surfaces named by material, and each
 	// surface's still image.
 	void setSurfaces(const ModelMesh& mesh, MaterialEngine engine, const QHash<int, QImage>& stillImages);
@@ -63,6 +66,7 @@ private:
 	std::shared_ptr<MaterialLookup> m_lookup;
 	std::shared_ptr<const PackageArchiveReader> m_reader;
 	QStringList m_basePaths;
+	MaterialDialect m_dialect = MaterialDialect::Automatic;
 	bool m_lookupStale = true;
 	MaterialEngine m_engine = MaterialEngine::Unknown;
 	// Material names (lookup keys) to the surfaces that show them.

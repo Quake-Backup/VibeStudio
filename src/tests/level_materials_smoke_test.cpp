@@ -1,6 +1,7 @@
 #include "core/level_materials.h"
 #include "core/level_texture_mapping.h"
 #include "core/map_geometry.h"
+#include "core/material_library.h"
 #include "core/package_staging.h"
 #include "tests/level_material_test_helpers.h"
 #include <QCoreApplication>
@@ -9,6 +10,7 @@
 #include <QProcess>
 #include <QTemporaryDir>
 #include <QtEndian>
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -229,6 +231,67 @@ int main(int argc, char **argv)
 		ok &= expect(tests::materialNamed(report, QStringLiteral("studio/shader"))->status == QStringLiteral("ambiguous") &&
 						 report.problemCount() > 0,
 					 "duplicate shader declarations cannot choose an arbitrary owner");
+	}
+	ok &= expect(animated && animated->note.contains(QStringLiteral("Animate Materials in Camera")),
+				 "an animated shader's note names the camera command that plays it", animated ? animated->note : QString());
+	{
+		// Shaders are read as the Materials page reads them, for the chosen
+		// Quake III game: Jedi Knight's glow stage is fine there, and Quake III
+		// Arena throws the shader away, which the face reports while keeping
+		// its editor image.
+		PackageStagingModel jedi;
+		ok &= jedi.loadBaseArchive(archive, &error);
+		ok &= jedi.addBytes("textures/studio/grid\n{\nqer_editorimage textures/studio/editor.png\n{\nmap textures/studio/stage.png\nglow\n}\n}\n",
+							QStringLiteral("scripts/jedi.shader"), &error);
+		const PackageStagingArchive jediArchive(jedi);
+		const auto rejected = [](const LevelPreviewMaterial *material) {
+			return material && std::any_of(material->warnings.cbegin(), material->warnings.cend(),
+									[](const QString &warning) { return warning.contains(QStringLiteral("rejects")); });
+		};
+		for (const MaterialDialect dialect : {MaterialDialect::Automatic, MaterialDialect::JediKnight, MaterialDialect::Quake3}) {
+			LevelPreviewAssetOptions read;
+			read.materialDialect = dialect;
+			const auto report = resolveLevelPreviewAssets(document, jediArchive, read);
+			const auto *grid = tests::materialNamed(report, QStringLiteral("studio/grid"));
+			ok &= expect(grid && grid->ready() && grid->status == QStringLiteral("editor-image") && grid->imagePath.endsWith(QStringLiteral("editor.png"))
+							 && grid->shaderPath == QStringLiteral("scripts/jedi.shader"),
+						 "a shader's still image is the one the Materials page shows", levelPreviewAssetsText(report));
+			ok &= expect(rejected(grid) == (dialect == MaterialDialect::Quake3),
+						 "the face reports the game rejecting the shader only for a game that does",
+						 materialDialectId(dialect) + QStringLiteral(": ") + (grid ? grid->warnings.join(QStringLiteral("; ")) : QString()));
+		}
+	}
+	{
+		// The package over its game's base packages, as the Materials page reads
+		// it: the game's shader and image resolve beneath the package, the
+		// package's own declaration hides the game's, and a name the game's own
+		// scripts declare twice is taken as the game takes it.
+		const QString baseRoot = QDir(temp.path()).filePath(QStringLiteral("base"));
+		ok &= tests::putMaterialFile(QDir(baseRoot).filePath(QStringLiteral("textures/base/look.png")), tests::materialImage(16, 48));
+		ok &= tests::putMaterialFile(QDir(baseRoot).filePath(QStringLiteral("scripts/a.shader")),
+									 "textures/studio/grid\n{\nqer_editorimage textures/base/gone.png\n{ map textures/base/look.png }\n}\n");
+		ok &= tests::putMaterialFile(QDir(baseRoot).filePath(QStringLiteral("scripts/b.shader")),
+									 "textures/studio/grid\n{\nqer_editorimage textures/base/look.png\n}\n"
+									 "textures/studio/shader\n{\nqer_editorimage textures/base/look.png\n}\n");
+		auto base = std::make_shared<PackageArchive>();
+		auto package = std::make_shared<PackageArchive>();
+		ok &= expect(base->load(baseRoot, &error) && package->load(QDir(temp.path()).filePath(QStringLiteral("assets")), &error),
+					 "open the package and its base package", error);
+		const MaterialLayeredReader layered(package, {base});
+		const auto report = resolveLevelPreviewAssets(document, layered);
+		const auto *grid = tests::materialNamed(report, QStringLiteral("studio/grid"));
+		const auto *shader = tests::materialNamed(report, QStringLiteral("studio/shader"));
+		ok &= expect(grid && grid->ready() && grid->shaderPath == QStringLiteral("scripts/b.shader") && grid->sourceLayer == QStringLiteral("base:0")
+						 && grid->sourceSize == QSize(16, 48),
+					 "the game's shader and image resolve beneath the package, its last script winning", levelPreviewAssetsText(report));
+		ok &= expect(shader && shader->ready() && shader->shaderPath == QStringLiteral("scripts/studio.shader") && shader->imagePath.endsWith(QStringLiteral("editor.png")),
+					 "the package's own declaration hides the game's without being ambiguous", levelPreviewAssetsText(report));
+		LevelPreviewAssetOptions original;
+		original.materialDialect = MaterialDialect::Quake3Original;
+		const auto first = resolveLevelPreviewAssets(document, layered, original);
+		const auto *firstGrid = tests::materialNamed(first, QStringLiteral("studio/grid"));
+		ok &= expect(firstGrid && firstGrid->shaderPath == QStringLiteral("scripts/a.shader") && firstGrid->status == QStringLiteral("missing"),
+					 "Quake III 1.32 takes the game's first script, whose editor image is missing", levelPreviewAssetsText(first));
 	}
 	{
 		PackageStagingModel missingImage;

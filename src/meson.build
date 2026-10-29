@@ -3844,7 +3844,10 @@ model_intersections_ui_smoke_test = executable(
   'model_intersections_ui_smoke_test', ['tests/model_intersections_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
 )
-test('model-intersections-ui-smoke', model_intersections_ui_smoke_test, env: model_document_test_env, timeout: 120)
+# Both time the editor's event loop through a maximum-size job against a
+# 300 ms budget; beside other heavy tests the gaps measure the machine, not
+# the editor, so they run alone.
+test('model-intersections-ui-smoke', model_intersections_ui_smoke_test, env: model_document_test_env, timeout: 120, is_parallel: false)
 
 model_import_repair_smoke_test = executable(
   'model_import_repair_smoke_test', ['tests/model_import_repair_smoke_test.cpp'],
@@ -3856,7 +3859,7 @@ model_import_repair_ui_smoke_test = executable(
   'model_import_repair_ui_smoke_test', ['tests/model_import_repair_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep],
 )
-test('model-import-repair-ui-smoke', model_import_repair_ui_smoke_test, env: model_document_test_env, timeout: 120)
+test('model-import-repair-ui-smoke', model_import_repair_ui_smoke_test, env: model_document_test_env, timeout: 120, is_parallel: false)
 
 model_health_ui_smoke_test = executable(
   'model_health_ui_smoke_test', ['tests/model_health_ui_smoke_test.cpp'],

@@ -21,6 +21,7 @@ constexpr int kMaximumAnimated = 24;
 LevelMaterialAnimator::LevelMaterialAnimator(ModelViewport* view, QObject* parent)
 	: QObject(parent), m_view(view), m_lookup(std::make_shared<MaterialLookup>())
 {
+	setObjectName(QStringLiteral("levelMaterialAnimator"));
 	m_timer = new QTimer(this);
 	m_timer->setTimerType(Qt::PreciseTimer);
 	m_timer->setInterval(kFrameIntervalMs);
@@ -65,10 +66,11 @@ void LevelMaterialAnimator::setReducedMotion(bool reduced)
 	}
 }
 
-void LevelMaterialAnimator::setPackage(std::shared_ptr<const PackageArchiveReader> reader, const QStringList& basePaths)
+void LevelMaterialAnimator::setPackage(std::shared_ptr<const PackageArchiveReader> reader, const QStringList& basePaths, MaterialDialect dialect)
 {
 	m_reader = std::move(reader);
 	m_basePaths = basePaths;
+	m_dialect = dialect;
 	m_lookupStale = true;
 	prepare();
 }
@@ -104,15 +106,17 @@ void LevelMaterialAnimator::prepare()
 	const std::shared_ptr<MaterialLookup> lookup = m_lookup;
 	const std::shared_ptr<const PackageArchiveReader> reader = m_reader;
 	const QStringList basePaths = m_basePaths;
+	const MaterialDialect dialect = m_dialect;
 	const bool reload = m_lookupStale || !lookup->isLoaded();
 	const QStringList names = m_surfaces.keys();
 	const MaterialEngine engine = m_engine;
 	const quint64 generation = m_generation;
 	QPointer<LevelMaterialAnimator> self(this);
-	m_prepareLane->submit([lookup, reader, basePaths, reload, names, engine, generation, self](
+	m_prepareLane->submit([lookup, reader, basePaths, dialect, reload, names, engine, generation, self](
 							  const MaterialTaskLane::Cancelled& cancelled) -> std::function<void()> {
 		if (reload) {
 			MaterialLibraryOptions options;
+			options.dialect = dialect;
 			for (const QString& path : basePaths) {
 				auto base = std::make_shared<PackageArchive>();
 				QString error;

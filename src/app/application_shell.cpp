@@ -986,6 +986,9 @@ ApplicationShell::~ApplicationShell()
 	delete m_audioRecoveryDiscovery;
 	m_audioRecoveryDiscovery = nullptr;
 	if (m_codeSearchPanel) { m_codeSearchPanel->invalidateReferences(tr("The studio is closing.")); }
+	// The Materials page keeps its view through the shell's settings: save it
+	// now, while they exist, and let it call nothing back while it goes.
+	if (m_materialWorkbench) { m_materialWorkbench->detachHost(); }
 	// Retire language callbacks while the shell's tabs and settings still exist.
 	retireCodeQuickInfo(tr("The studio is closing."), true);
 	retireCodeSignatureHelp();
@@ -9259,6 +9262,7 @@ void ApplicationShell::refreshLevelMapTextures(const QVector<LevelMapTextureUse>
 		if (previewMaterial) {
 			facts << (previewMaterial->ready() ? tr("preview %1 × %2").arg(previewMaterial->sourceSize.width()).arg(previewMaterial->sourceSize.height())
 				: tr("preview unavailable"));
+			if (previewMaterial->sourceLayer.startsWith(QStringLiteral("base:"))) { facts << tr("from the game's base packages"); }
 			if (!previewMaterial->note.isEmpty()) { facts << previewMaterial->note; }
 		} else if (path.isEmpty()) {
 			facts << (m_packageArchive.isOpen() ? tr("not in the open package") : tr("no package open for its picture"));

@@ -86,6 +86,9 @@ public:
 	~MaterialWorkbench() override;
 
 	void setHost(MaterialWorkbenchHost host);
+	// Saves a pending view state through the host, then forgets the host: the
+	// owner calls it before the host's state goes, as when the studio closes.
+	void detachHost();
 	// The open package as an immutable snapshot (staged edits included), its
 	// path, and a revision that changes when its contents do.
 	void setPackage(std::shared_ptr<const PackageArchiveReader> reader, const QString& path, const QString& revision);
@@ -190,6 +193,8 @@ Q_SIGNALS:
 	void contentChanged();
 	void statusMessage(const QString& message);
 	void unsavedChangesChanged(bool unsaved);
+	// The Quake III game chosen for the scripts changed (dialectChoice()).
+	void dialectChanged();
 
 protected:
 	void changeEvent(QEvent* event) override;

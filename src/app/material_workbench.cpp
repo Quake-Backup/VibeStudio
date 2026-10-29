@@ -190,6 +190,15 @@ MaterialWorkbench::~MaterialWorkbench()
 	}
 }
 
+void MaterialWorkbench::detachHost()
+{
+	if (m_stateTimer->isActive() && m_host.saveState) {
+		m_stateTimer->stop();
+		m_host.saveState(saveState());
+	}
+	m_host = {};
+}
+
 void MaterialWorkbench::setHost(MaterialWorkbenchHost host)
 {
 	m_host = std::move(host);
@@ -937,6 +946,7 @@ void MaterialWorkbench::setDialect(MaterialDialect dialect)
 	m_dialectChoice = dialect;
 	scheduleStateSave();
 	requestScan();
+	Q_EMIT dialectChanged();
 }
 
 MaterialDialect MaterialWorkbench::dialect() const

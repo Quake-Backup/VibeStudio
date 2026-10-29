@@ -20,6 +20,8 @@
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QStatusBar>
 #include <QTabWidget>
 #include <QTimer>
@@ -94,8 +96,27 @@ QWidget* ApplicationShell::buildMaterialWorkbench()
 	m_materialWorkbench->setHost(host);
 	connect(m_materialWorkbench, &MaterialWorkbench::statusMessage, this, [this](const QString& message) { statusBar()->showMessage(message); });
 	connect(m_materialWorkbench, &MaterialWorkbench::contentChanged, this, [this]() { refreshSurfaceStates(); });
+	// Levels reads shaders for the same game: its faces follow the choice.
+	connect(m_materialWorkbench, &MaterialWorkbench::dialectChanged, this, [this]() {
+		++m_levelPreviewReload;
+		if (m_levelMapDocument.format != LevelMapFormat::Unknown) {
+			refreshLevelMap3D();
+		}
+	});
 	syncMaterialWorkbench();
 	return m_materialWorkbench;
+}
+
+MaterialDialect ApplicationShell::materialDialectChoice() const
+{
+	if (m_materialWorkbench) {
+		return m_materialWorkbench->dialectChoice();
+	}
+	// Before the Materials page is first shown, its kept choice.
+	const QJsonObject state = QJsonDocument::fromJson(m_settings.shellLayoutState(QStringLiteral("materialsWorkbench"))).object();
+	MaterialDialect dialect = MaterialDialect::Automatic;
+	materialDialectFromId(state.value(QStringLiteral("dialect")).toString(), &dialect);
+	return dialect;
 }
 
 void ApplicationShell::syncMaterialWorkbench()
@@ -221,10 +242,11 @@ void ApplicationShell::refreshLevelMaterialAnimation(const ModelMesh& mesh, cons
 		return;
 	}
 	const QStringList basePaths = materialBasePackagePaths();
-	const QString key = packageViewKey() + QLatin1Char('|') + basePaths.join(QLatin1Char('|'));
+	const MaterialDialect dialect = materialDialectChoice();
+	const QString key = packageViewKey() + QLatin1Char('|') + basePaths.join(QLatin1Char('|')) + QLatin1Char('|') + materialDialectId(dialect);
 	if (key != m_levelMaterialAnimatorKey) {
 		m_levelMaterialAnimatorKey = key;
-		m_levelMaterialAnimator->setPackage(std::make_shared<PackageArchive>(packageViewArchive()), basePaths);
+		m_levelMaterialAnimator->setPackage(std::make_shared<PackageArchive>(packageViewArchive()), basePaths, dialect);
 	}
 	const MaterialEngine engine = m_levelMapDocument.format == LevelMapFormat::Quake3Map ? MaterialEngine::Quake3 : MaterialEngine::Unknown;
 	m_levelMaterialAnimator->setSurfaces(mesh, engine, stillImages);

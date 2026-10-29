@@ -1479,6 +1479,9 @@ private:
 	void registerLevelMaterialAnimationCommand();
 	void refreshLevelMaterialAnimation(const ModelMesh& mesh, const QHash<int, QImage>& stillImages);
 	[[nodiscard]] QStringList materialBasePackagePaths() const;
+	// The Quake III game the Materials page reads scripts for; Levels reads
+	// shaders for the same one.
+	[[nodiscard]] MaterialDialect materialDialectChoice() const;
 	void createAdvancedSpritePlan();
 	void indexAdvancedCodeWorkspace();
 	void createAdvancedAiProposal();

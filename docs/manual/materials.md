@@ -104,7 +104,11 @@ motion** is on in Accessibility settings.
 
 In **Levels**, **View** > **Camera Display** > **Animate Materials in Camera**
 plays scrolling, pulsing and animated materials on the camera's faces the same
-way; the choice is kept, and **Reduce motion** keeps the faces still.
+way; the choice is kept, and **Reduce motion** keeps the faces still. The
+camera's still images are the ones this page shows: read over the selected
+game installation's base packages and for the game chosen here, so change
+either and Levels reads its faces again. A shader that game throws away keeps
+its editor image in Levels, and the Levels **Details** button says why.
 
 Videos on `videoMap` stages play from their RoQ files, looping in Quake III
 and, in Doom 3, unless the stage says `loop`, holding the last frame. Doom 3's

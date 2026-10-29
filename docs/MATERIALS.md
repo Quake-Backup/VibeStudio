@@ -191,9 +191,25 @@ background, at most 24 at once. Only those faces' images change, through
 `ModelViewport::updateSurfaceSkinImages`, so the selection and any drag or
 stroke in progress carry on; turning it off, or reduce motion, puts the still
 images back. Doom faces keep their still images (the camera names them by
-its own flat and wall keys). The still images themselves still come from the
-Levels page's own lookup, which keeps its rules for ambiguous names and read
-budgets for dependency review.
+its own flat and wall keys).
+
+The still images follow the Materials page too. The Levels camera's preview
+(`LevelPreviewWorker`, `src/core/level_materials.cpp`) reads the package over
+the same base packages (`LevelPreviewRequest::basePackagePaths`, through
+`MaterialLayeredReader`), so a mod's faces that name the game's textures and
+shaders are drawn. It finds a shader's declaration in the same catalogue as
+dependency review: the package's own declaration hides the game's, a name
+declared twice in the package stays ambiguous, a name the game's own scripts
+declare twice is taken as the game takes it, and the read budgets hold. It
+then reads that declaration with the Materials parser, for the Quake III game
+chosen on the Materials page (`LevelPreviewAssetOptions::materialDialect`),
+and shows the image the Materials page shows for it
+(`materialDeclaredDisplayImage`). A shader that game throws away keeps its
+editor image in the camera, with a warning in **Details**; an animated one
+says that the camera command plays it. Changing the game on the Materials page
+or the selected installation reads the Levels camera again, still images and
+animations both. The Levels texture list shows the camera's images, and says
+in its tooltip when one comes from the game's base packages.
 
 ## The Workbench
 
@@ -291,3 +307,8 @@ arrow keys mirror. All text is translatable.
 - In the Levels camera, animated faces show the face-on frame of their
   material (no lightmaps or vertex deforms of the map), and Doom faces do
   not animate.
+- In Levels, the camera and its texture list read the game's base packages
+  beneath the package. Dependency review reads the package alone on purpose
+  (it lists what the package must carry); the editing dialogs' small previews
+  and the material view filters read it alone too, so a face named after a
+  base texture is flat in those previews.
