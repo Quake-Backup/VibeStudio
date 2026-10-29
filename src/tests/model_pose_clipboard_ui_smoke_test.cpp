@@ -1,3 +1,4 @@
+#include "app/model_curve_keys_dialog.h"
 #include "app/model_editor_dialog.h"
 #include "app/model_editor_pose.h"
 #include "app/model_editor_tools.h"
@@ -133,6 +134,28 @@ int main(int argc, char **argv)
 				   editor.applyEdit(edit, &error),
 			   "the dialog pastes the copy mirrored");
 		dialog.close();
+
+		// Animation Keys copies the selected keys with Ctrl+C.
+		auto keyed = source;
+		ModelEdit capture;
+		capture.kind = ModelEditKind::EditAnimationCurves;
+		capture.curves.clip = 0;
+		capture.curves.joint = "l_arm";
+		expect(applyModelEdit(&keyed, capture, nullptr, &error), "capture keys for the key dialog");
+		ModelCurveKeysDialog keys(keyed, "l_arm", first + 1, &editor);
+		keys.show();
+		app.processEvents();
+		auto *copyKeys = keys.findChild<QPushButton *>("curveKeysCopy");
+		if (auto *all = keys.findChild<QPushButton *>("curveKeysAll"))
+			all->click();
+		QGuiApplication::clipboard()->clear();
+		expect(copyKeys && copyKeys->shortcut() == QKeySequence(QKeySequence::Copy), "Copy Keys takes Ctrl+C");
+		if (copyKeys)
+			copyKeys->click();
+		expect(parseModelPoseClipboard(modelPoseClipboardFromSystem(), &clipboard) && clipboard.kind == ModelPoseClipboardKind::Keys &&
+				   clipboard.joints == QStringList{"l_arm"},
+			   "Animation Keys copies the selected keys");
+		keys.reject();
 		expect(editor.setMesh(source, &error), "restore the clean fixture before closing");
 		editor.close();
 		app.processEvents();

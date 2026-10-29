@@ -23,7 +23,8 @@ class ModelClipImportDialog final : public QDialog
 {
   public:
 	explicit ModelClipImportDialog(const ModelMesh &mesh, QWidget *parent = nullptr);
-	// Reads the source; false with the reason shown in the status line.
+	// Reads the source; false with the reason shown in the status line. The
+	// review line then says whether the import can be applied (ready()).
 	bool loadSource(const QString &path);
 	[[nodiscard]] ModelEdit edit() const;
 	[[nodiscard]] bool ready() const

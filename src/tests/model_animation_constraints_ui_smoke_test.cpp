@@ -93,10 +93,10 @@ int main(int argc, char **argv)
 		expect(stacked.findChild<QComboBox *>("constraintJoint")->currentData().toString() == "r_hand" &&
 				   stacked.findChild<QPushButton *>("constraintUpdate")->isEnabled() && stacked.findChild<QPushButton *>("constraintsBake")->isEnabled(),
 			   "selecting a constraint loads it for editing");
-		stacked.findChild<QDoubleSpinBox *>("constraintWeight")->setValue(.5);
+		stacked.findChild<QDoubleSpinBox *>("constraintWeight")->setValue(.25);
 		stacked.choose(ModelClipStackAction::UpdateConstraint);
 		auto updated = candidate;
-		expect(stacked.edit().animation.stack.index == 0 && stacked.edit().animation.stack.constraint.weight == .5 &&
+		expect(stacked.edit().animation.stack.index == 0 && stacked.edit().animation.stack.constraint.weight == .25 &&
 				   applyModelEdit(&updated, stacked.edit(), nullptr, &error),
 			   "the dialog updates the selected constraint");
 		ModelConstraintsDialog bake(updated, frame);

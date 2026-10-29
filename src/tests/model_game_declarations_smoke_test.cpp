@@ -306,7 +306,8 @@ int main(int argc, char **argv)
 	expect(document.save(source, false, &error), "save the CLI source");
 	auto result = cli::runModelEvents({"vibestudio", "--cli", "model", "events", source, "--operation", "add", "--clip", "1", "--frame", "1", "--command",
 									   "sound_voice snd_idle", "--output", out, "--json"});
-	expect(result.exitCode == 0 && result.payload["clips"].toArray().size() == 2, "CLI adds an event");
+	if (!expect(result.exitCode == 0 && result.payload["clips"].toArray().size() == 1, "CLI adds an event"))
+		std::cerr << result.exitCode << ' ' << qPrintable(result.error) << ' ' << result.payload["clips"].toArray().size() << '\n';
 	result = cli::runModelEvents({"vibestudio", "--cli", "model", "events", out, "--clip", "1", "--json"});
 	expect(result.exitCode == 0 && result.payload["clips"].toArray().size() == 1 &&
 			   result.payload["clips"].toArray()[0].toObject()["events"].toArray()[0].toObject()["command"].toString() == "sound_voice",

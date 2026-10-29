@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	auto overflow = pastePoseEdit(whole, 1, 3);
 	expect(!document.edit(overflow, &error) && rigBytes(document.mesh()) == rigBytes(pasted), "a paste past the clip end is refused atomically");
 	auto mixed = pastePoseEdit(whole, 1, 0);
-	mixed.translation = {1, 0, 0};
+	mixed.skeletal.name = "unrelated";
 	expect(!document.edit(mixed, &error), "unrelated edit settings are refused");
 	ModelEdit stray;
 	stray.kind = ModelEditKind::Transform;

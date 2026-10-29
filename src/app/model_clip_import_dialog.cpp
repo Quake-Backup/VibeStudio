@@ -197,7 +197,7 @@ bool ModelClipImportDialog::loadSource(const QString &path)
 	m_busy = false;
 	if (!ok || decoded.skeleton.clips.isEmpty())
 	{
-		m_status->setText(ok ? Text::tr("%1 holds no skeletal clips.").arg(QFileInfo(path).fileName()) : error, LiveStatus::Problem);
+		m_status->setText(ok ? Text::tr("The file %1 has no skeletal clips.").arg(QFileInfo(path).fileName()) : error, LiveStatus::Problem);
 		return false;
 	}
 	m_source = std::move(decoded);
@@ -212,7 +212,7 @@ bool ModelClipImportDialog::loadSource(const QString &path)
 	}
 	m_clip->setCurrentIndex(-1);
 	m_clip->setCurrentIndex(0);
-	return m_ready;
+	return true;
 }
 
 void ModelClipImportDialog::fillMapping()
@@ -286,7 +286,7 @@ void ModelClipImportDialog::changed()
 		mapped += !joint.source.isEmpty();
 	const int total = int(plan.joints.size());
 	auto text = Text::tr("%n sample(s) will become clip %1.", nullptr, plan.samples).arg(o.name) + QLatin1Char(' ') +
-				Text::tr("%1 of %2 joints follow the source.").arg(QLocale().toString(mapped), QLocale().toString(total));
+				Text::tr("Joints that follow the source: %1 of %2.").arg(QLocale().toString(mapped), QLocale().toString(total));
 	if (o.retarget)
 		text += QLatin1Char(' ') + Text::tr("Root motion is scaled by %1.").arg(localeNumber(plan.rootScale, 4));
 	if (!plan.unusedSourceJoints.isEmpty())

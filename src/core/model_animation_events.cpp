@@ -57,10 +57,10 @@ QHash<QString, QVector<int>> absoluteEvents(const ModelMesh &mesh)
 bool validModelAnimationEvent(const ModelAnimationEvent &event, int frameCount, QString *error)
 {
 	if (event.frame < 0 || event.frame >= frameCount)
-		return fail(error, Text::tr("Event %1 is on frame %2, outside the clip's %3 frames. Move or remove it first.")
+		return fail(error, Text::tr("Event %1 is on frame %2, outside the clip (frames 0 to %3). Move or remove it first.")
 							   .arg(event.command)
 							   .arg(event.frame)
-							   .arg(frameCount));
+							   .arg(frameCount - 1));
 	if (!validCommand(event.command))
 		return fail(error, Text::tr("An event command is one word of up to 64 ASCII letters, digits, underscores, dots or hyphens, starting "
 									"with a letter or underscore."));

@@ -234,15 +234,16 @@ void ModelRigDialog::refresh()
 		const int joint = modelJointIndex(m_mesh.skeleton, m_joint->currentData().toString(), Qt::CaseSensitive);
 		if (joint >= 0)
 		{
+			// A joint without limits starts from the full range, ready to narrow.
 			const auto &current = m_mesh.skeleton.joints[joint].limits;
 			const QSignalBlocker blocker(m_limitsEnabled);
-			m_limitsEnabled->setCurrentIndex(current.enabled ? 0 : 1);
+			m_limitsEnabled->setCurrentIndex(0);
 			for (int axis = 0; axis < 3; ++axis)
 			{
 				m_limitAxes[axis]->setValue(current.minimum[axis]);
 				m_limitAxes[3 + axis]->setValue(current.maximum[axis]);
 			}
-			m_limits->setEnabled(current.enabled);
+			m_limits->setEnabled(true);
 		}
 		summary = Text::tr("Limits bound the joint's rotation relative to its bind pose when chain inverse kinematics solves with "
 						   "Apply joint limits. They do not change existing poses.");

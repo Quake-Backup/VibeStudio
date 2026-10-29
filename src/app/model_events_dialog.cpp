@@ -212,7 +212,11 @@ void ModelEventsDialog::validate()
 	QVector<ModelAnimationEvent> events;
 	const bool ok = tableEvents(&events);
 	if (ok)
-		m_status->setText(Text::tr("%n event(s) on a clip of %1 frames.", nullptr, int(events.size())).arg(frameCount()), LiveStatus::Result);
+	{
+		const int count = int(events.size());
+		m_status->setText(Text::tr("%n event(s).", nullptr, count) + QLatin1Char(' ') + Text::tr("Frames in the clip: %1.").arg(frameCount()),
+						  LiveStatus::Result);
+	}
 	m_apply->setEnabled(ok);
 }
 

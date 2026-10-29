@@ -450,10 +450,10 @@ bool applyModelPosePaste(ModelMesh *mesh, const ModelEdit &edit, QString *error,
 		return fail(error, Text::tr("Choose an existing skeletal clip to paste into."));
 	const int frames = int(skeleton.clips[o.clip].frames.size());
 	if (o.first < 0 || qint64(o.first) + clipboard.samples > frames)
-		return fail(error, Text::tr("The %n pasted sample(s) must fit inside clip %1, which has %2 samples. Extend the clip or paste earlier.",
+		return fail(error, Text::tr("The %n pasted sample(s) must fit inside clip %1 (samples 0 to %2). Extend the clip or paste earlier.",
 									nullptr, clipboard.samples)
 							   .arg(skeleton.clips[o.clip].name)
-							   .arg(frames));
+							   .arg(frames - 1));
 	const bool mirror = o.mirrorAxis >= 0;
 	if (o.mirrorAxis < -1 || o.mirrorAxis > 2 || !std::isfinite(o.plane) || std::abs(o.plane) > 1000000 ||
 		(!mirror && (o.plane != 0 || !o.mirrorJoints.isEmpty())))

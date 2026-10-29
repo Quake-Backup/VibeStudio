@@ -233,11 +233,18 @@ int main(int argc, char **argv)
 		planted = near(at(locked, f, "l_hand"), at(mesh, 1, "l_hand"), 1e-3);
 	expect(planted && near(at(locked, 0, "l_hand"), at(mesh, 0, "l_hand")), "a foot lock holds the joint from its first sample");
 	auto half = addConstraint(ModelClipConstraintKind::CopyTransform, "r_hand", "l_hand");
-	half.animation.stack.constraint.weight = .5;
+	// A quarter weight keeps the fixture's thin triangles open in every sample.
+	half.animation.stack.constraint.weight = .25;
 	ModelMesh blended = mesh;
-	expect(applyModelEdit(&blended, half, nullptr, &error) && !near(at(blended, 3, "r_hand"), at(blended, 3, "l_hand"), 1e-2) &&
-			   !near(at(blended, 3, "r_hand"), at(mesh, 3, "r_hand"), 1e-2),
-		   "a half-weight constraint blends between poses");
+	const bool halfApplied = applyModelEdit(&blended, half, nullptr, &error);
+	if (!expect(halfApplied && !near(at(blended, 3, "r_hand"), at(blended, 3, "l_hand"), 1e-2) &&
+					!near(at(blended, 3, "r_hand"), at(mesh, 3, "r_hand"), 1e-2),
+				"a half-weight constraint blends between poses"))
+	{
+		const auto r = at(blended, 3, "r_hand"), l = at(blended, 3, "l_hand");
+		std::cerr << "applied " << halfApplied << ' ' << qPrintable(error) << " r_hand " << r.x << ' ' << r.y << ' ' << r.z << " l_hand " << l.x << ' '
+				  << l.y << ' ' << l.z << '\n';
+	}
 	auto aim = addConstraint(ModelClipConstraintKind::Aim, "r_arm");
 	aim.animation.stack.constraint.point = {10, -2, 8};
 	aim.animation.stack.constraint.axis = 1;

@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 				std::cerr << qPrintable(error) << '\n';
 				continue;
 			}
-			const auto &solved = document.mesh();
+			const auto solved = document.mesh();
 			bool reached = true;
 			for (int f = 0; f < 3; ++f)
 				reached = reached && distance(at(solved, f, joints - 1), target) < 1e-3 && distance(at(solved, f, 0), {0, 0, 0}) < 1e-6;
@@ -194,6 +194,7 @@ int main(int argc, char **argv)
 	auto twoBone = follow;
 	twoBone.kind = ModelEditKind::SolveTwoBoneIk;
 	twoBone.ik.rootJoint.clear();
+	twoBone.ik.iterations = 32;
 	twoBone.ik.endJoint = QStringLiteral("j2");
 	twoBone.ik.targetOffset = {-2, -4, 0};
 	expect(followed.setMesh(mesh, &error) && followed.edit(twoBone, &error), "two-bone IK follows a joint too");

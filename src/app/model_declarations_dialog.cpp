@@ -164,6 +164,9 @@ ModelDoom3DefOptions ModelDeclarationsDialog::doom3() const
 
 void ModelDeclarationsDialog::refresh()
 {
+	// The fields report changes while the dialog is still being built.
+	if (!m_preview || !m_status || !m_copy || !m_save || !m_set)
+		return;
 	const int target = m_target->currentIndex();
 	const bool doom3Target = target == 0, gzdoom = target == 3;
 	for (auto *field : {m_model, m_sprite})

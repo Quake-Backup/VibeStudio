@@ -182,12 +182,8 @@ ModelToolsCliResult runModelPoseImport(const QString &input, const QSet<QString>
 	const auto &clip = document.mesh().skeleton.clips.last();
 	const bool baked = document.mesh().skeleton.bakedClipForFrame.contains(int(document.mesh().skeleton.clips.size()) - 1);
 	result.lines << (dry ? Text::tr("Clip import validated; no files written.") : Text::tr("Saved the imported clip to %1.").arg(output))
-				 << Text::tr("Imported %1 as clip %2: %3 samples at %4 FPS, %5 of %6 joints mapped.")
-						.arg(source.skeleton.clips[sourceClip].name, clip.name)
-						.arg(clip.frames.size())
-						.arg(clip.framesPerSecond)
-						.arg(mapped)
-						.arg(plan.joints.size());
+				 << Text::tr("Imported %1 as clip %2 at %3 FPS.").arg(source.skeleton.clips[sourceClip].name, clip.name).arg(clip.framesPerSecond)
+				 << Text::tr("Samples: %1. Joints that follow the source: %2 of %3.").arg(clip.frames.size()).arg(mapped).arg(plan.joints.size());
 	if (o.retarget)
 		result.lines << Text::tr("Retargeted; root motion scaled by %1.").arg(plan.rootScale);
 	if (!baked)

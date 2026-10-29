@@ -192,10 +192,10 @@ int main(int argc, char **argv)
 	expect(cli.exitCode == 0 && cli.payload["name"].toString() == "walk2" && cli.payload["samples"].toInt() == 4 &&
 			   cli.payload["inWorkingSet"].toBool(),
 		   "CLI imports an md5anim clip");
-	expect(cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "import", "--source", animPath, "--output", animPath,
-							  "--overwrite"})
+	expect(cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "import", "--source", saved, "--name", "again",
+							  "--output", saved, "--overwrite"})
 				   .exitCode == 1,
-		   "CLI refuses to overwrite the animation it reads");
+		   "CLI refuses to overwrite the source it reads");
 	expect(cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "import", "--source", animPath, "--root-scale", "2",
 							  "--output", out, "--overwrite"})
 				   .exitCode == 4,
