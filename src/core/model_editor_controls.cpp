@@ -104,6 +104,8 @@ constexpr CommandEntry kCommands[] = {
 	{"meshDeleteFaces", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Delete Faces"), ""},
 	{"meshDissolveVertices", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Dissolve Vertices"), ""},
 	{"meshFillHoles", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Fill Boundary Loops"), ""},
+	{"meshBridgeChains", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bridge Edge Chains"), ""},
+	{"meshBridgeFaces", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bridge Faces"), ""},
 	{"meshSubdivide", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Subdivide"), ""},
 	{"meshSplitEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Split Edges"), ""},
 	{"meshPoke", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Poke Faces"), ""},

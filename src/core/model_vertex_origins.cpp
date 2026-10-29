@@ -775,6 +775,7 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::SetUvDensity:
 	case ModelEditKind::Array:
 	case ModelEditKind::ExtrudeFaces:
+	case ModelEditKind::BridgeFaces:
 		return ModelEditSkinHandling::Provenance;
 	}
 	return ModelEditSkinHandling::Provenance;

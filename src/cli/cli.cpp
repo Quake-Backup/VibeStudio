@@ -575,7 +575,7 @@ QVector<CliCommandDescriptor> cliCommandDescriptors()
 		{QStringLiteral("model"), QStringLiteral("recover"), QStringLiteral("Verify a mesh recovery copy and write a new editable source; existing files are protected."), {QStringLiteral("vibestudio --cli model recover ./copy.vsmeshrecovery --output ./out/recovered.mesh.json --dry-run --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("build"), QStringLiteral("Build MDL, MD2, MD3, MD5 mesh or animation, IQM, ASE or an OBJ frame from an editable mesh; primitive designs support MD2, MD3 and OBJ. For .md5anim choose --clip N|NAME (--frame N selects the clip that frame belongs to), or --all-clips --output-dir DIR for one file per clip; --md5-frame-rate N sets a whole frame rate. --target ID checks the model against a delivery target first (see model targets; the default is the one saved with the project that holds the source, or --project DIR, else the format's original engine) and exits 4 listing every limit it exceeds. Notes report what the format leaves out or approximates; --strict refuses an export that leaves data out, and --no-strict overrides a project that saves strict exports."), {QStringLiteral("vibestudio --cli model build ./samples/models/pillar.model.json --output ./out/pillar.md3 --dry-run --json"), QStringLiteral("vibestudio --cli model build ./models/monster.mesh.json --output ./out/monster.mdl --target quakespasm --json"), QStringLiteral("vibestudio --cli model build ./models/monster.mesh.json --output ./out/walk.md5anim --clip walk --json"), QStringLiteral("vibestudio --cli model build ./models/monster.mesh.json --all-clips --output-dir ./out/anims --strict --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("import"), QStringLiteral("Import polygonal OBJ, MDL, MD2, MD3, a skeletal model such as MD5 or IQM, or bake a primitive design into an editable mesh source. OBJ retains UV/normal seams and direct material paths; material libraries and non-polygon data require conversion in the source modeller. A skeletal model over the editable frame budget keeps every clip in its skeleton and bakes the clips that fit; --clips a,b (names or indexes, or - for the bind pose alone) chooses that working set; a clip that matches nothing exits 2. Relative paths find loose companions such as md5anims beside the model."), {QStringLiteral("vibestudio --cli model import ./samples/models/pillar.model.json --output ./out/pillar.mesh.json --dry-run --json"), QStringLiteral("vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --dry-run --json")}, true, true, true},
-		{QStringLiteral("model"), QStringLiteral("edit"), QCoreApplication::translate("ModelSurfaceSelection", "Apply a validated mesh, UV, material, animation-frame, or attachment-tag edit. Transforms support --transform-space world|selection|custom|normal (default world), custom --axis-rotation X,Y,Z and selection or normal --axes-frame N, and --pivot-mode individual turns each connected piece about its own centre. Axes also apply to face extrusion and duplication. One reference pose fixes selection axes across affected frames; default is the edited frame or pivot reference pose. Pivots remain in model coordinates. Transforms support snapping, explicit pivots, and --surfaces all or unique comma-separated indices for whole surfaces sharing one pivot. Do not mix --surfaces with component selectors. Boundary operations fill-boundary-loops and bridge-boundary-loops require --edges and cover all frames; --source-frame chooses a reference pose (default 0). Bridging joins exactly two loops, supports unequal counts and accepts --bridge-twist -1023 to 1023 (default 0). UV atlas operations accept --uv-atlas-size N or WIDTHxHEIGHT and --uv-padding pixels. uv-pack-around packs complete islands around fixed unselected and shared-material regions in the 0–1 tile; --uv-pack-scale fit|preserve chooses uniform fit (default) or unchanged UV scale. Clip timing: set-clip-fps requires --clip and --clip-fps; add-clip optionally accepts --clip-fps. Zero leaves timing unspecified, otherwise use 0.001–1000 FPS. On skeletal models JSON adds skinProvenance (kept, interpolated, mirrored, rebound, merged and bound weights per skinned surface); while a surface is skinned, duplicate-frame, delete-frame, insert-inbetweens and copy-frame-pose refuse the bind frame and frames baked from a skeletal clip, and keep every other frame's clip mapping; once every surface is unbound they apply to any frame."), {QStringLiteral("vibestudio --cli model edit ./out/pillar.mesh.json --operation transform --faces all --offset 0,0,8 --snap-grid 1 --output ./out/raised.mesh.json --dry-run --json")}, true, true, true},
+		{QStringLiteral("model"), QStringLiteral("edit"), QCoreApplication::translate("ModelSurfaceSelection", "Apply a validated mesh, UV, material, animation-frame, or attachment-tag edit. Transforms support --transform-space world|selection|custom|normal (default world), custom --axis-rotation X,Y,Z and selection or normal --axes-frame N, and --pivot-mode individual turns each connected piece about its own centre. Axes also apply to face extrusion and duplication. One reference pose fixes selection axes across affected frames; default is the edited frame or pivot reference pose. Pivots remain in model coordinates. Transforms support snapping, explicit pivots, and --surfaces all or unique comma-separated indices for whole surfaces sharing one pivot. Do not mix --surfaces with component selectors. Boundary operations fill-boundary-loops and bridge-boundary-loops require --edges and cover all frames; --source-frame chooses a reference pose (default 0). Bridging joins exactly two loops, supports unequal counts and accepts --bridge-twist -1023 to 1023 (default 0), --bridge-segments 0..64 (rings between the sides), --tile-size (a new UV strip at that many units per repeat) and --bridge-open (bridge exactly the selected edges as two open chains); bridge-faces takes --faces naming two face regions, removes them and bridges the holes with the same options. UV atlas operations accept --uv-atlas-size N or WIDTHxHEIGHT and --uv-padding pixels. uv-pack-around packs complete islands around fixed unselected and shared-material regions in the 0–1 tile; --uv-pack-scale fit|preserve chooses uniform fit (default) or unchanged UV scale. Clip timing: set-clip-fps requires --clip and --clip-fps; add-clip optionally accepts --clip-fps. Zero leaves timing unspecified, otherwise use 0.001–1000 FPS. On skeletal models JSON adds skinProvenance (kept, interpolated, mirrored, rebound, merged and bound weights per skinned surface); while a surface is skinned, duplicate-frame, delete-frame, insert-inbetweens and copy-frame-pose refuse the bind frame and frames baked from a skeletal clip, and keep every other frame's clip mapping; once every surface is unbound they apply to any frame."), {QStringLiteral("vibestudio --cli model edit ./out/pillar.mesh.json --operation transform --faces all --offset 0,0,8 --snap-grid 1 --output ./out/raised.mesh.json --dry-run --json")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("place-model"), QStringLiteral("Place a package MD3 in a Quake III map as a misc_model entity."), {QStringLiteral("vibestudio --cli map place-model ./maps/arena.map --engine idTech3 --package ./assets --entry models/props/pillar.md3 --origin 64,0,0 --output ./out/arena.map")}, true, true, true},
 		{QStringLiteral("bsp"), QStringLiteral("inspect"), QStringLiteral("Inspect a compiled BSP plus any leak and portal files beside it."), {QStringLiteral("vibestudio --cli bsp inspect ./out/start.bsp --json")}},
 		{QStringLiteral("build"), QStringLiteral("list"), QStringLiteral("List chained build pipelines and their stages."), {QStringLiteral("vibestudio --cli build list --json")}},
@@ -768,6 +768,8 @@ QStringList commandTokens(const QStringList& args)
 			QStringLiteral("--normalise"), QStringLiteral("--normalize"), QStringLiteral("--each"),
 			// map hollow
 			QStringLiteral("--caulk"), QStringLiteral("--keep-inner"),
+			// model edit bridging
+			QStringLiteral("--bridge-open"),
 			// map align-textures (Reset Textures)
 			QStringLiteral("--whole-map"), QStringLiteral("--keep-proportions"),
 	};
@@ -808,6 +810,7 @@ QStringList commandTokens(const QStringList& args)
 			QStringLiteral("--edges"),
 			QStringLiteral("--weld-distance"),
 			QStringLiteral("--bridge-twist"),
+			QStringLiteral("--bridge-segments"), QStringLiteral("--tile-size"),
 			QStringLiteral("--snap-grid"),
 			QStringLiteral("--snap-angle"),
 			QStringLiteral("--snap-scale"),
@@ -15214,6 +15217,7 @@ int runModelSourceCommand(const QString& action, const QString& path, const QStr
 			{QStringLiteral("split-edges"), ModelEditKind::SplitEdges}, {QStringLiteral("weld"), ModelEditKind::WeldVertices},
 			{QStringLiteral("fill-boundary-loops"), ModelEditKind::FillBoundaryLoops},
 			{QStringLiteral("bridge-boundary-loops"), ModelEditKind::BridgeBoundaryLoops},
+			{QStringLiteral("bridge-faces"), ModelEditKind::BridgeFaces},
 			{QStringLiteral("remove-duplicate-faces"), ModelEditKind::RemoveDuplicateFaces}, {QStringLiteral("remove-unused-vertices"), ModelEditKind::RemoveUnusedVertices},
 			{QStringLiteral("split-disconnected-fans"), ModelEditKind::SplitDisconnectedFans}, {QStringLiteral("orient-faces"), ModelEditKind::OrientFaces},
 			{QStringLiteral("split-nonmanifold-edges"), ModelEditKind::SplitNonmanifoldEdges},
@@ -15291,10 +15295,41 @@ int runModelSourceCommand(const QString& action, const QString& path, const QStr
 			return printCliError(command, CliExitCode::Usage, QCoreApplication::translate("VibeStudioModelBoundaryFill",
 				"Boundary filling and bridging require --edges and cover every frame. Omit faces/vertices and use --frame all (the default)."), format);
 		}
+		const bool bridgeOperation = edit.kind == ModelEditKind::BridgeBoundaryLoops || edit.kind == ModelEditKind::BridgeFaces;
+		if (edit.kind == ModelEditKind::BridgeFaces && (!hasOption(args, QStringLiteral("--faces")) || hasOption(args, QStringLiteral("--edges")) ||
+			hasOption(args, QStringLiteral("--vertices")) || (hasOption(args, QStringLiteral("--frame")) && optionValue(args, QStringLiteral("--frame")) != QStringLiteral("all")))) {
+			return printCliError(command, CliExitCode::Usage, QCoreApplication::translate("ModelBoundaryBridge",
+				"bridge-faces requires --faces naming two face regions and covers every frame."), format);
+		}
+		if (hasOption(args, QStringLiteral("--bridge-segments"))) {
+			bool segmentsValid = false;
+			edit.bridgeSegments = optionValue(args, QStringLiteral("--bridge-segments")).toInt(&segmentsValid);
+			if (!bridgeOperation || optionValues(args, QStringLiteral("--bridge-segments")).size() != 1 || !segmentsValid || edit.bridgeSegments < 0 ||
+				edit.bridgeSegments > 64) {
+				return printCliError(command, CliExitCode::Usage, QCoreApplication::translate("ModelBoundaryBridge",
+					"--bridge-segments applies once to bridging and requires an integer from 0 to 64."), format);
+			}
+		}
+		if (hasOption(args, QStringLiteral("--tile-size"))) {
+			bool tileValid = false;
+			edit.bridgeTileSize = optionValue(args, QStringLiteral("--tile-size")).toDouble(&tileValid);
+			if (!bridgeOperation || optionValues(args, QStringLiteral("--tile-size")).size() != 1 || !tileValid || !std::isfinite(edit.bridgeTileSize) ||
+				edit.bridgeTileSize < 0.001 || edit.bridgeTileSize > 1000000) {
+				return printCliError(command, CliExitCode::Usage, QCoreApplication::translate("ModelBoundaryBridge",
+					"--tile-size applies once to bridging and requires 0.001–1,000,000 model units per texture repeat."), format);
+			}
+		}
+		if (hasOption(args, QStringLiteral("--bridge-open"))) {
+			if (edit.kind != ModelEditKind::BridgeBoundaryLoops) {
+				return printCliError(command, CliExitCode::Usage, QCoreApplication::translate("ModelBoundaryBridge",
+					"--bridge-open applies to bridge-boundary-loops."), format);
+			}
+			edit.bridgeOpen = true;
+		}
 		if (hasOption(args, QStringLiteral("--bridge-twist"))) {
 			bool twistValid = false;
 			edit.bridgeTwist = optionValue(args, QStringLiteral("--bridge-twist")).toInt(&twistValid);
-			if (edit.kind != ModelEditKind::BridgeBoundaryLoops || optionValues(args, QStringLiteral("--bridge-twist")).size() != 1 ||
+			if (!bridgeOperation || optionValues(args, QStringLiteral("--bridge-twist")).size() != 1 ||
 				!twistValid || edit.bridgeTwist < -1023 || edit.bridgeTwist > 1023) {
 				return printCliError(command, CliExitCode::Usage, QCoreApplication::translate("ModelBoundaryBridge",
 					"--bridge-twist applies once to bridge-boundary-loops and requires an integer from -1023 to 1023."), format);
@@ -15355,7 +15390,7 @@ int runModelSourceCommand(const QString& action, const QString& path, const QStr
 		}
 		if (hasOption(args, QStringLiteral("--source-frame")) || edit.kind == ModelEditKind::CopyTagPose || edit.kind == ModelEditKind::CopyFramePose) {
 			edit.sourceFrame = optionValue(args, QStringLiteral("--source-frame")).toInt(&valid);
-			if ((edit.kind != ModelEditKind::CopyTagPose && edit.kind != ModelEditKind::CopyFramePose && !boundaryOperation) || !valid || edit.sourceFrame < 0 || edit.sourceFrame >= document.mesh().frames.size()) {
+			if ((edit.kind != ModelEditKind::CopyTagPose && edit.kind != ModelEditKind::CopyFramePose && !boundaryOperation && edit.kind != ModelEditKind::BridgeFaces) || !valid || edit.sourceFrame < 0 || edit.sourceFrame >= document.mesh().frames.size()) {
 				return printCliError(command, CliExitCode::Usage, QCoreApplication::translate("VibeStudioModelBoundaryFill",
 					"--source-frame requires an existing zero-based frame index. It is required for copy-tag-pose/copy-frame-pose and optional for boundary filling/bridging (default 0)."), format);
 			}

@@ -324,7 +324,35 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshDissolveFaces"), Text::tr("Dissolve Faces"), {}, [this] { runKind(ModelEditKind::DissolveFaces); });
 	addAction(QStringLiteral("meshMakeFace"), Text::tr("Make Face"), QStringLiteral("F"), [this] { runKind(ModelEditKind::MakeFace); });
 	addAction(QStringLiteral("meshFillHoles"), Text::tr("Fill Boundary Loops"), {}, [this] { m_editor->execute(ModelEditKind::FillBoundaryLoops); });
-	addAction(QStringLiteral("meshBridge"), Text::tr("Bridge Edge Loops"), {}, [this] { m_editor->execute(ModelEditKind::BridgeBoundaryLoops); });
+	// Bridging runs as a tool so Adjust Last Operation can change its twist,
+	// segments, open chains and UV strip.
+	addAction(QStringLiteral("meshBridge"), Text::tr("Bridge Edge Loops"), {},
+			  [this]
+			  {
+				  QString error;
+				  runTool(m_editor->operation(ModelEditKind::BridgeBoundaryLoops), &error);
+			  });
+	addAction(QStringLiteral("meshBridgeChains"), Text::tr("Bridge Edge Chains"), {},
+			  [this]
+			  {
+				  auto edit = m_editor->operation(ModelEditKind::BridgeBoundaryLoops);
+				  edit.bridgeOpen = true;
+				  edit.bridgeTwist = 0;
+				  QString error;
+				  runTool(edit, &error);
+			  });
+	addAction(QStringLiteral("meshBridgeFaces"), Text::tr("Bridge Faces"), {},
+			  [this]
+			  {
+				  auto edit = m_editor->operation(ModelEditKind::BridgeFaces);
+				  edit.frame = -1;
+				  edit.sourceFrame = std::max(0, m_editor->m_frame->currentIndex());
+				  edit.selection = selectionFor(ModelEditKind::Extrude);
+				  edit.selection.vertices.clear();
+				  edit.selection.edges.clear();
+				  QString error;
+				  runTool(edit, &error);
+			  });
 	addAction(QStringLiteral("meshRotateEdge"), Text::tr("Rotate Edge"), {}, [this] { runKind(ModelEditKind::RotateEdges); },
 			  QStringLiteral("rotate"));
 	addAction(QStringLiteral("meshExtrudeEdges"), Text::tr("Extrude Edges"), {},
@@ -762,7 +790,7 @@ void ModelEditorTools::buildMenus()
 							 QStringLiteral("meshMenuVertex")));
 	m_menuBar->addMenu(named(menu(Text::tr("&Edge"), {QStringLiteral("meshLoopCut"), QStringLiteral("meshRotateEdge"), QStringLiteral("meshExtrudeEdges"),
 													   QStringLiteral("meshRip"), QStringLiteral("meshRipFill"),
-													   QStringLiteral("meshSpin"), QStringLiteral("meshScrew"), QStringLiteral("meshEdgeSlide"), QStringLiteral("meshBevelEdges"), QStringLiteral("meshSplitEdges"), QStringLiteral("meshBridge"), QStringLiteral("meshFillHoles"), {},
+													   QStringLiteral("meshSpin"), QStringLiteral("meshScrew"), QStringLiteral("meshEdgeSlide"), QStringLiteral("meshBevelEdges"), QStringLiteral("meshSplitEdges"), QStringLiteral("meshBridge"), QStringLiteral("meshBridgeChains"), QStringLiteral("meshFillHoles"), {},
 													   QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSeam"), {},
 													   QStringLiteral("meshSelectLoopPick"), QStringLiteral("meshSelectRingPick"),
 													   QStringLiteral("meshSelectLoop"), QStringLiteral("meshSelectRing")}),
@@ -771,7 +799,7 @@ void ModelEditorTools::buildMenus()
 													  QStringLiteral("meshExtrudeIndividual"), QStringLiteral("meshExtrudeEdges")}),
 						  QStringLiteral("meshMenuExtrude"));
 	auto *faceMenu = named(menu(Text::tr("&Face"), {QStringLiteral("meshExtrude"), QStringLiteral("meshExtrudeNormals"), QStringLiteral("meshExtrudeIndividual"), QStringLiteral("meshInset"), QStringLiteral("meshInsetIndividual"),
-													   QStringLiteral("meshSpin"), QStringLiteral("meshSpinDuplicate"), QStringLiteral("meshScrew"), QStringLiteral("meshArray"), QStringLiteral("meshPoke"), QStringLiteral("meshSolidify"), QStringLiteral("meshSubdivide"), QStringLiteral("meshDissolveFaces"),
+													   QStringLiteral("meshSpin"), QStringLiteral("meshSpinDuplicate"), QStringLiteral("meshScrew"), QStringLiteral("meshArray"), QStringLiteral("meshBridgeFaces"), QStringLiteral("meshPoke"), QStringLiteral("meshSolidify"), QStringLiteral("meshSubdivide"), QStringLiteral("meshDissolveFaces"),
 													   QStringLiteral("meshBeautify"), QStringLiteral("meshMakeFace"), {}, QStringLiteral("meshFlip"),
 													   QStringLiteral("meshShadeSmooth"), QStringLiteral("meshShadeFlat"), QStringLiteral("meshAutoSmooth"), {},
 													   QStringLiteral("meshDeleteFaces")}),
@@ -1983,6 +2011,26 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 			+ array3(Text::tr("Axis"), &ModelMeshToolOptions::normal, -1, 1)
 			+ QVector<LastField>{{Text::tr("Axial offset (screw)"), -100000, 100000, 3, [](const E &e) { return e.tool.spinAxialOffset; },
 								  [](E &e, double v) { e.tool.spinAxialOffset = v; }}};
+	case ModelEditKind::BridgeBoundaryLoops:
+	case ModelEditKind::BridgeFaces:
+	{
+		QVector<LastField> fields;
+		if (!edit.bridgeOpen)
+			fields.append({Text::tr("Twist"), -1023, 1023, 0, [](const E &e) { return double(e.bridgeTwist); }, [](E &e, double v) { e.bridgeTwist = int(v); }});
+		fields.append({Text::tr("Segments"), 0, 64, 0, [](const E &e) { return double(e.bridgeSegments); }, [](E &e, double v) { e.bridgeSegments = int(v); }});
+		if (edit.kind == ModelEditKind::BridgeBoundaryLoops)
+			fields.append({Text::tr("Selected edges only (open chains)"), 0, 1, 0, [](const E &e) { return double(e.bridgeOpen); },
+						   [](E &e, double v)
+						   {
+							   e.bridgeOpen = v > .5;
+							   if (e.bridgeOpen)
+								   e.bridgeTwist = 0;
+						   },
+						   true, {}, true});
+		fields.append({Text::tr("Strip UV units per repeat (0 reuses border UVs)"), 0, 1000000, 3, [](const E &e) { return e.bridgeTileSize; },
+					   [](E &e, double v) { e.bridgeTileSize = v > 0 ? std::max(v, .001) : 0; }});
+		return fields;
+	}
 	case ModelEditKind::Array:
 		return QVector<LastField>{
 				   {Text::tr("Count"), 2, 256, 0, [](const E &e) { return double(e.tool.arrayCount); }, [](E &e, double v) { e.tool.arrayCount = int(v); }}}
@@ -2168,6 +2216,10 @@ QString kindTitle(ModelEditKind kind)
 		return Text::tr("Array");
 	case ModelEditKind::ExtrudeFaces:
 		return Text::tr("Extrude Faces");
+	case ModelEditKind::BridgeBoundaryLoops:
+		return Text::tr("Bridge Edge Loops");
+	case ModelEditKind::BridgeFaces:
+		return Text::tr("Bridge Faces");
 	case ModelEditKind::Rip:
 		return Text::tr("Rip");
 	case ModelEditKind::Solidify:

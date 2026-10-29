@@ -622,6 +622,12 @@ its own spike or block. Move the pointer or type a distance, then press
 the skin; **F9** changes the mode and the wall UV scale (0 keeps the old copied
 UVs).
 
+**Edge → Bridge Edge Loops** joins two open loops, **Edge → Bridge Edge Chains**
+joins exactly the selected edges of two open borders, and **Face → Bridge Faces**
+removes two selected face regions and joins the holes, for joining limbs to a
+torso or closing gaps between parts. **F9** adds **Segments** (rings that bend
+with the animation) and a **Strip UV** scale that gives the bridge its own UVs.
+
 **Vertex → Rip** and **Edge → Rip** open a selected vertex or connected edge
 chain; **Rip and Fill** bridges the gap. **V/Alt+V** start these in the studio
 and Blender profiles. The starting pointer chooses the side; **B** swaps it

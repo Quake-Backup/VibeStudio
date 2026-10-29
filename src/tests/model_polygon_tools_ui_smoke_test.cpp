@@ -1,5 +1,6 @@
 // Mesh Editor coverage for the polygon modelling tools: Individual Origins
-// and Normal axes (modal and gizmo), Array and Screw.
+// and Normal axes (modal and gizmo), Array and Screw, extrude variants and
+// bridging.
 // Each scenario runs in the dark theme at 100%, and in high-contrast themes at
 // 200% text with expanded translations, the second right to left.
 #include "app/model_editor_dialog.h"
@@ -7,6 +8,7 @@
 #include "app/model_viewport.h"
 #include "app/studio_theme.h"
 #include "core/studio_settings.h"
+#include "tests/model_boundary_bridge_test_helpers.h"
 #include "tests/model_polygon_test_helpers.h"
 #include "tests/model_viewport_test_helpers.h"
 #include "tests/render_test_support.h"
@@ -302,6 +304,42 @@ void extrudeVariants(QApplication &app, ModelEditorDialog &editor, ModelEditorTo
 	tools.applySelection({});
 	expect(!tools.beginModal(ModelModalOperator::ExtrudeIndividual, start), "individual extrusion needs faces");
 }
+
+// Bridge Edge Loops from the menu, with F9 segments; Bridge Faces is offered.
+void bridges(QApplication &app, ModelEditorDialog &editor, ModelEditorTools &tools)
+{
+	QString error;
+	const auto disks = bridgeDisks();
+	expect(editor.setMesh(disks, &error), "open two disks to bridge", error);
+	ModelSelection edges;
+	edges.edges = {modelEdge(0, 1), modelEdge(4, 5)};
+	tools.applySelection(edges);
+	auto *edge = tools.menuBar()->findChild<QMenu *>("meshMenuEdge");
+	auto *face = tools.menuBar()->findChild<QMenu *>("meshMenuFace");
+	expect(edge && face && edge->actions().contains(tools.action("meshBridgeChains")) && face->actions().contains(tools.action("meshBridgeFaces")),
+		   "the Edge and Face menus offer chain and face bridging");
+	tools.action("meshBridge")->trigger();
+	app.processEvents();
+	expect(editor.document().mesh().surfaces[0].triangles.size() == 12, "Bridge Edge Loops joins the disks");
+	tools.action("meshAdjustLast")->trigger();
+	app.processEvents();
+	auto *panel = tools.lastOperationPanel();
+	auto fields = panel ? panel->findChildren<QDoubleSpinBox *>() : QList<QDoubleSpinBox *>{};
+	if (!expect(fields.size() == 3 && panel->findChildren<QCheckBox *>().size() == 1, "F9 offers twist, segments, open chains and the UV strip"))
+		return;
+	fields[1]->setValue(2);
+	app.processEvents();
+	expect(editor.document().mesh().surfaces[0].triangles.size() == 44, "F9 adds two rings and replays once");
+	fields = panel->findChildren<QDoubleSpinBox *>();
+	fields[2]->setValue(4);
+	app.processEvents();
+	expect(editor.document().mesh().surfaces[0].vertexCount == 8 + 18 + 10, "F9 gives the bridge its own UV strip");
+	editor.findChild<QAction *>("undoMesh")->trigger();
+	app.processEvents();
+	expect(bytes(editor.document().mesh()) == bytes(disks) && !editor.document().canUndo(), "the adjusted bridge is one undo step");
+	tools.action("meshAdjustLast")->trigger();
+	app.processEvents();
+}
 } // namespace
 int main(int argc, char **argv)
 {
@@ -345,6 +383,7 @@ int main(int argc, char **argv)
 		individualOrigins(app, editor, *tools, *view);
 		arraysAndScrews(app, editor, *tools, *view);
 		extrudeVariants(app, editor, *tools, *view);
+		bridges(app, editor, *tools);
 		editor.close();
 		app.processEvents();
 		if (scenario)

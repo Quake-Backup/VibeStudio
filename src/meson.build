@@ -3930,6 +3930,12 @@ model_extrude_smoke_test = executable(
 )
 test('model-extrude-smoke', model_extrude_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
 
+model_bridge_options_smoke_test = executable(
+  'model_bridge_options_smoke_test', ['tests/model_bridge_options_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-bridge-options-smoke', model_bridge_options_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+
 model_polygon_tools_ui_smoke_test = executable(
   'model_polygon_tools_ui_smoke_test', ['tests/model_polygon_tools_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,

@@ -205,6 +205,8 @@ enum class ModelEditKind
 	Array,
 	// Region, along-normal or individual face extrusion with UV walls (core/model_extrude.cpp).
 	ExtrudeFaces,
+	// Removes two face regions and bridges the holes (core/model_boundary_bridge.h).
+	BridgeFaces,
 };
 
 struct ModelEdit
@@ -240,6 +242,12 @@ struct ModelEdit
 	ModelVec3 tagOrigin;
 	int sourceFrame = 0;
 	int bridgeTwist = 0;
+	// Bridging (core/model_boundary_bridge.h): rings between the sides (0-64),
+	// open chains of exactly the selected edges, and a UV strip's units per
+	// texture repeat (0 reuses the boundary attributes).
+	int bridgeSegments = 0;
+	bool bridgeOpen = false;
+	double bridgeTileSize = 0;
 	int uvAtlasResolution = 512, uvAtlasPadding = 4;
 	int uvAtlasHeight = 0;
 	bool uvPreserveScale = false;

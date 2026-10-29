@@ -2287,6 +2287,10 @@ Each resolved path may be a definition file or a folder of them.
   the alignment pose (default 0); `--bridge-twist N` shifts the second anchor
   from the closest pair and wraps by its loop length (default 0, range -1023 to
   1023). Both controls accept one integer value; twist is exclusive to bridging.
+  `--bridge-segments 0..64` inserts interpolated rings, `--tile-size T` gives the
+  bridge its own UV strip with seams, and `--bridge-open` bridges exactly the
+  selected edges as two open chains (no twist). `--operation bridge-faces
+  --faces …` removes two face regions and bridges the holes with the same options.
   The shared service checks every stored pose before committing and retains
   existing attributes. Use `--frame all` or omit it, and select only edges.
   Dry-run and overwrite protection use the normal document path. Explicit

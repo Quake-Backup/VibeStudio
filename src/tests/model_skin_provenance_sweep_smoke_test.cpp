@@ -647,6 +647,13 @@ void checkSweep()
 		// Bridged in the bind pose only: the posed loops would cross.
 		on(QStringLiteral("Bridge Boundary Loops"), bindOnly(facingLoops()),
 			kindEdit(ModelEditKind::BridgeBoundaryLoops, {3, {}, {}, {modelEdge(0, 1), modelEdge(7, 8)}}));
+		{
+			// Rings between the loops interpolate weights; a UV strip copies them.
+			auto rings = kindEdit(ModelEditKind::BridgeBoundaryLoops, {3, {}, {}, {modelEdge(0, 1), modelEdge(7, 8)}});
+			rings.bridgeSegments = 2;
+			rings.bridgeTileSize = 8;
+			on(QStringLiteral("Bridge Boundary Loops with segments and a UV strip"), bindOnly(facingLoops()), rings);
+		}
 		on(QStringLiteral("Fill Boundary Loops"), openGem(), kindEdit(ModelEditKind::FillBoundaryLoops, {3, {}, {}, {modelEdge(4, 5)}}));
 	}
 	// Surfaces.
