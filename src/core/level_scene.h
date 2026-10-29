@@ -52,6 +52,14 @@ bool renameLevelSceneNode(LevelMapDocument* document, const QString& id, const Q
 bool reparentLevelSceneNode(LevelMapDocument* document, const QString& id, const QString& parentId, QString* error = nullptr);
 bool assignLevelSceneObjects(LevelMapDocument* document, const QString& nodeId, const QStringList& objects, QString* error = nullptr);
 bool setLevelSceneVisible(LevelMapDocument* document, const QString& id, bool visible, QString* error = nullptr);
+// TrenchBroom's Omit From Export: Export Map leaves the layer out. Kept as the
+// layer's "_tb_layer_omit_from_export" key in LevelSceneNode::trenchBroomProperties,
+// so the scene note saves it and TrenchBroom storage writes TrenchBroom's own key.
+inline constexpr auto kLevelSceneOmitFromExportKey = "_tb_layer_omit_from_export";
+bool levelSceneOmittedFromExport(const LevelSceneNode& node);
+// One scene undo step, on a Quake-family map's layers only; no step when the
+// layer already has that state.
+bool setLevelSceneOmitFromExport(LevelMapDocument* document, const QString& layerId, bool omit, QString* error = nullptr);
 // Removing a node moves its members and children to its parent; never geometry.
 bool removeLevelSceneNode(LevelMapDocument* document, const QString& id, QString* error = nullptr);
 bool resetLevelScene(LevelMapDocument* document, QString* error = nullptr);

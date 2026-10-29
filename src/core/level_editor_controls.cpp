@@ -221,6 +221,10 @@ LevelEditorControls trenchBroomLevelControls()
 	// TB MapViewBase::flip mirrors about the half-grid reference point at
 	// 4c756be1 (GPL-3.0-or-later). Workflow reference; see docs/CREDITS.md.
 	controls.flipSnapsPivot = true;
+	// TB's RotateToolController takes only drags on its handle's rings and
+	// centre; a click or drag elsewhere reaches the selection tools, at
+	// 4c756be1 (GPL-3.0-or-later). Workflow reference; see docs/CREDITS.md.
+	controls.objectRotateFreeTurn = false;
 	controls.plan.componentBandToggles = true;
 	controls.camera.componentBandToggles = true;
 	controls.plan.componentInsertModifiers = Qt::ShiftModifier;
@@ -272,6 +276,16 @@ LevelEditorControls trenchBroomLevelControls()
 		bind("map.showAll", {QStringLiteral("Ctrl+Shift+I")}),
 		bind("map.clipTool", {QStringLiteral("C")}),
 		bind("map.sweepTool", {QStringLiteral("Y")}),
+		// TB ActionManager "Menu/Edit/Tools/Rotate Tool" at 4c756be1
+		// (GPL-3.0-or-later) has R; the camera flies on W, S, A, D, Q and X here.
+		// Key facts only; see docs/CREDITS.md.
+		bind("map.rotateTool", {QStringLiteral("R")}),
+		// TB ActionManager "Menu/Edit/Tools/Scale Tool" at 4c756be1
+		// (GPL-3.0-or-later) has T. Key facts only; see docs/CREDITS.md.
+		bind("map.scaleTool", {QStringLiteral("T")}),
+		// TB ActionManager "Menu/Edit/Tools/Shear Tool" at 4c756be1
+		// (GPL-3.0-or-later) has G. Key facts only; see docs/CREDITS.md.
+		bind("map.shearTool", {QStringLiteral("G")}),
 		// TB ActionManager "Menu/Edit/Tools/Brush Tool" at 4c756be1
 		// (GPL-3.0-or-later). Key facts only; see docs/CREDITS.md. Its Return
 		// ("Controls/Map view/Create brush") is the views' own Enter.
@@ -281,6 +295,12 @@ LevelEditorControls trenchBroomLevelControls()
 		bind("map.toggleSnap", {QStringLiteral("Alt+0")}),
 		bind("map.cycleView", {QStringLiteral("Space")}),
 		bind("map.frameSelection", {QStringLiteral("Ctrl+U")}),
+		// TB ActionManager "Menu/View/Camera/Reset 2D Cameras" at 4c756be1
+		// (GPL-3.0-or-later) has Ctrl+Shift+U, which is the studio's Read
+		// Aloud everywhere: accessibility keeps it, so the slot stays empty
+		// and users may opt in by remapping (docs/EDITOR_PROFILES.md). Key
+		// facts only; see docs/CREDITS.md.
+		bind("map.resetPlanViews", {}),
 		// TB ActionManager "Controls/Map view/Reset camera zoom" at 4c756be1
 		// (GPL-3.0-or-later). Key facts only; see docs/CREDITS.md.
 		bind("map.resetCameraZoom", {QStringLiteral("Ctrl+Alt+Z")}),
@@ -381,6 +401,17 @@ LevelEditorControls trenchBroomLevelControls()
 		// axes, as Natural does. Key facts only; see docs/CREDITS.md.
 		bind("map.surfaceReset", {QStringLiteral("Shift+R")}),
 		bind("map.surfaceNatural", {QStringLiteral("Alt+Shift+R")}),
+		// TB ActionManager "Menu/View/Switch to Face Inspector" at 4c756be1
+		// (GPL-3.0-or-later) has Ctrl+3. It shows the Face section wherever
+		// focus is in Levels; elsewhere Ctrl+3 still switches to Models
+		// (StudioCommandRegistry::kShortcutFocusClaims). Key facts only; see
+		// docs/CREDITS.md.
+		bind("map.showFaceInspector", {QStringLiteral("Ctrl+3")}),
+		// TB ActionManager "Menu/View/Switch to Map Inspector" at 4c756be1
+		// (GPL-3.0-or-later) has Ctrl+1: Show Map, in the same focus layer as
+		// Ctrl+3, so Ctrl+1 still switches to Workspace outside Levels. Key
+		// facts only; see docs/CREDITS.md.
+		bind("map.sidebar.map", {QStringLiteral("Ctrl+1")}),
 	};
 	controls.keys += gridDigitKeys();
 	return controls;
@@ -440,6 +471,12 @@ LevelEditorControls netRadiantCustomLevelControls()
 	plan.arrowsDriveCamera = true;
 	plan.squareModifiers = Qt::ShiftModifier;
 	plan.cubeModifiers = Qt::ControlModifier;
+	// NRC xywindow.cpp XY_Focus, XYWnd::FocusOnBounds and XY_SetViewType at
+	// 449778b3 (GPL-2.0-or-later): focusing frames only the 2D views, with a
+	// third to spare, round the camera when nothing is selected, and a
+	// projection change in the split layout recentres every 2D view; Xonotic
+	// NetRadiant b4b295d7 does the same. Workflow reference; see docs/CREDITS.md.
+	plan.radiantFraming = true;
 
 	CameraViewControls& camera = controls.camera;
 	camera.perspective = true;
@@ -496,6 +533,10 @@ LevelEditorControls netRadiantCustomLevelControls()
 		// NetRadiant Custom mainframe.cpp, pinned revision 68ecbed.
 		bind("map.maximizeView", {QStringLiteral("F12")}),
 		bind("map.frameSelection", {QStringLiteral("`")}),
+		// NRC xywindow.cpp Zoom100 at 449778b3 (GPL-2.0-or-later) has no
+		// default key; it is listed so the profile names it. Key facts only;
+		// see docs/CREDITS.md.
+		bind("map.zoomActualSize", {}),
 		// NRC camwindow.cpp CenterView at 449778b3 (GPL-2.0-or-later) levels
 		// the camera on End. Key facts only; see docs/CREDITS.md.
 		bind("map.levelCamera", {QStringLiteral("End")}),
@@ -523,12 +564,54 @@ LevelEditorControls netRadiantCustomLevelControls()
 		bind("map.redo", {QStringLiteral("Ctrl+Shift+Z"), QStringLiteral("Ctrl+Y")}),
 		// W is a camera key in mouse look.
 		bind("map.previewWireframe", {}),
+		// NRC radiant/tools.cpp MouseTranslate at 449778b3 (GPL-2.0-or-later)
+		// turns the Translate tool on and off with W. The camera claims W only
+		// in mouse look (flyNeedsLook), where it still flies. Key facts only;
+		// see docs/CREDITS.md.
+		bind("map.translateTool", {QStringLiteral("W")}),
+		// NRC radiant/tools.cpp MouseRotate at 449778b3 (GPL-2.0-or-later)
+		// turns the Rotate tool on and off with R. Key facts only; see
+		// docs/CREDITS.md.
+		bind("map.rotateTool", {QStringLiteral("R")}),
+		// NRC radiant/tools.cpp MouseScale and MouseRotateOrScale at 449778b3
+		// (GPL-2.0-or-later) have no default key; they are listed so the
+		// profile names them. Key facts only; see docs/CREDITS.md.
+		bind("map.scaleTool", {}),
+		bind("map.rotateOrScaleTool", {}),
+		// NRC radiant/tools.cpp MouseTransform at 449778b3 (GPL-2.0-or-later)
+		// has no default key; MouseDragOrTransform (ToggleDragSkewModes)
+		// switches between the Drag and Transform tools on Q. Key facts only;
+		// see docs/CREDITS.md.
+		bind("map.transformTool", {}),
+		bind("map.selectOrTransformTool", {QStringLiteral("Q")}),
+		// NRC radiant/tools.cpp MouseUV at 449778b3 (GPL-2.0-or-later) turns
+		// the UV tool on and off with G. Key facts only; see docs/CREDITS.md.
+		bind("map.uvTool", {QStringLiteral("G")}),
+		// NRC radiant/patchmanip.cpp SimplePatchMesh at 449778b3
+		// (GPL-2.0-or-later) opens its patch density dialog on Shift+P; Add
+		// Patch… is that dialog here. Key facts only; see docs/CREDITS.md.
+		bind("map.addPatch", {QStringLiteral("Shift+P")}),
 		// NRC camwindow.cpp CameraModeNext and CameraModePrev at 449778b3
 		// (GPL-2.0-or-later) step the camera's draw mode on Shift+] and
 		// Shift+[ (core/level_camera_render.h). Key facts only; see
 		// docs/CREDITS.md.
 		bind("map.nextCameraMode", {QStringLiteral("Shift+]")}),
 		bind("map.previousCameraMode", {QStringLiteral("Shift+[")}),
+		// NRC camwindow.cpp ToggleCubicClip, CubicClipZoomIn and
+		// CubicClipZoomOut at 449778b3 (GPL-2.0-or-later) turn the camera's
+		// far clip on and off on Ctrl+\ and step its distance on Ctrl+[ and
+		// Ctrl+] (core/level_camera_render.h); NetRadiant b4b295d7 binds the
+		// same keys. Key facts only; see docs/CREDITS.md.
+		bind("map.previewFarClip", {QStringLiteral("Ctrl+\\")}),
+		bind("map.shorterDrawDistance", {QStringLiteral("Ctrl+[")}),
+		bind("map.longerDrawDistance", {QStringLiteral("Ctrl+]")}),
+		// NRC camwindow.cpp UpFloor and DownFloor at 449778b3
+		// (GPL-2.0-or-later) step the camera between floors on Page Up and
+		// Page Down (core/level_camera_focus.h); NetRadiant b4b295d7 binds the
+		// same keys. In a plan view a Doom map's Raise and Lower Floor keep
+		// them while they can act. Key facts only; see docs/CREDITS.md.
+		bind("map.cameraFloorUp", {QStringLiteral("PgUp")}),
+		bind("map.cameraFloorDown", {QStringLiteral("PgDown")}),
 		// NRC 449778b3 (GPL-2.0-or-later): tools.cpp DragVertices, DragEdges
 		// and DragFaces; patchmanip.cpp's patch matrix, Invert, Transpose and
 		// Thicken and Smooth Columns keys and InvertCurveTextureY;
@@ -569,6 +652,10 @@ LevelEditorControls netRadiantCustomLevelControls()
 		// Show Surfaces toggles the Surfaces tab. S flies the camera only in
 		// mouse look, which claims it first. Key facts only; see docs/CREDITS.md.
 		bind("map.sidebar.surfaces", {QStringLiteral("S")}),
+		// NRC map.cpp Map_Construct registers MapInfo on M at 449778b3
+		// (GPL-2.0-or-later): Map Info opens the Map tab's Statistics at its
+		// class table. Key facts only; see docs/CREDITS.md.
+		bind("map.mapInfo", {QStringLiteral("M")}),
 		bind("map.textureLock", {QStringLiteral("Shift+T")}),
 		bind("map.makeDetail", {QStringLiteral("Alt+D")}),
 		bind("map.makeStructural", {QStringLiteral("Alt+S")}),
@@ -724,6 +811,15 @@ LevelEditorControls gtkRadiantLevelControls()
 		// ID_VIEW_CENTER at dbe4ddb1, kept by GtkRadiant's and NetRadiant's
 		// CenterView (b4b295d7 camwindow.cpp). Key facts only; see docs/CREDITS.md.
 		bind("map.levelCamera", {QStringLiteral("End")}),
+		// GtkRadiant 1.6 mainframe.cpp g_Commands[] UpFloor, DownFloor,
+		// ToggleCubicClip, CubicClipZoomIn and CubicClipZoomOut at 270af88f
+		// (GPL-2.0-or-later); GtkRadiant 1.4 5fc27697 and 1.5 01767337 bind the
+		// same keys. Key facts only; see docs/CREDITS.md.
+		bind("map.cameraFloorUp", {QStringLiteral("PgUp")}),
+		bind("map.cameraFloorDown", {QStringLiteral("PgDown")}),
+		bind("map.previewFarClip", {QStringLiteral("Ctrl+\\")}),
+		bind("map.shorterDrawDistance", {QStringLiteral("Ctrl+[")}),
+		bind("map.longerDrawDistance", {QStringLiteral("Ctrl+]")}),
 		bind("map.toggle3D", {QStringLiteral("Ctrl+Shift+C")}),
 		bind("map.carve", {QStringLiteral("Shift+U")}),
 		bind("map.snapToGrid", {QStringLiteral("Ctrl+G")}),
@@ -964,6 +1060,9 @@ QVector<LevelEditorControlRow> levelEditorControlRows(const LevelEditorControls&
 	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Flip pivot"),
 		controls.flipSnapsPivot ? QCoreApplication::translate("VibeStudioLevelControls", "Selection centre rounded to half the grid while Snap is on")
 			: QCoreApplication::translate("VibeStudioLevelControls", "Exact selection centre"));
+	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Inside the Rotate tool's rings"),
+		controls.objectRotateFreeTurn ? QCoreApplication::translate("VibeStudioLevelControls", "A drag turns the selection freely")
+			: QCoreApplication::translate("VibeStudioLevelControls", "Clicks and drags select and move as usual"));
 	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Texture rotation step"),
 		controls.surfaceRotateAboutOrigin
 			? QCoreApplication::translate("VibeStudioLevelControls", "%1° about the texture origin").arg(controls.surfaceRotationStep)
@@ -1063,6 +1162,9 @@ QVector<LevelEditorControlRow> levelEditorControlRows(const LevelEditorControls&
 		if (p.fixedCameraSteps) { row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Camera step"), QCoreApplication::translate("VibeStudioLevelControls", "32 units / 22.5 degrees on the ground plane")); }
 	}
 	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Map actions menu"), mouseGestureText(Qt::RightButton, Qt::NoModifier, click));
+	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Frame Selection"), p.radiantFraming
+			? QCoreApplication::translate("VibeStudioLevelControls", "The 2D views only: the selection fills two-thirds of each, or the camera's surroundings when nothing is selected; the camera stays")
+			: QCoreApplication::translate("VibeStudioLevelControls", "The 2D views fit the selection, and the 3D camera turns to it"));
 
 	const CameraViewControls& c = controls.camera;
 	if (!p.panHoldKey.isEmpty()) {

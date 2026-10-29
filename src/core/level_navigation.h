@@ -4,6 +4,7 @@
 #include <QByteArray>
 #include <QJsonObject>
 #include <QPointF>
+#include <QSizeF>
 #include <QString>
 #include <QVector>
 #include <array>
@@ -54,6 +55,31 @@ struct LevelViewState {
 // These operations validate the entire candidate and leave invalid inputs intact.
 bool linkLevelPlanNavigation(std::array<PlanViewState, 3>* plans, int source, const LevelViewLinks& links, QString* error = nullptr);
 bool centerLevelPlanNavigation(std::array<PlanViewState, 3>* plans, const std::array<double, 3>& point, QString* error = nullptr);
+// The centre a plan of `projection` takes to show `point` in its middle.
+[[nodiscard]] QPointF levelPlanCentreFor(int projection, const std::array<double, 3>& point);
+// TrenchBroom's Reset 2D Cameras: every other plan takes the source plan's
+// zoom, and its centre on the axes the two show; an axis the source does not
+// show keeps the plan's own value, so unlike linkLevelPlanNavigation no value
+// comes from a third pane. Validates everything first; atomic.
+//
+// Workflow reference: TB MapView2D::reset2dCameras at 4c756be1
+// (GPL-3.0-or-later). Original Qt implementation; see docs/CREDITS.md.
+bool resetLevelPlanNavigation(std::array<PlanViewState, 3>* plans, int source, QString* error = nullptr);
+
+// Radiant's plan focus: the box's centre in the middle of a pane of
+// `viewSize` (widget pixels), at the scale that shows three times the box's
+// larger half-extent on the pane's axes, never less than 128 units, so the
+// box fills two-thirds of the pane and the pane spans at least 384 units.
+// The zoom is clamped to the plan views' range. With nothing selected
+// Radiant frames a box of kLevelPlanFocusCameraHalfExtent round the camera.
+//
+// Workflow reference: NRC XYWnd::FocusOnBounds, XY_Focus and GetCenterBbox
+// at 449778b3 (GPL-2.0-or-later). Original Qt implementation; see
+// docs/CREDITS.md.
+inline constexpr double kLevelPlanFocusMinimumHalfExtent = 128.0;
+inline constexpr double kLevelPlanFocusCameraHalfExtent = 128.0;
+bool levelPlanFocusState(int projection, const std::array<double, 3>& mins, const std::array<double, 3>& maxs, const QSizeF& viewSize,
+	PlanViewState* state, QString* error = nullptr);
 
 struct LevelViewBookmark {
 	QString id;

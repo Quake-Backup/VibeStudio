@@ -1,5 +1,6 @@
 #include "app/patch_editor_dialog.h"
 #include "core/level_patch_tools.h"
+#include "core/level_shapes.h"
 
 #include "app/model_viewport.h"
 #include "core/map_geometry.h"
@@ -9,6 +10,7 @@
 #include <QAccessible>
 #include <QAccessibleWidget>
 #include <QAction>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
@@ -360,7 +362,7 @@ void PatchControlView::wheelEvent(QWheelEvent* event)
 	event->accept();
 }
 
-PatchEditorDialog::PatchEditorDialog(const LevelMapPatch& patch, bool creating, double grid, QWidget* parent)
+PatchEditorDialog::PatchEditorDialog(const LevelMapPatch& patch, bool creating, double grid, QWidget* parent, const PatchEditorCreateOptions& create)
     : QDialog(parent), m_patch(patch)
 {
 	setObjectName(QStringLiteral("patchEditorDialog"));
@@ -551,6 +553,9 @@ PatchEditorDialog::PatchEditorDialog(const LevelMapPatch& patch, bool creating, 
 	});
 	fields->addLayout(form);
 	if (creating) {
+		// Every shape of Radiant's Patch menu, fitted to the box the options
+		// give (the selection's bounds, as NetRadiant Custom fits its Simple
+		// Patch Mesh) and mapped as Radiant maps a new patch.
 		auto* preset = new QFormLayout;
 		preset->setRowWrapPolicy(QFormLayout::WrapLongRows);
 		auto* shape = new QComboBox(properties);
@@ -558,69 +563,115 @@ PatchEditorDialog::PatchEditorDialog(const LevelMapPatch& patch, bool creating, 
 		shape->setAccessibleName(tr("Patch shape"));
 		shape->addItem(tr("Plane"), QStringLiteral("plane"));
 		shape->addItem(tr("Cylinder (open ends)"), QStringLiteral("cylinder"));
-		shape->addItem(tr("Cone (open base)"), QStringLiteral("cone"));
+		shape->addItem(tr("Square cylinder"), QStringLiteral("square-cylinder"));
+		shape->addItem(tr("Cone (straight sides)"), QStringLiteral("cone"));
+		shape->addItem(tr("Classic cone (bulging sides)"), QStringLiteral("classic-cone"));
+		shape->addItem(tr("Sphere"), QStringLiteral("sphere"));
+		shape->addItem(tr("Bevel"), QStringLiteral("bevel"));
+		shape->addItem(tr("End cap"), QStringLiteral("endcap"));
 		preset->addRow(tr("Shape"), shape);
-		auto* surfacePlane = new QComboBox(properties);
-		surfacePlane->setObjectName(QStringLiteral("patchPresetPlane"));
-		surfacePlane->setAccessibleName(tr("Plane orientation"));
-		for (const auto& axis : {QStringLiteral("xy"), QStringLiteral("xz"), QStringLiteral("yz")}) {
-			surfacePlane->addItem(axis.toUpper(), axis);
-		}
-		if (patch.mins.y == patch.maxs.y) {
-			surfacePlane->setCurrentIndex(1);
-		} else if (patch.mins.x == patch.maxs.x) {
-			surfacePlane->setCurrentIndex(2);
-		}
-		preset->addRow(tr("Orientation"), surfacePlane);
-		auto* columns = new QSpinBox(properties);
-		auto* rows = new QSpinBox(properties);
-		columns->setObjectName(QStringLiteral("patchColumns"));
-		rows->setObjectName(QStringLiteral("patchRows"));
+		auto* axis = new QComboBox(properties);
+		axis->setObjectName(QStringLiteral("patchAxis"));
+		axis->setAccessibleName(tr("Patch axis"));
+		axis->setToolTip(tr("The axis a round shape stands on, a bevel or end cap runs along, and a plane faces."));
+		axis->addItem(tr("X"), 0);
+		axis->addItem(tr("Y"), 1);
+		axis->addItem(tr("Z"), 2);
+		axis->setCurrentIndex(std::clamp(create.axis, 0, 2));
+		preset->addRow(tr("Axis"), axis);
+		const auto oddSpin = [properties](const QString& name, int minimum, int maximum, int value, const QString& accessible) {
+			auto* spin = new QSpinBox(properties);
+			spin->setObjectName(name);
+			spin->setRange(minimum, maximum);
+			spin->setValue(value);
+			spin->setAccessibleName(accessible);
+			return spin;
+		};
+		auto* columns = oddSpin(QStringLiteral("patchColumns"), 3, 31, patch.width, tr("Control columns"));
+		auto* rows = oddSpin(QStringLiteral("patchRows"), 3, 31, patch.height, tr("Control rows"));
 		for (auto* n : {columns, rows}) {
-			n->setRange(3, 31);
 			n->setSingleStep(2);
-			n->setValue(3);
 		}
-		columns->setValue(patch.width);
-		rows->setValue(patch.height);
-		columns->setAccessibleName(tr("Control columns"));
-		rows->setAccessibleName(tr("Control rows"));
+		auto* segments = oddSpin(QStringLiteral("patchSegments"), 3, 15, 4, tr("Segments around"));
+		segments->setToolTip(tr("Quadratic spans round a cylinder, cone or sphere; 4 is Radiant's nine-column ring."));
+		auto* bands = oddSpin(QStringLiteral("patchBands"), 2, 15, 2, tr("Sphere bands"));
+		bands->setToolTip(tr("Spans from pole to pole of a sphere; 2 is Radiant's five-row sphere."));
 		preset->addRow(tr("Columns"), columns);
 		preset->addRow(tr("Rows"), rows);
+		preset->addRow(tr("Segments"), segments);
+		preset->addRow(tr("Bands"), bands);
+		// The box the shape fills: the options' box, or else the draft's.
+		const bool boxed = create.mins.valid && create.maxs.valid;
+		const LevelMapVec3 low = boxed ? create.mins : patch.mins;
+		const LevelMapVec3 high = boxed ? create.maxs : patch.maxs;
+		const LevelMapVec3 centre {(low.x + high.x) * 0.5, (low.y + high.y) * 0.5, (low.z + high.z) * 0.5, true};
 		QVector<QDoubleSpinBox*> sizes;
-		for (const auto& axis : {QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")}) {
+		const double extents[3] = {high.x - low.x, high.y - low.y, high.z - low.z};
+		int index = 0;
+		for (const auto& name : {QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")}) {
 			auto* size = new QDoubleSpinBox(properties);
 			size->setRange(1, 65536);
-			size->setValue(128);
-			size->setObjectName(QStringLiteral("patchSize%1").arg(axis));
-			size->setAccessibleName(tr("Size %1").arg(axis));
-			preset->addRow(tr("Size %1").arg(axis), size);
+			size->setValue(boxed && extents[index] >= 1 ? extents[index] : 128);
+			size->setObjectName(QStringLiteral("patchSize%1").arg(name));
+			size->setAccessibleName(tr("Size %1").arg(name));
+			preset->addRow(tr("Size %1").arg(name), size);
 			sizes << size;
+			++index;
 		}
-		connect(shape, &QComboBox::currentIndexChanged, this, [shape, columns, surfacePlane]() {
-			const bool flat = shape->currentData() == QStringLiteral("plane");
-			columns->setEnabled(flat);
-			if (!flat) {
-				columns->setValue(9);
-			}
-			surfacePlane->setEnabled(flat);
-		});
+		auto* mapping = new QComboBox(properties);
+		mapping->setObjectName(QStringLiteral("patchMapping"));
+		mapping->setAccessibleName(tr("Texture mapping"));
+		mapping->setToolTip(tr("How the new patch's texture is laid out. Radiant maps a plane with Cap Texture and every other shape with "
+							   "Natural, by the material's size."));
+		mapping->addItem(tr("Radiant (Cap on planes, Natural on curves)"), QStringLiteral("radiant"));
+		mapping->addItem(tr("Natural"), QStringLiteral("natural"));
+		mapping->addItem(tr("Cap Texture"), QStringLiteral("cap"));
+		mapping->addItem(tr("Stretched once"), QStringLiteral("stretch"));
+		preset->addRow(tr("Mapping"), mapping);
+		// NetRadiant Custom's Square box on its Exact shapes' density dialog.
+		auto* square = new QCheckBox(tr("Re-disperse columns and rows"), properties);
+		square->setObjectName(QStringLiteral("patchSquare"));
+		square->setAccessibleName(tr("Square the patch"));
+		square->setToolTip(tr("Once the patch is mapped, put each span's middle control point halfway between its ends, so a round patch is "
+							  "made of flat facets, as NetRadiant Custom's Square box does."));
+		preset->addRow(tr("Square"), square);
+		// Each shape takes only the settings the shared shape route reads.
+		const auto refreshFields = [shape, columns, rows, segments, bands, square]() {
+			const QStringList reads = levelShapeParameters(QStringLiteral("patch-") + shape->currentData().toString());
+			columns->setEnabled(reads.contains(QStringLiteral("columns")));
+			rows->setEnabled(reads.contains(QStringLiteral("rows")));
+			segments->setEnabled(reads.contains(QStringLiteral("sides")));
+			bands->setEnabled(reads.contains(QStringLiteral("bands")));
+			square->setEnabled(reads.contains(QStringLiteral("square")));
+		};
+		connect(shape, &QComboBox::currentIndexChanged, this, refreshFields);
+		refreshFields();
 		auto* build = new QPushButton(tr("Generate Shape"), properties);
 		build->setObjectName(QStringLiteral("patchGenerate"));
-		connect(build, &QPushButton::clicked, this, [this, shape, surfacePlane, columns, rows, sizes, patch]() {
-			LevelPatchCreateRequest request;
-			request.shape = shape->currentData().toString();
-			request.plane = surfacePlane->currentData().toString();
-			request.columns = columns->value();
-			request.rows = rows->value();
-			request.center = {(patch.mins.x + patch.maxs.x) * 0.5, (patch.mins.y + patch.maxs.y) * 0.5, (patch.mins.z + patch.maxs.z) * 0.5,
-			                  true};
-			request.size = {sizes.at(0)->value(), sizes.at(1)->value(), sizes.at(2)->value(), true};
+		build->setAccessibleName(tr("Generate the chosen patch shape"));
+		const auto imageSize = create.imageSize;
+		connect(build, &QPushButton::clicked, this, [this, shape, axis, columns, rows, segments, bands, sizes, mapping, square, centre, imageSize]() {
+			// The shared shape route: the box's top for a plane, as Radiant
+			// lays its simple patch mesh, and the chosen mapping.
+			LevelShapeRequest request;
+			request.shape = QStringLiteral("patch-") + shape->currentData().toString();
+			request.axis = axis->currentData().toInt();
+			const double half[3] = {sizes.at(0)->value() * 0.5, sizes.at(1)->value() * 0.5, sizes.at(2)->value() * 0.5};
+			request.mins = {centre.x - half[0], centre.y - half[1], centre.z - half[2], true};
+			request.maxs = {centre.x + half[0], centre.y + half[1], centre.z + half[2], true};
+			request.sides = segments->value();
+			request.bands = bands->value();
+			request.columns = columns->value() | 1;
+			request.rows = rows->value() | 1;
+			request.patchSquare = square->isChecked();
 			// The factory accepts asset paths; the current draft stores a map token.
 			request.texture = QStringLiteral("textures/") + materialToken();
+			parseLevelPatchCreateMapping(mapping->currentData().toString(), &request.patchMapping);
+			request.patchImageSize = imageSize ? imageSize(materialToken()) : QSize();
+			LevelPatchCreateRequest prepared;
 			LevelMapPatch generated;
 			QString error;
-			if (createLevelPatch(request, &generated, &error)) {
+			if (levelShapePatchRequest(request, &prepared, &error) && createLevelPatch(prepared, &generated, &error)) {
 				applyPatch(generated);
 				m_controls->framePatch();
 				m_preview->frameModel();
@@ -630,6 +681,16 @@ PatchEditorDialog::PatchEditorDialog(const LevelMapPatch& patch, bool creating, 
 		});
 		fields->addLayout(preset);
 		fields->addWidget(build);
+		if (create.canReplace) {
+			auto* replace = new QCheckBox(tr("Replace the selected brushes and patches"), properties);
+			replace->setObjectName(QStringLiteral("patchReplaceSelection"));
+			replace->setToolTip(tr("Delete the selected brushes and patches when the patch is added, in the same undo step, as Radiant's "
+								   "patch commands do."));
+			replace->setChecked(true);
+			m_replaceSelection = true;
+			connect(replace, &QCheckBox::toggled, this, [this](bool on) { m_replaceSelection = on; });
+			fields->addWidget(replace);
+		}
 	}
 	m_points = new QTableWidget(properties);
 	m_points->setObjectName(QStringLiteral("patchPoints"));

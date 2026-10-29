@@ -320,8 +320,28 @@ struct LevelMapDoomSector {
 	bool selected = false;
 };
 
+// One entity class of the map, for Map Info's class table (NetRadiant Custom
+// map.cpp DoMapInfo at 449778b3, GPL-2.0-or-later; original implementation):
+// how many entities have it, how many of those are group entities (they hold
+// brushes or patches, or are worldspawn), and how many reach the game
+// (levelMapEntityReachesGame). Doom maps count thing types ("thing:3001"),
+// all in the game.
+struct LevelMapEntityClassCount {
+	QString className;
+	int count = 0;
+	int groupCount = 0;
+	int inGameCount = 0;
+};
+
 struct LevelMapStatistics {
 	int entityCount = 0;
+	// Map Info: group entities (worldspawn and entities holding brushes or
+	// patches), the entities and group entities the compiler keeps, and every
+	// class with its counts, sorted by name without case.
+	int groupEntityCount = 0;
+	int inGameEntityCount = 0;
+	int inGameGroupEntityCount = 0;
+	QVector<LevelMapEntityClassCount> entityClasses;
 	int brushCount = 0;
 	int brushFaceCount = 0;
 	int solvedBrushCount = 0;
@@ -757,6 +777,14 @@ QStringList levelMapNamesInWadDocument(const LevelMapDocument& document);
 QStringList levelMapStatisticsLines(const LevelMapDocument& document);
 // Format statistics already computed for this document, without rescanning it.
 QStringList levelMapStatisticsLines(const LevelMapDocument& document, const LevelMapStatistics& statistics);
+// Whether an entity of `className` is still an entity once the map is
+// compiled, by NetRadiant Custom's Map Info rule: group entities but
+// func_group, _decal and func_detail*, which the compilers merge into the
+// world, and point entities but light*, misc_model and info_null, which they
+// drop. Classes are compared without case.
+bool levelMapEntityReachesGame(const QString& className, bool groupEntity);
+// "class: count (n in game)" for each class of the statistics, for reports.
+QStringList levelMapEntityClassLines(const LevelMapDocument& document, const LevelMapStatistics& statistics);
 QStringList levelMapEntityLines(const LevelMapDocument& document);
 QStringList levelMapTextureLines(const LevelMapDocument& document);
 QStringList levelMapValidationLines(const LevelMapDocument& document);
@@ -985,6 +1013,17 @@ const QStringList& levelMapTargetPropertyKeys();
 // A primitive whose braces share lines with other text cannot be copied as
 // text; `error` then says which, and the result is empty.
 QString levelMapSelectionText(const LevelMapDocument& document, QString* error = nullptr);
+struct LevelMapSelectionTextOptions {
+	// Wrap the selected world brushes and patches in a worldspawn block, so the
+	// text is a map of its own (Export Selection as Map); a Quake II map keeps
+	// its target note.
+	bool worldspawnWrapper = false;
+	// With the wrapper: the open map's worldspawn keys rather than its class alone.
+	bool worldspawnKeys = false;
+	// Text for a file, not the clipboard: up to 100,000 objects and 512 MiB.
+	bool fileOutput = false;
+};
+QString levelMapSelectionText(const LevelMapDocument& document, const LevelMapSelectionTextOptions& options, QString* error = nullptr);
 // Adds the objects in .map text, as copied by levelMapSelectionText() or by
 // TrenchBroom or Radiant: entity blocks become entities, and bare brush and
 // patch blocks, or those of a worldspawn block, join the open map's

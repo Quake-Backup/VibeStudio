@@ -17,6 +17,7 @@
 #include "core/level_build_workspace.h"
 #include "core/level_build_deployment.h"
 #include "app/level_scene_panel.h"
+#include "app/level_map_inspector.h"
 #include "app/level_object_list.h"
 #include "app/level_load_dialog.h"
 #include "app/game_launch_task_dialog.h"
@@ -2851,7 +2852,7 @@ QWidget* ApplicationShell::buildLevelsPage()
 	zoomSelection->setObjectName(QStringLiteral("levelMapZoomSelection"));
 	zoomSelection->setAccessibleName(tr("Zoom map viewport to the selection"));
 	connect(zoomSelection, &QToolButton::clicked, this, [this]() {
-		frameLevelMapSelection();
+		frameLevelMapSelectionFromUi();
 	});
 	viewportBar->addWidget(zoomSelection);
 
@@ -2955,6 +2956,14 @@ QWidget* ApplicationShell::buildLevelsPage()
 	m_levelMap3D->setMinimumSize(320, 260);
 	// The saved camera display: faces textured, flat or hidden, and edges.
 	applyLevelCameraRender();
+	// The camera's ground and face grids follow Show Grid and the grid size,
+	// and so does Show Grid's check mark (level_camera_render_actions.cpp).
+	const auto followGrid = [this]() {
+		applyLevelCameraShading();
+		refreshLevelCameraRenderCommands();
+	};
+	connect(m_levelMapShowGrid, &QAction::toggled, this, followGrid);
+	connect(m_levelMapGrid, &QComboBox::currentIndexChanged, this, followGrid);
 	connect(m_levelMap3D, &ModelViewport::hoverChanged, this, [this](const QString& summary) {
 		if (m_levelMapHover && levelMap3DShowing()) {
 			m_levelMapHover->setText(levelSweepReadout(summary.isEmpty() ? m_levelMap3D->hoverSummary() : summary));
@@ -2974,6 +2983,8 @@ QWidget* ApplicationShell::buildLevelsPage()
 	// A selection dragged in the camera moves as one undo step, as a drag in
 	// the 2D view does.
 	connect(m_levelMap3D, &ModelViewport::moveRequested, this, &ApplicationShell::moveLevelMapSelectionFromViewport);
+	// The Translate tool's drags and pivot (level_object_gizmo_actions.cpp).
+	connectLevelObjectGizmo(m_levelMap3D->objectGizmo(), nullptr);
 	connectLevelCameraResize();
 	connectLevelCameraComponents();
 	connectLevelClipper();
@@ -3301,6 +3312,11 @@ QWidget* ApplicationShell::buildLevelsPage()
 			}
 			activateLevelPlanViewport(m_levelPlanViews.value(index));
 			m_levelMapViewport->setFocus(Qt::OtherFocusReason);
+		} else {
+			// One plan view changes plane, keeping its zoom and centring on the
+			// selection or the camera (level_plan_framing_actions.cpp); with
+			// neither it fits the map, as before.
+			recentreLevelPlanForProjection(m_levelMapViewport, m_levelMapProjection->currentData().toInt());
 		}
 		refreshLevelMapViewport();
 	});
@@ -8030,6 +8046,9 @@ void ApplicationShell::refreshLevelMapWorkbench()
 		m_levelMapState->setState(OperationState::Idle, tr("Idle"));
 		m_levelMapState->setProgress({0, 1});
 		m_levelMapStatistics->addItem(disabledListItem(tr("Map statistics will appear after inspection.")));
+		if (m_levelMapClassTable) {
+			m_levelMapClassTable->clearStatistics();
+		}
 		m_levelMapView->addItem(disabledListItem(tr("2D or orthographic preview lines will appear after inspection.")));
 		m_levelMapValidation->addItem(disabledListItem(tr("Map validation and health overlay will appear after inspection.")));
 		m_levelMapDrawer->setTitle(tr("Level Map Details"));
@@ -8048,6 +8067,10 @@ void ApplicationShell::refreshLevelMapWorkbench()
 
 		for (const QString& line : levelMapStatisticsLines(m_levelMapDocument, stats)) {
 			m_levelMapStatistics->addItem(line);
+		}
+		// Map Info's class table (app/level_map_inspector.h).
+		if (m_levelMapClassTable) {
+			m_levelMapClassTable->setStatistics(m_levelMapDocument, stats);
 		}
 		for (const QString& line : levelMapViewLines(m_levelMapDocument)) {
 			m_levelMapView->addItem(line);
@@ -8233,6 +8256,8 @@ void ApplicationShell::refreshLevelMapSelection(const LevelMapInspectionSummary*
 	// and so do the commands that act on it (Delete, Duplicate, Snap...).
 	refreshEntityInspector(&summary.textureNames);
 	refreshLevelTransformPanel();
+	// The Shapes tab's Replace Selected Brushes follows the selection too.
+	refreshLevelShapesPanel();
 	refreshCommandEnablement();
 }
 
@@ -10183,7 +10208,7 @@ void ApplicationShell::applyLevelEditorProfile(bool profileChanged, bool preserv
 	}
 	if (m_levelMap3D) {
 		m_levelMap3D->setCameraControls(m_levelControls.camera, preserveWorkspace);
-		m_levelMap3D->setControlsHelp(levelControlsAccessibleText(QStringLiteral("camera"), tr("3D view")));
+		m_levelMap3D->setControlsHelp(levelCameraControlsHelp());
 		refreshLevelCameraBrush();
 	}
 	if (layoutChanged && !preserveWorkspace) {
@@ -10291,10 +10316,20 @@ void ApplicationShell::showLevelMapProjection(int index)
 		&& !m_levelPlanPanes.shown[static_cast<std::size_t>(index)] && !showLevelPlanPane(index, true)) {
 		return;
 	}
+	const bool samePlane = m_levelMapProjection->currentIndex() == index;
 	m_levelMapProjection->setCurrentIndex(index);
 	if (levelViewLayoutHasThreePlans(m_levelViewLayout)) {
 		activateLevelPlanViewport(m_levelPlanViews.value(index));
 		m_levelMapViewport->setFocus(Qt::OtherFocusReason);
+		// Radiant's split layout recentres every 2D view on the selection or
+		// the camera instead (level_plan_framing_actions.cpp).
+		if (m_levelControls.plan.radiantFraming) {
+			centreLevelPlanViewsOnFocus();
+		}
+	} else if (samePlane) {
+		// The plane it already shows recentres there, keeping the zoom, as a
+		// change of plane does (the projection list's handler).
+		recentreLevelPlanForProjection(m_levelMapViewport, index);
 	}
 	// A single view shows the plane asked for instead of the 3D view.
 	if (!levelMap2DShowing()) {
@@ -14712,7 +14747,7 @@ void ApplicationShell::buildCommands()
 		m_commands->endBatch();
 	});
 
-	auto add = [this](const QString& commandId, StudioCommandGroup group, const QString& label, const QString& statusTip, const QString& iconName, bool toolbar, bool requiresProject, bool destructive, std::function<void()> handler, bool separatorBefore = false) {
+	auto add = [this](const QString& commandId, StudioCommandGroup group, const QString& label, const QString& statusTip, const QString& iconName, bool toolbar, bool requiresProject, bool destructive, std::function<void()> handler, bool separatorBefore = false, bool checkable = false) {
 		StudioCommandRegistration registration;
 		registration.commandId = commandId;
 		registration.group = group;
@@ -14723,6 +14758,7 @@ void ApplicationShell::buildCommands()
 		registration.requiresProject = requiresProject;
 		registration.destructive = destructive;
 		registration.separatorBefore = separatorBefore;
+		registration.checkable = checkable;
 		registration.handler = std::move(handler);
 		m_commands->registerCommand(registration);
 	};
@@ -14793,6 +14829,8 @@ void ApplicationShell::buildCommands()
 	add(QStringLiteral("map.exportImage"), StudioCommandGroup::File, tr("&Export Map Image…"),
 		tr("Write a deterministic SVG picture of the current map."), QStringLiteral("image"), false, false, false,
 		[this]() { exportLevelMapImage(); });
+	// Import Map, Export Selection as Map and Export Map (app/level_map_transfer_actions.cpp).
+	registerLevelMapTransferCommands();
 	add(QStringLiteral("package.saveAs"), StudioCommandGroup::File, tr("Save Pac&kage As…"),
 		tr("Write the staged package to a new archive."), QStringLiteral("save"), false, false, false,
 		[this]() { saveStagedPackageAs(); });
@@ -14923,8 +14961,10 @@ void ApplicationShell::buildCommands()
 		tr("Preview, position and rotate a prefab with unique internal target links."), QStringLiteral("cube"), false, false, false,
 		[this]() { showLevelPrefab(false); });
 	add(QStringLiteral("map.addPatch"), StudioCommandGroup::Edit, tr("Add &Patch…"),
-		tr("Create a Quake III curved surface with editable control points and UV coordinates."), QStringLiteral("cube"), false, false, false,
+		tr("Create a Quake III patch of any Radiant shape fitted to the selection's bounds, mapped as Radiant maps a new patch, with editable control "
+		   "points and UV coordinates; it can replace the selected brushes and patches."), QStringLiteral("cube"), false, false, false,
 		[this]() { editLevelMapPatchFromUi(true); });
+	registerLevelPatchPrefabCommands();
 	add(QStringLiteral("map.editBrushComponents"), StudioCommandGroup::Edit, tr("Edit Brush Components…"),
 		tr("Reshape the selected brush's vertices, edges and faces."), QStringLiteral("edit"), false, false, false,
 		[this]() { editLevelMapBrushComponentsFromUi(); });
@@ -14977,6 +15017,7 @@ void ApplicationShell::buildCommands()
 	registerLevelBrushPointsCommands();
 	registerLevelBrushAssembleCommands();
 	registerLevelNudgeCommands();
+	registerLevelObjectGizmoCommands();
 	add(QStringLiteral("map.resizeSelection"), StudioCommandGroup::Edit, tr("Resi&ze Selection…"),
 		tr("Fit the selection to a new size. Texture Scale Lock stretches brush textures with it; otherwise their source parameters stay fixed. Viewport handles use the same setting."),
 		QStringLiteral("resize"), false, false, false, [this]() { resizeLevelMapSelectionFromUi(); });
@@ -15151,6 +15192,8 @@ void ApplicationShell::buildCommands()
 				m_levelMapViewport->zoomOut();
 			}
 		});
+	// Zoom 100% and Reset 2D Views (level_plan_framing_actions.cpp).
+	registerLevelPlanFramingCommands();
 	add(QStringLiteral("map.carve"), StudioCommandGroup::Edit, tr("Car&ve"),
 		tr("Carve the selected brushes out of every brush they overlap, as CSG subtraction does; the carving brushes stay selected."),
 		QStringLiteral("clip"), false, false, false, [this]() { carveLevelMapSelectionFromUi(); });
@@ -15228,10 +15271,8 @@ void ApplicationShell::buildCommands()
 			LevelCameraRenderState state = m_levelCameraRender;
 			state.facesHidden = !state.facesHidden;
 			setLevelCameraRender(state, levelCameraRenderSummary(state));
-		});
-	if (QAction* wireframe = m_commands->action(QStringLiteral("map.previewWireframe"))) {
-		wireframe->setCheckable(true);
-	}
+		},
+		false, true);
 	registerLevelCameraRenderCommands();
 	add(QStringLiteral("map.gridSmaller"), StudioCommandGroup::View, tr("S&maller Grid"),
 		tr("Halve the Levels grid, so drags, nudges, and new objects land on finer steps."), QStringLiteral("grid"), false, false, false,
@@ -15255,16 +15296,22 @@ void ApplicationShell::buildCommands()
 		tr("Show the map from the side in the 2D view."), QStringLiteral("map"), false, false, false,
 		[this]() { showLevelMapProjection(2); });
 	add(QStringLiteral("map.frameSelection"), StudioCommandGroup::View, tr("&Frame Selection"),
-		tr("Frame the selection in the 2D view and turn the 3D camera to it."), QStringLiteral("crosshair"), false, false, false,
-		[this]() { frameLevelMapSelection(); });
+		tr("Frame the selection in the 2D view and turn the 3D camera to it; with Radiant framing (the NetRadiant Custom and NetRadiant profiles) only the 2D views move."), QStringLiteral("crosshair"), false, false, false,
+		[this]() { frameLevelMapSelectionFromUi(); });
 	registerLevelCameraFocusCommands();
 	add(QStringLiteral("map.toggleGrid"), StudioCommandGroup::View, tr("Show &Grid"),
-		tr("Show or hide the grid lines in the 2D view."), QStringLiteral("grid"), false, false, false,
+		tr("Show or hide the grid lines in the 2D views and the camera's ground grid and Grid on Camera Faces."), QStringLiteral("grid"), false, false, false,
 		[this]() {
 			if (m_levelMapShowGrid) {
 				m_levelMapShowGrid->trigger();
 			}
-		});
+		},
+		false, true);
+	// Checkable and checked while the grid shows, as TrenchBroom's Show Grid
+	// is (refreshLevelCameraRenderCommands).
+	if (QAction* showGrid = m_commands->action(QStringLiteral("map.toggleGrid"))) {
+		showGrid->setChecked(true);
+	}
 	add(QStringLiteral("map.toggleSnap"), StudioCommandGroup::View, tr("S&nap to Grid"),
 		tr("Turn grid snapping for drags, nudges, and drawn brushes on or off."), QStringLiteral("grid"), false, false, false,
 		[this]() {
@@ -17306,9 +17353,38 @@ void ApplicationShell::installShortcutScopes()
 				m_commands->setShortcutScopeClaims(registration.commandId, m_levelMap3D != nullptr, QStringLiteral("camera-faces"));
 				continue;
 			}
+			// Camera Floor Up and Down (NRC's Page Up and Page Down) act in the
+			// views, which claim their keys while the camera can step; in a plan
+			// view a Doom map's Raise and Lower Floor keep them while they can
+			// act (app/level_camera_focus_actions.cpp).
+			if (registration.commandId == QLatin1String("map.cameraFloorUp") || registration.commandId == QLatin1String("map.cameraFloorDown")) {
+				m_commands->setShortcutScopes(registration.commandId, levelViews.isEmpty() ? QList<QWidget*>{page(StudioMode::Levels)} : levelViews);
+				m_commands->setShortcutScopeClaims(registration.commandId, !levelViews.isEmpty(), QStringLiteral("camera-floor"));
+				continue;
+			}
+			// Reset 2D Views acts from a 2D view. No profile gives it a key
+			// (TrenchBroom's Ctrl+Shift+U is Read Aloud's), but a key the user
+			// gives it is taken only in a 2D view while it can act, so a shared
+			// key keeps its window-wide command everywhere else
+			// (app/level_plan_framing_actions.cpp).
+			if (registration.commandId == QLatin1String("map.resetPlanViews")) {
+				QList<QWidget*> planViews;
+				for (auto* view : m_levelPlanViews) { if (view) { planViews << view; } }
+				m_commands->setShortcutScopes(registration.commandId, planViews.isEmpty() ? QList<QWidget*>{page(StudioMode::Levels)} : planViews);
+				m_commands->setShortcutScopeClaims(registration.commandId, !planViews.isEmpty(), QString::fromLatin1(StudioCommandRegistry::kShortcutFocusClaims));
+				continue;
+			}
 			m_commands->setShortcutScopes(registration.commandId, (viewNavigation || nudge) && !levelViews.isEmpty()
 				? levelViews : QList<QWidget*>{page(StudioMode::Levels)});
 			if (nudge) { m_commands->setShortcutScopeClaims(registration.commandId, !levelViews.isEmpty()); }
+			// TrenchBroom's Ctrl+3 shows the Face inspector wherever focus is in
+			// Levels and keeps switching to Models elsewhere
+			// (app/level_face_inspector_actions.cpp).
+			// Its Ctrl+1 shows the Map inspector the same way and keeps the
+			// Workspace mode key elsewhere (app/level_map_inspector_actions.cpp).
+			if (registration.commandId == QLatin1String("map.showFaceInspector") || registration.commandId == QLatin1String("map.sidebar.map")) {
+				m_commands->setShortcutScopeClaims(registration.commandId, true, QString::fromLatin1(StudioCommandRegistry::kShortcutFocusClaims));
+			}
 		}
 	}
 }
@@ -19129,6 +19205,7 @@ void ApplicationShell::refreshCommandEnablement()
 	m_commands->setEnabled(QStringLiteral("map.addBrush"), m_levelMapDocument.format == LevelMapFormat::QuakeMap
 		|| m_levelMapDocument.format == LevelMapFormat::Quake3Map);
 	m_commands->setEnabled(QStringLiteral("map.addPatch"), m_levelMapDocument.format == LevelMapFormat::Quake3Map);
+	refreshLevelPatchPrefabCommands();
 	m_commands->setEnabled(QStringLiteral("map.stitchPatches"), m_levelMapDocument.format == LevelMapFormat::Quake3Map && m_levelMapDocument.patches.size() >= 2);
 	m_commands->setEnabled(QStringLiteral("map.capPatch"), m_levelMapDocument.format == LevelMapFormat::Quake3Map && !m_levelMapDocument.patches.isEmpty());
 	const auto groupContext = m_levelMapViewport ? m_levelMapViewport->sceneSelectionContext() : LevelSceneSelectionContext{};
@@ -19145,6 +19222,7 @@ void ApplicationShell::refreshCommandEnablement()
 	m_commands->setEnabled(QStringLiteral("map.snapToGrid"), hasMap && hasSelection);
 	const bool textMapOpen = m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map;
 	m_commands->setEnabled(QStringLiteral("map.exportPrefab"), textMapOpen && hasSelection);
+	refreshLevelMapTransferCommands();
 	m_commands->setEnabled(QStringLiteral("map.stagePrefab"), textMapOpen && hasSelection && m_packageStaging.isLoaded()
 		&& m_packageStaging.sourceFormat() != PackageArchiveFormat::Wad && !m_packageSaveRunning && !m_packageReadRunning && !m_packageExtractionRunning);
 	m_commands->setEnabled(QStringLiteral("map.insertPrefab"), textMapOpen);
@@ -19174,7 +19252,9 @@ void ApplicationShell::refreshCommandEnablement()
 	refreshLevelBrushAssembleCommands();
 	refreshLevelArbitraryTransformDialogs();
 	refreshLevelNudgeCommands();
+	refreshLevelObjectGizmoCommands();
 	refreshLevelCameraFocusCommands();
+	refreshLevelPlanFramingCommands();
 	m_commands->setEnabled(QStringLiteral("map.selectConnectedGeometry"), hasMap && m_levelMapDocument.format == LevelMapFormat::DoomWad &&
 		std::any_of(m_levelMapDocument.selection.cbegin(), m_levelMapDocument.selection.cend(), [](const auto& ref) {
 			return ref.kind == LevelMapSelectionKind::DoomVertex || ref.kind == LevelMapSelectionKind::DoomLinedef || ref.kind == LevelMapSelectionKind::DoomSector;
@@ -19517,10 +19597,16 @@ bool ApplicationShell::eventFilter(QObject* watched, QEvent* event)
 	if (watched == m_levelMap3D && m_levelTextureDragMode && handleLevelTextureDragEvent(event)) {
 		return true;
 	}
+	if (watched == m_levelMap3D && handleLevelCameraUvToolEvent(event)) {
+		return true;
+	}
 	if (handleLevelCameraFocusEvent(watched, event)) {
 		return true;
 	}
 	if (handleLevelNudgeKey(watched, event)) {
+		return true;
+	}
+	if (handleLevelCameraFloorKey(watched, event)) {
 		return true;
 	}
 	if (handleLevelPrismKey(watched, event)) {
@@ -24817,7 +24903,7 @@ void ApplicationShell::showLevelMapContextMenu(const QPoint& globalPosition, boo
 	} else if (chosen == deleteSelection) {
 		deleteLevelMapSelectionFromUi();
 	} else if (chosen == zoomSelection) {
-		frameLevelMapSelection();
+		frameLevelMapSelectionFromUi();
 	} else if (chosen == zoomFit) {
 		frameLevelPlanViews(false);
 	} else if (chosen == editKey) {

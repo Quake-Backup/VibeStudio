@@ -209,6 +209,10 @@ static LevelEditorControls familiarLevelControlsWithoutNudges(const QString& id)
 		key(controls, "map.selectSimilar", {});
 		// Q3Radiant's End levelling is not confirmed by the QeRadiant manual.
 		unbind(controls, "map.levelCamera");
+		// The manual lists Page Up and Page Down floor steps and the Ctrl+] and
+		// Ctrl+[ cubic clip steps, but says Ctrl+\ toggles the clip only in
+		// Q3Radiant.
+		unbind(controls, "map.previewFarClip");
 		return controls;
 	}
 	if (id == QLatin1String("q3radiant")) {
@@ -248,6 +252,12 @@ static LevelEditorControls familiarLevelControlsWithoutNudges(const QString& id)
 		key(controls, "map.surfaceRotateLeft", {QStringLiteral("Shift+PgUp")});
 		key(controls, "map.surfaceRotateRight", {QStringLiteral("Shift+PgDown")});
 		key(controls, "map.surfaceFit", {QStringLiteral("Shift+5")});
+		// MainFrm.cpp g_Commands: UpFloor and DownFloor on Page Up and Page
+		// Down (inherited) and ToggleCubicClip on Ctrl+\, but CubicClipZoomOut
+		// (longer) on Ctrl+[ and CubicClipZoomIn (shorter) on Ctrl+], the other
+		// way round from GtkRadiant. DoomEdit's CameraClip keys match.
+		key(controls, "map.shorterDrawDistance", {QStringLiteral("Ctrl+]")});
+		key(controls, "map.longerDrawDistance", {QStringLiteral("Ctrl+[")});
 		return controls;
 	}
 	if (id == QLatin1String("netradiant")) {
@@ -324,7 +334,16 @@ static LevelEditorControls familiarLevelControlsWithoutNudges(const QString& id)
 			QStringLiteral("map.surfaceScaleStepDown"), QStringLiteral("map.surfaceScaleStepLeft"), QStringLiteral("map.surfaceScaleStepRight"),
 			// Shift+] and Shift+[ step NRC's camera modes (CameraModeNext and
 			// CameraModePrev, 449778b3); NetRadiant's camwindow.cpp has neither.
-			QStringLiteral("map.nextCameraMode"), QStringLiteral("map.previousCameraMode")};
+			QStringLiteral("map.nextCameraMode"), QStringLiteral("map.previousCameraMode"),
+			// W for the Translate tool and R for the Rotate tool were audited
+			// against NRC 449778b3 only.
+			QStringLiteral("map.translateTool"), QStringLiteral("map.rotateTool"),
+			// G for the UV tool (MouseUV) was audited against NRC 449778b3 only.
+			QStringLiteral("map.uvTool"),
+			// So was Q for Select or Transform Tool (MouseDragOrTransform).
+			QStringLiteral("map.selectOrTransformTool"),
+			// Shift+P for Simple Patch Mesh was audited against NRC 449778b3 only.
+			QStringLiteral("map.addPatch")};
 		controls.keys.erase(std::remove_if(controls.keys.begin(), controls.keys.end(),
 			[&nrcOnly](const LevelEditorKeyBinding& binding) { return nrcOnly.contains(binding.commandId); }), controls.keys.end());
 		controls.surfaceRotationStep = LevelEditorControls{}.surfaceRotationStep;
@@ -442,8 +461,12 @@ static LevelEditorControls familiarLevelControlsWithoutNudges(const QString& id)
 		key(controls, "map.gridLarger", {QStringLiteral("]")});
 		key(controls, "map.zoomIn", {QStringLiteral("Del")});
 		key(controls, "map.zoomOut", {QStringLiteral("Ins")});
-		// GtkRadiant's End levelling still needs a DarkRadiant audit.
-		unbind(controls, "map.levelCamera");
+		// GtkRadiant's End levelling, Page Up and Down floor steps and cubic
+		// clip keys still need a DarkRadiant audit.
+		for (const char* command : {"map.levelCamera", "map.cameraFloorUp", "map.cameraFloorDown", "map.previewFarClip", "map.shorterDrawDistance",
+				 "map.longerDrawDistance"}) {
+			unbind(controls, command);
+		}
 		return controls;
 	}
 	if (id == QLatin1String("doom-builder") || id == QLatin1String("ultimate-doom-builder")) {

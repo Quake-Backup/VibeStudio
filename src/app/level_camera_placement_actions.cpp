@@ -58,6 +58,7 @@ void ApplicationShell::connectLevelCameraPlacement()
 		[this](QPainter &painter)
 		{
 			paintLevelCameraPortals(painter);
+			paintLevelCameraUvTool(painter);
 			if (!m_levelCameraPlace || !m_levelCameraPlace->isEnabled() || m_levelMap3D->isRendering() || !m_levelMap3D->isEnabled() ||
 				m_levelMap3D->brushDrawTool() || m_levelMap3D->isLooking() || m_levelMap3D->isMovingSelection() ||
 				m_levelMap3D->isResizingSelection() || m_levelMap3D->editingMove() || m_levelMap3D->surfaceStrokeActive() ||

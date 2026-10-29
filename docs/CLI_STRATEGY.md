@@ -1464,6 +1464,15 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   `--dry-run` verifies without writing, and `--overwrite` permits an existing
   destination. Inspection and editing reject maps that are not UDMF.
 - [x] `map inspect` for Doom WAD map lumps and Quake-family `.map` files.
+  JSON `statistics` carries NetRadiant Custom's Map Info counts
+  (`groupEntityCount`, `inGameEntityCount`, `inGameGroupEntityCount` and the
+  sorted `entityClasses` table) and `mapProperties` the Map tab's soft bounds,
+  mods and layer summary (`core/level_map_inspector`).
+- [x] `map properties <map> [--soft-bounds game|none|"x y z x y z"] [--mods "a;b"|--no-mods]
+  [--enable-mod NAME] [--disable-mod NAME] [--game-root DIR [--game KEY]] [--output <map>]`
+  reports or sets TrenchBroom's `_tb_soft_map_bounds` and `_tb_mod` worldspawn
+  keys through the Levels Map tab's service, one undo step each, with
+  `--dry-run` and `--overwrite`. **Status: Partial.**
 - [x] `map place-sound <map> --package <archive-or-folder> --sound sound/name.wav
   --game quake2|quake3 --origin x,y,z --output <separate.map>` validates a package
   WAV and places a speaker in a separate map output. `--mode` accepts `loop-on`,
@@ -1536,6 +1545,21 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   `map detail`; hidden faces, locked layers and faces outside `--context` are
   refused. One undo step; requires `--output`, with `--dry-run`, `--overwrite`
   and `--json` (`changedFaces`, `brushes`, the bits by name, `value`).
+- [x] `map face-attributes <map>` reads or sets brush faces' texture offset,
+  scale and rotation through `core/level_face_attributes.h`, the service behind
+  the Levels **Surfaces** tab's **Face** section (TrenchBroom's Face inspector).
+  Name faces with repeatable `--object brush:ID|entity:ID` and
+  `--face brushId:faceNumber` (one-based). Without changes it reports each
+  face's values in its own format (`faces`, with `values` null and a `problem`
+  where they cannot be read) and the section's `summary`, mixed values as null.
+  `--offset-u`, `--offset-v`, `--scale-u`, `--scale-v` and `--rotation` set
+  absolute values on every face; `--pivot X,Y,Z` keeps that map point's place
+  on the texture through a new scale or rotation, as the section's turn and
+  stretch handles do; `--move U,V` then moves the texture by texels.
+  Brush-primitive faces need `--package` or `--texture-size W,H`. A zero scale,
+  hidden faces, locked layers and faces outside `--context` are refused. One
+  undo step; requires `--output`, with `--dry-run`, `--overwrite` and `--json`
+  (`changedFaces`, `brushes`, `set`, `move`, `pivot`, `faces`).
 - [x] `map edit-uv <map> --target face:brushId:faceNumber|patch:id` lists or
   edits one brush face's winding or one patch's control points in texture space
   (texels, U right and V down) through `core/level_uv_edit.h`, the service
@@ -1543,11 +1567,16 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   it lists each point's world position and texel coordinates. One change:
   `--move-point N --to U,V` (a face's whole texture follows; a patch point moves
   alone), `--offset U,V` (a patch's `--points` list) or `--rotate DEG` about
-  `--anchor N` or the centre. Classic faces that cannot hold a turn exactly take
+  `--anchor N` or the centre. The camera UV tool's changes go through
+  `core/level_uv_tool.h`: `--stretch U,V` and `--skew-u K` or `--skew-v K` about
+  `--pivot U,V` (a face's stretch sets its scale values; a classic face takes a
+  skew only with `--allow-valve220`), and `--rows` and `--columns` choose a
+  patch's control points. Classic faces that cannot hold a turn exactly take
   the nearest classic mapping unless `--allow-valve220`. Brush-primitive faces and
   patches need `--package` or `--texture-size W,H`. Hidden, locked and
   out-of-`--context` targets are refused. One undo step; requires `--output`,
-  with `--dry-run`, `--overwrite` and `--json` (`format`, `points`, `fit`).
+  with `--dry-run`, `--overwrite` and `--json` (`format`, `points`, `fit`,
+  `stretch`, `skew`, `pivot`).
 - [x] `map copy-surface <map> --target face:brushId:faceNumber --output surface.json`
   copies one face's material, mapping and flags to a versioned JSON clipboard.
   Face numbers are one-based. `map paste-surface <map> --clipboard surface.json`
@@ -1687,10 +1716,17 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   fail atomically. JSON includes sorted component sets, counts and replayable
   `selectors` for `map transform-components`. No `--output` is accepted.
 - [x] `map add-patch` to add a Quake III plane, cylinder, square cylinder, cone,
-  sphere, bevel or end cap using `--shape`, `--size x,y,z`, `--origin x,y,z`,
-  `--texture`, and optional grid dimensions; `--axis x|y|z` turns it,
-  `--segments N` (3 to 15) sets the spans round a cylinder, cone or sphere and
-  `--bands N` a sphere's spans from pole to pole.
+  classic cone, sphere, bevel or end cap using `--shape`, `--size x,y,z`,
+  `--origin x,y,z`, `--texture`, and optional grid dimensions; `--axis x|y|z`
+  turns it, `--segments N` (3 to 15) sets the spans round a cylinder, cone or
+  sphere and `--bands N` a sphere's spans from pole to pole. New patches are
+  mapped as NetRadiant Custom maps them (Cap Texture on a plane, Natural on the
+  rest) by `--texture-size W,H` (64,64 by default); `--mapping
+  natural|cap|stretch|radiant` chooses the layout, reported as `mapping`.
+  `--rows N` sets the control rows along any shape but a sphere,
+  `--ring-start auto|exact` where a round ring starts (exact: angle 0, as
+  NetRadiant Custom's Exact shapes) and `--square` re-disperses every span once
+  mapped (its Square box); JSON adds `ringStart`, `square`, `columns` and `rows`.
   `map edit-patch` selects `--patch <id>` and zero-based `--point row,column`
   values, with `--delta`, `--grid`, `--uv`, `--texture`, `--subdivide rows|columns`,
   or `--invert`. Both require an input map and `--output` and support `--dry-run`,
@@ -1800,7 +1836,15 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   the editor. JSON reports `shape`, the new `brushes` and the `replaced` ones.
   `--fit box|circle` (cylinders, cones and spheres; `map add-brush` takes it
   too) chooses between filling the box and NetRadiant Custom's fit, round on
-  the larger extent with a face on the first axis. `--in-place` rebuilds each
+  the larger extent with a face on the first axis. The patch shapes
+  (`patch-plane` with `--columns` and `--rows`, `patch-cylinder`,
+  `patch-square-cylinder`, `patch-cone`, `patch-classic-cone`, `patch-sphere`,
+  `patch-bevel`, `patch-endcap`) take `--mapping` and `--texture-size` as
+  `map add-patch` does, and with `--object` replace brushes and `patch:N`
+  patches as NetRadiant Custom's Patch menu does, in the brush entity of the
+  last one. `patch-cylinder`, `patch-cone` and `patch-classic-cone` take
+  `--rows`, and they and `patch-sphere` take `--square` and `--ring-start
+  auto|exact`, reported as `square` and `ringStart`. `--in-place` rebuilds each
   `--object` brush within its own bounds as a box, wedge, cylinder, cone or
   sphere, as NetRadiant Custom's Brush > Prism, Cone and Sphere do: world and
   brush-entity brushes keep their ids, owners, layers or groups, file order and
@@ -1822,7 +1866,20 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   slants the objects about their centre, or with `--about value` about the line at
   that coordinate along `--along`, as TrenchBroom's shear tool does:
   points slide along `--axis` by the factor times their distance along
-  `--along`. Doom maps shear in X and Y only.
+  `--along`. Doom maps shear in X and Y only. Under `map shear`, `--about` is
+  always this option (a missing or non-finite value exits 2); anywhere else it
+  stays the global `--about` flag.
+- [x] `map shear <map> --object brush:3 --side x+|x-|y+|y-|z+|z- --offset dx,dy,dz
+  [--pivot x,y,z] [--context GROUP] [--texture-lock on|off] [--allow-valve220] --output <path>`
+  slides that side of the whole selection's box by the offset (its part along
+  the side's own axis ignored) while the opposite side, or the plane through
+  `--pivot`, stays: the Levels Shear Tool's camera handles and the Transform
+  tool's side lines. One axis of slide goes through the same shear as above;
+  a slide within the side's plane through the affine transform service. One
+  undo step; hidden, locked or out-of-group objects, a side that does not
+  move, a side on the plane that stays and a slant over 16 units per unit
+  fail and write nothing. Reports `side`, `offset`, `anchor`, `factors`,
+  `matrix`, `mins`, `maxs`, `objects` and `selection`.
 - [x] `map curve-linedefs <map> [--map-name MAP01] --object linedef:4 --segments N
   --bulge units --output <path>` bends Doom linedefs into N pieces along an arc
   bulging towards their front sides (negative: the back), as Doom Builder's
@@ -1927,12 +1984,15 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   off entity class filters, and `--classes` lists every class of the map and of
   `--definitions file` (else the game's built-in classes) as `classes`. Nothing is
   written. See the [view filters CLI manual](manual/cli.md#query-view-filters).
-- [x] `map camera-focus <map> [--object selector...] [--level]` reports where
-  **Level Camera** and **Focus Camera on Selection** would put the 3D camera,
-  through `core/level_camera_focus`: `--camera-yaw`, `--camera-pitch`, `--fov`,
-  `--aspect` and `--offset` (free-focus wheel notches) describe the camera,
-  `--camera-position` where it stands when nothing is focused, and `--context`
-  the open group. Hidden objects are refused; nothing is written. See the
+- [x] `map camera-focus <map> [--object selector...] [--level] [--floor up|down] [--selected selector...]` reports where
+  **Level Camera**, **Focus Camera on Selection** and **Camera Floor Up** or
+  **Down** would put the 3D camera, through `core/level_camera_focus`:
+  `--camera-yaw`, `--camera-pitch`, `--fov`, `--aspect` and `--offset`
+  (free-focus wheel notches) describe the camera, `--camera-position` where it
+  stands when nothing is focused, and `--context` the open group. `--floor`
+  steps to the next standing height, with the named objects counting as
+  selected (`--selected` ones without moving the camera) and `--definitions`
+  sizing point entities, and reports it as `floor`. Hidden objects are refused; nothing is written. See the
   [camera focus CLI manual](manual/cli.md#query-a-level-camera-focus).
 - [x] `map visibility <map> --mode hide|show-all|isolate` queries temporary
   visibility using repeated `--object` and `--hidden` selectors and optional
@@ -2064,6 +2124,43 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   lines. `--texture-lock on|off`, `--allow-valve220` and `--context GROUP`;
   Quake-family maps only. JSON reports `camera`, `delta`, `grid` and the save
   fields.
+- [x] `map move <map> --object brush:3 --object brush:4 --delta 5,0,0 --snap bounds --grid 16 --output <map>`
+  moves the whole `--object` selection as the Levels **Translate** tool does
+  (core/level_object_manipulator.h translateLevelMapObjects()): by `--delta`,
+  or `--to x,y,z` taking the pivot (the box centre, or `--pivot x,y,z`) there;
+  `--snap grid|bounds` with `--grid N` follows NetRadiant Custom's translate
+  snapping. Routed this way by several `--object` values, `--to`, `--pivot`,
+  `--snap` or `--context GROUP`; one `--object` with `--delta` keeps the older
+  route. One undo step; hidden, locked or out-of-group objects and a move that
+  snaps to zero fail without writing. JSON reports `delta`, `pivotBefore`,
+  `pivotAfter`, `mins`, `maxs`, `objects`, `selection`, `snap` and `grid`.
+  Without `--delta` or `--to` it fails with a usage error that names both.
+- [x] `map rotate <map> --object brush:3 --object brush:4 --around 1,1,0 --degrees 37 --angle-step 15 --output <map>`
+  turns the whole `--object` selection as the Levels **Rotate** tool does
+  (core/level_object_manipulator.h rotateLevelMapObjects()): `--degrees`
+  right-handed about `--around x,y,z` (or `--axis x|y|z`) through the box centre
+  or `--pivot x,y,z`, rounded to `--angle-step`. A world axis is one plain turn
+  and any other direction NetRadiant Custom's Euler X, Y, Z turn, through the
+  shared rotation service with `--texture-lock on|off` and `--allow-valve220`.
+  Routed this way by `--around`, `--angle-step` or `--context GROUP`; other
+  `map rotate` forms keep their route. One undo step; hidden, locked or
+  out-of-group objects, a zero direction and a turn that snaps to whole turns
+  fail without writing. JSON reports `axis`, `degrees`, `worldAxis` or
+  `eulerXyz`, `pivot`, `mins`, `maxs`, `objects`, `selection` and `angleStep`.
+- [x] `map resize <map> --object brush:3 --object brush:4 --axis x --drag 24 --grid 16 --equal --output <map>`
+  scales the whole `--object` selection as the Levels **Scale** tool does
+  (core/level_object_manipulator.h levelObjectScaleFactors() and
+  scaleLevelMapObjects()): an `--axis x|y|z` handle or a `--view top|front|side`
+  square dragged `--drag N` units, the farther side of the box from the centre
+  or `--pivot` following it, with `--grid`, `--equal` (Shift) and
+  `--size-grid` (Ctrl), or `--factors x,y,z` directly, through Scale
+  Selection's service with `--texture-lock on|off` (off by default) and
+  `--allow-valve220`. Routed this way by `--drag`, `--axis`, `--view`,
+  `--equal`, `--size-grid` or `--context GROUP`; other `map resize` forms keep
+  their route. One undo step; hidden, locked or out-of-group objects, mirroring
+  factors and a scale of 1 fail without writing. JSON reports `factors`,
+  `pivot`, `mins`, `maxs`, `objects`, `selection` and, for a drag, `handle`,
+  `drag`, `equal`, `grid` and `sizeGrid`.
 - [x] `map repeat-transforms <map> --object brush:4 --rotate z,15 --translate 64,0,0 --output <map>`
   copies the `--object` selection where it is and applies NetRadiant Custom's
   repeatable transforms to the copies about their centre or `--pivot x,y,z`,
@@ -3017,6 +3114,13 @@ format or engine support. See [Editor Profiles](EDITOR_PROFILES.md).
   defaults; `--centers on|off`, `--zoom on|off` and `--follow-camera on|off`
   update them. `--json` reports the resulting values and `--settings-file`
   isolates automation settings.
+- [x] `editor far-clip` reads or changes the Levels camera's saved far clip
+  (**Far Clip in Camera**, NetRadiant Custom's cubic clip) under the
+  `levelPreviewFarClip` settings key the studio reads: `--clip on|off` and one
+  of `--step 1-23`, `--distance UNITS` (the nearest step), `--shorter` or
+  `--longer`; `--dry-run` previews. JSON reports `farClip` (`enabled`, `step`,
+  `distance`, the step range and every step's distance), `changed`, `applied`
+  and `dryRun` (`cli/level_camera_far_clip.cpp`, `core/level_camera_render.h`).
 - [x] `editor layout [profile|single-2d|single-3d|camera-and-plan|four-views|camera-above-plans|camera-beside-plans]`
   reads the current level-view layout, or saves the supplied preference. `profile`
   follows the selected interaction profile's default. JSON returns `preference`,
@@ -3358,6 +3462,76 @@ links. The fragment cannot overwrite either map path. In-place map saves retain
 backups. Two-file cut publishes the fragment first and reports `clipboardWritten`
 and `mapWritten` on success or failure; failed map saving retains the source.
 See [clipboard limits and examples](LEVEL_PASTE.md#cli). **Status: Partial.**
+
+`map copy --standalone` wraps the copied world brushes and patches in a
+worldspawn block, as **Export Selection as Map…** writes the selection, so the
+fragment opens as a map of its own; `--worldspawn-keys` (only with
+`--standalone`) copies the source's worldspawn keys into it. JSON adds
+`standalone` and `worldspawnKeys`. **Status: Partial.**
+
+### Import Map and Export Map
+
+`map import <map> --from <other.map|other.bsp> --output <path>` runs Import Map
+through `core/level_map_transfer`: the other map is read with the map loader (no
+clipboard size or block limits), previewed, and inserted through the paste
+service at its own coordinates as one undo step. Worldspawn's brushes and
+patches join the map's worldspawn and its keys are left out; complete groups
+and linked groups keep their structure; layers are not recreated, so everything
+joins the creation layer, or the group `--context UUID` opens. Names the map
+already uses get the next free number (`door` -> `door1`) unless
+`--keep-target-names`. A `.bsp` is converted first through the
+`vibemap3-convert` profile with `-format map|map_220|map_bp` to match the map's
+brushes, `-o` to a temporary file, `-game` from the BSP header (IBSP 46 or 47,
+RBSP, FBSP) and the project's game or `--game KEY` where the header allows it,
+and `-fs_basepath`/`-fs_game` from the project's installation, as NetRadiant
+Custom's Map_ImportFile passes them; `--workspace-root` adds a project's
+compiler paths, game and installation. Quake and Quake II BSPs are refused
+before anything runs, and a VibeMap3 that exits without printing an error is
+reported with its exit code. JSON reports `preview` (counts, `renamedTargets`,
+`warnings`, `importable`, `problem`), `imported`, `written`, `backup` and
+`conversion` (`commandLine`, `exitCode`). Mismatched brush formats, patches in
+a non-Quake-III map, WADs and unreadable maps are refused with exit code 4.
+
+`map export <map> --output <path>` writes a copy without changing the source and
+refuses the source's own path (exit code 4), as TrenchBroom's File > Export >
+Map does. Layers marked Omit From Export, by `editor scene omit-from-export
+--id <layer UUID> --omit true|false` or the Scene panel's **Omit from export**
+box, are left out with their groups and objects. Repeat `--omit-layer NAME|UUID`
+to leave out more layers, or pass `--include-omitted` to keep marked ones.
+`--scene-format vibestudio|trenchbroom` chooses how layers and groups are
+written. JSON reports `omittedLayers`, `omittedObjects`, `written`, `backup`,
+`sha256` and `warnings`. The mark is the layer's `_tb_layer_omit_from_export`
+key, saved in the scene note and as TrenchBroom's own key; `editor scene list`
+reports it as `omitFromExport` on each node. Both commands support
+`--dry-run` and `--overwrite`. **Status: Partial.**
+
+### Export Map as OBJ
+
+`map export-obj <map> --output <file.obj>` runs Export Map as OBJ through
+`core/level_map_obj_export`, or, with repeatable `--object
+entity:id|brush:id|patch:id`, Export Selection as OBJ: the brushes and Quake III
+patches are built as the Levels camera's mesh (`buildLevelMapPreviewMesh`),
+each face's fan is joined back into one polygon wound counter-clockwise, and the
+OBJ is written Y up (`--z-up` keeps the map's axes) with a `.mtl` beside it
+(`--no-mtl` leaves it out). `--group object|material|single`, `--groups` (`g`
+instead of `o`), `--no-weld`, `--triangulate` and `--short-material-names`
+follow NetRadiant Custom's brushexport options; tool materials are ignored
+unless `--no-default-ignores`, and repeatable `--ignore NAME` adds more.
+`--package archive-or-folder` (with `--palette`) resolves image sizes, average
+colours and `map_Kd` paths through the material preview resolver;
+`--material-paths game|export` and `--material-root` choose TrenchBroom's
+game-relative or export-relative paths. Hidden objects and layers marked Omit
+From Export are left out of whole-map exports (`--omit-layer`,
+`--include-omitted`); view filters do not apply, in the GUI either. Positions
+are map units, one to one OBJ unit; the library's name has the OBJ's spaces
+turned into underscores; `--engine` passes the load hint. Both files are checked before either is written, and
+replaced files are backed up. JSON reports `output`, `materialLibrary`,
+`written`, `dryRun`, `backup`, `materialLibraryBackup`, `objBytes`, `mtlBytes`,
+`brushes`, `patches`, `polygons`, `triangles`, `vertices`, `materials`,
+`ignoredFaces`, `hiddenObjects`, `omittedLayers`, `omittedObjects`,
+`unsizedMaterials`, `unresolvedMaterials` and `warnings`. Doom maps, an output
+without `.obj`, and existing files without `--overwrite` are refused with exit
+code 4; option mistakes exit 2. **Status: Partial.**
 
 
 ### Two-bone inverse kinematics

@@ -78,12 +78,16 @@ struct ModelViewport::Palette {
 // every preview that moves vertices. Equal keys share one upload.
 struct ModelViewport::GeometryKey {
 	quint64 mesh = 0;
+	// setTexCoordPreview()'s revision of the mesh's texture coordinates.
+	quint64 texCoords = 0;
 	int frame = 0;
 	int blendFrame = 0;
 	double frameBlend = 0;
 	bool textured = false;
 	bool highContrast = false;
 	bool polygonEdges = false;
+	// Which triangles carry the face grid (their info bit 5).
+	quint64 faceGrid = 0;
 	bool editMoveActive = false;
 	bool editTagEmpty = true;
 	QString editJoint;
@@ -102,6 +106,8 @@ struct ModelViewport::GeometryKey {
 	QVector<bool> highlighted;
 
 	[[nodiscard]] bool matches(const GeometryKey& other) const;
+	// Equal but for the texture coordinates' revision.
+	[[nodiscard]] bool matchesButTexCoords(const GeometryKey& other) const;
 };
 
 // World-space corners for the whole mesh at one pose: three unshared corners
@@ -156,6 +162,12 @@ struct ModelViewport::RasterWork {
 	bool perspective = false, backfaceCulling = true, textured = false, wireframe = false, highContrast = false;
 	bool showEdges = false;
 	bool polygonEdges = false;
+	bool faceShading = true;
+	double fogStart = 0, fogEnd = 0, fogStrength = 0;
+	// The far plane's distance, or 0 for none (ModelViewport::setFarClip).
+	double farClip = 0;
+	double faceGrid = 0;
+	QBitArray faceGridTriangles;
 	bool moving = false, editMoveActive = false, editTagEmpty = true;
 	bool resizingSelection = false;
 	ResizeBox resizeFrom, resizeTo;
@@ -187,6 +199,10 @@ struct ModelViewport::RasterWork {
 	quint64 renderOwner = 0;
 	GeometryKey geometryKey;
 	std::shared_ptr<const GpuGeometry> geometry;
+	// When only previewed texture coordinates changed: the last upload, and
+	// the triangles whose uvs the worker rewrites in a copy of it.
+	std::shared_ptr<const GpuGeometry> texCoordBase;
+	QSet<int> texCoordTriangles;
 	FlagsKey flagsKey;
 	std::shared_ptr<const GpuFlags> flags;
 	QString error;

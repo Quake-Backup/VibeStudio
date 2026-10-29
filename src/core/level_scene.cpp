@@ -466,6 +466,43 @@ bool setLevelSceneVisible(LevelMapDocument* document, const QString& id, bool vi
 	return commitLevelSceneState(document, state, message(QT_TRANSLATE_NOOP("LevelScene", "Change scene visibility")), error);
 }
 
+bool levelSceneOmittedFromExport(const LevelSceneNode& node) {
+	if (node.kind != LevelSceneNodeKind::Layer) {
+		return false;
+	}
+	for (auto it = node.trenchBroomProperties.cbegin(); it != node.trenchBroomProperties.cend(); ++it) {
+		if (it.key().compare(QLatin1String(kLevelSceneOmitFromExportKey), Qt::CaseInsensitive) == 0) {
+			return it.value().trimmed() == QLatin1String("1");
+		}
+	}
+	return false;
+}
+
+// Workflow reference: TrenchBroom LayerEditor toggleOmitLayerFromExport at
+// 4c756be1 (GPL-3.0-or-later). Original implementation; see docs/CREDITS.md.
+bool setLevelSceneOmitFromExport(LevelMapDocument* document, const QString& layerId, bool omit, QString* error) {
+	int index = -1;
+	if (!nodeRequired(document, layerId, &index, error)) {
+		return false;
+	}
+	if (document->format != LevelMapFormat::QuakeMap && document->format != LevelMapFormat::Quake3Map) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelScene", "Omit From Export works on the layers of Quake-family .map files."));
+	}
+	if (document->scene.nodes[index].kind != LevelSceneNodeKind::Layer) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelScene", "Choose a layer. Groups and the Default layer are always exported."));
+	}
+	auto state = document->scene;
+	auto& properties = state.nodes[index].trenchBroomProperties;
+	for (auto it = properties.begin(); it != properties.end();) {
+		it = it.key().compare(QLatin1String(kLevelSceneOmitFromExportKey), Qt::CaseInsensitive) == 0 ? properties.erase(it) : std::next(it);
+	}
+	if (omit) {
+		properties.insert(QString::fromLatin1(kLevelSceneOmitFromExportKey), QStringLiteral("1"));
+	}
+	return commitLevelSceneState(document, state,
+		omit ? message(QT_TRANSLATE_NOOP("LevelScene", "Omit layer from export")) : message(QT_TRANSLATE_NOOP("LevelScene", "Include layer in export")), error);
+}
+
 bool removeLevelSceneNode(LevelMapDocument* document, const QString& id, QString* error) {
 	int index = -1;
 	if (!nodeRequired(document, id, &index, error)) {
@@ -796,6 +833,8 @@ QJsonObject levelSceneJson(const LevelMapDocument& document) {
 	for (auto value = nodes.begin(); value != nodes.end(); ++value) {
 		auto object = value->toObject();
 		object.insert(QStringLiteral("effectiveLocked"), locked.contains(object.value(QStringLiteral("id")).toString()));
+		const auto* exported = levelSceneNode(document.scene, object.value(QStringLiteral("id")).toString());
+		object.insert(QStringLiteral("omitFromExport"), exported && levelSceneOmittedFromExport(*exported));
 		if (const auto* node = levelSceneNode(document.scene, object.value(QStringLiteral("id")).toString());
 			node && !node->trenchBroomProperties.isEmpty()) {
 			object.insert(QStringLiteral("trenchBroom"), propertiesJson(node->trenchBroomProperties));

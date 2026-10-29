@@ -4,6 +4,7 @@
 #include "app/level_surface_worker.h"
 #include "app/map_viewport.h"
 #include "app/model_viewport.h"
+#include "core/level_camera_render.h"
 #include <QStatusBar>
 #include <QTimer>
 #include <QToolButton>
@@ -67,6 +68,8 @@ void ApplicationShell::beginLevelSurfaceStroke()
 			}
 			m_levelMap3D->setMaterialStrokePreview(result.preview.mesh, levelPreviewSurfaceImages(result.preview.mesh, result.assets), triangles,
 				state->work.stroke ? state->work.stroke->plan().faceCount() + state->work.stroke->plan().patchCount() : 0);
+			// Grid on Camera Faces follows the preview's own triangle order.
+			m_levelMap3D->setFaceGridTriangles(levelCameraFaceGridTriangles(result.preview));
 		};
 	}
 	m_levelMaterialStrokeCancel->setEnabled(true);

@@ -137,6 +137,9 @@ grid there; `editing.quickTurnSnapsPivot=on|off` sets it from the command line.
 **Flips mirror about the selection's centre rounded to half the grid while Snap is on** is on in the TrenchBroom
 profile and off elsewhere, so an on-grid selection flips in place and an off-grid one keeps its on-grid sides on the
 grid; `editing.flipSnapsPivot=on|off` sets it from the command line.
+**A drag inside the Rotate tool's rings turns the selection freely** is on everywhere except the TrenchBroom profile,
+whose rotate handle has no free turn, so a click or drag inside the rings selects and moves as **Select** does there;
+`editing.objectRotateFreeTurn=on|off` sets it from the command line.
 
 Add `--dry-run` to preview the preference without writing settings. This changes
 ordinary and unique GUI duplication; `map duplicate` and **Duplicate with Offset…** use
@@ -335,10 +338,14 @@ for cap movement, rotation, scaling and cancellation.
 | Hide Selection / Show All Hidden | <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> |
 | Clip Tool | <kbd>C</kbd> |
 | Assemble Brush Tool | <kbd>B</kbd>; <kbd>Enter</kbd> in a view creates the brush |
+| Rotate Tool (on, or back to **Select**) | <kbd>R</kbd> |
+| Scale Tool (on, or back to **Select**) | <kbd>T</kbd> |
+| Shear Tool (on or off) | <kbd>G</kbd> |
 | Smaller Grid / Larger Grid | <kbd>-</kbd>, <kbd>[</kbd> / <kbd>+</kbd>, <kbd>=</kbd>, <kbd>]</kbd> |
 | Snap to Grid | <kbd>Alt</kbd>+<kbd>0</kbd> |
 | Cycle Map View | <kbd>Space</kbd> |
 | Frame Selection | <kbd>Ctrl</kbd>+<kbd>U</kbd> |
+| Reset 2D Views | No key: TrenchBroom's <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> stays **Read Aloud**; give it one in **Keyboard Shortcuts** |
 | Reset Camera Zoom | <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Z</kbd> |
 | Carve | <kbd>Ctrl</kbd>+<kbd>K</kbd> |
 | Hollow | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd> |
@@ -354,6 +361,8 @@ for cap movement, rotation, scaling and cancellation.
 | Flip Horizontal / Flip Vertical | <kbd>Ctrl</kbd>+<kbd>F</kbd> / <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> |
 | Duplicate and Move Left / Right / Forward / Back | <kbd>Ctrl</kbd>+<kbd>Left</kbd> / <kbd>Ctrl</kbd>+<kbd>Right</kbd> / <kbd>Ctrl</kbd>+<kbd>Up</kbd> / <kbd>Ctrl</kbd>+<kbd>Down</kbd> (with nothing to copy, they pan the 2D view) |
 | Duplicate and Move Depth Up / Depth Down | <kbd>Ctrl</kbd>+<kbd>Page Up</kbd> / <kbd>Ctrl</kbd>+<kbd>Page Down</kbd> (Doom maps keep them for the ceilings) |
+| Show Face Inspector | <kbd>Ctrl</kbd>+<kbd>3</kbd> while the keyboard focus is in **Levels**; elsewhere it still opens **Models** |
+| Show Map (the **Map** tab, TrenchBroom's Map inspector) | <kbd>Ctrl</kbd>+<kbd>1</kbd> while the keyboard focus is in **Levels**; elsewhere it still opens **Workspace** |
 
 **3D Wireframe**, **Draw Sector** and **Grid 0.125** to **Grid 0.5** have no key, as in TrenchBroom;
 <kbd>-</kbd> and <kbd>[</kbd> reach the fractional grids. <kbd>V</kbd>, <kbd>E</kbd> and
@@ -404,13 +413,17 @@ ID `netradiant-custom`. 3D camera beside a 2D view, 16-unit grid. 3D camera: fir
 | Delete Selection | <kbd>Delete</kbd>, <kbd>Backspace</kbd>, <kbd>Z</kbd> |
 | Select None | <kbd>C</kbd> |
 | Invert Selection | <kbd>I</kbd> |
-| Next 2D View | <kbd>Ctrl</kbd>+<kbd>Tab</kbd> |
+| Next 2D View (keeps the zoom and centres on the selection or the camera) | <kbd>Ctrl</kbd>+<kbd>Tab</kbd> |
 | Top View / Front View / Side View | <kbd>Keypad 7</kbd> / <kbd>Keypad 1</kbd> / <kbd>Keypad 3</kbd> |
 | 3D View | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> |
 | Maximize or Restore Active View | <kbd>F12</kbd> |
-| Frame Selection | <kbd>&#96;</kbd> |
+| Frame Selection (the 2D views only, with a third to spare) | <kbd>&#96;</kbd> |
+| Zoom 100% | No default key, as in NetRadiant Custom |
 | Level Camera | <kbd>End</kbd> |
 | Next Camera Mode / Previous Camera Mode | <kbd>Shift</kbd>+<kbd>]</kbd> / <kbd>Shift</kbd>+<kbd>[</kbd> |
+| Far Clip in Camera (cubic clip) | <kbd>Ctrl</kbd>+<kbd>\\</kbd> |
+| Shorter Draw Distance / Longer Draw Distance | <kbd>Ctrl</kbd>+<kbd>[</kbd> / <kbd>Ctrl</kbd>+<kbd>]</kbd> |
+| Camera Floor Up / Camera Floor Down | <kbd>Page Up</kbd> / <kbd>Page Down</kbd> |
 | Carve | <kbd>Shift</kbd>+<kbd>U</kbd> |
 | Round Selection to Grid | <kbd>Ctrl</kbd>+<kbd>G</kbd> |
 | Repeat Transforms | <kbd>Ctrl</kbd>+<kbd>R</kbd> |
@@ -422,6 +435,13 @@ ID `netradiant-custom`. 3D camera beside a 2D view, 16-unit grid. 3D camera: fir
 | Show Grid | <kbd>0</kbd> |
 | Grid 1 to 256 | <kbd>1</kbd> to <kbd>9</kbd> |
 | Edit Vertices / Edit Edges / Edit Faces | <kbd>V</kbd> / <kbd>E</kbd> / <kbd>F</kbd> |
+| Translate Tool (on, or back to **Select**; in mouse look <kbd>W</kbd> moves the camera forward) | <kbd>W</kbd> |
+| Rotate Tool (on, or back to **Select**) | <kbd>R</kbd> |
+| Scale Tool, Rotate or Scale Tool | No default key, as in NetRadiant Custom; choose your own in **Keyboard Shortcuts** |
+| Select or Transform Tool (**Transform** from **Select**, otherwise back to **Select**) | <kbd>Q</kbd> |
+| Transform Tool | No default key, as in NetRadiant Custom |
+| UV Tool (on, or back to **Select**) | <kbd>G</kbd> |
+| Add Patch… (Simple Patch Mesh) | <kbd>Shift</kbd>+<kbd>P</kbd> |
 | Centre Views on Selection | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> |
 | Insert Patch Rows / Insert Patch Columns | <kbd>Ctrl</kbd>+<kbd>Keypad +</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Keypad +</kbd> |
 | Delete Last Patch Rows / Delete Last Patch Columns | <kbd>Ctrl</kbd>+<kbd>Keypad -</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Keypad -</kbd> |
@@ -434,6 +454,7 @@ ID `netradiant-custom`. 3D camera beside a 2D view, 16-unit grid. 3D camera: fir
 | Texture Scale V + / V − / U − / U + (Radiant scale step) | <kbd>Ctrl</kbd>+<kbd>Up</kbd> / <kbd>Ctrl</kbd>+<kbd>Down</kbd> / <kbd>Ctrl</kbd>+<kbd>Left</kbd> / <kbd>Ctrl</kbd>+<kbd>Right</kbd> |
 | Texture Lock | <kbd>Shift</kbd>+<kbd>T</kbd> |
 | Show Surfaces (shows the **Surface** tab, or hides it again; in mouse look <kbd>S</kbd> moves the camera back) | <kbd>S</kbd> |
+| Map Info (the **Map** tab's **Statistics**, at its class table) | <kbd>M</kbd> |
 | Make Detail / Make Structural | <kbd>Alt</kbd>+<kbd>D</kbd> / <kbd>Alt</kbd>+<kbd>S</kbd> |
 | Move to Layer menu / Expand Selection to Layers | <kbd>Shift</kbd>+<kbd>Q</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> (NetRadiant Custom's <kbd>Ctrl</kbd>+<kbd>Q</kbd> stays **Quit**) |
 
@@ -479,12 +500,16 @@ ID `netradiant`, also `net-radiant`, `xonotic-netradiant`, `netradiant-classic`.
 | Delete Selection | <kbd>Backspace</kbd>, <kbd>Z</kbd> |
 | Select None | <kbd>Esc</kbd>, <kbd>C</kbd> |
 | Invert Selection | <kbd>I</kbd> |
-| Next 2D View | <kbd>Ctrl</kbd>+<kbd>Tab</kbd> |
+| Next 2D View (keeps the zoom and centres on the selection or the camera) | <kbd>Ctrl</kbd>+<kbd>Tab</kbd> |
 | Top View / Front View / Side View | <kbd>Keypad 7</kbd> / <kbd>Keypad 1</kbd> / <kbd>Keypad 3</kbd> |
 | 3D View | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> |
 | Maximize or Restore Active View | <kbd>F12</kbd> |
-| Frame Selection | <kbd>&#96;</kbd>, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> |
+| Frame Selection (the 2D views only, with a third to spare) | <kbd>&#96;</kbd>, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> |
+| Zoom 100% | No default key, as in NetRadiant |
 | Level Camera | <kbd>End</kbd> |
+| Far Clip in Camera (cubic clip) | <kbd>Ctrl</kbd>+<kbd>\\</kbd> |
+| Shorter Draw Distance / Longer Draw Distance | <kbd>Ctrl</kbd>+<kbd>[</kbd> / <kbd>Ctrl</kbd>+<kbd>]</kbd> |
+| Camera Floor Up / Camera Floor Down | <kbd>Page Up</kbd> / <kbd>Page Down</kbd> |
 | Carve | <kbd>Shift</kbd>+<kbd>U</kbd> |
 | Snap Selection to Grid | <kbd>Ctrl</kbd>+<kbd>G</kbd> |
 | Connect Entities | <kbd>Ctrl</kbd>+<kbd>K</kbd> |
@@ -499,7 +524,7 @@ ID `netradiant`, also `net-radiant`, `xonotic-netradiant`, `netradiant-classic`.
 patch commands, **Make Detail**, **Make Structural**, **Texture Lock**, **Centre Views on Selection** and the texture
 rotate and scale steps are not given here, because they were checked against NetRadiant Custom only; the **Surfaces**
 tab keeps its 15° **Rotation step** about each **Face centre**. As in NetRadiant, choosing or stepping the grid turns
-**Snap** on. Outside mouse look, Tab keeps moving keyboard focus; held during mouse look, it keeps the selection in view, as NetRadiant's free focus does. Discrete camera steps, floor stepping, right-button selection painting and unique-target cloning are not reproduced. The upstream <kbd>Ctrl</kbd>+middle and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+middle paste chords are unbound; choose one in **Customize Gestures…** if you want them.
+**Snap** on. Outside mouse look, Tab keeps moving keyboard focus; held during mouse look, it keeps the selection in view, as NetRadiant's free focus does. Discrete camera steps, right-button selection painting and unique-target cloning are not reproduced. The upstream <kbd>Ctrl</kbd>+middle and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+middle paste chords are unbound; choose one in **Customize Gestures…** if you want them.
 
 </details>
 
@@ -534,6 +559,9 @@ ID `gtkradiant-1-6`. 3D camera beside a 2D view, 8-unit grid. 3D camera: first-p
 | Next 2D View | <kbd>Ctrl</kbd>+<kbd>Tab</kbd> |
 | Frame Selection | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> |
 | Level Camera | <kbd>End</kbd> |
+| Camera Floor Up / Camera Floor Down | <kbd>Page Up</kbd> / <kbd>Page Down</kbd> |
+| Far Clip in Camera (cubic clip) | <kbd>Ctrl</kbd>+<kbd>\\</kbd> |
+| Shorter Draw Distance / Longer Draw Distance | <kbd>Ctrl</kbd>+<kbd>[</kbd> / <kbd>Ctrl</kbd>+<kbd>]</kbd> |
 | 3D View | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> |
 | Carve | <kbd>Shift</kbd>+<kbd>U</kbd> |
 | Snap Selection to Grid | <kbd>Ctrl</kbd>+<kbd>G</kbd> |
@@ -573,10 +601,12 @@ available to texture commands there. Both profiles clone with <kbd>Space</kbd>, 
 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> and level the camera with <kbd>End</kbd>. <kbd>S</kbd> opens Surface Alignment,
 <kbd>Shift</kbd>+<kbd>S</kbd> edits patches, <kbd>Shift</kbd>+<kbd>C</kbd> caps patches, and
 <kbd>Shift</kbd>+<kbd>T</kbd> toggles texture lock. Shift+arrows shift texture U/V;
-Shift+Page Up/Down rotate using the current Surfaces target and step settings.
+Shift+Page Up/Down rotate using the current Surfaces target and step settings. As in 1.6, Page Up and Page Down
+step the camera between floors, and <kbd>Ctrl</kbd>+<kbd>\\</kbd>, <kbd>Ctrl</kbd>+<kbd>[</kbd> and <kbd>Ctrl</kbd>+<kbd>]</kbd>
+turn the far clip on and off and shorten or lengthen its draw distance.
 
 1.5 area selection adds members instead of toggling them, and surface paste uses the hit face.
-Native replacement-area selection, component manipulators, floor stepping,
+Native replacement-area selection, component manipulators,
 Z-checker and preference imports are not reproduced. The 1.4 preset keeps <kbd>Shift</kbd>+<kbd>L</kbd>
 for Load Leak Trail; 1.5 leaves it unassigned. Neither preset adds Doom 3 map support.
 
@@ -592,7 +622,10 @@ Texture fitting uses <kbd>Shift</kbd>+<kbd>5</kbd> or <kbd>Ctrl</kbd>+<kbd>F</kb
 has focus, using the Surfaces target and current steps.
 
 Q3-specific patch, hide/show, select-similar and texture-lock keys are unassigned, and so is
-<kbd>End</kbd> for **Level Camera**, which the QeRadiant manual does not confirm. Those
+<kbd>End</kbd> for **Level Camera**, which the QeRadiant manual does not confirm, and
+<kbd>Ctrl</kbd>+<kbd>\\</kbd> for **Far Clip in Camera**, which the manual gives to Q3Radiant only. Page Up and
+Page Down step the camera between floors, and <kbd>Ctrl</kbd>+<kbd>]</kbd> and <kbd>Ctrl</kbd>+<kbd>[</kbd> shorten
+and lengthen the draw distance, as the manual lists them. Those
 VibeStudio commands remain available in menus and command search. Whole-entity selection mode,
 animated entity previews, Alt+right texture dragging and Z-checker are not reproduced.
 Middle-button sampling and surface paste follow the shared studio clipboard rules; sampling
@@ -628,6 +661,9 @@ ID `q3radiant`, also `q3-radiant`, `quake3-radiant`, `quake-iii-radiant`. 3D cam
 | Select All of This Class | <kbd>Shift</kbd>+<kbd>A</kbd> |
 | Next 2D View | <kbd>Ctrl</kbd>+<kbd>Tab</kbd> |
 | Level Camera | <kbd>End</kbd> |
+| Camera Floor Up / Camera Floor Down | <kbd>Page Up</kbd> / <kbd>Page Down</kbd> |
+| Far Clip in Camera (cubic clip) | <kbd>Ctrl</kbd>+<kbd>\\</kbd> |
+| Shorter Draw Distance / Longer Draw Distance | <kbd>Ctrl</kbd>+<kbd>]</kbd> / <kbd>Ctrl</kbd>+<kbd>[</kbd> |
 | 3D View | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> |
 | Carve | <kbd>Shift</kbd>+<kbd>U</kbd> |
 | Snap Selection to Grid | <kbd>Ctrl</kbd>+<kbd>G</kbd> |
@@ -646,7 +682,7 @@ ID `q3radiant`, also `q3-radiant`, `quake3-radiant`, `quake-iii-radiant`. 3D cam
 | Fit Texture 1 × 1 | <kbd>Shift</kbd>+<kbd>5</kbd> |
 | Grid 1 to 256 | <kbd>1</kbd> to <kbd>9</kbd> |
 
-**Invert Selection**, **Frame Selection**, **Load Leak Trail**, **3D Wireframe** and **Select All** have no key. Texture shifts use the step values on the **Surfaces** tab, not Q3Radiant's camera-relative shifts, and <kbd>Ctrl</kbd>+arrow scaling is unbound. Native preferences, the Z-checker, floor stepping, terrain, and bend and rotation modes are not reproduced.
+**Invert Selection**, **Frame Selection**, **Load Leak Trail**, **3D Wireframe** and **Select All** have no key. Texture shifts use the step values on the **Surfaces** tab, not Q3Radiant's camera-relative shifts, and <kbd>Ctrl</kbd>+arrow scaling is unbound. As in Q3Radiant, <kbd>Ctrl</kbd>+<kbd>[</kbd> lengthens the draw distance and <kbd>Ctrl</kbd>+<kbd>]</kbd> shortens it, the other way round from GtkRadiant. Native preferences, the Z-checker, terrain, and bend and rotation modes are not reproduced.
 
 </details>
 
@@ -1052,8 +1088,10 @@ Mouse gestures and camera keys are the same as **Godot 3D Style**, except that <
 uses classic Radiant plan editing with right-drag camera steering, Ctrl+right
 panning and Ctrl+Shift+right mouse look. Shift+M merges brushes, Ctrl+Shift+H
 isolates the selection, 0 toggles the grid, and Home or Ctrl+Tab changes the plan
-projection. End levels the camera. S opens Surface Alignment and Shift+S opens patch editing. Doom 3
-formats, rendering, light/material tools, floor stepping and native texture
+projection. End levels the camera, Page Up and Page Down step it between floors, and Ctrl+\\ turns the far clip
+on and off, with Ctrl+[ lengthening and Ctrl+] shortening it as DoomEdit does. S opens Surface Alignment and Shift+S
+opens patch editing. Doom 3
+formats, rendering, light/material tools and native texture
 gestures are not added by this profile.
 
 **BSP Quake Editor Style** (`bsp`, also `bsp-editor`, `bsp-quake-editor` or `bsp97`) uses

@@ -10,8 +10,10 @@
 
 #include <QAbstractItemView>
 #include <QAbstractButton>
+#include <QAbstractSpinBox>
 #include <QApplication>
 #include <QColor>
+#include <QComboBox>
 #include <QCoreApplication>
 #include <QEvent>
 #include <QElapsedTimer>
@@ -20,6 +22,7 @@
 #include <QFontMetrics>
 #include <QKeyEvent>
 #include <QKeySequence>
+#include <QKeySequenceEdit>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -28,6 +31,7 @@
 #include <QMenuBar>
 #include <QPainter>
 #include <QPalette>
+#include <QPlainTextEdit>
 #include <QPoint>
 #include <QProgressBar>
 #include <QPushButton>
@@ -37,6 +41,7 @@
 #include <QStyle>
 #include <QStyleOptionViewItem>
 #include <QStyledItemDelegate>
+#include <QTextEdit>
 #include <QToolBar>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -830,6 +835,94 @@ void StudioCommandRegistry::refreshShortcutFocus()
 	}
 }
 
+namespace {
+
+// Widgets that type: a key they take for themselves is never claimed.
+bool takesTyping(const QWidget* widget)
+{
+	if (qobject_cast<const QLineEdit*>(widget) || qobject_cast<const QAbstractSpinBox*>(widget) || qobject_cast<const QTextEdit*>(widget)
+		|| qobject_cast<const QPlainTextEdit*>(widget) || qobject_cast<const QKeySequenceEdit*>(widget)) {
+		return true;
+	}
+	const auto* combo = qobject_cast<const QComboBox*>(widget);
+	return combo && combo->isEditable();
+}
+
+// Runs the focus-layer claims (StudioCommandRegistry::kShortcutFocusClaims):
+// with the keyboard focus inside a claiming command's surface, its key is
+// taken ahead of any window-wide command's, which keeps it everywhere else.
+class FocusClaimFilter final : public QObject {
+public:
+	explicit FocusClaimFilter(std::function<QAction*(const QWidget*, const QKeySequence&)> find) : m_find(std::move(find)) {}
+
+protected:
+	bool eventFilter(QObject* watched, QEvent* event) override
+	{
+		if (m_probing || (event->type() != QEvent::ShortcutOverride && event->type() != QEvent::KeyPress)) {
+			return false;
+		}
+		auto* widget = qobject_cast<QWidget*>(watched);
+		if (!widget || widget != QApplication::focusWidget()) {
+			return false;
+		}
+		auto* key = static_cast<QKeyEvent*>(event);
+		const int code = key->key();
+		if (code == 0 || code == Qt::Key_unknown || code == Qt::Key_Control || code == Qt::Key_Shift || code == Qt::Key_Alt || code == Qt::Key_Meta) {
+			return false;
+		}
+		QAction* action = m_find(widget, QKeySequence(QKeyCombination(key->modifiers() & ~Qt::KeypadModifier, Qt::Key(code))));
+		if (!action) {
+			return false;
+		}
+		// A field keeps a key it would type or edit with, as Qt's own
+		// shortcut map lets it: a claim remapped to a printable key still
+		// types into the line edits and spin boxes inside the surface.
+		if (takesTyping(widget)) {
+			QKeyEvent probe(QEvent::ShortcutOverride, key->key(), key->modifiers(), key->text(), key->isAutoRepeat(), key->count());
+			probe.ignore();
+			m_probing = true;
+			QCoreApplication::sendEvent(widget, &probe);
+			m_probing = false;
+			if (probe.isAccepted()) {
+				return false;
+			}
+		}
+		event->accept();
+		if (event->type() == QEvent::KeyPress && !key->isAutoRepeat()) {
+			action->trigger();
+		}
+		return true;
+	}
+
+private:
+	std::function<QAction*(const QWidget*, const QKeySequence&)> m_find;
+	bool m_probing = false;
+};
+
+} // namespace
+
+QAction* StudioCommandRegistry::focusClaimFor(const QWidget* focus, const QKeySequence& pressed) const
+{
+	for (auto it = m_scopeClaims.cbegin(); it != m_scopeClaims.cend(); ++it) {
+		if (it.value() != QLatin1String(kShortcutFocusClaims)) {
+			continue;
+		}
+		const QList<QPointer<QWidget>> scopes = m_shortcutScopes.value(it.key());
+		const bool inside = std::any_of(scopes.cbegin(), scopes.cend(), [focus](const QPointer<QWidget>& scope) {
+			return scope && (scope == focus || scope->isAncestorOf(focus));
+		});
+		if (!inside) {
+			continue;
+		}
+		for (auto action = m_actions.cbegin(); action != m_actions.cend(); ++action) {
+			if (normalizedToken(action.key()) == it.key() && action.value()->isEnabled() && m_sequences.value(action.key()).contains(pressed)) {
+				return action.value();
+			}
+		}
+	}
+	return nullptr;
+}
+
 void StudioCommandRegistry::setUserShortcuts(const QHash<QString, QStringList>& shortcuts)
 {
 	m_userShortcuts.clear();
@@ -982,6 +1075,11 @@ void StudioCommandRegistry::setShortcutScopeClaims(const QString& commandId, boo
 		m_scopeClaims.insert(token, layer);
 	} else {
 		m_scopeClaims.remove(token);
+	}
+	if (claims && layer == QLatin1String(kShortcutFocusClaims) && !m_focusWatcher && qApp) {
+		// Keys reach the application's filters before any shortcut.
+		m_focusWatcher = std::make_unique<FocusClaimFilter>([this](const QWidget* focus, const QKeySequence& pressed) { return focusClaimFor(focus, pressed); });
+		qApp->installEventFilter(m_focusWatcher.get());
 	}
 	installShortcuts();
 }

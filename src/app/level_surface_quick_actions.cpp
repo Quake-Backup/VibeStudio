@@ -60,6 +60,14 @@ QWidget* ApplicationShell::buildLevelSurfaceTools()
 			statusBar()->showMessage(error, 6000);
 		}
 	};
+	// The Face section's fields and handles (level_face_inspector_actions.cpp).
+	m_levelSurfaceTools->faceAttributesEdited = [this](const LevelFaceAttributesEdit& edit, bool fromView) {
+		QString error;
+		if (!applyLevelFaceAttributesFromUi(edit, fromView, &error)) {
+			m_levelSurfaceTools->setStatus(error, levelSurfaceEditsPending());
+			statusBar()->showMessage(error, 6000);
+		}
+	};
 	connect(m_entityInspector, &QTreeWidget::currentItemChanged, this, [this] {
 		// The inspector clears and restores its current row during a refresh.
 		QTimer::singleShot(0, this, [this] { refreshLevelSurfaceTools(); });
@@ -219,6 +227,8 @@ void ApplicationShell::registerLevelSurfaceCommands()
 	}
 	registerLevelFaceFlagCommands();
 	registerLevelUvEditorCommands();
+	registerLevelFaceInspectorCommands();
+	registerLevelCameraUvToolCommands();
 	for (bool paste : {false, true}) {
 		StudioCommandRegistration command;
 		command.commandId = paste ? QStringLiteral("map.pasteSurface") : QStringLiteral("map.copySurface");
@@ -331,6 +341,7 @@ void ApplicationShell::refreshLevelSurfaceTools()
 	m_commands->setEnabled(QStringLiteral("map.pasteSurface"), pasteEditable && m_levelSurfaceClipboard.ready() && !levelSurfaceEditsPending() && !levelSurfaceGeometryBusy());
 	m_levelSurfaceTools->setClipboardSummary(m_levelSurfaceClipboard);
 	refreshLevelFaceFlags();
+	refreshLevelFaceInspector();
 	refreshLevelUvEditorCommand();
 	// Hide and Show All wait while surface edits are pending; a batch that
 	// changes nothing publishes no map, so they come back here.

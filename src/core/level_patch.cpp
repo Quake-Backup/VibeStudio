@@ -1,5 +1,7 @@
 #include "core/level_patch.h"
 
+#include "core/level_patch_tools.h"
+
 #include <QCoreApplication>
 #include <QPointF>
 #include <QSet>
@@ -141,7 +143,47 @@ void refreshLevelPatchBounds(LevelMapPatch* patch)
 QStringList levelPatchShapeIds()
 {
 	return {QStringLiteral("plane"), QStringLiteral("cylinder"), QStringLiteral("square-cylinder"), QStringLiteral("cone"),
-		QStringLiteral("sphere"), QStringLiteral("bevel"), QStringLiteral("endcap")};
+		QStringLiteral("classic-cone"), QStringLiteral("sphere"), QStringLiteral("bevel"), QStringLiteral("endcap")};
+}
+
+QStringList levelPatchCreateMappingIds()
+{
+	return {QStringLiteral("stretch"), QStringLiteral("natural"), QStringLiteral("cap"), QStringLiteral("radiant")};
+}
+
+QString levelPatchCreateMappingId(LevelPatchCreateMapping mapping)
+{
+	return levelPatchCreateMappingIds().value(static_cast<int>(mapping));
+}
+
+bool parseLevelPatchCreateMapping(const QString& id, LevelPatchCreateMapping* mapping)
+{
+	const qsizetype index = levelPatchCreateMappingIds().indexOf(id.trimmed().toLower());
+	if (index < 0 || !mapping) {
+		return false;
+	}
+	*mapping = static_cast<LevelPatchCreateMapping>(index);
+	return true;
+}
+
+QStringList levelPatchRingStartIds()
+{
+	return {QStringLiteral("auto"), QStringLiteral("exact")};
+}
+
+QString levelPatchRingStartId(LevelPatchRingStart start)
+{
+	return levelPatchRingStartIds().value(static_cast<int>(start));
+}
+
+bool parseLevelPatchRingStart(const QString& id, LevelPatchRingStart* start)
+{
+	const qsizetype index = levelPatchRingStartIds().indexOf(id.trimmed().toLower());
+	if (index < 0 || !start) {
+		return false;
+	}
+	*start = static_cast<LevelPatchRingStart>(index);
+	return true;
 }
 
 namespace {
@@ -196,7 +238,10 @@ bool createLevelPatch(const LevelPatchCreateRequest& request, LevelMapPatch* pat
 	const QString& shape = request.shape;
 	if (!levelPatchShapeIds().contains(shape)) {
 		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch",
-			"Patch shape must be plane, cylinder, square-cylinder, cone, sphere, bevel or endcap."));
+			"Patch shape must be plane, cylinder, square-cylinder, cone, classic-cone, sphere, bevel or endcap."));
+	}
+	if (!std::isfinite(request.textureScale) || request.textureScale <= 0 || request.textureScale > 1024) {
+		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch texture scale must be a positive number of map units per texel, up to 1024."));
 	}
 	if (request.plane != QStringLiteral("xy") && request.plane != QStringLiteral("xz") && request.plane != QStringLiteral("yz")) {
 		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Patch plane must be xy, xz or yz."));
@@ -204,7 +249,8 @@ bool createLevelPatch(const LevelPatchCreateRequest& request, LevelMapPatch* pat
 	if (request.axis < 0 || request.axis > 2) {
 		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch axis must be x, y or z."));
 	}
-	const bool round = shape == QStringLiteral("cylinder") || shape == QStringLiteral("cone") || shape == QStringLiteral("sphere");
+	const bool classicCone = shape == QStringLiteral("classic-cone");
+	const bool round = shape == QStringLiteral("cylinder") || shape == QStringLiteral("cone") || classicCone || shape == QStringLiteral("sphere");
 	if (round && (request.segments < 3 || request.segments > (kLevelPatchMaxDimension - 1) / 2)) {
 		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "A round patch needs 3 to 15 segments around it."));
 	}
@@ -232,7 +278,15 @@ bool createLevelPatch(const LevelPatchCreateRequest& request, LevelMapPatch* pat
 	// column. Bevel, end cap and square cylinder follow Radiant's prefabs.
 	QVector<QPointF> ring;
 	if (round) {
-		ring = circleControls(request.segments, 0, request.segments * 2);
+		// NetRadiant Custom's fixed Cylinder, Sphere and Cone prefabs begin
+		// their rows half a turn round (Patch::ConstructPrefab's pCylIndex,
+		// the first control on the negative side of the first axis across);
+		// its Exact Cylinder, Sphere and Cone, the only way to other
+		// densities and to a straight cone, begin at angle 0.
+		const bool prefab = request.ringStart == LevelPatchRingStart::Auto
+			&& (classicCone || (shape == QStringLiteral("cylinder") && request.segments == 4)
+				|| (shape == QStringLiteral("sphere") && request.segments == 4 && request.bands == 2));
+		ring = circleControls(request.segments, prefab ? request.segments : 0, request.segments * 2);
 	} else if (shape == QStringLiteral("square-cylinder")) {
 		ring = {{-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}};
 	} else if (shape == QStringLiteral("bevel")) {
@@ -274,7 +328,16 @@ bool createLevelPatch(const LevelPatchCreateRequest& request, LevelMapPatch* pat
 				component(p, up) += ring.at(col).y() * sizeOf(up) * 0.5 * at.x();
 				component(p, along) += at.y() * sizeOf(along) * 0.5;
 			} else {
-				const double taper = shape == QStringLiteral("cone") ? 1.0 - v : 1.0;
+				double taper = shape == QStringLiteral("cone") ? 1.0 - v : 1.0;
+				if (classicCone) {
+					// Radiant's Cone: full-width rings closing on the last row,
+					// the quadratic whose width along the axis is 1 - v * v. Its
+					// on-curve rows lie on that curve, and each middle control
+					// where the tangents at its span's ends meet, 1 - a * b, so
+					// three rows give NetRadiant Custom's full, full, tip.
+					const double step = 1.0 / (built.height - 1);
+					taper = row % 2 == 0 ? 1.0 - v * v : 1.0 - (v - step) * (v + step);
+				}
 				component(p, across) += ring.at(col).x() * sizeOf(across) * 0.5 * taper;
 				component(p, up) += ring.at(col).y() * sizeOf(up) * 0.5 * taper;
 				component(p, along) += (v - 0.5) * sizeOf(along);
@@ -287,6 +350,36 @@ bool createLevelPatch(const LevelPatchCreateRequest& request, LevelMapPatch* pat
 	refreshLevelPatchBounds(&built);
 	if (!validateLevelPatch(built, error)) {
 		return false;
+	}
+	// The texture, as NetRadiant Custom maps a new prefab: a plane takes Cap
+	// Texture and the rest Natural, by the image's size at the default scale.
+	// Workflow reference: NRC radiant/patch.cpp Patch::ConstructPrefab at
+	// 449778b3 (GPL-2.0-or-later). Original implementation; see
+	// docs/CREDITS.md.
+	LevelPatchCreateMapping mapping = request.mapping;
+	if (mapping == LevelPatchCreateMapping::Radiant) {
+		mapping = shape == QStringLiteral("plane") ? LevelPatchCreateMapping::Cap : LevelPatchCreateMapping::Natural;
+	}
+	if (mapping != LevelPatchCreateMapping::Stretch) {
+		const QSize image = request.imageSize.width() > 0 && request.imageSize.height() > 0 ? request.imageSize : QSize(64, 64);
+		const double unitsU = image.width() * request.textureScale, unitsV = image.height() * request.textureScale;
+		const bool mapped = mapping == LevelPatchCreateMapping::Natural ? naturalLevelPatchTexture(&built, unitsU, unitsV, error)
+																		 : planarLevelPatchTexture(&built, unitsU, unitsV, error);
+		if (!mapped) {
+			return false;
+		}
+	}
+	// NetRadiant Custom's Square box (DoNewPatchDlg's redisperse, applied by
+	// Scene_PatchConstructPrefab after Patch::ConstructPrefab has mapped the
+	// patch): Re-disperse Columns, then Rows, moving only the controls.
+	// Workflow reference: NRC radiant/patchmanip.cpp at 449778b3
+	// (GPL-2.0-or-later). Original implementation; see docs/CREDITS.md.
+	if (request.square) {
+		for (const LevelPatchMatrixOperation operation : {LevelPatchMatrixOperation::RedisperseColumns, LevelPatchMatrixOperation::RedisperseRows}) {
+			if (!applyLevelPatchMatrixOperation(&built, operation, error)) {
+				return false;
+			}
+		}
 	}
 	*patch = built;
 	return true;

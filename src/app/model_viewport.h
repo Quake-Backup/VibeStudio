@@ -37,6 +37,7 @@
 #include "app/viewport_hud.h"
 #include "core/level_clip_drag.h"
 
+#include <QBitArray>
 #include <QBrush>
 #include <QElapsedTimer>
 #include <QHash>
@@ -153,6 +154,31 @@ public:
 	// edges are real edges.
 	void setPolygonEdges(bool enabled);
 	[[nodiscard]] bool polygonEdges() const;
+	// Faces are shaded by their direction to a light that follows the camera,
+	// so neighbouring planes read apart; off draws them at full brightness.
+	void setFaceShading(bool shade);
+	[[nodiscard]] bool faceShading() const;
+	// Faces blend towards the background colour as their distance from the
+	// eye (in orthographic views, their depth behind the front of the mesh)
+	// goes from `start` to `end`, up to `strength` (0..1) of it. Off by default.
+	void setDistanceFog(bool enabled, double start = 0, double end = 0, double strength = 0);
+	[[nodiscard]] bool distanceFog() const;
+	// A far plane `distance` world units ahead of the eye (in orthographic
+	// views, that depth behind the front of the mesh): nothing beyond it is
+	// drawn, picked or counted as drawn. 0 (the default) draws everything.
+	void setFarClip(double distance);
+	[[nodiscard]] double farClip() const;
+	// The far clip as a plane: `point` on it and `normal` pointing away from
+	// the camera, so what lies past it is not drawn. False with no far clip,
+	// or in an orthographic view before its geometry is ready.
+	bool farClipPlane(ModelVec3* point, ModelVec3* normal) const;
+	// Grid lines every `spacing` world units on the triangles `triangles`
+	// marks (indexed as in ModelViewportHit), in the plane of the two world
+	// axes each face is most nearly square to; 0 or no marked triangles draw
+	// none. Lines fade where they would crowd closer than a few pixels.
+	void setFaceGrid(double spacing);
+	[[nodiscard]] double faceGrid() const;
+	void setFaceGridTriangles(const QBitArray& triangles);
 	// Triangles drawn in the highlight colour and outlined, such as the
 	// selected objects of a map preview; indexes as in ModelViewportHit.
 	void setHighlightedTriangles(const QVector<int>& triangles);
@@ -401,6 +427,12 @@ public:
 	bool beginComponentTransform(const QPointF& point);
 	bool updateComponentTransform(const QPointF& point) { return m_componentGizmo->updateDrag(point); }
 	void finishComponentTransform(bool commit) { m_componentGizmo->finish(commit); }
+	// The Levels object manipulator (model_viewport_object_gizmo.cpp;
+	// Translate or Rotate), as MapViewport::objectGizmo() has it. A move shows
+	// the selection moved with the same offset a camera drag of it uses; a
+	// turn shows the controller's dashed wire.
+	[[nodiscard]] LevelComponentGizmo* objectGizmo() const { return m_objectGizmo; }
+	bool beginObjectTransform(const QPointF& point);
 	[[nodiscard]] ModelVec3 componentMoveDelta() const { return m_componentDelta; }
 	[[nodiscard]] bool componentPreviewPending() const { return m_componentPending; }
 	// A response to componentMovePreviewChanged. Stale deltas are ignored;
@@ -431,15 +463,36 @@ public:
 	// state: the owner applies the requested bounds through its document service.
 	void setSelectionResizeBox(const ResizeBox& box, const QHash<int,BoxResizePoint>& pointOrigins = {}, int axes = 7);
 	void clearSelectionResizeBox();
-	[[nodiscard]] std::array<QPointF,6> selectionResizeHandles();
+	// TrenchBroom's Scale tool: edge and corner handles besides the faces'
+	// (handles 6 to 25, core/box_resize.h). Off, only the six faces show.
+	void setSelectionResizeBoxHandles(bool all);
+	[[nodiscard]] bool selectionResizeBoxHandles() const { return m_selectionResizeAllHandles; }
+	// Handle points; absent (NaN) where a handle is not offered.
+	[[nodiscard]] std::array<QPointF,kBoxResizeHandles> selectionResizeHandles();
 	[[nodiscard]] std::array<QRectF,6> selectionResizeLabels();
 	[[nodiscard]] int selectionResizeHandleAt(const QPointF& point);
 	bool beginSelectionResize(const QPointF& point);
-	bool updateSelectionResize(const QPointF& point);
+	// Shift keeps the other axes' proportions and Alt resizes about the centre,
+	// as TrenchBroom's Scale tool does; a key change applies at once.
+	bool updateSelectionResize(const QPointF& point, Qt::KeyboardModifiers modifiers = Qt::NoModifier);
+	bool updateSelectionResizeModifiers(Qt::KeyboardModifiers modifiers);
 	void finishSelectionResize(bool commit);
 	[[nodiscard]] bool isResizingSelection() const { return m_selectionResizeHandle >= 0; }
 	[[nodiscard]] bool selectionResizeValid() const { return m_selectionResizeValid; }
 	[[nodiscard]] ResizeBox selectionResizeBox() const { return isResizingSelection() ? m_selectionResizePreview : m_selectionResizeBox; }
+	// TrenchBroom's Shear Tool in the camera: the box keeps its six labelled
+	// face handles, and a face dragged slides that side of the selection
+	// while the opposite side stays. A side face slides sideways, or up and
+	// down with Alt; a top or bottom face anywhere in its plane. The slide
+	// snaps to the move grid and previews as a dashed wire of the edges the
+	// owner hands over when the drag begins; release asks the owner to apply
+	// it (selectionShearRequested).
+	void setSelectionShearMode(bool on);
+	[[nodiscard]] bool selectionShearMode() const { return m_selectionShearMode; }
+	// How far the dragged side slides, all zero without a shear drag.
+	[[nodiscard]] BoxResizePoint selectionShearOffset() const { return m_selectionShearOffset; }
+	void setSelectionShearPreviewEdges(const QVector<QPair<LevelMapVec3,LevelMapVec3>>& edges);
+	[[nodiscard]] qsizetype selectionShearPreviewEdgeCount() const { return m_selectionShearEdges.size(); }
 
 	// Opt-in level construction tool. Drafts contain only bounds; the owner
 	// creates geometry through its shared, undoable document service.
@@ -517,6 +570,19 @@ public:
 		return m_hasCommandPointer && QRectF(rect()).contains(m_commandPointer) ? m_commandPointer : QPointF(width()*0.5, height()*0.5);
 	}
 	bool projectToView(const ModelVec3& point, QPointF* screen);
+	// A world segment on screen, its far end cut at the near plane; false
+	// when it lies wholly behind the camera.
+	bool projectSegmentToView(const ModelVec3& a, const ModelVec3& b, QPointF* screenA, QPointF* screenB);
+	// The level camera's UV tool (app/level_camera_uv_tool.h): `triangles`
+	// (indices as surfacePointAt() gives them) shown with the texture
+	// coordinates `texCoordAt` gives each corner's position, in place of the
+	// mesh's own, while a drag previews. Picks, tools and the view are left
+	// alone; clearTexCoordPreview() puts the mesh's own back, and a new mesh
+	// drops the preview. The triangles must own their corners, as a level
+	// mesh's polygons do: only their uvs are rewritten in the GPU corners.
+	void setTexCoordPreview(const QVector<int>& triangles, const std::function<QPointF(const ModelVec3&)>& texCoordAt);
+	void clearTexCoordPreview();
+	[[nodiscard]] bool texCoordPreviewActive() const { return !m_texCoordBackup.isEmpty(); }
 	[[nodiscard]] ModelVec3 viewForward();
 	// The camera's screen-right and screen-up directions in model space.
 	void viewAxes(ModelVec3* right, ModelVec3* up);
@@ -591,6 +657,9 @@ Q_SIGNALS:
 	// mesh units, snapped to the move grid. Never all zero.
 	void moveRequested(double dx, double dy, double dz);
 	void selectionResizeRequested(const vibestudio::ResizeBox& box);
+	// A shear drag released: the side `axis` (0 to 2) on `side` (-1 its
+	// minimum, +1 its maximum) slid by dx, dy, dz. Never all zero.
+	void selectionShearRequested(int axis, int side, double dx, double dy, double dz);
 	void selectionResizeActiveChanged(bool active);
 	void selectionResizePreviewChanged();
 	void brushDrawToolChanged();
@@ -678,6 +747,10 @@ private:
 	QVector<LevelMapVec3> m_componentExtrusionVertices;
 	bool m_componentHandlesLimited = false;
 	LevelComponentGizmo* m_componentGizmo = nullptr;
+	LevelComponentGizmo* m_objectGizmo = nullptr;
+	[[nodiscard]] bool objectGizmoShown() const;
+	void syncObjectGizmoPreview();
+	void paintObjectGizmo(QPainter& painter);
 	LevelVertexInsertion* m_vertexInsertion = nullptr;
 	QVector<ModelVec3> m_componentPositions;
 	QSet<int> m_componentPicks;
@@ -781,6 +854,9 @@ private:
 	void toView(const ModelVec3& point, double* x, double* y, double* z) const;
 	[[nodiscard]] QPointF fromView(double x, double y, double z) const;
 	bool projectSegment(const ModelVec3& a, const ModelVec3& b, QPointF* screenA, QPointF* screenB) const;
+	// Cuts a world segment at the far clip, as the GPU frame does; false when
+	// all of it lies beyond. Leaves it alone without a far clip.
+	bool clipSegmentToFarClip(ModelVec3* a, ModelVec3* b) const;
 	[[nodiscard]] ModelVec3 viewDirection() const;
 	// The world direction through a point of the widget.
 	[[nodiscard]] ModelVec3 pickDirection(const QPointF& viewPoint) const;
@@ -872,6 +948,16 @@ private:
 	QHash<int,BoxResizePoint> m_selectionResizeOrigins;
 	bool m_selectionResizeEnabled = false, m_selectionResizeValid = false;
 	int m_selectionResizeHandle = -1, m_selectionResizeAxes = 7;
+	bool m_selectionResizeAllHandles = false;
+	QPointF m_selectionResizePoint;
+	Qt::KeyboardModifiers m_selectionResizeModifiers = Qt::NoModifier;
+	// The camera Shear Tool's drag: the slide so far, the part settled before
+	// the last Alt change, the line or plane it follows, and the wire it moves.
+	bool m_selectionShearMode = false, m_selectionShearVertical = false;
+	BoxResizePoint m_selectionShearOffset{}, m_selectionShearBase{};
+	ModelMoveDrag m_selectionShearDrag;
+	QVector<QPair<LevelMapVec3,LevelMapVec3>> m_selectionShearEdges;
+	bool beginSelectionShearDrag(const QPointF& point, bool vertical);
 	bool m_hasMesh = false;
 	QImage m_skin;
 	bool m_skinHasAlpha = false;
@@ -935,6 +1021,13 @@ private:
 	bool m_showAxes = true;
 	bool m_showEdges = false;
 	bool m_polygonEdges = false;
+	bool m_faceShading = true;
+	bool m_fog = false;
+	double m_fogStart = 0, m_fogEnd = 0, m_fogStrength = 0;
+	double m_farClip = 0;
+	double m_faceGrid = 0;
+	QBitArray m_faceGridTriangles;
+	quint64 m_faceGridRevision = 0;
 	bool m_highContrast = false;
 	bool m_reducedMotion = false;
 
@@ -1051,6 +1144,14 @@ private:
 	QPointF m_rotationTangent;
 	double m_scaleReference = 1;
 	std::function<void(QPainter&)> m_overlayPainter;
+	// setTexCoordPreview(): the coordinates it replaced, by surface << 32 | vertex.
+	QHash<qint64, ModelTexCoord> m_texCoordBackup;
+	// The triangles setTexCoordPreview() has rewritten since mesh revision
+	// m_texCoordTouchedMesh, and a revision of their coordinates: the render
+	// worker patches only their uvs into the last upload's corners.
+	QSet<int> m_texCoordTouched;
+	quint64 m_texCoordTouchedMesh = 0;
+	quint64 m_texCoordRevision = 0;
 	LevelLinkedGroupDisplay m_linkedGroups;
 	LinkedGroupPaint m_linkedGroupPaint;
 };

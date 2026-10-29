@@ -195,6 +195,41 @@ mode can select another surface transfer. `--dry-run` and `--overwrite` retain
 the usual output protections. The object-placement `map paste` verb accepts
 object text; `paste-surface` is its face-attribute equivalent.
 
+## Map files: import, export selection and export copies
+
+`core/level_map_transfer` reuses the paste insertion for whole files.
+`readLevelMapImport()` reads the other map with `loadLevelMap()` on the import
+window's worker, so the clipboard's 4,194,304-character, 8,192-block and
+250,000-parenthesis bounds do not apply; the loader's 512 MiB limit and its
+read errors do. `pasteLevelMapDocumentAt()` is the second half of
+`pasteLevelMapTextAt()`, split out as `insertPastedLevelMap()`: the dialect and
+patch checks, ownership, worldspawn merge, closed-group capture and the single
+add-objects command are shared, inside the same scene-lock guard.
+`importLevelMap()` first renames names the open map uses (targetname and the
+`levelMapTargetPropertyKeys()` keys) with the next free trailing number, on the
+isolated copy, then names the undo step after the file. The GUI runs it as the
+`ImportMap` placement operation behind `LevelPlacementTaskDialog`, so stale
+publication checks and cancellation apply. A `.bsp` is converted first by
+`levelMapImportConversionRequest()` (profile `vibemap3-convert`, `-format`
+from the open map's brush dialect, `-o` into a temporary folder).
+
+`levelMapSelectionText()` takes `LevelMapSelectionTextOptions`: the worldspawn
+wrapper, its keys, and file limits (100,000 objects, 512 MiB) instead of the
+clipboard's. Default options give the clipboard text byte for byte as before.
+`writeLevelMapBytes()` in `core/level_document` publishes such text with the
+backup, conflict and atomic-commit path `writeLevelDocument()` uses, refusing the
+open map's own file.
+
+`exportLevelMapCopy()` copies the document, clears locks and the link ids of
+groups in the omitted layers on that copy, deletes the omitted layers' objects
+through `deleteLevelMapObjects()`, drops the layer nodes and their nested
+groups, restores the remaining locks and writes the copy with
+`writeLevelDocument()`. The document, its path and saved state never change.
+Omit From Export is the layer's `_tb_layer_omit_from_export` key in
+`LevelSceneNode::trenchBroomProperties` (scene note version 7), set by
+`setLevelSceneOmitFromExport()` as one scene undo step. Tests:
+`level-map-transfer-smoke` (core and CLI) and `level-map-transfer-ui-smoke`.
+
 ## Evidence and remaining work
 
 The core, offscreen UI and CLI tests are in `src/tests/level_paste_*`. The workflow

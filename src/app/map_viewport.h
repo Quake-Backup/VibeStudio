@@ -35,6 +35,7 @@
 #include "app/viewport_ring_cache.h"
 #include "app/map_grid.h"
 #include "core/level_block_grid.h"
+#include "core/box_resize.h"
 
 #include <QHash>
 #include <QKeySequence>
@@ -403,6 +404,13 @@ public:
 	bool beginComponentTransform(const QPointF& point);
 	bool updateComponentTransform(const QPointF& point) { return m_componentGizmo->updateDrag(point); }
 	void finishComponentTransform(bool commit) { m_componentGizmo->finish(commit); }
+	// The object manipulator (Translate or Rotate; core/level_object_manipulator.h),
+	// separate from the component one. The shell sets its tool, pivot and
+	// bounds; a drag on its handles previews the moved selection here, and the
+	// controller's commitRequested() or pivotChanged() asks for the edit. It
+	// outranks the resize handles, which it hides while its tool is on.
+	[[nodiscard]] LevelComponentGizmo* objectGizmo() const { return m_objectGizmo; }
+	bool beginObjectTransform(const QPointF& point);
 	void setComponentSplit(bool enabled);
 	[[nodiscard]] bool componentSplit() const { return m_componentSplit; }
 	void setComponentExtrusion(int mode, const LevelMapVec3& normal = {}, const QVector<LevelMapVec3>& vertices = {});
@@ -682,10 +690,13 @@ private:
 	[[nodiscard]] QPointF handleViewPosition(const QRectF& box, int edges) const;
 	// The handle under `viewPoint`, as ResizeEdge flags, or 0.
 	[[nodiscard]] int resizeHandleAt(const QPointF& viewPoint) const;
-	// The box the drag has made so far, in the drawing plane.
+	// The box the drag has made so far, in the drawing plane, and in the
+	// world (core/box_resize.h, with Shift keeping proportions and Alt
+	// resizing about the centre, as TrenchBroom's Scale tool does).
 	[[nodiscard]] QRectF resizedPlaneBox() const;
+	[[nodiscard]] ResizeBox resizedWorldBox() const;
 	void beginResize(int edges, const QPointF& viewPoint);
-	void updateResize(const QPointF& viewPoint);
+	void updateResize(const QPointF& viewPoint, Qt::KeyboardModifiers modifiers = Qt::NoModifier);
 	void commitResize();
 	void paintResizeHandles(QPainter& painter, const Palette& palette) const;
 	void paintResizePreview(QPainter& painter, const Palette& palette) const;
@@ -850,6 +861,7 @@ private:
 	LevelMapVec3 m_resizeFromMaxs;
 	QPointF m_resizePressPlane;
 	QPointF m_resizeCurrentPlane;
+	Qt::KeyboardModifiers m_resizeModifiers = Qt::NoModifier;
 	// The handle the pointer rests on, so its cursor can be put back.
 	int m_hoverHandle = 0;
 	// A right press that cancelled a gesture also eats the context menu the
@@ -898,6 +910,14 @@ private:
 	// Vertex editing (map_viewport_components.cpp).
 	ComponentMode m_componentMode = ComponentMode::Off;
 	LevelComponentGizmo* m_componentGizmo = nullptr;
+	// The object manipulator (map_viewport_object_gizmo.cpp).
+	LevelComponentGizmo* m_objectGizmo = nullptr;
+	[[nodiscard]] bool objectGizmoShown() const;
+	bool objectGizmoMousePress(QMouseEvent* event);
+	bool objectGizmoMouseMove(QMouseEvent* event);
+	bool objectGizmoMouseRelease(QMouseEvent* event);
+	bool objectGizmoKey(QKeyEvent* event, bool pressed);
+	void paintObjectGizmo(QPainter& painter, const Palette& palette) const;
 	LevelVertexInsertion* m_vertexInsertion = nullptr;
 	std::shared_ptr<LevelVertexInsertionData> m_componentInsertionData;
 	bool m_componentHandlesLimited = false;

@@ -2508,7 +2508,16 @@ Accessibility Settings**), and command search finds every option's command.
 **Read Aloud** (Ctrl+Shift+U, after Microsoft Edge) reads the selected text,
 the current line of an editor, the focused list row, or the focused control's
 name and description, and pressing it again stops; password and key fields are
-never read. **Stop Reading Aloud**, **Accessibility Settings**, and **Toggle
+never read. The key works in every view, the Levels 2D views and camera
+included, under every editor profile: no profile binding may take it. Where a
+familiar editor uses Ctrl+Shift+U for something else, as TrenchBroom does for
+Reset 2D Cameras and NetRadiant Custom for CSG Intersect, that profile leaves
+the command without a key as a documented adaptation (docs/EDITOR_PROFILES.md),
+and `level-plan-framing-ui-smoke` presses the key in every profile's 2D views
+and camera. A user may still opt in by giving **Reset 2D Views** Ctrl+Shift+U
+in **Keyboard Shortcuts**: a 2D view then takes the key only while the command
+can act there, and Read Aloud keeps it everywhere else. **Stop Reading
+Aloud**, **Accessibility Settings**, and **Toggle
 High Contrast** are commands too, so every option is reachable from the
 keyboard. Access keys are always underlined: the studio's Fusion-based style
 draws them without waiting for Alt.

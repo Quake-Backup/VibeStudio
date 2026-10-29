@@ -41,7 +41,7 @@ const std::array<GpuProgramInfo, static_cast<std::size_t>(GpuProgram::Count)>& p
 				{3, GpuVertexFormat::UByte4Normalized, 36}, {4, GpuVertexFormat::UInt1, 40}});
 		surface.bindings[1] = binding(4, false, {{5, GpuVertexFormat::UInt1, 0}});
 		surface.samplerCount = 3;
-		surface.uniformBytes = 208;
+		surface.uniformBytes = 256;
 		surface.vertexGlsl = model_surface_vert_glsl;
 		surface.fragmentGlsl = model_surface_frag_glsl;
 		surface.vertexSpirv = model_surface_vert_spirv;

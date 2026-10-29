@@ -103,6 +103,13 @@ struct PlanViewControls {
 	QString panHoldKey;
 	// These modifiers with arrows pan by a quarter of the view (Sledge).
 	Qt::KeyboardModifiers panArrowModifiers = Qt::NoModifier;
+	// Radiant's 2D framing (NRC XY_Focus and XY_SetViewType): Frame Selection
+	// leaves the 3D camera alone and fits the selection, or a box round the
+	// camera when nothing is selected, in two-thirds of each plan view
+	// (core/level_navigation.h levelPlanFocusState); in the three-plan layouts
+	// Top, Front, Side and Next 2D View also centre every plan view on the
+	// selection or the camera, keeping their zoom.
+	bool radiantFraming = false;
 };
 
 // What the mouse wheel does over the 3D view.
@@ -270,6 +277,10 @@ struct LevelEditorControls {
 	// on the grid and an on-grid one flips in place; otherwise flips mirror
 	// about the exact centre (core/level_quick_transform.h levelFlipPivot()).
 	bool flipSnapsPivot = false;
+	// NetRadiant Custom's Rotate tool turns the selection freely by a drag
+	// inside its rings. TrenchBroom's rotate handle has no free turn: a click
+	// or drag there selects and moves as the views otherwise do.
+	bool objectRotateFreeTurn = true;
 	// The Surfaces tab's Rotation step and Rotate about choice when the
 	// profile is applied: NetRadiant Custom's Surface Inspector turns 45°
 	// about the texture origin (core/level_surface.h RadiantRotate); the

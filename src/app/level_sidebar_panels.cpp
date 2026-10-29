@@ -335,6 +335,9 @@ void ApplicationShell::refreshLevelMapSettings()
 	}
 	m_levelMapSettingsSource = source;
 	m_levelMapSettingsRevision = m_levelMapDocument.revision;
+	// The layer summary, Map Properties and Mods follow the same map changes
+	// (level_map_inspector_actions.cpp).
+	refreshLevelMapInspector();
 
 	{
 		const QScopedValueRollback<bool> filling(m_fillingLevelWorldspawn, true);

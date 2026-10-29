@@ -6,6 +6,7 @@
 #include "app/studio_icons.h"
 #include "app/ui_primitives.h"
 #include "core/level_camera_texture.h"
+#include "core/level_object_manipulator.h"
 #include "core/level_shapes.h"
 #include "core/level_view_filters.h"
 #include <QAction>
@@ -54,6 +55,16 @@ QWidget* ApplicationShell::buildLevelAuthoringBar()
 	};
 	tool(QStringLiteral("select"), QStringLiteral("select-box"), tr("Select"),
 		tr("Select, move and resize objects; the camera navigates with your editor profile's controls."));
+	// NetRadiant Custom's Translate and Rotate tools (level_object_gizmo_actions.cpp).
+	tool(QStringLiteral("translate"), QStringLiteral("move"), tr("Translate"),
+		tr("Move the selection with X, Y and Z arrows, a square that moves across the view, and a pivot you can place; Shift keeps the main axis and Ctrl lands the bounds on the grid."));
+	tool(QStringLiteral("rotate"), QStringLiteral("rotate"), tr("Rotate"),
+		tr("Turn the selection with X, Y and Z rings and an outer ring that turns it in the view (and, where your profile offers it, a free turn inside the rings), about a pivot you can place; Shift snaps the angle to 15°."));
+	tool(QStringLiteral("scale"), QStringLiteral("resize"), tr("Scale"),
+		tr("Scale the selection with X, Y and Z handles and a view-plane square about a pivot you can place, or by its box's faces, edges and corners; Shift keeps proportions, Ctrl lands the size on the grid and Alt scales a box handle about the centre."));
+	// NetRadiant Custom's Transform tool (level_object_gizmo_actions.cpp).
+	tool(QStringLiteral("transform"), QStringLiteral("transform"), tr("Transform"),
+		tr("Skew the selection by the sides of its box, turn it by the corners, move it from inside and scale it from just outside a side or corner, about the opposite side or corner or a pivot you can place."));
 	tool(QStringLiteral("brush"), QStringLiteral("cube"), tr("Draw Brush"),
 		tr("Drag a brush footprint in the camera, on a construction plane; the wheel sets its depth."));
 	tool(QStringLiteral("clip"), QStringLiteral("clip"), tr("Clip"),
@@ -64,6 +75,9 @@ QWidget* ApplicationShell::buildLevelAuthoringBar()
 		tr("Drag across surfaces in the camera to give them the chosen material, one undo step per stroke."));
 	tool(QStringLiteral("sample"), QStringLiteral("eyedropper"), tr("Sample"),
 		tr("Click a surface in the camera to choose its material."));
+	// NetRadiant Custom's UV tool (level_camera_uv_tool_actions.cpp).
+	tool(QStringLiteral("uv"), QStringLiteral("uv"), tr("UV"),
+		tr("Drag the picked face's or selected patch's texture in the camera: move it, turn it with the ring, stretch it by a repeat line and skew it with Alt, about a pivot you can place."));
 	tool(QStringLiteral("sector"), QStringLiteral("polygon"), tr("Draw Sector"),
 		tr("Click the corners of a Doom sector in the Top view; the first corner again, or Enter, closes it."));
 	m_levelTools.value(QStringLiteral("select"))->setChecked(true);
@@ -95,8 +109,13 @@ QWidget* ApplicationShell::buildLevelAuthoringBar()
 	group(QStringLiteral("levelCreateTools"), tr("Create"), QStringLiteral("add"), tr("Create geometry, entities and reusable prefabs."),
 		{QStringLiteral("map.drawBrush"), QStringLiteral("map.addBrush"), QStringLiteral("map.createBrushFromPoints"), QStringLiteral("map.assembleBrushTool"),
 		 QStringLiteral("map.createAssembledBrush"), QStringLiteral("map.addEntity"), QStringLiteral("map.createEntity"), QStringLiteral("map.addPatch"),
+		 QStringLiteral("map.patchCylinder"), QStringLiteral("map.patchSquareCylinder"), QStringLiteral("map.patchEndCap"), QStringLiteral("map.patchBevel"),
+		 QStringLiteral("map.patchClassicCone"), QStringLiteral("map.patchSphere"), QStringLiteral("map.patchExactCylinder"),
+		 QStringLiteral("map.patchExactCone"), QStringLiteral("map.patchExactSphere"),
 		 QStringLiteral("map.addThing"), QStringLiteral("map.placeAtCamera"), QStringLiteral("map.drawSector"), QStringLiteral("map.makeSectorMode"), QStringLiteral("map.addSector"), {},
 		 QStringLiteral("map.insertPrefab"), QStringLiteral("map.replaceWithPrefab"), QStringLiteral("map.exportPrefab"), QStringLiteral("map.stagePrefab"), {},
+		 QStringLiteral("map.importMap"), QStringLiteral("map.exportSelectionAsMap"), QStringLiteral("map.exportMap"), QStringLiteral("map.exportSelectionAsObj"),
+		 QStringLiteral("map.exportMapAsObj"), {},
 		 QStringLiteral("map.tieToEntity"), QStringLiteral("map.moveToWorld"), QStringLiteral("map.movePrimitivesToEntity"),
 		 QStringLiteral("map.movePrimitivesToFirstEntity"), QStringLiteral("map.moveSelectedToWorld"), QStringLiteral("map.explodeEntity"),
 		 QStringLiteral("map.explodeEntityUnique")});
@@ -112,9 +131,13 @@ QWidget* ApplicationShell::buildLevelAuthoringBar()
 		 QStringLiteral("map.regionSetSelection"), QStringLiteral("map.regionSetView"), QStringLiteral("map.regionDraw"),
 		 QStringLiteral("map.regionSetBrush"), QStringLiteral("map.regionBounds"), QStringLiteral("map.regionSelect"), QStringLiteral("map.regionClear"),
 		 QStringLiteral("map.regionSave"), QStringLiteral("map.regionCompile"), {},
-		 QStringLiteral("map.findObject"), QStringLiteral("map.goToCoordinates"), QStringLiteral("map.centerOnSelection"), QStringLiteral("map.zoomToFit")});
+		 QStringLiteral("map.findObject"), QStringLiteral("map.goToCoordinates"), QStringLiteral("map.centerOnSelection"), QStringLiteral("map.zoomToFit"),
+		 QStringLiteral("map.zoomActualSize"), QStringLiteral("map.resetPlanViews")});
 	group(QStringLiteral("levelTransformTools"), tr("Transform"), QStringLiteral("move"), tr("Move, resize, rotate and repeat the selection with exact values."),
-		{QStringLiteral("map.moveSelection"), QStringLiteral("map.resizeSelection"), QStringLiteral("map.scaleSelection"), QStringLiteral("map.rotatePrecisely"),
+		{QStringLiteral("map.translateTool"), QStringLiteral("map.rotateTool"), QStringLiteral("map.scaleTool"), QStringLiteral("map.rotateOrScaleTool"),
+		 QStringLiteral("map.transformTool"), QStringLiteral("map.selectOrTransformTool"),
+		 QStringLiteral("map.setObjectPivot"), QStringLiteral("map.resetObjectPivot"), {},
+		 QStringLiteral("map.moveSelection"), QStringLiteral("map.resizeSelection"), QStringLiteral("map.scaleSelection"), QStringLiteral("map.rotatePrecisely"),
 		 QStringLiteral("map.duplicateWithOffset"), QStringLiteral("map.duplicateUnique"), QStringLiteral("map.snapToGrid"), QStringLiteral("map.roundToGrid"), QStringLiteral("map.dropToFloor"), {},
 		 QStringLiteral("map.rotateLeft"), QStringLiteral("map.rotateRight"), QStringLiteral("map.rollClockwise"), QStringLiteral("map.rollCounterclockwise"),
 		 QStringLiteral("map.pitchClockwise"), QStringLiteral("map.pitchCounterclockwise"), QStringLiteral("map.flipHorizontal"), QStringLiteral("map.flipVertical"), {},
@@ -145,7 +168,7 @@ QWidget* ApplicationShell::buildLevelAuthoringBar()
 		 QStringLiteral("map.alignWallTextures")});
 	group(QStringLiteral("levelSurfaceToolsMenu"), tr("Surfaces"), QStringLiteral("image"), tr("Paint, sample and align map materials."),
 		{QStringLiteral("map.paintMaterial"), QStringLiteral("map.sampleMaterial"), QStringLiteral("map.applyTexture"),
-		 QStringLiteral("map.alignSurfaces"), QStringLiteral("map.uvEditor"), QStringLiteral("map.replaceTexture"), QStringLiteral("map.revealMaterial"), {},
+		 QStringLiteral("map.alignSurfaces"), QStringLiteral("map.uvEditor"), QStringLiteral("map.showFaceInspector"), QStringLiteral("map.uvTool"), QStringLiteral("map.replaceTexture"), QStringLiteral("map.revealMaterial"), {},
 		 QStringLiteral("map.surfaceReset"), QStringLiteral("map.surfaceRadiantReset"), QStringLiteral("map.resetTextures"), {},
 		 QStringLiteral("map.surfaceFitWidth"), QStringLiteral("map.surfaceFitHeight"), QStringLiteral("map.surfaceFitU"), QStringLiteral("map.surfaceFitV"),
 		 QStringLiteral("map.surfaceProjectAxial"), QStringLiteral("map.surfaceProjectView"), QStringLiteral("map.surfaceProjectCamera"), {},
@@ -230,6 +253,7 @@ MapViewport *ApplicationShell::createLevelPlanViewport(int index)
 	view->installEventFilter(this);
 	view->setContextMenuPolicy(Qt::CustomContextMenu);
 	m_levelPlanViews.append(view);
+	connectLevelObjectGizmo(view->objectGizmo(), view);
 	connect(view,&MapViewport::groupContextRequested,this,[this,view](const QString& id) { activateLevelPlanViewport(view); changeLevelGroupContext(id); });
 	connect(view, &MapViewport::viewChanged, this, [this, view] {
 		if (!m_applyingLevelViewLayout) { synchronizeLevelViewNavigation(view); }
@@ -368,6 +392,13 @@ QString ApplicationShell::currentLevelTool() const
 	if (m_levelMap3D && m_levelMap3D->surfaceTool() == ModelViewportSurfaceTool::Sample) {
 		return QStringLiteral("sample");
 	}
+	if (levelCameraUvToolActive()) {
+		return QStringLiteral("uv");
+	}
+	if (levelObjectToolActive()) {
+		// "translate", "rotate", "scale" or "transform", the object tool's button.
+		return levelObjectToolId(static_cast<LevelObjectTool>(m_levelObjectTool));
+	}
 	return QStringLiteral("select");
 }
 
@@ -396,6 +427,13 @@ void ApplicationShell::chooseLevelTool(const QString &toolId)
 	if (m_levelMapViewport->makeSectorMode()) {
 		setLevelMakeSectorMode(false);
 	}
+	if (toolId != QLatin1String("uv") && m_levelUvToolOn) {
+		setLevelCameraUvTool(false);
+	}
+	const LevelObjectTool objectTool = levelObjectToolFromId(toolId);
+	if (objectTool != static_cast<LevelObjectTool>(m_levelObjectTool) && m_levelObjectTool != 0) {
+		setLevelObjectTool(0);
+	}
 	if (toolId == QLatin1String("brush")) {
 		setLevelMaterialTool(3);
 	} else if (toolId == QLatin1String("paint")) {
@@ -406,7 +444,12 @@ void ApplicationShell::chooseLevelTool(const QString &toolId)
 		if (currentLevelTool() == QLatin1String("brush") || currentLevelTool() == QLatin1String("paint") || currentLevelTool() == QLatin1String("sample")) {
 			setLevelMaterialTool(0);
 		}
-		if (toolId == QLatin1String("clip") && !m_levelMapViewport->clipMode()) {
+		if (objectTool == LevelObjectTool::Translate || objectTool == LevelObjectTool::Rotate || objectTool == LevelObjectTool::Scale
+			|| objectTool == LevelObjectTool::Transform) {
+			setLevelObjectTool(static_cast<int>(objectTool));
+		} else if (toolId == QLatin1String("uv")) {
+			setLevelCameraUvTool(true);
+		} else if (toolId == QLatin1String("clip") && !m_levelMapViewport->clipMode()) {
 			setLevelMapClipMode(true);
 		} else if (toolId == QLatin1String("vertex") && m_levelMapViewport->componentMode() == MapViewport::ComponentMode::Off) {
 			setLevelComponentMode(1);
@@ -435,6 +478,10 @@ void ApplicationShell::refreshLevelToolShelf()
 		refreshLevelObjectSelectionCommands();
 		refreshLevelVisibilityCommands();
 	}
+	// Another tool turned on some other way ends the UV tool.
+	if (m_levelUvToolOn && currentLevelTool() != QLatin1String("uv")) {
+		setLevelCameraUvTool(false);
+	}
 	if (!m_levelToolActions) {
 		return;
 	}
@@ -452,6 +499,11 @@ void ApplicationShell::refreshLevelToolShelf()
 		{QStringLiteral("paint"), paintable},
 		{QStringLiteral("sample"), paintable},
 		{QStringLiteral("sector"), doomPlan},
+		{QStringLiteral("translate"), quake},
+		{QStringLiteral("uv"), quake},
+		{QStringLiteral("rotate"), quake},
+		{QStringLiteral("scale"), quake},
+		{QStringLiteral("transform"), quake},
 	};
 	const QHash<QString, QString> commands {
 		{QStringLiteral("brush"), QStringLiteral("map.drawBrush")},
@@ -460,7 +512,19 @@ void ApplicationShell::refreshLevelToolShelf()
 		{QStringLiteral("paint"), QStringLiteral("map.paintMaterial")},
 		{QStringLiteral("sample"), QStringLiteral("map.sampleMaterial")},
 		{QStringLiteral("sector"), QStringLiteral("map.drawSector")},
+		{QStringLiteral("translate"), QStringLiteral("map.translateTool")},
+		{QStringLiteral("uv"), QStringLiteral("map.uvTool")},
+		{QStringLiteral("rotate"), QStringLiteral("map.rotateTool")},
+		{QStringLiteral("scale"), QStringLiteral("map.scaleTool")},
+		{QStringLiteral("transform"), QStringLiteral("map.transformTool")},
 	};
+	// A mode entered through its own command (Clip Tool, the component modes,
+	// Draw Brush and the rest) replaces an object tool, so the object tool does
+	// not come back when that mode ends: NetRadiant Custom returns to its
+	// default tool too.
+	if (m_levelObjectTool != 0 && currentLevelTool() != levelObjectToolId(static_cast<LevelObjectTool>(m_levelObjectTool))) {
+		setLevelObjectTool(0);
+	}
 	// Draw Brush shows the shape it draws, chosen in the Shapes tab.
 	if (QAction* brush = m_levelTools.value(QStringLiteral("brush"))) {
 		const bool shaped = m_levelShape != QLatin1String("box");
@@ -487,6 +551,8 @@ void ApplicationShell::refreshLevelToolShelf()
 		action->setToolTip(tr("%1\n%2").arg(action->text(), tip));
 	}
 	refreshLevelMaterialTools();
+	refreshLevelObjectGizmos();
+	refreshLevelObjectGizmoCommands();
 }
 
 void ApplicationShell::activateLevelPlanViewport(MapViewport *view)
@@ -547,6 +613,9 @@ void ApplicationShell::synchronizeLevelPlanViews(bool frame)
 		view->setHighContrast(preferences.theme == StudioTheme::HighContrastDark || preferences.theme == StudioTheme::HighContrastLight);
 		view->setReducedMotion(preferences.reducedMotion);
 	}
+	// The object manipulators snap with the views' grid and Snap, so a change
+	// of either reaches them at once.
+	refreshLevelObjectGizmos();
 	if (frame) { synchronizeLevelViewNavigation(m_levelMapViewport, true); }
 }
 
@@ -608,6 +677,8 @@ void ApplicationShell::chooseLevelViewLinks(const LevelViewLinks& links)
 	}
 	m_levelViewLinks = links;
 	refreshLevelViewLinkActions();
+	// Reset 2D Views waits while centres and zoom are both linked.
+	refreshLevelPlanFramingCommands();
 	synchronizeLevelViewNavigation(m_levelMapViewport);
 	followLevelCamera();
 	statusBar()->showMessage(tr("Plan centres: %1 · Plan zoom: %2 · Follow camera: %3")
@@ -622,7 +693,7 @@ void ApplicationShell::refreshLevelViewLinkActions()
 		menu->setToolTipsVisible(true);
 		bool separated = false;
 		for (const auto& id : {QStringLiteral("map.linkPlanCenters"), QStringLiteral("map.linkPlanZoom"),
-			QStringLiteral("map.followCamera"), QStringLiteral("map.centerPlansOnCamera")}) {
+			QStringLiteral("map.followCamera"), QStringLiteral("map.centerPlansOnCamera"), QStringLiteral("map.resetPlanViews")}) {
 			auto* action = m_commands->action(id);
 			if (!action || menu->actions().contains(action)) { continue; }
 			if (action->isCheckable()) { action->setIconVisibleInMenu(false); }

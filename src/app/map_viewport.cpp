@@ -6,6 +6,7 @@
 #include "core/level_scene.h"
 #include "core/level_visibility.h"
 #include "core/level_camera_keys.h"
+#include "core/level_component_drag.h"
 
 #include <QBrush>
 #include <QAccessible>
@@ -422,6 +423,15 @@ MapViewport::MapViewport(QWidget* parent)
 	: QWidget(parent)
 {
 	m_componentGizmo = new LevelComponentGizmo(this);
+	m_objectGizmo = new LevelComponentGizmo(this);
+	connect(m_objectGizmo,&LevelComponentGizmo::changed,this,[this] {
+		setAccessibleDescription(accessibleSummary());
+		if (m_objectGizmo->active()) { Q_EMIT hoverChanged(m_objectGizmo->summary()); }
+		update();
+	});
+	// However a manipulator drag ends (release, Escape, another button, focus
+	// loss, hiding), the drag cursor goes with it.
+	connect(m_objectGizmo,&LevelComponentGizmo::activeChanged,this,[this](bool active) { if (!active) { unsetCursor(); } });
 	m_vertexInsertion = new LevelVertexInsertion(this);
 	connect(m_vertexInsertion,&LevelVertexInsertion::changed,this,[this] {
 		setAccessibleDescription(accessibleSummary()); Q_EMIT hoverChanged(componentSummary()); update();
@@ -1038,13 +1048,14 @@ bool MapViewport::snapToGrid() const
 
 bool MapViewport::isDragging() const
 {
-	return m_dragging;
+	return m_dragging || m_objectGizmo->active();
 }
 
 void MapViewport::cancelInteraction()
 {
 	m_vertexInsertion->finish(false); m_vertexInsertion->clearHover();
 	m_componentGizmo->finish(false);
+	m_objectGizmo->finish(false);
 	finishClipPoint(false);
 	finishBrushAssemble(false);
 	setTemporaryPan(false);
@@ -1829,6 +1840,9 @@ QString MapViewport::accessibleSummary() const
 	}
 	if (m_regionDrawMode) {
 		overlays += QStringLiteral(" ") + tr("Draw Region is on: drag a box to set the region; Escape leaves.");
+	}
+	if (objectGizmoShown()) {
+		overlays += QStringLiteral(" ") + m_objectGizmo->summary();
 	}
 	if (m_assembleTool) {
 		overlays += QStringLiteral(" ") + brushAssembleSummary();
@@ -2861,6 +2875,9 @@ bool MapViewport::handlesBox(QRectF* box) const
 	// Object resize handles would obscure the component selection at corners
 	// and imply an operation that component mode does not accept.
 	if (m_componentMode != ComponentMode::Off) { return false; }
+	// Translate and Rotate replace them; the Scale tool keeps them, as its box
+	// handles are TrenchBroom's.
+	if (m_objectGizmo->objectToolOn() && m_objectGizmo->tool() != LevelComponentTool::Scale && !m_resizing && !m_shearMode) { return false; }
 	if (m_resizing) {
 		*box = resizedPlaneBox();
 		return true;
@@ -2928,41 +2945,72 @@ int MapViewport::resizeHandleAt(const QPointF& viewPoint) const
 
 QRectF MapViewport::resizedPlaneBox() const
 {
-	const QRectF& from = m_resizeFromPlane;
+	const ResizeBox box = resizedWorldBox();
+	const int horizontal = m_projection == MapViewportProjection::SideZY ? 1 : 0;
+	const int vertical = m_projection == MapViewportProjection::TopXY ? 1 : 2;
+	return minMaxRect(box.mins[static_cast<size_t>(horizontal)], box.mins[static_cast<size_t>(vertical)], box.maxs[static_cast<size_t>(horizontal)],
+		box.maxs[static_cast<size_t>(vertical)]);
+}
+
+ResizeBox MapViewport::resizedWorldBox() const
+{
+	// Workflow reference for Shift and Alt: TrenchBroom
+	// ui/ScaleToolController modifierSettingsForInputState and
+	// makeHandlePositionProposer at 4c756be1 (GPL-3.0-or-later). Original Qt
+	// implementation; see docs/CREDITS.md.
+	const ResizeBox from {{m_resizeFromMins.x, m_resizeFromMins.y, m_resizeFromMins.z}, {m_resizeFromMaxs.x, m_resizeFromMaxs.y, m_resizeFromMaxs.z}};
 	const QPointF travel = m_resizeCurrentPlane - m_resizePressPlane;
 	if (travel.isNull()) {
 		// A press that has not moved changes nothing, even on a box whose
 		// edges are off the grid.
 		return from;
 	}
-	double left = from.left();
-	double right = from.right();
-	double low = from.top();
-	double high = from.bottom();
-	const double grid = m_gridSize > 0 ? static_cast<double>(m_gridSize) : 1.0;
-	const auto snap = [this, grid](double value) {
-		return m_snapToGrid ? snapLevelMapCoordinate(value, grid) : value;
-	};
+	const int horizontal = m_projection == MapViewportProjection::SideZY ? 1 : 0;
+	const int vertical = m_projection == MapViewportProjection::TopXY ? 1 : 2;
+	const int across = (m_resizeEdges & ResizeMinHorizontal) != 0 ? -1 : (m_resizeEdges & ResizeMaxHorizontal) != 0 ? 1 : 0;
+	const int up = (m_resizeEdges & ResizeMinVertical) != 0 ? -1 : (m_resizeEdges & ResizeMaxVertical) != 0 ? 1 : 0;
 	// A moved edge travels with the pointer, landing on the grid while
-	// snapping is on, and stops short of the opposite edge, so a box never
-	// turns inside out or vanishes. A box already thinner than the grid may
-	// keep its size.
-	const auto smallest = [this, grid](double size) {
-		return m_snapToGrid ? std::min(grid, size) : std::min(1.0, size);
+	// snapping is on, and stops short of the opposite edge (or the centre),
+	// so a box never turns inside out or vanishes. A box already thinner than
+	// the grid may keep its size.
+	const double grid = m_snapToGrid && m_gridSize > 0 ? static_cast<double>(m_gridSize) : 0.0;
+	BoxResizeModifiers modifiers;
+	modifiers.centre = m_resizeModifiers.testFlag(Qt::AltModifier);
+	const bool proportional = m_resizeModifiers.testFlag(Qt::ShiftModifier);
+	const auto moveSide = [&](const ResizeBox& source, int axis, int side, double distance, int keep) {
+		std::array<int, 3> sides {0, 0, 0};
+		sides[static_cast<size_t>(axis)] = side;
+		BoxResizeModifiers chosen = modifiers;
+		chosen.proportionalAxes = keep;
+		ResizeBox result;
+		return resizeBoxAlongHandle(source, boxResizeHandleFor(sides), distance, grid, chosen, &result) ? result : source;
 	};
-	const double minWidth = smallest(from.width());
-	const double minHeight = smallest(from.height());
-	if ((m_resizeEdges & ResizeMinHorizontal) != 0) {
-		left = std::min(snap(from.left() + travel.x()), right - minWidth);
-	} else if ((m_resizeEdges & ResizeMaxHorizontal) != 0) {
-		right = std::max(snap(from.right() + travel.x()), left + minWidth);
+	if (across != 0 && up != 0) {
+		if (proportional) {
+			// Shift keeps the corner on its diagonal, so the box keeps its shape.
+			std::array<int, 3> sides {0, 0, 0};
+			sides[static_cast<size_t>(horizontal)] = across;
+			sides[static_cast<size_t>(vertical)] = up;
+			const double width = from.maxs[static_cast<size_t>(horizontal)] - from.mins[static_cast<size_t>(horizontal)];
+			const double height = from.maxs[static_cast<size_t>(vertical)] - from.mins[static_cast<size_t>(vertical)];
+			const double span = std::hypot(width, height);
+			ResizeBox result;
+			if (span > 0 && resizeBoxAlongHandle(from, boxResizeHandleFor(sides), (travel.x() * across * width + travel.y() * up * height) / span, grid, modifiers, &result)) {
+				return result;
+			}
+			return from;
+		}
+		return moveSide(moveSide(from, horizontal, across, across * travel.x(), 0), vertical, up, up * travel.y(), 0);
 	}
-	if ((m_resizeEdges & ResizeMinVertical) != 0) {
-		low = std::min(snap(from.top() + travel.y()), high - minHeight);
-	} else if ((m_resizeEdges & ResizeMaxVertical) != 0) {
-		high = std::max(snap(from.bottom() + travel.y()), low + minHeight);
+	// Shift: the view's other axis keeps its proportion; depth stays, as in
+	// TrenchBroom's 2D views.
+	if (across != 0) {
+		return moveSide(from, horizontal, across, across * travel.x(), proportional ? 1 << vertical : 0);
 	}
-	return minMaxRect(left, low, right, high);
+	if (up != 0) {
+		return moveSide(from, vertical, up, up * travel.y(), proportional ? 1 << horizontal : 0);
+	}
+	return from;
 }
 
 void MapViewport::beginResize(int edges, const QPointF& viewPoint)
@@ -2977,49 +3025,39 @@ void MapViewport::beginResize(int edges, const QPointF& viewPoint)
 	m_resizeFromPlane = box;
 	m_resizePressPlane = viewToWorld(viewPoint);
 	m_resizeCurrentPlane = m_resizePressPlane;
+	m_resizeModifiers = Qt::NoModifier;
 	Q_EMIT hoverChanged(resizeSummary());
 	update();
 }
 
-void MapViewport::updateResize(const QPointF& viewPoint)
+void MapViewport::updateResize(const QPointF& viewPoint, Qt::KeyboardModifiers modifiers)
 {
-	const QRectF previous = resizedPlaneBox();
+	const ResizeBox previous = resizedWorldBox();
 	m_resizeCurrentPlane = viewToWorld(viewPoint);
+	m_resizeModifiers = modifiers & (Qt::ShiftModifier | Qt::AltModifier);
 	Q_EMIT hoverChanged(resizeSummary());
-	if (resizedPlaneBox() != previous) {
+	if (resizedWorldBox() != previous) {
 		update();
 	}
 }
 
 void MapViewport::commitResize()
 {
-	const QRectF box = resizedPlaneBox();
+	const ResizeBox box = resizedWorldBox();
+	const ResizeBox from {{m_resizeFromMins.x, m_resizeFromMins.y, m_resizeFromMins.z}, {m_resizeFromMaxs.x, m_resizeFromMaxs.y, m_resizeFromMaxs.z}};
 	LevelMapVec3 mins = m_resizeFromMins;
 	LevelMapVec3 maxs = m_resizeFromMaxs;
 	m_resizing = false;
 	m_resizeEdges = 0;
-	switch (m_projection) {
-	case MapViewportProjection::TopXY:
-		mins.x = box.left();
-		maxs.x = box.right();
-		mins.y = box.top();
-		maxs.y = box.bottom();
-		break;
-	case MapViewportProjection::FrontXZ:
-		mins.x = box.left();
-		maxs.x = box.right();
-		mins.z = box.top();
-		maxs.z = box.bottom();
-		break;
-	case MapViewportProjection::SideZY:
-		mins.y = box.left();
-		maxs.y = box.right();
-		mins.z = box.top();
-		maxs.z = box.bottom();
-		break;
-	}
+	m_resizeModifiers = Qt::NoModifier;
+	mins.x = box.mins[0];
+	mins.y = box.mins[1];
+	mins.z = box.mins[2];
+	maxs.x = box.maxs[0];
+	maxs.y = box.maxs[1];
+	maxs.z = box.maxs[2];
 	// The owner makes the edit, as for a move, so the resize is one undo step.
-	if (box != m_resizeFromPlane) {
+	if (box != from) {
 		Q_EMIT resizeRequested(mins, maxs);
 	}
 	Q_EMIT hoverChanged(hoverSummary());
@@ -3033,7 +3071,8 @@ QString MapViewport::resizeSummary() const
 		.arg(planeAxisLetters(m_projection, false))
 		.arg(box.width(), 0, 'g', 8)
 		.arg(planeAxisLetters(m_projection, true))
-		.arg(box.height(), 0, 'g', 8);
+		.arg(box.height(), 0, 'g', 8)
+		+ QStringLiteral(" · ") + tr("Shift keeps proportions; Alt resizes about the centre.");
 }
 
 QString MapViewport::resizeHandleSummary(int edges) const
@@ -3601,6 +3640,7 @@ void MapViewport::paintOverlay(QPainter& painter, const Palette& palette) const
 			painter.restore();
 		}
 		paintComponents(painter, palette);
+		paintObjectGizmo(painter, palette);
 		if (m_dragging) {
 			paintDragPreview(painter, palette);
 		}
@@ -3662,6 +3702,9 @@ QStringList MapViewport::hudTags() const
 	if (m_regionDrawMode) {
 		leftParts << tr("Draw Region");
 	}
+	if (m_componentMode == ComponentMode::Off && m_objectGizmo->objectToolOn()) {
+		leftParts << (m_objectGizmo->active() ? m_objectGizmo->summary() : m_objectGizmo->toolName());
+	}
 	if (!m_leakTrail.isEmpty()) {
 		leftParts << tr("Leak trail");
 	}
@@ -3708,6 +3751,10 @@ void MapViewport::announceSelection()
 
 bool MapViewport::event(QEvent* event)
 {
+	if (event->type() == QEvent::ShortcutOverride && m_objectGizmo->active()) {
+		event->accept();
+		return true;
+	}
 	if (m_componentMode != ComponentMode::Off && (event->type() == QEvent::KeyPress || event->type() == QEvent::ShortcutOverride)) {
 		auto* key = static_cast<QKeyEvent*>(event);
 		if ((key->key() == Qt::Key_Tab || key->key() == Qt::Key_Backtab) && (key->modifiers() & ~Qt::ShiftModifier) == Qt::NoModifier) {
@@ -3728,6 +3775,7 @@ bool MapViewport::event(QEvent* event)
 		if (key == Qt::Key_Escape || key == Qt::Key_Backspace || key == Qt::Key_Delete || key == Qt::Key_Return || key == Qt::Key_Enter) { event->accept(); return true; }
 	}
 	if (event->type() == QEvent::FocusOut || event->type() == QEvent::Hide || (event->type() == QEvent::EnabledChange && !isEnabled())) {
+		m_objectGizmo->finish(false);
 		finishComponentMove(false);
 		finishClipPoint(false);
 		finishBrushAssemble(false);
@@ -4149,6 +4197,9 @@ void MapViewport::mousePressEvent(QMouseEvent* event)
 		event->accept();
 		return;
 	}
+	if (objectGizmoMousePress(event)) {
+		return;
+	}
 	// Radiant's middle button drives the 3D camera instead of panning: a
 	// plain press aims it at the point, Ctrl moves it there, and a drag
 	// keeps doing so.
@@ -4441,6 +4492,9 @@ void MapViewport::mouseMoveEvent(QMouseEvent* event)
 	if (m_componentMode != ComponentMode::Off && componentMouseMove(event)) {
 		return;
 	}
+	if (objectGizmoMouseMove(event)) {
+		return;
+	}
 
 	if (m_clickArmed) {
 		const QPointF travel = position - m_pressViewPoint;
@@ -4461,7 +4515,7 @@ void MapViewport::mouseMoveEvent(QMouseEvent* event)
 				const int edges = m_pendingResizeEdges;
 				m_pendingResizeEdges = 0;
 				beginResize(edges, m_pressViewPoint);
-				updateResize(position);
+				updateResize(position, event->modifiers());
 			}
 		}
 		event->accept();
@@ -4486,7 +4540,7 @@ void MapViewport::mouseMoveEvent(QMouseEvent* event)
 				const int edges = m_pendingResizeEdges;
 				m_pendingResizeEdges = 0;
 				beginResize(edges, m_bandAnchorView);
-				updateResize(position);
+				updateResize(position, event->modifiers());
 			}
 			event->accept();
 			return;
@@ -4511,7 +4565,7 @@ void MapViewport::mouseMoveEvent(QMouseEvent* event)
 	}
 
 	if (m_resizing) {
-		updateResize(position);
+		updateResize(position, event->modifiers());
 		event->accept();
 		return;
 	}
@@ -4609,6 +4663,9 @@ void MapViewport::mouseReleaseEvent(QMouseEvent* event)
 		return;
 	}
 	if (m_componentMode != ComponentMode::Off && componentMouseRelease(event)) {
+		return;
+	}
+	if (objectGizmoMouseRelease(event)) {
 		return;
 	}
 	if (m_brushDrawing) {
@@ -4735,6 +4792,17 @@ void MapViewport::keyPressEvent(QKeyEvent* event)
 		event->accept(); return;
 	}
 	if (m_componentMode != ComponentMode::Off && componentKeyPress(event)) {
+		return;
+	}
+	if (objectGizmoKey(event, true)) {
+		return;
+	}
+	if (m_resizing && levelComponentModifierKey(event->key())) {
+		// Shift and Alt change a resize as soon as they go down.
+		m_resizeModifiers = levelComponentModifierState(event->key(), event->modifiers(), true) & (Qt::ShiftModifier | Qt::AltModifier);
+		Q_EMIT hoverChanged(resizeSummary());
+		update();
+		event->accept();
 		return;
 	}
 	const auto direction = planArrowPanDirection(m_controls, event->key(), event->modifiers());
@@ -5187,6 +5255,14 @@ bool MapViewport::isTemporarilyPanning() const { return m_panHoldActive; }
 void MapViewport::keyReleaseEvent(QKeyEvent* event)
 {
 	if (updateComponentModifiers(event->key(),event->modifiers(),false)) { event->accept(); return; }
+	if (objectGizmoKey(event, false)) { return; }
+	if (m_resizing && levelComponentModifierKey(event->key())) {
+		m_resizeModifiers = levelComponentModifierState(event->key(), event->modifiers(), false) & (Qt::ShiftModifier | Qt::AltModifier);
+		Q_EMIT hoverChanged(resizeSummary());
+		update();
+		event->accept();
+		return;
+	}
 	m_vertexInsertion->clearHover();
 	if (!event->isAutoRepeat() && m_panHoldActive && navigationHoldKeyMatches(m_controls.panHoldKey, event->key(), Qt::NoModifier)) {
 		setTemporaryPan(false); event->accept(); return;

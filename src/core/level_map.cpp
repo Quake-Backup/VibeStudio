@@ -5101,6 +5101,40 @@ LevelMapStatistics statisticsWithTextureCount(const LevelMapDocument& document, 
 	for (const LevelMapEntity& entity : document.entities) {
 		includePoint(&stats.mins, &stats.maxs, entity.origin);
 	}
+	// Map Info (NetRadiant Custom DoMapInfo and Scene_CountStuff at 449778b3,
+	// GPL-2.0-or-later; original implementation): a group entity holds
+	// brushes or patches, or is worldspawn; Doom things are all in the game.
+	{
+		const bool doom = document.format == LevelMapFormat::DoomWad;
+		QSet<int> owners;
+		for (const LevelMapBrush& brush : document.brushes) {
+			owners.insert(brush.entityId);
+		}
+		for (const LevelMapPatch& patch : document.patches) {
+			owners.insert(patch.entityId);
+		}
+		QHash<QString, int> classRows;
+		for (const LevelMapEntity& entity : document.entities) {
+			const bool group = !doom && (owners.contains(entity.id) || entity.className.compare(QStringLiteral("worldspawn"), Qt::CaseInsensitive) == 0);
+			const bool inGame = doom || levelMapEntityReachesGame(entity.className, group);
+			stats.groupEntityCount += group ? 1 : 0;
+			stats.inGameEntityCount += inGame ? 1 : 0;
+			stats.inGameGroupEntityCount += group && inGame ? 1 : 0;
+			auto row = classRows.constFind(entity.className);
+			if (row == classRows.constEnd()) {
+				row = classRows.insert(entity.className, static_cast<int>(stats.entityClasses.size()));
+				stats.entityClasses.push_back({entity.className, 0, 0, 0});
+			}
+			LevelMapEntityClassCount& counts = stats.entityClasses[row.value()];
+			++counts.count;
+			counts.groupCount += group ? 1 : 0;
+			counts.inGameCount += inGame ? 1 : 0;
+		}
+		std::sort(stats.entityClasses.begin(), stats.entityClasses.end(), [](const LevelMapEntityClassCount& left, const LevelMapEntityClassCount& right) {
+			const int folded = left.className.compare(right.className, Qt::CaseInsensitive);
+			return folded != 0 ? folded < 0 : left.className < right.className;
+		});
+	}
 	stats.issueCount = document.issues.size();
 	const auto nodeReport = inspectLevelDoomNodes(document);
 	if (nodeReport.needsBuild() || nodeReport.state == LevelDoomNodeState::Unsupported) { ++stats.issueCount; ++stats.warningCount; }
@@ -5147,6 +5181,9 @@ QStringList levelMapStatisticsLines(const LevelMapDocument& document, const Leve
 	lines << QCoreApplication::translate("VibeStudioLevelMap", "Map: %1").arg(document.mapName.isEmpty() ? QCoreApplication::translate("VibeStudioLevelMap", "unknown") : document.mapName);
 	lines << QCoreApplication::translate("VibeStudioLevelMap", "Entities: %1").arg(stats.entityCount);
 	if (isTextMapFormat(document.format)) {
+		lines << QCoreApplication::translate("VibeStudioLevelMap", "In-game entities: %1").arg(stats.inGameEntityCount);
+		lines << QCoreApplication::translate("VibeStudioLevelMap", "Group entities: %1 (%2 in game)").arg(stats.groupEntityCount).arg(stats.inGameGroupEntityCount);
+		lines << QCoreApplication::translate("VibeStudioLevelMap", "Entity classes: %1").arg(stats.entityClasses.size());
 		lines << QCoreApplication::translate("VibeStudioLevelMap", "Target links: %1").arg(levelMapTargetLinks(document).size());
 	}
 	lines << QCoreApplication::translate("VibeStudioLevelMap", "Brushes: %1 (%2 solved, %3 degenerate)").arg(stats.brushCount).arg(stats.solvedBrushCount).arg(stats.degenerateBrushCount);
@@ -5161,6 +5198,31 @@ QStringList levelMapStatisticsLines(const LevelMapDocument& document, const Leve
 	lines << QCoreApplication::translate("VibeStudioLevelMap", "Bounds min: %1").arg(vecText(stats.mins));
 	lines << QCoreApplication::translate("VibeStudioLevelMap", "Bounds max: %1").arg(vecText(stats.maxs));
 	lines << QCoreApplication::translate("VibeStudioLevelMap", "Issues: %1 warnings, %2 errors").arg(stats.warningCount).arg(stats.errorCount);
+	return lines;
+}
+
+bool levelMapEntityReachesGame(const QString& className, bool groupEntity)
+{
+	// Workflow reference: NetRadiant Custom map.cpp CountStuffWalker at
+	// 449778b3 (GPL-2.0-or-later). Original implementation; see
+	// docs/CREDITS.md.
+	if (groupEntity) {
+		return className.compare(QStringLiteral("func_group"), Qt::CaseInsensitive) != 0
+			&& className.compare(QStringLiteral("_decal"), Qt::CaseInsensitive) != 0
+			&& !className.startsWith(QStringLiteral("func_detail"), Qt::CaseInsensitive);
+	}
+	return !className.startsWith(QStringLiteral("light"), Qt::CaseInsensitive) && className.compare(QStringLiteral("misc_model"), Qt::CaseInsensitive) != 0
+		&& className.compare(QStringLiteral("info_null"), Qt::CaseInsensitive) != 0;
+}
+
+QStringList levelMapEntityClassLines(const LevelMapDocument& document, const LevelMapStatistics& statistics)
+{
+	QStringList lines;
+	const bool doom = document.format == LevelMapFormat::DoomWad;
+	for (const LevelMapEntityClassCount& row : statistics.entityClasses) {
+		lines << (doom ? QCoreApplication::translate("VibeStudioLevelMap", "%1: %2").arg(row.className).arg(row.count)
+					   : QCoreApplication::translate("VibeStudioLevelMap", "%1: %2 (%3 in game)").arg(row.className).arg(row.count).arg(row.inGameCount));
+	}
 	return lines;
 }
 
@@ -5490,8 +5552,15 @@ QString levelMapReportText(const LevelMapDocument& document)
 	}
 	lines << QCoreApplication::translate("VibeStudioLevelMap", "Map: %1").arg(document.mapName);
 	lines << QCoreApplication::translate("VibeStudioLevelMap", "Statistics:");
-	for (const QString& line : levelMapStatisticsLines(document)) {
+	const LevelMapStatistics statistics = levelMapStatistics(document);
+	for (const QString& line : levelMapStatisticsLines(document, statistics)) {
 		lines << QStringLiteral("- %1").arg(line);
+	}
+	if (!statistics.entityClasses.isEmpty()) {
+		lines << QCoreApplication::translate("VibeStudioLevelMap", "Entity classes:");
+		for (const QString& line : levelMapEntityClassLines(document, statistics)) {
+			lines << QStringLiteral("- %1").arg(line);
+		}
 	}
 	lines << QCoreApplication::translate("VibeStudioLevelMap", "View:");
 	for (const QString& line : levelMapViewLines(document)) {
@@ -7465,10 +7534,22 @@ int inheritedSpliceLine(const LevelMapBrush& source, int firstDeletedLine)
 
 QString levelMapSelectionText(const LevelMapDocument& document, QString* error)
 {
+	return levelMapSelectionText(document, LevelMapSelectionTextOptions{}, error);
+}
+
+QString levelMapSelectionText(const LevelMapDocument& document, const LevelMapSelectionTextOptions& options, QString* error)
+{
 	if (error) { error->clear(); }
 	const auto fail = [error](const QString& message) { if (error) { *error = message; } return QString{}; };
-	if (!isTextMapFormat(document.format) || document.selection.isEmpty() || document.selection.size() > 16384) {
+	// A file is bounded by the map loader's own limit, not the clipboard's.
+	const qsizetype objectLimit = options.fileOutput ? kLevelSceneMaxMembers : 16384;
+	if (!isTextMapFormat(document.format) || document.selection.isEmpty()) {
 		return fail(QCoreApplication::translate("VibeStudioLevelMap", "Copy requires 1–16,384 objects of a Quake-family .map file."));
+	}
+	if (document.selection.size() > objectLimit) {
+		return fail(options.fileOutput
+			? QCoreApplication::translate("VibeStudioLevelMap", "Export Selection as Map takes at most 100,000 objects.")
+			: QCoreApplication::translate("VibeStudioLevelMap", "Copy requires 1–16,384 objects of a Quake-family .map file."));
 	}
 	LevelMapObjectExistence existing(&document);
 	QSet<int> entityIds, brushIds, patchIds;
@@ -7523,8 +7604,9 @@ QString levelMapSelectionText(const LevelMapDocument& document, QString* error)
 			if (!isWorldspawnEntity(*owner) && !wholeEntities.contains(owner->id)) {
 				partialEntities.insert(owner->id); partialObjects.insert(entityObjectId(owner->id)); copied.insert(entityObjectId(owner->id));
 			}
-			if (copied.size() > 16384) {
-				fail(QCoreApplication::translate("VibeStudioLevelMap", "The copied assembly exceeds 16,384 objects. Copy a smaller assembly.")); return false;
+			if (copied.size() > objectLimit) {
+				fail(options.fileOutput ? QCoreApplication::translate("VibeStudioLevelMap", "Export Selection as Map takes at most 100,000 objects.")
+					: QCoreApplication::translate("VibeStudioLevelMap", "The copied assembly exceeds 16,384 objects. Copy a smaller assembly.")); return false;
 			}
 		}
 		return true;
@@ -7541,6 +7623,10 @@ QString levelMapSelectionText(const LevelMapDocument& document, QString* error)
 	}
 	const auto captured = captureLevelSceneCopy(document, copied, partialObjects);
 	const bool metadataNeeded = !captured.nodes.isEmpty() || !captured.protectedProperties.isEmpty();
+	// A standalone map always opens with worldspawn, as NetRadiant Custom's
+	// Export Selection writes it (radiant/map.cpp Map_SaveSelected at 449778b3,
+	// GPL-2.0-or-later; workflow reference only, see docs/CREDITS.md).
+	const bool wrapped = metadataNeeded || options.worldspawnWrapper;
 	QHash<QString, QString> emitted;
 	int nextBrush = 0, nextPatch = 0, nextEntity = 1;
 	QStringList lines;
@@ -7550,7 +7636,11 @@ QString levelMapSelectionText(const LevelMapDocument& document, QString* error)
 			detail::placementCancellationCheckpoint();
 			characters += line.size() + 1;
 			bytes += line.toUtf8().size() + 1;
-			if (line.contains(QChar::Null) || characters > kLevelMapClipboardMaxCharacters || bytes > 8388608) {
+			if (options.fileOutput) {
+				if (line.contains(QChar::Null) || bytes > kLevelMapMaxDocumentBytes) {
+					fail(QCoreApplication::translate("VibeStudioLevelMap", "The exported map must fit within 512 MiB of UTF-8, without NUL characters.")); return false;
+				}
+			} else if (line.contains(QChar::Null) || characters > kLevelMapClipboardMaxCharacters || bytes > 8388608) {
 				fail(QCoreApplication::translate("VibeStudioLevelMap", "Copied text must fit within 4,194,304 characters and 8 MiB of UTF-8, without NUL characters. Copy a smaller assembly.")); return false;
 			}
 			lines << line;
@@ -7565,11 +7655,26 @@ QString levelMapSelectionText(const LevelMapDocument& document, QString* error)
 		}
 		return true;
 	};
-	if (metadataNeeded && !append({QStringLiteral("{"), QStringLiteral("\"classname\" \"worldspawn\"")})) { return {}; }
+	// A Quake II map keeps its target note, so the file reopens as Quake II.
+	if (options.worldspawnWrapper && document.originalText.section(QLatin1Char('\n'), 0, 0).trimmed() == QString::fromLatin1(kQuake2MapTargetHeader).trimmed()
+		&& !append({QString::fromLatin1(kQuake2MapTargetHeader).trimmed()})) { return {}; }
+	if (wrapped && !append({QStringLiteral("{")})) { return {}; }
+	if (wrapped) {
+		bool keys = false;
+		for (const auto& entity : document.entities) {
+			if (!options.worldspawnKeys || !isWorldspawnEntity(entity)) { continue; }
+			for (const auto& property : entity.properties) {
+				if (!append({formatKeyLine(QString(), property.key, property.value)})) { return {}; }
+			}
+			keys = true;
+			break;
+		}
+		if (!keys && !append({QStringLiteral("\"classname\" \"worldspawn\"")})) { return {}; }
+	}
 	for (const auto& entity : document.entities) {
 		if (isWorldspawnEntity(entity) && !emitChildren(entity.id)) { return {}; }
 	}
-	if (metadataNeeded && !append({QStringLiteral("}")})) { return {}; }
+	if (wrapped && !append({QStringLiteral("}")})) { return {}; }
 	for (const auto& entity : document.entities) {
 		detail::placementCancellationCheckpoint();
 		if (!wholeEntities.contains(entity.id) && !partialEntities.contains(entity.id)) { continue; }
@@ -7605,6 +7710,14 @@ bool pasteLevelMapText(LevelMapDocument* document, const QString& text, const Le
 	placement.offset = offset;
 	return pasteLevelMapTextAt(document, text, placement, textures, error);
 }
+
+namespace {
+// The second half of a paste: adds every object of `pasted`, a map parsed on
+// its own, to `document` as one add-objects command. `fromFile` words the
+// refusals for Import Map rather than for the clipboard.
+bool insertPastedLevelMap(LevelMapDocument* document, LevelMapDocument& pasted, const LevelPastePlacement& target,
+	const LevelMapTextureLockOptions& textures, QString* error, LevelMapVec3* appliedOffset, bool fromFile);
+} // namespace
 
 bool pasteLevelMapTextAt(LevelMapDocument* document, const QString& text, const LevelPastePlacement& target,
 	const LevelMapTextureLockOptions& textures, QString* error, LevelMapVec3* appliedOffset)
@@ -7729,6 +7842,50 @@ bool pasteLevelMapTextAt(LevelMapDocument* document, const QString& text, const 
 		pasted.scene = decodeLevelScene(pasted,tail,QCryptographicHash::hash(nativeBytes.left(trailer),QCryptographicHash::Sha256));
 		if (!validateLevelScene(pasted,pasted.scene,error)) { return false; }
 	}
+	return insertPastedLevelMap(document, pasted, target, textures, error, appliedOffset, false);
+}
+
+bool pasteLevelMapDocumentAt(LevelMapDocument* document, const LevelMapDocument& source, const LevelPastePlacement& target,
+	const LevelMapTextureLockOptions& textures, QString* error, LevelMapVec3* appliedOffset)
+{
+	LevelMapVec3 guardedOffset;
+	if (const auto guarded = guardLevelSceneEdit(document, error, [&](LevelMapDocument* candidate) {
+		return pasteLevelMapDocumentAt(candidate, source, target, textures, error, &guardedOffset);
+	}); guarded.has_value()) {
+		if (*guarded && appliedOffset) { *appliedOffset = guardedOffset; }
+		return *guarded;
+	}
+	if (error) {
+		error->clear();
+	}
+	const auto fail = [error](const QString& message) {
+		if (error) {
+			*error = message;
+		}
+		return false;
+	};
+	if (!document || !isTextMapFormat(document->format) || !isTextMapFormat(source.format)) {
+		return fail(QCoreApplication::translate("VibeStudioLevelMap", "Import Map adds a Quake-family .map file to an open Quake-family map."));
+	}
+	if (target.mode == LevelPasteMode::Offset && (!target.offset.valid || !std::isfinite(target.offset.x) ||
+		!std::isfinite(target.offset.y) || !std::isfinite(target.offset.z))) {
+		return fail(QCoreApplication::translate("VibeStudioLevelMap", "Placement needs a finite offset on each axis."));
+	}
+	auto pasted = source;
+	pasted.selection.clear();
+	return insertPastedLevelMap(document, pasted, target, textures, error, appliedOffset, true);
+}
+
+namespace {
+bool insertPastedLevelMap(LevelMapDocument* document, LevelMapDocument& pasted, const LevelPastePlacement& target,
+	const LevelMapTextureLockOptions& textures, QString* error, LevelMapVec3* appliedOffset, bool fromFile)
+{
+	const auto fail = [error](const QString& message) {
+		if (error) {
+			*error = message;
+		}
+		return false;
+	};
 	QVector<LevelMapSelectionRef> placementObjects;
 	const auto sourceDialect = levelMapBrushDialect(pasted), destinationDialect = levelMapBrushDialect(*document);
 	if (sourceDialect == QStringLiteral("mixed") || (!sourceDialect.isEmpty() && !destinationDialect.isEmpty() && sourceDialect != destinationDialect)) {
@@ -7820,13 +7977,15 @@ bool pasteLevelMapTextAt(LevelMapDocument* document, const QString& text, const 
 	for (const LevelMapBrush& brush : pasted.brushes) {
 		detail::placementCancellationCheckpoint();
 		if (!objectOwnsItsLines(pasted, brush.startLine, brush.endLine)) {
-			return fail(QCoreApplication::translate("VibeStudioLevelMap", "The .map text on the clipboard puts a brush's brace on a line with other text."));
+			return fail(fromFile ? QCoreApplication::translate("VibeStudioLevelMap", "The imported map puts brush %1's brace on a line with other text, so it cannot be imported.").arg(brush.id)
+				: QCoreApplication::translate("VibeStudioLevelMap", "The .map text on the clipboard puts a brush's brace on a line with other text."));
 		}
 	}
 	for (const LevelMapPatch& patch : pasted.patches) {
 		detail::placementCancellationCheckpoint();
 		if (!objectOwnsItsLines(pasted, patch.startLine, patch.endLine) || !patch.controlGridNormalized) {
-			return fail(QCoreApplication::translate("VibeStudioLevelMap", "A patch in the .map text on the clipboard could not be read cleanly."));
+			return fail(fromFile ? QCoreApplication::translate("VibeStudioLevelMap", "Patch %1 of the imported map could not be read cleanly.").arg(patch.id)
+				: QCoreApplication::translate("VibeStudioLevelMap", "A patch in the .map text on the clipboard could not be read cleanly."));
 		}
 	}
 	for (const LevelMapBrush& brush : pasted.brushes) {
@@ -7864,7 +8023,8 @@ bool pasteLevelMapTextAt(LevelMapDocument* document, const QString& text, const 
 		}
 	}
 	if (added.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioLevelMap", "The .map text on the clipboard holds nothing to paste."));
+		return fail(fromFile ? QCoreApplication::translate("VibeStudioLevelMap", "The imported map holds no brushes, patches or entities to import.")
+			: QCoreApplication::translate("VibeStudioLevelMap", "The .map text on the clipboard holds nothing to paste."));
 	}
 	const int count = static_cast<int>(added.size());
 	command.description = count == 1 ? QCoreApplication::translate("VibeStudioLevelMap", "Paste %1").arg(levelMapSelectionRefId(added.first())) : QCoreApplication::translate("VibeStudioLevelMap", "Paste %1 objects").arg(count);
@@ -7882,6 +8042,7 @@ bool pasteLevelMapTextAt(LevelMapDocument* document, const QString& text, const 
 	if (appliedOffset) { *appliedOffset = offset; }
 	return true;
 }
+} // namespace
 
 namespace {
 
@@ -10142,12 +10303,14 @@ bool commitLevelSurfaceEdit(LevelMapDocument* document, const LevelSurfaceEditPl
 		: plan.m_reset ? QCoreApplication::translate("LevelSurface", "Reset textures on %n surface(s)", nullptr, surfaces)
 		: plan.m_flags ? QCoreApplication::translate("LevelSurface", "Set flags on %n brush face(s)", nullptr, plan.m_faceCount)
 		: plan.m_uv ? QCoreApplication::translate("LevelSurface", "Edit texture coordinates on %n surface(s)", nullptr, surfaces)
+		: plan.m_attributes ? QCoreApplication::translate("LevelSurface", "Set texture values on %n brush face(s)", nullptr, plan.m_faceCount)
 		: plan.patchCount() > 0 ? QCoreApplication::translate("LevelSurface", "Align %n surface(s)", nullptr, surfaces)
 		: QCoreApplication::translate("LevelSurface", "Align %n brush face(s)", nullptr, plan.m_faceCount);
 	command.undoDescription = plan.m_paste ? QCoreApplication::translate("LevelSurface", "Restore pasted surfaces")
 		: plan.m_reset ? QCoreApplication::translate("LevelSurface", "Restore reset textures")
 		: plan.m_flags ? QCoreApplication::translate("LevelSurface", "Restore face flags")
 		: plan.m_uv ? QCoreApplication::translate("LevelSurface", "Restore texture coordinates")
+		: plan.m_attributes ? QCoreApplication::translate("LevelSurface", "Restore texture values")
 		: QCoreApplication::translate("LevelSurface", "Restore surface alignment");
 	if (!applyLevelMapCommand(document, command, true)) {
 		return fail(QCoreApplication::translate("LevelSurface", "The surface edit could not be applied."));

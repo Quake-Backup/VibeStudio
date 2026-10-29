@@ -1,5 +1,6 @@
 #include "cli/level_clipboard.h"
 #include "core/level_document.h"
+#include "core/level_map_transfer.h"
 #include "core/level_placement.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -77,7 +78,7 @@ LevelClipboardCliResult runLevelClipboard(const QStringList& arguments)
 	LevelClipboardCliResult result;
 	result.payload = {{"clipboardWritten", false}, {"mapWritten", false}};
 	const auto failure = [&](int code, const QString& message) { result.exitCode = code; result.error = message; return result; };
-	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite"};
+	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--standalone", "--worldspawn-keys"};
 	const QSet<QString> options{"--object", "--output", "--clipboard", "--settings-file", "--locale", "--catalog-root"};
 	QSet<QString> seen; QHash<QString, QString> values; QStringList positional, objects;
 	for (qsizetype i = 1; i < arguments.size(); ++i) {
@@ -99,6 +100,11 @@ LevelClipboardCliResult runLevelClipboard(const QStringList& arguments)
 		return failure(2, Text::tr("Expected map copy|cut <map> with repeatable --object and --output."));
 	}
 	const bool cut = positional[1] == QLatin1String("cut");
+	// A standalone fragment opens with worldspawn, as Export Selection as Map writes it.
+	const bool standalone = seen.contains("--standalone"), worldspawnKeys = seen.contains("--worldspawn-keys");
+	if (worldspawnKeys && !standalone) {
+		return failure(2, Text::tr("--worldspawn-keys needs --standalone."));
+	}
 	if (objects.isEmpty() || objects.size() > 16384 || !values.contains("--output") || cut != values.contains("--clipboard")) {
 		return failure(2, Text::tr("Copy and cut require 1–16,384 --object selectors and --output. Only cut requires --clipboard for the copied fragment."));
 	}
@@ -131,7 +137,13 @@ LevelClipboardCliResult runLevelClipboard(const QStringList& arguments)
 	LevelPlacementRequest request; request.operation = cut ? LevelPlacementOperation::Cut : LevelPlacementOperation::Copy;
 	const auto prepared = prepareLevelPlacement(sourceDocument, request);
 	if (!prepared.succeeded) { return failure(4, prepared.error); }
-	const auto bytes = prepared.clipboardText.toUtf8();
+	auto bytes = prepared.clipboardText.toUtf8();
+	if (standalone) {
+		const auto text = levelMapSelectionExportText(sourceDocument, worldspawnKeys, &error);
+		if (text.isEmpty()) { return failure(4, error); }
+		bytes = text.toUtf8();
+	}
+	result.payload.insert("standalone", standalone); result.payload.insert("worldspawnKeys", worldspawnKeys);
 	result.payload.insert("clipboardBytes", bytes.size()); result.payload.insert("selectedObjects", selection.size());
 	LevelDocumentSaveRequest save; save.path = output; save.overwrite = overwrite; save.dryRun = true;
 	if (cut) {

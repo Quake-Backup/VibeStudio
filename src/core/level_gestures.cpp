@@ -79,6 +79,9 @@ QVector<Field> fields()
 	result << Field{{QStringLiteral("editing.flipSnapsPivot"), QCoreApplication::translate("LevelGestures", "Flips mirror about the selection's centre rounded to half the grid while Snap is on"), QStringLiteral("editing"), booleans},
 		[](const LevelEditorControls& c) { return c.flipSnapsPivot ? QStringLiteral("on") : QStringLiteral("off"); },
 		[](LevelEditorControls& c, const QString& value) { c.flipSnapsPivot = value == QLatin1String("on"); }};
+	result << Field{{QStringLiteral("editing.objectRotateFreeTurn"), QCoreApplication::translate("LevelGestures", "A drag inside the Rotate tool's rings turns the selection freely"), QStringLiteral("editing"), booleans},
+		[](const LevelEditorControls& c) { return c.objectRotateFreeTurn ? QStringLiteral("on") : QStringLiteral("off"); },
+		[](LevelEditorControls& c, const QString& value) { c.objectRotateFreeTurn = value == QLatin1String("on"); }};
 	const auto plan =[&]<typename T>(const QString& id, const QString& label, T PlanViewControls::*member, const Options& choices) {
 		result << Field{{QStringLiteral("plan.") + id, label, QStringLiteral("plan"), choices},
 			[member, choices](const LevelEditorControls& c) { for (const auto& choice : choices) { if (choice.value == valueOf(c.plan.*member)) { return choice.id; } } return QString(); },
@@ -112,6 +115,9 @@ QVector<Field> fields()
 	plan(QStringLiteral("squareModifiers"), QCoreApplication::translate("LevelGestures", "Square brush modifiers"), &PlanViewControls::squareModifiers, modifiers);
 	plan(QStringLiteral("cubeModifiers"), QCoreApplication::translate("LevelGestures", "Cube brush modifiers"), &PlanViewControls::cubeModifiers, modifiers);
 	plan(QStringLiteral("panArrowModifiers"), QCoreApplication::translate("LevelGestures", "Arrow-key pan modifiers"), &PlanViewControls::panArrowModifiers, modifiers);
+	plan(QStringLiteral("radiantFraming"), QCoreApplication::translate("LevelGestures",
+		"Frame Selection fits the 2D views only, with a third to spare, round the camera when nothing is selected; Top, Front and Side recentre every 2D view"),
+		&PlanViewControls::radiantFraming, booleans);
 	camera(QStringLiteral("orbitButton"), QCoreApplication::translate("LevelGestures", "Orbit button"), &CameraViewControls::orbitButton, buttons);
 	camera(QStringLiteral("orbitModifiers"), QCoreApplication::translate("LevelGestures", "Orbit modifiers"), &CameraViewControls::orbitModifiers, modifiers);
 	camera(QStringLiteral("lookButton"), QCoreApplication::translate("LevelGestures", "Look button"), &CameraViewControls::lookButton, planButtons);

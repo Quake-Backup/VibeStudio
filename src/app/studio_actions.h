@@ -23,6 +23,7 @@
 #include <QVector>
 
 #include <functional>
+#include <memory>
 
 class QLabel;
 class QAbstractButton;
@@ -107,6 +108,12 @@ public:
 	// clash: their surfaces choose between them by context when a key arrives,
 	// as the camera does for TrenchBroom's texture moves on the nudge keys
 	// while faces are picked.
+	// The kShortcutFocusClaims layer needs no surface to claim anything: while
+	// keyboard focus is anywhere inside one of the command's surfaces, its
+	// enabled command takes its keys ahead of every window-wide command, which
+	// keeps them everywhere else. TrenchBroom's Ctrl+3 shows the Face inspector
+	// this way inside Levels while Ctrl+3 keeps switching to Models elsewhere.
+	static constexpr const char* kShortcutFocusClaims = "focus";
 	void setShortcutScopeClaims(const QString& commandId, bool claims, const QString& layer = {});
 	// Embedded documents keep their local keys; identical shell keys remain
 	// available in menus and resume when focus leaves the document.
@@ -156,6 +163,9 @@ public:
 private:
 	void installShortcuts();
 	void refreshShortcutFocus();
+	// The enabled focus-layer command whose surface holds `focus` and whose
+	// key is `pressed`, or null.
+	[[nodiscard]] QAction* focusClaimFor(const QWidget* focus, const QKeySequence& pressed) const;
 	// The keys the selected editor profile gives commands, by normalized
 	// command id: a profile's keys replace the command's own, and an empty
 	// list takes them away.
@@ -175,6 +185,9 @@ private:
 	// Normalized ids of commands whose surfaces claim their keys, with the
 	// claim layer each claims in.
 	QHash<QString, QString> m_scopeClaims;
+	// The application event filter that runs kShortcutFocusClaims, installed
+	// with the first such claim and removed with the registry.
+	std::unique_ptr<QObject> m_focusWatcher;
 	QString m_editorProfileId;
 	QHash<QString, QStringList> m_userShortcuts;
 	QStringList m_conflicts;

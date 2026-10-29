@@ -3,6 +3,7 @@
 #include "app/map_viewport.h"
 #include "app/model_viewport.h"
 #include "app/studio_layout.h"
+#include "core/level_camera_render.h"
 #include "core/level_filter_tags.h"
 #include "core/level_view_filters.h"
 
@@ -123,6 +124,7 @@ void ApplicationShell::refreshLevelMap3D()
 		}
 		m_levelMap3D->clearSkin();
 		m_levelMap3D->clearMesh();
+		m_levelMap3D->setFaceGridTriangles({});
 		m_levelMap3D->setEnabled(true);
 		m_levelMap3DSource.clear();
 		m_levelPreviewRequestKey.clear();
@@ -187,6 +189,8 @@ void ApplicationShell::refreshLevelMap3D()
 			m_levelMap3D->setBackfaceCulling(true);
 			m_levelMap3D->clearSkin();
 			m_levelMap3D->setMesh(result.preview.mesh, result.sourceKey == m_levelMap3DSource);
+			// Grid on Camera Faces marks brush faces only.
+			m_levelMap3D->setFaceGridTriangles(levelCameraFaceGridTriangles(result.preview));
 			m_levelMap3D->setSurfaceSkins(levelPreviewSurfaceImages(result.preview.mesh, result.assets));
 			// The saved face mode and edges outlast every rebuild, wireframe included.
 			applyLevelCameraRender();
@@ -198,6 +202,8 @@ void ApplicationShell::refreshLevelMap3D()
 			refreshLevelMap3DHighlight();
 			applyPendingLevelBookmarkCamera();
 			refreshLevelCameraMarker();
+			// The Face section's view shows the material images just read.
+			refreshLevelFaceInspector();
 			if (m_levelMapHover && levelMap3DShowing()) {
 				m_levelMapHover->setText(levelSweepReadout(m_levelMap3D->hoverSummary()));
 			}

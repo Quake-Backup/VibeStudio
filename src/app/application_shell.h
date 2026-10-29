@@ -97,6 +97,8 @@ struct LevelSurfaceFaceTransformReport;
 struct LevelViewFilterMaterials;
 struct LevelFilterTagSet;
 struct LevelViewFilterHidden;
+struct LevelMapObjExportOptions;
+struct LevelMapSoftBoundsChange;
 enum class LevelPatchMatrixOperation;
 
 enum class LevelObjectSelectionMode;
@@ -105,6 +107,8 @@ struct LevelPastePlacement;
 enum class LevelNudgeDirection;
 class LevelSweepDialog;
 class LevelSweepGizmo;
+class LevelComponentGizmo;
+class LevelCameraUvTool;
 class LevelFindReplaceDialog;
 struct LevelComponentTransformRequest;
 struct LevelShapeRequest;
@@ -145,6 +149,10 @@ struct TexturePreviewResult;
 class LoadingPane;
 class MapViewport;
 class LevelScenePanel;
+class LevelMapClassTable;
+class LevelMapLayerList;
+class LevelMapPropertiesEditor;
+class LevelMapModsEditor;
 class LevelObjectList;
 class SidebarPage;
 class SidebarSection;
@@ -250,8 +258,26 @@ public:
 	// Shared document operations also used by the New/Save/Recover controls.
 	bool createLevelDocument(const LevelMapCreateRequest& request, QString* error = nullptr);
 	bool saveLevelDocument(const QString& path, bool overwrite, QString* error = nullptr);
+	// Import Map, Export Selection as Map and Export Map from a chosen path, as
+	// the File commands run them (app/level_map_transfer_actions.cpp): Import
+	// shows its preview window; the exports write on a worker behind a
+	// cancellable progress window and never change the document's path.
+	bool importLevelMapFile(const QString& path, QString* error = nullptr);
+	bool exportLevelMapSelectionFile(const QString& path, bool worldspawnKeys = true, QString* error = nullptr);
+	bool exportLevelMapCopyFile(const QString& path, std::optional<LevelSceneStorage> storage = std::nullopt, QString* error = nullptr);
+	// Export Map as OBJ and Export Selection as OBJ to a chosen .obj: material
+	// images and sizes come from the open package on the same worker.
+	bool exportLevelMapObjFile(const QString& path, const LevelMapObjExportOptions& options, QString* error = nullptr);
+	// The Map tab's Map Properties and Mods (level_map_inspector_actions.cpp):
+	// one undo step each through core/level_map_inspector.h; a refusal is
+	// shown in the status bar and beside the controls.
+	bool applyLevelMapSoftBounds(const LevelMapSoftBoundsChange& change, QString* error = nullptr);
+	bool applyLevelMapEnabledMods(const QStringList& mods, QString* error = nullptr);
 	bool recoverLevelDocument(const QString& path, QString* error = nullptr);
 	const LevelMapDocument& levelDocument() const { return m_levelMapDocument; }
+	// The camera's UV tool while it is on (level_camera_uv_tool_actions.cpp),
+	// or null: its surface, pivot and handle positions.
+	[[nodiscard]] const LevelCameraUvTool* levelCameraUvTool() const;
 	void checkpointLevelDocument();
 	bool applyLevelPatch(const LevelMapPatch& patch, int patchId = -1, QString* error = nullptr);
 	bool applyLevelPatchStitch(int first, int second, const LevelPatchStitchRequest& request, QString* error = nullptr);
@@ -578,6 +604,21 @@ private:
 	void synchronizeLevelPlanViews(bool frame = false);
 	void synchronizeLevelViewNavigation(MapViewport* source, bool fit = false);
 	void frameLevelPlanViews(bool selection = true);
+	// Plan framing (app/level_plan_framing_actions.cpp): a one-plan projection
+	// change keeps the zoom and centres on the selection or the camera; Zoom
+	// 100%; Reset 2D Views; the profile's Radiant framing for Frame Selection
+	// and the three-plan Top, Front and Side View (core/level_navigation.h).
+	void registerLevelPlanFramingCommands();
+	void refreshLevelPlanFramingCommands();
+	[[nodiscard]] bool levelPlanCameraPoint(std::array<double, 3>* point) const;
+	[[nodiscard]] bool levelPlanFocusPoint(std::array<double, 3>* point, bool* selection = nullptr) const;
+	bool recentreLevelPlanForProjection(MapViewport* view, int projection);
+	bool centreLevelPlanViewsOnFocus();
+	void frameLevelMapSelectionFromUi();
+	void focusLevelPlanViewsRadiant();
+	void zoomLevelPlanViewsActualSize();
+	void resetLevelPlanViews();
+	[[nodiscard]] bool levelPlanViewsResettable() const;
 	void followLevelCamera(bool force = false);
 	void chooseLevelViewLinks(const LevelViewLinks& links);
 	void refreshLevelViewLinkActions();
@@ -741,6 +782,12 @@ private:
 	void buildLevelMapSettings(SidebarPage* page);
 	void refreshLevelMapSettings();
 	void addLevelWorldspawnKey();
+	// Map tab inspector: layer summary, Map Properties, Mods and Statistics
+	// with Map Info's class table, and the Map Info command
+	// (level_map_inspector_actions.cpp).
+	void buildLevelMapInspector(SidebarPage* page, QWidget* statistics);
+	void refreshLevelMapInspector();
+	void showLevelMapInfo();
 	QWidget* buildLevelFilterOptions();
 	void refreshLevelViewFilters();
 	void applyLevelViewFilters();
@@ -793,6 +840,12 @@ private:
 	void beginLevelCameraFreeFocus(int key);
 	void applyLevelCameraFreeFocus();
 	void endLevelCameraFreeFocus();
+	// Camera Floor Up and Down (core/level_camera_focus.h): the camera to the
+	// next standing height above or below it. The views claim their keys, and
+	// a plan view leaves them to another command that can act there, such as
+	// a Doom map's Raise and Lower Floor.
+	void stepLevelCameraFloor(bool up);
+	bool handleLevelCameraFloorKey(QObject* watched, QEvent* event);
 	// View > Camera Display: the camera's saved face mode (textured, flat or
 	// hidden), Edges in Camera and the four-mode cycle. They change only the
 	// picture (level_camera_render_actions.cpp, core/level_camera_render.h).
@@ -807,6 +860,16 @@ private:
 	void applyLevelCameraRender();
 	void setLevelCameraRender(const LevelCameraRenderState& state, const QString& message);
 	void stepLevelCameraDrawMode(int steps);
+	// Shade Faces in Camera, Fog in Camera and Grid on Camera Faces, the
+	// latter following Show Grid and the grid size (same file).
+	void applyLevelCameraShading();
+	void setLevelCameraShading(const LevelCameraShadingState& state, const QString& message);
+	[[nodiscard]] QWidget* buildLevelCameraFogRange();
+	// Far Clip in Camera and its draw distance, NetRadiant Custom's cubic clip,
+	// with Shorter and Longer Draw Distance (same file).
+	void setLevelCameraFarClip(const LevelCameraFarClipState& state, const QString& message);
+	void stepLevelCameraFarClip(int steps);
+	[[nodiscard]] QWidget* buildLevelCameraFarClipRange();
 	// Models, Sounds and Prefabs tabs (level_asset_browsers.cpp).
 	void buildLevelModelBrowser(SidebarPage* page);
 	void buildLevelSoundBrowser(SidebarPage* page);
@@ -824,6 +887,28 @@ private:
 	bool addLevelShapeFromUi(const LevelMapVec3& mins, const LevelMapVec3& maxs, int viewAxis, bool drawn);
 	void addLevelShapeAtViewCentre();
 	void replaceLevelSelectionWithShape();
+	// NetRadiant Custom's Patch menu prefabs (app/level_patch_prefab_actions.cpp):
+	// map.patchCylinder and the rest, each at Radiant's density, filling the
+	// selection's bounds (or the work zone) along the view's axis, mapped
+	// Natural and replacing the selected brushes and patches in one step.
+	void registerLevelPatchPrefabCommands();
+	void refreshLevelPatchPrefabCommands();
+	void addLevelPatchPrefabFromUi(const QString& shape);
+	// NetRadiant Custom's Exact Cylinder…, Exact Cone… and Exact Sphere…:
+	// map.patchExactCylinder and the rest ask for the columns, rows and Square
+	// in a Patch Density dialog, then build as the prefabs do, ring at angle 0.
+	void addLevelExactPatchFromUi(const QString& shape);
+	// Puts a prepared patch shape in place of the selection, as one undo step,
+	// and reports it in the status bar.
+	void placeLevelPatchShapeFromUi(const LevelShapeRequest& request);
+	// The box a new patch fills: the selection's bounds (Radiant's
+	// PatchCreator_getBounds), or else a box at the view's centre spanning the
+	// work zone along the view's depth.
+	void levelPatchCreationBox(LevelMapVec3* mins, LevelMapVec3* maxs) const;
+	// The material image's size for a new patch's mapping: from the camera's
+	// loaded materials, the texture browser or the open package; empty when
+	// none has it.
+	[[nodiscard]] QSize levelPatchImageSize(const QString& material) const;
 	// NetRadiant Custom's Make Prism…, Make Cone…, Make Sphere… and Make 3- to
 	// 9-Sided Prism (app/level_prism_actions.cpp): each selected brush rebuilt
 	// in place along the view's depth axis; `sides` 0 asks for the count.
@@ -1197,6 +1282,8 @@ private:
 	void scaleLevelMapSelectionFromUi();
 	void registerLevelArbitraryTransformCommands();
 	void refreshLevelArbitraryTransformDialogs();
+	void registerLevelMapTransferCommands();
+	void refreshLevelMapTransferCommands();
 	void editLevelUdmfPropertiesFromUi();
 	void editLevelMapSurfacesFromUi();
 	LevelSurfaceFace inspectedLevelMapSurface() const;
@@ -1225,6 +1312,12 @@ private:
 	void registerLevelFaceFlagCommands();
 	void refreshLevelFaceFlags();
 	bool applyLevelFaceFlags(const LevelFaceFlagsEdit& edit, QString* error = nullptr);
+	// The Surfaces tab's Face section (level_face_inspector_actions.cpp):
+	// TrenchBroom's Face inspector, with its view's handles and value fields.
+	void registerLevelFaceInspectorCommands();
+	void refreshLevelFaceInspector();
+	bool applyLevelFaceAttributesFromUi(const LevelFaceAttributesEdit& edit, bool fromView, QString* error = nullptr);
+	void showLevelFaceInspector();
 	// The UV Editor (level_uv_editor_actions.cpp): one picked face, or one
 	// selected patch, in texture space.
 	void registerLevelUvEditorCommands();
@@ -1232,6 +1325,25 @@ private:
 	[[nodiscard]] bool levelUvEditorTarget(LevelMaterialTarget* target = nullptr, QString* reason = nullptr) const;
 	void openLevelUvEditorFromUi();
 	bool applyLevelUvEdit(const LevelSurfaceEditPlan& plan, QString* error = nullptr);
+	// The camera's UV tool (level_camera_uv_tool_actions.cpp): NetRadiant
+	// Custom's G on the UV Editor's target, its texture's repeat lines, pivot
+	// and handles drawn and dragged in the camera, each drag one undo step
+	// through core/level_uv_tool.h.
+	void registerLevelCameraUvToolCommands();
+	void setLevelCameraUvTool(bool enabled);
+	[[nodiscard]] bool levelCameraUvToolActive() const;
+	void refreshLevelCameraUvTool();
+	bool handleLevelCameraUvToolEvent(QEvent* event);
+	void paintLevelCameraUvTool(QPainter& painter) const;
+	[[nodiscard]] QString levelCameraControlsHelp() const;
+	bool pickLevelCameraUvToolSurface(int triangle);
+	void previewLevelCameraUvToolDrag();
+	void commitLevelCameraUvToolDrag();
+	std::shared_ptr<LevelCameraUvTool> m_levelUvTool;
+	bool m_levelUvToolOn = false;
+	QVector<int> m_levelUvToolTriangles;
+	quint64 m_levelUvToolRevision = 0;
+	quint64 m_levelUvToolLoad = 0;
 	void startLevelSurfaceBatch();
 	std::function<bool()> levelSurfaceContextGuard() const;
 	bool startLevelSurfacePaste(const QVector<LevelMaterialTarget>& targets, const LevelSurfacePasteOptions& options,
@@ -1357,6 +1469,31 @@ private:
 	int m_levelComponentTool = 0;
 	LevelMapVec3 m_levelComponentPivot;
 	quint64 m_levelComponentPivotLoad = 0;
+	// The object manipulators (level_object_gizmo_actions.cpp): the tool, a
+	// LevelObjectTool as an int, and the pivot the tools share, invalid while
+	// it follows the selection's centre. A new map forgets a placed pivot.
+	int m_levelObjectTool = 0;
+	LevelMapVec3 m_levelObjectPivot;
+	quint64 m_levelObjectPivotLoad = 0;
+	void registerLevelObjectGizmoCommands();
+	void refreshLevelObjectGizmoCommands();
+	void setLevelObjectTool(int tool);
+	[[nodiscard]] bool levelObjectToolActive() const;
+	void refreshLevelObjectGizmos();
+	void connectLevelObjectGizmo(LevelComponentGizmo* gizmo, MapViewport* plan);
+	void translateLevelObjectsFromGizmo(LevelComponentGizmo* gizmo, MapViewport* plan);
+	void rotateLevelObjectsFromGizmo(LevelComponentGizmo* gizmo, MapViewport* plan);
+	void scaleLevelObjectsFromGizmo(LevelComponentGizmo* gizmo, MapViewport* plan);
+	void toggleLevelRotateOrScaleTool();
+	// NetRadiant Custom's MouseDragOrTransform: Transform from Select, Select
+	// from any other tool; Move and Shear Components in a component mode.
+	void toggleLevelSelectOrTransformTool();
+	// A side shear from the Transform tool's side lines or the camera's Shear
+	// Tool handles (core/level_object_manipulator.h shearLevelMapObjects()),
+	// with Texture Lock, shearing without it where the map's face format cannot
+	// slant textures, as the plan views' Shear Tool does.
+	void shearLevelObjectsFromView(int axis, int side, const LevelMapVec3& offset, const LevelMapVec3& pivot, MapViewport* plan);
+	void editLevelObjectPivotFromUi();
 	std::function<void()> m_levelComponentsRefresh;
 	void refreshLevelCameraComponents();
 	void connectLevelClipper();
@@ -2051,6 +2188,14 @@ private:
 	QSpinBox* m_levelShapeStepHeight = nullptr;
 	QSpinBox* m_levelShapeColumns = nullptr;
 	QSpinBox* m_levelShapeRows = nullptr;
+	// Patch shapes keep their own segments and bands, Radiant's 9x3 and 9x5
+	// by default, and a patch plane's control columns and rows.
+	QSpinBox* m_levelShapePatchSegments = nullptr;
+	QSpinBox* m_levelShapePatchBands = nullptr;
+	QSpinBox* m_levelShapePatchColumns = nullptr;
+	QSpinBox* m_levelShapePatchRows = nullptr;
+	// NetRadiant Custom's Square box for round patch shapes.
+	QCheckBox* m_levelShapePatchSquare = nullptr;
 	QLabel* m_levelShapeAbout = nullptr;
 	QLabel* m_levelShapeNote = nullptr;
 	QPushButton* m_levelShapeDraw = nullptr;
@@ -2267,6 +2412,10 @@ private:
 	bool m_selectMatchingWhenReady = false;
 	LevelScenePanel* m_levelScenePanel = nullptr;
 	QListWidget* m_levelMapStatistics = nullptr;
+	LevelMapClassTable* m_levelMapClassTable = nullptr;
+	LevelMapLayerList* m_levelMapLayerList = nullptr;
+	LevelMapPropertiesEditor* m_levelMapPropertiesEditor = nullptr;
+	LevelMapModsEditor* m_levelMapModsEditor = nullptr;
 	QListWidget* m_levelMapView = nullptr;
 	QListWidget* m_levelMapValidation = nullptr;
 	LevelTextureAuditPanel* m_levelTextureAudit = nullptr;
@@ -2688,6 +2837,8 @@ private:
 	// The map.previewTextures command, also behind the status strip's box.
 	QAction* m_levelPreviewTextured = nullptr;
 	LevelCameraRenderState m_levelCameraRender;
+	LevelCameraShadingState m_levelCameraShading;
+	LevelCameraFarClipState m_levelCameraFarClip;
 	LevelPreviewAssets m_levelPreviewAssets;
 	QString m_levelPreviewRequestKey;
 	quint64 m_levelPreviewReload = 0;

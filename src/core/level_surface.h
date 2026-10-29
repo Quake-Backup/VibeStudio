@@ -12,6 +12,7 @@ class LevelSurfaceClipboard;
 struct LevelSurfacePasteOptions;
 struct LevelMaterialTarget;
 struct LevelFaceFlagsEdit;
+struct LevelFaceAttributesEdit;
 struct LevelUvLayout;
 struct LevelUvEdit;
 enum class LevelUvFit;
@@ -197,6 +198,9 @@ class LevelSurfaceEditPlan
 	// core/level_uv_edit.h: the UV Editor's face or patch.
 	friend bool prepareLevelUvEdit(const LevelMapDocument&, const LevelUvLayout&, const LevelUvEdit&, LevelSurfaceEditPlan*, QString*,
 		LevelUvFit*);
+	// core/level_face_attributes.h: the Face inspector's values and handles.
+	friend bool prepareLevelFaceAttributesEdit(const LevelMapDocument&, const QVector<LevelSurfaceFace>&, const LevelFaceAttributesEdit&,
+		const QHash<QString, QSize>&, LevelSurfaceEditPlan*, QString*);
 	quint64 m_revision = 0;
 	QString m_sourcePath;
 	QByteArray m_sourceHash;
@@ -218,6 +222,8 @@ class LevelSurfaceEditPlan
 	bool m_flags = false;
 	// A UV Editor plan, which names its undo step for texture coordinates.
 	bool m_uv = false;
+	// A Face inspector plan, which names its undo step for texture values.
+	bool m_attributes = false;
 };
 
 // Work on an immutable document, normally on a worker. Each face keeps its
@@ -260,4 +266,18 @@ bool levelTextureResetTargets(const LevelMapDocument &document, const LevelTextu
 // take the values rejects the whole reset.
 bool prepareLevelTextureReset(const LevelMapDocument &document, const LevelTextureResetRequest &request, const QHash<QString, QSize> &textureSizes,
 							  LevelSurfaceEditPlan *plan, QString *error = nullptr, const std::function<bool()> &cancelled = {});
+
+// A face's texture values as Radiant's Surface Inspector and TrenchBroom's
+// Face inspector show them: a classic face's shift, scale and rotation, a
+// Valve 220 face's offsets, scales and rotation, and a brush-primitive face's
+// shift, scale and turn read from its matrix in texels of `imageSize`, which
+// it needs (NRC TexMatToFakeTexCoords). Shifts are texels, scales map units
+// per texel and the rotation degrees.
+struct LevelTextureValues {
+	double shiftU = 0, shiftV = 0, scaleU = 1, scaleV = 1, rotation = 0;
+};
+bool levelTextureValues(const LevelMapBrushFace &face, QSize imageSize, LevelTextureValues *values, QString *error = nullptr);
+// Writes the ticked values of `values` into one face in its own format, as
+// Reset Textures does; the name and targets of the request are not read.
+bool assignLevelTextureValues(LevelMapBrushFace *face, const LevelTextureResetRequest &values, QSize imageSize, QString *error = nullptr);
 } // namespace vibestudio

@@ -1,12 +1,14 @@
-// `map camera-focus`: where Level Camera and Focus Camera on Selection would
-// put the level camera, from the same core service the Levels View > Camera
-// commands use (core/level_camera_focus.h). A query: no map is written.
+// `map camera-focus`: where Level Camera, Focus Camera on Selection and
+// Camera Floor Up or Down would put the level camera, from the same core
+// service the Levels View > Camera commands use (core/level_camera_focus.h).
+// A query: no map is written.
 //
-// Workflow reference: NRC camwindow.cpp GlobalCamera_ResetAngles and
-// Camera_getFocusPos at 449778b3 (GPL-2.0-or-later). Original Qt
-// implementation; see docs/CREDITS.md.
+// Workflow reference: NRC camwindow.cpp GlobalCamera_ResetAngles,
+// Camera_getFocusPos and CamWnd::Cam_ChangeFloor at 449778b3
+// (GPL-2.0-or-later). Original Qt implementation; see docs/CREDITS.md.
 
 #include "cli/level_camera_focus.h"
+#include "core/entity_builtin_catalogue.h"
 #include "core/level_camera_focus.h"
 #include "core/level_map.h"
 #include "core/level_scene.h"
@@ -87,9 +89,10 @@ LevelCameraFocusCliResult runLevelCameraFocus(const QStringList& arguments)
 		return result;
 	};
 	const QSet<QString> flags {QStringLiteral("--cli"), QStringLiteral("--json"), QStringLiteral("--quiet"), QStringLiteral("--verbose"), QStringLiteral("--level")};
-	const QSet<QString> options {QStringLiteral("--object"), QStringLiteral("--context"), QStringLiteral("--engine"), QStringLiteral("--map"),
+	const QSet<QString> options {QStringLiteral("--object"), QStringLiteral("--selected"), QStringLiteral("--context"), QStringLiteral("--engine"), QStringLiteral("--map"),
 		QStringLiteral("--camera-yaw"), QStringLiteral("--camera-pitch"), QStringLiteral("--camera-position"), QStringLiteral("--fov"),
-		QStringLiteral("--aspect"), QStringLiteral("--offset"), QStringLiteral("--settings-file"), QStringLiteral("--locale"), QStringLiteral("--catalog-root")};
+		QStringLiteral("--aspect"), QStringLiteral("--offset"), QStringLiteral("--floor"), QStringLiteral("--definitions"), QStringLiteral("--settings-file"),
+		QStringLiteral("--locale"), QStringLiteral("--catalog-root")};
 	QSet<QString> seen;
 	QHash<QString, QStringList> values;
 	QStringList positional;
@@ -101,7 +104,7 @@ LevelCameraFocusCliResult runLevelCameraFocus(const QStringList& arguments)
 		}
 		const auto equal = arg.indexOf(QLatin1Char('='));
 		const QString name = equal < 0 ? arg : arg.left(equal);
-		if (seen.contains(name) && name != QLatin1String("--object")) {
+		if (seen.contains(name) && name != QLatin1String("--object") && name != QLatin1String("--selected")) {
 			return fail(2, Text::tr("Repeated option: %1.").arg(name));
 		}
 		seen.insert(name);
@@ -131,12 +134,26 @@ LevelCameraFocusCliResult runLevelCameraFocus(const QStringList& arguments)
 	}
 	if (positional.size() != 3 || !QStringList {QStringLiteral("map"), QStringLiteral("maps"), QStringLiteral("level")}.contains(positional[0])
 		|| positional[1] != QLatin1String("camera-focus")) {
-		return fail(2, Text::tr("Expected map camera-focus <map> with --object selectors to focus on, --level, or both."));
+		return fail(2, Text::tr("Expected map camera-focus <map> with --object selectors to focus on, --level, --floor up|down, or a mix."));
 	}
 	const bool level = seen.contains(QStringLiteral("--level"));
+	const bool stepFloor = values.contains(QStringLiteral("--floor"));
 	const QStringList selectors = values.value(QStringLiteral("--object"));
-	if (!level && selectors.isEmpty()) {
-		return fail(2, Text::tr("Name the objects to focus on with --object, or level the camera with --level."));
+	if (!level && !stepFloor && selectors.isEmpty()) {
+		return fail(2, Text::tr("Name the objects to focus on with --object, level the camera with --level, or step it with --floor up|down."));
+	}
+	LevelCameraFloorDirection floorDirection = LevelCameraFloorDirection::Up;
+	if (stepFloor && !levelCameraFloorDirectionFromId(values.value(QStringLiteral("--floor")).first(), &floorDirection)) {
+		return fail(2, Text::tr("--floor takes up or down."));
+	}
+	if (values.contains(QStringLiteral("--definitions")) && !stepFloor) {
+		return fail(2, Text::tr("--definitions sizes point entities for --floor only."));
+	}
+	// Objects that count as selected for --floor without moving the camera,
+	// as a selection elsewhere in the map does in the Levels views.
+	const QStringList selectedSelectors = values.value(QStringLiteral("--selected"));
+	if (!selectedSelectors.isEmpty() && !stepFloor) {
+		return fail(2, Text::tr("--selected names the selection for --floor only; use --object to focus the camera on objects."));
 	}
 	LevelCameraFocusRequest request;
 	LevelMapVec3 camera {0.0, 0.0, 0.0, true};
@@ -187,12 +204,29 @@ LevelCameraFocusCliResult runLevelCameraFocus(const QStringList& arguments)
 			}
 		}
 	}
+	// --object selectors, then the --selected ones: together they are what
+	// --floor counts as selected.
+	QVector<LevelMapSelectionRef> floorSelection = objects;
+	for (const QString& selector : selectedSelectors) {
+		if (!selectLevelMapObject(&source, selector, &error)) {
+			return fail(2, error);
+		}
+		for (const LevelMapSelectionRef& ref : source.selection) {
+			const QString id = levelMapSelectionRefId(ref);
+			if (!named.contains(id)) {
+				floorSelection.append(ref);
+				named.insert(id);
+			}
+		}
+	}
 	// The Levels views cannot select hidden objects, so the camera never
-	// focuses on them here either.
+	// focuses on them here either, nor counts them as selected.
 	const QSet<QString> hidden = levelMapHiddenObjects(source);
-	for (const LevelMapSelectionRef& ref : objects) {
-		if (hidden.contains(levelMapSelectionRefId(ref))) {
-			return fail(4, Text::tr("%1 is hidden; show it before focusing the camera on it.").arg(levelMapSelectionRefId(ref)));
+	for (qsizetype index = 0; index < floorSelection.size(); ++index) {
+		const QString id = levelMapSelectionRefId(floorSelection[index]);
+		if (hidden.contains(id)) {
+			return fail(4, index < objects.size() ? Text::tr("%1 is hidden; show it before focusing the camera on it.").arg(id)
+												  : Text::tr("%1 is hidden; show it before counting it as selected.").arg(id));
 		}
 	}
 	if (level) {
@@ -229,6 +263,57 @@ LevelCameraFocusCliResult runLevelCameraFocus(const QStringList& arguments)
 			{QStringLiteral("offset"), request.offsetSteps}, {QStringLiteral("minimumDistance"), kLevelCameraFocusMinimumDistance}});
 		const int count = static_cast<int>(ids.size());
 		result.lines.append(Text::tr("Focused on %n object(s), %1 units from their centre.", nullptr, count).arg(focus.distance, 0, 'f', 2));
+	}
+	if (stepFloor) {
+		// Camera Floor Up or Down from where the camera now stands; the
+		// --object and --selected objects count as the selection, as the
+		// selection does in the Levels views.
+		LevelCameraFloorRequest floorRequest;
+		floorRequest.position = camera;
+		floorRequest.direction = floorDirection;
+		const EntityDefinitionCatalogue definitions = values.contains(QStringLiteral("--definitions"))
+			? loadEntityDefinitions({values.value(QStringLiteral("--definitions")).first()})
+			: builtinEntityDefinitions(builtinEntityGameForMap(source));
+		if (!definitions.error.isEmpty() || (values.contains(QStringLiteral("--definitions")) && definitions.isEmpty())) {
+			return fail(4, Text::tr("Could not load entity definitions: %1").arg(definitions.error));
+		}
+		for (const EntityClassDefinition& definition : definitions.classes) {
+			if (definition.kind == EntityClassKind::Point && definition.hasSize) {
+				floorRequest.entityBounds.insert(definition.className.toCaseFolded(),
+					{{definition.mins[0], definition.mins[1], definition.mins[2]}, {definition.maxs[0], definition.maxs[1], definition.maxs[2]}});
+			}
+		}
+		if (!setLevelMapSelection(&source, floorSelection, &error)) {
+			return fail(2, error);
+		}
+		const LevelCameraFloorStep step = levelCameraFloorStep(source, floorRequest);
+		if (!step.valid) {
+			return fail(2, step.error);
+		}
+		camera = step.position;
+		QStringList selectedIds;
+		for (const LevelMapSelectionRef& ref : std::as_const(floorSelection)) {
+			selectedIds.append(levelMapSelectionRefId(ref));
+		}
+		QJsonObject floorJson {{QStringLiteral("direction"), levelCameraFloorDirectionId(floorDirection)}, {QStringLiteral("moved"), step.moved},
+			{QStringLiteral("source"), levelCameraFloorSourceId(step.source)}, {QStringLiteral("candidates"), step.candidates},
+			{QStringLiteral("height"), step.position.z}, {QStringLiteral("selection"), QJsonArray::fromStringList(selectedIds)}};
+		if (step.moved) {
+			floorJson.insert(QStringLiteral("object"), levelMapSelectionRefId(step.object));
+		}
+		result.payload.insert(QStringLiteral("floor"), floorJson);
+		const QString height = QString::number(step.position.z, 'f', 2);
+		if (!step.moved) {
+			result.lines.append(floorDirection == LevelCameraFloorDirection::Up
+				? Text::tr("No higher floor among %n visible object(s) under the camera or selected; it stays at height %1.", nullptr, step.candidates).arg(height)
+				: Text::tr("No lower floor among %n visible object(s) under the camera or selected; it stays at height %1.", nullptr, step.candidates).arg(height));
+		} else if (step.source == LevelCameraFloorSource::Underside) {
+			result.lines.append(Text::tr("Camera moved to height %1, 16 units under %2.").arg(height, levelMapSelectionRefId(step.object)));
+		} else if (step.source == LevelCameraFloorSource::SectorEyeHeight) {
+			result.lines.append(Text::tr("Camera moved to height %1, at eye height over %2.").arg(height, levelMapSelectionRefId(step.object)));
+		} else {
+			result.lines.append(Text::tr("Camera moved to height %1, standing on %2.").arg(height, levelMapSelectionRefId(step.object)));
+		}
 	}
 	cameraJson.insert(QStringLiteral("position"), point(camera));
 	result.payload.insert(QStringLiteral("camera"), cameraJson);

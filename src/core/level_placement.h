@@ -15,10 +15,11 @@
 #include "core/level_entity_connections.h"
 #include "core/level_entity_create.h"
 #include "core/level_smart_tags.h"
+#include "core/level_map_transfer.h"
 #include <functional>
 
 namespace vibestudio {
-enum class LevelPlacementOperation { Snap, Duplicate, Paste, Mirror, SelectConnectedDoom, Move, Rotate, Resize, AddBrush, AddEntity, AddThing, TransformComponents, WrapMerge, Sweep, ExtractLinkedGroups, Repeat, Copy, Cut, SelectRegion, SelectObjects, Visibility, ConnectEntities, SelectTextured, DeleteObjects, RemoveComponents, RoundToGrid, CreateEntity, MoveToCamera, RepeatTransforms, Scale, SmartTag };
+enum class LevelPlacementOperation { Snap, Duplicate, Paste, Mirror, SelectConnectedDoom, Move, Rotate, Resize, AddBrush, AddEntity, AddThing, TransformComponents, WrapMerge, Sweep, ExtractLinkedGroups, Repeat, Copy, Cut, SelectRegion, SelectObjects, Visibility, ConnectEntities, SelectTextured, DeleteObjects, RemoveComponents, RoundToGrid, CreateEntity, MoveToCamera, RepeatTransforms, Scale, SmartTag, ImportMap };
 enum class LevelPlacementPhase { Preparing, Parsing, Transforming, Inserting, Finalizing, Complete, Building, Arraying, Extracting, Repeating, Copying, Cutting, Selecting, SelectingObjects, Visibility, Connecting, Deleting };
 
 struct LevelPlacementRequest {
@@ -60,6 +61,9 @@ struct LevelPlacementRequest {
 	// CreateEntity: a generated Create <class> command (core/level_entity_create.h).
 	LevelEntityCreateRequest entityCreate;
 	LevelSmartTagRequest smartTag;
+	// ImportMap: the map read for Import Map (core/level_map_transfer.h).
+	std::shared_ptr<const LevelMapDocument> importSource;
+	LevelMapImportOptions importOptions;
 	// RepeatTransforms: the pivot of NetRadiant Custom's Repeat Transforms; invalid
 	// for the centre of the copies (core/level_repeat.h). MoveToCamera uses `paste`.
 	LevelMapVec3 repeatPivot;
@@ -88,6 +92,7 @@ struct LevelPlacementResult {
 	LevelMapComponentReport componentReport;
 	LevelMapGridRoundReport gridRoundReport;
 	LevelEntityCreateReport entityCreateReport;
+	LevelMapImportReport importReport;
 	// Paste and MoveToCamera: the translation applied.
 	LevelMapVec3 pasteOffset;
 	// RepeatTransforms: the pivot the copies turned and scaled about.

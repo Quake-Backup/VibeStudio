@@ -8,12 +8,16 @@
 // texels front to back in up to four layers and composite them in depth
 // order. Wireframe draws every visible edge once as an antialiased stroke,
 // with a depth-tested id pass beneath it for picking; with polygon edges on,
-// fan diagonals are left out of it and of the edge overlay. Every frame reads back
+// fan diagonals are left out of it and of the edge overlay. Face shading,
+// distance fog towards the background colour (from the eye, or in
+// orthographic views from the front of the geometry) and a grid on marked
+// triangles are uniforms and one corner bit. Every frame reads back
 // the colour image and the triangle under each pixel, which is what picking,
 // orbit pivots and vertex visibility use.
 
 #include "app/model_viewport_p.h"
 
+#include "core/level_camera_render.h"
 #include "core/model_pose.h"
 #include "core/render_device.h"
 #include "core/render_shaders.h"
@@ -107,11 +111,20 @@ bool sameTransform(const ModelTransform& a, const ModelTransform& b)
 	return true;
 }
 
+// In orthographic views, the depth along the view of the geometry's front:
+// fog distances and the far clip count from it.
+double orthographicFront(const ModelViewport::RasterWork& work, const ModelViewport::GpuGeometry& geometry)
+{
+	return dot(geometry.centre, work.camera.eye) + geometry.radius;
+}
+
 // The camera as one matrix from world space to canonical clip space,
 // reproducing ModelViewport's projection in physical pixels: orthographic
 // views scale about the model centre with depth nearness spanning the
-// geometry, perspective views divide by distance with an infinite far plane
-// and the near plane at clip w = 1.
+// geometry, perspective views divide by distance with the near plane at clip
+// w = 1 and an infinite far plane, or the far clip's. Either way a point
+// beyond the far clip gets a negative clip z, which both backends clip and
+// the CPU checks below repeat.
 Matrix viewProjection(const ModelViewport::RasterWork& work, const ModelViewport::GpuGeometry* geometry)
 {
 	const auto& camera = work.camera;
@@ -131,13 +144,16 @@ Matrix viewProjection(const ModelViewport::RasterWork& work, const ModelViewport
 		const double right[4] = {camera.right.x, camera.right.y, camera.right.z, rightOffset};
 		const double up[4] = {camera.up.x, camera.up.y, camera.up.z, upOffset};
 		const double forward[4] = {camera.forward.x, camera.forward.y, camera.forward.z, forwardOffset};
+		// Reversed depth: z / w is 1 at the near plane and 0 at the far one
+		// (core/level_camera_render.h).
+		const LevelCameraDepthMapping depth = levelCameraPerspectiveDepth(kNearPlane, work.farClip);
 		for (size_t column = 0; column < 4; ++column) {
 			m[0][column] = sx * right[column] + cx * forward[column];
 			m[1][column] = -sy * up[column] + cy * forward[column];
-			m[2][column] = 0.0;
+			m[2][column] = depth.scale * forward[column];
 			m[3][column] = forward[column];
 		}
-		m[2][3] = kNearPlane;
+		m[2][3] += depth.offset;
 		return m;
 	}
 	const ModelVec3& c = work.center;
@@ -154,6 +170,10 @@ Matrix viewProjection(const ModelViewport::RasterWork& work, const ModelViewport
 		const double reach = geometry->radius * 1.01 + 1.0;
 		low = centre - reach;
 		high = centre + reach;
+		// The far clip: depth 0 that far behind the front of the geometry.
+		if (work.farClip > 0.0) {
+			low = std::max(low, orthographicFront(work, *geometry) - dot(c, camera.eye) - work.farClip);
+		}
 	}
 	const double span = std::max(high - low, 1.0e-6);
 	m[2] = {camera.eye.x / span, camera.eye.y / span, camera.eye.z / span, (-dot(camera.eye, c) - low) / span};
@@ -161,10 +181,12 @@ Matrix viewProjection(const ModelViewport::RasterWork& work, const ModelViewport
 	return m;
 }
 
-QByteArray surfaceUniforms(const ModelViewport::RasterWork& work, const Matrix& matrix, bool textured, int pass, int firstTriangle)
+// `fogOrigin`: in orthographic views, the depth along the view of the
+// geometry's front, which fog distances count from.
+QByteArray surfaceUniforms(const ModelViewport::RasterWork& work, const Matrix& matrix, bool textured, int pass, int firstTriangle, double fogOrigin)
 {
 	QByteArray bytes;
-	bytes.reserve(208);
+	bytes.reserve(256);
 	appendMatrix(&bytes, matrix);
 	if (work.perspective) {
 		appendVec4(&bytes, work.camera.position.x, work.camera.position.y, work.camera.position.z, 1.0);
@@ -180,6 +202,10 @@ QByteArray surfaceUniforms(const ModelViewport::RasterWork& work, const Matrix& 
 	appendColor(&bytes, work.palette.highlight);
 	appendVec4(&bytes, work.pixelRatio, work.showEdges ? 1.0 : 0.0, textured ? 1.0 : 0.0, 0.0);
 	appendIvec4(&bytes, work.hover, firstTriangle, work.backfaceCulling ? 1 : 0, pass);
+	// Shading, distance fog towards the background, and the face grid.
+	appendVec4(&bytes, work.fogStart, work.fogEnd, work.faceGrid, work.faceShading ? 1.0 : 0.0);
+	appendVec4(&bytes, background.redF(), background.greenF(), background.blueF(), work.fogStrength);
+	appendVec4(&bytes, work.highContrast ? 0.6 : 0.32, work.highContrast ? 1.5 : 1.0, fogOrigin, 0.0);
 	return bytes;
 }
 
@@ -259,11 +285,18 @@ bool modelSkinHasAlpha(const QImage& image)
 	return false;
 }
 
+bool ModelViewport::GeometryKey::matchesButTexCoords(const GeometryKey& other) const
+{
+	GeometryKey same = other;
+	same.texCoords = texCoords;
+	return matches(same);
+}
+
 bool ModelViewport::GeometryKey::matches(const GeometryKey& other) const
 {
-	if (mesh != other.mesh || frame != other.frame || blendFrame != other.blendFrame || frameBlend != other.frameBlend || textured != other.textured
-		|| highContrast != other.highContrast || polygonEdges != other.polygonEdges || editMoveActive != other.editMoveActive || moving != other.moving
-		|| resizing != other.resizing) {
+	if (mesh != other.mesh || texCoords != other.texCoords || frame != other.frame || blendFrame != other.blendFrame || frameBlend != other.frameBlend || textured != other.textured
+		|| highContrast != other.highContrast || polygonEdges != other.polygonEdges || faceGrid != other.faceGrid || editMoveActive != other.editMoveActive
+		|| moving != other.moving || resizing != other.resizing) {
 		return false;
 	}
 	if (editMoveActive
@@ -473,8 +506,10 @@ std::shared_ptr<const ModelViewport::GpuGeometry> ModelViewport::buildGpuGeometr
 		geometry->valid.setBit(index);
 		// Bits 2..4: polygon diagonals, which the edge overlay leaves out.
 		const quint32 inner = geometry->innerEdges.isEmpty() ? 0u : quint32(geometry->innerEdges.at(index)) << 2;
+		// Bit 5: the face grid is drawn on this triangle.
+		const quint32 gridded = index < work.faceGridTriangles.size() && work.faceGridTriangles.testBit(index) ? 32u : 0u;
 		for (int corner = 0; corner < 3; ++corner) {
-			writeCorner(index, corner, p[size_t(corner)], uv[size_t(corner)], normal, d, (uvValid ? 1u : 0u) | inner);
+			writeCorner(index, corner, p[size_t(corner)], uv[size_t(corner)], normal, d, (uvValid ? 1u : 0u) | inner | gridded);
 			const double values[3] = {p[size_t(corner)].x, p[size_t(corner)].y, p[size_t(corner)].z};
 			for (int axis = 0; axis < 3; ++axis) {
 				low[axis] = std::min(low[axis], values[axis]);
@@ -519,6 +554,41 @@ std::shared_ptr<const ModelViewport::GpuFlags> ModelViewport::buildGpuFlags(cons
 
 void ModelViewport::renderGpu(RasterWork& work)
 {
+	const int triangleCount = static_cast<int>(work.meshTriangles.size());
+	if (!work.geometry && work.texCoordBase && work.texCoordBase->vertices.size() == qsizetype(triangleCount) * 3 * kCornerBytes) {
+		// Only previewed texture coordinates changed since the last upload:
+		// rewrite those triangles' uvs and uv bits in a copy of its corners
+		// rather than rebuilding every corner of the mesh.
+		auto patched = std::make_shared<GpuGeometry>(*work.texCoordBase);
+		patched->key = work.geometryKey;
+		patched->cacheKey = nextUploadKey.fetch_add(1);
+		char* output = patched->vertices.data();
+		for (const int index : std::as_const(work.texCoordTriangles)) {
+			if (index < 0 || index >= triangleCount || !patched->valid.testBit(index)) {
+				continue;
+			}
+			const MeshTriangle& source = work.meshTriangles.at(index);
+			if (source.surface < 0 || source.surface >= work.mesh.surfaces.size()) {
+				continue;
+			}
+			const auto& coords = work.mesh.surfaces.at(source.surface).texCoords;
+			const int indices[] = {source.a, source.b, source.c};
+			bool uvValid = work.textured && source.a < coords.size() && source.b < coords.size() && source.c < coords.size();
+			for (int corner = 0; uvValid && corner < 3; ++corner) {
+				const auto& value = coords.at(indices[corner]);
+				uvValid = std::isfinite(value.u) && std::isfinite(value.v);
+			}
+			for (int corner = 0; corner < 3; ++corner) {
+				char* at = output + (qsizetype(index) * 3 + corner) * kCornerBytes;
+				const float uv[2] = {uvValid ? coords.at(indices[corner]).u : 0.0f, uvValid ? coords.at(indices[corner]).v : 0.0f};
+				std::memcpy(at + 12, uv, sizeof(uv));
+				quint32 info = 0;
+				std::memcpy(&info, at + 40, sizeof(info));
+				put(at + 40, (info & ~1u) | (uvValid ? 1u : 0u));
+			}
+		}
+		work.geometry = patched;
+	}
 	if (!work.geometry) {
 		work.geometry = buildGpuGeometry(work);
 	}
@@ -530,11 +600,37 @@ void ModelViewport::renderGpu(RasterWork& work)
 	}
 	const GpuGeometry& geometry = *work.geometry;
 	const int count = static_cast<int>(work.meshTriangles.size());
+	const Matrix matrix = viewProjection(work, &geometry);
 
 	// Facing for the readouts and the wireframe; the GPU repeats the same test
 	// for drawing from the same planes.
 	struct Segment {
 		ModelVec3 a, b;
+	};
+	// The far clip, as the GPU applies it: a negative clip z lies beyond.
+	const bool farClipped = work.farClip > 0.0;
+	const auto clipDepth = [&matrix](const ModelVec3& point) {
+		return matrix[2][0] * point.x + matrix[2][1] * point.y + matrix[2][2] * point.z + matrix[2][3];
+	};
+	// Wireframe strokes are drawn from these segments, so each is cut at the
+	// far clip here; false when all of it lies beyond.
+	const auto clipToFar = [&](Segment* segment) {
+		if (!farClipped) {
+			return true;
+		}
+		const double za = clipDepth(segment->a);
+		const double zb = clipDepth(segment->b);
+		if (za < 0.0 && zb < 0.0) {
+			return false;
+		}
+		if (za < 0.0 || zb < 0.0) {
+			ModelVec3& outside = za < 0.0 ? segment->a : segment->b;
+			const ModelVec3& inside = za < 0.0 ? segment->b : segment->a;
+			const double t = std::min(za, zb) / (std::min(za, zb) - std::max(za, zb));
+			outside = vec(outside.x + t * (double(inside.x) - outside.x), outside.y + t * (double(inside.y) - outside.y),
+				outside.z + t * (double(inside.z) - outside.z));
+		}
+		return true;
 	};
 	QVector<Segment> ordinary;
 	QVector<Segment> selected;
@@ -566,6 +662,16 @@ void ModelViewport::renderGpu(RasterWork& work)
 				continue;
 			}
 		}
+		if (farClipped) {
+			// Wholly beyond the far clip: not drawn, and not culled either.
+			bool within = false;
+			for (int corner = 0; corner < 3 && !within; ++corner) {
+				within = clipDepth(geometry.corner(index, corner)) >= 0.0;
+			}
+			if (!within) {
+				continue;
+			}
+		}
 		++work.visibleTriangles;
 		if (!work.wireframe) {
 			continue;
@@ -591,7 +697,10 @@ void ModelViewport::renderGpu(RasterWork& work)
 			// A legacy face move can separate shared endpoints: keep every
 			// segment then. Otherwise a shared edge draws once per surface.
 			const bool shared = !work.moving;
-			const Segment segment {geometry.corner(index, corner), geometry.corner(index, next)};
+			Segment segment {geometry.corner(index, corner), geometry.corner(index, next)};
+			if (!clipToFar(&segment)) {
+				continue;
+			}
 			if (!shared || !baseEdges.contains(key)) {
 				ordinary.append(segment);
 				if (shared) {
@@ -616,7 +725,10 @@ void ModelViewport::renderGpu(RasterWork& work)
 				if (edge.first < 0 || edge.second >= vertexCount) {
 					continue;
 				}
-				selected.append({work.vertexPosition(work.edgeSelectionSurface, edge.first), work.vertexPosition(work.edgeSelectionSurface, edge.second)});
+				Segment segment {work.vertexPosition(work.edgeSelectionSurface, edge.first), work.vertexPosition(work.edgeSelectionSurface, edge.second)};
+				if (clipToFar(&segment)) {
+					selected.append(segment);
+				}
 			}
 		}
 	}
@@ -635,7 +747,9 @@ void ModelViewport::renderGpu(RasterWork& work)
 	const RenderDeviceInfo info = device->info();
 	work.deviceSummary = vibestudio::renderDeviceSummary(info);
 	const int skinLimit = std::max(64, std::min(kMaximumSkinSide, info.maxTextureSize > 0 ? info.maxTextureSize : kMaximumSkinSide));
-	const Matrix matrix = viewProjection(work, &geometry);
+	// Orthographic views have no eye position: fog counts from the front of
+	// the geometry's bounds along the view.
+	const double fogOrigin = work.perspective ? 0.0 : orthographicFront(work, geometry);
 
 	GpuFrame frame;
 	frame.size = work.size;
@@ -698,7 +812,7 @@ void ModelViewport::renderGpu(RasterWork& work)
 		draw.vertexBuffers[0] = {0, qint64(run.first) * 3 * kCornerBytes};
 		draw.vertexBuffers[1] = {1, qint64(run.first) * 3 * 4};
 		draw.count = run.count * 3;
-		draw.uniforms = surfaceUniforms(work, matrix, run.texture >= 0, pass, run.first);
+		draw.uniforms = surfaceUniforms(work, matrix, run.texture >= 0, pass, run.first, fogOrigin);
 		if (run.texture >= 0) {
 			draw.textures[0] = GpuTextureRef::texture(run.texture, skinSampler());
 		}

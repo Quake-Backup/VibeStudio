@@ -56,6 +56,17 @@ bool ApplicationShell::levelCursorPlacement(LevelPastePlacement* placement, QStr
 		placement->rayForwardOnly = ray.forwardOnly;
 		placement->direction = {ray.direction.x, ray.direction.y, ray.direction.z, true};
 		placement->viewDirection = {forward.x, forward.y, forward.z, true};
+		// Nothing past the far clip is drawn or picked, so nothing there can
+		// take the placement either (camera-far-clip).
+		ModelVec3 clipPoint;
+		ModelVec3 clipNormal;
+		if (m_levelMap3D->farClipPlane(&clipPoint, &clipNormal)) {
+			placement->farClipPoint = {clipPoint.x, clipPoint.y, clipPoint.z, true};
+			placement->farClipNormal = {clipNormal.x, clipNormal.y, clipNormal.z, true};
+		} else {
+			placement->farClipPoint = {};
+			placement->farClipNormal = {};
+		}
 		// Only brushes the camera draws can take the placement.
 		placement->filterBrushes = true;
 		placement->visibleBrushes.clear();

@@ -44,6 +44,9 @@ LevelPlacementResult LevelPlacementTaskDialog::prepare(QWidget* parent, const Le
 	case LevelPlacementOperation::DeleteObjects:
 		dialog.setWindowTitle(tr("Delete Map Objects"));
 		break;
+	case LevelPlacementOperation::ImportMap:
+		dialog.setWindowTitle(tr("Import Map"));
+		break;
 	case LevelPlacementOperation::RemoveComponents:
 		dialog.setWindowTitle(tr("Remove Brush Components"));
 		break;
