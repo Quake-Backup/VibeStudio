@@ -874,6 +874,8 @@ ModelMesh decodeModelObjFromArchive(const PackageArchiveReader &archive, const Q
 	{
 		return mesh;
 	}
-	return decodeModelObj(path, bytes, control);
+	// A material library is read from the package entry beside the OBJ.
+	const auto companions = modelCompanionsFromArchive(archive, control);
+	return decodeModelObj(path, bytes, ModelObjImportOptions{}, &companions, nullptr, control);
 }
 } // namespace vibestudio

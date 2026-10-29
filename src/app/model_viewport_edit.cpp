@@ -317,7 +317,7 @@ ModelVec3 ModelViewport::editVertexPosition(int surface, int vertex) const
 	}
 	return m_editMoveActive &&
 				   (m_editSurfaces.contains(surface) || (surface == m_editSurface && (m_editVertices.contains(vertex) || m_editPieces.moves(vertex))))
-		? m_editPieces.apply(m_editTransform, surface, vertex, point)
+		? m_editPieces.apply(previewEditTransform(), surface, vertex, point)
 		: point;
 }
 QPointF ModelViewport::vertexScreenPosition(int surface, int vertex)

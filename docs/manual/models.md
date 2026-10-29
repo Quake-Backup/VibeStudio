@@ -1344,7 +1344,14 @@ To bring in animation from Blender, export one OBJ per frame, then choose
 all its frames. **Export Range as OBJ…** writes the range back out.
 
 To make a tag follow a hand or muzzle, select its vertices, type the tag name
-in **Attachment tags → Name** and choose **Follow Selection**.
+in **Attachment tags → Name** and choose **Follow Selection**. The tag
+remembers its components, even through subdividing and other topology edits,
+so after later edits **Refit Anchored Tags** fits it again; only deleting one
+of its vertices or faces asks you to fit it afresh. **Geometry → Over the
+frame range** makes the 3D view's move, rotate and scale cover the frame range
+too, and the live preview shows each frame's share of the falloff. Opening an OBJ asks for its up axis,
+scale, material library and loose-data handling. **Toggle Onion Skin** can be
+bound to a key in your controls.
 
 See [vertex animation frames](../MODEL_VERTEX_ANIMATION.md) for the rules,
 limits and the `model frames` command.

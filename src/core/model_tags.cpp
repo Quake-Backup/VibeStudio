@@ -236,6 +236,19 @@ bool applyModelTagEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSelecti
 		{
 			candidate->tags.removeIf([&](const ModelTag &tag) { return tag.name == edit.selection.tag; });
 		}
+		// An anchor that makes the tag follow mesh components follows its name
+		// (core/model_tag_follow.h); a copy is not anchored.
+		for (auto &anchor : candidate->tagAnchors)
+		{
+			if (kind == ModelEditKind::RenameTag && anchor.tag == edit.selection.tag)
+			{
+				anchor.tag = edit.text;
+			}
+		}
+		if (kind == ModelEditKind::DeleteTag)
+		{
+			candidate->tagAnchors.removeIf([&](const ModelTagAnchor &anchor) { return anchor.tag == edit.selection.tag; });
+		}
 	}
 	*selection = {edit.selection.surface,
 				  {},

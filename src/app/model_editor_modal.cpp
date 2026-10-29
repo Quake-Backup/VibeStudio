@@ -2,6 +2,7 @@
 #include "app/locale_number.h"
 
 #include "app/model_editor_dialog.h"
+#include "app/model_editor_frames.h"
 #include "app/model_viewport.h"
 #include "app/viewport_hud.h"
 #include "core/model_collision.h"
@@ -584,6 +585,15 @@ QString ModelEditorTools::modalText() const
 					 .arg(m.hoverEdge.second);
 	if (m.edit.kind == ModelEditKind::WeightedTransform)
 		parts << Text::tr("proportional %1").arg(localeNumber(m_radius->value()));
+	if (m.edit.kind == ModelEditKind::TransformFrameRange)
+	{
+		const auto weights = m_editor->m_animationPanel ? m_editor->m_animationPanel->rangeScopeWeights() : QVector<double>{};
+		const int shown = m_editor->m_frame->currentIndex();
+		parts << Text::tr("frames %1 to %2, %3% on this frame")
+					 .arg(m.edit.poseRange.first)
+					 .arg(m.edit.poseRange.last)
+					 .arg(localeNumber(weights.value(shown, 0) * 100, 0, 'f'));
+	}
 	auto status = parts.join(QStringLiteral("  ·  "));
 	if (!m.valid && !m.error.isEmpty())
 		status += QStringLiteral("\n") + m.error;
@@ -1199,6 +1209,21 @@ void ModelEditorTools::updateModalPreview()
 	case ModelModalOperator::None:
 		break;
 	}
+	// Geometry > Over the frame range: preview and apply the range transform,
+	// so the displayed frame shows its falloff-weighted share.
+	auto *range = m_editor->m_animationPanel;
+	if (m.editReady && range && range->rangeScopeApplies(edit))
+	{
+		ModelEdit scoped;
+		QString problem;
+		if (range->rangeScoped(edit, &scoped, &problem))
+			edit = scoped;
+		else
+		{
+			m.editReady = false;
+			m.error = problem;
+		}
+	}
 	m.edit = edit;
 	m.valid = false;
 	if (m.op == ModelModalOperator::LoopCut)
@@ -1278,7 +1303,15 @@ void ModelEditorTools::updateModalPreview()
 
 void ModelEditorTools::showPreview(const ModelMesh &mesh, const ModelSelection &selection, const ModelEditReport *report)
 {
+	// Keep the displayed frame: setMesh starts at frame 0, and a frame range
+	// transform previews the displayed frame's share.
+	const int frame = m_viewport->frame();
+	const bool refreshing = m_editor->m_refreshing;
+	m_editor->m_refreshing = true;
 	m_viewport->setMesh(displayMesh(mesh, report), true);
+	if (frame > 0 && frame < mesh.frames.size())
+		m_viewport->setFrame(frame);
+	m_editor->m_refreshing = refreshing;
 	int base = 0;
 	for (int s = 0; s < selection.surface && s < mesh.surfaces.size(); ++s)
 		base += mesh.surfaces[s].triangles.size();

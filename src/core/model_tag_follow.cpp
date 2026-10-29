@@ -3,12 +3,16 @@
 #include "core/model_document.h"
 #include "core/model_mesh_tools_p.h"
 #include "core/model_tags.h"
+#include "core/model_vertex_origins.h"
 
 #include <QCoreApplication>
+#include <QJsonObject>
 
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <map>
+#include <tuple>
 
 namespace vibestudio
 {
@@ -310,16 +314,484 @@ QString modelTagFollowSummary(const ModelTagFollowOptions &options, const ModelT
 		.arg(locale.toString(result.worstFrame));
 }
 
+namespace
+{
+// Whether the anchor still matches `mesh` as it was fitted.
+bool anchorCurrent(const ModelMesh &mesh, const ModelTagAnchor &anchor)
+{
+	if (anchor.removed || anchor.surface < 0 || anchor.surface >= mesh.surfaces.size())
+		return false;
+	const auto &surface = mesh.surfaces[anchor.surface];
+	return surface.name == anchor.surfaceName && surface.vertexCount == anchor.vertexCount && surface.triangles.size() == anchor.triangleCount;
+}
+
+bool sameTopology(const ModelMesh &before, const ModelMesh &after)
+{
+	if (before.surfaces.size() != after.surfaces.size())
+		return false;
+	for (int s = 0; s < before.surfaces.size(); ++s)
+	{
+		const auto &a = before.surfaces[s], &b = after.surfaces[s];
+		if (a.vertexCount != b.vertexCount || a.triangles.size() != b.triangles.size() ||
+			!std::equal(a.triangles.cbegin(), a.triangles.cend(), b.triangles.cbegin(),
+						[](const ModelTriangle &x, const ModelTriangle &y) { return x.a == y.a && x.b == y.b && x.c == y.c; }))
+			return false;
+	}
+	return true;
+}
+
+struct Survivor
+{
+	int surface = -1;
+	int vertex = -1;
+	// A copy the edit made; the vertex itself is preferred.
+	bool created = false;
+};
+using PositionIndex = QHash<int, std::map<std::array<float, 3>, QVector<int>>>;
+
+// Resulting vertices that came from one unmirrored vertex of the model
+// before the edit, by its recorded provenance: (before surface, vertex) to
+// survivors.
+QHash<QPair<int, int>, QVector<Survivor>> provenanceSurvivors(const ModelMesh &after)
+{
+	QHash<QPair<int, int>, QVector<Survivor>> result;
+	for (int t = 0; t < after.surfaces.size(); ++t)
+	{
+		const auto &surface = after.surfaces[t];
+		const auto &origins = surface.editOrigins;
+		if (!origins.tracked || origins.authored || origins.first.size() != surface.vertexCount || origins.count.size() != surface.vertexCount)
+			continue;
+		for (int u = 0; u < surface.vertexCount; ++u)
+		{
+			if (origins.count[u] != 1 || origins.first[u] < 0 || origins.first[u] >= origins.sources.size())
+				continue;
+			const auto &source = origins.sources[origins.first[u]];
+			if (source.mirror != 0 || std::abs(source.weight - 1) > 1e-9 || source.surface < 0)
+				continue;
+			result[{source.surface, source.vertex}].append({t, u, (origins.flags.value(u) & ModelVertexOriginCreated) != 0});
+		}
+	}
+	return result;
+}
+
+// Surfaces whose tool wrote its vertices itself (edge bevel, knife, spin,
+// rip) or kept no provenance: a vertex that still has the same position in
+// every frame is the same vertex.
+QVector<Survivor> positionalSurvivors(const ModelSurface &source, int vertex, const ModelMesh &after, PositionIndex *index)
+{
+	QVector<Survivor> result;
+	if (source.frames.isEmpty())
+		return result;
+	const auto key = [](ModelVec3 p) { return std::array<float, 3>{p.x, p.y, p.z}; };
+	for (int t = 0; t < after.surfaces.size(); ++t)
+	{
+		const auto &surface = after.surfaces[t];
+		const auto &origins = surface.editOrigins;
+		if ((origins.tracked && !origins.authored) || surface.frames.size() != source.frames.size())
+			continue;
+		if (!index->contains(t))
+		{
+			auto &positions = (*index)[t];
+			for (int u = 0; u < surface.vertexCount; ++u)
+				positions[key(surface.frames[0].positions[u])].append(u);
+		}
+		const auto &positions = (*index)[t];
+		const auto found = positions.find(key(source.frames[0].positions[vertex]));
+		if (found == positions.end())
+			continue;
+		for (int u : found->second)
+		{
+			bool same = true;
+			for (int f = 1; same && f < source.frames.size(); ++f)
+			{
+				const auto a = source.frames[f].positions[vertex], b = surface.frames[f].positions[u];
+				same = a.x == b.x && a.y == b.y && a.z == b.z;
+			}
+			if (same)
+				result.append({t, u, false});
+		}
+	}
+	return result;
+}
+
+// Triangles of `surface` whose corners all derive from three corners of the
+// anchor's source surface and nothing else (a subdivided or cut face), by
+// those source corners in ascending order.
+QHash<QPair<int, QPair<int, int>>, QVector<int>> descendantFaces(const ModelSurface &surface, int source)
+{
+	QHash<QPair<int, QPair<int, int>>, QVector<int>> result;
+	const auto &origins = surface.editOrigins;
+	if (!origins.tracked || origins.authored || origins.first.size() != surface.vertexCount || origins.count.size() != surface.vertexCount)
+		return result;
+	for (int t = 0; t < surface.triangles.size(); ++t)
+	{
+		const auto &triangle = surface.triangles[t];
+		QSet<int> corners;
+		bool usable = true;
+		for (int corner : {triangle.a, triangle.b, triangle.c})
+		{
+			usable = usable && corner >= 0 && corner < surface.vertexCount && origins.count[corner] >= 1;
+			for (int i = 0; usable && i < origins.count[corner]; ++i)
+			{
+				const auto from = origins.sources.value(origins.first[corner] + i);
+				usable = from.surface == source && from.mirror == 0;
+				corners.insert(from.vertex);
+			}
+		}
+		if (!usable || corners.size() != 3)
+			continue;
+		auto sorted = corners.values();
+		std::sort(sorted.begin(), sorted.end());
+		result[{sorted[0], {sorted[1], sorted[2]}}].append(t);
+	}
+	return result;
+}
+
+// Carries one current anchor through the edit; false when an anchored vertex
+// or face is gone or the components now lie on different surfaces.
+bool remapAnchor(const ModelMesh &before, const ModelMesh &after, const QHash<int, QVector<int>> &sourceFaces,
+				 const QHash<QPair<int, int>, QVector<Survivor>> &provenance, ModelTagAnchor *anchor)
+{
+	const int s = anchor->surface;
+	const auto &source = before.surfaces[s];
+	PositionIndex positionIndex;
+	// Every survivor of every anchored vertex, and how many anchored vertices
+	// each resulting surface holds (in total, and as the vertex itself).
+	QHash<int, QVector<Survivor>> survivors;
+	QHash<int, int> coverage, originals;
+	for (int v : std::as_const(anchor->vertices))
+	{
+		auto list = provenance.value({s, v});
+		if (list.isEmpty())
+			list = positionalSurvivors(source, v, after, &positionIndex);
+		if (list.isEmpty())
+			return false;
+		std::sort(list.begin(), list.end(), [](const Survivor &a, const Survivor &b)
+				  { return std::tuple(a.surface, a.created, a.vertex) < std::tuple(b.surface, b.created, b.vertex); });
+		QSet<int> surfaces;
+		for (const auto &survivor : std::as_const(list))
+		{
+			if (surfaces.contains(survivor.surface))
+				continue;
+			surfaces.insert(survivor.surface);
+			++coverage[survivor.surface];
+			if (!survivor.created)
+				++originals[survivor.surface];
+		}
+		survivors.insert(v, list);
+	}
+	// The surface that holds every anchored vertex, preferring the one that
+	// keeps the vertices themselves, then the anchor's own surface.
+	int target = -1;
+	for (auto it = coverage.cbegin(); it != coverage.cend(); ++it)
+	{
+		if (it.value() != anchor->vertices.size())
+			continue;
+		const int t = it.key();
+		if (target < 0 || std::tuple(originals.value(t), t == s, -t) > std::tuple(originals.value(target), target == s, -target))
+			target = t;
+	}
+	if (target < 0)
+		return false;
+	const auto &surface = after.surfaces[target];
+	QSet<int> vertices;
+	QHash<int, QSet<int>> onTarget; // anchored vertex -> its survivors on the target
+	for (auto it = survivors.cbegin(); it != survivors.cend(); ++it)
+	{
+		bool chosen = false;
+		for (const auto &survivor : it.value())
+		{
+			if (survivor.surface != target)
+				continue;
+			onTarget[it.key()].insert(survivor.vertex);
+			if (!chosen)
+				vertices.insert(survivor.vertex);
+			chosen = true;
+		}
+	}
+	QSet<int> faces;
+	if (!anchor->faces.isEmpty())
+	{
+		// Tools that report face provenance say exactly what each face became.
+		const bool reported = target == s && sourceFaces.contains(target) && sourceFaces[target].size() == surface.triangles.size();
+		// Otherwise a face is the triangle whose corners are its corners'
+		// survivors in the same winding, or the triangles cut from it.
+		QHash<int, QVector<int>> touching;
+		for (int t = 0; !reported && t < surface.triangles.size(); ++t)
+		{
+			const auto &triangle = surface.triangles[t];
+			for (int corner : {triangle.a, triangle.b, triangle.c})
+				touching[corner].append(t);
+		}
+		QHash<QPair<int, QPair<int, int>>, QVector<int>> descendants;
+		bool described = false;
+		for (int f : std::as_const(anchor->faces))
+		{
+			if (f < 0 || f >= source.triangles.size())
+				return false;
+			QSet<int> images;
+			if (reported)
+			{
+				const auto &from = sourceFaces[target];
+				for (int t = 0; t < from.size(); ++t)
+					if (from[t] == f)
+						images.insert(t);
+			}
+			else
+			{
+				const auto &face = source.triangles[f];
+				const std::array<int, 3> corners{face.a, face.b, face.c};
+				for (int a : onTarget.value(face.a))
+					for (int t : touching.value(a))
+					{
+						const auto &triangle = surface.triangles[t];
+						const std::array<int, 3> mapped{triangle.a, triangle.b, triangle.c};
+						for (int r = 0; r < 3; ++r)
+							if (mapped[r] == a && onTarget.value(corners[1]).contains(mapped[(r + 1) % 3]) &&
+								onTarget.value(corners[2]).contains(mapped[(r + 2) % 3]))
+								images.insert(t);
+					}
+				if (images.isEmpty() && target == s)
+				{
+					if (!described)
+					{
+						descendants = descendantFaces(surface, s);
+						described = true;
+					}
+					auto sorted = corners;
+					std::sort(sorted.begin(), sorted.end());
+					for (int t : descendants.value({sorted[0], {sorted[1], sorted[2]}}))
+						images.insert(t);
+				}
+			}
+			if (images.isEmpty())
+				return false;
+			faces.unite(images);
+		}
+		// As when fitted, the anchor lists every corner of its faces.
+		for (int t : std::as_const(faces))
+		{
+			const auto &triangle = surface.triangles[t];
+			vertices.unite({triangle.a, triangle.b, triangle.c});
+		}
+	}
+	anchor->surface = target;
+	anchor->surfaceName = surface.name;
+	anchor->vertices = QVector<int>(vertices.cbegin(), vertices.cend());
+	std::sort(anchor->vertices.begin(), anchor->vertices.end());
+	anchor->faces = QVector<int>(faces.cbegin(), faces.cend());
+	std::sort(anchor->faces.begin(), anchor->faces.end());
+	anchor->vertexCount = surface.vertexCount;
+	anchor->triangleCount = int(surface.triangles.size());
+	return true;
+}
+} // namespace
+
+void remapModelTagAnchors(const ModelMesh &before, ModelMesh *after, const QHash<int, QVector<int>> &sourceFaces)
+{
+	if (!after || after->tagAnchors.isEmpty())
+		return;
+	const bool same = sameTopology(before, *after);
+	QHash<QPair<int, int>, QVector<Survivor>> provenance;
+	bool traced = false;
+	for (auto &anchor : after->tagAnchors)
+	{
+		// Anchors that were already stale before the edit stay as they are.
+		if (!anchorCurrent(before, anchor))
+			continue;
+		if (same)
+		{
+			// Vertices and faces kept their indices; a renamed surface keeps
+			// its anchors.
+			anchor.surfaceName = after->surfaces[anchor.surface].name;
+			continue;
+		}
+		if (!traced)
+		{
+			provenance = provenanceSurvivors(*after);
+			traced = true;
+		}
+		auto moved = anchor;
+		if (remapAnchor(before, *after, sourceFaces, provenance, &moved))
+			anchor = moved;
+		else
+			anchor.removed = true;
+	}
+}
+
+QString modelTagAnchorProblem(const ModelMesh &mesh, const ModelTagAnchor &anchor)
+{
+	if (anchor.removed)
+		return Text::tr("A geometry edit removed a vertex or face tag %1 follows, or split them across surfaces. Select the components "
+						"and choose Follow Selection again.")
+			.arg(anchor.tag);
+	if (!findModelTag(mesh, anchor.tag, 0))
+		return Text::tr("Anchored tag %1 no longer exists.").arg(anchor.tag);
+	if (anchor.surface < 0 || anchor.surface >= mesh.surfaces.size())
+		return Text::tr("The surface tag %1 follows no longer exists. Select its components and choose Follow Selection again.").arg(anchor.tag);
+	const auto &surface = mesh.surfaces[anchor.surface];
+	if (surface.name != anchor.surfaceName || surface.vertexCount != anchor.vertexCount || surface.triangles.size() != anchor.triangleCount)
+		return Text::tr("Surface %1 gained or lost vertices or faces since tag %2 was fitted, so its components cannot be found again. "
+						"Select them and choose Follow Selection again.")
+			.arg(surface.name, anchor.tag);
+	const int frames = int(mesh.frames.size());
+	if (anchor.referenceFrame >= frames || anchor.last >= frames)
+		return Text::tr("The frames tag %1 was fitted over no longer exist. Choose Follow Selection again.").arg(anchor.tag);
+	return {};
+}
+
+bool solveModelTagAnchor(const ModelMesh &mesh, const ModelTagAnchor &anchor, ModelTagFollowResult *result, QString *error,
+						 const ModelWorkControl &control)
+{
+	const auto problem = modelTagAnchorProblem(mesh, anchor);
+	if (!problem.isEmpty())
+		return fail(error, problem);
+	ModelSelection selection;
+	selection.surface = anchor.surface;
+	selection.vertices = QSet<int>(anchor.vertices.cbegin(), anchor.vertices.cend());
+	selection.faces = QSet<int>(anchor.faces.cbegin(), anchor.faces.cend());
+	ModelTagFollowOptions options;
+	options.tag = anchor.tag;
+	options.mode = ModelTagFollowMode(anchor.mode);
+	options.referenceFrame = anchor.referenceFrame;
+	options.first = anchor.first;
+	options.last = anchor.last;
+	return solveModelTagFollow(mesh, selection, options, result, error, control);
+}
+
+QJsonArray modelTagAnchorsJson(const QVector<ModelTagAnchor> &anchors)
+{
+	static const char *const modes[]{"rigid", "centroid", "surface"};
+	QJsonArray result;
+	for (const auto &anchor : anchors)
+	{
+		QJsonArray vertices, faces;
+		for (int vertex : anchor.vertices)
+			vertices.append(vertex);
+		for (int face : anchor.faces)
+			faces.append(face);
+		QJsonObject object{{QStringLiteral("tag"), anchor.tag},
+								  {QStringLiteral("surface"), anchor.surface},
+								  {QStringLiteral("surfaceName"), anchor.surfaceName},
+								  {QStringLiteral("vertices"), vertices},
+								  {QStringLiteral("faces"), faces},
+								  {QStringLiteral("mode"), QString::fromLatin1(modes[std::clamp(anchor.mode, 0, 2)])},
+								  {QStringLiteral("referenceFrame"), anchor.referenceFrame},
+								  {QStringLiteral("first"), anchor.first},
+								  {QStringLiteral("last"), anchor.last},
+								  {QStringLiteral("vertexCount"), anchor.vertexCount},
+								  {QStringLiteral("triangleCount"), anchor.triangleCount}};
+		if (anchor.removed)
+			object.insert(QStringLiteral("removed"), true);
+		result.append(object);
+	}
+	return result;
+}
+
+bool parseModelTagAnchors(const QJsonValue &value, QVector<ModelTagAnchor> *anchors, QString *error)
+{
+	const auto malformed = [&] { return fail(error, Text::tr("The editable source's tag anchors are malformed.")); };
+	if (!value.isArray() || value.toArray().size() > 16)
+		return malformed();
+	QVector<ModelTagAnchor> result;
+	const auto integer = [](const QJsonValue &v, int minimum, int maximum, int *out)
+	{
+		if (!v.isDouble() || v.toDouble() != double(v.toInt(minimum - 1)) || v.toInt() < minimum || v.toInt() > maximum)
+			return false;
+		*out = v.toInt();
+		return true;
+	};
+	for (const auto &item : value.toArray())
+	{
+		const auto object = item.toObject();
+		ModelTagAnchor anchor;
+		anchor.tag = object.value(QStringLiteral("tag")).toString();
+		anchor.surfaceName = object.value(QStringLiteral("surfaceName")).toString();
+		const auto mode = object.value(QStringLiteral("mode")).toString();
+		anchor.mode = mode == QStringLiteral("rigid") ? 0 : mode == QStringLiteral("centroid") ? 1 : mode == QStringLiteral("surface") ? 2 : -1;
+		if (!item.isObject() || !nativeName(anchor.tag) || anchor.mode < 0 || !object.value(QStringLiteral("surfaceName")).isString() ||
+			!integer(object.value(QStringLiteral("surface")), 0, 31, &anchor.surface) ||
+			!integer(object.value(QStringLiteral("referenceFrame")), 0, 1023, &anchor.referenceFrame) ||
+			!integer(object.value(QStringLiteral("first")), -1, 1023, &anchor.first) ||
+			!integer(object.value(QStringLiteral("last")), -1, 1023, &anchor.last) ||
+			!integer(object.value(QStringLiteral("vertexCount")), 0, 65536, &anchor.vertexCount) ||
+			!integer(object.value(QStringLiteral("triangleCount")), 0, 131072, &anchor.triangleCount) ||
+			(anchor.first == -1) != (anchor.last == -1) || anchor.last < anchor.first ||
+			(object.contains(QStringLiteral("removed")) && !object.value(QStringLiteral("removed")).isBool()))
+			return malformed();
+		anchor.removed = object.value(QStringLiteral("removed")).toBool();
+		for (const auto &[key, list, limit] : {std::tuple{"vertices", &anchor.vertices, anchor.vertexCount},
+											   std::tuple{"faces", &anchor.faces, anchor.triangleCount}})
+		{
+			const auto array = object.value(QLatin1String(key)).toArray();
+			if (!object.value(QLatin1String(key)).isArray() || array.size() > limit)
+				return malformed();
+			for (const auto &entry : array)
+			{
+				int index = 0;
+				if (!integer(entry, 0, limit - 1, &index) || (!list->isEmpty() && index <= list->last()))
+					return malformed();
+				list->append(index);
+			}
+		}
+		if (anchor.vertices.isEmpty() || std::any_of(result.cbegin(), result.cend(), [&](const ModelTagAnchor &other) { return other.tag == anchor.tag; }))
+			return malformed();
+		result.append(anchor);
+	}
+	*anchors = std::move(result);
+	return true;
+}
+
 bool applyModelTagFollowEdit(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control)
 {
-	if (!candidate || edit.kind != ModelEditKind::FollowTagComponents)
+	const bool refit = edit.kind == ModelEditKind::RefitAnchoredTags;
+	if (!candidate || (edit.kind != ModelEditKind::FollowTagComponents && !refit))
 		return fail(error, Text::tr("Choose Follow Selection."));
 	if (edit.frame != -1)
 		return fail(error, Text::tr("Tag following uses its frame range, not one frame."));
+	auto &tags = candidate->tags;
+	const auto write = [&](const ModelTagFollowResult &result)
+	{
+		for (const auto &pose : std::as_const(result.poses))
+		{
+			const auto found = std::find_if(tags.begin(), tags.end(),
+											[&](const ModelTag &tag) { return tag.name == pose.name && tag.frameIndex == pose.frameIndex; });
+			if (found == tags.end())
+				return fail(error, Text::tr("Attachment tag %1 is missing in frame %2.").arg(pose.name).arg(pose.frameIndex));
+			*found = pose;
+		}
+		return true;
+	};
+	if (refit)
+	{
+		ModelTagFollowOptions only;
+		only.tag = edit.tagFollow.tag;
+		if (!(edit.tagFollow == only))
+			return fail(error, Text::tr("Refit Anchored Tags takes only the name of one anchored tag, or none for every one."));
+		QVector<ModelTagAnchor> chosen;
+		for (const auto &anchor : std::as_const(candidate->tagAnchors))
+			if (only.tag.isEmpty() || anchor.tag == only.tag)
+				chosen.append(anchor);
+		if (chosen.isEmpty())
+			return fail(error, only.tag.isEmpty() ? Text::tr("No tag is anchored to mesh components yet. Fit one with Follow Selection first.")
+												  : Text::tr("Tag %1 is not anchored to mesh components.").arg(only.tag));
+		// Fit every anchor before changing any tag.
+		QVector<ModelTagFollowResult> results;
+		for (const auto &anchor : std::as_const(chosen))
+		{
+			ModelTagFollowResult result;
+			if (!solveModelTagAnchor(*candidate, anchor, &result, error, control))
+				return false;
+			results.append(result);
+		}
+		for (const auto &result : std::as_const(results))
+			if (!write(result))
+				return false;
+		return true;
+	}
 	ModelTagFollowResult result;
 	if (!solveModelTagFollow(*candidate, edit.selection, edit.tagFollow, &result, error, control))
 		return false;
-	auto &tags = candidate->tags;
 	if (result.created)
 	{
 		// The new tag exists in every frame: fitted inside the range, its
@@ -331,13 +803,29 @@ bool applyModelTagFollowEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 			tags.append(tag);
 		}
 	}
-	for (const auto &pose : std::as_const(result.poses))
+	if (!write(result))
+		return false;
+	auto &anchors = candidate->tagAnchors;
+	anchors.removeIf([&](const ModelTagAnchor &anchor) { return anchor.tag == edit.tagFollow.tag; });
+	if (edit.tagFollow.keepAnchor)
 	{
-		const auto found = std::find_if(tags.begin(), tags.end(),
-										[&](const ModelTag &tag) { return tag.name == pose.name && tag.frameIndex == pose.frameIndex; });
-		if (found == tags.end())
-			return fail(error, Text::tr("Attachment tag %1 is missing in frame %2.").arg(pose.name).arg(pose.frameIndex));
-		*found = pose;
+		const auto &surface = candidate->surfaces[edit.selection.surface];
+		ModelTagAnchor anchor;
+		anchor.tag = edit.tagFollow.tag;
+		anchor.surface = edit.selection.surface;
+		anchor.surfaceName = surface.name;
+		const auto vertices = model_tools::selectedVertexSet(surface, edit.selection);
+		anchor.vertices = QVector<int>(vertices.cbegin(), vertices.cend());
+		std::sort(anchor.vertices.begin(), anchor.vertices.end());
+		anchor.faces = QVector<int>(edit.selection.faces.cbegin(), edit.selection.faces.cend());
+		std::sort(anchor.faces.begin(), anchor.faces.end());
+		anchor.mode = int(edit.tagFollow.mode);
+		anchor.referenceFrame = edit.tagFollow.referenceFrame;
+		anchor.first = edit.tagFollow.first;
+		anchor.last = edit.tagFollow.last;
+		anchor.vertexCount = surface.vertexCount;
+		anchor.triangleCount = int(surface.triangles.size());
+		anchors.append(anchor);
 	}
 	return true;
 }

@@ -286,6 +286,8 @@ enum class ModelEditKind
 	IntersectCut,
 	// A hull fitted separately in every frame, one shape per pose.
 	FitAnimatedCollisionHull,
+	// Fits every anchored tag again (ModelMesh::tagAnchors).
+	RefitAnchoredTags,
 };
 
 struct ModelEdit

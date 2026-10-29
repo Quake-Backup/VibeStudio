@@ -10,6 +10,7 @@ class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QFormLayout;
+class QLabel;
 class QGroupBox;
 class QLineEdit;
 class QPainter;
@@ -56,6 +57,15 @@ class ModelEditorAnimationPanel final : public QObject
 	bool exportFramesObj(const QString &pattern, bool overwrite, QString *error = nullptr);
 	// The frames the onion skin draws, before then after the current frame.
 	[[nodiscard]] QVector<int> onionFrames() const;
+	// Geometry > Over the frame range: true when `edit` (a move, rotate or
+	// scale of mesh components) should apply to the frame range instead.
+	[[nodiscard]] bool rangeScopeApplies(const ModelEdit &edit) const;
+	// The TransformFrameRange edit for `edit`, with the Range sculpt
+	// falloff; false with a reason when the transform cannot cover a range.
+	bool rangeScoped(const ModelEdit &edit, ModelEdit *scoped, QString *error) const;
+	// Each frame's falloff weight while Over the frame range is on (zero
+	// outside the range); empty when it is off.
+	[[nodiscard]] QVector<double> rangeScopeWeights() const;
 
   private:
 	QPushButton *addButton(QFormLayout *form, const char *id, const QString &label, const QString &description);
@@ -67,8 +77,12 @@ class ModelEditorAnimationPanel final : public QObject
 	void buildTagFollow();
 	void buildTimeline();
 	void gate(QPushButton *control, const QString &reason, bool editable);
-	void paintOnion(QPainter &painter);
+	void paintOnion(QPainter &painter, ModelViewport *view);
+	void syncOnionPanes();
+	void buildRangeScope();
+	void refreshAnchors();
 	void refreshOnion();
+	void syncPreviewWeights();
 	ModelEdit edit(ModelEditKind kind) const;
 	ModelEditorDialog *m_editor = nullptr;
 	QPointer<ModelViewport> m_viewport;
@@ -99,8 +113,12 @@ class ModelEditorAnimationPanel final : public QObject
 	QComboBox *m_followMode = nullptr;
 	QSpinBox *m_followReference = nullptr;
 	QCheckBox *m_followRange = nullptr;
-	QPushButton *m_follow = nullptr;
+	QPushButton *m_follow = nullptr, *m_refitAnchors = nullptr;
+	QCheckBox *m_followAnchor = nullptr, *m_rangeScope = nullptr;
 	LiveStatusLabel *m_followResult = nullptr;
+	QLabel *m_anchorSummary = nullptr;
+	QList<QPointer<ModelViewport>> m_onionPanes;
+	QByteArray m_anchorRevision;
 	QByteArray m_checkedRevision, m_timelineRevision, m_edgeRevision;
 	// Unique edges per surface for the onion skin, rebuilt per revision.
 	QVector<QVector<QPair<int, int>>> m_edges;

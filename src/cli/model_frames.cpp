@@ -92,7 +92,8 @@ QHash<QString, QStringList> allowedOptions()
 			{"close-loop", loop},
 			{"resample-skeletal", resample + QStringList{"--bake-curves"}},
 			{"close-skeletal-loop", loop + QStringList{"--bake-curves"}},
-			{"follow-tag", selection + QStringList{"--tag", "--reference-frame", "--mode", "--first", "--last"}},
+			{"follow-tag", selection + QStringList{"--tag", "--reference-frame", "--mode", "--first", "--last", "--no-anchor"}},
+			{"refit-tags", {"--tag"}},
 			{"transform-range",
 			 range + selection + QStringList{"--falloff", "--offset", "--rotate", "--scale", "--pivot-mode", "--pivot", "--pivot-frame"}},
 			{"blend-pose", range + selection + QStringList{"--falloff", "--source-frame", "--amount"}},
@@ -106,7 +107,8 @@ QHash<QString, QStringList> allowedOptions()
 
 ModelToolsCliResult runModelFrames(const QStringList &args)
 {
-	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--keep-clip-names", "--cyclic", "--bake-curves"};
+	const QSet<QString> flags{"--cli",	   "--json",		  "--quiet",  "--verbose",	   "--dry-run",
+							  "--overwrite", "--keep-clip-names", "--cyclic", "--bake-curves", "--no-anchor"};
 	const QSet<QString> options{"--input",	   "--output",	   "--operation",	"--first",		  "--last",		  "--to",
 								"--clip",	   "--start",	   "--fps",			"--frames",		  "--source-fps", "--method",
 								"--mode",	   "--blend-frames", "--tag",		"--surface",	  "--faces",	  "--vertices",
@@ -150,8 +152,8 @@ ModelToolsCliResult runModelFrames(const QStringList &args)
 	const auto allowed = allowedOptions();
 	if (!allowed.contains(operation) || (seen.contains("--operation") && operation.isEmpty()))
 		return fail(2, Text::tr("Choose --operation move, duplicate, delete, reverse, ping-pong, name-from-clips, resample, close-loop, "
-								"resample-skeletal, close-skeletal-loop, follow-tag, transform-range, blend-pose, relative-pose, import or "
-								"export-obj, or omit it to check which clips come back from MDL, MD2 and MD3 frame names."));
+								"resample-skeletal, close-skeletal-loop, follow-tag, refit-tags, transform-range, blend-pose, relative-pose, "
+								"import or export-obj, or omit it to check which clips come back from MDL, MD2 and MD3 frame names."));
 	const QSet<QString> common{"--cli", "--json", "--quiet", "--verbose", "--input", "--operation", "--settings-file", "--locale", "--catalog-root"};
 	const bool inspecting = operation.isEmpty();
 	for (const auto &key : std::as_const(seen))
@@ -172,6 +174,7 @@ ModelToolsCliResult runModelFrames(const QStringList &args)
 											  {"resample-skeletal", ModelEditKind::ResampleSkeletalClip},
 											  {"close-skeletal-loop", ModelEditKind::CloseSkeletalLoop},
 											  {"follow-tag", ModelEditKind::FollowTagComponents},
+											  {"refit-tags", ModelEditKind::RefitAnchoredTags},
 											  {"transform-range", ModelEditKind::TransformFrameRange},
 											  {"blend-pose", ModelEditKind::BlendFramePose},
 											  {"relative-pose", ModelEditKind::ApplyRelativePose},
@@ -336,7 +339,10 @@ ModelToolsCliResult runModelFrames(const QStringList &args)
 			return fail(2, Text::tr("Give both --first and --last, or neither for every frame."));
 		if (!selectComponents(&problem))
 			return fail(2, problem);
+		follow.keepAnchor = !seen.contains("--no-anchor");
 	}
+	else if (operation == "refit-tags")
+		edit.tagFollow.tag = values.value("--tag");
 	else if (operation == "transform-range" || operation == "blend-pose" || operation == "relative-pose")
 	{
 		if (!readInt("--first", &pose.first, true) || !readInt("--last", &pose.last, true))
@@ -462,6 +468,17 @@ ModelToolsCliResult runModelFrames(const QStringList &args)
 		}
 		if (edit.kind == ModelEditKind::ImportFrames)
 			result.payload.insert("importedFrames", modelFrameSourceCount(edit.frameImport.sources));
+		if (edit.kind == ModelEditKind::FollowTagComponents || edit.kind == ModelEditKind::RefitAnchoredTags)
+		{
+			QJsonArray anchors;
+			for (const auto &anchor : document.mesh().tagAnchors)
+				anchors.append(QJsonObject{{"tag", anchor.tag},
+										   {"surface", anchor.surface},
+										   {"vertices", int(anchor.vertices.size())},
+										   {"removed", anchor.removed},
+										   {"problem", modelTagAnchorProblem(document.mesh(), anchor)}});
+			result.payload.insert("tagAnchors", anchors);
+		}
 		if (edit.kind == ModelEditKind::ResampleSkeletalClip || edit.kind == ModelEditKind::CloseSkeletalLoop)
 		{
 			const auto &clip = document.mesh().skeleton.clips.value(resample.clip);

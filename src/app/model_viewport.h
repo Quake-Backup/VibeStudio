@@ -539,6 +539,13 @@ public:
 	// widget coordinates: the Mesh Editor's onion skin of neighbouring frames.
 	// An empty function removes it.
 	void setAnimationOverlayPainter(std::function<void(QPainter&)> painter);
+	// How much of a dragged move, rotate or scale the preview of selected
+	// vertices shows in each frame, 0 to 1 (frames past the end show none);
+	// empty shows all of it everywhere. The Mesh Editor's frame range scope
+	// passes each frame's falloff weight, so the displayed frame previews what
+	// the edit will do there. Handles still follow the full drag.
+	void setEditPreviewWeights(QVector<double> weights);
+	[[nodiscard]] double editPreviewWeight() const;
 	// Shows what `source` shows (mesh, frame, shading, skins, selection and
 	// overlays) through this viewport's own camera: the modeller's mirror
 	// panes (model_viewport_mirror.cpp).
@@ -1071,6 +1078,10 @@ private:
 	double m_scaleReference = 1;
 	std::function<void(QPainter&)> m_overlayPainter;
 	std::function<void(QPainter&)> m_animationOverlayPainter;
+	QVector<double> m_editPreviewWeights;
+	// m_editTransform scaled by the displayed frame's preview weight, for
+	// previewed vertices (not tags, joints or collision boxes).
+	[[nodiscard]] ModelTransform previewEditTransform() const;
 	LevelLinkedGroupDisplay m_linkedGroups;
 	LinkedGroupPaint m_linkedGroupPaint;
 };

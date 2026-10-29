@@ -1,5 +1,6 @@
 #include "app/model_editor_dialog.h"
 #include "app/model_editor_frames.h"
+#include "app/model_obj_import_dialog.h"
 #include "core/model_lod.h"
 #include "app/dialog_screen_fit.h"
 #include "app/locale_number.h"
@@ -1561,7 +1562,14 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 															  "Rotation preview: X %1°, Y %2°, Z %3°. Release to apply; Escape cancels.")
 								: QCoreApplication::translate("VibeStudioModelEditor",
 															  "Scale preview: X %1×, Y %2×, Z %3×. Release to apply; Escape cancels.");
-				m_status->setText(pattern.arg(localeNumber(values.x, 7), localeNumber(values.y, 7), localeNumber(values.z, 7)));
+				auto text = pattern.arg(localeNumber(values.x, 7), localeNumber(values.y, 7), localeNumber(values.z, 7));
+				// Over the frame range: the vertices show this frame's share.
+				const auto &selected = m_document.selection();
+				if (m_animationPanel && !m_animationPanel->rangeScopeWeights().isEmpty() && selected.tag.isEmpty() &&
+					selected.joint.isEmpty() && selected.collision.isEmpty())
+					text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelEditor", "This frame shows %1% of it over the frame range.")
+												   .arg(localeNumber(m_preview->editPreviewWeight() * 100, 0, 'f'));
+				m_status->setText(text);
 			});
 	connect(m_preview, &ModelViewport::editTransformRequested, this,
 			[this](const ModelTransform &transform)
@@ -1818,6 +1826,15 @@ bool ModelEditorDialog::setMesh(const ModelMesh &mesh, QString *error)
 }
 bool ModelEditorDialog::applyEdit(const ModelEdit &edit, QString *error, ModelEditReport *report)
 {
+	// Geometry > Over the frame range turns a move, rotate or scale into a
+	// range transform (app/model_editor_frames.h).
+	if (m_animationPanel && m_animationPanel->rangeScopeApplies(edit))
+	{
+		ModelEdit scoped;
+		if (!m_animationPanel->rangeScoped(edit, &scoped, error))
+			return false;
+		return applyEdit(scoped, error, report);
+	}
 	const auto before = m_document.revisionFingerprint();
 	const int discarded = m_document.discardedHistorySteps();
 	ModelEditReport pending;
@@ -2645,9 +2662,19 @@ void ModelEditorDialog::open()
 		return;
 	}
 	QString error;
-	openSource(path, &error);
+	// An OBJ asks how to read its axes, scale, material library and loose data.
+	ModelObjImportOptions obj;
+	if (path.endsWith(QStringLiteral(".obj"), Qt::CaseInsensitive) && !ModelObjImportDialog::ask(this, &obj))
+	{
+		return;
+	}
+	openSource(path, obj, &error);
 }
 bool ModelEditorDialog::openSource(const QString &path, QString *error)
+{
+	return openSource(path, ModelObjImportOptions{}, error);
+}
+bool ModelEditorDialog::openSource(const QString &path, const ModelObjImportOptions &obj, QString *error)
 {
 	QString localError;
 	if (!error) { error = &localError; }
@@ -2657,7 +2684,7 @@ bool ModelEditorDialog::openSource(const QString &path, QString *error)
 	const auto imported = std::make_shared<ModelImportReport>();
 	if (!performWork(
 			QCoreApplication::translate("VibeStudioModelEditor", "Open or Import Model"),
-			[path, imported](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
+			[path, obj, imported](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
 			{
 				if (path.endsWith(QStringLiteral(".mesh.json"), Qt::CaseInsensitive))
 				{
@@ -2665,8 +2692,10 @@ bool ModelEditorDialog::openSource(const QString &path, QString *error)
 				}
 				QByteArray bytes;
 				ModelMesh mesh;
+				ModelImportOptions options;
+				options.obj = obj;
 				return readModelFile(path, &bytes, failure, control) &&
-					   importEditableModel(path, bytes, &mesh, ModelImportOptions{}, imported.get(), failure, nullptr, control) &&
+					   importEditableModel(path, bytes, &mesh, options, imported.get(), failure, nullptr, control) &&
 					   candidate.setMesh(mesh, failure, control);
 			},
 			error))
@@ -2691,12 +2720,15 @@ bool ModelEditorDialog::openSource(const QString &path, QString *error)
 }
 void ModelEditorDialog::reportOpenedModel(const ModelImportReport &imported)
 {
-	QString text;
+	// What an OBJ import converted or dropped (core/model_obj.h).
+	QString text = imported.notes.join(QLatin1Char(' '));
 	if (imported.rebaked)
 	{
 		// The summary, then why clips were left out: the report's lines after
 		// the working set, the budget and the room left.
-		text = QCoreApplication::translate("VibeStudioModelEditor",
+		if (!text.isEmpty())
+			text += QLatin1Char(' ');
+		text += QCoreApplication::translate("VibeStudioModelEditor",
 										   "The skeletal frames were re-baked to fit the editable budget; the skeleton keeps every "
 										   "clip. %1. %2 Use Skeleton > Working Set to choose the clips.")
 				   .arg(modelSkeletalWorkingSetSummary(imported.workingSet),

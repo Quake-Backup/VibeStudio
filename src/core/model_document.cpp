@@ -841,7 +841,7 @@ int readableSourceVersion(const ModelMesh &mesh)
 	const bool timed = std::any_of(mesh.animations.cbegin(), mesh.animations.cend(), [](const auto &clip) { return clip.framesPerSecond > 0; });
 	const bool collisionAnimation = std::any_of(mesh.collisionBoxes.cbegin(), mesh.collisionBoxes.cend(), [](const auto &box) { return !box.framePoses.isEmpty(); });
 	const bool explicitTopology = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return !s.topologyVertices.isEmpty(); });
-	return std::max(modelAnimationAuthoringSourceVersion(mesh), !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3);
+	return std::max(modelAnimationAuthoringSourceVersion(mesh), !mesh.tagAnchors.isEmpty() ? modelSourceTagAnchorVersion : !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3);
 }
 // Packed sources (version 12) store the bulk arrays as base64 strings of
 // little-endian 32-bit words; the rest of the source is the same JSON.
@@ -1073,6 +1073,10 @@ QJsonObject sourceJson(const ModelMesh &mesh, QString *error, const ModelWorkCon
 	{
 		result.insert(QStringLiteral("skinVariants"), modelSkinVariantsJson(mesh.skinVariants));
 	}
+	if (!mesh.tagAnchors.isEmpty())
+	{
+		result.insert(QStringLiteral("tagAnchors"), modelTagAnchorsJson(mesh.tagAnchors));
+	}
 	return work.check() ? result : QJsonObject{};
 }
 
@@ -1223,7 +1227,8 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 		 root.value(QStringLiteral("version")) != QJsonValue(3) && root.value(QStringLiteral("version")) != QJsonValue(4) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(5) && root.value(QStringLiteral("version")) != QJsonValue(6) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(7) && root.value(QStringLiteral("version")) != QJsonValue(8) && root.value(QStringLiteral("version")) != QJsonValue(9) && root.value(QStringLiteral("version")) != QJsonValue(10) && root.value(QStringLiteral("version")) != QJsonValue(11) &&
-		 root.value(QStringLiteral("version")) != QJsonValue(modelSourcePackedVersion) && root.value(QStringLiteral("version")) != QJsonValue(13) && root.value(QStringLiteral("version")) != QJsonValue(14) && root.value(QStringLiteral("version")) != QJsonValue(15)) ||
+		 root.value(QStringLiteral("version")) != QJsonValue(modelSourcePackedVersion) && root.value(QStringLiteral("version")) != QJsonValue(13) && root.value(QStringLiteral("version")) != QJsonValue(14) && root.value(QStringLiteral("version")) != QJsonValue(15) &&
+		 root.value(QStringLiteral("version")) != QJsonValue(modelSourceTagAnchorVersion)) ||
 		!root.value(QStringLiteral("source")).isString())
 	{
 		return malformed();
@@ -1685,6 +1690,16 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 	// Version 15 adds joint limits, animation events and clip stacks.
 	if (result.version < modelAnimationAuthoringSourceVersion(result))
 		return malformed();
+	// Version 19 adds tag anchors (core/model_tag_follow.h).
+	if (root.contains(QStringLiteral("tagAnchors")))
+	{
+		QString anchorError;
+		if (result.version < modelSourceTagAnchorVersion ||
+			!parseModelTagAnchors(root.value(QStringLiteral("tagAnchors")), &result.tagAnchors, &anchorError))
+		{
+			return anchorError.isEmpty() ? malformed() : fail(error, anchorError);
+		}
+	}
 	updateEditableModelMetadata(&result);
 	if (!work.check())
 	{
@@ -1718,12 +1733,29 @@ bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resu
 					const ModelWorkControl &control, ModelEditReport *report)
 {
 	ModelEditReport pending;
+	// Tag anchors (ModelMesh::tagAnchors) follow geometry edits through the
+	// same vertex provenance.
+	const bool anchored = mesh && !mesh->tagAnchors.isEmpty() && modelEditSkinHandling(edit.kind) != ModelEditSkinHandling::Direct;
 	// Skeleton, skin and weight edits write influences directly. Every other
 	// edit carries per-vertex provenance (core/model_vertex_origins.h) and
 	// derives the resulting influences from what the tool actually did.
 	if (!mesh || mesh->skeleton.isEmpty() || isModelRigEdit(edit.kind) || isModelSkeletalEdit(edit.kind) || isModelSkinEdit(edit.kind) || edit.kind == ModelEditKind::PaintSkinWeights || edit.kind == ModelEditKind::TransferSkinWeights ||
 		edit.kind == ModelEditKind::TransformModel)
 	{
+		if (anchored)
+		{
+			const ModelMesh before = *mesh;
+			seedModelVertexOrigins(mesh);
+			if (!applyModelEditUnreconciled(mesh, edit, resultingSelection, error, control, &pending))
+			{
+				*mesh = before;
+				return false;
+			}
+			remapModelTagAnchors(before, mesh, pending.sourceFaces);
+			clearModelVertexOrigins(mesh);
+			if (report) *report = std::move(pending);
+			return true;
+		}
 		const bool ok = applyModelEditUnreconciled(mesh, edit, resultingSelection, error, control, report ? &pending : nullptr);
 		if (ok && report) *report = std::move(pending);
 		return ok;
@@ -1748,11 +1780,13 @@ bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resu
 	const ModelMesh before = *mesh;
 	ModelSelection pendingSelection;
 	seedModelVertexOrigins(mesh);
-	if (!applyModelEditUnreconciled(mesh, edit, resultingSelection ? &pendingSelection : nullptr, error, control, report ? &pending : nullptr))
+	if (!applyModelEditUnreconciled(mesh, edit, resultingSelection ? &pendingSelection : nullptr, error, control, report || anchored ? &pending : nullptr))
 	{
 		*mesh = before;
 		return false;
 	}
+	if (anchored)
+		remapModelTagAnchors(before, mesh, pending.sourceFaces);
 	QString problem;
 	if (!reconcileModelSkinningFromOrigins(before, mesh, options, &pending.skin, &problem, control))
 	{
@@ -1841,7 +1875,8 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		return fail(error, QCoreApplication::translate("ModelFrameTools", "Resampling settings apply only to resampling and loop operations."));
 	if (!isModelPoseRangeEdit(edit.kind) && !(edit.poseRange == ModelPoseRangeOptions{}))
 		return fail(error, QCoreApplication::translate("ModelFrameTools", "Pose range settings apply only to range transforms and pose blends."));
-	if (edit.kind != ModelEditKind::FollowTagComponents && !(edit.tagFollow == ModelTagFollowOptions{}))
+	if (edit.kind != ModelEditKind::FollowTagComponents && edit.kind != ModelEditKind::RefitAnchoredTags &&
+		!(edit.tagFollow == ModelTagFollowOptions{}))
 		return fail(error, QCoreApplication::translate("ModelFrameTools", "Tag following settings apply only to Follow Selection."));
 	if (edit.kind != ModelEditKind::ImportFrames && !edit.frameImport.isDefault())
 		return fail(error, QCoreApplication::translate("ModelFrameTools", "Frame import settings apply only to frame import."));

@@ -373,6 +373,30 @@ struct ModelTag {
 	float axis[9] = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 };
 
+// How an attachment tag follows mesh components (core/model_tag_follow.h):
+// what Follow Selection fitted it to, kept in editable sources so Refit
+// Anchored Tags can fit it again after geometry edits. The surface's vertex
+// and triangle counts when it was fitted tell a stale anchor apart.
+struct ModelTagAnchor {
+	QString tag;
+	int surface = 0;
+	QString surfaceName;
+	QVector<int> vertices;
+	QVector<int> faces;
+	// ModelTagFollowMode: 0 rigid, 1 centroid, 2 surface.
+	int mode = 0;
+	int referenceFrame = 0;
+	// The fitted frames; -1 and -1 for every frame.
+	int first = -1;
+	int last = -1;
+	int vertexCount = 0;
+	int triangleCount = 0;
+	// A geometry edit removed an anchored vertex or face, or split the
+	// components across surfaces; the tag must be fitted again by hand.
+	bool removed = false;
+	bool operator==(const ModelTagAnchor&) const = default;
+};
+
 struct ModelCollisionPose {
 	ModelVec3 centre;
 	ModelVec3 size{16, 16, 16};
@@ -508,6 +532,9 @@ struct ModelMesh {
 	// Named skins an editable source owns, in the order the artist made them;
 	// empty for decoded game models.
 	QVector<ModelSkinVariant> skinVariants{};
+	// Tags fitted to mesh components, for Refit Anchored Tags; editable
+	// sources only (source version 19).
+	QVector<ModelTagAnchor> tagAnchors{};
 
 	[[nodiscard]] bool isValid() const;
 	// Bounds across every frame, used to frame the model in a viewport.

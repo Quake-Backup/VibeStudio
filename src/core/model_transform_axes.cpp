@@ -64,7 +64,8 @@ bool validModelTransformAxesOptions(const ModelEdit &edit, QString *error)
 	const bool specified = edit.transformSpace != ModelTransformSpace::World || rotated || edit.axesFrame != -1;
 	const bool supported = edit.kind == ModelEditKind::Transform || edit.kind == ModelEditKind::TransformTag ||
 		edit.kind == ModelEditKind::TransformCollisionBox || edit.kind == ModelEditKind::Extrude || edit.kind == ModelEditKind::DuplicateFaces ||
-		edit.kind == ModelEditKind::WeightedTransform || edit.kind == ModelEditKind::ExtrudeEdges;
+		edit.kind == ModelEditKind::WeightedTransform || edit.kind == ModelEditKind::ExtrudeEdges ||
+		edit.kind == ModelEditKind::TransformFrameRange;
 	ModelVec3 checked;
 	if ((specified && !supported) || int(edit.transformSpace) < 0 || int(edit.transformSpace) > int(ModelTransformSpace::Normal) ||
 		(rotated && edit.transformSpace != ModelTransformSpace::Custom) || edit.axesFrame < -1 ||

@@ -2,6 +2,7 @@
 #include "core/model_frame_import.h"
 #include "core/model_obj.h"
 #include "core/model_tags.h"
+#include "core/package_archive.h"
 #include "tests/model_frame_tools_test_helpers.h"
 
 #include <QCoreApplication>
@@ -226,6 +227,21 @@ void checkObjOptions(const QDir &dir)
 	const auto packaged = decodeModelObj("models/crate.obj", data, ModelObjImportOptions{}, nullptr, &plain);
 	expect(packaged.error.isEmpty() && plain.join(' ').contains("was not read") && packaged.surfaces[0].skinPaths.value(0) == "Wood",
 		   QStringLiteral("a library without companions keeps material names: ") + packaged.error);
+	// Inside a package the library is read from the entry beside the OBJ, and
+	// the diffuse map binds a package path.
+	QDir().mkpath(dir.filePath("pkg/models"));
+	const QByteArray packagedObj = "mtllib crate.mtl\nv 0 0 0\nv 1 0 0\nv 1 1 0\nvt 0 0\nvt 1 0\nvt 1 1\nusemtl Wood\nf 1/1 2/2 3/3\n";
+	write(dir.filePath("pkg/models/crate.obj"), packagedObj);
+	write(dir.filePath("pkg/models/crate.mtl"), "newmtl Wood\nKd 1 1 1\nmap_Kd skins/wood.tga\n");
+	PackageArchive archive;
+	if (expect(archive.load(dir.filePath("pkg"), &error), QStringLiteral("open the OBJ package folder: ") + error))
+	{
+		const auto fromPackage = decodeModelMeshFromArchive(archive, "models/crate.obj");
+		const auto direct = decodeModelObjFromArchive(archive, "models/crate.obj");
+		expect(fromPackage.error.isEmpty() && fromPackage.surfaces.value(0).skinPaths.value(0) == "models/skins/wood.tga" &&
+				   direct.surfaces.value(0).skinPaths.value(0) == "models/skins/wood.tga",
+			   QStringLiteral("a packaged material library binds its diffuse map: ") + fromPackage.error);
+	}
 	// Malformed material libraries never break the import.
 	auto *random = QRandomGenerator::global();
 	for (int i = 0; i < 200; ++i)

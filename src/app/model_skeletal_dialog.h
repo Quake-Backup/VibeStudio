@@ -33,6 +33,11 @@ class ModelSkeletalDialog final : public QDialog
 	QPushButton *m_copy = nullptr;
 	std::array<QWidget *, 3> m_vectors{};
 	std::array<std::array<QDoubleSpinBox *, 3>, 3> m_axes{};
+	// Resample clip and Close clip loop (core/model_frame_tools.h).
+	QDoubleSpinBox *m_resampleFps = nullptr;
+	QSpinBox *m_resampleFrames = nullptr, *m_blendFrames = nullptr;
+	QComboBox *m_resampleMethod = nullptr, *m_loopClose = nullptr;
+	QCheckBox *m_cyclic = nullptr, *m_bakeCurves = nullptr;
 	QLabel *m_summary = nullptr;
 	QPushButton *m_apply = nullptr;
 	void refresh(bool resetFields);

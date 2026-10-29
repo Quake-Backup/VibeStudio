@@ -715,6 +715,7 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::RenameFrame:
 	case ModelEditKind::RenameFramesFromClips:
 	case ModelEditKind::FollowTagComponents:
+	case ModelEditKind::RefitAnchoredTags:
 	case ModelEditKind::TransformFrameRange:
 	case ModelEditKind::BlendFramePose:
 	case ModelEditKind::ApplyRelativePose:

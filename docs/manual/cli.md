@@ -19,7 +19,7 @@ With `--operation move|duplicate|delete|reverse|ping-pong` and `--first`,
 `--last` (and `--to` for a move) it edits a frame range; `name-from-clips`
 names frames after their clips; `resample` and `close-loop` (and their
 `-skeletal` forms) resample clips and close loops; `follow-tag` fits a tag to
-components; `transform-range`, `blend-pose` and `relative-pose` sculpt over a
+components and `refit-tags` fits anchored tags again; `transform-range`, `blend-pose` and `relative-pose` sculpt over a
 range; `import --source ...` adds frames from an OBJ sequence or another model;
 `export-obj` writes one OBJ per frame. Edits need a separate `.mesh.json`
 `--output`. `model import` takes `--obj-up z|y`, `--obj-scale`,
