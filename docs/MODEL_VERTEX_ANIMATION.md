@@ -264,7 +264,7 @@ or blend carries its normals instead.
 ## Import frames from other files
 
 Most vertex animation is made in another modeller and brought in as one mesh
-per frame. Under **Import and export frames**:
+per frame. Under **Frame files**:
 
 1. Choose **Match vertices by**: **Face corners** (the default: the same faces
    in the same order, however the exporter split vertices), **Exact vertex

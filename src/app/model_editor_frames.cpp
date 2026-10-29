@@ -354,7 +354,7 @@ void ModelEditorAnimationPanel::buildSculpt(QFormLayout *animation, int *row)
 void ModelEditorAnimationPanel::buildImport(QFormLayout *animation, int *row)
 {
 	QFormLayout *form = nullptr;
-	addGroup(animation, row, "meshFrameImport", QCoreApplication::translate("VibeStudioModelEditor", "Import and export frames"), &form);
+	addGroup(animation, row, "meshFrameImport", QCoreApplication::translate("VibeStudioModelEditor", "Frame files"), &form);
 	m_importMatch = comboBox(form, "meshFrameImportMatch", QCoreApplication::translate("VibeStudioModelEditor", "Match vertices by"),
 							 QCoreApplication::translate("VibeStudioModelEditor",
 														 "Face corners: the same faces in the same order, however the exporter split "

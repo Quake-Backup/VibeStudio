@@ -1626,7 +1626,7 @@ page's move, rotate and scale), **Blend Selection From Frame** or **Add Pose
 Difference**, with a falloff over the range.
 
 To bring in animation from Blender, export one OBJ per frame, then choose
-**Import Frames…** under **Import and export frames** (set **OBJ up axis** to
+**Import Frames…** under **Frame files** (set **OBJ up axis** to
 **Y up** for Blender's default). An MD2, MD3 or MDL of the same mesh imports
 all its frames. **Export Range as OBJ…** writes the range back out.
 
