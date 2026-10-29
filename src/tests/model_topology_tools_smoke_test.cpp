@@ -818,9 +818,40 @@ bool outward(const ModelMesh &mesh, ModelVec3 centre, int surface = 0)
 	return true;
 }
 
+// An open hat: a crown (four walls and a top, open underneath) on a wide brim.
+// The brim outweighs the crown, so a vote against the centre alone would turn
+// the whole hat inside out; ray parity through the crown decides instead.
+ModelMesh hatMesh()
+{
+	const QVector<ModelVec3> p{{-5, -5, 0},	 {5, -5, 0},	 {5, 5, 0},		 {-5, 5, 0},	 {-5, -5, 10},	{5, -5, 10},
+							   {5, 5, 10},	 {-5, 5, 10},	 {-100, -100, 0}, {100, -100, 0}, {100, 100, 0}, {-100, 100, 0}};
+	const QVector<ModelTriangle> t{{4, 5, 6},  {4, 6, 7},	 {0, 1, 5},	 {0, 5, 4},	 {1, 2, 6},	 {1, 6, 5},	 {2, 3, 7},	 {2, 7, 6},
+								   {3, 0, 4},  {3, 4, 7},	 {8, 9, 1},	 {8, 1, 0},	 {9, 10, 2}, {9, 2, 1}, {10, 11, 3}, {10, 3, 2},
+								   {11, 8, 0}, {11, 0, 3}};
+	return meshOf(p, t);
+}
+
 void outsideChecks()
 {
 	QString error;
+	// Open pieces: ray parity through the crown keeps the hat outward.
+	{
+		auto hat = hatMesh();
+		const auto upward = [&](const ModelMesh &mesh, int face)
+		{
+			const auto &s = mesh.surfaces[0];
+			const auto &t = s.triangles[face];
+			const auto a = s.frames[0].positions[t.a], b = s.frames[0].positions[t.b], c = s.frames[0].positions[t.c];
+			return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+		};
+		expect(upward(hat, 0) > 0 && upward(hat, 10) > 0, "the hat's top and brim face up");
+		for (auto &t : hat.surfaces[0].triangles)
+			std::swap(t.b, t.c);
+		expect(applyModelEdit(&hat, toolOf(ModelEditKind::RecalculateOutside, {0, {}, {}}), nullptr, &error), "recalculate the inside-out hat", error);
+		expect(upward(hat, 0) > 0 && upward(hat, 10) > 0, "ray parity through the crown turns the open hat outward again");
+		expect(!applyModelEdit(&hat, toolOf(ModelEditKind::RecalculateOutside, {0, {}, {}}), nullptr, &error),
+			   "the outward hat is left alone");
+	}
 	// A seamed cube with faces flipped on several sides ends fully outward.
 	{
 		auto mesh = seamedCube();

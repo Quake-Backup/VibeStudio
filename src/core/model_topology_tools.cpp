@@ -5,18 +5,48 @@
 #include "core/model_mesh_tools_p.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 namespace vibestudio
 {
 using namespace model_tools;
+namespace
+{
+// Where the line o + t d meets the triangle, if it does (Moller-Trumbore,
+// both directions); `grazing` when it meets it on or next to an edge.
+bool lineHit(P3 o, P3 d, const std::array<P3, 3> &corners, double *t, bool *grazing)
+{
+	const P3 e1 = corners[1] - corners[0], e2 = corners[2] - corners[0];
+	const P3 p = cross(d, e2);
+	const double det = dot(e1, p);
+	if (std::abs(det) <= 1e-12 * length(e1) * length(e2) * length(d))
+		return false;
+	const double inverse = 1 / det;
+	const P3 s = o - corners[0];
+	const double u = dot(s, p) * inverse;
+	if (u < 0 || u > 1)
+		return false;
+	const P3 q = cross(s, e1);
+	const double v = dot(d, q) * inverse;
+	if (v < 0 || u + v > 1)
+		return false;
+	*t = dot(e2, q) * inverse;
+	*grazing = u < 1e-7 || v < 1e-7 || u + v > 1 - 1e-7;
+	return std::isfinite(*t);
+}
+} // namespace
 
 // Recalculate Outside, as Blender's Normals > Recalculate Outside
 // (https://docs.blender.org/manual/en/latest/modeling/meshes/editing/mesh/normals.html):
 // winding is made consistent across geometric edges (through UV seams), then
 // each connected piece faces away from its inside, judged by signed volume
-// when it is closed and by an area-weighted vote against its centre when it is
-// open. Original implementation; no Blender code is used.
+// when it is closed. An open piece is judged by ray parity: from sampled faces
+// a line along the normal crosses the piece an even number of times in front
+// and an odd number behind when the face points out of a hollow, and the
+// reverse when it points in; faces whose lines escape through an opening tell
+// nothing. Only when no face tells, an area-weighted vote against the piece's
+// centre decides. Original implementation; no Blender code is used.
 bool recalculateModelOutside(ModelMesh *candidate, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control)
 {
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
@@ -134,6 +164,58 @@ bool recalculateModelOutside(ModelMesh *candidate, const ModelEdit &edit, ModelS
 				const P3 n = cross(b - a, c - a);
 				vote += dot(n, (a + b + c) * (1.0 / 3)) >= 0 ? length(n) : -length(n);
 			}
+		}
+		if (!closed)
+		{
+			// Ray parity, from at most 512 faces spread over the piece.
+			QVector<std::array<P3, 3>> corners;
+			corners.reserve(members.size());
+			double scale = 0;
+			for (int face : members)
+			{
+				const auto t = oriented(face);
+				corners.append({position(surface, frame, t.a), position(surface, frame, t.b), position(surface, frame, t.c)});
+				for (const auto &p : corners.last())
+					scale = std::max({scale, std::abs(p.x), std::abs(p.y), std::abs(p.z)});
+			}
+			const double epsilon = std::max(1e-9, scale * 1e-7);
+			const int stride = std::max(1, int(corners.size() / 512));
+			double parity = 0;
+			for (int i = 0; i < corners.size(); i += stride)
+			{
+				const auto &own = corners[i];
+				const P3 n = cross(own[1] - own[0], own[2] - own[0]);
+				const double twice = length(n);
+				if (twice <= 0)
+					continue;
+				// An uneven point inside the face, so symmetric models do not
+				// send every line along a neighbour's diagonal.
+				const P3 o = own[0] * 0.2113 + own[1] * 0.3247 + own[2] * 0.464, d = n * (1 / twice);
+				int front = 0, back = 0;
+				bool grazed = false;
+				for (int j = 0; j < corners.size() && !grazed; ++j)
+				{
+					if (!work.step())
+						return false;
+					double t = 0;
+					bool grazing = false;
+					if (j != i && lineHit(o, d, corners[j], &t, &grazing))
+					{
+						grazed = grazing && std::abs(t) > epsilon;
+						front += t > epsilon;
+						back += t < -epsilon;
+					}
+				}
+				// A line through an edge or corner is not counted.
+				if (grazed)
+					continue;
+				if (front % 2 == 0 && back % 2 == 1)
+					parity += twice;
+				else if (front % 2 == 1 && back % 2 == 0)
+					parity -= twice;
+			}
+			if (parity != 0)
+				vote = parity;
 		}
 		// Outward unless the piece's vote says inward; Inside reverses it.
 		const bool reverse = (vote < 0) != edit.tool.topology.inside;

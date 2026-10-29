@@ -452,9 +452,14 @@ does:
 
 1. Winding is made consistent across shared edges, including UV and normal
    seams, so islands split by seams are oriented together.
-2. Each connected piece then faces outward: a closed piece by the sign of its
-   volume, an open one (a cup, a cape) by an area-weighted vote of its faces
-   against its centre, in the displayed pose.
+2. Each connected piece then faces outward, in the displayed pose: a closed
+   piece by the sign of its volume. An open one (a cup, a hat, a cape) is
+   judged by ray parity: a line along a face's normal that crosses the piece
+   an even number of times in front and an odd number behind means the face
+   points out of the hollow. Up to 512 faces spread over the piece are
+   tested; lines that escape through an opening tell nothing, and when no
+   face tells (a flat cape), an area-weighted vote against the piece's centre
+   decides.
 3. The faces that turn get fresh normals in every pose.
 
 **Recalculate Inside** (and **Inside** in Adjust Last Operation) turns the
