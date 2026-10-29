@@ -64,9 +64,6 @@ void ModelEditorDialog::addOutputControls(QFormLayout *page)
 	state.list->setMinimumHeight(fontMetrics().lineSpacing() * 4);
 	state.list->setLayoutDirection(Qt::LeftToRight);
 	page->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Outputs"), state.list);
-	auto *row = new QWidget;
-	auto *buttons = new QHBoxLayout(row);
-	buttons->setContentsMargins(0, 0, 0, 0);
 	state.check = new QPushButton(QCoreApplication::translate("VibeStudioModelEditor", "Check Outputs"));
 	state.check->setObjectName(QStringLiteral("meshCheckOutputs"));
 	state.check->setAccessibleDescription(
@@ -79,10 +76,9 @@ void ModelEditorDialog::addOutputControls(QFormLayout *page)
 		"Export the stale outputs again from the saved source with the settings they were made with. An output changed elsewhere is "
 		"never replaced."));
 	state.refresh->setToolTip(state.refresh->accessibleDescription());
-	buttons->addWidget(state.check);
-	buttons->addWidget(state.refresh);
-	buttons->addStretch(1);
-	page->addRow(row);
+	// One button per row: side by side they outgrow the sidebar at 200% text.
+	page->addRow(state.check);
+	page->addRow(state.refresh);
 	connect(state.check, &QPushButton::clicked, this, [this]() { refreshOutputs(); });
 	connect(state.refresh, &QPushButton::clicked, this, [this]() { refreshStaleOutputs(); });
 	refreshOutputs();
