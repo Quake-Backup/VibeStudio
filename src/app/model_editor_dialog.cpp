@@ -601,10 +601,13 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	m_renderMode->addItems({QCoreApplication::translate("VibeStudioModelEditor", "Solid"),
 							QCoreApplication::translate("VibeStudioModelEditor", "Wireframe"),
 							QCoreApplication::translate("VibeStudioModelEditor", "UV Checker"),
-							QCoreApplication::translate("VibeStudioModelEditor", "Material")});
+							QCoreApplication::translate("VibeStudioModelEditor", "Material"),
+							QCoreApplication::translate("VibeStudioModelEditor", "Game")});
 	m_renderMode->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
 														 "Material mode loads each surface's image from the staged package. "
-														 "Missing images use the checker; shader effects are not rendered."));
+														 "Missing images use the checker. Game draws what the engine would: Quake "
+														 "skins with fullbrights, player colours and the renderer's sampling, and "
+														 "Quake III shader stages."));
 	m_viewPreset = new QComboBox;
 	m_viewPreset->setObjectName(QStringLiteral("meshViewPreset"));
 	m_viewPreset->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "View preset"));
@@ -1127,6 +1130,7 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	m_materialCancel->hide();
 	m_materialRow->hide();
 	statusRow->addWidget(m_materialRow, 2);
+	addGamePreviewControls(statusRow);
 	addExportReportButton(statusRow);
 	layout->addLayout(statusRow);
 	m_materialLoader = new ModelMaterialWorker(this);
@@ -2373,7 +2377,8 @@ void ModelEditorDialog::refreshMaterial()
 	{
 		return;
 	}
-	const bool materialMode = m_renderMode->currentIndex() == 3;
+	// Game draws on top of the material images, which it falls back to.
+	const bool materialMode = m_renderMode->currentIndex() == 3 || m_renderMode->currentIndex() == 4;
 	m_materialRow->setVisible(materialMode);
 	if (materialMode)
 	{
@@ -2387,9 +2392,10 @@ void ModelEditorDialog::refreshMaterial()
 }
 void ModelEditorDialog::applyMaterialImages()
 {
-	m_preview->setMdlSkinVisible(m_renderMode->currentIndex() == 3);
-	auto images = m_renderMode->currentIndex() == 3 ? m_surfaceImages : QHash<int, QImage>();
-	if (m_renderMode->currentIndex() == 3 && !m_mdlPreview.isNull())
+	const bool materialMode = m_renderMode->currentIndex() == 3 || m_renderMode->currentIndex() == 4;
+	m_preview->setMdlSkinVisible(materialMode);
+	auto images = materialMode ? m_surfaceImages : QHash<int, QImage>();
+	if (materialMode && !m_mdlPreview.isNull())
 	{
 		for (int s = 0; s < m_document.mesh().surfaces.size(); ++s)
 		{
@@ -2410,6 +2416,7 @@ void ModelEditorDialog::applyMaterialImages()
 	m_preview->setRenderMode(m_renderMode->currentIndex() == 0	 ? ModelViewportRenderMode::FlatShaded
 							 : m_renderMode->currentIndex() == 1 ? ModelViewportRenderMode::Wireframe
 																 : ModelViewportRenderMode::Textured);
+	refreshGamePreview();
 	refreshUv();
 }
 void ModelEditorDialog::showMaterialDetails()

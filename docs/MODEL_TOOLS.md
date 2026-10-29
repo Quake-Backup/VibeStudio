@@ -203,6 +203,10 @@ mode. Ctrl+**V**, Ctrl+**E** and Ctrl+**F** open them from the keyboard; **X**
 or Delete opens Delete, **M** Merge, Shift+**A** Add, Alt+**N** Normals,
 Shift+**G** Select Similar, **Z** Shading and **U** UV Mapping.
 
+**Shading** > **Game** draws each surface the way its engine would: Quake
+skins with fullbrights, player colours, flood fill and the renderer's
+sampling, and Quake III shader stages. See [Game Preview](MODEL_GAME_PREVIEW.md).
+
 **F3** searches every Mesh Editor command by name and shows its shortcut.
 
 **F9** shows the **Adjust Last Operation** panel. Changing a setting there

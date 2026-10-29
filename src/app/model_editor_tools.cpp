@@ -522,6 +522,7 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshShadingWire"), Text::tr("Wireframe"), {}, [this] { m_editor->m_renderMode->setCurrentIndex(1); });
 	addAction(QStringLiteral("meshShadingSolid"), Text::tr("Solid"), {}, [this] { m_editor->m_renderMode->setCurrentIndex(0); });
 	addAction(QStringLiteral("meshShadingMaterial"), Text::tr("Material Preview"), {}, [this] { m_editor->m_renderMode->setCurrentIndex(3); });
+	addAction(QStringLiteral("meshShadingGame"), Text::tr("Game Preview"), {}, [this] { m_editor->m_renderMode->setCurrentIndex(4); });
 	addAction(QStringLiteral("meshShadingChecker"), Text::tr("UV Checker"), {}, [this] { m_editor->m_renderMode->setCurrentIndex(2); });
 	addAction(QStringLiteral("meshToggleXray"), Text::tr("Toggle X-Ray"), QStringLiteral("Alt+Z"), [this] { m_xray->toggle(); });
 	addAction(QStringLiteral("meshToggleProportional"), Text::tr("Proportional Editing"), QStringLiteral("O"),
@@ -627,7 +628,7 @@ void ModelEditorTools::buildMenus()
 												 QStringLiteral("meshNextView"), QStringLiteral("meshPreviousView")}),
 					   QStringLiteral("meshMenuView"));
 	auto *shading = named(menu(Text::tr("Shading"), {QStringLiteral("meshShadingWire"), QStringLiteral("meshShadingSolid"),
-													 QStringLiteral("meshShadingMaterial"), QStringLiteral("meshShadingChecker")}),
+													 QStringLiteral("meshShadingMaterial"), QStringLiteral("meshShadingGame"), QStringLiteral("meshShadingChecker")}),
 						  QStringLiteral("meshMenuShading"));
 	view->insertMenu(m_actions.value(QStringLiteral("meshToggleXray")), shading);
 	// The document's own menu leads, as Blender's image editor leads with Image.

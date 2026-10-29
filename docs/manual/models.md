@@ -278,6 +278,23 @@ From there, export MD5 or IQM to keep the skeleton, or MDL, MD2 or MD3 for
 vertex animation. See [glTF 2.0 import](../MODEL_FORMATS.md#gltf-20-import)
 for what is read and left out.
 
+### See the model as the game draws it
+
+Choose **Shading** > **Game** to see each surface with what the engine puts on
+it, rather than only its image:
+
+- For a Quake model, choose the **Quake renderer**. **Modern port** and
+  **Software** keep fullbright colours (eyes, lights) bright in the dark;
+  **GLQuake** lights them like the rest. **Software** also shows the skin's
+  pixels sharp, as the software renderer draws them.
+- Set **Top** and **Bottom** to see team or player colours.
+- Leave **Flood fill** on to see the skin the way GLQuake loads it.
+- For a Quake III model, open its package first: shader stages such as
+  glowing additive layers, scrolling textures and cut-out alpha are drawn.
+
+The line beside the controls says what the preview cannot show, such as
+environment mapping. See [Game preview](../MODEL_GAME_PREVIEW.md).
+
 ### Review what the decoder reported
 
 Many game files open with notes from the decoder. What happens depends on how

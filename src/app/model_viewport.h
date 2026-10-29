@@ -127,6 +127,12 @@ public:
 	void setSkin(const QImage& skin);
 	// Overrides the shared fallback skin for individual surfaces.
 	void setSurfaceSkins(const QHash<int, QImage>& skins);
+	// The Game preview (core/model_game_preview.h): per-surface skins drawn in
+	// place of the material images, MDL skins included, with unlit glow
+	// layers added after shading, and point sampling when the engine samples
+	// that way. Empty skins end the preview.
+	void setGameSkins(const QHash<int, QImage>& skins, const QHash<int, QImage>& glows, bool nearest);
+	[[nodiscard]] bool gameSkinsActive() const { return !m_gameSkins.isEmpty(); }
 	void clearSkin();
 	[[nodiscard]] bool hasSkin() const;
 	[[nodiscard]] QSize skinSize() const;
@@ -877,6 +883,9 @@ private:
 	bool m_skinHasAlpha = false;
 	QHash<int, QImage> m_surfaceSkins;
 	QSet<int> m_surfaceSkinAlpha;
+	QHash<int, QImage> m_gameSkins, m_gameGlows;
+	QSet<int> m_gameSkinAlpha;
+	bool m_gameNearest = false;
 
 	QVector<MeshTriangle> m_meshTriangles;
 	// Bumped whenever m_mesh is replaced, so cached GPU uploads never outlive it.

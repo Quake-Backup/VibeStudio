@@ -161,7 +161,7 @@ Matrix viewProjection(const ModelViewport::RasterWork& work, const ModelViewport
 	return m;
 }
 
-QByteArray surfaceUniforms(const ModelViewport::RasterWork& work, const Matrix& matrix, bool textured, int pass, int firstTriangle)
+QByteArray surfaceUniforms(const ModelViewport::RasterWork& work, const Matrix& matrix, bool textured, int pass, int firstTriangle, bool glow = false)
 {
 	QByteArray bytes;
 	bytes.reserve(208);
@@ -178,7 +178,7 @@ QByteArray surfaceUniforms(const ModelViewport::RasterWork& work, const Matrix& 
 	appendColor(&bytes, work.palette.hover);
 	appendColor(&bytes, work.palette.highlight);
 	appendColor(&bytes, work.palette.highlight);
-	appendVec4(&bytes, work.pixelRatio, work.showEdges ? 1.0 : 0.0, textured ? 1.0 : 0.0, 0.0);
+	appendVec4(&bytes, work.pixelRatio, work.showEdges ? 1.0 : 0.0, textured ? 1.0 : 0.0, glow ? 1.0 : 0.0);
 	appendIvec4(&bytes, work.hover, firstTriangle, work.backfaceCulling ? 1 : 0, pass);
 	return bytes;
 }
@@ -212,11 +212,13 @@ GpuState underState()
 	return state;
 }
 
-GpuSampler skinSampler()
+GpuSampler skinSampler(bool nearest = false)
 {
+	// The Game preview samples point-wise where the engine does (Quake's
+	// software renderer).
 	GpuSampler sampler;
-	sampler.minFilter = GpuFilter::Linear;
-	sampler.magFilter = GpuFilter::Linear;
+	sampler.minFilter = nearest ? GpuFilter::Nearest : GpuFilter::Linear;
+	sampler.magFilter = nearest ? GpuFilter::Nearest : GpuFilter::Linear;
 	sampler.wrapU = GpuWrap::Repeat;
 	sampler.wrapV = GpuWrap::Repeat;
 	return sampler;
@@ -670,11 +672,31 @@ void ModelViewport::renderGpu(RasterWork& work)
 		textureIndex.insert(image.cacheKey(), index);
 		return index;
 	};
+	// The Game preview's unlit layer for a surface, uploaded like a skin.
+	const auto glowFor = [&](int surfaceIndex) {
+		const auto found = work.surfaceGlows.constFind(surfaceIndex);
+		if (!work.textured || found == work.surfaceGlows.cend() || found->isNull()) {
+			return -1;
+		}
+		const auto known = textureIndex.constFind(found->cacheKey());
+		if (known != textureIndex.cend()) {
+			return known.value();
+		}
+		GpuTextureData texture;
+		texture.levels = {found->width() > skinLimit || found->height() > skinLimit
+				? found->scaled(std::min(found->width(), skinLimit), std::min(found->height(), skinLimit), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
+				: *found};
+		const int index = static_cast<int>(frame.textures.size());
+		frame.textures.append(texture);
+		textureIndex.insert(found->cacheKey(), index);
+		return index;
+	};
 	// One draw per surface run (the triangle list is surface-major).
 	struct Run {
 		int first = 0;
 		int count = 0;
 		int texture = -1;
+		int glow = -1;
 		bool alpha = false;
 	};
 	QVector<Run> runs;
@@ -688,6 +710,7 @@ void ModelViewport::renderGpu(RasterWork& work)
 		run.first = index;
 		run.count = end - index;
 		run.texture = work.wireframe ? -1 : textureFor(runSurface, &run.alpha);
+		run.glow = run.texture >= 0 ? glowFor(runSurface) : -1;
 		runs.append(run);
 		index = end;
 	}
@@ -698,9 +721,12 @@ void ModelViewport::renderGpu(RasterWork& work)
 		draw.vertexBuffers[0] = {0, qint64(run.first) * 3 * kCornerBytes};
 		draw.vertexBuffers[1] = {1, qint64(run.first) * 3 * 4};
 		draw.count = run.count * 3;
-		draw.uniforms = surfaceUniforms(work, matrix, run.texture >= 0, pass, run.first);
+		draw.uniforms = surfaceUniforms(work, matrix, run.texture >= 0, pass, run.first, run.glow >= 0);
 		if (run.texture >= 0) {
-			draw.textures[0] = GpuTextureRef::texture(run.texture, skinSampler());
+			draw.textures[0] = GpuTextureRef::texture(run.texture, skinSampler(work.nearestSkins));
+		}
+		if (run.glow >= 0) {
+			draw.textures[3] = GpuTextureRef::texture(run.glow, skinSampler(work.nearestSkins));
 		}
 		if (nearTexture >= 0) {
 			draw.textures[1] = GpuTextureRef::target(nearTexture);

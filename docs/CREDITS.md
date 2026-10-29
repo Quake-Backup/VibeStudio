@@ -3550,8 +3550,10 @@ VibeStudio work.
 
 The decode issue severities (`src/core/model_decode_issues.*`,
 `src/app/model_import_review.*`), the glTF 2.0 reader
-(`src/core/model_format_gltf.cpp`) and the legacy model fuzz seeds
-(`src/tests/model_legacy_fuzz_seeds.h`, `model_format_legacy_fuzz_smoke_test.cpp`)
+(`src/core/model_format_gltf.cpp`), the legacy model fuzz seeds
+(`src/tests/model_legacy_fuzz_seeds.h`, `model_format_legacy_fuzz_smoke_test.cpp`),
+the bulk model audit (`src/core/model_audit.*`) and the Game preview
+(`src/core/model_game_preview.*`, `src/app/model_editor_game_preview.cpp`)
 are original VibeStudio code.
 
 | Reference | What it informed | Revision | Licence / use |
@@ -3559,6 +3561,8 @@ are original VibeStudio code.
 | [glTF 2.0 specification](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html) by the Khronos Group | GLB container, buffers, buffer views, accessors (component types, normalisation, strides, sparse storage), primitives and modes, morph targets, nodes, skins, animation samplers including the cubic Hermite spline of Appendix C, and materials' base colour textures | Version 2.0.1, read 2026-10-29 | Specification © The Khronos Group, published for implementers; format facts only, no code copied |
 | [Blender glTF importer documentation](https://docs.blender.org/manual/en/latest/addons/import_export/scene_gltf2.html) | The Y-up to Z-up axis mapping a Blender user expects, game (x, y, z) = glTF (x, -z, y) | Blender 4 manual, read 2026-10-29 | Manual CC-BY-SA-4.0; behaviour only |
 | Quake Specifications chapter 5, Quake II `qfiles.h`, Quake III `md3.h` (see [Native Model Formats And Modeller Profiles](#native-model-formats-and-modeller-profiles-2026-10-08)) | The byte layouts of the rich MDL, MD2 and MD3 fuzz seeds built by the tests | As recorded there | Layout only |
+| [Quake GPL source](https://github.com/id-Software/Quake/tree/bf4ac424ce754894ac8f1dae6a3981954bc9852d) (`WinQuake/cl_parse.c` `CL_NewTranslation`, `WinQuake/r_alias.c` `R_AliasSetupSkin`, `GLQuake/gl_model.c` `Mod_FloodFillSkin`, `GLQuake/gl_rmain.c` `R_TranslatePlayerSkin`) | The Game preview's player colour translation, skin group timing, fullbright range and GLQuake flood fill (`src/core/model_game_preview.cpp`) | `bf4ac424ce754894ac8f1dae6a3981954bc9852d`, read 2026-10-29 | GPL-2.0-or-later, compatible with GPL-3.0; behaviour only, no code copied |
+| [Quake III Arena GPL source](https://github.com/id-Software/Quake-III-Arena/tree/dbe4ddb10315479fc00086f08e25d968b4b43c49) (`code/renderer/tr_shade.c`, `tr_shade_calc.c`) | The Game preview's stage blending, alphaFunc, rgbGen/alphaGen and tcMod order and maths, composed in texture space | `dbe4ddb10315479fc00086f08e25d968b4b43c49`, read 2026-10-29 | GPL-2.0-or-later, compatible with GPL-3.0; behaviour only, no code copied |
 
 ## Smart-tag authoring
 

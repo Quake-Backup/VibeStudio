@@ -2474,6 +2474,12 @@ Each resolved path may be a definition file or a folder of them.
   model, or with `--format doom3` a Doom 3 skin declaration (`--model-path`,
   `--decl-name`). Both writers are the Mesh Editor's; refusals exit 4 without
   writing. See [Skin Variants](MODEL_SKIN_VARIANTS.md).
+- [x] `model game-skin <model> --output <skin.png>` writes the Game preview of
+  one surface at `--time`: Quake MDL skins with `--top`/`--bottom` player
+  colours, `--quake-renderer glquake|modern|software` fullbrights and sampling
+  and GLQuake's flood fill (`--no-flood-fill`); Quake III shaders from
+  `--package` composed stage by stage. `--glow-output` writes the unlit layer;
+  JSON carries image hashes. See [Game preview](MODEL_GAME_PREVIEW.md).
 - [x] `model audit <package|folder|installation>` decodes every model it
   finds (loose files and every package inside a folder) without writing to it
   and reports, per entry, the format, decode success and time (`--timings`),

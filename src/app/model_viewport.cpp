@@ -1113,6 +1113,24 @@ void ModelViewport::setSurfaceSkins(const QHash<int, QImage>& skins)
 	invalidateProjection(); setAccessibleDescription(accessibleSummary()); update();
 }
 
+void ModelViewport::setGameSkins(const QHash<int, QImage>& skins, const QHash<int, QImage>& glows, bool nearest)
+{
+	invalidateRaster(true);
+	m_gameSkins.clear();
+	m_gameGlows.clear();
+	m_gameSkinAlpha.clear();
+	m_gameNearest = nearest;
+	for (auto it = skins.cbegin(); it != skins.cend(); ++it) {
+		if (it.key() < 0 || it.key() >= m_mesh.surfaces.size() || it.value().isNull()) { continue; }
+		const auto converted = it.value().convertToFormat(QImage::Format_ARGB32_Premultiplied);
+		m_gameSkins.insert(it.key(), converted);
+		if (modelSkinHasAlpha(converted)) { m_gameSkinAlpha.insert(it.key()); }
+		const QImage glow = glows.value(it.key());
+		if (!glow.isNull()) { m_gameGlows.insert(it.key(), glow.convertToFormat(QImage::Format_ARGB32_Premultiplied)); }
+	}
+	update();
+}
+
 void ModelViewport::invalidateProjection()
 {
 	m_componentCycle.reset();
@@ -1668,6 +1686,14 @@ void ModelViewport::paintTriangles(QPainter &painter, const Palette &palette)
 		{
 			work->surfaceSkins = m_surfaceSkins;
 			work->surfaceSkinAlpha = m_surfaceSkinAlpha;
+		}
+		// The Game preview replaces every surface's image, MDL skins included.
+		if (!m_gameSkins.isEmpty())
+		{
+			work->surfaceSkins = m_gameSkins;
+			work->surfaceSkinAlpha = m_gameSkinAlpha;
+			work->surfaceGlows = m_gameGlows;
+			work->nearestSkins = m_gameNearest;
 		}
 		// Uploads made for an earlier frame of the same pose and selection are
 		// reused: a camera move only re-runs the GPU.

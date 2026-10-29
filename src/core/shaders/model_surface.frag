@@ -27,6 +27,9 @@ VIBE_SAMPLER(0) tex0;
 // Translucent passes: the opaque pass's depth, and the previous layer's.
 VIBE_SAMPLER(1) tex1;
 VIBE_SAMPLER(2) tex2;
+// The modeller's Game preview: an unlit layer added after shading (Quake
+// fullbrights, Quake III identity stages); read when params.w is 1.
+VIBE_SAMPLER(3) tex3;
 
 VIBE_VARYING_IN(0) vec2 vUv;
 VIBE_VARYING_IN(1) vec3 vBarycentricW;
@@ -62,6 +65,10 @@ void main()
 			discard;
 		}
 		color = vec4(floor(texel.rgb * 255.0 * vShade.r + 0.5) / 255.0, texel.a);
+		if (params.w > 0.5) {
+			vec3 glow = texture(tex3, vUv).rgb;
+			color.rgb = min(color.rgb + glow * texel.a, vec3(texel.a));
+		}
 	} else {
 		color = vShade;
 	}
