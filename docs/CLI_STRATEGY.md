@@ -2281,6 +2281,14 @@ Each resolved path may be a definition file or a folder of them.
   single-frame scope are usage errors; normal dry-run and overwrite protections
   apply. Geometry failures return 4 without writing. See [boundary filling](MODEL_MESH.md)
   for conservative geometry checks and workload limits.
+- [x] `model edit <source> --operation transform-model --output <new.mesh.json>`
+  moves the whole model by `--offset`, `--rotate` and `--scale` about `--pivot`,
+  or puts the origin at `--origin bounds-centre|bounds-bottom|point` (`--at
+  x,y,z`, measured in `--source-frame N`). Tags, collision boxes, the skeleton
+  with its clips and influences, and the MDL eye position follow in every
+  frame. Component selectors and `--frame N` are usage errors (2); a transform
+  a part cannot follow (sheared collision, non-uniform skeletal scale) returns
+  4 without writing. See [Transform Model](MODEL_MESH.md#transform-model).
 - [x] `model edit <source> --operation bridge-boundary-loops --edges a:b,c:d
   --output <new.mesh.json>` joins exactly two disjoint closed boundaries on the
   active surface, including unequal vertex counts. `--source-frame N` selects
@@ -2392,8 +2400,15 @@ Each resolved path may be a definition file or a folder of them.
   rotate-edges, merge, dissolve-vertices, dissolve-faces, poke, beautify,
   make-face, extrude-edges, inset, shrink-fatten, smooth, transform
   (proportional and mirrored), shade-flat, shade-smooth, auto-smooth, bisect,
-  symmetrize, loop-cut, edge-slide, add (primitives), decimate, bevel-vertices, solidify
-  and the UV projections uv-cube, uv-view, uv-cylinder and uv-sphere. Components use
+  symmetrize, loop-cut, edge-slide, add (primitives), decimate, bevel-vertices, solidify,
+  the UV projections uv-cube, uv-view, uv-cylinder and uv-sphere, align
+  (`--axis` with `--value` or `--to centroid|min|max`), snap-grid (`--grid`),
+  connect (`--vertices` path in order), connect-edges (`--edges`, `--cuts`,
+  `--slide`), delete (`--mode vertices|edges|faces`), dissolve-edges
+  (`--keep-vertices`), limited-dissolve (`--angle`), recalculate-outside
+  (`--inside`), mark-sharp and clear-sharp (`--edges`), and place (`--vertices`
+  with `--positions`); merge takes `--merge target --target-vertex N` and
+  transform `--auto-merge D`. Components use
   `--surface`, `--faces`, `--vertices` and `--edges`; each tool refuses options
   it does not take. `--dry-run`, `--overwrite`, text/JSON results and exit
   codes (2 usage, 1 read/write, 4 invalid edit, 0 success) match `model edit`.

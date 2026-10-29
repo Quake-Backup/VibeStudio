@@ -53,8 +53,9 @@ Cuts must stop before neighbours. Mitre offsets at a corner must fit inside
 its neighbouring edge lengths. Retained faces, bands and caps are checked for
 collapse and local winding changes in every stored pose; the result must
 preserve closed neighbourhoods. Ambiguous, over-wide or folded results are
-refused as a whole. These are local topology checks; use **Health** to review
-distant self-intersections. Very small cuts at large coordinates can exceed
+refused as a whole. These are local topology checks; faces the bevel makes
+cross other faces of the surface are reported afterwards, or refused, by the
+[intersection guard](MODEL_TOOLS.md#new-intersections). Very small cuts at large coordinates can exceed
 the mesh's floating-point precision.
 
 Original face corners keep independently interpolated UVs and normals, including

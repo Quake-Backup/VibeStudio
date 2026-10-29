@@ -89,14 +89,22 @@ constexpr CommandEntry kCommands[] = {
 	{"meshBevelVertices", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bevel Vertices"), "Ctrl+Shift+B"},
 	{"meshBevelEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bevel Edges"), "Ctrl+B"},
 	{"meshKnife", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Knife"), "K"},
+	{"meshConnectVertexPath", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Connect Vertex Path"), "J"},
+	{"meshConnectEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Connect Edges"), ""},
 	{"meshSpin", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Spin"), ""},
 	{"meshRip", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Rip"), "V"},
 	{"meshRipFill", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Rip and Fill"), "Alt+V"},
 	{"meshSpinDuplicate", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Spin Duplicates"), ""},
 	{"meshMergeCentre", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Merge at Centre"), ""},
 	{"meshMergeCollapse", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Collapse"), ""},
+	{"meshMergeTarget", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Merge at Target Under Pointer"), ""},
+	{"meshAutoMerge", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Auto Merge Vertices"), ""},
 	{"meshMergeDistance", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Merge by Distance"), ""},
 	{"meshDeleteFaces", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Delete Faces"), ""},
+	{"meshDeleteVertices", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Delete Vertices"), ""},
+	{"meshDeleteEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Delete Edges"), ""},
+	{"meshDissolveEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Dissolve Edges"), ""},
+	{"meshLimitedDissolve", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Limited Dissolve"), ""},
 	{"meshDissolveVertices", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Dissolve Vertices"), ""},
 	{"meshFillHoles", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Fill Boundary Loops"), ""},
 	{"meshSubdivide", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Subdivide"), ""},
@@ -105,6 +113,11 @@ constexpr CommandEntry kCommands[] = {
 	{"meshSmooth", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Smooth Vertices"), ""},
 	{"meshFlip", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Flip Normals"), ""},
 	{"meshRecalculateNormals", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Recalculate Normals"), "Shift+N"},
+	{"meshRecalculateOutside", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Recalculate Outside"), ""},
+	{"meshRecalculateInside", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Recalculate Inside"), ""},
+	{"meshMarkSharp", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Mark Sharp"), ""},
+	{"meshSelectIntroducedIntersections", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Select New Intersections"), ""},
+	{"meshClearSharp", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Clear Sharp"), ""},
 	{"meshShadeSmooth", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Shade Smooth"), ""},
 	{"meshAddMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Add Menu"), "Shift+A"},
 	{"meshDeleteMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Delete Menu"), "X|Del"},
@@ -222,6 +235,10 @@ ModelEditorControls blenderControls()
 	bind(controls, "meshPlay", {"Space"});
 	bind(controls, "meshFrameFirst", {"Shift+Ctrl+Left"});
 	bind(controls, "meshFrameLast", {"Shift+Ctrl+Right"});
+	// Blender's Shift+N winds faces outward; vertex normals stay a menu command.
+	bind(controls, "meshRecalculateOutside", {"Shift+N"});
+	bind(controls, "meshRecalculateInside", {"Ctrl+Shift+N"});
+	bind(controls, "meshRecalculateNormals", {});
 	return controls;
 }
 
@@ -300,9 +317,11 @@ ModelEditorControls maxControls()
 	bind(controls, "meshDuplicate", {"Ctrl+V"});
 	bind(controls, "meshDeleteFaces", {"Del"});
 	bind(controls, "meshDissolveVertices", {"Backspace"});
+	// Remove an edge with its vertices.
+	bind(controls, "meshDissolveEdges", {"Ctrl+Backspace"});
 	bind(controls, "meshExtrude", {"Shift+E"});
 	bind(controls, "meshBevelVertices", {"Ctrl+Shift+C"});
-	bind(controls, "meshLoopCut", {"Ctrl+Shift+E"});
+	bind(controls, "meshConnectEdges", {"Ctrl+Shift+E"});
 	bind(controls, "meshMergeCollapse", {"Ctrl+Alt+C"});
 	bind(controls, "meshFillHoles", {"Alt+P"});
 	bind(controls, "meshSubdivide", {"Ctrl+M"});
@@ -446,7 +465,7 @@ const ProfileEntry kProfiles[] = {
 		"https://docs.blender.org/manual/en/latest/interface/keymap/blender_default.html", "blender-3d|blender4|b3d", &blenderControls},
 	{"3ds-max", QT_TRANSLATE_NOOP("VibeStudioModelControls", "3ds Max"), "3ds Max",
 		QT_TRANSLATE_NOOP("VibeStudioModelControls", "Autodesk 3ds Max defaults: four views (Top, Front, Left, Perspective), middle-drag pan, Alt+middle orbit, Ctrl+Alt+middle zoom, Q/W/E/R select, move, rotate and scale tools, Ctrl adds and Alt removes, 1-6 sub-object levels, T/F/L/P/U views, Z zoom extents and Alt+W to maximise a view."),
-		QT_TRANSLATE_NOOP("VibeStudioModelControls", "Border (3) switches to edges and selects the open boundary loops of the selection; Element (5) selects whole connected pieces. Shift+drag with the Move tool duplicates the selection rather than cloning an object. Chamfer (Ctrl+Shift+C) bevels vertices; Connect (Ctrl+Shift+E) runs a loop cut; MeshSmooth (Ctrl+M) subdivides. Cut, Quickslice, Swift Loop, soft selection, the Modifier Stack and quad menus are not emulated; right-click opens the context menu. Ctrl+Alt+Page Down and Page Up step between the four views, which 3ds Max does not do."),
+		QT_TRANSLATE_NOOP("VibeStudioModelControls", "Border (3) switches to edges and selects the open boundary loops of the selection; Element (5) selects whole connected pieces. Shift+drag with the Move tool duplicates the selection rather than cloning an object. Chamfer (Ctrl+Shift+C) bevels vertices; Connect (Ctrl+Shift+E) adds edges between the selected edges' opposite sides; MeshSmooth (Ctrl+M) subdivides. Cut, Quickslice, Swift Loop, soft selection, the Modifier Stack and quad menus are not emulated; right-click opens the context menu. Ctrl+Alt+Page Down and Page Up step between the four views, which 3ds Max does not do."),
 		"https://help.autodesk.com/view/3DSMAX/2024/ENU/?guid=GUID-A73E1B09-7BFE-4A22-8153-1D3D2237B8E9", "max|3dsmax|3d-studio-max|3ds|autodesk-3ds-max", &maxControls},
 	{"milkshape-3d", QT_TRANSLATE_NOOP("VibeStudioModelControls", "MilkShape 3D"), "MilkShape 3D",
 		QT_TRANSLATE_NOOP("VibeStudioModelControls", "MilkShape 3D 1.8 defaults: four views (Front, Top, Side, 3D), Ctrl+left drag pans, Shift+left drag zooms, left drag rotates the 3D view, F1-F4 select, move, rotate and scale tools, Shift adds and Shift+right drag removes, Ctrl+W welds, Ctrl+N snaps together, Ctrl+H/Ctrl+U hide and unhide."),

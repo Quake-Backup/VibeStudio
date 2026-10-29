@@ -45,9 +45,10 @@ Disable **Close full turn** only when the coincident endpoint is intentional.
 Geometric adjacency is shared across indexed UV and hard-normal seams only
 where vertices coincide in every retained pose. Inconsistent face winding,
 non-boundary edge selections, collapsed faces, locally folded bands and
-document capacity overflow are refused before committing. These checks do not
-prevent distant self-intersections. Review **Health**, face orientation and all
-animation poses before export.
+document capacity overflow are refused before committing. Faces the spin makes
+cross other faces of the surface are reported, or refused, by the
+[intersection guard](MODEL_TOOLS.md#new-intersections). Review **Health**, face
+orientation and all animation poses before export.
 
 End caps and copies keep source UVs and seam marks. Each new border band gets
 a separate strip chart, with arc distance and profile length measured in the

@@ -449,6 +449,11 @@ Spin references the [Blender 4.0 Spin manual](https://docs.blender.org/manual/en
 Rip references the [Blender 4.5 Rip manual](https://docs.blender.org/manual/en/4.5/modeling/meshes/editing/vertex/rip_vertices.html)
 and [Rip and Fill](https://docs.blender.org/manual/en/4.5/modeling/meshes/editing/vertex/rip_vertices_fill.html)
 (CC-BY-SA-4.0, reviewed 2026-10-21; behaviour only, original implementation).
+Connect, delete and dissolve variants, Recalculate Outside, Mark Sharp, Auto
+Merge, Target Weld, Flatten and Transform Model follow the documented behaviour
+of Blender, 3ds Max and MilkShape 3D (reviewed 2026-10-28; behaviour only,
+original implementation); face snapping uses the published Möller–Trumbore
+ray–triangle test.
 See [Blender-Style Mesh Editing](docs/CREDITS.md#blender-style-mesh-editing-2026-10-07).
 
 Automatic mesh UV charting and packing use Jonathan Young's

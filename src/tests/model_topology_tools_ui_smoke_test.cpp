@@ -1,0 +1,529 @@
+// Mesh Editor commands for Align Vertices and the topology tools of the
+// polygon modelling round: profile keys, menus, Adjust Last Operation, the Item
+// page's selection position row and one undo step per command.
+#include "app/model_editor_dialog.h"
+#include "app/model_editor_tools.h"
+#include "app/model_viewport.h"
+#include "core/model_design.h"
+#include "core/studio_settings.h"
+#include "tests/model_viewport_test_helpers.h"
+#include "tests/render_test_support.h"
+
+#include <QAction>
+#include <QApplication>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QDialog>
+#include <QDir>
+#include <QDoubleSpinBox>
+#include <QFont>
+#include <QMenu>
+#include <QMenuBar>
+#include <QTemporaryDir>
+#include <QTimer>
+
+#include <cmath>
+#include <cstdlib>
+#include <iostream>
+#if defined(_MSC_VER) && defined(_DEBUG)
+#include <crtdbg.h>
+#endif
+
+using namespace vibestudio;
+namespace
+{
+int checks = 0, failures = 0;
+bool expect(bool condition, const char *message)
+{
+	++checks;
+	if (!condition)
+	{
+		std::cerr << "FAIL: " << message << '\n';
+		++failures;
+	}
+	return condition;
+}
+bool near(double a, double b, double tolerance = 1e-3)
+{
+	return std::abs(a - b) <= tolerance;
+}
+// A 4x4 grid of 8-unit quads with uneven heights, two poses (the second raised by 8).
+ModelMesh gridMesh(int cells = 4, double size = 8, bool flat = false)
+{
+	ModelDesign design;
+	ModelDesignPart part;
+	part.primitive = QStringLiteral("plane");
+	design.parts << part;
+	auto mesh = buildModelDesignMesh(design);
+	mesh.frames << mesh.frames[0];
+	mesh.frames[1].name = QStringLiteral("pose2");
+	auto &surface = mesh.surfaces[0];
+	QVector<ModelVec3> positions;
+	QVector<ModelTriangle> triangles;
+	for (int j = 0; j <= cells; ++j)
+		for (int i = 0; i <= cells; ++i)
+			positions.append(flat ? ModelVec3{float(i * size), float(j * size), 0}
+								  : ModelVec3{float(i * size + 0.3 * j), float(j * size - 0.2 * i), float((i * 7 + j * 3) % 5) * 0.5f});
+	const auto at = [&](int i, int j) { return j * (cells + 1) + i; };
+	for (int j = 0; j < cells; ++j)
+		for (int i = 0; i < cells; ++i)
+		{
+			triangles.append({at(i, j), at(i + 1, j), at(i + 1, j + 1)});
+			triangles.append({at(i, j), at(i + 1, j + 1), at(i, j + 1)});
+		}
+	surface.triangles = triangles;
+	surface.vertexCount = positions.size();
+	surface.texCoords.clear();
+	for (const auto &p : positions)
+		surface.texCoords.append({p.x / 64.0f, p.y / 64.0f});
+	ModelFrameGeometry frame;
+	frame.positions = positions;
+	frame.normals.fill({0, 0, 1}, positions.size());
+	surface.frames = {frame, frame};
+	for (auto &p : surface.frames[1].positions)
+		p.z += 8;
+	surface.uvSeams.clear();
+	surface.topologyVertices.clear();
+	updateEditableModelMetadata(&mesh);
+	return mesh;
+}
+QDoubleSpinBox *lastField(ModelEditorTools *tools, const QString &name)
+{
+	for (auto *spin : tools->lastOperationPanel()->findChildren<QDoubleSpinBox *>())
+		if (spin->accessibleName() == name)
+			return spin;
+	return nullptr;
+}
+
+void selectChecks(QApplication &app, ModelEditorDialog &editor)
+{
+	auto *tools = editor.tools();
+	const auto &document = editor.document();
+	const auto revision = document.revisionFingerprint();
+	tools->action(QStringLiteral("meshModeFace"))->trigger();
+	tools->applySelection({0, {}, {0}});
+	tools->action(QStringLiteral("meshAdjustLast"))->trigger();
+	tools->action(QStringLiteral("meshSelectSimilarNormal"))->trigger();
+	app.processEvents();
+	const int narrow = document.selection().faces.size();
+	auto *threshold = lastField(tools, QStringLiteral("Threshold (degrees)"));
+	if (expect(threshold && near(threshold->value(), 5), "Adjust Last Operation shows Select Similar's threshold"))
+	{
+		threshold->setValue(60);
+		app.processEvents();
+		const int wide = document.selection().faces.size();
+		expect(wide > narrow && document.revisionFingerprint() == revision && document.undoSteps() == 0,
+			   "a wider threshold selects more faces without touching the document or its history");
+		threshold = lastField(tools, QStringLiteral("Threshold (degrees)"));
+		if (expect(threshold, "the threshold stays adjustable"))
+		{
+			threshold->setValue(5);
+			app.processEvents();
+			expect(int(document.selection().faces.size()) == narrow, "the same threshold gives the same selection again");
+		}
+	}
+	// Random: the seed and ratio reproduce a selection exactly.
+	tools->applySelection({0, {}, {}});
+	tools->action(QStringLiteral("meshSelectRandom"))->trigger();
+	app.processEvents();
+	auto *seed = lastField(tools, QStringLiteral("Seed"));
+	if (expect(seed && lastField(tools, QStringLiteral("Ratio")), "Adjust Last Operation shows Random's ratio and seed"))
+	{
+		seed->setValue(7);
+		app.processEvents();
+		const auto seven = document.selection().faces;
+		lastField(tools, QStringLiteral("Seed"))->setValue(8);
+		app.processEvents();
+		const auto eight = document.selection().faces;
+		lastField(tools, QStringLiteral("Seed"))->setValue(7);
+		app.processEvents();
+		expect(seven != eight && document.selection().faces == seven, "a seed reproduces its random selection");
+		lastField(tools, QStringLiteral("Ratio"))->setValue(1);
+		app.processEvents();
+		expect(int(document.selection().faces.size()) == int(document.mesh().surfaces[0].triangles.size()), "a ratio of one selects every face");
+	}
+	expect(document.revisionFingerprint() == revision, "selection adjustments never edit the document");
+	tools->action(QStringLiteral("meshAdjustLast"))->trigger();
+	tools->applySelection({0, {}, {}});
+}
+
+void alignChecks(QApplication &app, ModelEditorDialog &editor)
+{
+	auto *tools = editor.tools();
+	const auto &document = editor.document();
+	QString error;
+	tools->applyControls(modelEditorControlsForProfile(QStringLiteral("milkshape-3d")));
+	expect(tools->action(QStringLiteral("meshFlattenX"))->shortcut() == QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_X) &&
+			   tools->action(QStringLiteral("meshSnapSelectionToGrid"))->shortcut() == QKeySequence(Qt::CTRL | Qt::Key_G),
+		   "MilkShape binds Flatten X to Ctrl+Shift+X and Snap to Grid to Ctrl+G");
+	const QSet<int> row{0, 1, 2, 3, 4};
+	tools->applySelection({0, row, {}});
+	const int steps = document.undoSteps();
+	tools->action(QStringLiteral("meshFlattenX"))->trigger();
+	app.processEvents();
+	const auto &surface = document.mesh().surfaces[0];
+	bool flat = true;
+	double mean = 0;
+	for (int v : row)
+		mean += 0.2 * (v * 8);
+	for (int v : row)
+		flat &= near(surface.frames[0].positions[v].x, mean) && near(surface.frames[1].positions[v].x, mean);
+	expect(flat && document.undoSteps() == steps + 1, "MilkShape Flatten X gives the row one X, its centroid, as one undo step");
+	// Adjust Last Operation: an exact value instead of the centroid.
+	auto *target = tools->lastOperationPanel()->findChild<QComboBox *>();
+	if (expect(target && target->accessibleName() == QStringLiteral("Align to"), "Adjust Last Operation shows the alignment target"))
+	{
+		target->setCurrentIndex(0);
+		app.processEvents();
+		app.processEvents();
+		auto *value = lastField(tools, QStringLiteral("Value X"));
+		if (expect(value, "choosing Value shows the value fields"))
+		{
+			value->setValue(3);
+			app.processEvents();
+			bool exact = true;
+			for (int v : row)
+				exact &= document.mesh().surfaces[0].frames[0].positions[v].x == 3.0f;
+			expect(exact && document.undoSteps() == steps + 1, "the adjusted value replaces the flatten in place");
+		}
+	}
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	expect(document.undoSteps() == steps && near(document.mesh().surfaces[0].frames[0].positions[1].x, 8),
+		   "one undo restores the row");
+	// Snap Selection to Grid: one step, every coordinate on the grid.
+	tools->applySelection({0, {6, 7, 8, 12}, {}});
+	tools->action(QStringLiteral("meshSnapSelectionToGrid"))->trigger();
+	app.processEvents();
+	const double grid = editor.findChild<QDoubleSpinBox *>(QStringLiteral("meshTranslationGrid"))
+							? editor.findChild<QDoubleSpinBox *>(QStringLiteral("meshTranslationGrid"))->value()
+							: 0;
+	bool snapped = grid > 0;
+	for (int v : {6, 7, 8, 12})
+		for (const auto &frame : document.mesh().surfaces[0].frames)
+		{
+			const auto p = frame.positions[v];
+			for (double c : {double(p.x), double(p.y), double(p.z)})
+				snapped &= near(std::remainder(c, grid), 0, 1e-4);
+		}
+	expect(snapped && document.undoSteps() == steps + 1, "Snap Selection to Grid snaps every selected vertex as one undo step");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	// The Snap menu reaches the same commands.
+	auto *snap = editor.findChild<QMenu *>(QStringLiteral("meshMenuSnap"));
+	expect(snap && snap->actions().contains(tools->action(QStringLiteral("meshSnapSelectionToGrid"))) &&
+			   editor.findChild<QMenu *>(QStringLiteral("meshMenuAlign")),
+		   "the Snap menu lists Snap Selection to Grid and the Align submenu");
+	// The Item page's selection position row sets an exact coordinate.
+	tools->applySelection({0, {10, 15}, {}});
+	app.processEvents();
+	auto *positionX = editor.findChild<QDoubleSpinBox *>(QStringLiteral("meshSelectionPositionX"));
+	if (expect(positionX && positionX->isEnabled() && !positionX->accessibleName().isEmpty(), "the Item page shows the selection position"))
+	{
+		positionX->setValue(-4);
+		app.processEvents();
+		expect(document.mesh().surfaces[0].frames[0].positions[10].x == -4.0f && document.mesh().surfaces[0].frames[1].positions[15].x == -4.0f &&
+				   document.undoSteps() == steps + 1,
+			   "typing a selection position gives every selected vertex that coordinate in one step");
+		editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+		app.processEvents();
+		expect(near(positionX->value(), (0.3 * 2 + 0.3 * 3) / 2), "the row shows the restored centroid after undo");
+	}
+	tools->applyControls(modelEditorControlsForProfile(QStringLiteral("studio")));
+}
+
+void transformModelChecks(QApplication &app, ModelEditorDialog &editor)
+{
+	auto *tools = editor.tools();
+	const auto &document = editor.document();
+	const int steps = document.undoSteps();
+	const auto lowest = [&](int frame)
+	{
+		double low = INFINITY;
+		for (const auto &p : document.mesh().surfaces[0].frames[frame].positions)
+			low = std::min(low, double(p.z));
+		return low;
+	};
+	tools->applySelection({0, {3}, {}});
+	tools->action(QStringLiteral("meshOriginBoundsBottom"))->trigger();
+	app.processEvents();
+	expect(near(lowest(0), 0) && document.undoSteps() == steps + 1 && document.selection().vertices == QSet<int>{3},
+		   "Origin to Bounds Bottom puts the feet on the origin in one step and keeps the selection");
+	auto *move = lastField(tools, QStringLiteral("Move Z"));
+	expect(move && tools->lastOperationPanel()->findChildren<QDoubleSpinBox *>().size() == 12,
+		   "Adjust Last Operation offers move, rotate, scale and pivot");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	const auto before = document.mesh().surfaces[0].frames[0].positions[1];
+	tools->action(QStringLiteral("meshTurnModelLeft"))->trigger();
+	app.processEvents();
+	const auto after = document.mesh().surfaces[0].frames[0].positions[1];
+	expect(near(after.x, -before.y) && near(after.y, before.x) && document.undoSteps() == steps + 1, "Turn Model 90° Left turns about Z");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// The numeric dialog.
+	QTimer::singleShot(0, &app,
+					   [&]
+					   {
+						   for (auto *widget : QApplication::topLevelWidgets())
+							   if (auto *dialog = qobject_cast<QDialog *>(widget); dialog && dialog->objectName() == QStringLiteral("meshTransformModelDialog"))
+							   {
+								   if (auto *offset = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelOffsetX")))
+									   offset->setValue(10);
+								   dialog->accept();
+							   }
+					   });
+	tools->action(QStringLiteral("meshTransformModel"))->trigger();
+	app.processEvents();
+	expect(near(document.mesh().surfaces[0].frames[0].positions[1].x, before.x + 10) && document.undoSteps() == steps + 1,
+		   "Transform Model… applies the dialog's offset as one step");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	auto *menu = editor.findChild<QMenu *>(QStringLiteral("meshMenuTransformModel"));
+	expect(menu && menu->actions().contains(tools->action(QStringLiteral("meshScaleModelHeight"))) &&
+			   editor.findChild<QMenu *>(QStringLiteral("meshMenuSnap"))->actions().contains(tools->action(QStringLiteral("meshOriginCursor"))),
+		   "Mesh > Transform Model and the Snap menu list the model commands");
+}
+
+void connectChecks(QApplication &app, ModelEditorDialog &editor)
+{
+	auto *tools = editor.tools();
+	const auto &document = editor.document();
+	QString error;
+	expect(editor.setMesh(gridMesh(3, 8, true), &error), "open a flat grid");
+	expect(tools->action(QStringLiteral("meshConnectVertexPath"))->shortcut() == QKeySequence(Qt::Key_J), "J connects vertices in the studio profile");
+	// Opposite corners of the first quad: 1 (8,0) and 4 (0,8).
+	tools->applySelection({0, {1, 4}, {}});
+	tools->action(QStringLiteral("meshConnectVertexPath"))->trigger();
+	app.processEvents();
+	const auto &surface = document.mesh().surfaces[0];
+	bool joined = false;
+	for (const auto &t : surface.triangles)
+		for (const auto &[a, b] : {std::pair{t.a, t.b}, std::pair{t.b, t.c}, std::pair{t.c, t.a}})
+			joined |= modelEdge(a, b) == modelEdge(1, 4);
+	expect(joined && surface.vertexCount == 16 && document.undoSteps() == 1, "Connect Vertex Path turns the quad's diagonal as one step");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// Connect Edges in vertex mode: the left and right sides of the first quad.
+	tools->applySelection({0, {}, {}, {modelEdge(0, 4), modelEdge(1, 5)}});
+	tools->action(QStringLiteral("meshConnectEdges"))->trigger();
+	app.processEvents();
+	expect(document.mesh().surfaces[0].vertexCount == 18 && document.undoSteps() == 1, "Connect Edges adds a cut between opposite sides");
+	auto *cuts = lastField(tools, QStringLiteral("Number of cuts"));
+	if (expect(cuts, "Adjust Last Operation shows the number of cuts"))
+	{
+		cuts->setValue(3);
+		app.processEvents();
+		expect(document.mesh().surfaces[0].vertexCount == 22 && document.undoSteps() == 1, "three cuts replace one in place");
+	}
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	auto *edgeMenu = editor.findChild<QMenu *>(QStringLiteral("meshMenuEdge"));
+	auto *vertexMenu = editor.findChild<QMenu *>(QStringLiteral("meshMenuVertex"));
+	expect(edgeMenu && edgeMenu->actions().contains(tools->action(QStringLiteral("meshConnectEdges"))) && vertexMenu &&
+			   vertexMenu->actions().contains(tools->action(QStringLiteral("meshConnectVertexPath"))),
+		   "the Vertex and Edge menus list Connect");
+	tools->applyControls(modelEditorControlsForProfile(QStringLiteral("3ds-max")));
+	expect(tools->action(QStringLiteral("meshConnectEdges"))->shortcut() == QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E) &&
+			   tools->action(QStringLiteral("meshLoopCut"))->shortcut().isEmpty(),
+		   "3ds Max's Ctrl+Shift+E runs Connect rather than a loop cut");
+	tools->applyControls(modelEditorControlsForProfile(QStringLiteral("studio")));
+}
+
+void dissolveChecks(QApplication &app, ModelEditorDialog &editor)
+{
+	auto *tools = editor.tools();
+	const auto &document = editor.document();
+	QString error;
+	expect(editor.setMesh(gridMesh(3, 8, true), &error), "open a flat grid for dissolving");
+	auto *remove = editor.findChild<QMenu *>(QStringLiteral("meshMenuDelete"));
+	expect(remove && remove->actions().contains(tools->action(QStringLiteral("meshDeleteVertices"))) &&
+			   remove->actions().contains(tools->action(QStringLiteral("meshDeleteEdges"))) &&
+			   remove->actions().contains(tools->action(QStringLiteral("meshDissolveEdges"))) &&
+			   remove->actions().contains(tools->action(QStringLiteral("meshLimitedDissolve"))),
+		   "the Delete menu offers Delete Vertices, Delete Edges, Dissolve Edges and Limited Dissolve");
+	// Delete Vertices removes the vertex's fan.
+	tools->applySelection({0, {5}, {}});
+	tools->action(QStringLiteral("meshDeleteVertices"))->trigger();
+	app.processEvents();
+	expect(document.mesh().surfaces[0].triangles.size() == 12 && document.undoSteps() == 1, "Delete Vertices removes six faces as one step");
+	auto *mode = tools->lastOperationPanel()->findChild<QComboBox *>();
+	if (expect(mode && mode->accessibleName() == QStringLiteral("Delete"), "Adjust Last Operation offers the delete mode"))
+	{
+		mode->setCurrentIndex(2);
+		app.processEvents();
+		expect(document.undoSteps() == 1, "switching to Faces with no face selected keeps the history unchanged");
+	}
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// Limited Dissolve with nothing selected simplifies the whole flat grid.
+	tools->applySelection({0, {}, {}});
+	tools->action(QStringLiteral("meshLimitedDissolve"))->trigger();
+	app.processEvents();
+	expect(document.mesh().surfaces[0].triangles.size() == 2 && document.undoSteps() == 1, "Limited Dissolve leaves two triangles in one step");
+	auto *angle = lastField(tools, QStringLiteral("Max angle"));
+	expect(angle && near(angle->value(), 5), "Adjust Last Operation shows the angle");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	expect(document.mesh().surfaces[0].triangles.size() == 18, "one undo restores the grid");
+}
+
+// Faces whose winding points away from the bounds centre.
+int outwardFaces(const ModelMesh &mesh)
+{
+	const auto &s = mesh.surfaces[0];
+	double centre[3]{0, 0, 0};
+	for (const auto &p : s.frames[0].positions)
+	{
+		centre[0] += p.x / s.vertexCount;
+		centre[1] += p.y / s.vertexCount;
+		centre[2] += p.z / s.vertexCount;
+	}
+	int count = 0;
+	for (const auto &t : s.triangles)
+	{
+		const auto a = s.frames[0].positions[t.a], b = s.frames[0].positions[t.b], c = s.frames[0].positions[t.c];
+		const double ux = b.x - a.x, uy = b.y - a.y, uz = b.z - a.z, vx = c.x - a.x, vy = c.y - a.y, vz = c.z - a.z;
+		const double nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+		count += nx * ((a.x + b.x + c.x) / 3 - centre[0]) + ny * ((a.y + b.y + c.y) / 3 - centre[1]) + nz * ((a.z + b.z + c.z) / 3 - centre[2]) > 0;
+	}
+	return count;
+}
+
+void outsideChecks(QApplication &app, ModelEditorDialog &editor)
+{
+	auto *tools = editor.tools();
+	const auto &document = editor.document();
+	QString error;
+	ModelDesign design;
+	ModelDesignPart part;
+	part.primitive = QStringLiteral("box");
+	design.parts << part;
+	auto cube = buildModelDesignMesh(design);
+	const int faces = cube.surfaces[0].triangles.size();
+	expect(faces > 0 && outwardFaces(cube) == faces, "the design box faces outward");
+	for (int face = 0; face < faces; face += 3)
+		std::swap(cube.surfaces[0].triangles[face].b, cube.surfaces[0].triangles[face].c);
+	expect(editor.setMesh(cube, &error) && outwardFaces(document.mesh()) < faces, "open a cube with some faces inside out");
+	auto *normals = editor.findChild<QMenu *>(QStringLiteral("meshMenuNormals"));
+	expect(normals && normals->actions().contains(tools->action(QStringLiteral("meshRecalculateOutside"))) &&
+			   normals->actions().contains(tools->action(QStringLiteral("meshRecalculateInside"))),
+		   "the Normals menu offers Recalculate Outside and Inside");
+	tools->applySelection({0, {}, {}});
+	tools->action(QStringLiteral("meshRecalculateOutside"))->trigger();
+	app.processEvents();
+	expect(outwardFaces(document.mesh()) == faces && document.undoSteps() == 1, "Recalculate Outside turns every face outward in one step");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	tools->applyControls(modelEditorControlsForProfile(QStringLiteral("blender")));
+	expect(tools->action(QStringLiteral("meshRecalculateOutside"))->shortcut() == QKeySequence(Qt::SHIFT | Qt::Key_N) &&
+			   tools->action(QStringLiteral("meshRecalculateInside"))->shortcut() == QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_N) &&
+			   tools->action(QStringLiteral("meshRecalculateNormals"))->shortcut().isEmpty(),
+		   "Blender's Shift+N recalculates outside and Ctrl+Shift+N inside");
+	tools->applyControls(modelEditorControlsForProfile(QStringLiteral("studio")));
+	expect(tools->action(QStringLiteral("meshRecalculateNormals"))->shortcut() == QKeySequence(Qt::SHIFT | Qt::Key_N),
+		   "the studio profile keeps Shift+N for vertex normals");
+}
+
+void sharpChecks(QApplication &app, ModelEditorDialog &editor)
+{
+	auto *tools = editor.tools();
+	const auto &document = editor.document();
+	QString error;
+	// A smooth, fully shared cube.
+	const float h = 8;
+	const QVector<ModelVec3> p{{-h, -h, -h}, {h, -h, -h}, {h, h, -h}, {-h, h, -h}, {-h, -h, h}, {h, -h, h}, {h, h, h}, {-h, h, h}};
+	auto cube = gridMesh(1, 8, true);
+	auto &s = cube.surfaces[0];
+	s.triangles = {{0, 2, 1}, {0, 3, 2}, {4, 5, 6}, {4, 6, 7}, {0, 1, 5}, {0, 5, 4}, {1, 2, 6}, {1, 6, 5}, {2, 3, 7}, {2, 7, 6}, {3, 0, 4}, {3, 4, 7}};
+	s.vertexCount = 8;
+	s.texCoords.clear();
+	for (const auto &q : p)
+		s.texCoords.append({q.x / 64, q.y / 64});
+	for (auto &frame : s.frames)
+	{
+		frame.positions = p;
+		frame.normals.clear();
+		for (const auto &q : p)
+			frame.normals.append({q.x / (h * 1.7320508f), q.y / (h * 1.7320508f), q.z / (h * 1.7320508f)});
+	}
+	updateEditableModelMetadata(&cube);
+	expect(editor.setMesh(cube, &error), "open a smooth cube");
+	auto *normals = editor.findChild<QMenu *>(QStringLiteral("meshMenuNormals"));
+	auto *edgeMenu = editor.findChild<QMenu *>(QStringLiteral("meshMenuEdge"));
+	expect(normals && normals->actions().contains(tools->action(QStringLiteral("meshMarkSharp"))) && edgeMenu &&
+			   edgeMenu->actions().contains(tools->action(QStringLiteral("meshClearSharp"))),
+		   "Mark Sharp and Clear Sharp are in the Normals and Edge menus");
+	// The top face's corners, in vertex mode: Mark Sharp uses the edges between them.
+	tools->applySelection({0, {4, 5, 6, 7}, {}});
+	tools->action(QStringLiteral("meshMarkSharp"))->trigger();
+	app.processEvents();
+	expect(document.mesh().surfaces[0].vertexCount == 12 && document.undoSteps() == 1, "Mark Sharp splits the top corners as one step");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	expect(document.mesh().surfaces[0].vertexCount == 8, "one undo makes the cube smooth again");
+	// An inset pushed through the bottom: a warning, then the crossing faces selected.
+	ModelEdit inset;
+	inset.kind = ModelEditKind::InsetFaces;
+	inset.selection = {0, {}, {2, 3}};
+	inset.tool.insetThickness = 2;
+	inset.tool.insetDepth = -20;
+	expect(tools->runTool(inset, &error), "an inset pushed through the cube is kept with a warning");
+	tools->action(QStringLiteral("meshSelectIntroducedIntersections"))->trigger();
+	app.processEvents();
+	expect(!document.selection().faces.isEmpty(), "Select New Intersections selects the crossing faces");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	tools->action(QStringLiteral("meshRefuseIntersections"))->trigger();
+	inset.tool.topology.refuseIntersections = tools->toolEdit(ModelEditKind::InsetFaces).tool.topology.refuseIntersections;
+	expect(inset.tool.topology.refuseIntersections && !tools->runTool(inset, &error) && document.undoSteps() == 0,
+		   "with Refuse New Intersections on, the same inset is refused");
+	tools->action(QStringLiteral("meshRefuseIntersections"))->trigger();
+}
+} // namespace
+
+int main(int argc, char **argv)
+{
+#if defined(_MSC_VER) && defined(_DEBUG)
+	for (int type : {_CRT_WARN, _CRT_ERROR, _CRT_ASSERT})
+	{
+		_CrtSetReportMode(type, _CRTDBG_MODE_FILE);
+		_CrtSetReportFile(type, _CRTDBG_FILE_STDERR);
+	}
+#endif
+	qputenv("QT_QPA_PLATFORM", "offscreen");
+#ifdef Q_OS_WIN
+	qputenv("QT_QPA_FONTDIR", QDir(qEnvironmentVariable("SystemRoot")).filePath("Fonts").toLocal8Bit());
+#endif
+	QApplication app(argc, argv);
+	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-topology-tools-ui-smoke"); skip >= 0)
+		return skip;
+#ifdef Q_OS_WIN
+	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
+#endif
+	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	if (root.isEmpty() || !QDir().mkpath(root))
+		return EXIT_FAILURE;
+	QTemporaryDir temporary(QDir(root).filePath("topology-tools-ui-XXXXXX"));
+	if (!temporary.isValid())
+		return EXIT_FAILURE;
+	StudioSettings::setOverrideFilePath(QDir(temporary.path()).filePath("settings.ini"));
+	QString error;
+	{
+		ModelEditorDialog editor;
+		editor.setAttribute(Qt::WA_DeleteOnClose, false);
+		editor.resize(1500, 950);
+		editor.show();
+		app.processEvents();
+		if (!expect(editor.tools() && editor.setMesh(gridMesh(), &error), "open the uneven grid"))
+			return EXIT_FAILURE;
+		selectChecks(app, editor);
+		alignChecks(app, editor);
+		transformModelChecks(app, editor);
+		connectChecks(app, editor);
+		dissolveChecks(app, editor);
+		outsideChecks(app, editor);
+		sharpChecks(app, editor);
+	}
+	std::cout << checks << " topology tool UI checks; " << failures << " failures\n";
+	return failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+}

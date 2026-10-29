@@ -95,8 +95,9 @@ requires `--overwrite`. The shared writer protects source paths.
 Disconnected selections, branched junctions, ambiguous vertex fans,
 non-manifold or inconsistently wound neighbourhoods, collapsed or reversed
 neighbouring faces, folded fills and document capacity overflow are refused
-without changing the source. These checks do not detect every distant
-self-intersection.
+without changing the source. Faces the rip makes cross other faces of the
+surface are reported, or refused, by the
+[intersection guard](MODEL_TOOLS.md#new-intersections).
 
 Richer rip junctions remain planned. Maximum-size
 latency, original-engine and real-project checks, physical accessibility

@@ -23,6 +23,7 @@
 #include "core/model_transform_axes.h"
 #include "core/model_uv_atlas.h"
 #include "core/model_uv_obstacles.h"
+#include "core/model_whole_transform.h"
 
 #include "core/model_design.h"
 #include "core/package_staging.h"
@@ -1685,7 +1686,8 @@ bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resu
 	// Skeleton, skin and weight edits write influences directly. Every other
 	// edit carries per-vertex provenance (core/model_vertex_origins.h) and
 	// derives the resulting influences from what the tool actually did.
-	if (!mesh || mesh->skeleton.isEmpty() || isModelRigEdit(edit.kind) || isModelSkeletalEdit(edit.kind) || isModelSkinEdit(edit.kind) || edit.kind == ModelEditKind::PaintSkinWeights || edit.kind == ModelEditKind::TransferSkinWeights)
+	if (!mesh || mesh->skeleton.isEmpty() || isModelRigEdit(edit.kind) || isModelSkeletalEdit(edit.kind) || isModelSkinEdit(edit.kind) || edit.kind == ModelEditKind::PaintSkinWeights || edit.kind == ModelEditKind::TransferSkinWeights ||
+		edit.kind == ModelEditKind::TransformModel)
 	{
 		const bool ok = applyModelEditUnreconciled(mesh, edit, resultingSelection, error, control, report ? &pending : nullptr);
 		if (ok && report) *report = std::move(pending);
@@ -1923,10 +1925,11 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	auto candidate = *mesh;
 	auto selection = edit.selection;
 	const bool surfaceTransform = edit.kind == ModelEditKind::Transform && !selection.surfaces.isEmpty();
-	if (edit.kind == ModelEditKind::SetUvDensity || surfaceTransform || isModelSurfaceEdit(edit.kind) || isModelTagEdit(edit.kind) || isModelAnimationEdit(edit.kind) || isModelMdlEdit(edit.kind) || isModelCollisionEdit(edit.kind) ||
+	if (edit.kind == ModelEditKind::SetUvDensity || edit.kind == ModelEditKind::TransformModel || surfaceTransform || isModelSurfaceEdit(edit.kind) || isModelTagEdit(edit.kind) || isModelAnimationEdit(edit.kind) || isModelMdlEdit(edit.kind) || isModelCollisionEdit(edit.kind) ||
 		isModelMeshToolEdit(edit.kind) || isModelRigEdit(edit.kind) || isModelSkeletalEdit(edit.kind) || isModelSkinEdit(edit.kind) || edit.kind == ModelEditKind::PaintSkinWeights || edit.kind == ModelEditKind::TransferSkinWeights)
 	{
 		if (!(edit.kind == ModelEditKind::SetUvDensity ? applyModelUvDensity(&candidate, edit, &selection, error, control)
+			  : edit.kind == ModelEditKind::TransformModel ? applyModelWholeTransform(&candidate, edit, error, control)
 			  : surfaceTransform ? applyModelSurfaceTransform(&candidate, edit, error, control)
 			  : edit.kind == ModelEditKind::TransferSkinWeights ? applyModelWeightTransfer(&candidate, edit, error, control)
 			  : edit.kind == ModelEditKind::PaintSkinWeights ? applyModelWeightPaint(&candidate, edit, error, control)

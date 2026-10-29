@@ -22,7 +22,9 @@
 // the options' reference pose; every other pose follows the same topology.
 
 #include "core/model_mesh.h"
+#include "core/model_align.h"
 #include "core/model_knife.h"
+#include "core/model_topology_tools.h"
 #include "core/model_vertex_origins.h"
 #include "core/model_work.h"
 
@@ -44,7 +46,10 @@ enum class ModelMergeMode
 	// The reference pose meets the given point; other poses keep their offset.
 	Point,
 	// Each connected group of selected vertices collapses to its own centre.
-	Collapse
+	Collapse,
+	// Every selected vertex joins ModelTopologyToolOptions::targetVertex and
+	// takes its position, UV and normal (3ds Max Target Weld).
+	Target
 };
 enum class ModelInsetMode
 {
@@ -179,6 +184,12 @@ struct ModelMeshToolOptions
 	// bridge the opening. The translation is carried by ModelEdit::translation.
 	int ripFace = -1;
 	bool ripFill = false, ripOpposite = false;
+	// Align Vertices (core/model_align.h).
+	ModelAlignOptions align{};
+	// Connect, delete and dissolve variants, Recalculate Outside, sharp edges,
+	// explicit positions, target weld, auto-merge and the intersection guard
+	// (core/model_topology_tools.h).
+	ModelTopologyToolOptions topology{};
 	bool operator==(const ModelMeshToolOptions &) const = default;
 };
 

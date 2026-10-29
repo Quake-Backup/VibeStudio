@@ -668,11 +668,15 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::EditCurveKeys:
 	case ModelEditKind::TransferAnimationCurves:
 	case ModelEditKind::SetSkeletalWorkingSet:
+	// Moves the skeleton, its clips and the influences' bind offsets together.
+	case ModelEditKind::TransformModel:
 		return ModelEditSkinHandling::Direct;
 	case ModelEditKind::BevelEdges:
 	case ModelEditKind::Knife:
 	case ModelEditKind::Spin:
 	case ModelEditKind::Rip:
+	// Connect plans cuts that the knife's apply stage interpolates.
+	case ModelEditKind::ConnectVertices:
 		return ModelEditSkinHandling::Authored;
 	case ModelEditKind::AddPrimitive:
 		return ModelEditSkinHandling::Binding;
@@ -773,6 +777,15 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::ProjectUvMapping:
 	case ModelEditKind::SlideEdges:
 	case ModelEditKind::SetUvDensity:
+	case ModelEditKind::AlignVertices:
+	case ModelEditKind::ConnectEdges:
+	case ModelEditKind::DeleteGeometry:
+	case ModelEditKind::DissolveEdges:
+	case ModelEditKind::LimitedDissolve:
+	case ModelEditKind::RecalculateOutside:
+	case ModelEditKind::MarkSharp:
+	case ModelEditKind::ClearSharp:
+	case ModelEditKind::SetVertexPositions:
 		return ModelEditSkinHandling::Provenance;
 	}
 	return ModelEditSkinHandling::Provenance;

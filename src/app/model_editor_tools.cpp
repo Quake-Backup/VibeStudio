@@ -577,7 +577,13 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshAddMenu"), Text::tr("Add Menu"), QStringLiteral("Shift+A"),
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuAdd"))->popup(QCursor::pos()); });
 	addAction(QStringLiteral("meshDeleteMenu"), Text::tr("Delete Menu"), QStringLiteral("X|Del"),
-			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuDelete"))->popup(QCursor::pos()); });
+			  [this]
+			  {
+				  // The select mode's delete leads, as Blender's X menu offers it.
+				  const int mode = selectionMode();
+				  auto *preferred = m_actions.value(mode == 1 ? QStringLiteral("meshDeleteVertices") : mode == 2 ? QStringLiteral("meshDeleteEdges") : QStringLiteral("meshDeleteFaces"));
+				  m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuDelete"))->popup(QCursor::pos(), preferred);
+			  });
 	addAction(QStringLiteral("meshMergeMenu"), Text::tr("Merge Menu"), QStringLiteral("M"),
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuMerge"))->popup(QCursor::pos()); });
 	addAction(QStringLiteral("meshSnapMenu"), Text::tr("Snap Menu"), QStringLiteral("Shift+S"),
@@ -597,6 +603,7 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshUvMenu"), Text::tr("UV Mapping Menu"), QStringLiteral("U"),
 			  [this] { m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuUv"))->popup(QCursor::pos()); });
 	buildProfileActions();
+	buildTopologyActions();
 	buildFocusActions();
 }
 
@@ -718,6 +725,7 @@ void ModelEditorTools::buildMenus()
 													 QStringLiteral("meshUvSphere"), {}, QStringLiteral("meshUvView"), QStringLiteral("meshUvViewBounds"), {},
 													 QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSeam"), {}, QStringLiteral("meshUvDensity"), QStringLiteral("meshPackIslands")}),
 							 QStringLiteral("meshMenuUv")));
+	buildTopologyMenus();
 	if (auto *layout = qobject_cast<QBoxLayout *>(m_editor->layout()))
 		layout->insertWidget(0, m_menuBar);
 }
@@ -819,9 +827,9 @@ void ModelEditorTools::buildHeader()
 	m_snapElement = new QComboBox;
 	m_snapElement->setObjectName(QStringLiteral("meshSnapElement"));
 	m_snapElement->setAccessibleName(Text::tr("Snap to"));
-	m_snapElement->setToolTip(Text::tr("While snapping (the Snap toggle, or Ctrl held during a move), snap to grid increments or "
-									   "make the nearest moving vertex land on the vertex under the pointer."));
-	m_snapElement->addItems({Text::tr("Snap: Increment"), Text::tr("Snap: Vertex")});
+	m_snapElement->setToolTip(Text::tr("While snapping (the Snap toggle, or Ctrl held during a move), snap to grid increments, or "
+									   "make the nearest moving vertex land on the vertex, edge midpoint or face under the pointer."));
+	m_snapElement->addItems({Text::tr("Snap: Increment"), Text::tr("Snap: Vertex"), Text::tr("Snap: Edge Midpoint"), Text::tr("Snap: Face")});
 	m_connected = new QCheckBox(Text::tr("Connected"));
 	m_connected->setObjectName(QStringLiteral("meshProportionalConnected"));
 	m_connected->setToolTip(Text::tr("Measure the falloff along the mesh instead of straight through space."));
@@ -1233,6 +1241,8 @@ ModelEdit ModelEditorTools::toolEdit(ModelEditKind kind) const
 		edit.tool.insetThickness = std::max(0.5, double(m_editor->m_document.mesh().boundingRadius()) / 32);
 	if (kind == ModelEditKind::SmoothVertices)
 		edit.tool.pinBoundary = true;
+	if (isModelMeshToolEdit(kind))
+		edit.tool.topology.refuseIntersections = m_refuseIntersections;
 	return edit;
 }
 
@@ -1260,9 +1270,11 @@ bool ModelEditorTools::runTool(const ModelEdit &operation, QString *error)
 	{
 		m_last = {edit, after, {}};
 		m_hasLast = true;
+		m_lastSelect.active = false;
 	}
 	// Interpolated, mirrored, rebound, merged or bound skin weights are named.
 	showBanner(modelSkinProvenanceSummary(report.skin));
+	noteIntersections(edit, report);
 	refreshLastPanel();
 	return true;
 }
@@ -1384,7 +1396,8 @@ bool ModelEditorTools::select(ModelSelectRequest request, QString *error)
 	request.frame = std::max(0, m_editor->m_frame->currentIndex());
 	ModelSelection result;
 	QString failure;
-	if (!selectModelComponents(m_editor->m_document.mesh(), m_editor->m_document.selection(), request, &result, &failure))
+	const auto start = m_editor->m_document.selection();
+	if (!selectModelComponents(m_editor->m_document.mesh(), start, request, &result, &failure))
 	{
 		if (error)
 			*error = failure;
@@ -1393,6 +1406,8 @@ bool ModelEditorTools::select(ModelSelectRequest request, QString *error)
 	}
 	applySelection(result);
 	showBanner({});
+	// Adjust Last Operation can tune the operator from the same start.
+	rememberSelect(request, start);
 	return true;
 }
 
@@ -1949,6 +1964,9 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 				 [](E &e, double v) { if (e.tool.slideByDistance) e.tool.offset = v; else e.tool.slide = v; }},
 				{Text::tr("Quad pairing angle"), 0, 180, 1, [](const E &e) { return e.tool.maxAngle; }, [](E &e, double v) { e.tool.maxAngle = v; }}};
 	case ModelEditKind::MergeVertices:
+		if (edit.tool.merge == ModelMergeMode::Target)
+			return {{Text::tr("Target vertex"), 0, 65535, 0, [](const E &e) { return double(e.tool.topology.targetVertex); },
+					 [](E &e, double v) { e.tool.topology.targetVertex = int(v); }}};
 		return {{Text::tr("Merge"), 0, 2, 0, [](const E &e) { return double(int(e.tool.merge)); }, [](E &e, double v) { e.tool.merge = ModelMergeMode(int(v)); },
 				 false, {Text::tr("At Center"), Text::tr("At Cursor"), Text::tr("Collapse")}}};
 	case ModelEditKind::BeautifyFaces:
@@ -2010,6 +2028,51 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 				 [](E &e, double v) { e.tool.targetTriangles = int(v); }},
 				{Text::tr("Keep borders"), 0, 1, 0, [](const E &e) { return double(e.tool.preserveBoundary); },
 				 [](E &e, double v) { e.tool.preserveBoundary = v > 0.5; }, true}};
+	case ModelEditKind::TransformModel:
+		return vector3(Text::tr("Move"), &E::translation, -1000000, 1000000) + vector3(Text::tr("Rotate"), &E::rotation, -36000, 36000) +
+			   vector3(Text::tr("Scale"), &E::scale, -10000, 10000) + vector3(Text::tr("Pivot"), &E::pivot, -1000000, 1000000);
+	case ModelEditKind::ConnectEdges:
+		return {{Text::tr("Number of cuts"), 1, 64, 0, [](const E &e) { return double(e.tool.cuts); }, [](E &e, double v) { e.tool.cuts = int(v); }},
+				{Text::tr("Slide"), -0.99, 0.99, 3, [](const E &e) { return e.tool.slide; }, [](E &e, double v) { e.tool.slide = v; }},
+				{Text::tr("Quad pairing angle"), 0, 180, 1, [](const E &e) { return e.tool.maxAngle; }, [](E &e, double v) { e.tool.maxAngle = v; }}};
+	case ModelEditKind::ConnectVertices:
+		return {{Text::tr("Quad pairing angle"), 0, 180, 1, [](const E &e) { return e.tool.maxAngle; }, [](E &e, double v) { e.tool.maxAngle = v; }}};
+	case ModelEditKind::DeleteGeometry:
+		return {{Text::tr("Delete"), 0, 2, 0, [](const E &e) { return double(int(e.tool.topology.deleteMode)); },
+				 [](E &e, double v) { e.tool.topology.deleteMode = ModelDeleteMode(int(v)); }, false,
+				 {Text::tr("Vertices"), Text::tr("Edges"), Text::tr("Faces")}}};
+	case ModelEditKind::DissolveEdges:
+		return {{Text::tr("Dissolve vertices"), 0, 1, 0, [](const E &e) { return double(e.tool.topology.dissolveVertices); },
+				 [](E &e, double v) { e.tool.topology.dissolveVertices = v > 0.5; }, true},
+				{Text::tr("Quad pairing angle"), 0, 180, 1, [](const E &e) { return e.tool.maxAngle; }, [](E &e, double v) { e.tool.maxAngle = v; }}};
+	case ModelEditKind::LimitedDissolve:
+		return {{Text::tr("Max angle"), 0, 180, 1, [](const E &e) { return e.tool.topology.dissolveAngle; },
+				 [](E &e, double v) { e.tool.topology.dissolveAngle = v; }}};
+	case ModelEditKind::RecalculateOutside:
+		return {{Text::tr("Inside"), 0, 1, 0, [](const E &e) { return double(e.tool.topology.inside); },
+				 [](E &e, double v) { e.tool.topology.inside = v > 0.5; }, true}};
+	case ModelEditKind::AlignVertices:
+	{
+		const auto target = edit.tool.align.target;
+		QVector<LastField> fields{{Text::tr("Align to"), 0, 4, 0, [](const E &e) { return double(int(e.tool.align.target)); },
+								   [](E &e, double v)
+								   {
+									   e.tool.align.target = ModelAlignTarget(int(v));
+									   // The grid step belongs to grid snapping only.
+									   e.tool.align.grid = e.tool.align.target != ModelAlignTarget::Grid ? 0 : e.tool.align.grid > 0 ? e.tool.align.grid : 1;
+								   },
+								   false, {Text::tr("Value"), Text::tr("Centroid"), Text::tr("Minimum"), Text::tr("Maximum"), Text::tr("Grid")}, true}};
+		const char *axes[3]{"X", "Y", "Z"};
+		for (int axis = 0; axis < 3; ++axis)
+			fields.append({Text::tr("Axis %1").arg(QLatin1String(axes[axis])), 0, 1, 0, [axis](const E &e) { return double((e.tool.align.axes >> axis) & 1); },
+						   [axis](E &e, double v) { e.tool.align.axes = v > 0.5 ? e.tool.align.axes | (1 << axis) : e.tool.align.axes & ~(1 << axis); }, true});
+		for (int axis = 0; target == ModelAlignTarget::Value && axis < 3; ++axis)
+			fields.append({Text::tr("Value %1").arg(QLatin1String(axes[axis])), -1000000, 1000000, 4, [axis](const E &e) { return e.tool.align.value[axis]; },
+						   [axis](E &e, double v) { e.tool.align.value[axis] = v; }});
+		if (target == ModelAlignTarget::Grid)
+			fields.append({Text::tr("Grid step"), 0.000001, 1000000, 4, [](const E &e) { return e.tool.align.grid; }, [](E &e, double v) { e.tool.align.grid = v; }});
+		return fields;
+	}
 	default:
 		return {};
 	}
@@ -2080,6 +2143,26 @@ QString kindTitle(ModelEditKind kind)
 		return Text::tr("Solidify");
 	case ModelEditKind::ProjectUvMapping:
 		return Text::tr("UV Projection");
+	case ModelEditKind::AlignVertices:
+		return Text::tr("Align Vertices");
+	case ModelEditKind::TransformModel:
+		return Text::tr("Transform Model");
+	case ModelEditKind::ConnectVertices:
+		return Text::tr("Connect Vertex Path");
+	case ModelEditKind::ConnectEdges:
+		return Text::tr("Connect Edges");
+	case ModelEditKind::DeleteGeometry:
+		return Text::tr("Delete");
+	case ModelEditKind::DissolveEdges:
+		return Text::tr("Dissolve Edges");
+	case ModelEditKind::LimitedDissolve:
+		return Text::tr("Limited Dissolve");
+	case ModelEditKind::RecalculateOutside:
+		return Text::tr("Recalculate Outside");
+	case ModelEditKind::MarkSharp:
+		return Text::tr("Mark Sharp");
+	case ModelEditKind::ClearSharp:
+		return Text::tr("Clear Sharp");
 	default:
 		return Text::tr("Mesh Edit");
 	}
@@ -2089,6 +2172,10 @@ QString kindTitle(ModelEditKind kind)
 void ModelEditorTools::refreshLastPanel()
 {
 	if (!m_lastPanel || m_adjustingLast)
+		return;
+	// A selection operator run last shows its own settings
+	// (model_editor_topology.cpp).
+	if (refreshSelectPanel())
 		return;
 	// A rebuild keeps keyboard focus on the same field rather than losing it
 	// with the deleted one.
@@ -2454,6 +2541,7 @@ void ModelEditorTools::documentChanged()
 			QMetaObject::invokeMethod(this, [this] { m_editor->refresh(); }, Qt::QueuedConnection);
 		}
 	}
+	refreshAlignRow();
 	if (!m_budget)
 		return;
 	const auto &mesh = m_editor->m_document.mesh();
