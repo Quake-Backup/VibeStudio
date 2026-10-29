@@ -430,7 +430,14 @@ int main(int argc, char **argv)
 					 "create destination layer", error);
 		map.activeSceneNode = layer;
 		auto grouped = prepareModelCollisionPlacement(document.mesh(), request, map);
-		ok &= expect(grouped.succeeded && grouped.document.selection.size() == 4, "placement selects inserted volumes", grouped.error);
+		// The volumes arrive in one recorded func_group (core/model_collision_placement.h).
+		const bool recorded = grouped.succeeded && !grouped.document.selection.isEmpty() &&
+							  std::any_of(grouped.document.entities.cbegin(), grouped.document.entities.cend(), [&](const auto &entity) {
+								  return entity.className == "func_group" &&
+										 std::count_if(grouped.document.brushes.cbegin(), grouped.document.brushes.cend(),
+													   [&](const auto &brush) { return brush.entityId == entity.id; }) == 4;
+							  });
+		ok &= expect(recorded, "placement selects the inserted, recorded volumes", grouped.error);
 		for (const auto &selection : grouped.document.selection)
 		{
 			ok &= expect(levelSceneMembership(grouped.document.scene, levelMapSelectionRefId(selection)) == layer,

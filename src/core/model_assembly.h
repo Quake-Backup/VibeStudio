@@ -36,6 +36,9 @@ struct ModelAssemblyPart
 	double framesPerSecond = 10, phase = 0;
 	bool loop = true, interpolate = true;
 	std::optional<ModelAssemblySkin> skin;
+	// Preview roll about the part's own X axis, in revolutions per minute, as
+	// Quake III spins a weapon's _barrel model (schema 4; native exports leave it out).
+	double spinRpm = 0;
 };
 struct ModelAssemblyQ3Animation
 {
@@ -43,12 +46,29 @@ struct ModelAssemblyQ3Animation
 	QString lowerPart, upperPart;
 	int lowerAnimation = 22, upperAnimation = 11; // LEGS_IDLE / TORSO_STAND
 };
+// How attachment tags blend between stored frames. Recipes without the field
+// keep ShortestArc; schema 4 stores Quake3Renderer, the game's per-axis blend.
+enum class ModelTagInterpolation
+{
+	ShortestArc,
+	Quake3Renderer
+};
 struct ModelAssembly
 {
 	QString name = QStringLiteral("Assembly");
 	QVector<ModelAssemblyPart> parts;
 	std::optional<ModelAssemblyQ3Animation> q3Animation;
+	ModelTagInterpolation tagInterpolation = ModelTagInterpolation::ShortestArc;
 };
+// Stable recipe/CLI identifiers: "shortest-arc" and "quake3".
+QString modelTagInterpolationId(ModelTagInterpolation mode);
+std::optional<ModelTagInterpolation> modelTagInterpolationFromId(const QString &id);
+// The schema a recipe needs: 1 ordinary, 2 native animation, 3 linked skins,
+// 4 attachment settings (tag interpolation, joint attachments).
+int modelAssemblySchemaVersion(const ModelAssembly &assembly);
+// A part tag "joint:<name>" attaches to that joint of a skeletal (MD5, IQM or
+// skeletal source) parent instead of an ordinary tag.
+QString modelAssemblyJointPrefix();
 struct ModelAssemblyContext
 {
 	// File references are relative to the assembly source's directory.
@@ -111,13 +131,16 @@ bool exportModelAssemblyQ3Animation(const ModelAssembly &assembly, const ModelAs
 // Immutable, bounded input snapshots. No model or package is rewritten.
 bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyContext &context, ModelAssemblyResolved *resolved,
 						  QString *error = nullptr, const ModelWorkControl &control = {});
+// With includeCollision, every part's collision volumes (sampled at the part's
+// own frame) are carried through its attachment basis and uniform scale into
+// pose->mesh.collisionBoxes as <part>_<volume>; at most 64 in all.
 bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResolved &resolved, double seconds, ModelAssemblyPose *pose,
-						 QString *error = nullptr, const ModelWorkControl &control = {});
+						 QString *error = nullptr, const ModelWorkControl &control = {}, bool includeCollision = false);
 // One explicit static bake; protects the assembly source and every input.
 bool exportModelAssemblyPose(const ModelAssembly &assembly, const ModelAssemblyResolved &resolved, double seconds, const QString &path,
 							 const QString &sourcePath, bool overwrite, bool dryRun, QString *error = nullptr,
 							 const ModelWorkControl &control = {}, ModelExportReport *report = nullptr,
-							 const std::shared_ptr<const PackageArchiveReader> &archive = {});
+							 const std::shared_ptr<const PackageArchiveReader> &archive = {}, bool includeCollision = false);
 
 class ModelAssemblyDocument
 {
@@ -164,7 +187,10 @@ class ModelAssemblyDocument
 	bool save(const QString &path, bool overwrite = false, QString *error = nullptr, const ModelWorkControl &control = {},
 			  bool dryRun = false, const std::shared_ptr<const PackageArchiveReader> &archive = {});
 	bool setPart(const QString &previousId, const ModelAssemblyPart &part, QString *error = nullptr);
+	// Binding native animation to an assembly without one also selects Quake III
+	// renderer tag interpolation, in the same undo step.
 	bool setQ3Animation(const std::optional<ModelAssemblyQ3Animation> &animation, QString *error = nullptr);
+	bool setTagInterpolation(ModelTagInterpolation mode, QString *error = nullptr);
 	bool removeBranch(const QString &id, QString *error = nullptr);
 	void selectPart(const QString &id);
 	bool undo();

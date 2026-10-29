@@ -149,7 +149,9 @@ void ModelAssemblyDialog::chooseAnimationBake(bool exporting)
 	layout->addWidget(buttons);
 	connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
 	connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	const auto options = [&] { return ModelAssemblyAnimationOptions{start->value(), count->value(), fps->value(), name->text()}; };
+	const auto options = [&] {
+		return ModelAssemblyAnimationOptions{start->value(), count->value(), fps->value(), name->text(), includesCollision()};
+	};
 	const auto update = [&] {
 		const auto value = options();
 		summary->setPlainText(modelAssemblyAnimationNotes(m_resolved, value).join(QStringLiteral("\n\n")));

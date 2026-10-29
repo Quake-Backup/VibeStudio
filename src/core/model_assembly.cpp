@@ -1,6 +1,8 @@
 #include "core/model_assembly.h"
 
 #include "core/model_archive.h"
+#include "core/model_collision.h"
+#include "core/model_skeleton.h"
 #include "core/model_tags.h"
 #include "core/package_archive.h"
 
@@ -115,6 +117,61 @@ bool animationSample(const ModelAssemblyPart &part, const ModelMesh &mesh, doubl
 	}
 	return sampleModelAnimation(part.firstFrame, last - part.firstFrame + 1, offset, part.interpolate, sample);
 }
+// A skeletal input's joint as attachment tags named joint:<name>, one per
+// baked frame, from the joint's model-space matrix at that frame (the bind
+// pose, or the clip frame the bake took). Axes are made orthonormal: the joint's
+// scale is not inherited. False when the joint or a frame's pose is missing.
+bool addJointAttachment(ModelMesh *mesh, const QString &tagName)
+{
+	if (!tagName.startsWith(modelAssemblyJointPrefix()) || findModelTag(*mesh, tagName, 0))
+		return findModelTag(*mesh, tagName, 0) != nullptr;
+	const auto &skeleton = mesh->skeleton;
+	const int joint = modelJointIndex(skeleton, tagName.mid(modelAssemblyJointPrefix().size()), Qt::CaseSensitive);
+	if (joint < 0 || skeleton.bakedClipForFrame.size() != mesh->frames.size())
+		return false;
+	const auto bind = modelSkeletonBindPose(skeleton);
+	QVector<int> counts(skeleton.clips.size(), 0);
+	QVector<ModelTag> tags;
+	for (int frame = 0; frame < mesh->frames.size(); ++frame)
+	{
+		const int clip = skeleton.bakedClipForFrame[frame];
+		const ModelJointMatrix *matrix = nullptr;
+		if (clip == -1 && joint < bind.size())
+			matrix = &bind[joint];
+		else if (clip >= 0 && clip < skeleton.clips.size())
+		{
+			const int local = counts[clip]++;
+			if (local < skeleton.clips[clip].frames.size() && joint < skeleton.clips[clip].frames[local].size())
+				matrix = &skeleton.clips[clip].frames[local][joint];
+		}
+		if (!matrix)
+			return false;
+		ModelTag tag;
+		tag.name = tagName;
+		tag.frameIndex = frame;
+		tag.origin = {matrix->m[3], matrix->m[7], matrix->m[11]};
+		double axes[3][3];
+		for (int axis = 0; axis < 3; ++axis)
+		{
+			for (int c = 0; c < 3; ++c)
+				axes[axis][c] = matrix->m[c * 4 + axis];
+			for (int previous = 0; previous < axis; ++previous)
+			{
+				const double along = axes[axis][0] * axes[previous][0] + axes[axis][1] * axes[previous][1] + axes[axis][2] * axes[previous][2];
+				for (int c = 0; c < 3; ++c)
+					axes[axis][c] -= along * axes[previous][c];
+			}
+			const double length = std::sqrt(axes[axis][0] * axes[axis][0] + axes[axis][1] * axes[axis][1] + axes[axis][2] * axes[axis][2]);
+			if (!(length > 1e-9) || !std::isfinite(length))
+				return false;
+			for (int c = 0; c < 3; ++c)
+				tag.axis[axis * 3 + c] = float(axes[axis][c] / length);
+		}
+		tags << tag;
+	}
+	mesh->tags += tags;
+	return true;
+}
 bool assemblySample(const ModelAssembly &assembly, const ModelAssemblyPart &part, const ModelMesh &mesh, double seconds,
 					ModelAnimationSample *sample)
 {
@@ -170,7 +227,7 @@ bool validateModelAssembly(const ModelAssembly &assembly, QString *error, QVecto
 			part.scale > 1000 || part.firstFrame < 0 || part.firstFrame >= modelDocumentMaxFrames || part.lastFrame < -1 ||
 			part.lastFrame >= modelDocumentMaxFrames || (part.lastFrame >= 0 && part.lastFrame < part.firstFrame) ||
 			!std::isfinite(part.framesPerSecond) || part.framesPerSecond < 0 || part.framesPerSecond > 1000 || !std::isfinite(part.phase) ||
-			part.phase < 0 || part.phase > 1000000)
+			part.phase < 0 || part.phase > 1000000 || !std::isfinite(part.spinRpm) || std::abs(part.spinRpm) > 10000)
 		{
 			return fail(error, QCoreApplication::translate(
 								   "VibeStudioModelAssembly",
@@ -242,10 +299,35 @@ bool validateModelAssembly(const ModelAssembly &assembly, QString *error, QVecto
 	}
 	return true;
 }
+QString modelTagInterpolationId(ModelTagInterpolation mode)
+{
+	return mode == ModelTagInterpolation::Quake3Renderer ? QStringLiteral("quake3") : QStringLiteral("shortest-arc");
+}
+std::optional<ModelTagInterpolation> modelTagInterpolationFromId(const QString &id)
+{
+	if (id == QStringLiteral("quake3"))
+		return ModelTagInterpolation::Quake3Renderer;
+	if (id == QStringLiteral("shortest-arc"))
+		return ModelTagInterpolation::ShortestArc;
+	return std::nullopt;
+}
+QString modelAssemblyJointPrefix()
+{
+	return QStringLiteral("joint:");
+}
+int modelAssemblySchemaVersion(const ModelAssembly &assembly)
+{
+	if (assembly.tagInterpolation != ModelTagInterpolation::ShortestArc ||
+		std::any_of(assembly.parts.cbegin(), assembly.parts.cend(),
+					[](const auto &part) { return part.tag.startsWith(modelAssemblyJointPrefix()) || part.spinRpm != 0; }))
+		return 4;
+	if (std::any_of(assembly.parts.cbegin(), assembly.parts.cend(), [](const auto &part) { return part.skin.has_value(); }))
+		return 3;
+	return assembly.q3Animation ? 2 : 1;
+}
 QJsonObject modelAssemblyJson(const ModelAssembly &assembly)
 {
 	QJsonArray parts;
-	bool hasSkins = false;
 	for (const auto &part : assembly.parts)
 	{
 		QJsonObject node{{"id", part.id},
@@ -262,21 +344,20 @@ QJsonObject modelAssemblyJson(const ModelAssembly &assembly)
 						 {"phase", part.phase},
 						 {"loop", part.loop},
 						 {"interpolate", part.interpolate}};
+		if (part.spinRpm != 0)
+			node.insert("spinRpm", part.spinRpm);
 		if (part.skin)
 		{
-			hasSkins = true;
 			node.insert("skin", QJsonObject{{"source", part.skin->source},
 											{"kind", part.skin->sourceKind == ModelAssemblySource::File ? "file" : "package"},
 											{"entryIndex", part.skin->entryIndex}});
 		}
 		parts.append(node);
 	}
-	QJsonObject result{{"format", "vibestudio-model-assembly"},
-					   {"version", hasSkins				  ? 3
-								   : assembly.q3Animation ? 2
-														  : 1},
-					   {"name", assembly.name},
-					   {"parts", parts}};
+	const int version = modelAssemblySchemaVersion(assembly);
+	QJsonObject result{{"format", "vibestudio-model-assembly"}, {"version", version}, {"name", assembly.name}, {"parts", parts}};
+	if (version >= 4)
+		result.insert("tagInterpolation", modelTagInterpolationId(assembly.tagInterpolation));
 	if (assembly.q3Animation)
 	{
 		const auto &binding = *assembly.q3Animation;
@@ -311,8 +392,11 @@ bool parseModelAssembly(const QByteArray &bytes, ModelAssembly *assembly, QStrin
 	const auto object = document.object();
 	const auto version = object.value("version").toDouble(-1);
 	if (parse.error != QJsonParseError::NoError || !document.isObject() ||
-		!keys(object, {"format", "version", "name", "parts", "q3Animation"}) ||
-		object.value("format") != QStringLiteral("vibestudio-model-assembly") || (version != 1 && version != 2 && version != 3) ||
+		!keys(object, {"format", "version", "name", "parts", "q3Animation", "tagInterpolation"}) ||
+		object.value("format") != QStringLiteral("vibestudio-model-assembly") ||
+		(version != 1 && version != 2 && version != 3 && version != 4) ||
+		(version < 4 && object.contains("tagInterpolation")) ||
+		(object.contains("tagInterpolation") && !modelTagInterpolationFromId(object.value("tagInterpolation").toString())) ||
 		(version == 1 && object.contains("q3Animation")) || (version == 2 && !object.value("q3Animation").isObject()) ||
 		(object.contains("q3Animation") && !object.value("q3Animation").isObject()) || !object.value("name").isString() ||
 		!object.value("parts").isArray() || object.value("parts").toArray().size() > modelAssemblyMaxParts)
@@ -321,6 +405,8 @@ bool parseModelAssembly(const QByteArray &bytes, ModelAssembly *assembly, QStrin
 	}
 	ModelAssembly result;
 	result.name = object.value("name").toString();
+	if (object.contains("tagInterpolation"))
+		result.tagInterpolation = *modelTagInterpolationFromId(object.value("tagInterpolation").toString());
 	if (object.contains("q3Animation"))
 	{
 		const auto node = object.value("q3Animation").toObject();
@@ -349,8 +435,10 @@ bool parseModelAssembly(const QByteArray &bytes, ModelAssembly *assembly, QStrin
 		}
 		const auto node = value.toObject();
 		if (!keys(node, {"id", "source", "kind", "parent", "tag", "translation", "rotation", "scale", "firstFrame", "lastFrame", "fps",
-						 "phase", "loop", "interpolate", "skin"}) ||
-			(version < 3 && node.contains("skin")))
+						 "phase", "loop", "interpolate", "skin", "spinRpm"}) ||
+			(version < 4 && node.contains("spinRpm")) || (node.contains("spinRpm") && !node.value("spinRpm").isDouble()) ||
+			(version < 3 && node.contains("skin")) ||
+			(version < 4 && node.value("tag").toString().startsWith(modelAssemblyJointPrefix())))
 		{
 			return malformed();
 		}
@@ -402,6 +490,7 @@ bool parseModelAssembly(const QByteArray &bytes, ModelAssembly *assembly, QStrin
 		part.phase = node.value("phase").toDouble();
 		part.loop = node.value("loop").toBool();
 		part.interpolate = node.value("interpolate").toBool();
+		part.spinRpm = node.value("spinRpm").toDouble(0);
 		if (node.contains("skin"))
 		{
 			const auto skin = node.value("skin").toObject();
@@ -554,6 +643,17 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 		{
 			continue;
 		}
+		// joint:<name> attaches to a skeletal parent's joint; its tags join the
+		// parent's snapshot, so sampling and bakes treat it as any tag.
+		const auto joint =
+			std::find_if(result.inputs.begin(), result.inputs.end(), [&](const auto &input) { return input.part == part.parent; });
+		if (joint != result.inputs.end() && part.tag.startsWith(modelAssemblyJointPrefix()) && !addJointAttachment(&joint->mesh, part.tag))
+		{
+			return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+														   "Parent %1 has no skeletal joint %2 with a pose in every frame. Choose an "
+														   "existing joint, or repair the tag.")
+								   .arg(part.parent, part.tag.mid(modelAssemblyJointPrefix().size())));
+		}
 		const auto parent =
 			std::find_if(result.inputs.cbegin(), result.inputs.cend(), [&](const auto &input) { return input.part == part.parent; });
 		if (parent == result.inputs.cend() || !findModelTag(parent->mesh, part.tag, 0))
@@ -571,7 +671,7 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 }
 
 bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResolved &resolved, double seconds, ModelAssemblyPose *pose,
-						 QString *error, const ModelWorkControl &control)
+						 QString *error, const ModelWorkControl &control, bool includeCollision)
 {
 	QVector<int> order;
 	if (!pose || !validateModelAssembly(assembly, error, &order))
@@ -628,7 +728,18 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 			const auto *first = findModelTag(parentMesh, part.tag, parentSample.frame),
 					   *next = findModelTag(parentMesh, part.tag, parentSample.nextFrame);
 			ModelTag sampled;
-			if (first && parentSample.fraction == 0)
+			if (assembly.tagInterpolation == ModelTagInterpolation::Quake3Renderer)
+			{
+				// The game blends even stored frames (fraction zero normalises
+				// each axis), so this mode always goes through the engine formula.
+				if (!first || (parentSample.fraction != 0 && !next) ||
+					!interpolateModelTagQuake3(*first, parentSample.fraction == 0 ? *first : *next, parentSample.fraction, &sampled))
+				{
+					return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+																   "The parent attachment cannot be interpolated. Repair its stored poses."));
+				}
+			}
+			else if (first && parentSample.fraction == 0)
 			{
 				sampled = *first;
 			}
@@ -658,6 +769,13 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 			{
 				unit.z = 1;
 			}
+			// A spinning part rolls about its own X axis first (rpm * 6 degrees a second).
+			if (part.spinRpm != 0)
+			{
+				const double roll = std::fmod(seconds * part.spinRpm * 6, 360.0) * 3.14159265358979323846 / 180;
+				const double c = std::cos(roll), s = std::sin(roll);
+				unit = {unit.x, float(c * unit.y - s * unit.z), float(s * unit.y + c * unit.z)};
+			}
 			const auto rotated = rotateModelVector(unit, part.rotation);
 			local.axis[axis * 3] = rotated.x;
 			local.axis[axis * 3 + 1] = rotated.y;
@@ -672,6 +790,34 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 			return fail(error, QCoreApplication::translate(
 								   "VibeStudioModelAssembly",
 								   "The accumulated attachment transform exceeds the supported scale or coordinate range."));
+		}
+		if (includeCollision)
+		{
+			// Each part's volumes at the part's own sample, carried through its
+			// attachment basis and accumulated uniform scale.
+			for (const auto &volume : mesh.collisionBoxes)
+			{
+				ModelCollisionBox sampled, composed;
+				if (!sampleModelCollisionBox(volume, sample.frame, sample.nextFrame, sample.fraction, &sampled))
+					return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+																   "Part %1's collision volume %2 cannot be sampled at this time.")
+										   .arg(part.id, volume.name));
+				sampled.framePoses.clear();
+				if (!composeModelCollisionVolume(sampled, transform, scales[index], &composed, error))
+					return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "Part %1's collision volume %2: %3")
+										   .arg(part.id, volume.name, error ? *error : QString()));
+				composed.name = part.id + QLatin1Char('_') + volume.name;
+				if (std::any_of(result.mesh.collisionBoxes.cbegin(), result.mesh.collisionBoxes.cend(),
+								[&](const auto &box) { return box.name == composed.name; }))
+					return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+																   "Two parts' collision volumes would both be named %1. Rename one.")
+										   .arg(composed.name));
+				result.mesh.collisionBoxes << composed;
+			}
+			if (result.mesh.collisionBoxes.size() > modelCollisionBoxLimit)
+				return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+															   "The parts hold more than 64 collision volumes together. Remove volumes from "
+															   "the parts, or bake without collision."));
 		}
 		for (int surfaceIndex = 0; surfaceIndex < mesh.surfaces.size(); ++surfaceIndex)
 		{
@@ -715,7 +861,23 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 										   "A composed vertex or normal is invalid. Use stored poses or adjust the part transform."));
 				}
 				geometry.positions.append(position);
-				geometry.normals.append(direction(transform, normal));
+				auto composedNormal = direction(transform, normal);
+				if (assembly.tagInterpolation == ModelTagInterpolation::Quake3Renderer)
+				{
+					// The renderer's basis need not be orthonormal; keep unit normals.
+					const double magnitude = std::sqrt(double(composedNormal.x) * composedNormal.x +
+													   double(composedNormal.y) * composedNormal.y +
+													   double(composedNormal.z) * composedNormal.z);
+					if (!(magnitude > 1e-6))
+					{
+						return fail(error, QCoreApplication::translate(
+											   "VibeStudioModelAssembly",
+											   "A composed vertex or normal is invalid. Use stored poses or adjust the part transform."));
+					}
+					composedNormal = {float(composedNormal.x / magnitude), float(composedNormal.y / magnitude),
+									  float(composedNormal.z / magnitude)};
+				}
+				geometry.normals.append(composedNormal);
 			}
 			surface.frames = {std::move(geometry)};
 			if (reflected(transform))
@@ -734,14 +896,31 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 		}
 	}
 	updateEditableModelMetadata(&result.mesh);
-	const auto issues = validateEditableModel(result.mesh, control);
+	auto issues = validateEditableModel(result.mesh, control);
+	if (includeCollision && issues.isEmpty())
+		issues = validateModelCollision(result.mesh, control);
 	if (!issues.isEmpty())
 	{
 		return fail(error, issues.join(QLatin1Char('\n')));
 	}
 	result.notes = resolved.notes;
-	if (std::any_of(resolved.inputs.cbegin(), resolved.inputs.cend(),
-					[](const auto &input) { return !input.mesh.collisionBoxes.isEmpty(); }))
+	if (assembly.tagInterpolation == ModelTagInterpolation::Quake3Renderer)
+	{
+		result.notes << QCoreApplication::translate("VibeStudioModelAssembly",
+													"Attachment tags blend as the Quake III renderer does: origin and each axis "
+													"linearly, then each axis normalised on its own. Between stored frames the "
+													"attached basis may be slightly skewed, as in the game.");
+	}
+	if (includeCollision && !result.mesh.collisionBoxes.isEmpty())
+	{
+		const int volumes = int(result.mesh.collisionBoxes.size());
+		result.notes << QCoreApplication::translate("VibeStudioModelAssembly",
+													"Includes %n part collision volume(s), named <part>_<volume>, placed as the parts are. "
+													"Native model formats leave them out; editable sources keep them.",
+													nullptr, volumes);
+	}
+	else if (std::any_of(resolved.inputs.cbegin(), resolved.inputs.cend(),
+						 [](const auto &input) { return !input.mesh.collisionBoxes.isEmpty(); }))
 	{
 		result.notes << QCoreApplication::translate("VibeStudioModelAssembly",
 													"Input collision boxes remain in their model sources. Assembly baking does not compose "
@@ -766,7 +945,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 
 bool exportModelAssemblyPose(const ModelAssembly &assembly, const ModelAssemblyResolved &resolved, double seconds, const QString &path,
 							 const QString &sourcePath, bool overwrite, bool dryRun, QString *error, const ModelWorkControl &control,
-							 ModelExportReport *report, const std::shared_ptr<const PackageArchiveReader> &archive)
+							 ModelExportReport *report, const std::shared_ptr<const PackageArchiveReader> &archive, bool includeCollision)
 {
 	if (error)
 	{
@@ -797,12 +976,15 @@ bool exportModelAssemblyPose(const ModelAssembly &assembly, const ModelAssemblyR
 													   "replacing another output requires explicit overwrite."));
 	}
 	ModelAssemblyPose pose;
-	if (!sampleModelAssembly(assembly, resolved, seconds, &pose, error, control))
+	if (!sampleModelAssembly(assembly, resolved, seconds, &pose, error, control, includeCollision))
 	{
 		return false;
 	}
 	ModelExportReport details;
-	const auto bytes = exportEditableModel(pose.mesh, QFileInfo(path).suffix(), 0, error, control, &details);
+	// An editable source keeps carried collision; native formats report it omitted.
+	const bool editable = path.endsWith(QStringLiteral(".mesh.json"), Qt::CaseInsensitive);
+	const auto bytes = editable ? serializeEditableModel(pose.mesh, error, control)
+								: exportEditableModel(pose.mesh, QFileInfo(path).suffix(), 0, error, control, &details);
 	if (bytes.isEmpty() || (!dryRun && !writeModelFile(target, bytes, error, control)))
 	{
 		return false;

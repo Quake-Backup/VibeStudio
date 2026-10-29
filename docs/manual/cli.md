@@ -203,6 +203,32 @@ an `animation.cfg` entry from `--package`; add `--config-entry-index N` when the
 path is repeated. A missing player, model, `animation.cfg` or complete skin exits
 4. See [opening a Quake III player](../MODEL_ASSEMBLY.md#opening-a-quake-iii-player).
 
+`model assembly --tag-interpolation quake3|shortest-arc` (on `add`, `update` or
+`animation-set`; `update` needs no `--part` for it) sets how attachment tags blend
+between frames in previews and bakes. See
+[attachment blend](../MODEL_ASSEMBLY.md#attachment-blend).
+
+`model collision --operation place --instance entity:N` places collision through
+a placed model entity's origin, angles and modelscale. Placement records the mesh
+source in one `func_group`; `--operation placed --map MAP` lists those records as
+`current`, `stale`, `other-source` or `invalid`, and `--operation refresh --map MAP
+--output NEW.map` replaces every stale record from this mesh (or `--group entity:N`)
+as one undo step each. See
+[recorded placement and refresh](../MODEL_COLLISION.md#recorded-placement-and-refresh).
+
+`model collision --operation fit-hull --name N [--profile quake3|doom3-trace]
+[--max-faces K]` fits a convex hull within a face budget; `--operation export-ase
+--target doom3` writes an ASE with collision surfaces and `--operation
+export-clipmodel --target doom3 --box N` a Doom 3 clip model. See
+[convex hulls](../MODEL_COLLISION.md#convex-hulls) and
+[Doom 3 collision](../MODEL_COLLISION.md#doom-3-collision).
+
+`model assembly --operation weapon-review|weapon-export --weapon-name W
+--weapon-part P` publishes a Quake III weapon set, and `--operation
+q2-player-review|q2-player-export --player-name N --body B --weapon W --q2-skin
+NAME=IMAGE` a Quake II player. See [weapon packages](../MODEL_ASSEMBLY.md#weapon-packages)
+and [Quake II player packages](../MODEL_ASSEMBLY.md#quake-ii-player-packages).
+
 VibeStudio includes a full command line that runs the same services as the studio. Use it to script
 package checks, builds and conversions, to run VibeStudio in CI, or to inspect files without opening
 the studio. This page shows how to run it, the options every command shares, and how to use its

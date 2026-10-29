@@ -1,7 +1,7 @@
 # Model Collision Authoring
 
-The Mesh Editor's **Collision** tab authors static and animated oriented boxes separately
-from render geometry. Use several boxes to approximate a prop, inspect them in
+The Mesh Editor's **Collision** tab authors static and animated oriented boxes and
+[convex hulls](#convex-hulls) separately from render geometry. Use several boxes to approximate a prop, inspect them in
 the same camera view, then export a collision `.map` or place the brushes in the
 open level. Collision is retained by mesh source saves, selection-aware undo and
 local recovery. Core authoring works offline without an AI provider.
@@ -83,8 +83,40 @@ Collision poses are independent of attachment tags and render-mesh transforms.
 They are source authoring data; no target-game dynamic hitbox or physics format
 is emitted. Rigid bodies, skeletal collision and automatic convex decomposition
 remain outside this workflow. Selecting a box prevents accidental mesh
-or UV transforms until mesh components are selected again. Arbitrary convex
-collision editing remains further modeller work.
+or UV transforms until mesh components are selected again.
+
+### Convex hulls
+
+**Fit New Hull** fits a convex hull to the selected vertices, edges or faces of
+the active surface, or to every surface when none are selected, over the poses
+**Fit poses** chooses (all frames together, or the current frame). Round,
+sloped and tapered props fit far better than with boxes. **Hull budget** sets
+how many faces, edges and vertices the hull may have:
+
+| Budget | Limit | Source |
+| --- | --- | --- |
+| Map brush | 128 faces | The level editor's brush limit; Quake, Quake II and Quake III clip brushes. |
+| Doom 3 trace model | 16 faces, 32 edges, 32 vertices | `MAX_TRACEMODEL_POLYS`, `MAX_TRACEMODEL_EDGES` and `MAX_TRACEMODEL_VERTS` in Doom 3's [`TraceModel.h`](https://github.com/id-Software/DOOM-3/blob/master/neo/idlib/geometry/TraceModel.h). |
+
+**Maximum hull faces** can lower the face limit further, down to 4. When the
+exact hull fits the budget it is used as it is. Otherwise it is simplified
+conservatively: starting from the bounding box, the exact hull's own faces are
+added one at a time, each time the one that removes the most volume while the
+result stays within budget. Every plane touches the source points, so the hull
+only grows and every vertex stays inside it. The fit reports the volume of the
+exact hull beside the fitted one (CLI `hull.volume`). Coplanar, collinear or
+fewer than four points are refused.
+
+A hull is a collision volume like a box: it has a name, a frame (centre, size
+and rotation) and shares the 64-volume limit and the name rules. Its points
+are stored inside that frame, so **Apply Box**, the transform tools, **Animate
+Box**, **Make Static from Current Frame**, duplicate and delete all work on it;
+**Scale** stretches it along its local axes. The shape stays the same in every
+pose; an animated hull moves, turns and scales with its poses. The inspector
+lists its vertex, edge and face counts and whether it fits the Doom 3 trace
+model budget. The overlay draws its edges with the box styles. Map export and
+placement turn each hull into one convex brush through the level editor's
+convex-envelope service. Hulls of at most 256 points and 128 faces are accepted.
 
 ## Target And Level Handoff
 
@@ -92,6 +124,18 @@ Map origin translates every box by the same offset. One closed convex brush is
 generated per box through the level editor's existing hull service. Every placed
 corner must remain within ±32768 world units. Choose the target explicitly;
 it is not inferred from an MDL/MD2/MD3 filename.
+
+**Place for Selected Model Instance** places the boxes where a placed prop
+actually is. Select the model entity (one with a `model` key, such as
+`misc_model`) in the open level, then choose it. Every box corner goes through
+the instance's whole transform, the same one level preview draws the prop
+with: its `origin`, then `angles` (pitch, yaw, roll: yaw about Z, then pitch
+about Y, then roll about X) or `angle` (yaw), then `modelscale_vec` or
+`modelscale`. Rotation and non-uniform scale are exact, because the image of a
+box under that transform is still a convex solid with eight corners. **Map
+origin** is not used. Mirrored scales are accepted; a zero scale is refused.
+Compilers and games may read pitch differently from level preview; check a
+pitched instance in the target game.
 
 | Target | Output and requirement |
 | --- | --- |
@@ -121,16 +165,80 @@ frames are rejected. Static boxes accompany the sampled tracks unchanged.
 Export notes identify the frame and its name. The map receives static brushes,
 with no animation or live link to the model.
 
-These brushes are independent static level geometry. Later moving, scaling or
-editing the rendered prop does not move them. Update or regenerate them and
-remove previous brushes explicitly; repeated placement adds another set.
-The level editor can further edit inserted brushes using its normal component,
-transform, scene, undo and save services.
+### Recorded placement and refresh
+
+Placement puts the brushes of one handoff into one `func_group` entity that
+records where they came from. Its keys are:
+
+| Key | Value |
+| --- | --- |
+| `_vs_collision_source` | The mesh source, relative to the map's folder when possible. Omitted for an unsaved model. |
+| `_vs_collision_revision` | SHA-256 of the collision volumes as the source stores them. |
+| `_vs_collision_frame` | The sampled frame, or `-1` for static boxes. |
+| `_vs_collision_target`, `_vs_collision_material` | The target and, for Quake III, the clip shader. |
+| `_vs_collision_transform` | The placement transform: 12 numbers, row by row, translation last. |
+| `_vs_collision_model` | The instance's `model` key, for instance placement. |
+
+ericw-tools and VibeMap2, Quake II `qbsp3`, and q3map2 and VibeMap3 merge
+`func_group` brushes into the world, as they do for TrenchBroom's groups, so
+the record changes nothing in the compiled map. A compiler without `func_group`
+support, such as the original 1996 Quake `qbsp`, would keep it as a separate
+brush entity; compile Quake maps with VibeMap2 or ericw-tools.
+Underscore keys are ignored by the games. Only the revision tracks collision:
+a render-only mesh edit leaves placed collision current.
+
+**Refresh Placed Collision…** lists the collision placed from this model in the
+open level, each **Current** or **Stale** (the boxes changed since placement),
+with its frame and brush count; collision placed from an unsaved model shows as
+**No recorded source**. Choose one to replace its brushes with the current boxes,
+using the recorded target, material, frame and transform. The old `func_group`
+and its brushes are removed and the new one is placed in the same scene group
+or layer, all as one level undo step. A locked group or layer refuses the
+refresh and leaves the map unchanged. Collision placed from another model is
+not offered; open that model to refresh it. A record whose keys were edited
+into an invalid state is reported and never refreshed.
+
+These brushes are static level geometry. Moving or rescaling the prop in the
+level does not move them: refresh them afterwards. On the command line,
+`refresh --instance entity:N` follows that instance's current transform. The
+level editor can further edit inserted brushes using its normal component,
+transform, scene, undo and save services; a later refresh replaces such edits.
+**Export Collision Map…** still writes a plain worldspawn fragment, with no
+record. Placing collision together with **Stage and Place** in one step, and
+reporting records in `map inspect`, are not yet available.
+
+### Doom 3 collision
+
+Doom 3 has no clip brushes for props: it builds a model's collision from its
+render surfaces. When any surface's material has the `collision` keyword, such
+as `textures/common/collision`, only those surfaces collide (Doom 3's
+`CollisionModel_load.cpp`, `LoadRenderModel`). **Export ASE with
+Collision…** writes the current frame as an ASE model with one closed surface
+per box or hull, named `collision_<volume>`, with triangles wound outwards and
+**Doom 3 collision material** as its material. The render surfaces are written
+exactly as a plain ASE export writes them. Define the material with the
+`collision` keyword in the game's material scripts; the export does not check
+them. A render surface already named `collision_<volume>`, more than 32
+surfaces in all, or an unsafe material path is refused.
+
+**Export Doom 3 Clip Model…** writes the selected box or hull alone as an ASE
+for an entity's `clipmodel` key: Doom 3 builds a trace model from its single
+convex volume. The volume must fit the trace model budget of 16 faces, 32 edges
+and 32 vertices (fit a hull with the **Doom 3 trace model** budget); a larger
+one is refused. For an axis-aligned static box the review also gives the
+equivalent `mins` and `maxs` keys. Neither export runs the game; in-game
+collision and physics are not verified.
+
+```sh
+vibestudio --cli model collision models/crate.mesh.json --operation export-ase --target doom3 --output models/crate.ase --json
+vibestudio --cli model collision models/crate.mesh.json --operation export-clipmodel --target doom3 --box body --output models/crate_clip.ase --json
+```
 
 MDL, MD2, MD3 and OBJ exports do not embed these boxes and report the omission.
 Model package staging does not stage collision automatically. Linked assembly
-baking reports omitted input collision; author collision on the resulting mesh
-pose or retain the component sources for a separate handoff.
+baking reports omitted input collision by default, or carries every part's
+volumes into the bake with **Include part collision in bakes** (see
+[Part collision in bakes](MODEL_ASSEMBLY.md#part-collision-in-bakes)).
 
 ## Source And Recovery
 
@@ -141,6 +249,11 @@ and `rotation`; all three vectors have three numeric components. Version 5
 optionally retains existing version-4 `mdl` metadata. Sources without boxes
 use version 6 when clip FPS is saved, otherwise version 4 for native MDL data or version 3. Versions 1–4
 remain readable but reject a collision field rather than silently dropping it.
+
+A hull adds a `hull` array of 4–256 points, each three numbers within ±0.5, to
+either object shape (static or animated). Releases from before hulls refuse a
+source that holds one rather than dropping its shape; the source version number
+is unchanged.
 
 Animated collision uses version **7**, retaining optional saved FPS and MDL data.
 Its required `collisionBoxes` array accepts the static object above or an animated
@@ -174,6 +287,9 @@ the loaded source use its guarded source fingerprint.
 | `add` | Required `--name`; optional `--centre X,Y,Z`, `--size X,Y,Z`, `--rotation X,Y,Z`. Defaults: centre/rotation zero, size 16. |
 | `fit` | Required `--name`; optional `--frame all\|N`, `--surface N`, `--vertices all\|N,…`, `--faces all\|N,…`, `--edges A-B,…`. Indices are zero-based; edges have ascending endpoints. A surface without components is refused; use `--vertices all`. |
 | `fit-animated` | Required `--name`; same component selectors as `fit`, always samples every frame. No `--frame` option. |
+| `export-ase` | Required `--target doom3` and an `.ase` `--output`; optional `--material` (default `textures/common/collision`) and `--frame N` (required for animated volumes). Writes the render surfaces plus one collision surface per volume. JSON reports `collisionSurfaces`, the material and notes. |
+| `export-clipmodel` | Required `--target doom3`, `--box NAME` and an `.ase` `--output`; optional `--material` and `--frame N`. Writes that volume alone and refuses one over the trace model budget. JSON `clipModel` gives its faces, edges and vertices, and `mins`/`maxs` for an axis-aligned static box. |
+| `fit-hull` | Required `--name`; the selectors and `--frame all\|N` of `fit`; `--profile quake\|quake2\|quake3\|doom3-trace` (default `quake3`) and optional `--max-faces K` (4 to the profile's limit). JSON adds `hull` with its vertex, edge and face counts and volume. The other operations accept hulls as they accept boxes. |
 | `animate` | Required static `--box`; copies it into every frame. |
 | `freeze` | Required animated `--box` and `--frame N`; keeps that pose as a static box. |
 | `update` | Required `--box existing-name`; optional new `--name`, centre, size and rotation. Omitted fields retain their per-pose values, including under all-frame scope. Animated value updates require explicit `--frame all\|N`; rename alone needs no scope. |
@@ -181,7 +297,9 @@ the loaded source use its guarded source fingerprint.
 | `duplicate` | Required `--box existing-name --name new-name`. |
 | `delete` | Required `--box existing-name`. |
 | `export-map` | Required `--target quake\|quake2\|quake3`; Quake III also requires `--material`. Optional `--origin X,Y,Z`. |
-| `place` | Same target options, plus `--map existing.map`; writes a separate map output through shared placement/serialization. The original map is protected even with `--overwrite`. |
+| `place` | Same target options, plus `--map existing.map`; writes a separate map output through shared placement/serialization. The original map is protected even with `--overwrite`. `--instance entity:N` places through that model entity's transform instead of `--origin`. The brushes form one recorded `func_group`. |
+| `placed` | Required `--map`; read-only. Lists every recorded `func_group` with `group` (`entity:N`), `status` (`current`, `stale`, `other-source` or `invalid`), source, revision, frame, target, material, model and brush count. Optional `--target` only hints how to read the map. |
+| `refresh` | Required `--map` and `--output`. Replaces every stale record placed from this mesh, or the one named by `--group entity:N`, as one undo step each; `--instance entity:N` follows that instance's current transform. Fails when nothing matches. Protects the input map. |
 
 Animated `transform` requires explicit `--frame all|N`. Selection axes may use
 `--axes-frame N`; all-frame CLI selection pivots use pose zero, while a custom
@@ -200,6 +318,9 @@ vibestudio --cli model collision models/prop.mesh.json --operation fit --name bo
 vibestudio --cli model collision models/prop-collision.mesh.json --operation transform --box body --offset 0,0,8 --rotate 0,0,15 --scale 1.25,1,1 --output models/prop-collision.mesh.json
 vibestudio --cli model collision models/prop-collision.mesh.json --operation export-map --target quake2 --origin 128,0,0 --output maps/prop-clip.map --json
 vibestudio --cli model collision models/prop-collision.mesh.json --operation place --target quake3 --material common/clip --map maps/source.map --output maps/with-prop-clip.map --json
+vibestudio --cli model collision models/prop-collision.mesh.json --operation place --target quake3 --material common/clip --map maps/source.map --instance entity:12 --output maps/with-prop-clip.map --json
+vibestudio --cli model collision models/prop-collision.mesh.json --operation placed --map maps/with-prop-clip.map --json
+vibestudio --cli model collision models/prop-collision.mesh.json --operation refresh --map maps/with-prop-clip.map --output maps/refreshed.map --json
 ```
 
 Exit codes are 0 success, 2 invalid/irrelevant arguments and 4 failed source,

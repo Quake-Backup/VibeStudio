@@ -7,6 +7,8 @@
 #include "core/model_assembly_animation.h"
 #include "core/model_assembly_recovery.h"
 #include "core/model_player_bundle.h"
+#include "core/model_weapon_bundle.h"
+#include "core/model_q2_player_bundle.h"
 
 #include <QDialog>
 #include <QElapsedTimer>
@@ -70,8 +72,22 @@ class ModelAssemblyDialog final : public QDialog
 	bool saveSource(const QString &path, bool overwrite = false, QString *error = nullptr);
 	bool applyPart(const QString &previousId, const ModelAssemblyPart &part, QString *error = nullptr);
 	bool applyQ3Animation(const std::optional<ModelAssemblyQ3Animation> &animation, QString *error = nullptr);
+	// One undoable assembly-level edit; resamples the preview.
+	bool applyTagInterpolation(ModelTagInterpolation mode, QString *error = nullptr);
+	// Whether bakes carry part collision (core/model_assembly.h sampleModelAssembly).
+	bool includesCollision() const;
+	void setIncludeCollision(bool include);
 	bool exportQ3Animation(const QString &path, bool overwrite, QString *error = nullptr);
 	bool preparePlayerBundle(const ModelPlayerBundleOptions &options, ModelPlayerBundle *result, QString *error = nullptr);
+	// Quake II player packages (core/model_q2_player_bundle.h); relative paths
+	// resolve from the assembly's folder, the palette from the open package.
+	bool prepareQ2PlayerBundle(const ModelQ2PlayerOptions &options, ModelQ2PlayerBundle *result, QString *error = nullptr);
+	bool exportQ2PlayerBundle(const ModelQ2PlayerBundle &bundle, const QString &path, bool overwrite, PackageWriteReport *result = nullptr,
+							  QString *error = nullptr);
+	// Quake III weapon model sets (core/model_weapon_bundle.h).
+	bool prepareWeaponBundle(const ModelWeaponBundleOptions &options, ModelWeaponBundle *result, QString *error = nullptr);
+	bool exportWeaponBundle(const ModelWeaponBundle &bundle, const QString &path, bool overwrite, PackageWriteReport *result = nullptr,
+							QString *error = nullptr);
 	bool exportPlayerBundle(const ModelPlayerBundle &bundle, const QString &path, bool overwrite,
 		PackageWriteReport *result = nullptr, QString *error = nullptr);
 	bool removeBranch(const QString &id, QString *error = nullptr);
@@ -125,8 +141,11 @@ class ModelAssemblyDialog final : public QDialog
 	QComboBox *m_skinKind = nullptr;
 	QSpinBox *m_skinIndex = nullptr;
 	QComboBox *m_kind = nullptr, *m_parent = nullptr, *m_tag = nullptr, *m_render = nullptr;
+	QComboBox *m_tagInterpolation = nullptr;
+	// Session choice: carry part collision into pose and animation bakes.
+	QCheckBox *m_includeCollision = nullptr;
 	QDoubleSpinBox *m_translation[3]{}, *m_rotation[3]{};
-	QDoubleSpinBox *m_scale = nullptr, *m_fps = nullptr, *m_phase = nullptr, *m_time = nullptr;
+	QDoubleSpinBox *m_scale = nullptr, *m_fps = nullptr, *m_phase = nullptr, *m_time = nullptr, *m_spin = nullptr;
 	QSpinBox *m_first = nullptr, *m_last = nullptr;
 	QCheckBox *m_loop = nullptr, *m_interpolate = nullptr;
 	QAction *m_undo = nullptr, *m_redo = nullptr, *m_remove = nullptr, *m_bake = nullptr, *m_export = nullptr;
@@ -165,6 +184,8 @@ class ModelAssemblyDialog final : public QDialog
 	void chooseAnimationBake(bool exporting);
 	void chooseQ3Animation();
 	void choosePlayerBundle();
+	void chooseWeaponBundle();
+	void chooseQ2PlayerBundle();
 	void addSkinControls(QFormLayout *form);
 	void refreshSkinControls(const ModelAssemblyPart &part);
 	std::optional<ModelAssemblySkin> skinFromInspector() const;

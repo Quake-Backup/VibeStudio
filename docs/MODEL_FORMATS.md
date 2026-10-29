@@ -268,7 +268,9 @@ and detail set, and keeps the refusal's notes under **Export Report…**.
   material slot of each surface is written, and a surface without a material is
   named after itself in MD5 and ASE.
 - **ASE** writes one frame and no joints, and leaves out a surface the frame
-  holds no drawable geometry for, with a note.
+  holds no drawable geometry for, with a note. For Doom 3, collision boxes and
+  hulls can be written as collision surfaces in the same ASE, or one volume as
+  a `clipmodel` ASE; see [Doom 3 collision](MODEL_COLLISION.md#doom-3-collision).
 - **Clips, origins and the skeleton in MDL, MD2, MD3 and OBJ.** These formats
   have no clip table: readers rebuild clips from the frame names (`stand1`,
   `stand2` and so on). Clips that come back that way are kept, so an imported

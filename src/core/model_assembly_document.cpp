@@ -302,9 +302,20 @@ bool ModelAssemblyDocument::removeBranch(const QString &id, QString *error)
 bool ModelAssemblyDocument::setQ3Animation(const std::optional<ModelAssemblyQ3Animation> &animation, QString *error)
 {
 	auto candidate = m_state;
+	if (animation && !candidate.assembly.q3Animation)
+		candidate.assembly.tagInterpolation = ModelTagInterpolation::Quake3Renderer;
 	candidate.assembly.q3Animation = animation;
 	if (!validateModelAssembly(candidate.assembly, error))
 		return false;
+	commit(std::move(candidate));
+	return true;
+}
+bool ModelAssemblyDocument::setTagInterpolation(ModelTagInterpolation mode, QString *error)
+{
+	if (mode != ModelTagInterpolation::ShortestArc && mode != ModelTagInterpolation::Quake3Renderer)
+		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "Choose a supported tag interpolation."));
+	auto candidate = m_state;
+	candidate.assembly.tagInterpolation = mode;
 	commit(std::move(candidate));
 	return true;
 }

@@ -78,9 +78,10 @@ bool add(ModelPlayerBundle *bundle, QString path, QString role, QByteArray bytes
 	bundle->files.append({std::move(path), std::move(role), std::move(bytes), digest});
 	return true;
 }
-bool stage(const ModelPlayerBundle &bundle, PackageStagingModel *plan, QString *error, const ModelWorkControl &control)
+bool stage(const ModelPlayerBundle &bundle, PackageStagingModel *plan, QString *error, const ModelWorkControl &control,
+		   PackageArchiveFormat format = PackageArchiveFormat::Pk3)
 {
-	if (!plan->createEmpty(PackageArchiveFormat::Pk3, {}, error) || !plan->beginOperationGroup(Text::tr("Player bundle"), error))
+	if (!plan->createEmpty(format, {}, error) || !plan->beginOperationGroup(Text::tr("Player bundle"), error))
 		return false;
 	qint64 total = 0;
 	for (const auto &file : bundle.files)
@@ -627,61 +628,8 @@ bool prepareModelPlayerBundle(const ModelAssembly &assembly, const ModelAssembly
 			completeness << note;
 		soundReceipts.append(receipt);
 	}
-	const auto progress = [&](int done, int total) { return modelWorkCheckpoint(control, ModelWorkPhase::Reading, done, total, error); };
-	const ModelArchiveReader reader(*context.archive, control);
-	candidate.dependencies = inspectModelMaterialDependencies(materials, reader, progress);
-	if (!candidate.dependencies.canExport())
-		return fail(error, Text::tr("Resolve the player material dependencies before publication. %1")
-							   .arg(levelDependencyReportText(candidate.dependencies)));
-	const auto nativePath = [](const QString &path) {
-		return path.size() <= 63 &&
-			   std::all_of(path.cbegin(), path.cend(), [](QChar ch) { return ch.unicode() >= 32 && ch.unicode() < 127; });
-	};
-	for (const auto &dependency : candidate.dependencies.dependencies)
-		if (!nativePath(dependency.reference))
-			return fail(
-				error, Text::tr("Native player material references must fit 63 printable ASCII characters: %1.").arg(dependency.reference));
-	for (const auto &path : candidate.dependencies.resolvedPaths)
-	{
-		const auto suffix = QFileInfo(path).suffix().toLower();
-		if (!nativePath(path) || (suffix != "tga" && suffix != "jpg" && suffix != "shader" && suffix != "roq"))
-			return fail(error, Text::tr("Original Quake III player dependencies need TGA/JPG images, shader scripts or RoQ video and paths "
-										"up to 63 characters. Convert %1 in the asset editor first.")
-								   .arg(path));
-		QByteArray bytes;
-		if (!reader.readEntryBytes(path, &bytes, error, std::min(modelFileByteLimit, bundleLimit - candidate.totalBytes)) ||
-			!add(&candidate, path, "dependency", bytes, error))
-			return false;
-		if (suffix == "tga" || suffix == "jpg")
-		{
-			const auto image = decodeIdTechImage(path, bytes, {});
-			if (!image.decoded || image.image.isNull())
-				return fail(error, Text::tr("Player image %1 is unreadable: %2").arg(path, image.error));
-			// Original tr_image.c LoadTGA ignores both image origin flags (its
-			// vertical-flip block is disabled). Require bottom-left native pixels.
-			const bool tga =
-				bytes.size() >= 18 && bytes[1] == 0 && (bytes[17] & 0x30) == 0 &&
-				(((bytes[2] == 2 || bytes[2] == 10) && (bytes[16] == 24 || bytes[16] == 32)) || (bytes[2] == 3 && bytes[16] == 8));
-			const bool jpeg = bytes.startsWith(QByteArray::fromHex("ffd8ff"));
-			if ((suffix == "tga" && !tga) || (suffix == "jpg" && !jpeg))
-				return fail(error, Text::tr("Image %1 is readable by the studio but does not use an original Quake III image layout. "
-											"Re-export it in the Texture Editor.")
-									   .arg(path));
-		}
-	}
-	// Recheck the owned bytes, never an earlier live package view. A shader that
-	// changes while captured cannot introduce an uncaptured dependency.
-	PackageStagingModel owned;
-	if (!stage(candidate, &owned, error, control))
+	if (!captureModelBundleDependencies(materials, context, &candidate, error, control))
 		return false;
-	PackageReadControl packageControl;
-	packageControl.isCancelled = control.cancelled;
-	const PackageStagingArchive frozen(owned, PackageStagingReadMode::CompletePlan, packageControl);
-	if (!frozen.isOpen())
-		return fail(error, frozen.errorString());
-	const auto closure = inspectModelMaterialDependencies(materials, frozen, progress);
-	if (!closure.canExport() || closure.resolvedPaths != candidate.dependencies.resolvedPaths)
-		return fail(error, Text::tr("The captured shader dependencies changed. Reload the package and prepare the bundle again."));
 	const bool team = std::any_of(skins.cbegin(), skins.cend(), [](const auto &skin) { return skin.name.compare(QStringLiteral("red"), Qt::CaseInsensitive) == 0; }) &&
 					  std::any_of(skins.cbegin(), skins.cend(), [](const auto &skin) { return skin.name.compare(QStringLiteral("blue"), Qt::CaseInsensitive) == 0; });
 	candidate.notes.prepend(Text::tr("Publishes separate native models, primary skin assignments, animation.cfg, a TGA icon and reviewed "
@@ -739,6 +687,81 @@ bool prepareModelPlayerBundle(const ModelAssembly &assembly, const ModelAssembly
 	return true;
 }
 
+bool addModelBundleFile(ModelPlayerBundle *bundle, const QString &path, const QString &role, const QByteArray &bytes, QString *error)
+{
+	return add(bundle, path, role, bytes, error);
+}
+bool transformModelBundlePart(ModelMesh *mesh, const ModelAssemblyPart &part, double parentScale, QString *error,
+							  const ModelWorkControl &control)
+{
+	return transformPart(mesh, part, parentScale, error, control);
+}
+void protectModelBundleInput(ModelPlayerBundle *bundle, const QString &path)
+{
+	protect(bundle, path);
+}
+bool captureModelBundleDependencies(const ModelMesh &materials, const ModelAssemblyContext &context, ModelPlayerBundle *bundle,
+									QString *error, const ModelWorkControl &control)
+{
+	auto &candidate = *bundle;
+	const auto progress = [&](int done, int total) { return modelWorkCheckpoint(control, ModelWorkPhase::Reading, done, total, error); };
+	const ModelArchiveReader reader(*context.archive, control);
+	candidate.dependencies = inspectModelMaterialDependencies(materials, reader, progress);
+	if (!candidate.dependencies.canExport())
+		return fail(error, Text::tr("Resolve the player material dependencies before publication. %1")
+							   .arg(levelDependencyReportText(candidate.dependencies)));
+	const auto nativePath = [](const QString &path) {
+		return path.size() <= 63 &&
+			   std::all_of(path.cbegin(), path.cend(), [](QChar ch) { return ch.unicode() >= 32 && ch.unicode() < 127; });
+	};
+	for (const auto &dependency : candidate.dependencies.dependencies)
+		if (!nativePath(dependency.reference))
+			return fail(
+				error, Text::tr("Native player material references must fit 63 printable ASCII characters: %1.").arg(dependency.reference));
+	for (const auto &path : candidate.dependencies.resolvedPaths)
+	{
+		const auto suffix = QFileInfo(path).suffix().toLower();
+		if (!nativePath(path) || (suffix != "tga" && suffix != "jpg" && suffix != "shader" && suffix != "roq"))
+			return fail(error, Text::tr("Original Quake III player dependencies need TGA/JPG images, shader scripts or RoQ video and paths "
+										"up to 63 characters. Convert %1 in the asset editor first.")
+								   .arg(path));
+		QByteArray bytes;
+		if (!reader.readEntryBytes(path, &bytes, error, std::min(modelFileByteLimit, bundleLimit - candidate.totalBytes)) ||
+			!add(&candidate, path, "dependency", bytes, error))
+			return false;
+		if (suffix == "tga" || suffix == "jpg")
+		{
+			const auto image = decodeIdTechImage(path, bytes, {});
+			if (!image.decoded || image.image.isNull())
+				return fail(error, Text::tr("Player image %1 is unreadable: %2").arg(path, image.error));
+			// Original tr_image.c LoadTGA ignores both image origin flags (its
+			// vertical-flip block is disabled). Require bottom-left native pixels.
+			const bool tga =
+				bytes.size() >= 18 && bytes[1] == 0 && (bytes[17] & 0x30) == 0 &&
+				(((bytes[2] == 2 || bytes[2] == 10) && (bytes[16] == 24 || bytes[16] == 32)) || (bytes[2] == 3 && bytes[16] == 8));
+			const bool jpeg = bytes.startsWith(QByteArray::fromHex("ffd8ff"));
+			if ((suffix == "tga" && !tga) || (suffix == "jpg" && !jpeg))
+				return fail(error, Text::tr("Image %1 is readable by the studio but does not use an original Quake III image layout. "
+											"Re-export it in the Texture Editor.")
+									   .arg(path));
+		}
+	}
+	// Recheck the owned bytes, never an earlier live package view. A shader that
+	// changes while captured cannot introduce an uncaptured dependency.
+	PackageStagingModel owned;
+	if (!stage(candidate, &owned, error, control))
+		return false;
+	PackageReadControl packageControl;
+	packageControl.isCancelled = control.cancelled;
+	const PackageStagingArchive frozen(owned, PackageStagingReadMode::CompletePlan, packageControl);
+	if (!frozen.isOpen())
+		return fail(error, frozen.errorString());
+	const auto closure = inspectModelMaterialDependencies(materials, frozen, progress);
+	if (!closure.canExport() || closure.resolvedPaths != candidate.dependencies.resolvedPaths)
+		return fail(error, Text::tr("The captured shader dependencies changed. Reload the package and prepare the bundle again."));
+	return true;
+}
+
 QJsonObject modelPlayerBundleJson(const ModelPlayerBundle &bundle)
 {
 	QJsonArray files;
@@ -773,20 +796,30 @@ QStringList modelPlayerBundleText(const ModelPlayerBundle &bundle)
 PackageWriteReport writeModelPlayerBundle(const ModelPlayerBundle &bundle, const QString &path, bool overwrite, bool dryRun,
 										  const ModelWorkControl &requestControl)
 {
+	return writeModelBundleArchive(bundle, path, PackageArchiveFormat::Pk3, overwrite, dryRun, requestControl);
+}
+PackageWriteReport writeModelBundleArchive(const ModelPlayerBundle &bundle, const QString &path, PackageArchiveFormat format, bool overwrite,
+										   bool dryRun, const ModelWorkControl &requestControl)
+{
 	bool cancelled = false;
 	ModelWorkControl control = requestControl;
 	control.cancelled = [&] { return cancelled = cancelled || (requestControl.cancelled && requestControl.cancelled()); };
 	PackageWriteReport failure;
 	failure.outputPath = QFileInfo(path).absoluteFilePath();
 	failure.dryRun = dryRun;
-	failure.format = PackageArchiveFormat::Pk3;
+	failure.format = format;
 	const auto reject = [&](const QString &message) {
 		failure.blockedMessages << message;
 		failure.cancelled = control.cancelled && control.cancelled();
 		return failure;
 	};
-	if (!path.endsWith(".pk3", Qt::CaseInsensitive) || bundle.files.isEmpty())
-		return reject(Text::tr("Prepare a player bundle and choose a separate .pk3 output."));
+	const auto suffix = QFileInfo(path).suffix().toLower();
+	const bool matches = format == PackageArchiveFormat::Pk3 ? suffix == QStringLiteral("pk3")
+						 : format == PackageArchiveFormat::Pak ? suffix == QStringLiteral("pak")
+						 : format == PackageArchiveFormat::Zip ? (suffix == QStringLiteral("zip") || suffix == QStringLiteral("pk2"))
+															   : false;
+	if (!matches || bundle.files.isEmpty())
+		return reject(Text::tr("Prepare the package and choose a separate output with the package's extension (.pk3, .pak, .pk2 or .zip)."));
 	const auto target = inspectModelWriteTarget(path, control);
 	if (!target.isValid())
 		return reject(target.error);
@@ -802,11 +835,11 @@ PackageWriteReport writeModelPlayerBundle(const ModelPlayerBundle &bundle, const
 				return reject(Text::tr("Player output and backup paths must not replace an assembly, model, skin, icon or sound input."));
 	}
 	PackageStagingModel staging;
-	if (!stage(bundle, &staging, &error, control))
+	if (!stage(bundle, &staging, &error, control, format))
 		return reject(error);
 	PackageWriteRequest request;
 	request.destinationPath = target.path;
-	request.format = PackageArchiveFormat::Pk3;
+	request.format = format;
 	request.allowOverwrite = overwrite;
 	request.dryRun = dryRun;
 	request.verifyDeterminism = true;

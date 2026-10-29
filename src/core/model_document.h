@@ -201,6 +201,9 @@ enum class ModelEditKind
 	// Chooses the skeletal clips baked into editable frames
 	// (core/model_skeletal_working_set.h); ModelSkeletalEditOptions::workingSet.
 	SetSkeletalWorkingSet,
+	// Convex collision hull fitted to vertices (core/model_collision_hull.h);
+	// collisionBox.name, frame, selection, collisionHullProfile and collisionHullMaxFaces.
+	FitCollisionHull,
 };
 
 struct ModelEdit
@@ -276,6 +279,10 @@ struct ModelEdit
 	QVector<ModelWeightStroke> weightStrokes;
 	ModelWeightTransferOptions weightTransfer{};
 	ModelUvDensityOptions uvDensity{};
+	// FitCollisionHull: "quake", "quake2", "quake3" or "doom3-trace", and an
+	// optional lower face budget (0 keeps the profile's).
+	QString collisionHullProfile = QStringLiteral("quake3");
+	int collisionHullMaxFaces = 0;
 };
 
 struct ModelExportReport

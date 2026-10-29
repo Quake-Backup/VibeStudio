@@ -1,8 +1,9 @@
 # Model Assemblies
 
-Input [collision boxes](MODEL_COLLISION.md) remain in component mesh sources.
-Pose and animation baking report their omission. Fit or author collision on the
-baked mesh when the composed prop needs a separate level collision handoff.
+Input [collision boxes and hulls](MODEL_COLLISION.md) remain in component mesh
+sources. By default pose and animation baking report their omission; **Include
+part collision in bakes** carries them into the bake instead (see
+[Part collision in bakes](#part-collision-in-bakes)).
 
 **Models > Assemble** links existing models through named attachment tags. The
 selected package model starts as the root when one is selected; otherwise the
@@ -20,7 +21,8 @@ current package or staged plan; the recipe does not remember a package path.
 
 1. Choose **Add Part**, enter a unique ID and select **File** or **Current
    package**. **Browse…** selects a loose model or a supported package
-   entry. OBJ, MDL, MD2, MD3 and editable `.mesh.json` models are supported.
+   entry. OBJ, MDL, MD2, MD3, MD5 mesh, IQM and editable `.mesh.json` models
+   are supported.
 2. The first part is the root. For a child, choose its parent and one of the
    parent's tags. Tags can also be entered by name when repairing missing
    references. Create or repair the tag in **Edit Mesh > Animation**.
@@ -56,6 +58,74 @@ Missing files or tags clear the preview and disable baking but leave the recipe
 editable and saveable. Cancellation leaves the previous document and preview
 unchanged. Reload a repaired reference to rebuild the preview. Malformed recipe
 syntax or invalid graph edits never replace the current document.
+
+## Joint Attachments
+
+A skeletal parent (an MD5 mesh, an IQM model or a skeletal `.mesh.json` source)
+offers every joint as an attachment point: **Parent tag** lists `joint:<name>`
+for each joint, and the field accepts the name typed in. Attach a head, weapon or
+prop to `joint:head` or `joint:hand` as Doom 3-era content does. At each of the
+parent's baked frames the attachment is the joint's model-space transform: the
+bind pose, or the clip frame the bake took. Its axes are made orthonormal, so a
+joint's scale is not inherited. Between frames it blends like any tag, with the
+assembly's [attachment blend](#attachment-blend), and the preview, pose bakes and
+animation bakes then work as for tags.
+
+A joint that does not exist, or that has no pose in every baked frame, is
+reported by name and leaves the recipe editable for repair, as a missing tag
+does. Joint attachments use assembly schema 4; older schemas refuse them. Reading
+a Doom 3 `.def` entity declaration's head and attachment keys into a recipe is
+not yet available.
+
+```sh
+vibestudio --cli model assembly ./marine.assembly.json --operation add \
+  --part rifle --model ./models/rifle.mesh.json --parent body --tag joint:Rhand \
+  --output ./marine.assembly.json --json
+```
+
+## Attachment Blend
+
+**Attachment blend**, below the preview, chooses how a parent's attachment tag
+blends between two stored frames. It applies to the whole assembly: preview,
+**Bake Pose to Mesh**, **Export Pose…** and the animation bakes. Changing it is
+one undoable edit, and **Details** names the active mode.
+
+- **Quake III renderer** follows the original game. Its `R_LerpTag`
+  ([`tr_model.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/renderer/tr_model.c))
+  blends the tag origin and each of the three axis vectors linearly, then
+  normalises each axis on its own without making them perpendicular again.
+  `CG_PositionEntityOnTag`
+  ([`cg_ents.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_ents.c))
+  then places the child through that basis. Between frames of a fast turn the
+  attached part is slightly skewed, exactly as in the game. Stored frames are
+  normalised too, as the engine does. Opposite handedness and opposite
+  orientations blend without a diagnostic, because the game accepts them; an
+  axis that cancels to zero stays zero and collapses the attached geometry for
+  that sample, which the bake then reports as a collapsed triangle. Composed
+  normals are made unit length again.
+- **Shortest arc** rotates the tag along the shortest quaternion path and keeps
+  the basis rigid. Interpolating between opposite tag handedness fails with a
+  diagnostic, as described above.
+
+Recipes saved before this setting existed keep **Shortest arc**. Binding
+[native animation](#quake-iii-native-animation) to an assembly without one, and
+[opening a Quake III player](#opening-a-quake-iii-player), select **Quake III
+renderer**. The Quake III renderer mode is stored as `"tagInterpolation":
+"quake3"` in assembly schema 4; schema 4 may also store `"shortest-arc"`. Older
+schemas cannot carry the field. The blend is reimplemented from the GPL-2.0-or-later
+id Software source's described behaviour; no engine code is copied. It is checked
+against an independent statement of the formula on 1,000 random tag pairs, not
+against a running game.
+
+```sh
+vibestudio --cli model assembly ./player.assembly.json --operation update \
+  --tag-interpolation quake3 --output ./player.assembly.json --json
+```
+
+`--tag-interpolation quake3|shortest-arc` applies to `add`, `update` and
+`animation-set`. `update` needs no `--part` for it. It is applied after an
+`animation-set` binding, so it can override the default that binding selects.
+Text and JSON (`tagInterpolation`) report the mode.
 
 ## Linked Skins
 
@@ -155,11 +225,11 @@ of the selected clip. This is steady clip sampling; transition blends, haste,
 procedural body aiming, footsteps and voice playback are outside the preview.
 Head offset, sex/voice set, footsteps and fixed-body flags are preserved in the
 configuration for the game. They do not alter assembly placement.
-Geometry and attachment interpolation retain the studio's existing assembly
-rules. In particular, its shortest-arc tag rotation differs from the
-[original renderer’s normalized basis-vector blend](https://github.com/id-Software/Quake-III-Arena/blob/master/code/renderer/tr_model.c);
-the configuration check does not
-certify renderer equivalence.
+Binding native animation to an assembly that had none also selects the
+**Quake III renderer** [attachment blend](#attachment-blend) in the same undo
+step, so the preview places parts between frames as the game does. Geometry
+interpolation retains the studio's existing assembly rules; the configuration
+check does not certify renderer equivalence.
 
 **Import…** reads a loose `animation.cfg` into the pending dialog. Import
 accepts whitespace, quoted tokens, line/block comments, supported header
@@ -474,6 +544,93 @@ or `--lod-recipes`. Sounds: repeated `--sound NAME=PATH`. A PATH starting with
 `package:` names a package entry; other paths are files resolved from the working
 directory. JSON adds `skins`, `teamSkins` and `sounds`.
 
+## Weapon Packages
+
+**Weapon Package…** publishes a Quake III weapon set from an assembly, laid out as
+cgame's `CG_RegisterWeapon` loads it
+([`cg_weapons.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_weapons.c)).
+Choose a **Weapon ID** and the part for each role, then **Review Package**:
+
+| Role | Part | Published as |
+| --- | --- | --- |
+| Weapon (required) | The root, or on a `tag_weapon` (the hand's, or a player torso's for preview). Needs `tag_flash`, and `tag_barrel` with a barrel. | `models/weapons2/<w>/<w>.md3` |
+| Hand (optional) | The root, holding the weapon on its `tag_weapon`. Its frames follow the player's torso animation in game (`CG_MapTorsoToWeaponFrame`). | `<w>_hand.md3` |
+| Barrel (optional) | On the weapon's `tag_barrel`. The game rolls it while firing. | `<w>_barrel.md3` |
+| Flash (optional) | On the weapon's `tag_flash`; one pose. | `<w>_flash.md3` |
+
+Each role's local transform and inherited scale are baked into its MD3, as for
+player packages; a weapon placed on a player's `tag_weapon` keeps only its own
+transform, because the game places it on that tag itself. The review lists every
+file with its role, size and SHA-256, the material dependency closure (checked
+again over the captured bytes) and notes for missing optional roles and unused
+frames. A missing `tag_flash` (the muzzle flash and effects would start at the
+weapon's origin), a barrel without `tag_barrel`, a hand without `tag_weapon`, a
+multi-pose flash, a part on the wrong tag or a part in two roles is refused.
+Weapon IDs follow the player ID rules and every path fits 63 characters. The
+receipt `vibestudio/weapon-<w>.json` records source identities and file hashes.
+**Export PK3…** uses the same atomic, deterministic package writer as players;
+inputs are never replaced. Register the weapon in the game code that loads its
+path; detail levels, sounds and effects are not part of the package.
+
+**Spin about X (rpm)** on a part rolls it about its own X axis in the preview and
+the bakes, as the game rolls a barrel while firing (about 150 rpm for the
+machine gun). It is stored in assembly schema 4 as `spinRpm` and is not written
+to MD3. A flash visibility toggle is not yet available; remove the flash part to
+preview without it.
+
+```sh
+vibestudio --cli model assembly ./rail.assembly.json --operation weapon-review \
+  --weapon-name rail --weapon-part gun --hand-part hand --barrel-part barrel \
+  --flash-part flash --package ./assets --json
+vibestudio --cli model assembly ./rail.assembly.json --operation weapon-export \
+  --weapon-name rail --weapon-part gun --package ./assets --output ./rail.pk3 --json
+```
+
+`weapon-review` takes no output options; `weapon-export` requires an `--output`
+ending in `.pk3` and accepts `--dry-run` and `--overwrite`. `--spin-rpm` sets a
+part's preview spin on `add` and `update`.
+
+## Quake II Player Packages
+
+**Quake II Player…** publishes a Quake II player folder, `players/<player>/`, as
+the client loads it. It takes models and images rather than an assembly, because
+MD2 has no attachment tags: the weapon plays in frame lock with the body.
+
+| File | From |
+| --- | --- |
+| `tris.md2` | **Body model**: one surface with the 198 frames of `m_player.h` (stand 0–39, run 40–45, attack 46–53, pain 54–65, jump 66–71, flip 72–83, salute 84–94, taunt 95–111, wave 112–122, point 123–134, crouch 135–177, death 178–197). Its header names every skin as `players/<player>/<skin>.pcx`. |
+| `weapon.md2` | **Weapon model**: one surface with the body's frame count; it names `weapon.pcx`. |
+| `weapon.pcx` | Optional **Weapon skin** image. |
+| `<skin>.pcx`, `<skin>_i.pcx` | Each skin's image and icon as 8-bit PCX. Every skin has one size, which becomes the MD2 skin size. An empty icon is the skin scaled to 32 × 32. |
+| `<sound>.wav` | Optional sexed sounds (`death1`–`death4`, `fall1`, `fall2`, `gurp1`, `gurp2`, `jump1`, `pain25_1` to `pain100_2`, `drown1`), converted with the Audio Editor's Quake II delivery. |
+| `w_<weapon>.md2` | Optional view weapons, in frame lock with the body. |
+
+Skins and icons are converted to the Quake II palette, read from
+`pics/colormap.pcx` in the open package: open the game's `pak0.pak` or a project
+package that holds it. No palette is bundled. A body without 198 frames is refused
+with the standard ranges listed; a weapon or view weapon with another frame count,
+a model with more than one surface, skins of different sizes and unknown sound
+names are refused. MD2 limits apply as for any MD2 export. The receipt
+`vibestudio/q2-player-<player>.json` records source identities and file hashes.
+**Export Package…** writes a `.pak`, or a `.pk2` or `.zip` for ports that read zip
+packages, through the same atomic, deterministic writer as Quake III packages;
+inputs are never replaced. Select the player as `<player>/<skin>`. The skins'
+colours, animation timing and gameplay still need testing in the game.
+
+```sh
+vibestudio --cli model assembly --operation q2-player-review --player-name vamp \
+  --body ./vamp/body.mesh.json --weapon ./vamp/gun.mesh.json \
+  --q2-skin red=./vamp/red.png --q2-skin blue=./vamp/blue.png,./vamp/blue_icon.png \
+  --sound death1=./vamp/death1.wav --view-weapon shotgun=./vamp/shotgun.mesh.json \
+  --package ./baseq2/pak0.pak --json
+vibestudio --cli model assembly --operation q2-player-export --player-name vamp \
+  --body ./vamp/body.mesh.json --weapon ./vamp/gun.mesh.json --q2-skin red=./vamp/red.png \
+  --package ./baseq2/pak0.pak --output ./vamp.pak --json
+```
+
+The operations take no assembly source. Paths resolve from the working
+directory; JSON adds `frameRanges`, the 20 standard ranges.
+
 ## Baking And Studio Handoff
 
 **Bake Pose to Mesh** explicitly creates one composed pose in the normal mesh
@@ -483,7 +640,7 @@ Close another mesh document before opening a bake. The assembly stays open with
 all its links and playback settings.
 
 **Export Pose…** writes OBJ, MD2 or MD3 using the normal format limits and guarded
-writer. The review explains that a bake omits hierarchy, independent animation,
+writer; the CLI `bake` also writes an editable `.mesh.json`. The review explains that a bake omits hierarchy, independent animation,
 attachment tags and native skin metadata. It retains positions, normals, indexed
 UVs, seam marks and surface material paths in the transient mesh; native formats
 may impose additional losses. Embedded images are not written as texture files.
@@ -530,6 +687,32 @@ package sources and portable-draft assets are protected. Saving back to the
 loaded recipe requires the exact reviewed on-disk bytes; even overwrite cannot
 bypass an external change. New outputs use no-replace publication and all writes
 check destination identity again at commit time.
+
+### Part collision in bakes
+
+**Include part collision in bakes**, below the preview, carries every part's
+collision boxes and hulls into **Bake Pose to Mesh**, **Export Pose…** and the
+animation bakes. Each volume is sampled at its part's own frame, then placed
+through the part's attachment basis, local rotation and accumulated uniform
+scale, so a composed prop (a turret from base, ring and gun) keeps its
+collision without authoring it again. Volumes are named `<part>_<volume>`; two
+that would share a name, or more than 64 in all, are refused. An oriented box
+stays an oriented box. A reflected attachment is turned into the equivalent
+proper rotation (a box is symmetric; a hull's points are mirrored to match). A
+skewed basis, which the Quake III attachment blend can give between frames, is
+refused when it is skewed by more than 1%; smaller drift is straightened.
+
+Animation bakes give each volume a track with one pose per sample (editable
+mesh version 7); a hull whose handedness changes between samples is refused.
+The bake's geometry is byte for byte the same with or without collision. The
+editable mesh keeps the volumes; MD2, MD3 and OBJ leave them out with the usual
+note. The choice lasts for the session and is not stored in the recipe; the
+CLI uses `--collision include|omit` (default `omit`) on `bake` and
+`bake-animation`, and JSON reports `collisionVolumes`.
+
+```sh
+vibestudio --cli model assembly ./turret.assembly.json --operation bake --collision include --output ./out/turret.mesh.json --json
+```
 
 ## CLI
 
@@ -639,8 +822,9 @@ assembly and its referenced assets normally for durable project storage.
 ## Bounds And Release Work
 
 All source versions use `format: "vibestudio-model-assembly"`, a name and a part
-array. Ordinary recipes use schema 1, native animation uses schema 2, and linked
-skins use schema 3 with optional native animation.
+array. Ordinary recipes use schema 1, native animation uses schema 2, linked
+skins use schema 3 with optional native animation, and the Quake III
+[attachment blend](#attachment-blend) uses schema 4 with any of those.
 Unknown keys, duplicate IDs ignoring case, missing parents and cycles are
 rejected. Nonempty graphs have exactly one root. IDs use an ASCII letter followed
 by letters, digits, underscores or hyphens, up to 32 characters. Sources are
@@ -658,7 +842,7 @@ until reload. Distribute the models and linked skins with the recipe and supply 
 package context when reopening it.
 
 Quake III native configuration has the bounded workflow above. Other game
-configuration, original-engine gameplay, assembly collision tracks and
-maximum-assembly performance remain open. Skeletal models remain outside this
-workflow. The complete [modeller release gate](MODELLER_RELEASE.md)
+configuration, original-engine gameplay and maximum-assembly performance remain
+open. Skeletal models attach through their joints only; their skinning,
+clips and joint hierarchy stay in the model source. The complete [modeller release gate](MODELLER_RELEASE.md)
 also requires native platform and physical accessibility acceptance.

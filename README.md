@@ -253,6 +253,17 @@ follow behaviour in the GPL sources of [Quake III Arena](https://github.com/id-S
 [Doom 3](https://github.com/id-Software/DOOM-3) (`DeclSkin.cpp`, `DeclManager.cpp`), reviewed 2026-10-22.
 No code is copied. See [Model Skin Bindings](docs/CREDITS.md#model-skin-bindings).
 
+The assembly's Quake III attachment blend follows `R_LerpTag` (`tr_model.c`) and
+`CG_PositionEntityOnTag` (`cg_ents.c`), and weapon packages follow `CG_RegisterWeapon`
+and `CG_AddPlayerWeapon` (`cg_weapons.c`), in the GPL source of
+[Quake III Arena](https://github.com/id-Software/Quake-III-Arena), reviewed 2026-10-28.
+No code is copied. See [Quake III Animation Configuration](docs/CREDITS.md#quake-iii-animation-configuration).
+Quake II player packages follow `m_player.h`, `p_client.c` and `cl_parse.c` in the GPL
+source of [Quake II](https://github.com/id-Software/Quake-2), reviewed 2026-10-28.
+Doom 3 collision surfaces and the trace model budget follow `CollisionModel_load.cpp` and
+`TraceModel.h` in the GPL source of [Doom 3](https://github.com/id-Software/DOOM-3), reviewed
+2026-10-28; see [Model Collision](docs/CREDITS.md#model-collision).
+
 The materials module (Materials page and `material` commands) reimplements
 surface rules read in the GPL sources of [Quake III Arena](https://github.com/id-Software/Quake-III-Arena),
 [ioquake3](https://github.com/ioquake/ioq3), [Enemy Territory](https://github.com/id-Software/Enemy-Territory), [Doom 3](https://github.com/id-Software/DOOM-3),

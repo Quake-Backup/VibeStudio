@@ -4,12 +4,15 @@
 #include "core/model_assembly_recovery.h"
 #include "core/model_player_bundle.h"
 #include "core/model_player_import.h"
+#include "core/model_weapon_bundle.h"
+#include "core/model_q2_player_bundle.h"
 #include "core/package_draft.h"
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QJsonArray>
+#include <QRegularExpression>
 
 #include <algorithm>
 #include <cmath>
@@ -58,9 +61,11 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 								"--skin-kind",
 								"--skin-entry-index", "--player-name", "--skin-name", "--head-part", "--icon", "--icon-kind", "--icon-entry-index",
 								"--skin-variants", "--variant-skin", "--variant-icon", "--sound", "--lod-levels", "--lod-ratio",
-								"--from-player", "--config-entry", "--config-entry-index"};
+								"--from-player", "--config-entry", "--config-entry-index", "--tag-interpolation", "--collision", "--spin-rpm",
+								"--weapon-name", "--weapon-part", "--hand-part", "--barrel-part", "--flash-part",
+								"--body", "--weapon", "--weapon-skin", "--q2-skin", "--view-weapon"};
 	// Player options that may be given more than once, kept in order.
-	const QSet<QString> repeatable{"--variant-skin", "--variant-icon", "--sound"};
+	const QSet<QString> repeatable{"--variant-skin", "--variant-icon", "--sound", "--q2-skin", "--view-weapon"};
 	QHash<QString, QStringList> repeated;
 	QSet<QString> seen;
 	QHash<QString, QString> values;
@@ -112,6 +117,8 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	const auto operation =
 		fromPlayer ? QStringLiteral("open-player") : values.value("--operation", fresh ? QStringLiteral("add") : QStringLiteral("inspect"));
 	const bool player = operation == "player-review" || operation == "player-export";
+	// Quake III weapon model sets (core/model_weapon_bundle.h).
+	const bool weapon = operation == "weapon-review" || operation == "weapon-export";
 	// A package, a folder or a portable .vibepackage draft, read-only.
 	const auto loadPackage = [](const QString &path, std::shared_ptr<const PackageArchiveReader> *result, QString *error) {
 		PackageArchive archive;
@@ -129,6 +136,73 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 		*result = std::make_shared<PackageArchive>(std::move(archive));
 		return true;
 	};
+	if (operation == "q2-player-review" || operation == "q2-player-export")
+	{
+		// Quake II player packages (core/model_q2_player_bundle.h); no assembly source.
+		const bool exporting = operation == "q2-player-export";
+		QSet<QString> allowed{"--cli", "--json", "--quiet", "--verbose", "--operation", "--package", "--player-name", "--body", "--weapon",
+							  "--weapon-skin", "--q2-skin", "--sound", "--view-weapon"};
+		if (exporting)
+			allowed.unite({"--output", "--overwrite", "--dry-run"});
+		allowed.unite(globals);
+		if (positional.size() != 2 || !(seen - allowed).isEmpty() || !values.contains("--package") || !values.contains("--player-name") ||
+			!values.contains("--body") || !values.contains("--weapon") || repeated.value("--q2-skin").isEmpty() ||
+			(exporting && !QRegularExpression(QStringLiteral("\\.(pak|pk2|zip)$"), QRegularExpression::CaseInsensitiveOption)
+								.match(values.value("--output"))
+								.hasMatch()))
+			return fail(2, QCoreApplication::translate("ModelAssemblyCli",
+													   "Quake II players need --player-name, --body, --weapon, at least one --q2-skin NAME=IMAGE[,ICON] and "
+													   "--package (for the palette); export also needs an --output ending in .pak, .pk2 or .zip."));
+		ModelQ2PlayerOptions q2;
+		q2.modelName = values.value("--player-name");
+		q2.bodySource = QFileInfo(values.value("--body")).absoluteFilePath();
+		q2.weaponSource = QFileInfo(values.value("--weapon")).absoluteFilePath();
+		if (values.contains("--weapon-skin"))
+			q2.weaponSkin = QFileInfo(values.value("--weapon-skin")).absoluteFilePath();
+		for (const auto &item : repeated.value("--q2-skin"))
+		{
+			const int equal = int(item.indexOf('='));
+			const auto files = item.mid(equal + 1).split(',');
+			if (equal <= 0 || files.size() > 2 || files[0].isEmpty())
+				return fail(2, QCoreApplication::translate("ModelAssemblyCli", "Write --q2-skin as NAME=IMAGE or NAME=IMAGE,ICON."));
+			q2.skins.append({item.left(equal), QFileInfo(files[0]).absoluteFilePath(),
+							 files.size() == 2 ? QFileInfo(files[1]).absoluteFilePath() : QString()});
+		}
+		for (const auto &[key, target] : {std::pair{QStringLiteral("--sound"), &q2.sounds}, std::pair{QStringLiteral("--view-weapon"), &q2.viewWeapons}})
+			for (const auto &item : repeated.value(key))
+			{
+				const int equal = int(item.indexOf('='));
+				if (equal <= 0)
+					return fail(2, QCoreApplication::translate("ModelAssemblyCli", "Write %1 as NAME=PATH.").arg(key));
+				target->append({item.left(equal), QFileInfo(item.mid(equal + 1)).absoluteFilePath()});
+			}
+		QString error;
+		std::shared_ptr<const PackageArchiveReader> archive;
+		if (!loadPackage(values.value("--package"), &archive, &error))
+			return fail(1, error);
+		ModelQ2PlayerBundle bundle;
+		if (!prepareModelQ2PlayerBundle(q2, QDir::currentPath(), archive, &bundle, &error))
+			return fail(4, error);
+		ModelAssemblyCliResult result;
+		result.payload = modelQ2PlayerBundleJson(bundle);
+		result.payload.insert("operation", operation);
+		result.payload.insert("written", false);
+		result.payload.insert("dryRun", seen.contains("--dry-run"));
+		result.lines = modelQ2PlayerBundleText(bundle);
+		if (exporting)
+		{
+			if (archive->protectsInputPath(values.value("--output")))
+				return fail(2, QCoreApplication::translate("ModelAssemblyCli", "Write outside the input package."));
+			const auto written = writeModelQ2PlayerBundle(bundle, values.value("--output"), seen.contains("--overwrite"), seen.contains("--dry-run"));
+			result.payload.insert("written", written.outputCommitted);
+			result.payload.insert("write", QJsonObject{{"outputPath", written.outputPath}, {"outputCommitted", written.outputCommitted},
+				{"sha256", written.sha256}, {"bytes", double(written.bytesWritten)}, {"determinismVerified", written.determinismVerified},
+				{"dryRun", written.dryRun}, {"succeeded", written.succeeded()}, {"blockedMessages", QJsonArray::fromStringList(written.blockedMessages)}});
+			result.lines << packageWriteReportText(written);
+			if (!written.succeeded()) { result.exitCode = 4; result.error = packageWriteReportText(written); }
+		}
+		return result;
+	}
 	if (operation == "players")
 	{
 		QSet<QString> allowed{"--cli", "--json", "--quiet", "--verbose", "--operation", "--package"};
@@ -252,7 +326,7 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 		return result;
 	}
 	if (!QSet<QString>{"inspect", "add", "update", "remove", "bake", "bake-animation", "animation-set", "animation-export",
-					   "animation-clear", "player-review", "player-export", "open-player"}
+					   "animation-clear", "player-review", "player-export", "open-player", "weapon-review", "weapon-export"}
 			 .contains(operation) ||
 		positional.size() != (fresh || values.contains("--input") ? 2 : 3) || (fresh && values.contains("--input")) ||
 		(fresh && operation != "add" && operation != "open-player") || (fromPlayer && (!fresh || seen.contains("--operation"))))
@@ -260,7 +334,8 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 		return fail(
 			2, QCoreApplication::translate(
 				   "ModelAssemblyCli", "Use model assembly <source.assembly.json> with inspect, add, update, remove, bake, bake-animation, "
-									   "animation-set, animation-export, animation-clear, player-review or player-export; --new starts an assembly with add, "
+									   "animation-set, animation-export, animation-clear, player-review, player-export, weapon-review or weapon-export; "
+									   "--new starts an assembly with add, "
 									   "and --new --from-player NAME opens a package player; --operation players lists them."));
 	}
 	QSet<QString> allowed{"--input", "--operation", "--package", "--palette"};
@@ -274,12 +349,16 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	{
 		allowed.unite({"--frames", "--sample-fps", "--clip-name"});
 	}
+	if (operation == "bake" || operation == "bake-animation")
+		allowed << "--collision";
 	if (operation == "animation-set")
 	{
 		allowed.unite({"--config", "--config-entry", "--config-entry-index", "--lower-part", "--upper-part", "--lower-animation",
-					   "--upper-animation"});
+					   "--upper-animation", "--tag-interpolation"});
 	}
-	if (operation != "inspect" && operation != "player-review")
+	if (weapon)
+		allowed.unite({"--weapon-name", "--weapon-part", "--hand-part", "--barrel-part", "--flash-part"});
+	if (operation != "inspect" && operation != "player-review" && operation != "weapon-review")
 	{
 		allowed << "--output" << "--overwrite" << "--dry-run";
 	}
@@ -292,7 +371,8 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	if (operation == "add" || operation == "update")
 	{
 		allowed.unite({"--part", "--model", "--kind", "--parent", "--tag", "--translation", "--rotation", "--scale", "--first-frame",
-					   "--last-frame", "--fps", "--phase", "--loop", "--interpolate", "--skin", "--skin-kind", "--skin-entry-index"});
+					   "--last-frame", "--fps", "--phase", "--loop", "--interpolate", "--skin", "--skin-kind", "--skin-entry-index",
+					   "--tag-interpolation", "--spin-rpm"});
 	}
 	if (operation == "update")
 	{
@@ -309,8 +389,14 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 			return fail(2, QCoreApplication::translate("ModelAssemblyCli", "Option %1 does not apply to %2.").arg(key, operation));
 		}
 	}
-	if ((operation != "inspect" && operation != "player-review" && !values.contains("--output")) ||
-		(QSet<QString>{"add", "update", "remove"}.contains(operation) && !values.contains("--part")) ||
+	if (weapon && (!values.contains("--weapon-name") || !values.contains("--weapon-part") || !values.contains("--package") ||
+				   (operation == "weapon-export" && !values.value("--output").endsWith(".pk3", Qt::CaseInsensitive))))
+		return fail(2, QCoreApplication::translate("ModelAssemblyCli", "Weapon packages need --weapon-name, --weapon-part and --package; "
+																	   "weapon-export also needs an --output ending in .pk3."));
+	if ((operation != "inspect" && operation != "player-review" && operation != "weapon-review" && !values.contains("--output")) ||
+		// update --tag-interpolation alone changes the assembly-level setting.
+		((QSet<QString>{"add", "remove"}.contains(operation) || (operation == "update" && !values.contains("--tag-interpolation"))) &&
+		 !values.contains("--part")) ||
 		(operation == "add" && !values.contains("--model")))
 	{
 		return fail(
@@ -503,7 +589,7 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	}
 	else if (operation == "animation-clear" && !document.setQ3Animation(std::nullopt, &error))
 		return fail(4, error);
-	if (operation == "add" || operation == "update")
+	if (operation == "add" || (operation == "update" && values.contains("--part")))
 	{
 		ModelAssemblyPart part;
 		part.id = values.value("--part");
@@ -618,7 +704,7 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 			return true;
 		};
 		if (!vector("--translation", &part.translation) || !vector("--rotation", &part.rotation) || !number("--scale", &part.scale) ||
-			!number("--fps", &part.framesPerSecond) || !number("--phase", &part.phase) || !integer("--first-frame", &part.firstFrame) ||
+			!number("--fps", &part.framesPerSecond) || !number("--phase", &part.phase) || !number("--spin-rpm", &part.spinRpm) || !integer("--first-frame", &part.firstFrame) ||
 			!integer("--last-frame", &part.lastFrame) || !boolean("--loop", &part.loop) || !boolean("--interpolate", &part.interpolate))
 		{
 			return fail(
@@ -633,6 +719,15 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	else if (operation == "remove" && !document.removeBranch(values.value("--part"), &error))
 	{
 		return fail(4, error);
+	}
+	if (values.contains("--tag-interpolation"))
+	{
+		// After animation-set, which selects the Quake III blend for a new binding.
+		const auto mode = modelTagInterpolationFromId(values.value("--tag-interpolation"));
+		if (!mode)
+			return fail(2, QCoreApplication::translate("ModelAssemblyCli", "--tag-interpolation accepts quake3 or shortest-arc."));
+		if (!document.setTagInterpolation(*mode, &error))
+			return fail(4, error);
 	}
 	ModelAssemblyContext context;
 	context.directory = document.directory();
@@ -650,6 +745,11 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	}
 	ModelAssemblyAnimationOptions animationOptions;
 	animationOptions.startSeconds = seconds;
+	const auto collision = values.value("--collision", QStringLiteral("omit"));
+	if (collision != "include" && collision != "omit")
+		return fail(2, QCoreApplication::translate("ModelAssemblyCli", "--collision accepts include or omit."));
+	const bool includeCollision = collision == "include";
+	animationOptions.includeCollision = includeCollision;
 	if (operation == "bake-animation")
 	{
 		bool countValid = false, rateValid = false;
@@ -667,11 +767,41 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	ModelAssemblyResolved resolved;
 	ModelAssemblyPose pose;
 	if (!document.assembly().parts.isEmpty() && (!resolveModelAssembly(document.assembly(), context, &resolved, &error) ||
-												 !sampleModelAssembly(document.assembly(), resolved, seconds, &pose, &error)))
+												 !sampleModelAssembly(document.assembly(), resolved, seconds, &pose, &error, {}, includeCollision)))
 	{
 		return fail(4, error);
 	}
 	ModelExportReport report;
+	if (weapon)
+	{
+		ModelWeaponBundleOptions weaponOptions;
+		weaponOptions.weaponName = values.value("--weapon-name");
+		weaponOptions.weaponPart = values.value("--weapon-part");
+		weaponOptions.handPart = values.value("--hand-part");
+		weaponOptions.barrelPart = values.value("--barrel-part");
+		weaponOptions.flashPart = values.value("--flash-part");
+		ModelWeaponBundle bundle;
+		if (!prepareModelWeaponBundle(document.assembly(), resolved, context, weaponOptions, source, &bundle, &error))
+			return fail(4, error);
+		ModelAssemblyCliResult result;
+		result.payload = modelWeaponBundleJson(bundle);
+		result.payload.insert("operation", operation);
+		result.payload.insert("written", false);
+		result.payload.insert("dryRun", dryRun);
+		result.lines = modelWeaponBundleText(bundle);
+		if (operation == "weapon-export")
+		{
+			const auto written = writeModelWeaponBundle(bundle, values.value("--output"), overwrite, dryRun);
+			result.payload.insert("written", written.outputCommitted);
+			result.payload.insert("write", QJsonObject{{"outputPath", written.outputPath}, {"outputCommitted", written.outputCommitted},
+				{"sha256", written.sha256}, {"bytes", double(written.bytesWritten)}, {"deterministic", written.deterministic},
+				{"determinismVerified", written.determinismVerified}, {"dryRun", written.dryRun}, {"succeeded", written.succeeded()},
+				{"warnings", QJsonArray::fromStringList(written.warnings)}, {"blockedMessages", QJsonArray::fromStringList(written.blockedMessages)}});
+			result.lines << packageWriteReportText(written);
+			if (!written.succeeded()) { result.exitCode = 4; result.error = packageWriteReportText(written); }
+		}
+		return result;
+	}
 	if (player)
 	{
 		ModelPlayerBundle bundle;
@@ -706,7 +836,7 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	else if (operation == "bake")
 	{
 		if (!exportModelAssemblyPose(document.assembly(), resolved, seconds, values.value("--output"), source, overwrite, dryRun, &error,
-									 {}, &report, context.archive))
+									 {}, &report, context.archive, includeCollision))
 		{
 			return fail(4, error);
 		}
@@ -749,7 +879,9 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 					  {"assembly", modelAssemblyJson(document.assembly())},
 					  {"inputs", inputs},
 					  {"timeSeconds", seconds},
+					  {"tagInterpolation", modelTagInterpolationId(document.assembly().tagInterpolation)},
 					  {"surfaces", pose.mesh.surfaceCount},
+					  {"collisionVolumes", int(pose.mesh.collisionBoxes.size())},
 					  {"vertices", pose.mesh.vertexCount},
 					  {"triangles", pose.mesh.triangleCount},
 					  {"notes", QJsonArray::fromStringList(operation.startsWith("bake") ? report.notes : pose.notes)},
@@ -775,6 +907,10 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 						.arg(pose.mesh.vertexCount)
 						.arg(pose.mesh.triangleCount)
 						.arg(seconds, 0, 'g', 10);
+	if (document.assembly().tagInterpolation == ModelTagInterpolation::Quake3Renderer)
+		result.lines << QCoreApplication::translate("ModelAssemblyCli", "Tag interpolation: Quake III renderer (quake3).");
+	else
+		result.lines << QCoreApplication::translate("ModelAssemblyCli", "Tag interpolation: shortest arc (shortest-arc).");
 	for (const auto &input : resolved.inputs)
 	{
 		result.lines << QStringLiteral("%1: %2 [%3]").arg(input.part, input.source, QString::fromLatin1(input.sha256.toHex()));

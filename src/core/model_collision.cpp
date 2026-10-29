@@ -1,4 +1,6 @@
 #include "core/model_collision.h"
+#include "core/model_collision_placement.h"
+#include "core/model_collision_hull.h"
 #include "core/level_brush.h"
 #include "core/model_document.h"
 #include "core/model_pose.h"
@@ -131,6 +133,7 @@ bool sampleModelCollisionBox(const ModelCollisionBox &box, int frame, int nextFr
 	{
 		const auto &pose = amount == 1 ? b : a;
 		*result = {box.name, pose.centre, pose.size, pose.rotation};
+		result->hull = box.hull;
 		return true;
 	}
 	ModelTag first, second, blended;
@@ -150,6 +153,7 @@ bool sampleModelCollisionBox(const ModelCollisionBox &box, int frame, int nextFr
 	const auto *axis = blended.axis;
 	*result = {box.name, interpolateModelPosition(a.centre, b.centre, amount), interpolateModelPosition(a.size, b.size, amount),
 			   orientation({axis[0], axis[1], axis[2]}, {axis[3], axis[4], axis[5]}, {axis[6], axis[7], axis[8]})};
+	result->hull = box.hull;
 	return true;
 }
 
@@ -227,6 +231,59 @@ bool transformModelCollisionBox(const ModelCollisionBox &box, const ModelTransfo
 	*result = candidate;
 	return true;
 }
+bool composeModelCollisionVolume(const ModelCollisionBox &volume, const ModelTag &basis, double scale, ModelCollisionBox *result,
+								 QString *error)
+{
+	if (!result || !volume.framePoses.isEmpty() || !std::isfinite(scale) || scale <= 0)
+		return fail(error, Text::tr("Sample one collision pose and use a positive scale before composing it."));
+	double axes[3][3];
+	for (int row = 0; row < 3; ++row)
+		for (int column = 0; column < 3; ++column)
+			axes[row][column] = basis.axis[row * 3 + column];
+	const auto dot = [](const double *a, const double *b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; };
+	for (int row = 0; row < 3; ++row)
+		for (int other = row; other < 3; ++other)
+			if (!std::isfinite(dot(axes[row], axes[other])) || std::abs(dot(axes[row], axes[other]) - (row == other ? 1 : 0)) > 0.01)
+				return fail(error, Text::tr("Collision cannot follow a skewed or scaled attachment basis. Sample a stored frame, or use "
+											"shortest-arc tag interpolation."));
+	// Gram-Schmidt keeps the first axis's direction and straightens rounding.
+	for (int row = 0; row < 3; ++row)
+	{
+		for (int previous = 0; previous < row; ++previous)
+		{
+			const double along = dot(axes[row], axes[previous]);
+			for (int c = 0; c < 3; ++c)
+				axes[row][c] -= along * axes[previous][c];
+		}
+		const double length = std::sqrt(dot(axes[row], axes[row]));
+		for (int c = 0; c < 3; ++c)
+			axes[row][c] /= length;
+	}
+	const double determinant = axes[0][0] * (axes[1][1] * axes[2][2] - axes[1][2] * axes[2][1]) -
+							   axes[0][1] * (axes[1][0] * axes[2][2] - axes[1][2] * axes[2][0]) +
+							   axes[0][2] * (axes[1][0] * axes[2][1] - axes[1][1] * axes[2][0]);
+	const auto place = [&](ModelVec3 v) {
+		return ModelVec3{float(v.x * axes[0][0] + v.y * axes[1][0] + v.z * axes[2][0]),
+						 float(v.x * axes[0][1] + v.y * axes[1][1] + v.z * axes[2][1]),
+						 float(v.x * axes[0][2] + v.y * axes[1][2] + v.z * axes[2][2])};
+	};
+	const auto local = modelCollisionAxes(volume);
+	auto x = place(local[0]), y = place(local[1]), z = place(local[2]);
+	auto composed = volume;
+	if (determinant < 0)
+	{
+		// A mirrored frame: flip the volume's own Z so the rotation is proper.
+		z = {-z.x, -z.y, -z.z};
+		for (auto &point : composed.hull)
+			point.z = -point.z;
+	}
+	const auto centre = place({float(volume.centre.x * scale), float(volume.centre.y * scale), float(volume.centre.z * scale)});
+	composed.centre = {basis.origin.x + centre.x, basis.origin.y + centre.y, basis.origin.z + centre.z};
+	composed.size = {float(volume.size.x * scale), float(volume.size.y * scale), float(volume.size.z * scale)};
+	composed.rotation = orientation(x, y, z);
+	*result = std::move(composed);
+	return true;
+}
 QStringList validateModelCollision(const ModelMesh &mesh, const ModelWorkControl &control)
 {
 	QString error;
@@ -250,6 +307,8 @@ QStringList validateModelCollision(const ModelMesh &mesh, const ModelWorkControl
 			return {Text::tr("Collision box names must be unique, 1–128 characters, with no surrounding spaces or control characters.")};
 		}
 		names.insert(box.name);
+		if (const auto hullProblem = validateModelCollisionHull(box); !hullProblem.isEmpty())
+			return {Text::tr("Collision volume %1: %2").arg(box.name, hullProblem)};
 		if (box.framePoses.isEmpty())
 		{
 			const auto problem = poseError(box);
@@ -284,7 +343,8 @@ bool isModelCollisionEdit(ModelEditKind kind)
 	return kind == ModelEditKind::AddCollisionBox || kind == ModelEditKind::FitCollisionBox || kind == ModelEditKind::UpdateCollisionBox ||
 		   kind == ModelEditKind::DuplicateCollisionBox || kind == ModelEditKind::DeleteCollisionBox ||
 		   kind == ModelEditKind::TransformCollisionBox || kind == ModelEditKind::AnimateCollisionBox ||
-		   kind == ModelEditKind::FreezeCollisionBox || kind == ModelEditKind::FitAnimatedCollisionBox;
+		   kind == ModelEditKind::FreezeCollisionBox || kind == ModelEditKind::FitAnimatedCollisionBox ||
+		   kind == ModelEditKind::FitCollisionHull;
 }
 bool applyModelCollisionEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSelection *selection, QString *error,
 							 const ModelWorkControl &control)
@@ -295,14 +355,15 @@ bool applyModelCollisionEdit(ModelMesh *candidate, const ModelEdit &edit, ModelS
 		return fail(error, Text::tr("Choose a valid collision operation and frame."));
 	}
 	const auto existing = findModelCollisionBox(*candidate, edit.selection.collision);
-	const bool add =
-		kind == ModelEditKind::AddCollisionBox || kind == ModelEditKind::FitCollisionBox || kind == ModelEditKind::FitAnimatedCollisionBox;
+	const bool add = kind == ModelEditKind::AddCollisionBox || kind == ModelEditKind::FitCollisionBox ||
+					 kind == ModelEditKind::FitAnimatedCollisionBox || kind == ModelEditKind::FitCollisionHull;
 	const bool animated = existing && !existing->framePoses.isEmpty();
 	if (!add && !existing)
 	{
 		return fail(error, Text::tr("Select an existing collision box."));
 	}
-	const bool scoped = kind == ModelEditKind::FitCollisionBox || kind == ModelEditKind::FreezeCollisionBox ||
+	const bool scoped = kind == ModelEditKind::FitCollisionBox || kind == ModelEditKind::FitCollisionHull ||
+						kind == ModelEditKind::FreezeCollisionBox ||
 						(animated && (kind == ModelEditKind::UpdateCollisionBox || kind == ModelEditKind::TransformCollisionBox));
 	if (edit.frame != -1 && !scoped)
 		return fail(error,
@@ -418,8 +479,48 @@ bool applyModelCollisionEdit(ModelMesh *candidate, const ModelEdit &edit, ModelS
 		else
 		{
 			const auto pose = update(values(box));
-			box = {box.name, pose.centre, pose.size, pose.rotation};
+			box = {box.name, pose.centre, pose.size, pose.rotation, {}, box.hull};
 		}
+	}
+	if (kind == ModelEditKind::FitCollisionHull)
+	{
+		// Every selected (or every) vertex of the chosen frame, or of all frames.
+		const bool components = !edit.selection.vertices.isEmpty() || !edit.selection.edges.isEmpty() || !edit.selection.faces.isEmpty();
+		if (components && (edit.selection.surface < 0 || edit.selection.surface >= candidate->surfaces.size()))
+			return fail(error, Text::tr("Select components of an existing surface."));
+		QSet<int> selected = edit.selection.vertices;
+		for (auto edge : edit.selection.edges)
+			selected << edge.first << edge.second;
+		for (int face : edit.selection.faces)
+		{
+			const auto t = candidate->surfaces[edit.selection.surface].triangles.value(face);
+			selected << t.a << t.b << t.c;
+		}
+		QVector<ModelVec3> points;
+		for (int s = 0; s < candidate->surfaces.size(); ++s)
+		{
+			if (components && s != edit.selection.surface)
+				continue;
+			const auto &surface = candidate->surfaces[s];
+			for (int f = 0; f < surface.frames.size(); ++f)
+			{
+				if (edit.frame >= 0 && f != edit.frame)
+					continue;
+				const auto &positions = surface.frames[f].positions;
+				for (int v = 0; v < positions.size(); ++v)
+				{
+					if (!work.step())
+						return false;
+					if (!components || selected.contains(v))
+						points << positions[v];
+				}
+			}
+		}
+		ModelCollisionHullBudget budget;
+		ModelCollisionHullFit fit;
+		if (!modelCollisionHullBudget(edit.collisionHullProfile, edit.collisionHullMaxFaces, &budget, error) ||
+			!fitModelCollisionHull(points, budget, &fit, error, control) || !makeModelCollisionHull(box.name, fit.vertices, &box, error))
+			return false;
 	}
 	if (kind == ModelEditKind::FitCollisionBox || kind == ModelEditKind::FitAnimatedCollisionBox)
 	{
@@ -523,10 +624,15 @@ QJsonArray modelCollisionJson(const ModelMesh &mesh, QString *error, const Model
 	{
 		if (!work.step())
 			return {};
+		QJsonArray hull;
+		for (const auto &point : box.hull)
+			hull << xyz(point);
 		if (box.framePoses.isEmpty())
 		{
 			auto object = poseJson(values(box));
 			object.insert("name", box.name);
+			if (!hull.isEmpty())
+				object.insert("hull", hull);
 			result << object;
 		}
 		else
@@ -538,7 +644,10 @@ QJsonArray modelCollisionJson(const ModelMesh &mesh, QString *error, const Model
 					return {};
 				poses << poseJson(pose);
 			}
-			result << QJsonObject{{"name", box.name}, {"poses", poses}};
+			QJsonObject object{{"name", box.name}, {"poses", poses}};
+			if (!hull.isEmpty())
+				object.insert("hull", hull);
+			result << object;
 		}
 	}
 	return work.check() ? result : QJsonArray{};
@@ -562,10 +671,28 @@ bool parseModelCollision(const QJsonValue &value, ModelMesh *mesh, QString *erro
 			return fail(error, Text::tr("A collision box has malformed or unsupported fields."));
 		}
 		box.name = object.value("name").toString();
+		// A convex hull adds "hull" to either shape. Releases before hulls refuse
+		// such a volume rather than dropping its shape.
+		QVector<ModelVec3> hull;
+		const bool hasHull = object.contains("hull");
+		if (hasHull)
+		{
+			const auto points = object.value("hull").toArray();
+			if (!object.value("hull").isArray() || points.size() < 4 || points.size() > modelCollisionHullMaxPoints)
+				return fail(error, Text::tr("A collision hull needs 4 to 256 points."));
+			for (const auto &item : points)
+			{
+				ModelVec3 point;
+				if (!vector(item, &point))
+					return fail(error, Text::tr("A collision hull point is malformed."));
+				hull << point;
+			}
+		}
+		const int extra = hasHull ? 1 : 0;
 		if (object.contains("poses"))
 		{
 			const auto array = object.value("poses").toArray();
-			if (mesh->version < 7 || object.size() != 2 || !object.value("poses").isArray() || array.isEmpty() ||
+			if (mesh->version < 7 || object.size() != 2 + extra || !object.value("poses").isArray() || array.isEmpty() ||
 				array.size() != mesh->frames.size() || array.size() > modelDocumentMaxFrames)
 				return fail(error, Text::tr("Animated collision requires source version 7 and exactly one pose per mesh frame."));
 			QVector<ModelCollisionPose> poses;
@@ -583,10 +710,11 @@ bool parseModelCollision(const QJsonValue &value, ModelMesh *mesh, QString *erro
 		else
 		{
 			ModelCollisionPose pose;
-			if (object.size() != 4 || !readPose(object, &pose))
+			if (object.size() != 4 + extra || !readPose(object, &pose))
 				return fail(error, Text::tr("A collision box has malformed or unsupported fields."));
 			box = {box.name, pose.centre, pose.size, pose.rotation};
 		}
+		box.hull = std::move(hull);
 		boxes << box;
 	}
 	ModelMesh candidate;
@@ -608,7 +736,7 @@ QString modelCollisionOmissionNote()
 					"place collision brushes separately and compile the map.");
 }
 bool exportModelCollisionMap(const ModelMesh &mesh, const ModelCollisionExport &request, ModelCollisionMap *result, QString *error,
-							 const ModelWorkControl &control)
+							 const ModelWorkControl &control, const QVector<LevelMapProperty> &groupProperties)
 {
 	if (error)
 	{
@@ -630,6 +758,20 @@ bool exportModelCollisionMap(const ModelMesh &mesh, const ModelCollisionExport &
 	if (!finite(request.origin, 32768))
 	{
 		return fail(error, Text::tr("The collision placement origin must be finite and within ±32768 units."));
+	}
+	std::array<double, 12> affine{1, 0, 0, request.origin.x, 0, 1, 0, request.origin.y, 0, 0, 1, request.origin.z};
+	if (request.instance)
+	{
+		affine = *request.instance;
+		const bool usable = std::all_of(affine.cbegin(), affine.cend(), [](double v) { return std::isfinite(v) && std::abs(v) <= 1e6; });
+		// The scale must not collapse the volume; a mirrored instance is fine,
+		// the hull is rebuilt from the placed corners.
+		const double determinant = affine[0] * (affine[5] * affine[10] - affine[6] * affine[9]) -
+								   affine[1] * (affine[4] * affine[10] - affine[6] * affine[8]) +
+								   affine[2] * (affine[4] * affine[9] - affine[5] * affine[8]);
+		if (request.origin.x != 0 || request.origin.y != 0 || request.origin.z != 0 || !usable || std::abs(determinant) < 1e-9)
+			return fail(error, Text::tr("A model instance placement needs a finite instance transform with a nonzero scale, and no separate "
+										"origin."));
 	}
 	const bool animated =
 		std::any_of(mesh.collisionBoxes.cbegin(), mesh.collisionBoxes.cend(), [](const auto &box) { return !box.framePoses.isEmpty(); });
@@ -653,8 +795,16 @@ bool exportModelCollisionMap(const ModelMesh &mesh, const ModelCollisionExport &
 		return fail(error, Text::tr("Only Quake III accepts a material: choose a clip shader path below textures/ (omit that prefix), up "
 									"to 54 ASCII path characters."));
 	}
-	candidate.notes << Text::tr("These are static world collision brushes. Animation, tags and model entities are not linked to them; move "
-								"or regenerate the brushes when the prop changes. Save and compile the map.");
+	if (groupProperties.isEmpty())
+		candidate.notes << Text::tr("These are static world collision brushes. Animation, tags and model entities are not linked to them; move "
+									"or regenerate the brushes when the prop changes. Save and compile the map.");
+	else
+		candidate.notes << Text::tr("These static collision brushes form one func_group that records the model source, collision revision, "
+									"frame and placement. Refresh them from the modeller when the model's collision changes. The compiler "
+									"merges func_group into the world. Save and compile the map.");
+	if (request.instance)
+		candidate.notes << Text::tr("Placed through the model instance's transform: origin, angles or angle, and modelscale or "
+									"modelscale_vec, as level preview draws the instance.");
 	if (animated)
 		candidate.notes << Text::tr("Animated collision sampled at stored frame %1 (%2). No collision animation is exported.")
 							   .arg(request.frame)
@@ -675,7 +825,20 @@ bool exportModelCollisionMap(const ModelMesh &mesh, const ModelCollisionExport &
 		candidate.notes << Text::tr(
 			"Quake clip brushes contribute to expanded collision hulls. They do not add render surfaces or point-trace collision.");
 	}
-	QString text = QStringLiteral("// VibeStudio static collision brushes: %1\n{\n\"classname\" \"worldspawn\"\n").arg(request.target);
+	QString text = QStringLiteral("// VibeStudio static collision brushes: %1\n{\n").arg(request.target);
+	if (groupProperties.isEmpty())
+		text += QStringLiteral("\"classname\" \"worldspawn\"\n");
+	else
+	{
+		text += QStringLiteral("\"classname\" \"func_group\"\n");
+		for (const auto &property : groupProperties)
+		{
+			if (property.key.contains('"') || property.value.contains('"') || property.key.contains('\n') ||
+				property.value.contains('\n') || property.value.contains('\r'))
+				return fail(error, Text::tr("Collision records cannot contain quotes or line breaks."));
+			text += QStringLiteral("\"%1\" \"%2\"\n").arg(property.key, property.value);
+		}
+	}
 	for (const auto &box : mesh.collisionBoxes)
 	{
 		if (!modelWorkCheckpoint(control, ModelWorkPhase::Serializing, candidate.brushCount, mesh.collisionBoxes.size(), error))
@@ -686,9 +849,11 @@ bool exportModelCollisionMap(const ModelMesh &mesh, const ModelCollisionExport &
 		if (!sampleModelCollisionBox(box, std::max(0, request.frame), std::max(0, request.frame), 0, &pose))
 			return fail(error, Text::tr("The requested collision pose is unavailable."));
 		QVector<LevelMapVec3> points;
-		for (const auto p : modelCollisionCorners(pose))
+		for (const auto p : modelCollisionPoints(pose))
 		{
-			const LevelMapVec3 placed{double(p.x) + request.origin.x, double(p.y) + request.origin.y, double(p.z) + request.origin.z, true};
+			// An affine image of a box is a convex parallelepiped, so its eight
+			// corners still span one closed convex brush.
+			const auto placed = applyLevelModelInstanceAffine(affine, p.x, p.y, p.z);
 			if (std::max({std::abs(placed.x), std::abs(placed.y), std::abs(placed.z)}) > 32768)
 			{
 				return fail(error, Text::tr("Collision placement would exceed ±32768 world units."));
@@ -696,7 +861,9 @@ bool exportModelCollisionMap(const ModelMesh &mesh, const ModelCollisionExport &
 			points << placed;
 		}
 		LevelMapBrush brush;
-		if (!createLevelBrushHull(points, candidate.material, &brush, error))
+		// A hull's points are its vertices; the envelope keeps the convex solid.
+		if (!(isModelCollisionHull(pose) ? createLevelBrushEnvelope(points, candidate.material, &brush, error)
+										 : createLevelBrushHull(points, candidate.material, &brush, error)))
 		{
 			return false;
 		}
@@ -733,7 +900,9 @@ LevelPlacementResult prepareModelCollisionPlacement(const ModelMesh &mesh, const
 		return result;
 	}
 	ModelCollisionMap exported;
-	if (!exportModelCollisionMap(mesh, request, &exported, &result.error, control))
+	// One func_group records the source, revision, frame and transform
+	// (core/model_collision_placement.h), so the set can be found and refreshed.
+	if (!exportModelCollisionMap(mesh, request, &exported, &result.error, control, modelCollisionRecordProperties(mesh, request, map)))
 	{
 		result.cancelled = control.cancelled && control.cancelled();
 		return result;

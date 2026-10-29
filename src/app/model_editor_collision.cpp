@@ -2,16 +2,19 @@
 #include "app/model_viewport.h"
 #include "app/wrapping_action_button.h"
 #include "app/wrapping_check_box.h"
+#include "core/model_collision_hull.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QFormLayout>
+#include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSignalBlocker>
+#include <QSpinBox>
 
 namespace vibestudio
 {
@@ -127,6 +130,25 @@ void ModelEditorDialog::addCollisionControls(QFormLayout *form)
 	fitAnimated->setToolTip(Text::tr("Fit an independent axis-aligned box in every stored frame, using selected components or the whole "
 									 "model. Later mesh edits do not refit these poses."));
 	fitAnimated->setAccessibleDescription(fitAnimated->toolTip());
+	m_collisionHullProfile = combo("meshCollisionHullProfile", Text::tr("Hull budget"));
+	m_collisionHullProfile->addItem(Text::tr("Map brush (128 faces)"), "quake3");
+	m_collisionHullProfile->addItem(Text::tr("Doom 3 trace model (16 faces, 32 edges, 32 vertices)"), "doom3-trace");
+	m_collisionHullProfile->setToolTip(Text::tr("The most faces, edges and vertices a fitted hull may have. A hull over budget is "
+												"simplified conservatively: it only grows, so every vertex stays inside."));
+	m_collisionHullProfile->setAccessibleDescription(m_collisionHullProfile->toolTip());
+	m_collisionHullFaces = new QSpinBox;
+	m_collisionHullFaces->setObjectName("meshCollisionHullFaces");
+	m_collisionHullFaces->setRange(0, 128);
+	m_collisionHullFaces->setSpecialValueText(Text::tr("Budget limit"));
+	m_collisionHullFaces->setLayoutDirection(Qt::LeftToRight);
+	m_collisionHullFaces->setAccessibleName(Text::tr("Maximum hull faces"));
+	m_collisionHullFaces->setToolTip(Text::tr("A lower face limit than the budget's, from 4; Budget limit keeps the budget's own."));
+	m_collisionHullFaces->setAccessibleDescription(m_collisionHullFaces->toolTip());
+	form->addRow(Text::tr("Maximum hull faces"), m_collisionHullFaces);
+	auto *fitHull = button("fitMeshCollisionHull", Text::tr("Fit New Hull"), ModelEditKind::FitCollisionHull, false);
+	fitHull->setToolTip(Text::tr("Fit a convex hull to the selected vertices, edges or faces, or to the whole model, over the poses Fit "
+								 "poses chooses. Transform, animate and export it like a box; its shape stays the same in every pose."));
+	fitHull->setAccessibleDescription(fitHull->toolTip());
 	m_collisionTarget = combo("meshCollisionTarget", Text::tr("Map target"));
 	m_collisionTarget->addItem(Text::tr("Quake clip hull"), "quake");
 	m_collisionTarget->addItem(Text::tr("Quake II player clip"), "quake2");
@@ -156,8 +178,74 @@ void ModelEditorDialog::addCollisionControls(QFormLayout *form)
 		control->setAccessibleDescription(handoffHelp);
 	}
 	form->addRow(m_collisionPlace);
+	m_collisionPlaceInstance = new WrappingActionButton(Text::tr("Place for Selected Model Instance"), 2);
+	m_collisionPlaceInstance->setObjectName("placeMeshCollisionInstance");
+	m_collisionPlaceInstance->setAccessibleName(m_collisionPlaceInstance->text());
+	m_collisionPlaceInstance->setToolTip(Text::tr("Place the boxes through the transform of the model entity selected in the level: its "
+												  "origin, angles and modelscale. Map origin is not used."));
+	m_collisionPlaceInstance->setAccessibleDescription(m_collisionPlaceInstance->toolTip());
+	form->addRow(m_collisionPlaceInstance);
+	m_collisionRefresh = new WrappingActionButton(Text::tr("Refresh Placed Collision…"), 2);
+	m_collisionRefresh->setObjectName("refreshMeshCollision");
+	m_collisionRefresh->setAccessibleName(m_collisionRefresh->text());
+	m_collisionRefresh->setToolTip(Text::tr("List collision placed from this model in the open level, current or stale, and replace one "
+											"set with the current boxes as one level undo step."));
+	m_collisionRefresh->setAccessibleDescription(m_collisionRefresh->toolTip());
+	form->addRow(m_collisionRefresh);
+	m_collisionDoom3Material = new QLineEdit;
+	m_collisionDoom3Material->setObjectName("meshCollisionDoom3Material");
+	m_collisionDoom3Material->setAccessibleName(Text::tr("Doom 3 collision material"));
+	m_collisionDoom3Material->setLayoutDirection(Qt::LeftToRight);
+	m_collisionDoom3Material->setText(QStringLiteral("textures/common/collision"));
+	m_collisionDoom3Material->setToolTip(Text::tr("A material whose definition has the collision keyword. In Doom 3, when a model has "
+												  "such surfaces, only they collide."));
+	m_collisionDoom3Material->setAccessibleDescription(m_collisionDoom3Material->toolTip());
+	form->addRow(Text::tr("Doom 3 collision material"), m_collisionDoom3Material);
+	m_collisionAseExport = new WrappingActionButton(Text::tr("Export ASE with Collision…"), 2);
+	m_collisionAseExport->setObjectName("exportMeshCollisionAse");
+	m_collisionAseExport->setAccessibleName(m_collisionAseExport->text());
+	m_collisionAseExport->setToolTip(Text::tr("Write the current frame as an ASE model with one collision surface per box or hull, so "
+											  "Doom 3 collides with those instead of the render surfaces."));
+	m_collisionAseExport->setAccessibleDescription(m_collisionAseExport->toolTip());
+	form->addRow(m_collisionAseExport);
+	m_collisionClipExport = new WrappingActionButton(Text::tr("Export Doom 3 Clip Model…"), 2);
+	m_collisionClipExport->setObjectName("exportMeshCollisionClipModel");
+	m_collisionClipExport->setAccessibleName(m_collisionClipExport->text());
+	m_collisionClipExport->setToolTip(Text::tr("Write the selected box or hull alone as an ASE for an entity's clipmodel key. It must fit a "
+											   "Doom 3 trace model: 16 faces, 32 edges, 32 vertices."));
+	m_collisionClipExport->setAccessibleDescription(m_collisionClipExport->toolTip());
+	form->addRow(m_collisionClipExport);
+	m_collisionSelectedButtons << m_collisionClipExport;
+	const auto doom3Export = [this](bool clip) {
+		if (m_working)
+			return;
+		m_preview->pause();
+		const auto path = QFileDialog::getSaveFileName(this, clip ? Text::tr("Export Doom 3 Clip Model") : Text::tr("Export ASE with Collision"),
+													   {}, Text::tr("ASCII Scene Export (*.ase)"));
+		if (path.isEmpty())
+			return;
+		ModelCollisionSurfaceExport request;
+		request.material = m_collisionDoom3Material->text().trimmed();
+		request.frame = m_frame->currentIndex();
+		QString error;
+		const bool exported = clip ? exportCollisionClipModel(path, m_document.selection().collision, request, true, &error)
+								   : exportCollisionAse(path, request, true, &error);
+		if (!exported)
+			m_status->setText(error, LiveStatus::Problem);
+	};
+	connect(m_collisionAseExport, &QPushButton::clicked, this, [doom3Export] { doom3Export(false); });
+	connect(m_collisionClipExport, &QPushButton::clicked, this, [doom3Export] { doom3Export(true); });
 	connect(m_collisionExport, &QPushButton::clicked, this, [this] { handoffCollision(false); });
 	connect(m_collisionPlace, &QPushButton::clicked, this, [this] { handoffCollision(true); });
+	connect(m_collisionPlaceInstance, &QPushButton::clicked, this, [this] {
+		if (m_working)
+			return;
+		m_preview->pause();
+		QString error;
+		if (!placeCollisionForInstance(-1, &error))
+			m_status->setText(error, LiveStatus::Problem);
+	});
+	connect(m_collisionRefresh, &QPushButton::clicked, this, [this] { chooseCollisionRefresh(); });
 	connect(m_collisionTarget, &QComboBox::currentIndexChanged, this, [this] { refreshCollision(); });
 	connect(m_collisionBoxes, &QComboBox::currentIndexChanged, this, [this] {
 		if (m_refreshing || m_working)
@@ -216,6 +304,19 @@ void ModelEditorDialog::refreshCollision()
 	m_preview->setEditCollision(name);
 	m_collisionMaterial->setEnabled(m_collisionTarget->currentData() == "quake3");
 	m_collisionExport->setEnabled(!mesh.collisionBoxes.isEmpty());
+	QString hullText;
+	ModelCollisionHullShape shape;
+	if (box && isModelCollisionHull(*box) && modelCollisionHullShape(box->hull, &shape))
+	{
+		const int vertices = int(shape.vertices.size()), edges = int(shape.edges.size()), faces = int(shape.faces.size());
+		hullText = QStringLiteral("\n") + Text::tr("Convex hull: %1, %2, %3.")
+											  .arg(Text::tr("%n vertex(es)", nullptr, vertices), Text::tr("%n edge(s)", nullptr, edges),
+												   Text::tr("%n face(s)", nullptr, faces)) +
+				   QStringLiteral(" ") +
+				   (faces <= 16 && edges <= 32 && vertices <= 32
+						? Text::tr("Within the Doom 3 trace model budget and the map brush budget.")
+						: Text::tr("Within the map brush budget; over the Doom 3 trace model budget (16 faces, 32 edges, 32 vertices)."));
+	}
 	m_collisionSummary->setText(
 		Text::tr("%1 of 64 collision boxes. Source, undo and recovery retain them; model exports omit them.")
 			.arg(mesh.collisionBoxes.size()) +
@@ -228,7 +329,8 @@ void ModelEditorDialog::refreshCollision()
 		(m_collisionTarget->currentData() == "quake3"
 			 ? Text::tr("Quake III needs a project clip shader in the compiler assets. Export does not verify its behavior.")
 		 : m_collisionTarget->currentData() == "quake2" ? Text::tr("Quake II: player movement only; no monster or projectile collision.")
-														: Text::tr("Quake: expanded clip hulls; no point-trace collision.")));
+														: Text::tr("Quake: expanded clip hulls; no point-trace collision.")) +
+		hullText);
 	refreshContext();
 }
 void ModelEditorDialog::executeCollision(ModelEditKind kind)
@@ -243,7 +345,8 @@ void ModelEditorDialog::executeCollision(ModelEditKind kind)
 	edit.selection = m_document.selection();
 	edit.collisionBox = {m_collisionName->text(), vector(m_collisionCentre), vector(m_collisionSize), vector(m_collisionRotation)};
 	if ((kind == ModelEditKind::AddCollisionBox || kind == ModelEditKind::FitCollisionBox ||
-		 kind == ModelEditKind::FitAnimatedCollisionBox || kind == ModelEditKind::DuplicateCollisionBox) &&
+		 kind == ModelEditKind::FitAnimatedCollisionBox || kind == ModelEditKind::FitCollisionHull ||
+		 kind == ModelEditKind::DuplicateCollisionBox) &&
 		findModelCollisionBox(m_document.mesh(), edit.collisionBox.name))
 	{
 		const auto stem = edit.collisionBox.name.left(115);
@@ -254,7 +357,16 @@ void ModelEditorDialog::executeCollision(ModelEditKind kind)
 		}
 		edit.collisionBox.name = stem + '_' + QString::number(suffix);
 	}
-	edit.frame = kind == ModelEditKind::FitCollisionBox && m_collisionFitScope->currentIndex() == 1 ? m_frame->currentIndex() : -1;
+	edit.frame = (kind == ModelEditKind::FitCollisionBox || kind == ModelEditKind::FitCollisionHull) && m_collisionFitScope->currentIndex() == 1
+					 ? m_frame->currentIndex()
+					 : -1;
+	if (kind == ModelEditKind::FitCollisionHull)
+	{
+		edit.collisionHullProfile = m_collisionHullProfile->currentData().toString();
+		edit.collisionHullMaxFaces = m_collisionHullFaces->value();
+		if (edit.collisionHullProfile == QStringLiteral("doom3-trace") && edit.collisionHullMaxFaces > 16)
+			edit.collisionHullMaxFaces = 16;
+	}
 	const auto box = findModelCollisionBox(m_document.mesh(), edit.selection.collision);
 	if (kind == ModelEditKind::FreezeCollisionBox ||
 		(kind == ModelEditKind::UpdateCollisionBox && box && !box->framePoses.isEmpty() && m_collisionPoseScope->currentIndex() == 1))
@@ -269,9 +381,22 @@ void ModelEditorDialog::executeCollision(ModelEditKind kind)
 }
 ModelCollisionExport ModelEditorDialog::collisionRequest() const
 {
-	return {m_collisionTarget->currentData().toString(),
-			m_collisionTarget->currentData() == "quake3" ? m_collisionMaterial->text() : QString(), vector(m_collisionOrigin),
-			m_frame->currentIndex()};
+	ModelCollisionExport request{m_collisionTarget->currentData().toString(),
+								 m_collisionTarget->currentData() == "quake3" ? m_collisionMaterial->text() : QString(),
+								 vector(m_collisionOrigin), m_frame->currentIndex()};
+	request.sourcePath = collisionSourcePath();
+	return request;
+}
+QString ModelEditorDialog::collisionSourcePath() const
+{
+	// The saved source, else the file the mesh was imported from; a recovered
+	// draft records the source it was recovered from.
+	if (!m_document.path().isEmpty())
+		return m_document.path();
+	if (!m_recoverySourcePath.isEmpty())
+		return m_recoverySourcePath;
+	return m_document.mesh().sourcePath.endsWith(QStringLiteral(".mesh.json"), Qt::CaseInsensitive) ? m_document.mesh().sourcePath
+																									: QString();
 }
 bool ModelEditorDialog::exportCollision(const QString &path, const ModelCollisionExport &request, bool overwrite, QString *error)
 {
@@ -313,6 +438,80 @@ bool ModelEditorDialog::exportCollision(const QString &path, const ModelCollisio
 	}
 	return ok;
 }
+bool ModelEditorDialog::exportCollisionAse(const QString &path, const ModelCollisionSurfaceExport &request, bool overwrite, QString *error)
+{
+	QString localError;
+	if (!error)
+		error = &localError;
+	if (m_working || !path.endsWith(".ase", Qt::CaseInsensitive))
+	{
+		*error = Text::tr("Choose an .ase output while the modeller is idle.");
+		return false;
+	}
+	const auto recoverySource = m_recoverySourcePath;
+	ModelExportReport report;
+	const bool ok = performWork(
+		Text::tr("Export ASE with Collision"),
+		[path, request, overwrite, recoverySource, &report](ModelDocument &candidate, QString *failure, const ModelWorkControl &control) {
+			const auto target = inspectModelWriteTarget(path, control);
+			if (!target.isValid())
+			{
+				*failure = target.error;
+				return false;
+			}
+			if ((target.existed && !overwrite) || modelPathsReferToSameFile(path, candidate.path()) ||
+				modelPathsReferToSameFile(path, candidate.mesh().sourcePath) || modelPathsReferToSameFile(path, recoverySource))
+			{
+				*failure = Text::tr("Protect source inputs and approve any existing derivative before replacing it.");
+				return false;
+			}
+			const auto bytes = exportModelAseWithCollision(candidate.mesh(), request, failure, control, &report);
+			return !bytes.isEmpty() && writeModelFile(target, bytes, failure, control);
+		},
+		error, true);
+	if (ok)
+		m_status->setText(Text::tr("Exported %1 with collision surfaces. %2").arg(path, report.notes.join(' ')), LiveStatus::Result);
+	return ok;
+}
+bool ModelEditorDialog::exportCollisionClipModel(const QString &path, const QString &volume, const ModelCollisionSurfaceExport &request,
+												 bool overwrite, QString *error)
+{
+	QString localError;
+	if (!error)
+		error = &localError;
+	if (m_working || !path.endsWith(".ase", Qt::CaseInsensitive))
+	{
+		*error = Text::tr("Choose an .ase output while the modeller is idle.");
+		return false;
+	}
+	const auto recoverySource = m_recoverySourcePath;
+	ModelDoom3ClipModel clip;
+	const bool ok = performWork(
+		Text::tr("Export Doom 3 Clip Model"),
+		[path, volume, request, overwrite, recoverySource, &clip](ModelDocument &candidate, QString *failure, const ModelWorkControl &control) {
+			const auto target = inspectModelWriteTarget(path, control);
+			if (!target.isValid())
+			{
+				*failure = target.error;
+				return false;
+			}
+			if ((target.existed && !overwrite) || modelPathsReferToSameFile(path, candidate.path()) ||
+				modelPathsReferToSameFile(path, candidate.mesh().sourcePath) || modelPathsReferToSameFile(path, recoverySource))
+			{
+				*failure = Text::tr("Protect source inputs and approve any existing derivative before replacing it.");
+				return false;
+			}
+			return exportModelDoom3ClipModel(candidate.mesh(), volume, request, &clip, failure, control) &&
+				   writeModelFile(target, clip.bytes, failure, control);
+		},
+		error, true);
+	if (ok)
+		m_status->setText(Text::tr("Exported clip model %1 (%2, %3, %4). %5")
+							  .arg(path, Text::tr("%n face(s)", nullptr, clip.faces), Text::tr("%n edge(s)", nullptr, clip.edges),
+								   Text::tr("%n vertex(es)", nullptr, clip.vertices), clip.notes.join(' ')),
+						  LiveStatus::Result);
+	return ok;
+}
 bool ModelEditorDialog::placeCollision(const ModelCollisionExport &request, QString *error)
 {
 	QString localError;
@@ -350,10 +549,120 @@ bool ModelEditorDialog::placeCollision(const ModelCollisionExport &request, QStr
 	{
 		return false;
 	}
-	m_status->setText(Text::tr("Placed static collision brushes as one level undo step. Save and compile the map. Later model changes "
-							   "require updating these brushes."),
+	m_status->setText(Text::tr("Placed static collision brushes in one func_group, as one level undo step. It records this model, so Refresh "
+							   "Placed Collision can update it after the boxes change. Save and compile the map."),
 					  LiveStatus::Result);
 	return true;
+}
+bool ModelEditorDialog::placeCollisionForInstance(int entityId, QString *error)
+{
+	QString localError;
+	if (!error)
+		error = &localError;
+	if (m_working || !collisionDestination)
+	{
+		*error = Text::tr("Open a Quake-family level before placing collision.");
+		return false;
+	}
+	auto request = collisionRequest();
+	if (!modelCollisionInstanceFromSelection(collisionDestination().document, &request, entityId, error))
+		return false;
+	return placeCollision(request, error);
+}
+QVector<ModelCollisionRecord> ModelEditorDialog::placedCollisionRecords() const
+{
+	if (!collisionDestination)
+		return {};
+	return levelCollisionRecords(collisionDestination().document, &m_document.mesh(), collisionSourcePath());
+}
+bool ModelEditorDialog::refreshPlacedCollision(int entityId, QString *error)
+{
+	QString localError;
+	if (!error)
+		error = &localError;
+	if (m_working || !collisionDestination)
+	{
+		*error = Text::tr("Open the level that holds the placed collision first.");
+		return false;
+	}
+	const auto destination = collisionDestination();
+	if (!destination.publish)
+	{
+		*error = Text::tr("No writable level destination is available.");
+		return false;
+	}
+	const auto source = collisionSourcePath();
+	LevelPlacementResult refreshed;
+	if (!performWork(
+			Text::tr("Refresh Placed Collision"),
+			[map = destination.document, source, entityId, &refreshed](ModelDocument &candidate, QString *failure,
+																	   const ModelWorkControl &control) {
+				// A record without a source (placed from an unsaved model) can be
+				// refreshed only by choosing it explicitly, as here.
+				refreshed = prepareModelCollisionRefresh(candidate.mesh(), source, map, entityId, -1, true, control);
+				if (!refreshed.succeeded)
+					*failure = refreshed.error;
+				return refreshed.succeeded;
+			},
+			error))
+	{
+		return false;
+	}
+	if (!destination.publish(refreshed.document, error))
+		return false;
+	m_status->setText(Text::tr("Replaced the collision placed as entity %1 with the current boxes, as one level undo step. Save and compile the "
+							   "map.")
+						  .arg(entityId),
+					  LiveStatus::Result);
+	return true;
+}
+void ModelEditorDialog::chooseCollisionRefresh()
+{
+	if (m_working)
+		return;
+	m_preview->pause();
+	const auto records = placedCollisionRecords();
+	QStringList items;
+	QVector<int> ids;
+	int preferred = 0;
+	bool stale = false;
+	for (const auto &record : records)
+	{
+		// Only this model's records (or ones with no recorded source) can be refreshed here.
+		if (record.status == ModelCollisionRecordStatus::Invalid ||
+			(record.status == ModelCollisionRecordStatus::OtherSource && !record.source.isEmpty()))
+			continue;
+		QString status;
+		if (record.status == ModelCollisionRecordStatus::Current)
+			status = Text::tr("Current");
+		else if (record.status == ModelCollisionRecordStatus::Stale)
+			status = Text::tr("Stale");
+		else
+			status = Text::tr("No recorded source");
+		if (record.status == ModelCollisionRecordStatus::Stale && !stale)
+		{
+			preferred = int(ids.size());
+			stale = true;
+		}
+		items << Text::tr("Entity %1 · %2 · frame %3 · %n brush(es)", nullptr, record.brushCount).arg(record.entityId).arg(status).arg(record.frame);
+		ids << record.entityId;
+	}
+	if (items.isEmpty())
+	{
+		m_status->setText(records.isEmpty() ? Text::tr("The open level has no collision placed by the modeller.")
+											: Text::tr("No collision in the open level was placed from this model."),
+						  LiveStatus::Problem);
+		return;
+	}
+	bool accepted = false;
+	const auto chosen = QInputDialog::getItem(this, Text::tr("Refresh Placed Collision"),
+											  Text::tr("Collision placed from this model (stale sets need refreshing):"), items, preferred,
+											  false, &accepted);
+	if (!accepted)
+		return;
+	QString error;
+	if (!refreshPlacedCollision(ids.value(int(items.indexOf(chosen))), &error))
+		m_status->setText(error, LiveStatus::Problem);
 }
 void ModelEditorDialog::handoffCollision(bool place)
 {

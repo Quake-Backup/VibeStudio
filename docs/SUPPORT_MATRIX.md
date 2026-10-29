@@ -843,6 +843,29 @@ player again reproduces its files byte for byte in the tests. Detail levels, Tea
 Arena character and head folders, and the publication settings are not kept in
 the assembly source. See [Opening a Quake III player](MODEL_ASSEMBLY.md#opening-a-quake-iii-player).
 
+## Native Quake III Weapon Packages
+
+Partial. **Weapon Package…** (and `model assembly --operation weapon-review|weapon-export`)
+reviews and publishes a Quake III weapon set from an assembly:
+`models/weapons2/<w>/<w>.md3` with its optional `_hand`, `_barrel` and `_flash`
+models, each role's local transform baked in, the material dependency closure
+and a receipt. Review refuses a weapon without `tag_flash`, a barrel without the
+weapon's `tag_barrel`, a hand without `tag_weapon`, a multi-pose flash and parts
+on the wrong tags. A part's preview spin shows barrel roll in the assembly.
+Detail levels for weapons, sounds, effects and game-code registration are not
+covered; firing and gameplay are not tested in the game. See
+[Weapon packages](MODEL_ASSEMBLY.md#weapon-packages).
+
+## Quake II Player Packages
+
+Partial. **Quake II Player…** (and `model assembly --operation q2-player-review|q2-player-export`)
+publishes `players/<player>/` with `tris.md2` (198 frames, skins named in its
+header), `weapon.md2` and view weapons in frame lock, 8-bit PCX skins and icons in
+the package's Quake II palette, and sounds through the Quake II audio delivery, as
+a PAK or zip. Frame count, frame lock, one surface and skin size are checked. Package
+entries as inputs, MD2 skin-group animation and gameplay in the game are not
+covered. See [Quake II player packages](MODEL_ASSEMBLY.md#quake-ii-player-packages).
+
 ## Model Skin Variants
 
 Partial. Editable sources keep named skin variants (schema 14), edited in **Skin

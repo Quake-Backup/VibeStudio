@@ -8,15 +8,18 @@
 #include <QAccessible>
 #include <QAction>
 #include <QApplication>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
 #include <QDoubleSpinBox>
 #include <QEventLoop>
 #include <QFile>
+#include <QFileInfo>
 #include <QFont>
 #include <QJsonDocument>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPlainTextEdit>
 #include <QPointer>
 #include <QPushButton>
 #include <QScrollArea>
@@ -137,6 +140,52 @@ int main(int argc, char **argv)
 	ok &= expect(!editor.exportPose(path("part.mesh.json"), true, &error), "GUI export cannot replace input model");
 	ok &= expect(editor.removeBranch("root", &error) && !editor.previewReady() && editor.undo(&error),
 				 "branch removal and undo preserve descendants");
+	{
+		// Attachment blend: an accessible, undoable assembly-level setting.
+		auto *blend = editor.findChild<QComboBox *>("assemblyTagInterpolation");
+		bool labelled = false;
+		for (auto *label : editor.findChildren<QLabel *>())
+			labelled |= blend && label->buddy() == blend;
+		ok &= expect(blend && labelled && !blend->accessibleName().isEmpty() && !blend->accessibleDescription().isEmpty() &&
+						 blend->currentData().toInt() == int(ModelTagInterpolation::ShortestArc),
+					 "attachment blend control is labelled, described and shows the stored mode");
+		if (blend)
+		{
+			blend->setCurrentIndex(blend->findData(int(ModelTagInterpolation::Quake3Renderer)));
+			ok &= expect(editor.document().assembly().tagInterpolation == ModelTagInterpolation::Quake3Renderer && editor.previewReady() &&
+							 editor.findChild<QPlainTextEdit *>("assemblyDependencyDetails")->toPlainText().contains("Quake III renderer"),
+						 "choosing the Quake III blend resamples and reports it in Details");
+			ok &= expect(editor.undo(&error) && editor.document().assembly().tagInterpolation == ModelTagInterpolation::ShortestArc &&
+							 blend->currentData().toInt() == int(ModelTagInterpolation::ShortestArc),
+						 "undo restores the blend and the control follows");
+		}
+		// Part collision in bakes (ATT-ASM-COLL-01): a session choice.
+		auto *carry = editor.findChild<QCheckBox *>("assemblyIncludeCollision");
+		ok &= expect(carry && !carry->accessibleName().isEmpty() && !carry->accessibleDescription().isEmpty() && !carry->isChecked(),
+					 "the collision choice is named, described and off by default");
+		editor.setIncludeCollision(true);
+		ok &= expect(editor.includesCollision() && editor.exportPose(path("carried.mesh.json"), false, &error) &&
+						 QFileInfo::exists(path("carried.mesh.json")),
+					 "a pose bake with part collision writes an editable source");
+		editor.setIncludeCollision(false);
+		// Weapon packages (ATT-WEAPON-01): reachable, and refused clearly without a package.
+		ModelWeaponBundle weapon;
+		ok &= expect(editor.findChild<QAction *>("assemblyWeaponBundle") &&
+						 !editor.prepareWeaponBundle({QStringLiteral("rail"), editor.document().assembly().parts.value(0).id, {}, {}, {}},
+													 &weapon, &error) &&
+						 error.contains("package"),
+					 "Weapon Package is on the toolbar and needs the project package");
+		// Quake II players (ATT-Q2PLAYER-01): reachable, and refused clearly without a palette package.
+		ModelQ2PlayerOptions q2;
+		q2.modelName = QStringLiteral("vamp");
+		q2.bodySource = path("part.mesh.json");
+		q2.weaponSource = path("part.mesh.json");
+		q2.skins = {{QStringLiteral("red"), path("part.mesh.json"), {}}};
+		ModelQ2PlayerBundle q2Bundle;
+		ok &= expect(editor.findChild<QAction *>("assemblyQ2Player") && !editor.prepareQ2PlayerBundle(q2, &q2Bundle, &error) &&
+						 error.contains("colormap.pcx"),
+					 "Quake II Player is on the toolbar and asks for the palette package");
+	}
 	const auto beforePlayback = modelAssemblyFingerprint(editor.document().assembly());
 	const double startTime = editor.timeSeconds();
 	// Playback holds its next sample while a frame renders, and this test's

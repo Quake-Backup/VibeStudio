@@ -2523,6 +2523,8 @@ void ModelEditorDialog::refreshContext()
 				 current.mapPath.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "None") : current.mapPath));
 	m_stage->setEnabled(bool(handoff) && current.canStage);
 	if (m_collisionPlace) { m_collisionPlace->setEnabled(bool(collisionDestination) && current.canPlaceCollision && !m_document.mesh().collisionBoxes.isEmpty()); }
+	// Instance placement checks the level selection when chosen (core/model_collision_placement.h).
+	if (m_collisionPlaceInstance) { m_collisionPlaceInstance->setEnabled(m_collisionPlace->isEnabled()); m_collisionRefresh->setEnabled(m_collisionPlace->isEnabled()); }
 	m_place->setEnabled(bool(handoff) && current.canStage && current.canPlace &&
 						m_virtualPath->text().endsWith(QStringLiteral(".md3"), Qt::CaseInsensitive));
 	for (auto *field : m_placement)
