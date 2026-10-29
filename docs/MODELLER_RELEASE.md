@@ -69,6 +69,37 @@ adds target/pole placement and protected dense pose updates. [Animation curves](
 add persistent TRS keys, tangent editing, reviewed sampling and batch key tools. Richer animation tools,
 real-project and cross-platform acceptance remain open.
 
+**Model editor gap round (2026-10-28 to 10-29).** The 68 gaps the 2026-10-21
+audit left open (vertex and skeletal animation, MT-01 to MT-17, UVSKIN-01 to 12,
+FMT-02 to 11, ATT-*, SI-1 to 9 and ROB-6, 8, 9 and 10). Status: Partial. Every
+gap has a GUI and CLI implementation with tests; the feature documents record
+each one's limits ([vertex animation](MODEL_VERTEX_ANIMATION.md),
+[constraints](MODEL_ANIMATION_CONSTRAINTS.md), [game
+declarations](MODEL_GAME_DECLARATIONS.md), [tools](MODEL_TOOLS.md),
+[formats](MODEL_FORMATS.md), [collision](MODEL_COLLISION.md),
+[assemblies](MODEL_ASSEMBLY.md), [mesh documents](MODEL_MESH.md)).
+
+The work ran in eight lanes and was merged with the materials round from main.
+On the merged tree (Windows, clang-cl debugoptimized, offscreen Qt), the full
+modeller suite passed 241 of 241; the lanes' timing checks that failed
+only while eight builds shared the machine pass on a quiet one. The repository validators (CLI docs, docs, source layout,
+translation extraction, English plurals, offline guide, build) pass. Merge review
+found and fixed: interleaved source-version selection, a lost OBJ case brace,
+OBJ import notes lost by the shared import finishing step, CLI import flags
+read as package entries, UV pins not carried on models with tag anchors,
+per-frame hulls dropped by resampling, and two sidebar rows that pushed the
+views under 45% at 200% text.
+
+Open, with reasons recorded in the feature documents: the non-destructive
+mirror modifier; booleans on skinned surfaces; per-pixel GPU shader stages and
+Doom 3 interaction in the modeller viewport; curvature, thickness and cage
+bakes; ET MDM+MDX and Ghoul 2 GLM+GLA writers; a glTF writer; receipts for
+bakes, collision, animation.cfg and player packages; quaternion keys in the
+batch key tools and layers; and every engine, real-project, physical
+accessibility and cross-platform acceptance. Editable sources now use versions
+15 to 19 (joint limits, events and clip stacks; sharp edges; UV pins; import
+issues; tag anchors).
+
 **Delivery targets, detail levels, skin variants and Quake III player packages
 (2026-10-23).** Gaps FMT-06, ATT-LOD-02, UVSKIN-10 and ATT-PLAYER-01 to 03.
 Status: Partial. Everything is checked against VibeStudio's own decoders, the public
