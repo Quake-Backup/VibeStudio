@@ -1,6 +1,10 @@
 #pragma once
 
 #include "core/model_file_io.h"
+#include "core/model_frame_import.h"
+#include "core/model_frame_tools.h"
+#include "core/model_obj.h"
+#include "core/model_tag_follow.h"
 #include "core/model_mdl.h"
 #include "core/model_mesh_tools.h"
 #include "core/model_mesh.h"
@@ -238,6 +242,27 @@ enum class ModelEditKind
 	ClearSharp,
 	// Shape edit: explicit positions for listed vertices.
 	SetVertexPositions,
+	// Frame-range operations and frame naming (core/model_frame_tools.h);
+	// ModelEdit::frameRange.
+	MoveFrames,
+	DuplicateFrameRange,
+	DeleteFrameRange,
+	ReverseFrameRange,
+	RenameFramesFromClips,
+	// Clip resampling and loop closing (ModelEdit::resample); the skeletal
+	// kinds are skeletal edits (core/model_frame_tools.h).
+	ResampleAnimation,
+	CloseAnimationLoop,
+	ResampleSkeletalClip,
+	CloseSkeletalLoop,
+	// Tags fitted to mesh components across frames (core/model_tag_follow.h).
+	FollowTagComponents,
+	// Range transforms and partial or relative poses (ModelEdit::poseRange).
+	TransformFrameRange,
+	BlendFramePose,
+	ApplyRelativePose,
+	// Frames from other files (core/model_frame_import.h).
+	ImportFrames,
 };
 
 struct ModelEdit
@@ -318,6 +343,11 @@ struct ModelEdit
 	QString collisionHullProfile = QStringLiteral("quake3");
 	int collisionHullMaxFaces = 0;
 	ModelAnimationAuthoringOptions animation{};
+	ModelFrameRangeOptions frameRange{};
+	ModelFrameResampleOptions resample{};
+	ModelPoseRangeOptions poseRange{};
+	ModelTagFollowOptions tagFollow{};
+	ModelFrameImportOptions frameImport{};
 };
 
 struct ModelExportReport
@@ -390,6 +420,8 @@ struct ModelImportOptions
 	// re-baked, with the clips that fit the automatic budget in file order.
 	bool chooseWorkingSet = false;
 	QStringList workingSet;
+	// Axis, scale, material library and loose-data handling for OBJ files.
+	ModelObjImportOptions obj{};
 };
 struct ModelImportReport
 {
@@ -403,6 +435,9 @@ struct ModelImportReport
 	// no clip, or names one twice: a usage error, not a problem with the model.
 	bool unresolvedClips = false;
 	ModelSkeletalWorkingSetPlan workingSet;
+	// What the decoder converted, ignored or dropped (OBJ axis conversion,
+	// material libraries, loose lines and points), translated.
+	QStringList notes;
 };
 bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, ModelMesh *mesh, const ModelImportOptions &options,
 						 ModelImportReport *report, QString *error = nullptr, const IdTechPalette *palette = nullptr,

@@ -782,7 +782,10 @@ error, 4 an edit or selection the mesh refuses.
   [clip constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md),
   [animation events and game declarations](MODEL_GAME_DECLARATIONS.md)
   and the [skeletal working set](MODEL_SKELETAL_WORKING_SET.md) have their own
-  documented workflows and limits.
+  documented workflows and limits. Transforms over a frame range with a
+  falloff, partial and relative pose blends are on the Animation page
+  ([vertex animation frames](MODEL_VERTEX_ANIMATION.md#sculpt-over-a-range-of-frames));
+  the modal move, rotate and scale do not yet offer a frame-range scope.
 - Loops and loop cuts need the quad view; meshes triangulated without quad
   pairs (or with large folds between neighbours) stop rings at those triangles.
 - Decimation keeps seam vertices and, by default, borders, so heavily seamed

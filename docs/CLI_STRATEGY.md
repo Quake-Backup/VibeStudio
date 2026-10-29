@@ -2321,6 +2321,23 @@ Each resolved path may be a definition file or a folder of them.
   zero-based and default to 0. Text reports summarize islands; JSON includes
   their face/vertex indices, bounds and seam edge pairs. Usage errors return
   `2`, source-read failures `1`, invalid sources/topology `4`, and success `0`.
+- [x] `model frames <source>` lists each clip and whether MDL, MD2 and MD3
+  frame names bring it back. `--operation move|duplicate|delete|reverse|ping-pong`
+  with `--first`, `--last` (and `--to` for move) edits a frame range;
+  `--operation name-from-clips [--clip N] [--start N] [--keep-clip-names]`
+  names frames after their clips. `resample`, `close-loop`,
+  `resample-skeletal` and `close-skeletal-loop` resample clips and close their
+  loops; `follow-tag` fits a tag to selected components in every frame;
+  `transform-range`, `blend-pose` and `relative-pose` edit selected components
+  over a frame range with a falloff; `import --source FILE ...` adds frames from
+  an OBJ sequence or another model of the same mesh; `export-obj` writes one OBJ
+  per frame. Tags, collision poses, MDL groups and clip ranges follow the
+  frames. Edits need a separate `.mesh.json` `--output`; usage errors return 2
+  and refused edits 4 without writing. See
+  [vertex animation frames](MODEL_VERTEX_ANIMATION.md).
+- [x] `model import` accepts `--obj-up z|y`, `--obj-scale N`,
+  `--obj-materials resolve|ignore|refuse` and `--obj-loose drop|refuse` for OBJ
+  sources and lists conversions and drops in JSON `notes`.
 - [x] `model uv-density <source> --texture-size WIDTHxHEIGHT` measures complete
   UV islands against the selected reference pose. `--target` with `--output`
   previews or writes a density adjustment; `--mode individual|group` chooses

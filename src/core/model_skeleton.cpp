@@ -2,6 +2,7 @@
 #include "core/model_ik.h"
 #include "core/model_animation_constraints.h"
 #include "core/model_animation_events.h"
+#include "core/model_frame_tools.h"
 #include "core/model_animation_curves.h"
 #include "core/model_source_encoding.h"
 
@@ -675,23 +676,15 @@ bool modelSkinningFromBindPose(const ModelSkeleton& skeleton, const QVector<Mode
 
 // --- Baking ----------------------------------------------------------------
 
-QString modelBakedFrameName(const QString& clipName, int frame)
+QString modelBakedFrameName(const QString& clipName, int frame, int frameCount)
 {
-	const QString number = QString::number(frame);
-	QString stem;
-	for (const QChar character : clipName) {
-		if (character.isLetterOrNumber() || character == QLatin1Char('_') || character == QLatin1Char('-')) {
-			stem.append(character.toLatin1() ? QChar(character.toLatin1()) : QLatin1Char('_'));
-		} else if (!stem.endsWith(QLatin1Char('_'))) {
-			stem.append(QLatin1Char('_'));
-		}
-	}
-	if (stem.isEmpty()) {
-		stem = QStringLiteral("frame");
-	}
-	// Frame names hold 15 characters and a terminator; the number survives.
-	const int room = std::max(1, 15 - int(number.size()));
-	return stem.left(room) + number;
+	// Frame names hold 15 printable ASCII characters and a terminator. The
+	// stem is sized for the clip's highest frame number, so every frame of a
+	// clip shares it and readers of MDL, MD2 and MD3 files, which rebuild
+	// clips from frame names, keep the clip whole; a clip name ending in a
+	// digit gets a '_' before the number (core/model_frame_tools.h).
+	const int highest = std::max(frame, frameCount - 1);
+	return modelClipFrameName(modelClipFrameStem(clipName, highest), frame);
 }
 
 bool bakeModelSkeleton(ModelMesh* mesh, const ModelSkeletonBakeOptions& options, QString* error, const ModelWorkControl& control)
@@ -796,7 +789,7 @@ bool bakeModelSkeleton(ModelMesh* mesh, const ModelSkeletonBakeOptions& options,
 		const PlannedFrame& planned = plan.at(index);
 		ModelFrameInfo info;
 		info.index = index;
-		info.name = planned.clip < 0 ? QStringLiteral("bindpose") : modelBakedFrameName(skeleton.clips.at(planned.clip).name, planned.frame);
+		info.name = planned.clip < 0 ? QStringLiteral("bindpose") : modelBakedFrameName(skeleton.clips.at(planned.clip).name, planned.frame, int(skeleton.clips.at(planned.clip).frames.size()));
 		bool haveBounds = false;
 		for (const ModelSurface& surface : surfaces) {
 			for (const ModelVec3& position : surface.frames.at(index).positions) {

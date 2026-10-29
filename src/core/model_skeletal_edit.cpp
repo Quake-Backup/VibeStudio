@@ -227,7 +227,7 @@ bool rebuild(ModelMesh *mesh, const ModelMesh &before, const QVector<Frame> &old
 		auto info = before.frames[item.inherited];
 		info.index = i;
 		if (item.original < 0)
-			info.name = item.clip < 0 ? QStringLiteral("bindpose") : modelBakedFrameName(mesh->skeleton.clips[item.clip].name, item.local);
+			info.name = item.clip < 0 ? QStringLiteral("bindpose") : modelBakedFrameName(mesh->skeleton.clips[item.clip].name, item.local, int(mesh->skeleton.clips[item.clip].frames.size()));
 		mesh->frames.append(info);
 		mesh->skeleton.bakedClipForFrame.append(item.clip);
 		for (int surface = 0; surface < mesh->surfaces.size(); ++surface)
@@ -535,7 +535,7 @@ bool chooseWorkingSet(const ModelMesh &mesh, const QVector<int> &chosen, QVector
 
 bool isModelSkeletalEdit(ModelEditKind kind)
 {
-	return (kind >= ModelEditKind::TransformBindJoint && kind <= ModelEditKind::InterpolateSkeletalPoses) || kind == ModelEditKind::SolveTwoBoneIk || kind == ModelEditKind::EditAnimationCurves || kind == ModelEditKind::EditCurveKeys || kind == ModelEditKind::TransferAnimationCurves || kind == ModelEditKind::SetSkeletalWorkingSet || isModelAnimationAuthoringEdit(kind);
+	return (kind >= ModelEditKind::TransformBindJoint && kind <= ModelEditKind::InterpolateSkeletalPoses) || kind == ModelEditKind::SolveTwoBoneIk || kind == ModelEditKind::EditAnimationCurves || kind == ModelEditKind::EditCurveKeys || kind == ModelEditKind::TransferAnimationCurves || kind == ModelEditKind::SetSkeletalWorkingSet || isModelAnimationAuthoringEdit(kind) || isModelSkeletalResampleEdit(kind);
 }
 bool defaultModelSkeletalOptions(const ModelSkeletalEditOptions &o)
 {
@@ -556,6 +556,8 @@ bool applyModelSkeletalEdit(ModelMesh *mesh, const ModelEdit &edit, QString *err
 		return applyModelCurveKeys(mesh, edit, nullptr, error, control);
 	if (isModelAnimationAuthoringEdit(edit.kind))
 		return applyModelAnimationAuthoringEdit(mesh, edit, error, control);
+	if (isModelSkeletalResampleEdit(edit.kind))
+		return applyModelSkeletalResampleEdit(mesh, edit, error, control);
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
 	if (!mesh || !isModelSkeletalEdit(edit.kind) || !work.check())
 		return false;

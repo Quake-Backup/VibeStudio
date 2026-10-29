@@ -38,7 +38,8 @@ bool isModelAnimationEdit(ModelEditKind kind)
 {
 	return kind == ModelEditKind::AddAnimation || kind == ModelEditKind::RenameAnimation || kind == ModelEditKind::SetAnimationRange ||
 		   kind == ModelEditKind::DeleteAnimation || kind == ModelEditKind::InsertInbetweens || kind == ModelEditKind::CopyFramePose ||
-		   kind == ModelEditKind::SetAnimationRate;
+		   kind == ModelEditKind::SetAnimationRate || isModelFrameRangeEdit(kind) || isModelPoseRangeEdit(kind) ||
+		   kind == ModelEditKind::FollowTagComponents;
 }
 
 bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control)
@@ -55,6 +56,18 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 	if (!candidate || !isModelAnimationEdit(edit.kind))
 	{
 		return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelAnimation", "Choose a valid animation operation."));
+	}
+	if (isModelFrameRangeEdit(edit.kind))
+	{
+		return applyModelFrameRangeEdit(candidate, edit, error, control);
+	}
+	if (isModelPoseRangeEdit(edit.kind))
+	{
+		return applyModelPoseRangeEdit(candidate, edit, error, control);
+	}
+	if (edit.kind == ModelEditKind::FollowTagComponents)
+	{
+		return applyModelTagFollowEdit(candidate, edit, error, control);
 	}
 	const bool pose = edit.kind == ModelEditKind::InsertInbetweens || edit.kind == ModelEditKind::CopyFramePose;
 	if (pose)
@@ -179,7 +192,23 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 		return work.check();
 	}
 	const int inserted = edit.frame + 1, count = edit.inbetweenCount;
-	const QString prefix = edit.text.isEmpty() ? QStringLiteral("blend") : edit.text;
+	QString prefix = edit.text;
+	if (prefix.isEmpty())
+	{
+		// Frames between two frames that share a name stem (walk1, walk2) take
+		// that stem, so readers of MDL, MD2 and MD3 files, which rebuild clips
+		// from frame names, keep them in the clip. The name fits 15 characters.
+		const auto stem = modelFrameNameStem(source.frames[edit.frame].name);
+		const bool shared = edit.frame + 1 < source.frames.size() && !stem.isEmpty() &&
+							modelFrameNameStem(source.frames[edit.frame + 1].name) == stem &&
+							std::all_of(stem.cbegin(), stem.cend(), [](QChar c) { return c.unicode() > 32 && c.unicode() < 127; });
+		const int digits = std::max(3, int(QString::number(edit.inbetweenCount).size()));
+		prefix = shared ? stem.left(15 - 1 - digits) : QStringLiteral("blend");
+		while (prefix.endsWith(QLatin1Char('_')) || prefix.endsWith(QLatin1Char('-')))
+			prefix.chop(1);
+		if (prefix.isEmpty())
+			prefix = QStringLiteral("blend");
+	}
 	qint64 vertices = 0;
 	for (const auto &surface : source.surfaces)
 	{

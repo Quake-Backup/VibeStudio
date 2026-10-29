@@ -676,6 +676,8 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::EditClipStack:
 	// Moves the skeleton, its clips and the influences' bind offsets together.
 	case ModelEditKind::TransformModel:
+	case ModelEditKind::ResampleSkeletalClip:
+	case ModelEditKind::CloseSkeletalLoop:
 		return ModelEditSkinHandling::Direct;
 	case ModelEditKind::BevelEdges:
 	case ModelEditKind::Knife:
@@ -690,6 +692,13 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::DeleteFrame:
 	case ModelEditKind::InsertInbetweens:
 	case ModelEditKind::CopyFramePose:
+	case ModelEditKind::MoveFrames:
+	case ModelEditKind::DuplicateFrameRange:
+	case ModelEditKind::DeleteFrameRange:
+	case ModelEditKind::ReverseFrameRange:
+	case ModelEditKind::ResampleAnimation:
+	case ModelEditKind::CloseAnimationLoop:
+	case ModelEditKind::ImportFrames:
 		return ModelEditSkinHandling::Frames;
 	case ModelEditKind::Transform:
 	case ModelEditKind::Extrude:
@@ -702,6 +711,11 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::ProjectUv:
 	case ModelEditKind::SetMaterial:
 	case ModelEditKind::RenameFrame:
+	case ModelEditKind::RenameFramesFromClips:
+	case ModelEditKind::FollowTagComponents:
+	case ModelEditKind::TransformFrameRange:
+	case ModelEditKind::BlendFramePose:
+	case ModelEditKind::ApplyRelativePose:
 	case ModelEditKind::SplitEdges:
 	case ModelEditKind::WeldVertices:
 	case ModelEditKind::MarkUvSeams:

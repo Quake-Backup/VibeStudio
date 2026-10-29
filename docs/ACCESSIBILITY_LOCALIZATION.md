@@ -52,6 +52,20 @@ and destination sample. `ModelCurveTransfer`, `ModelCurveTransferDialog` and
 screen-reader acceptance remains open. See
 [range transfer](MODEL_ANIMATION_CURVES.md#transfer-or-reverse-a-range).
 
+The Mesh Editor's **Frame timeline** is a slider: screen readers get its role,
+value and a description of the current frame, its clips and the frame range.
+It takes focus, steps with the arrow keys, jumps with Page Up/Down and
+Home/End, and extends the range with Shift. Time runs left to right in
+right-to-left layouts, as in the curve view. The range is a dashed band and
+the current frame a heavy line, so neither relies on colour; high-visibility
+themes draw both in the text colour. **Onion skin** ghosts are dashed (earlier)
+or dotted (later), hidden during playback, and listed in the checkbox's
+description. The frame-range, resampling, range-sculpt, frame-import and
+tag-following controls use labelled form rows that wrap at 200% text, and
+announce results and refusals on the status line. `VibeStudioModelEditor`,
+`ModelFrameTools`, `ModelTagFollow` and `ModelFramesCli` strings are extracted
+for translation. See [vertex animation frames](MODEL_VERTEX_ANIMATION.md).
+
 **Edit Animation Keys** uses virtual native key/result tables with named controls,
 extended row selection, inclusive range and Select All actions, and a scrollable
 operation form. Full result-row text remains available in a read-only detail

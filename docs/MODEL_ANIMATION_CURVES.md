@@ -324,6 +324,8 @@ Key copy and paste between clips and models goes through the
 extrapolation and layer weight curves remain planned
 ([persistent constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md),
 [long-chain IK](MODEL_IK.md#solve-longer-chains) and
-[retargeting](MODEL_RIG.md#import-and-retarget-clips) are available). Physical keyboard/screen-reader acceptance,
+[retargeting](MODEL_RIG.md#import-and-retarget-clips) are available). Resampling a clip to another rate or frame count
+rescales its keys when each lands on a whole frame, or bakes the curves on
+request; see [vertex animation frames](MODEL_VERTEX_ANIMATION.md#resample-a-clip-and-close-its-loop). Physical keyboard/screen-reader acceptance,
 maximum-size performance, real projects and clean cross-platform release
 checks remain open. This workflow works offline and adds no dependency.

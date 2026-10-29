@@ -526,6 +526,10 @@ public:
 	// Owner-drawn overlay (selection boxes, the 3D cursor, tool guides), painted
 	// last in widget coordinates. An empty function removes it.
 	void setOverlayPainter(std::function<void(QPainter&)> painter);
+	// Animation guides drawn over the mesh and under the edit overlays, in
+	// widget coordinates: the Mesh Editor's onion skin of neighbouring frames.
+	// An empty function removes it.
+	void setAnimationOverlayPainter(std::function<void(QPainter&)> painter);
 	// Shows what `source` shows (mesh, frame, shading, skins, selection and
 	// overlays) through this viewport's own camera: the modeller's mirror
 	// panes (model_viewport_mirror.cpp).
@@ -1051,6 +1055,7 @@ private:
 	QPointF m_rotationTangent;
 	double m_scaleReference = 1;
 	std::function<void(QPainter&)> m_overlayPainter;
+	std::function<void(QPainter&)> m_animationOverlayPainter;
 	LevelLinkedGroupDisplay m_linkedGroups;
 	LinkedGroupPaint m_linkedGroupPaint;
 };

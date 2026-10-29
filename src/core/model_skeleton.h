@@ -143,8 +143,9 @@ struct ModelSkeletonBakeOptions {
 	const ModelWorkControl& control = {});
 
 // The frame name a baked clip frame receives: the clip name and the frame
-// number, cut to the 16 bytes MD3/MD2 frame names hold.
-[[nodiscard]] QString modelBakedFrameName(const QString& clipName, int frame);
+// number, cut to the 16 bytes MD3/MD2 frame names hold. The stem is sized for
+// the clip's last frame (frameCount - 1) so every frame of the clip shares it.
+[[nodiscard]] QString modelBakedFrameName(const QString& clipName, int frame, int frameCount = 0);
 
 // One line per joint, indented by depth, for summaries and the CLI.
 [[nodiscard]] QStringList modelSkeletonSummaryLines(const ModelSkeleton& skeleton);

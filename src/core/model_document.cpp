@@ -721,9 +721,25 @@ bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, Mo
 	// A file on disk reads its companions (animations, bones, textures) from
 	// the folders around it; a package path has no such neighbours here.
 	const QFileInfo looseFile(virtualPath);
-	auto result = looseFile.isAbsolute() && looseFile.isFile()
-					  ? decodeModelMesh(virtualPath, bytes, palette, control, modelCompanionsFromFileSystem(virtualPath))
-					  : decodeModelMesh(virtualPath, bytes, palette, control);
+	const bool loose = looseFile.isAbsolute() && looseFile.isFile();
+	// OBJ files take their axis, scale and material-library settings; what
+	// the decoder converted or dropped is reported (core/model_obj.h).
+	QStringList notes;
+	ModelMesh result;
+	if (detectModelMeshFormat(virtualPath, bytes) == ModelMeshFormat::WavefrontObj)
+	{
+		const auto companions = loose ? modelCompanionsFromFileSystem(virtualPath) : ModelCompanionSource{};
+		result = decodeModelObj(virtualPath, bytes, options.obj, &companions, &notes, control);
+	}
+	else if (!(options.obj == ModelObjImportOptions{}))
+	{
+		return fail(error, QCoreApplication::translate("VibeStudioModelObj", "OBJ import settings apply only to OBJ files."));
+	}
+	else
+	{
+		result = loose ? decodeModelMesh(virtualPath, bytes, palette, control, modelCompanionsFromFileSystem(virtualPath))
+					   : decodeModelMesh(virtualPath, bytes, palette, control);
+	}
 	if (!result.error.isEmpty())
 	{
 		return fail(error, result.error);
@@ -771,6 +787,10 @@ bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, Mo
 	if (!modelWorkCheckpoint(control, ModelWorkPhase::Reading, 1, 1, error))
 	{
 		return false;
+	}
+	if (report)
+	{
+		report->notes = notes;
 	}
 	*mesh = std::move(result);
 	return true;
@@ -1715,10 +1735,12 @@ bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resu
 	{
 		// Frames that follow the skeleton stay in their clips; frame edits on
 		// independent frames keep every other frame's clip mapping.
-		const auto refusal = modelSkeletalFrameEditRefusal(*mesh, edit.kind, edit.frame);
+		const bool range = isModelFrameRangeEdit(edit.kind);
+		const auto refusal = range ? modelFrameRangeSkeletalRefusal(*mesh, edit) : modelSkeletalFrameEditRefusal(*mesh, edit.kind, edit.frame);
 		if (!refusal.isEmpty())
 			return fail(error, refusal);
-		options.frameOrigins = modelSkeletalFrameOrigins(*mesh, edit.kind, edit.frame, edit.inbetweenCount);
+		options.frameOrigins = range ? modelFrameRangeSkeletalOrigins(*mesh, edit)
+									 : modelSkeletalFrameOrigins(*mesh, edit.kind, edit.frame, edit.inbetweenCount);
 	}
 	const ModelMesh before = *mesh;
 	ModelSelection pendingSelection;
@@ -1804,6 +1826,17 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		return fail(error, QCoreApplication::translate("ModelWeightPaint", "Weight strokes apply only to weight painting."));
 	if (edit.kind != ModelEditKind::UpdateCollisionBox && edit.collisionFields != 7)
 		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Collision field masks apply only to box updates."));
+	if (!isModelFrameRangeEdit(edit.kind) && !(edit.frameRange == ModelFrameRangeOptions{}))
+		return fail(error, QCoreApplication::translate("ModelFrameTools", "Frame range settings apply only to frame range operations."));
+	if (edit.kind != ModelEditKind::ResampleAnimation && edit.kind != ModelEditKind::CloseAnimationLoop &&
+		!isModelSkeletalResampleEdit(edit.kind) && !(edit.resample == ModelFrameResampleOptions{}))
+		return fail(error, QCoreApplication::translate("ModelFrameTools", "Resampling settings apply only to resampling and loop operations."));
+	if (!isModelPoseRangeEdit(edit.kind) && !(edit.poseRange == ModelPoseRangeOptions{}))
+		return fail(error, QCoreApplication::translate("ModelFrameTools", "Pose range settings apply only to range transforms and pose blends."));
+	if (edit.kind != ModelEditKind::FollowTagComponents && !(edit.tagFollow == ModelTagFollowOptions{}))
+		return fail(error, QCoreApplication::translate("ModelFrameTools", "Tag following settings apply only to Follow Selection."));
+	if (edit.kind != ModelEditKind::ImportFrames && !edit.frameImport.isDefault())
+		return fail(error, QCoreApplication::translate("ModelFrameTools", "Frame import settings apply only to frame import."));
 	const bool frameOperation = edit.kind == ModelEditKind::DuplicateFrame || edit.kind == ModelEditKind::DeleteFrame ||
 								edit.kind == ModelEditKind::RenameFrame || edit.kind == ModelEditKind::InsertInbetweens ||
 								edit.kind == ModelEditKind::CopyFramePose;

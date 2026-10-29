@@ -1153,6 +1153,50 @@ Every mapped key must land on an integer sample. See
 [range transfers](../MODEL_ANIMATION_CURVES.md#transfer-or-reverse-a-range)
 for boundary behaviour and the `model curve-transfer` CLI.
 
+## Edit vertex animation frames
+
+On the Mesh Editor's **Animation** page, **Frame range** works on whole
+ranges of frames across every surface. Set **Range first frame** and **Range
+last frame**, then choose **Move Frames** (with **Move to frame**),
+**Duplicate Range**, **Delete Range**, **Reverse Range** or **Add Ping-Pong
+Return**. Attachment tags, collision poses, MDL native groups and clip ranges
+follow the frames, and each operation is one undo step. A disabled button's
+tooltip says why it cannot run, for example on frames a skinned skeleton
+drives.
+
+MDL, MD2 and MD3 files have no clip table, so readers rebuild clips from frame
+names such as `stand1`, `stand2`. The **Native clip check** line says which
+clips will come back. **Name Frames From Clips** names the chosen clip's
+frames, or every clip's, after the clip within 15 characters, starting at
+**First frame number**.
+
+The **Frame timeline** beside the frame list shows clips, MDL groups, the frame
+range and the current frame. Click or drag to scrub, Shift-drag to select the
+range; with the timeline focused, the arrow keys step, **Page Up** and **Page
+Down** jump ten frames, and **Shift** extends the range. Turn on **Onion skin**
+to see earlier frames dashed and later frames dotted in the 3D view.
+
+To deliver a 30 FPS clip at Quake's 10 Hz, choose the clip, set **New FPS** under
+**Resample and loop** and choose **Resample Clip**. **Close Clip Loop** removes
+the jump from a cycle's last pose to its first. Skeletal clips have their own
+**Resample Skeletal Clip** and **Close Skeletal Loop**.
+
+To fix a few frames at once, select the vertices, set the frame range and use
+**Range sculpt**: **Transform Selection Over Range** (with the **Geometry**
+page's move, rotate and scale), **Blend Selection From Frame** or **Add Pose
+Difference**, with a falloff over the range.
+
+To bring in animation from Blender, export one OBJ per frame, then choose
+**Import Frames…** under **Import and export frames** (set **OBJ up axis** to
+**Y up** for Blender's default). An MD2, MD3 or MDL of the same mesh imports
+all its frames. **Export Range as OBJ…** writes the range back out.
+
+To make a tag follow a hand or muzzle, select its vertices, type the tag name
+in **Attachment tags → Name** and choose **Follow Selection**.
+
+See [vertex animation frames](../MODEL_VERTEX_ANIMATION.md) for the rules,
+limits and the `model frames` command.
+
 ## Known limits
 
 - No model format has been tested against real game files in bulk, and no
@@ -1206,6 +1250,7 @@ vibestudio --cli model controls --profile 3ds-max --section keys
 | Surfaces, material slots, skins and appearances | `model surfaces`, `model slots`, `model skin`, `model materials` |
 | Named skin variants and their `.skin` or Doom 3 skin files | `model skin-variants`, `model skin-export` |
 | Tags, clips and collision | `model tags`, `model animations`, `model collision` |
+| Edit, name, resample, import or export vertex animation frames; fit tags to the mesh | `model frames` |
 | Joints, weights, bind poses, skeletal clips and the working set | `model rig`, `model pose`, `model skinning`, `model weight-paint`, `model weight-transfer`, `model ik` |
 | Quake MDL skins and timing | `model mdl` |
 | Editable skeletal keys, tangents and baking | `model curves` |
@@ -1225,6 +1270,7 @@ See [Command line](cli.md) for options and exit codes.
 ## Learn more
 
 - [Mesh tools](../MODEL_TOOLS.md) and [editable meshes](../MODEL_MESH.md): every tool, limit and CLI option.
+- [Vertex animation frames](../MODEL_VERTEX_ANIMATION.md): frame ranges and names, resampling, the timeline and onion skin, range sculpting, frame import and tags that follow the mesh.
 - [Skin weights through mesh edits](../MODEL_SKIN_PROVENANCE.md): how edits keep, interpolate and mirror joint weights.
 - [Native formats and skeletons](../MODEL_FORMATS.md) and [modeller profiles](../MODELLER_PROFILES.md).
 - [Delivery targets](../MODEL_TARGETS.md) and [detail levels](../MODEL_LOD.md): each engine's limits, Prepare for Target and linked detail levels.

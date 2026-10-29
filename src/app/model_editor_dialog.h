@@ -80,12 +80,16 @@ struct ModelStagedFile
 	QByteArray bytes;
 };
 
+class ModelEditorAnimationPanel;
+
 class ModelEditorDialog final : public QDialog
 {
 	// The Blender-style interaction layer drives the editor's own controls.
 	friend class ModelEditorTools;
 	friend class ModelLodDialog;
 	friend class ModelSkinVariantsDialog;
+	// Frame-range editing, timeline and onion skin on the Animation page.
+	friend class ModelEditorAnimationPanel;
 
   public:
 	explicit ModelEditorDialog(QWidget *parent = nullptr);
@@ -324,6 +328,7 @@ class ModelEditorDialog final : public QDialog
 	QPushButton *m_addAnimation = nullptr, *m_insertInbetweens = nullptr, *m_copyFramePose = nullptr;
 	QList<QPushButton *> m_animationSelectionButtons;
 	QByteArray m_animationRevision;
+	ModelEditorAnimationPanel *m_animationPanel = nullptr;
 	int m_displayedAnimation = -2;
 	QLineEdit *m_tagName = nullptr;
 	QDoubleSpinBox *m_tagOrigin[3]{};
