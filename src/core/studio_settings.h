@@ -389,6 +389,9 @@ public:
 	// Mesh tools refuse edits that make faces cross (model/refuseIntersections).
 	bool modelRefuseIntersections() const;
 	void setModelRefuseIntersections(bool refuse);
+	// Offer mesh and assembly recovery copies at startup (on by default).
+	bool modelRecoveryNotifyAtStartup() const;
+	void setModelRecoveryNotifyAtStartup(bool enabled);
 	bool modelRecoveryEnabled() const;
 	void setModelRecoveryEnabled(bool enabled);
 	// The memory Mesh Editor undo history may keep beyond the current model

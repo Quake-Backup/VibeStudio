@@ -1,4 +1,5 @@
 #include "core/model_recovery.h"
+#include "core/model_session_draft.h"
 #include "core/model_surface_selection.h"
 #include "core/model_collision.h"
 #include "core/model_tags.h"
@@ -528,15 +529,28 @@ ModelRecoveryScan listModelRecoveries(const QString &directory, const std::funct
 		result.error = QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery folder is unavailable or is a link.");
 		return result;
 	}
+	// The newest copies first, so a full folder still lists the latest work.
+	QVector<QFileInfo> files;
 	QDirIterator entries(directory, {QStringLiteral("*") + suffix}, QDir::Files | QDir::System | QDir::NoDotAndDotDot);
 	while (entries.hasNext())
+	{
+		if (interrupted(cancelled, &result.error))
+		{
+			result.limited = true;
+			return result;
+		}
+		files.append(QFileInfo(entries.next()));
+	}
+	std::sort(files.begin(), files.end(), [](const QFileInfo &a, const QFileInfo &b)
+			  { return a.lastModified() == b.lastModified() ? a.fileName() < b.fileName() : a.lastModified() > b.lastModified(); });
+	for (const auto &file : std::as_const(files))
 	{
 		if (result.records.size() >= 128 || interrupted(cancelled, &result.error))
 		{
 			result.limited = true;
 			break;
 		}
-		result.records.append(inspectModelRecovery(entries.next(), nullptr, cancelled));
+		result.records.append(inspectModelRecovery(file.absoluteFilePath(), nullptr, cancelled));
 	}
 	std::sort(result.records.begin(), result.records.end(),
 			  [](const auto &a, const auto &b) { return a.writtenUtc == b.writtenUtc ? a.path < b.path : a.writtenUtc > b.writtenUtc; });
@@ -568,6 +582,11 @@ bool removeModelRecovery(const QString &directory, const QString &id, QString *e
 	if (info.isSymLink() || info.isJunction() || (info.exists() && !info.isFile()))
 	{
 		return fail(error, QCoreApplication::translate("VibeStudioModelRecovery", "Only regular model recovery files may be discarded."));
+	}
+	// Staged-session sidecars go with their copy (core/model_session_draft.h).
+	if (!removeModelSessionDrafts(root, id, error))
+	{
+		return false;
 	}
 	if (!info.exists())
 	{

@@ -274,6 +274,19 @@ void ModelEditorTools::buildActions()
 											  r.threshold = 0;
 										  });
 					  });
+			// Faces within 45 degrees of the axis, as model select --operation facing.
+			addAction(QStringLiteral("meshSelectFacing%1%2").arg(positive ? QStringLiteral("Positive") : QStringLiteral("Negative"), axisName),
+					  Text::tr("Facing %1%2").arg(positive ? QStringLiteral("+") : QStringLiteral("-"), axisName), {},
+					  [this, axis, positive]
+					  {
+						  selectOperation(Op::Facing,
+										  [axis, positive](ModelSelectRequest &r)
+										  {
+											  r.axis = axis;
+											  r.positive = positive;
+											  r.threshold = 45;
+										  });
+					  });
 		}
 	}
 	// Transform.
@@ -817,6 +830,10 @@ void ModelEditorTools::buildMenus()
 													   QStringLiteral("meshSelectSidePositiveY"), QStringLiteral("meshSelectSideNegativeY"),
 													   QStringLiteral("meshSelectSidePositiveZ"), QStringLiteral("meshSelectSideNegativeZ")}),
 					   QStringLiteral("meshMenuSide"));
+	auto *facing = named(menu(Text::tr("Facing Axis"), {QStringLiteral("meshSelectFacingPositiveX"), QStringLiteral("meshSelectFacingNegativeX"),
+														QStringLiteral("meshSelectFacingPositiveY"), QStringLiteral("meshSelectFacingNegativeY"),
+														QStringLiteral("meshSelectFacingPositiveZ"), QStringLiteral("meshSelectFacingNegativeZ")}),
+						 QStringLiteral("meshMenuFacing"));
 	auto *select = named(menu(Text::tr("&Select"), {QStringLiteral("meshSelectAll"), QStringLiteral("meshSelectNone"), QStringLiteral("meshSelectInvert"),
 													 {}, QStringLiteral("meshSelectBox"), QStringLiteral("meshSelectCircle"), {},
 													 QStringLiteral("meshSelectMore"), QStringLiteral("meshSelectLess"), {},
@@ -830,6 +847,7 @@ void ModelEditorTools::buildMenus()
 						 QStringLiteral("meshMenuSelect"));
 	select->insertMenu(m_actions.value(QStringLiteral("meshSelectSharp")), similar);
 	select->addMenu(side);
+	select->addMenu(facing);
 	m_menuBar->addMenu(select);
 	auto *add = named(menu(Text::tr("&Add"), {QStringLiteral("meshAddPlane"), QStringLiteral("meshAddCube"), QStringLiteral("meshAddCircle"),
 											  QStringLiteral("meshAddGrid"), QStringLiteral("meshAddCylinder"), QStringLiteral("meshAddCone"),

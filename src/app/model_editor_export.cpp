@@ -2,6 +2,7 @@
 // clip and frame-rate choice, every clip as md5anims, the strict setting, and
 // the export report that lists what each format left out or approximated.
 #include "app/model_editor_dialog.h"
+#include "core/model_outputs.h"
 
 #include "app/dialog_screen_fit.h"
 #include "app/model_editor_tools.h"
@@ -414,11 +415,12 @@ bool ModelEditorDialog::exportToPath(const QString &path, const QString &format,
 		return false;
 	}
 	qint64 written = 0;
+	QByteArray delivered;
 	ModelExportReport report;
 	ModelLodSiblingReview siblings;
 	if (!performWork(
 			Text::tr("Export Model"),
-			[path, format, options, &written, &report, &siblings](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
+			[path, format, options, &written, &delivered, &report, &siblings](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
 			{
 				// Review the destination before preparation so a competing write during
 				// export cannot be silently accepted as the file the user approved.
@@ -463,6 +465,7 @@ bool ModelEditorDialog::exportToPath(const QString &path, const QString &format,
 					return false;
 				}
 				written = bytes.size();
+				delivered = bytes;
 				return true;
 			},
 			error, true))
@@ -470,6 +473,9 @@ bool ModelEditorDialog::exportToPath(const QString &path, const QString &format,
 		presentRefusedExport(format, report, *error);
 		return false;
 	}
+	ModelOutputFile output;
+	output.path = path;
+	recordDeliveredOutput(format, options, output, delivered);
 	presentExportReport(Text::tr("Exported %1 to %2. The editable source is saved separately.").arg(QLocale().formattedDataSize(written), path) +
 							(siblings.isEmpty() ? QString() : QLatin1Char(' ') + modelLodSiblingSummary(siblings)) + nativeUvStatus(),
 						report);

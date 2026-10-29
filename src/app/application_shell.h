@@ -122,6 +122,8 @@ class AudioEditorDialog;
 class AudioSessionDialog;
 class AudioRecoveryDialog;
 class AudioRecoveryDiscovery;
+class ModelRecoveryDiscovery;
+struct ModelOutputRecord;
 class AudioBrowserWorker;
 struct AudioBrowserResult;
 class CodeFindBar;
@@ -311,6 +313,11 @@ public:
 	// person driving the window. Returns the files written.
 	QStringList captureUiSnapshots(const QString& directory);
 
+	// Answers "open the editable source of this game model?" without a dialog
+	// when Mesh Editor is chosen on a model whose source is known: 1 opens the
+	// source, 0 imports the game file, -1 cancels. For tests.
+	std::function<int(const QString&)> modelSourcePrompt;
+
 protected:
 	// A change of layout direction mirrors the docked panels with the rest of
 	// the window, which QMainWindow's dock areas would not do by themselves.
@@ -389,7 +396,8 @@ private:
 	void applyModelViewportProfile();
 	void refreshModelSkeletonPanel();
 	void showModelDesign();
-	void showModelEditor(const ModelMesh* initial = nullptr);
+	// `source` opens that .mesh.json instead of the selected model.
+	void showModelEditor(const ModelMesh* initial = nullptr, const QString& source = {});
 	void showModelAssembly();
 	QWidget* buildTexturesPage();
 	void showTextureEditor(bool editSelected = false);
@@ -1465,6 +1473,10 @@ private:
 	void openMaterialScript(const QString& path);
 	void showMaterialsForImage(const QString& virtualPath);
 	void showMaterialNamed(const QString& name);
+	// The modeller's Show in Materials (app/model_browser_appearance.cpp): the
+	// shader or material a surface names, or its image in Textures when no
+	// material declares it.
+	void showModelMaterial(const QString& reference);
 	void createAdvancedSpritePlan();
 	void indexAdvancedCodeWorkspace();
 	void createAdvancedAiProposal();
@@ -1495,6 +1507,21 @@ private:
 	void refreshModelPlaybackControls();
 	QWidget* createModelAppearancePanel();
 	void refreshModelAppearanceControls();
+	// Model sources as documents (app/model_source_actions.cpp).
+	bool openModelSourcePath(const QString& path);
+	// The editable sources open in the Mesh Editor, Design Prop and Assemble.
+	[[nodiscard]] QStringList openModelSourcePaths() const;
+	// Stages a model and, when placing, commits its entity through the guarded
+	// level committer and selects it; nothing changes when either refuses.
+	bool commitModelHandoff(const std::function<bool(PackageStagingModel*, LevelMapDocument*, QString*)>& stage, bool place, QString* error);
+	bool recordProjectModelOutput(const ModelOutputRecord& record, QString* error);
+	[[nodiscard]] QString editableSourceForModelEntry(const QString& virtualPath) const;
+	bool chooseModelEditorSource(QString* source);
+	void appendModelSourceItems();
+	// The model file the selected level entity names, or empty.
+	[[nodiscard]] QString selectedLevelEntityModelPath() const;
+	void openModelSourceItem(QListWidgetItem* item);
+	[[nodiscard]] QString modelAppearanceMaterialName() const;
 	void refreshModelAppearanceImage();
 	void refreshAudioBrowser();
 	void showSelectedAudioEntry();
@@ -1507,6 +1534,11 @@ private:
 	void recoverAudioFromUi();
 	void discoverAudioRecoveryAtStartup();
 	void offerAudioRecoveryNotice();
+	// Model recovery at startup (app/model_recovery_actions.cpp).
+	QWidget* buildModelRecoveryPreferences();
+	void discoverModelRecoveryAtStartup();
+	void offerModelRecoveryNotice();
+	void reviewModelRecoveries();
 	void initializeAudioBrowser(std::unique_ptr<AudioPlaybackBackend> backend);
 	void acceptAudioPreview(const AudioBrowserResult& result);
 	[[nodiscard]] bool audioPlaybackAvailable() const;
@@ -2363,6 +2395,7 @@ private:
 	QComboBox* m_modelAppearanceMdlMember = nullptr;
 	QPushButton* m_modelAppearanceChoose = nullptr;
 	QPushButton* m_modelAppearanceReset = nullptr;
+	QPushButton* m_modelAppearanceShowMaterial = nullptr;
 	QPlainTextEdit* m_modelAppearanceDetails = nullptr;
 	QTreeWidget* m_modelDetails = nullptr;
 	ModelMesh m_modelMesh;
@@ -2389,6 +2422,15 @@ private:
 	QString m_audioRecoveryNotice;
 	bool m_audioRecoveryDiscoveryStarted = false;
 	bool m_audioRecoveryNoticeVisible = false;
+	ModelRecoveryDiscovery* m_modelRecoveryDiscovery = nullptr;
+	QCheckBox* m_modelRecoveryNotify = nullptr;
+	QString m_modelRecoveryNotice;
+	bool m_modelRecoveryDiscoveryStarted = false;
+	bool m_modelRecoveryNoticeVisible = false;
+	int m_modelRecoveryMeshCopies = 0;
+	int m_modelRecoveryAssemblyCopies = 0;
+	// Opens the Mesh Editor empty, for the recovery chooser.
+	bool m_modelEditorBlank = false;
 	WaveformView* m_audioWaveform = nullptr;
 	QTreeWidget* m_audioDetails = nullptr;
 	LoadingPane* m_audioState = nullptr;

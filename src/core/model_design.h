@@ -44,9 +44,13 @@ ModelMesh buildModelDesignMesh(const ModelDesign& design);
 QByteArray exportModelDesign(const ModelDesign& design, const QString& format, QString* error = nullptr);
 // Atomic writes; explicit overwrite, bounded inputs, and source protection are
 // shared by the GUI and CLI. No external tools or game data are required.
+// `expectedSha256`, when set, is the SHA-256 of the design as it was opened:
+// an existing file with other content changed on disk and is not replaced.
 bool saveModelDesignBytes(const QString& path, const QByteArray& bytes, bool overwrite, QString* error = nullptr,
-                          const QString& protectedSource = QString(), const ModelWorkControl& control = {}, bool dryRun = false);
-bool loadModelDesign(const QString& path, ModelDesign* design, QString* error = nullptr);
+                          const QString& protectedSource = QString(), const ModelWorkControl& control = {}, bool dryRun = false,
+                          const QByteArray& expectedSha256 = {});
+// `sha256` receives the SHA-256 of the bytes read, for a later guarded save.
+bool loadModelDesign(const QString& path, ModelDesign* design, QString* error = nullptr, QByteArray* sha256 = nullptr);
 
 // Both changes are prepared independently and committed together. An invalid
 // map, package, path, or model leaves the map and staging state untouched.

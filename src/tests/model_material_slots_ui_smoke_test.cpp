@@ -238,7 +238,27 @@ int main(int argc, char **argv)
 		QString shown;
 		editor.showMaterial = [&](const QString &value) { shown = value; };
 		editor.findChild<QPushButton *>("showMeshMaterial")->click();
-		ok &= expect(shown == "models/blue.png", "Show Material hands off the chosen alternate path");
+		ok &= expect(shown == "models/blue.png", "Show Image hands off the chosen alternate path");
+		// Show in Materials needs a package; it hands off the same slot material.
+		QString inMaterials;
+		auto *showIn = editor.findChild<QPushButton *>("showMeshMaterialInMaterials");
+		editor.showInMaterials = [&](const QString &value) { inMaterials = value; };
+		editor.refreshContext();
+		ok &= expect(showIn && !showIn->isEnabled() && showIn->accessibleDescription().contains("package"),
+					 "Show in Materials is disabled, with a reason, when no package is open");
+		editor.context = []
+		{
+			ModelDesignContext open;
+			open.packagePath = QStringLiteral("fixture.pk3");
+			return open;
+		};
+		editor.refreshContext();
+		ok &= expect(showIn && showIn->isEnabled() && !showIn->accessibleName().isEmpty(), "Show in Materials is enabled with a package");
+		if (showIn)
+			showIn->click();
+		ok &= expect(inMaterials == "models/blue.png", "Show in Materials hands off the chosen alternate material");
+		editor.context = {};
+		editor.refreshContext();
 		surface->setCurrentIndex(1);
 		ok &= expect(previewSlot->currentIndex() == 0 && material->text() == "models/red.png",
 					 "each surface has an independent preview slot");

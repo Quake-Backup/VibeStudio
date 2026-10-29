@@ -78,9 +78,16 @@ they fully cover.
 | **A**, Alt+**A**, Ctrl+**I** | All, none, invert |
 | Alt+**Z** | X-ray: box, circle and lasso reach hidden components |
 
+Exports, staged models and detail levels keep receipts with the project; see
+[Model Outputs and Receipts](MODEL_OUTPUTS.md) for stale-output detection and
+refresh.
+
 The **Select** menu adds Similar (normal, area, coplanar, length, direction,
 face angle, seam marking, edge count), Non-Manifold, Loose Vertices, Boundary
-Loop, Sharp Edges, Random, Checker Deselect, Mirror Selection and Side of Axis.
+Loop, Sharp Edges, Random, Checker Deselect, Mirror Selection, Side of Axis and
+Facing Axis. **Facing Axis > Facing +X** (and the other five directions) selects
+the faces whose normals lie within 45 degrees of that axis, as
+`model select --operation facing` does by default.
 
 **Select Edge Loops of Selection** (Alt+**L**) and **Select Edge Rings of
 Selection** (Alt+**R**), in the **Select** and **Edge** menus, grow every

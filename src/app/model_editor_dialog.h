@@ -57,8 +57,22 @@ class ModelIntersectionList;
 class ModelViewport;
 class ModelUvView;
 class ModelRecoveryWriter;
+class ModelSessionDraftWriter;
+class ModelWeightPaintDialog;
+class ModelAnimationCurvesDialog;
+struct ModelSessionDraft;
+struct ModelStageReview;
+struct ModelStageSet;
+struct ModelSourceWatchState;
+struct ModelOutputsState;
+struct ModelOutputRecord;
+struct ModelOutputFile;
 class SidebarPage;
 class StudioSidebar;
+
+// The Open / Import… file filter: editable sources, then every model format
+// the importer decodes with geometry, then All files.
+[[nodiscard]] QString modelEditorOpenFilter();
 
 struct ModelCollisionDestination
 {
@@ -245,6 +259,31 @@ class ModelEditorDialog final : public QDialog
 	// there, as one package step (UV > Paint Skin… > Apply to Model).
 	std::function<bool(const QString &, const QByteArray &, QString *)> stageSkinImage;
 	std::function<void(const QString &)> showMaterial;
+	// Show in Materials: the surface's shader or material in the Materials
+	// workbench (the shell falls back to its image when none declares it).
+	std::function<void(const QString &)> showInMaterials;
+	// Runs after a .mesh.json source is opened or saved, with its path, so
+	// the studio can list it in its recent files.
+	std::function<void(const QString &)> sourcePathChanged;
+	// External changes to the open .mesh.json (app/model_editor_source_watch.cpp).
+	// Polls the file now; tests pass a monotonic time for pollAt's coalescing.
+	void pollSourceWatch(qint64 monotonicMsecs = -1);
+	// The file at the document's path differs from what was opened or saved.
+	[[nodiscard]] bool sourceChangedOnDisk() const;
+	// Reloads the file from disk, after asking what to do with unsaved edits.
+	bool reloadSource(QString *error = nullptr);
+	// What differs between the file on disk and this document, for Compare.
+	[[nodiscard]] QString sourceComparisonText() const;
+	// Answers the external-change questions without a dialog (tests): for
+	// Save over a changed source, 0 cancels, 1 saves as, 2 replaces the file;
+	// for Reload with unsaved edits, 0 cancels, 1 saves as first, 2 discards.
+	std::function<int(const QString &)> sourceConflictChoice;
+	std::function<int(const QString &)> sourceReloadChoice;
+	// Keeps the receipt of an export or stage with the project
+	// (core/model_outputs.h); the shell owns the manifest.
+	std::function<bool(const ModelOutputRecord &, QString *)> recordOutput;
+	// The Export page's Outputs (app/model_editor_outputs.cpp).
+	void refreshOutputs();
 	// Runs after the user picks another controls profile, so other views
 	// (the Models page preview) can follow it.
 	std::function<void()> profileChanged;
@@ -255,6 +294,19 @@ class ModelEditorDialog final : public QDialog
 	// turns off Play / Pause and says why.
 	void setAccessibility(bool highContrast, bool reducedMotion);
 	void checkpointRecovery();
+	// Model > Recover…: the recovery chooser (the studio's startup notice).
+	void reviewRecoveryCopies() { chooseRecovery(); }
+	// Staged work recovered with a copy (app/model_session_drafts.cpp): tests
+	// answer whether to review it again (1) or discard it (0) without a dialog.
+	std::function<int(const QString &)> sessionDraftPrompt;
+	// The staged-session sidecar being kept now, or empty.
+	[[nodiscard]] QString sessionDraftPath() const;
+	// Stage in Package's review (app/model_editor_stage_review.cpp): the shell
+	// compares the set with its package plan and the materials with its
+	// package view; without it the editor stages directly. Tests answer the
+	// review without the dialog: 0 cancels, 1 stages, 2 stages replacing files.
+	std::function<ModelStageReview(const ModelStageSet &, const ModelMesh &)> reviewStage;
+	std::function<int(const ModelStageReview &)> stageReviewChoice;
 	[[nodiscard]] bool recoveryBusy() const;
 	[[nodiscard]] QString recoveryPath() const;
 	[[nodiscard]] bool operationBusy() const;
@@ -419,6 +471,26 @@ class ModelEditorDialog final : public QDialog
 	QLineEdit *m_material = nullptr;
 	QComboBox *m_materialSlot = nullptr;
 	QPushButton *m_manageMaterialSlots = nullptr, *m_assignMaterial = nullptr, *m_showMaterial = nullptr, *m_skinVariants = nullptr;
+	QPushButton *m_showInMaterials = nullptr;
+	void refreshShowInMaterials();
+	// The document's file changed (opened, saved, replaced by an import or
+	// recovery): recent files and the external-change watch follow it
+	// (app/model_editor_source_watch.cpp).
+	void sourceBindingChanged();
+	void buildSourceWatch(QBoxLayout *layout);
+	void showSourceChange(int kind, const QString &path);
+	void keepEditingOverSourceChange();
+	// Before saving over the document's own file: 0 cancel, 1 save as, 2 go on.
+	int sourceSaveDecision(const QString &path);
+	std::shared_ptr<ModelSourceWatchState> m_sourceWatch;
+	void addOutputControls(QFormLayout *page);
+	void cancelOutputsWork();
+	void showOutputs();
+	void refreshStaleOutputs();
+	void recordDeliveredOutput(const QString &format, const ModelExportOptions &options, const ModelOutputFile &output, const QByteArray &bytes);
+	void prefillPackagePath();
+	std::shared_ptr<ModelOutputsState> m_outputs;
+	bool m_discardConfirmed = false;
 	QHash<QString, int> m_previewMaterialSlots;
 	void addMaterialSlotControls(QFormLayout *surface);
 	void refreshMaterialSlots();
@@ -523,6 +595,23 @@ class ModelEditorDialog final : public QDialog
 	QString m_recoveryProblem;
 	quint64 m_recoveryRevision = 1, m_recoveryRequestedRevision = 0;
 	bool m_recoveryActive = false, m_approvedClose = false;
+	// Paint Skin Weights and Animation Curves keep their staged work beside
+	// the recovery copy while they are open (app/model_session_drafts.cpp);
+	// the copy is kept even for an unmodified model then.
+	ModelSessionDraftWriter *m_sessionDrafts = nullptr;
+	bool m_sessionDraftActive = false;
+	QByteArray m_sessionDraftBase;
+	QString m_sessionDraftOwner;
+	QCheckBox *m_stageClips = nullptr, *m_stageSkins = nullptr;
+	bool confirmStage(const ModelStageSet &set, bool place, bool *replace);
+	void watchSessionDraft(ModelWeightPaintDialog &dialog);
+	void watchSessionDraft(ModelAnimationCurvesDialog &dialog);
+	void beginSessionDraft();
+	void checkpointSessionDraft(ModelSessionDraft draft);
+	void endSessionDraft();
+	void reviewRecoveredSessions(const QString &recoveryId);
+	bool reviewRecoveredWeights(const ModelSessionDraft &draft);
+	bool reviewRecoveredCurves(const ModelSessionDraft &draft);
 	// Source size and undo history (model_editor_budget.cpp): the summary in
 	// the status strip, the history limit setting in Model > Undo History
 	// Limit…, and whether this

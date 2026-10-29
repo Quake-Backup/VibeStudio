@@ -13,6 +13,10 @@ struct WorkspaceDocument {
 	QString currentCodeFile;
 	QString activeModule = QStringLiteral("workspace");
 	QJsonObject assetSelections; // textures/models/audio -> package virtual path
+	// Editable model sources open in the modeller (.mesh.json, .model.json,
+	// .assembly.json). Stored in extensions under "vibestudio.modelSources",
+	// so version-1 readers without it keep the file readable.
+	QStringList modelSources;
 	QJsonObject extensions; // opaque, preserved by version-1 readers/writers
 };
 

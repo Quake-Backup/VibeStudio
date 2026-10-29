@@ -4,6 +4,7 @@
 // VibeRadiant's asset browser tabs (see docs/CREDITS.md).
 
 #include "app/application_shell.h"
+#include "core/level_model_placement.h"
 
 #include "app/asset_views.h"
 #include "app/audio_browser_worker.h"
@@ -859,15 +860,8 @@ void ApplicationShell::refreshLevelPrefabBrowser()
 
 QString ApplicationShell::levelModelEntityClass() const
 {
-	// misc_model is the class VibeMap3 (like q3map2) bakes models from, and the one the
-	// Quake-family definitions most often declare.
-	EntityClassDefinition definition;
-	for (const QString& candidate : {QStringLiteral("misc_model"), QStringLiteral("misc_gamemodel")}) {
-		if (m_entityDefinitions.classForName(candidate, &definition)) {
-			return candidate;
-		}
-	}
-	return QStringLiteral("misc_model");
+	// The shared placement service's choice (core/level_model_placement.h).
+	return chooseLevelModelEntityClass(&m_entityDefinitions);
 }
 
 QString ApplicationShell::levelSoundEntityClass() const
@@ -950,9 +944,25 @@ bool ApplicationShell::placeLevelAsset(const QString& payload, const QPointF& vi
 	QVector<LevelMapProperty> properties;
 	QString what;
 	if (payload.startsWith(QStringLiteral("model:"))) {
-		className = levelModelEntityClass();
-		properties.push_back({QStringLiteral("model"), payload.mid(6), 0});
-		what = payload.mid(6);
+		// Models place through the service the modeller and map place-model share.
+		const QPointF point = viewPoint.x() < 0.0 ? QPointF(m_levelMapViewport->rect().center()) : viewPoint;
+		LevelModelPlacementRequest request;
+		request.virtualPath = payload.mid(6);
+		request.origin = m_levelMapViewport->worldPositionAt(point, levelMapHiddenAxisValue());
+		request.definitions = &m_entityDefinitions;
+		LevelModelPlacementResult placed;
+		QString error;
+		if (!placeLevelModelEntity(&m_levelMapDocument, request, &placed, &error)) {
+			statusBar()->showMessage(tr("Could not place it: %1").arg(error));
+			return false;
+		}
+		setLevelMapSelection(&m_levelMapDocument, {{LevelMapSelectionKind::Entity, placed.entityId}});
+		recordActivity(tr("Level map entity added"), QStringLiteral("entity:%1 %2").arg(placed.entityId).arg(placed.entityClass), QStringLiteral("level-map"),
+			OperationState::Warning, tr("Unsaved map edit"));
+		refreshLevelMapWorkbench();
+		const QString done = tr("Placed %1 as %2 (entity:%3). Undo takes it out again.").arg(QFileInfo(request.virtualPath).fileName(), placed.entityClass).arg(placed.entityId);
+		statusBar()->showMessage(placed.warnings.isEmpty() ? done : done + QLatin1Char(' ') + placed.warnings.join(QLatin1Char(' ')), 5000);
+		return true;
 	} else if (payload.startsWith(QStringLiteral("sound:"))) {
 		className = levelSoundEntityClass();
 		properties.push_back({QStringLiteral("noise"), soundKeyValue(m_levelMapDocument, payload.mid(6)), 0});

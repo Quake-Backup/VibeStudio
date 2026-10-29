@@ -7,6 +7,9 @@
 #include "core/model_lod.h"
 #include "core/model_mdl.h"
 #include "core/model_mesh_tools.h"
+#include "core/cli_cancellation.h"
+#include "core/model_outputs.h"
+#include "core/studio_manifest.h"
 #include "core/model_selection_tools.h"
 #include "core/model_symmetry.h"
 #include "core/model_target_prepare.h"
@@ -18,6 +21,8 @@
 #include "core/studio_settings.h"
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
+#include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
 #include <QFile>
@@ -285,7 +290,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 							  QStringLiteral("--through"), QStringLiteral("--perspective"), QStringLiteral("--opposite"),
 							  QStringLiteral("--duplicate"), QStringLiteral("--no-close"), QStringLiteral("--fill"),
 							  QStringLiteral("--keep-joint-names"), QStringLiteral("--keep-vertices"), QStringLiteral("--inside"),
-								  QStringLiteral("--refuse-intersections"), QStringLiteral("--clamp")};
+								  QStringLiteral("--refuse-intersections"), QStringLiteral("--clamp"), QStringLiteral("--progress")};
 	const QSet<QString> options{
 		QStringLiteral("--side-face"),
 		QStringLiteral("--input"),			 QStringLiteral("--output"),		 QStringLiteral("--tool"),		   QStringLiteral("--surface"),
@@ -958,8 +963,11 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	ModelDocument document;
 	if (modelPathsReferToSameFile(output, source))
 		return fail(2, Text::tr("Choose an output separate from the source."));
-	if (!document.load(source, &error))
-		return fail(1, error);
+	// Ctrl+C stops at the next checkpoint and publishes nothing (core/cli_cancellation.h).
+	const ModelWorkControl control = cliModelWorkControl(args.seen.contains(QStringLiteral("--progress")));
+	const auto cancelled = [] { return fail(cliCancelledExitCode, Text::tr("Cancelled; nothing was written.")); };
+	if (!document.load(source, &error, control))
+		return cliCancellationRequested() ? cancelled() : fail(1, error);
 	const auto &mesh = document.mesh();
 	if (surfaceIndex >= mesh.surfaces.size())
 		return fail(4, Text::tr("The source surface does not exist."));
@@ -1003,16 +1011,16 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			std::max(tool.mergeThreshold, 1e-4));
 	const auto jointMap = tool.mirrorJoints;
 	ModelEditReport report;
-	if (!document.edit(edit, &error, {}, &report))
-		return fail(4, error);
+	if (!document.edit(edit, &error, control, &report))
+		return cliCancellationRequested() ? cancelled() : fail(4, error);
 	const bool dry = args.seen.contains(QStringLiteral("--dry-run"));
 	const auto target = inspectModelWriteTarget(output);
 	if (!target.isValid())
 		return fail(1, target.error);
 	if (target.existed && !args.seen.contains(QStringLiteral("--overwrite")))
 		return fail(1, Text::tr("The output already exists; use --overwrite to replace it."));
-	if (!document.save(output, args.seen.contains(QStringLiteral("--overwrite")), &error, {}, dry))
-		return fail(1, error);
+	if (!document.save(output, args.seen.contains(QStringLiteral("--overwrite")), &error, control, dry))
+		return cliCancellationRequested() ? cancelled() : fail(1, error);
 	// Add Primitive with --new-surface reports the surface it created.
 	const int resultSurface = tool.newSurface.isEmpty() ? surfaceIndex : document.selection().surface;
 	const auto &surface = document.mesh().surfaces[resultSurface];
@@ -1609,7 +1617,8 @@ ModelToolsCliResult runModelLod(const QStringList &arguments)
 {
 	const QSet<QString> flags{QStringLiteral("--cli"),		 QStringLiteral("--json"),		QStringLiteral("--quiet"),	   QStringLiteral("--verbose"),
 							  QStringLiteral("--dry-run"),	 QStringLiteral("--overwrite"), QStringLiteral("--strict"),	   QStringLiteral("--no-strict"),
-							  QStringLiteral("--inspect"),	 QStringLiteral("--use-recipe"),	QStringLiteral("--save-recipe")};
+							  QStringLiteral("--inspect"),	 QStringLiteral("--use-recipe"),	QStringLiteral("--save-recipe"),
+							  QStringLiteral("--progress")};
 	const QSet<QString> options{QStringLiteral("--input"),			  QStringLiteral("--output"),		 QStringLiteral("--levels"),
 								QStringLiteral("--ratio"),			  QStringLiteral("--target"),		 QStringLiteral("--target-triangles"),
 								QStringLiteral("--level-source"),	  QStringLiteral("--project"),		 QStringLiteral("--package"),
@@ -1714,7 +1723,10 @@ ModelToolsCliResult runModelLod(const QStringList &arguments)
 	if (!(saveRecipe && output.isEmpty()) && !output.endsWith(QStringLiteral(".md3"), Qt::CaseInsensitive))
 		return fail(2, Text::tr("model lod requires --output <name.md3>; levels are written as name_1.md3 and name_2.md3 beside it."));
 	ModelDocument document;
-	const bool editable = document.load(source, &error);
+	const ModelWorkControl control = cliModelWorkControl(args.seen.contains(QStringLiteral("--progress")));
+	const bool editable = document.load(source, &error, control);
+	if (!editable && cliCancellationRequested())
+		return fail(cliCancelledExitCode, Text::tr("Cancelled; nothing was written."));
 	if (!editable)
 	{
 		ModelMesh imported;
@@ -1809,8 +1821,10 @@ ModelToolsCliResult runModelLod(const QStringList &arguments)
 	ModelLodSet set;
 	if (!output.isEmpty())
 	{
-		if (!prepareModelLodSet(document.mesh(), recipe, sourceDirectory, output, target.id, {source}, strict, &set, &error))
+		if (!prepareModelLodSet(document.mesh(), recipe, sourceDirectory, output, target.id, {source}, strict, &set, &error, control))
 		{
+			if (cliCancellationRequested())
+				return fail(cliCancelledExitCode, Text::tr("Cancelled; nothing was written."));
 			// Aliased or unusable destinations are usage errors; the rest are the
 			// model's (decimation, a hand-made level, or the target's preflight).
 			bool destination = false;
@@ -1848,13 +1862,36 @@ ModelToolsCliResult runModelLod(const QStringList &arguments)
 	}
 	bool published = true;
 	if (!dry)
-		published = publishModelLodSet(&set, overwrite, &error);
+		published = publishModelLodSet(&set, overwrite, &error, control);
 	if (!published)
 	{
 		result.exitCode = 1;
 		result.error = error;
 	}
 	const int written = set.written();
+	// The receipt of a published set of a project's source (core/model_outputs.h).
+	if (!dry && published && editable && !delivery.projectRoot.isEmpty())
+	{
+		ModelOutputRecord record;
+		record.kind = QStringLiteral("lod-set");
+		record.sourcePath = QFileInfo(source).absoluteFilePath();
+		record.sourceSha256 = document.sourceFingerprint();
+		record.recipe = {{QStringLiteral("format"), QStringLiteral("md3")}, {QStringLiteral("target"), target.id},
+						 {QStringLiteral("strict"), strict}, {QStringLiteral("lodRecipe"), modelLodRecipeJson(recipe)}};
+		for (const auto &file : std::as_const(set.files))
+		{
+			ModelOutputFile output;
+			output.path = QFileInfo(file.path).absoluteFilePath();
+			output.sha256 = QCryptographicHash::hash(file.bytes, QCryptographicHash::Sha256);
+			record.outputs.append(output);
+		}
+		record.tool = versionString();
+		record.deliveredUtc = QDateTime::currentDateTimeUtc();
+		QString receiptError;
+		result.payload.insert(QStringLiteral("receipt"), recordModelOutput(delivery.projectRoot, record, &receiptError));
+		if (!receiptError.isEmpty())
+			result.payload.insert(QStringLiteral("receiptError"), receiptError);
+	}
 	// Every file's omissions once: the detail levels share the base model's.
 	QStringList omissions;
 	for (const auto &file : std::as_const(set.files))

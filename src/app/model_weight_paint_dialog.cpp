@@ -380,6 +380,8 @@ ModelWeightPaintDialog::ModelWeightPaintDialog(const ModelMesh &mesh, const Mode
 						   if (!valid)
 							   m_content->setEnabled(false);
 						   buttons();
+						   if (valid && !m_restore.isEmpty() && !m_closeAfter)
+							   restageRecovered();
 						   if (m_closeAfter)
 							   QDialog::reject();
 					   });
@@ -581,6 +583,8 @@ bool ModelWeightPaintDialog::stage(const ModelWeightStroke &s)
 		changed(true);
 		m_status->setText(
 			Text::tr("Reviewed strokes: %1. Inspect animation frames, undo a stroke, or apply the batch.").arg(m_strokes.size()));
+		if (stagedChanged)
+			stagedChanged();
 	}
 	else
 		m_status->setText(ok ? Text::tr("This stroke leaves the weights unchanged.") : error);
@@ -598,6 +602,8 @@ void ModelWeightPaintDialog::undoStroke()
 		m_redoStrokes.append(m_strokes.takeLast());
 		changed(true);
 		m_status->setText(Text::tr("Stroke undone. Staged strokes: %1.").arg(m_strokes.size()));
+		if (stagedChanged)
+			stagedChanged();
 	}
 }
 void ModelWeightPaintDialog::redoStroke()
@@ -609,6 +615,8 @@ void ModelWeightPaintDialog::redoStroke()
 		m_strokes.append(m_redoStrokes.takeLast());
 		changed(true);
 		m_status->setText(Text::tr("Stroke restored. Staged strokes: %1.").arg(m_strokes.size()));
+		if (stagedChanged)
+			stagedChanged();
 	}
 }
 void ModelWeightPaintDialog::reject()

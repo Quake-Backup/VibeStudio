@@ -27,6 +27,7 @@ bool ApplicationShell::saveWorkspaceTo(const QString& path, bool overwrite, QStr
 	document.mapPath = session.mapPath; document.mapName = session.mapName;
 	document.codeFiles = session.codeFiles; document.currentCodeFile = session.currentCodeFile;
 	document.activeModule = moduleId(currentMode()); document.extensions = m_workspaceExtensions;
+	document.modelSources = openModelSourcePaths();
 	if (!document.packagePath.isEmpty()) {
 		for (const auto& item : QVector<QPair<StudioMode, QListWidget*>>{{StudioMode::Textures, m_textureEntries}, {StudioMode::Models, m_modelEntries}, {StudioMode::Audio, m_audioEntries}}) {
 			if (item.second && item.second->currentItem()) {
@@ -88,6 +89,10 @@ bool ApplicationShell::openWorkspaceFrom(const QString& path, QString* error)
 			if (matches != 1 || !showAssetEntry(moduleMode(it.key()), it.value().toString())) { ++unavailableSelections; }
 		}
 	} else { unavailableSelections = document.assetSelections.size(); }
+	// The model sources that were open come back in their editors.
+	for (const auto& source : std::as_const(document.modelSources)) {
+		if (QFileInfo(source).isFile()) { openModelSourcePath(source); }
+	}
 	setMode(moduleMode(document.activeModule));
 	m_workspaceDocumentPath = QFileInfo(path).absoluteFilePath(); m_workspaceRevision = revision; m_workspaceExtensions = document.extensions;
 	const auto missing = workspaceMissingReferences(document);

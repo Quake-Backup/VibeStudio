@@ -814,12 +814,14 @@ void MaterialWorkbench::applyLibrary(std::shared_ptr<MaterialLibrary> library, c
 	int entry = -1;
 	if (!m_requestedName.isEmpty()) {
 		const QString requested = m_requestedName;
+		const auto missing = std::move(m_requestedMissing);
 		m_requestedName.clear();
+		m_requestedMissing = {};
 		entry = m_library->indexOf(requested);
 		if (entry < 0 && !requested.startsWith(QStringLiteral("textures/"), Qt::CaseInsensitive)) {
 			entry = m_library->indexOf(QStringLiteral("textures/") + requested);
 		}
-		if (entry < 0) {
+		if (entry < 0 && !(missing && missing(requested))) {
 			m_filter->setText(requested);
 		}
 	}
@@ -1102,7 +1104,7 @@ bool MaterialWorkbench::selectMaterial(const QString& name)
 	return true;
 }
 
-void MaterialWorkbench::revealMaterial(const QString& name)
+void MaterialWorkbench::revealMaterial(const QString& name, std::function<bool(const QString&)> missing)
 {
 	const QString wanted = name.trimmed();
 	if (wanted.isEmpty()) {
@@ -1111,13 +1113,18 @@ void MaterialWorkbench::revealMaterial(const QString& name)
 	m_filter->clear();
 	if (m_scanning || m_scanPending) {
 		m_requestedName = wanted;
+		m_requestedMissing = std::move(missing);
 		return;
 	}
+	m_requestedMissing = {};
 	if (selectMaterial(wanted)) {
 		return;
 	}
 	// Quake III maps name shaders without their textures/ folder.
 	if (!wanted.startsWith(QStringLiteral("textures/"), Qt::CaseInsensitive) && selectMaterial(QStringLiteral("textures/") + wanted)) {
+		return;
+	}
+	if (missing && missing(wanted)) {
 		return;
 	}
 	m_filter->setText(wanted);

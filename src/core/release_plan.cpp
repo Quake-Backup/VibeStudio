@@ -1,4 +1,5 @@
 #include "core/release_plan.h"
+#include "core/model_outputs.h"
 
 #include "core/advanced_studio.h"
 #include "core/bsp_inspect.h"
@@ -420,6 +421,9 @@ public:
 		case ReleaseScope::Textures:
 			planTextures();
 			break;
+		}
+		if (m_request.scope == ReleaseScope::Project || m_request.scope == ReleaseScope::Models) {
+			planModelOutputs();
 		}
 		if (m_request.scope != ReleaseScope::Project && m_request.items.isEmpty()) {
 			addProblem(QStringLiteral("empty"), QString(), QCoreApplication::translate("VibeStudioReleasePlan", "Choose at least one item to release."), {}, true);
@@ -1446,6 +1450,27 @@ private:
 						{entry.virtualPath}, m_stock != nullptr);
 				}
 			}
+		}
+	}
+
+	// Game files made from a model source that changed since they were
+	// delivered (core/model_outputs.h), as stale maps are reported.
+	void planModelOutputs()
+	{
+		if (m_projectRoot.isEmpty() || m_plan.cancelled) {
+			return;
+		}
+		for (const auto& record : projectModelOutputs(m_request.manifest)) {
+			if (m_plan.cancelled) {
+				return;
+			}
+			const auto status = modelOutputStatus(record, nullptr, [this]() { return m_plan.cancelled; });
+			if (!modelOutputStateIsStale(status.state)) {
+				continue;
+			}
+			const QString output = record.outputs.isEmpty() ? record.kind : record.outputs.first().display();
+			addProblem(QStringLiteral("stale-model"), output, QCoreApplication::translate("VibeStudioReleasePlan", "%1 is out of date with its source %2: %3 Refresh it (model outputs --refresh stale) so the release matches the source.")
+				.arg(output, QDir::toNativeSeparators(record.sourcePath), status.detail), {output}, false);
 		}
 	}
 

@@ -876,6 +876,16 @@ Known unreadable package members retain their source occurrence in the planned
 browser. Their textual reason remains visible; replacement/deletion repairs the
 plan, and Undo restores the unavailable row and export blocker without duplicating
 it. This uses existing named editing controls and history diagnostics.
+Model recovery's startup notice is a focusable notice bar whose **Review
+Models** and **Review Assemblies** buttons have accessible names; it never takes
+focus. The recovery chooser states each copy's source status in words
+(**Source unchanged**, **Source changed since the copy**, **Source missing**,
+**No saved source**), never by colour alone. The Mesh Editor's external-change
+notice and its **Outputs** list follow the same rule: states are words, icons
+only repeat them, and every action button has an accessible name or
+description. Their strings use the `VibeStudioModelEditor`,
+`VibeStudioModelRecovery` and `VibeStudioModelOutputs` contexts.
+
 Package recovery reports unavailable original-history counts in textual status,
 Activity and chooser details. The warning explains that repaired content is
 preserved while Undo may reveal missing bytes. Recovered browser rows expose

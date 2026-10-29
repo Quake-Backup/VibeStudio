@@ -865,7 +865,25 @@ Material mode resolves each surface's selected preview slot (primary by default)
 open package and its staged edits. Replacement, deletion, package undo, reload,
 and palette changes refresh both views without reopening the mesh. Geometry-only
 edits reuse the resolved images. Missing or ambiguous images use the checker.
-Show Material opens the related texture workflow. **Preview slot** is a transient
+**Show Image** opens the related texture workflow and **Show in Materials** the
+shader or material in the Materials workbench.
+
+The open `.mesh.json` is watched through the shared `core/document_watch`
+service (role Auxiliary, document id `model-source`): a content fingerprint
+taken at open and after every save, file-system notifications as hints and a
+one-second poll, skipped while the worker runs. A substantive change (modified,
+replaced, removed or recreated, not a touch) shows a notice with **Reload from
+Disk**, **Compare** and **Keep Editing**. Keep Editing records the file's
+fingerprint so the same content is not reported again; **Save** over the file
+then asks for **Save As…**, **Replace Changed File** (which re-inspects the file
+and adopts it as the save baseline through `ModelDocument::adoptSourceOnDisk`;
+a later change is refused again) or **Cancel**. Design Prop records the SHA-256
+of the `.model.json` it opened (`loadModelDesign`) and passes it to
+`saveModelDesignBytes`, which refuses an existing file with other content.
+Assemble watches its `.assembly.json` and the loose files its parts and skins link
+(app/model_assembly_source_watch.cpp): a part rewritten on disk reads the inputs
+again, since they are read-only snapshots; a changed assembly file is reported,
+and Save still refuses to replace it. **Preview slot** is a transient
 per-surface choice; **Assign Material** edits that selected binding. **Manage
 Material Slots** reviews additions, replacement, removal, reordering and clearing
 as one undoable all-pose edit. See [Material Slots](MODEL_MATERIAL_SLOTS.md) for
@@ -1449,11 +1467,12 @@ normal-angle and UV errors and refuses collapsed or reversed triangles. Bounds a
 are recomputed; flags, eye position, sync, size hint, groups and indexed images
 are retained. Source-only clip metadata and external material paths are reported.
 OBJ explicitly reports omitted native data. Stage in Package accepts `.mdl` paths,
-typically `progs/name.mdl`; automatic level placement still requires MD3 and a
-Quake III map. Save the authoring source alongside native derivatives.
+typically `progs/name.mdl`; **Stage and Place** places an MDL or MD2 in a Quake
+or Quake II map and an MD3 or ASE in a Quake III map (core/level_model_placement.h).
+Save the authoring source alongside native derivatives.
 
 MD2 export includes every pose, frame name, and ordered external skin slot,
-including repeated paths. **Handoff > MD2 skin width/height > Apply Skin Size**
+including repeated paths. **Export > MD2 skin width/height > Apply Skin Size**
 changes the dimensions through undo/history and recovery. Imported MD2 dimensions
 are retained; new meshes and older source schemas default to 256 by 256. These
 settings describe the matching PCX skin; changing them does not resize an image.
@@ -1542,10 +1561,31 @@ selected faces/islands to create independent UV corners when needed by export.
 
 **Stage in Package** and **Stage and Place** (in the **Model** menu and on the
 **Export** page, beside the package path and level origin they use) share the
-primitive designer's package/map service. The package-path extension selects MD2 or MD3. Automatic placement
-requires MD3 and adds an undoable Quake III `misc_model`; MD2 can be staged in a
-folder, PAK, ZIP or PK3, but requires game-specific placement/code integration. Package replacement remains explicit. Save the editable source,
-package plan, and map separately. Dependency review and compiler handoff follow
+primitive designer's package/map service. The package-path extension selects the format: MDL, MD2,
+MD3, md5mesh, md5anim, IQM or ASE, each checked by `checkModelStageEntry`
+(core/model_stage.h). An MD3 stages with its stored detail levels as one package
+step; **Stage clips beside an MD5 mesh** and **Stage skins beside an MD3** add
+`prepareModelStageExtras` (md5anims of every clip; `name_default.skin` and
+`name_<variant>.skin` from `writeModelQ3Skin`) on the same worker. Before
+anything is staged, the shell's `reviewModelStageSet` compares each entry with
+the package plan (new, replaces a package file, replaces a staged file) and
+`inspectModelMaterialDependencies` reviews the materials against the package
+view; app/model_stage_review_dialog.h shows both with the export notes, and
+staging over existing files needs **Replace existing package files** there. An
+editor hosted without a package plan stages directly. Placement goes through the shared service (core/level_model_placement.h): a
+Quake III map bakes MD3, ASE, MDC, MD2, OBJ, LWO and FM as `misc_model`, a Quake
+map places MDL and MD2 (other formats with a source-port warning) as the class the
+loaded definitions use. The shell places through `placeLevelModelEntity` with the
+Levels workbench's loaded definitions, prepares the package and the map on
+copies, and commits the entity through the guarded level committer (captured
+before staging) before adopting the package plan; the new entity is selected.
+`ModelDesignContext::mapRevision` changes with every map edit, undo or reload,
+and the Mesh Editor and **Design Prop** refuse a placement whose map changed
+while the model was prepared, staging nothing. Package replacement remains explicit. Save the editable source,
+package plan, and map separately. `model stage` prepares the same sets
+(`prepareModelStageSet`: MD3 detail levels, md5mesh clips) with a material review
+against the package (`inspectModelMaterialDependencies`) and writes a new package
+or draft. Dependency review and compiler handoff follow
 [Model Design And Level Handoff](MODEL_DESIGN.md).
 
 ## Recovery
@@ -1563,6 +1603,22 @@ background writer. Copies live in the application data folder's `model-recovery`
 directory, shown by Recover. An explicit settings file keeps them beside that
 file. Disabling the preference stops pending writes and retains committed copies.
 Save, Discard on close, or undo back to the clean state retires the current copy.
+
+Staged sessions are kept with the copy (core/model_session_draft.h,
+app/model_session_drafts.cpp). While **Paint Skin Weights** or **Animation
+Curves** is open, the editor keeps a copy of the model it started from, even an
+unmodified one, and a background writer (app/model_session_draft_writer.h)
+writes the staged work beside it as `<copy id>.weight-paint.vsmeshsession` or
+`<copy id>.animation-curves.vsmeshsession`: a one-line JSON header (owner,
+base document fingerprint, stroke, sample or key counts, payload SHA-256)
+followed by the weight-paint stroke recipe (core/model_weight_stroke_recipe.h,
+the format `model weight-paint --stroke-file` reads) or one clip's joint curves.
+Closing the dialog removes the sidecar. The chooser lists a copy's sidecars;
+restoring the copy offers them for review, and Review restages the strokes, each
+as its own undo step, or the curve draft, in the dialog; a sidecar whose base
+fingerprint differs from the restored model is refused. Discarding a copy
+discards its sidecars, and the retention policy removes sidecars whose copy is
+gone once the studio that wrote them has stopped.
 
 Recover lists up to 128 small headers, including time and source provenance.
 Restore as Draft verifies the SHA-256 payload and complete mesh before replacing
@@ -1593,6 +1649,7 @@ undo and recovery with the GUI and never alter native MDL schedules.
 ```sh
 vibestudio --cli model import ./samples/models/angled-panel.model.json --output ./out/panel.mesh.json --dry-run --json
 vibestudio --cli model import ./samples/models/angled-panel.model.json --output ./out/panel.mesh.json
+vibestudio --cli model import ./id1/pak0.pak progs/player.mdl --palette quake --output ./out/player.mesh.json --dry-run --json
 vibestudio --cli model edit ./out/panel.mesh.json --operation transform --surface 0 --faces all --offset 0,0,8 --output ./out/raised.mesh.json
 vibestudio --cli model edit ./out/raised.mesh.json --operation duplicate-frame --frame 0 --name pose02 --output ./out/animated.mesh.json
 vibestudio --cli model build ./out/animated.mesh.json --output ./out/panel.md3 --dry-run --json
@@ -1628,8 +1685,18 @@ vibestudio --cli model recoveries --json
 vibestudio --cli model recover ./copy.vsmeshrecovery --output ./out/recovered.mesh.json --dry-run --json
 ```
 
-`model import` accepts an MD2, MD3, primitive `.model.json`, or existing mesh
-source. `model edit` accepts a mesh source and one operation: `transform`,
+`model import` accepts any model the studio decodes (OBJ, MDL, MD2, MD3, MDC,
+MD5 mesh, IQM, ASE, LWO, MDR, MDS, MDM, GLM, FM and KVX), a primitive
+`.model.json`, or an existing mesh source. The input is a loose file, or a
+package entry named as `<package> <entry>` (or `--package` and `--entry`): an
+archive, folder or portable draft is read the way the Mesh Editor reads it, with
+the companions inside the package (md5anim, MDX, GLA) and the package's palette,
+and the source records the entry path (for example `progs/player.mdl`) as its
+`source`. The output may not be written inside that package, folder or draft,
+or over a hard link to one of its files. `--palette` chooses the palette family
+MDL skins decode with when the package has no palette of its own (a loose MDL
+always uses the generated stand-in of that family). JSON adds `input` (the file,
+or `package!entry`) and `sourcePath`. `model edit` accepts a mesh source and one operation: `transform`,
 `extrude`, `subdivide`, `split-edges`, `weld`, `fill-boundary-loops`, `bridge-boundary-loops`, `bridge-faces`,
 `duplicate-faces`, `delete-faces`, `flip-faces`, `normals`,
 `remove-duplicate-faces`, `remove-unused-vertices`, `split-disconnected-fans`, `split-nonmanifold-edges`, `orient-faces`,
@@ -1741,9 +1808,13 @@ vibestudio --cli model edit ./out/animated.mesh.json --operation add-clip --name
 vibestudio --cli model edit ./out/clipped.mesh.json --operation insert-inbetweens --frame 0 --insert-count 3 --name attack --output ./out/blended.mesh.json --dry-run --json
 ```
 
-`model recoveries [--directory <folder>]` reports headers; `payloadVerified` is
-false until restoration. `model recover <copy> --output <new.mesh.json>` verifies
-the payload and writes a new editable source. It supports dry-run and JSON, and
+`model recoveries [--directory <folder>]` reports headers, with each copy's
+staged `sessions`; `payloadVerified` is false until restoration. `model recover
+<copy> --output <new.mesh.json>` verifies the payload and writes a new editable
+source; `--strokes-output <strokes.json>` also writes the staged weight strokes
+for `model weight-paint --stroke-file`, and `--curves-output <curves.json>` the
+staged joint curves for `model curves --operation replace --curves` (exit 3 when
+the copy keeps none, 4 when they were staged on another version). It supports dry-run and JSON, and
 always protects existing files, the original source, and the recovery copy;
 `--overwrite` is rejected. Invalid recovery contents return exit code 4,
 destination/read/write failures 1, usage errors 2, and success 0.
@@ -1949,6 +2020,18 @@ It checks stable table rows, compact selection and displayed pose values;
 `VIBESTUDIO_MODELLER_TRACE_AUTHORING_EVENTS=1` adds the eight longest GUI event
 dispatches taking at least 20 ms per stage, for diagnosis only. Default timing
 runs omit that instrumentation.
+`model-edit-latency-smoke` times maximum-size edits in core (completion,
+cancellation at 0, 50 and 90 per cent of progress, history and working set,
+save and recovery copy; `VIBESTUDIO_MODELLER_FULL_LATENCY=1` adds delete,
+extrude, flip and the realistic float and skeletal fixtures) and the editor's
+worker path (largest event-loop gap and Cancel latency, optionally bounded by
+`VIBESTUDIO_MODELLER_MAX_EDIT_MS`, `_MAX_CANCEL_MS` and `_MAX_EDIT_GAP_MS`).
+Profiling that path showed the stall was not the edit or the document copy
+(implicitly shared, under 0.1 ms) but repainting: disabling the editing area
+for the work, and enabling it again, repainted every control, the 3D view and
+the component table. The editor now disables the area without painting while
+the window-modal progress surface blocks input, and paints it once when the
+work ends.
 Full save/recovery/export and worst-case translucent overlap remain separate
 performance gates. See the recorded build and limits in
 [Modeller Release](MODELLER_RELEASE.md).

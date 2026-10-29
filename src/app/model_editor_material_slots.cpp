@@ -117,5 +117,21 @@ void ModelEditorDialog::refreshMaterialSlots()
 	m_material->setEnabled(external);
 	m_assignMaterial->setEnabled(external);
 	m_showMaterial->setEnabled(external && !surface.skinPaths.isEmpty());
+	refreshShowInMaterials();
+}
+void ModelEditorDialog::refreshShowInMaterials()
+{
+	if (!m_showInMaterials)
+		return;
+	// Materials come from the open package; the surface must name one.
+	const bool package = context && !context().packagePath.isEmpty();
+	const bool named = m_showMaterial->isEnabled();
+	m_showInMaterials->setEnabled(bool(showInMaterials) && package && named);
+	m_showInMaterials->setAccessibleDescription(
+		!package ? QCoreApplication::translate("VibeStudioModelEditor", "Open the package that holds the material first.")
+		: !named ? QCoreApplication::translate("VibeStudioModelEditor", "This surface has no material slot to show.")
+				 : QCoreApplication::translate("VibeStudioModelEditor",
+											   "Open the surface's shader or material in the Materials workbench to edit its stages and maps."));
+	m_showInMaterials->setToolTip(m_showInMaterials->accessibleDescription());
 }
 } // namespace vibestudio

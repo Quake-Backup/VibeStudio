@@ -44,8 +44,9 @@ replacement setting, and level placement. All tabs have scrollable properties.
 
 1. Open the project asset folder or package. Open a Quake III map for placement.
 2. Open **Design Prop**, assemble the parts, and set material paths from your
-   project. **Show Material** follows a material into the existing
-   texture surface. The authoring preview offers solid, wireframe, and UV checker
+   project. **Show Image** follows a material into the existing texture
+   surface; **Show in Materials** opens the shader or material of that name in
+   the Materials workbench, or its image when no script declares it. The authoring preview offers solid, wireframe, and UV checker
    modes; it does not resolve project material images or render shaders.
 3. **Save Design** stores the editable source as `.model.json`. **Export MD3**
    writes a static game model; **Export OBJ** writes geometry for an external
@@ -134,9 +135,14 @@ vibestudio --cli map dependencies ./out/arena.map --engine idTech3 --package ./o
 The build and placement commands share the GUI's services. `model build`
 accepts `--format md3|obj` or infers it from the output extension. `--dry-run`
 creates no output directories; existing outputs require `--overwrite`.
-`map place-model` requires a readable, unambiguous MD3 entry no larger than
+`map place-model` requires a readable, unambiguous model entry no larger than
 8 MiB, without parser warnings, and saves through the normal map save-as service.
-WAD model staging and non-Quake-III placement are refused.
+It shares the placement service of the Levels Models tab and **Stage and
+Place** (core/level_model_placement.h): a Quake III map bakes MD3, ASE, MDC,
+MD2, OBJ, LWO and FM as `misc_model`; a Quake or Quake II map places MDL and MD2
+as `--class`, else the class the `--definitions` file declares for models.
+`--angles pitch,yaw,roll` and `--modelscale` write `angles` (or `angle`) and
+`modelscale`. WAD model staging and Doom placement are refused.
 
 Dependency scans read at most 128 models, 8 MiB per model, and 64 MiB total.
 Unsupported or malformed model data makes the audit incomplete. External

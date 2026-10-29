@@ -211,7 +211,8 @@ and `external`. See [Code and scripts](code.md) for the editor itself.
 ## Save and restore a workspace
 
 A workspace file remembers what you were working on: the project, the open package or package draft,
-the map, the saved Code tabs, the selected texture, model and sound, and the page you were on.
+the map, the saved Code tabs, the editable model sources open in the Mesh Editor, **Design Prop** and
+**Assemble**, the selected texture, model and sound, and the page you were on.
 
 - Choose **File** > **Save Workspace As…** to write a `.vibeworkspace` file.
 - Choose **File** > **Open Workspace…**, drop the file on the window, or start VibeStudio with

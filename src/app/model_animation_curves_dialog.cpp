@@ -482,6 +482,8 @@ void ModelAnimationCurvesDialog::refresh(int selectedFrame)
 						  : has ? Text::tr("Edit keys or tangents, then choose Review to inspect the sampled motion.")
 								: Text::tr("Capture sampled motion to create editable curves without changing the imported poses."));
 	showPreview();
+	if (draftChanged)
+		draftChanged();
 }
 void ModelAnimationCurvesDialog::selectedKey(int index)
 {

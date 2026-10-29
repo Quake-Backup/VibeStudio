@@ -519,6 +519,13 @@ core_sources = files(
   'core/model_target_prepare.cpp',
   'core/model_delivery.cpp',
   'core/model_recovery.cpp',
+  'core/model_recovery_policy.cpp',
+  'core/model_session_draft.cpp',
+  'core/model_weight_stroke_recipe.cpp',
+  'core/model_outputs.cpp',
+  'core/model_stage.cpp',
+  'core/level_model_placement.cpp',
+  'core/cli_cancellation.cpp',
   # Skeletal models and the format decoders that live in their own files.
   'core/model_skeleton.cpp',
   'core/model_skeletal_export.cpp',
@@ -706,6 +713,9 @@ install_headers('core/model_skeletal_export.h', subdir: 'vibestudio/core')
 install_headers('core/model_targets.h', subdir: 'vibestudio/core')
 install_headers('core/model_target_prepare.h', subdir: 'vibestudio/core')
 install_headers('core/model_delivery.h', subdir: 'vibestudio/core')
+install_headers('core/model_recovery_policy.h', 'core/model_outputs.h', 'core/model_stage.h', subdir: 'vibestudio/core')
+install_headers('core/level_model_placement.h', 'core/cli_cancellation.h', subdir: 'vibestudio/core')
+install_headers('core/model_session_draft.h', 'core/model_weight_stroke_recipe.h', 'core/model_work_defaults.h', subdir: 'vibestudio/core')
 install_headers('core/model_editor_controls.h', 'core/model_sidebar.h', subdir: 'vibestudio/core')
 install_headers('core/model_decode_issues.h', 'core/model_audit.h', 'core/model_game_preview.h', 'core/model_bvh.h', 'core/model_bake.h', 'core/model_skin_paint.h', 'core/model_mds.h', subdir: 'vibestudio/core')
 install_headers('core/model_surface_selection.h', subdir: 'vibestudio/core')
@@ -969,10 +979,20 @@ app_sources = files(
   'app/model_assembly_recovery_writer.cpp',
   'app/model_assembly_recovery_dialog.cpp',
   'app/model_editor_dialog.cpp',
+  'app/model_editor_source_watch.cpp',
+  'app/model_editor_outputs.cpp',
+  'app/model_assembly_source_watch.cpp',
   'app/model_document_work.cpp',
   'app/model_material_worker.cpp',
   'app/model_browser_appearance.cpp',
+  'app/model_source_actions.cpp',
+  'app/model_recovery_discovery.cpp',
+  'app/model_recovery_actions.cpp',
   'app/model_recovery_writer.cpp',
+  'app/model_session_draft_writer.cpp',
+  'app/model_session_drafts.cpp',
+  'app/model_stage_review_dialog.cpp',
+  'app/model_editor_stage_review.cpp',
   'app/model_recovery_dialog.cpp',
   'app/package_operation_dialog.cpp',
   'app/package_progress.cpp',
@@ -1275,7 +1295,7 @@ vibestudio = executable(
   files('cli/model_import_repair.cpp'),
   files('cli/model_controls.cpp'),
   files('cli/ai_generation.cpp'),
-  ['main.cpp', 'cli/cli.cpp', 'cli/audio_session.cpp', 'cli/level_scene.cpp', 'cli/level_component_selection.cpp', 'cli/level_grid_round.cpp', 'cli/level_nudge.cpp', 'cli/level_move_repeat.cpp', 'cli/level_view_transform.cpp','cli/level_bookmarks.cpp', 'cli/workspace.cpp', 'cli/release.cpp', 'cli/level_build_workspace.cpp', 'cli/level_build_artifacts.cpp', 'cli/level_build_deployment.cpp', 'cli/level_material_paint.cpp', 'cli/level_surface_clipboard.cpp', 'cli/level_smart_tags.cpp', 'cli/level_face_flags.cpp', 'cli/level_uv_edit.cpp', 'cli/level_clipboard.cpp', 'cli/level_region_selection.cpp', 'cli/level_object_selection.cpp', 'cli/level_face_transform.cpp', 'cli/level_hollow_options.cpp', 'cli/level_visibility.cpp', 'cli/level_view_filters.cpp', 'cli/level_camera_focus.cpp', 'cli/level_entity_create.cpp','cli/model_mdl.cpp', 'cli/model_appearance.cpp', 'cli/model_assembly.cpp', 'cli/model_collision.cpp', 'cli/model_skin_bindings.cpp', 'cli/model_skin_variants.cpp', 'cli/model_audit.cpp', 'cli/model_game_skin.cpp', 'cli/model_bake.cpp', 'cli/model_skin_paint.cpp', 'cli/model_surfaces.cpp', 'cli/model_tools.cpp', 'cli/model_rig.cpp', 'cli/model_skeletal_edit.cpp', 'cli/model_skinning.cpp', 'cli/model_weight_paint.cpp', 'cli/model_weight_transfer.cpp', 'cli/model_ik.cpp', 'cli/model_animation_curves.cpp', 'cli/model_curve_keys.cpp', 'cli/model_curve_transfer.cpp', 'cli/model_events.cpp', 'cli/model_constraints.cpp', 'cli/model_uv_density.cpp', 'cli/model_frames.cpp', 'cli/model_uv_health.cpp', 'cli/model_uv_ops.cpp', 'cli/model_uv_layout.cpp', 'cli/materials.cpp', 'cli/render.cpp', 'cli/model_material_slots.cpp', 'cli/model_intersections.cpp', 'cli/package_copy_limits.cpp', 'cli/package_copy_store_limits.cpp', 'cli/package_copy_sessions.cpp'],
+  ['main.cpp', 'cli/cli.cpp', 'cli/audio_session.cpp', 'cli/level_scene.cpp', 'cli/level_component_selection.cpp', 'cli/level_grid_round.cpp', 'cli/level_nudge.cpp', 'cli/level_move_repeat.cpp', 'cli/level_view_transform.cpp','cli/level_bookmarks.cpp', 'cli/workspace.cpp', 'cli/release.cpp', 'cli/level_build_workspace.cpp', 'cli/level_build_artifacts.cpp', 'cli/level_build_deployment.cpp', 'cli/level_material_paint.cpp', 'cli/level_surface_clipboard.cpp', 'cli/level_smart_tags.cpp', 'cli/level_face_flags.cpp', 'cli/level_uv_edit.cpp', 'cli/level_clipboard.cpp', 'cli/level_region_selection.cpp', 'cli/level_object_selection.cpp', 'cli/level_face_transform.cpp', 'cli/level_hollow_options.cpp', 'cli/level_visibility.cpp', 'cli/level_view_filters.cpp', 'cli/level_camera_focus.cpp', 'cli/level_entity_create.cpp','cli/model_mdl.cpp', 'cli/model_appearance.cpp', 'cli/model_assembly.cpp', 'cli/model_collision.cpp', 'cli/model_skin_bindings.cpp', 'cli/model_skin_variants.cpp', 'cli/model_audit.cpp', 'cli/model_game_skin.cpp', 'cli/model_bake.cpp', 'cli/model_skin_paint.cpp', 'cli/model_surfaces.cpp', 'cli/model_tools.cpp', 'cli/model_rig.cpp', 'cli/model_skeletal_edit.cpp', 'cli/model_skinning.cpp', 'cli/model_weight_paint.cpp', 'cli/model_weight_transfer.cpp', 'cli/model_ik.cpp', 'cli/model_animation_curves.cpp', 'cli/model_curve_keys.cpp', 'cli/model_curve_transfer.cpp', 'cli/model_events.cpp', 'cli/model_constraints.cpp', 'cli/model_uv_density.cpp', 'cli/model_frames.cpp', 'cli/model_uv_health.cpp', 'cli/model_uv_ops.cpp', 'cli/model_uv_layout.cpp', 'cli/materials.cpp', 'cli/render.cpp', 'cli/model_material_slots.cpp', 'cli/model_intersections.cpp', 'cli/model_outputs.cpp', 'cli/package_copy_limits.cpp', 'cli/package_copy_store_limits.cpp', 'cli/package_copy_sessions.cpp'],
   include_directories: vibestudio_includes,
   dependencies: [vibestudio_app_dep],
   install: true,
@@ -3552,6 +3572,12 @@ model_mdl_cli_smoke_test = executable(
   dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-mdl-cli-smoke', model_mdl_cli_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+model_import_cli_smoke_test = executable(
+  'model_import_cli_smoke_test', ['tests/model_import_cli_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-import-cli-smoke', model_import_cli_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
 model_mdl_ui_smoke_test = executable(
   'model_mdl_ui_smoke_test', ['tests/model_mdl_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes,
@@ -4513,6 +4539,30 @@ model_recovery_ui_smoke_test = executable(
   install: false,
 )
 test('model-recovery-ui-smoke', model_recovery_ui_smoke_test, env: model_document_test_env, timeout: 90)
+model_session_draft_ui_smoke_test = executable(
+  'model_session_draft_ui_smoke_test',
+  ['tests/model_session_draft_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep],
+  install: false,
+)
+test('model-session-draft-ui-smoke', model_session_draft_ui_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 300)
+model_stage_review_ui_smoke_test = executable(
+  'model_stage_review_ui_smoke_test',
+  ['tests/model_stage_review_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep],
+  install: false,
+)
+test('model-stage-review-ui-smoke', model_stage_review_ui_smoke_test, env: model_document_test_env, timeout: 180)
+model_stage_place_ui_smoke_test = executable(
+  'model_stage_place_ui_smoke_test',
+  ['tests/model_stage_place_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep],
+  install: false,
+)
+test('model-stage-place-ui-smoke', model_stage_place_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 model_editor_ui_smoke_test = executable(
   'model_editor_ui_smoke_test',
@@ -4522,12 +4572,54 @@ model_editor_ui_smoke_test = executable(
   install: false,
 )
 test('model-editor-ui-smoke', model_editor_ui_smoke_test, env: model_document_test_env, timeout: 90)
+model_editor_external_change_ui_smoke_test = executable(
+  'model_editor_external_change_ui_smoke_test', ['tests/model_editor_external_change_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-editor-external-change-ui-smoke', model_editor_external_change_ui_smoke_test, env: model_document_test_env, timeout: 120)
+model_recovery_policy_smoke_test = executable(
+  'model_recovery_policy_smoke_test', ['tests/model_recovery_policy_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-recovery-policy-smoke', model_recovery_policy_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+model_outputs_smoke_test = executable(
+  'model_outputs_smoke_test', ['tests/model_outputs_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-outputs-smoke', model_outputs_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+model_stage_smoke_test = executable(
+  'model_stage_smoke_test', ['tests/model_stage_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-stage-smoke', model_stage_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+level_model_placement_smoke_test = executable(
+  'level_model_placement_smoke_test', ['tests/level_model_placement_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep], install: false,
+)
+test('level-model-placement-smoke', level_model_placement_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+model_cli_cancellation_smoke_test = executable(
+  'model_cli_cancellation_smoke_test', ['tests/model_cli_cancellation_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-cli-cancellation-smoke', model_cli_cancellation_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+model_edit_latency_smoke_test = executable(
+  'model_edit_latency_smoke_test', ['tests/model_edit_latency_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-edit-latency-smoke', model_edit_latency_smoke_test, env: model_document_test_env, timeout: 600)
 
 model_shell_smoke_test = executable(
   'model_shell_smoke_test', ['tests/model_shell_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
 )
-test('model-shell-smoke', model_shell_smoke_test, env: model_document_test_env, timeout: 90)
+test('model-shell-smoke', model_shell_smoke_test, env: model_document_test_env, timeout: 300)
 
 # The OpenGL and Vulkan backends render the same frames; exits 77 (skipped)
 # where neither can start. VIBESTUDIO_RENDER_REQUIRE=opengl,vulkan makes a
