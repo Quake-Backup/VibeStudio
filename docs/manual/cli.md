@@ -473,6 +473,28 @@ past its tolerance, so a run can guard against decoder regressions.
 vibestudio --cli model audit ./quake/id1 --formats mdl --round-trip --json
 vibestudio --cli model audit ./baseq3/pak0.pk3 --report ./out/pak0-audit.json --strict
 ```
+
+`model game-skin MODEL --output FILE` writes what the engine puts on one
+surface, as the Mesh Editor's **Shading > Game** draws it: for Quake MDL skins
+the skin group member at `--time`, player colours `--top` and `--bottom`,
+`--quake-renderer glquake|modern|software` and GLQuake's flood fill
+(`--no-flood-fill` turns it off); for Quake III the surface's shader from
+`--package`, composed stage by stage at `--time`. `--glow-output` writes the
+unlit layer. See [Game preview](../MODEL_GAME_PREVIEW.md).
+
+`model bake MODEL --type ao|object-normal|normal|lighting --output FILE` bakes a
+map into the model's UV layout, optionally from a high-poly `--high` model within
+`--cage`; `--dry-run` bakes and reports without writing. `model paint-skin MODEL
+--strokes FILE --output FILE` replays 3D paint strokes onto a surface's skin.
+Both report a SHA-256 of the image in JSON. See [Bake maps](../MODEL_BAKE.md)
+and [Paint skins in 3D](../MODEL_SKIN_PAINT.md).
+
+```sh
+vibestudio --cli model game-skin ./progs/player.mdl --top 4 --bottom 12 --output ./out/player.png --json
+vibestudio --cli model bake ./models/crate.mesh.json --type ao --size 512x512 --output ./out/crate_ao.png --json
+vibestudio --cli model paint-skin ./progs/ogre.mdl --strokes ./strokes.json --output ./out/ogre_skin.png --json
+```
+
 `model import` and `model edit` report the source they wrote (or would write
 with `--dry-run`) in JSON as `"source": {"bytes", "encoding", "limitBytes"}`.
 The encoding is `readable`, or `packed` when the readable source would pass the
