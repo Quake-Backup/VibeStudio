@@ -1,10 +1,10 @@
 // Intersections introduced by topology tools that only check local collapse
 // (bevel, rip, spin, inset, extrude edges, solidify, knife, loop cut,
-// shrink/fatten, connect, dissolve). The shared inspection
-// (core/model_intersections.h) scans the edited surface before and after the
-// edit; a crossing counts as introduced unless both faces existed, unmoved,
-// before the edit and already crossed then. Faces are matched by their corner
-// positions in every pose, so renumbering does not hide or invent findings.
+// shrink/fatten, connect, dissolve). Faces are matched by their corner
+// positions in every pose, so renumbering does not hide or invent findings;
+// the shared inspection (core/model_intersections.h) then scans only the faces
+// the edit made or moved, against every face of the edited surface and of the
+// other surfaces, once, after the edit.
 #include "core/model_mesh_tools_p.h"
 
 #include "core/model_intersections.h"
@@ -56,14 +56,28 @@ bool isModelIntersectionGuardedEdit(ModelEditKind kind)
 	}
 }
 
-bool introducedModelIntersections(const ModelMesh &before, const ModelMesh &after, int surfaceIndex, QVector<QPair<int, int>> *introduced, bool *limited,
-								  QString *error, const ModelWorkControl &control)
+bool introducedModelIntersections(const ModelMesh &before, const ModelMesh &after, int surfaceIndex, QVector<QPair<int, int>> *introduced,
+								  QVector<std::array<int, 3>> *crossings, bool *limited, QString *error, const ModelWorkControl &control)
 {
 	introduced->clear();
+	crossings->clear();
 	*limited = false;
+	// Faces the edit made or moved: no face of the surface had the same
+	// corners in every pose before. Only pairs with one of them can be new, as
+	// two faces that were there before cross now exactly when they did then.
+	const auto &was = before.surfaces[surfaceIndex], &is = after.surfaces[surfaceIndex];
+	QSet<QByteArray> existing;
+	existing.reserve(was.triangles.size());
+	for (const auto &t : was.triangles)
+		existing.insert(faceKey(was, t));
 	ModelIntersectionOptions options;
 	options.surface = surfaceIndex;
-	ModelIntersectionReport old, now;
+	for (int face = 0; face < is.triangles.size(); ++face)
+		if (!existing.contains(faceKey(is, is.triangles[face])))
+			options.faces.insert(face);
+	if (options.faces.isEmpty())
+		return true;
+	ModelIntersectionReport now;
 	QString failure;
 	// A scan past its work limits reports nothing rather than a partial list.
 	if (!inspectModelIntersections(after, options, &now, &failure, control))
@@ -73,45 +87,23 @@ bool introducedModelIntersections(const ModelMesh &before, const ModelMesh &afte
 		*limited = true;
 		return true;
 	}
-	if (now.findings.isEmpty())
-		return true;
-	if (!inspectModelIntersections(before, options, &old, &failure, control))
-	{
-		if (control.cancelled && control.cancelled())
-			return fail(error, failure);
-		*limited = true;
-		return true;
-	}
-	const auto &was = before.surfaces[surfaceIndex], &is = after.surfaces[surfaceIndex];
-	QSet<QPair<QByteArray, QByteArray>> crossed;
-	for (const auto &finding : std::as_const(old.findings))
-	{
-		if (finding.firstSurface != surfaceIndex || finding.secondSurface != surfaceIndex)
-			continue;
-		auto a = faceKey(was, was.triangles[finding.firstFace]), b = faceKey(was, was.triangles[finding.secondFace]);
-		if (b < a)
-			std::swap(a, b);
-		crossed.insert({a, b});
-	}
-	QSet<QPair<int, int>> seen;
 	for (const auto &finding : std::as_const(now.findings))
 	{
-		// Findings against other surfaces are reported by Health; this guard
-		// watches the edited surface itself.
-		if (finding.firstSurface != surfaceIndex || finding.secondSurface != surfaceIndex)
+		if (finding.firstSurface == surfaceIndex && finding.secondSurface == surfaceIndex)
+		{
+			introduced->append(qMakePair(std::min(finding.firstFace, finding.secondFace), std::max(finding.firstFace, finding.secondFace)));
 			continue;
-		const QPair<int, int> pair{std::min(finding.firstFace, finding.secondFace), std::max(finding.firstFace, finding.secondFace)};
-		if (seen.contains(pair))
-			continue;
-		auto a = faceKey(is, is.triangles[pair.first]), b = faceKey(is, is.triangles[pair.second]);
-		if (b < a)
-			std::swap(a, b);
-		if (crossed.contains({a, b}))
-			continue;
-		seen.insert(pair);
-		introduced->append(pair);
+		}
+		// Another surface's face against one the edit made or moved.
+		const bool first = finding.firstSurface == surfaceIndex;
+		crossings->append(std::array<int, 3>{first ? finding.firstFace : finding.secondFace, first ? finding.secondSurface : finding.firstSurface,
+						   first ? finding.secondFace : finding.firstFace});
 	}
+	// Each pair once, though it may cross in several poses.
 	std::sort(introduced->begin(), introduced->end());
+	introduced->erase(std::unique(introduced->begin(), introduced->end()), introduced->end());
+	std::sort(crossings->begin(), crossings->end());
+	crossings->erase(std::unique(crossings->begin(), crossings->end()), crossings->end());
 	return true;
 }
 } // namespace vibestudio::model_tools

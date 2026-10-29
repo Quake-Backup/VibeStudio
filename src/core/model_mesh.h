@@ -265,6 +265,11 @@ struct ModelSurface {
 	// Empty preserves legacy position-inferred adjacency. Labels are local
 	// to this surface and are stored in editable mesh version 11.
 	QVector<int> topologyVertices{};
+	// Sharp (hard) edges for vertex normals, as pairs of topology identities
+	// (lower first), so they survive renumbering. Mark Sharp materialises the
+	// identities; Recalculate Normals and Shade Smooth split normals along them.
+	// Stored in editable mesh version 16 (core/model_topology_tools.h).
+	QSet<QPair<int, int>> sharpEdges{};
 	// Transient: filled only while applyModelEdit reconciles a skeletal model.
 	ModelSurfaceOrigins editOrigins{};
 };

@@ -97,6 +97,40 @@ bool planeHit(const ModelPickRay &ray, V point, V normal, V *hit)
 	*hit = add(ray.origin, scale(ray.direction, t));
 	return std::isfinite(hit->x) && std::isfinite(hit->y) && std::isfinite(hit->z);
 }
+// The nearest triangle the ray meets in front of its origin (Moller-Trumbore).
+bool nearestTriangleHit(V origin, V direction, const QVector<std::array<V, 3>> &triangles, V *hit)
+{
+	double nearest = INFINITY;
+	for (const auto &triangle : triangles)
+	{
+		const V e1 = sub(triangle[1], triangle[0]), e2 = sub(triangle[2], triangle[0]);
+		const V p = cross(direction, e2);
+		const double det = dot(e1, p);
+		if (std::abs(det) < 1e-12)
+			continue;
+		const V s = sub(origin, triangle[0]);
+		const double u = dot(s, p) / det;
+		const V q = cross(s, e1);
+		const double v = dot(direction, q) / det, t = dot(e2, q) / det;
+		if (u < 0 || v < 0 || u + v > 1 || t < 0 || t >= nearest)
+			continue;
+		nearest = t;
+		*hit = add(origin, scale(direction, t));
+	}
+	return std::isfinite(nearest);
+}
+// Signed angle, in degrees, that turns `from` onto `to` about `axis`, both
+// measured in the plane across the axis.
+bool angleAbout(V axis, V from, V to, double *degrees)
+{
+	axis = unit(axis);
+	from = sub(from, scale(axis, dot(from, axis)));
+	to = sub(to, scale(axis, dot(to, axis)));
+	if (length(from) < 1e-6 || length(to) < 1e-6)
+		return false;
+	*degrees = std::atan2(dot(axis, cross(from, to)), dot(from, to)) * 180 / std::numbers::pi;
+	return std::isfinite(*degrees);
+}
 double snapValue(double value, double step)
 {
 	return step > 0 ? std::round(value / step) * step : value;
@@ -337,7 +371,9 @@ bool ModelEditorTools::beginModal(ModelModalOperator op, const QPointF &pointer,
 			modal->normal = {0, 0, 1};
 	}
 	const bool moveLike = op == ModelModalOperator::Move || isRip(op) || op == ModelModalOperator::Duplicate || (op == ModelModalOperator::Extrude && modal->edges);
-	if (moveLike && components && frame >= 0)
+	// Rotate and Scale snap their pivot, and face extrusion its depth, to the same targets.
+	const bool snapTargets = moveLike || op == ModelModalOperator::Rotate || op == ModelModalOperator::Scale || op == ModelModalOperator::Extrude;
+	if (snapTargets && components && frame >= 0)
 	{
 		const int surfaceIndex = modal->selection.surface;
 		const auto &active = mesh.surfaces[surfaceIndex];
@@ -359,7 +395,10 @@ bool ModelEditorTools::beginModal(ModelModalOperator op, const QPointF &pointer,
 					expanded.insert(copy);
 			}
 			for (int v : std::as_const(expanded))
+			{
 				modal->selectedPoints.append(active.frames[frame].positions[v]);
+				modal->snapVertices.append(v);
+			}
 			// What the selection snaps to: vertices, edge midpoints or faces that do not move.
 			const int element = m_snapElement ? m_snapElement->currentIndex() : 1;
 			for (int s = 0; s < mesh.surfaces.size(); ++s)
@@ -387,7 +426,19 @@ bool ModelEditorTools::beginModal(ModelModalOperator op, const QPointF &pointer,
 							}
 					continue;
 				}
-				if (element == 3)
+				if (element == 5)
+				{
+					QSet<ModelEdge> edges;
+					for (const auto &t : mesh.surfaces[s].triangles)
+						for (const auto &[a, b] : {std::pair{t.a, t.b}, std::pair{t.b, t.c}, std::pair{t.c, t.a}})
+							if (still(a) && still(b) && !edges.contains(modelEdge(a, b)))
+							{
+								edges.insert(modelEdge(a, b));
+								modal->snapSegments.append({positions[a], positions[b]});
+							}
+					continue;
+				}
+				if (element == 3 || element == 4)
 				{
 					for (const auto &t : mesh.surfaces[s].triangles)
 						if (still(t.a) && still(t.b) && still(t.c))
@@ -548,6 +599,10 @@ QString ModelEditorTools::modalText() const
 		parts << Text::tr("snapped to an edge midpoint");
 	else if (m.snapped && m_snapElement && m_snapElement->currentIndex() == 3)
 		parts << Text::tr("snapped to a face");
+	else if (m.snapped && m_snapElement && m_snapElement->currentIndex() == 4)
+		parts << Text::tr("projected onto faces");
+	else if (m.snapped && m_snapElement && m_snapElement->currentIndex() == 5)
+		parts << Text::tr("snapped to an edge");
 	else if (m.snapped)
 		parts << Text::tr("snapped to a vertex");
 	if (isRip(m.op))
@@ -787,14 +842,50 @@ void ModelEditorTools::updateModalPreview()
 		}
 		return sub(b, a);
 	};
-	// Vertex snapping: the moving point nearest the target lands on the vertex
-	// under the pointer, within any axis or plane constraint.
+	// Snapping: the target under the pointer is a still vertex, edge midpoint,
+	// the nearest point of a still edge, or the nearest still face.
 	m.snapped = false;
-	const auto snapToVertex = [&](V *delta)
+	const int element = m_snapElement ? m_snapElement->currentIndex() : 0;
+	const auto findTarget = [&](V *target, QPointF *screen)
 	{
-		if (!snapping || !m_snapElement || m_snapElement->currentIndex() == 0 || hasTyped || (m.snapWorld.isEmpty() && m.snapTriangles.isEmpty()) ||
-			m.selectedPoints.isEmpty())
+		if (!snapping || element == 0 || hasTyped || m.selectedPoints.isEmpty())
 			return false;
+		if (element == 3 || element == 4 || element == 5)
+		{
+			const auto ray = m_viewport->viewRay(m.lastActual);
+			if (element == 5)
+			{
+				double bestDistance = 24;
+				bool found = false;
+				for (const auto &segment : std::as_const(m.snapSegments))
+				{
+					QPointF a, b;
+					if (!m_viewport->projectToView(segment[0], &a) || !m_viewport->projectToView(segment[1], &b))
+						continue;
+					const QPointF ab = b - a;
+					const double span = QPointF::dotProduct(ab, ab);
+					const double f = span > 1e-9 ? std::clamp(QPointF::dotProduct(m.lastActual - a, ab) / span, 0.0, 1.0) : 0.0;
+					const double d = QLineF(a + ab * f, m.lastActual).length();
+					if (d >= bestDistance)
+						continue;
+					// The point of the edge nearest the view ray through the pointer.
+					const V direction = sub(segment[1], segment[0]);
+					double t = 0;
+					if (!closestOnLine(ray, segment[0], direction, &t))
+						t = f;
+					*target = add(segment[0], scale(direction, std::clamp(t, 0.0, 1.0)));
+					bestDistance = d;
+					found = true;
+				}
+				if (!found)
+					return false;
+			}
+			else if (!nearestTriangleHit(ray.origin, ray.direction, m.snapTriangles, target))
+				return false;
+			if (!m_viewport->projectToView(*target, screen))
+				*screen = m.lastActual;
+			return true;
+		}
 		int best = -1;
 		double bestDistance = 24;
 		for (int i = 0; i < m.snapScreen.size(); ++i)
@@ -806,38 +897,15 @@ void ModelEditorTools::updateModalPreview()
 				best = i;
 			}
 		}
-		// Face snapping: the nearest still face under the pointer.
-		V hit{};
-		bool onFace = false;
-		if (m_snapElement->currentIndex() == 3)
-		{
-			const auto ray = m_viewport->viewRay(m.lastActual);
-			const V origin = ray.origin, direction = ray.direction;
-			double nearest = INFINITY;
-			for (const auto &triangle : std::as_const(m.snapTriangles))
-			{
-				// Moller-Trumbore ray and triangle intersection.
-				const V e1 = sub(triangle[1], triangle[0]), e2 = sub(triangle[2], triangle[0]);
-				const V p = cross(direction, e2);
-				const double det = dot(e1, p);
-				if (std::abs(det) < 1e-12)
-					continue;
-				const V s = sub(origin, triangle[0]);
-				const double u = dot(s, p) / det;
-				const V q = cross(s, e1);
-				const double v = dot(direction, q) / det, t = dot(e2, q) / det;
-				if (u < 0 || v < 0 || u + v > 1 || t < 0 || t >= nearest)
-					continue;
-				nearest = t;
-				hit = add(origin, scale(direction, t));
-				onFace = true;
-			}
-			if (!onFace)
-				return false;
-		}
-		else if (best < 0)
+		if (best < 0)
 			return false;
-		const V target = onFace ? hit : m.snapWorld[best];
+		*target = m.snapWorld[best];
+		*screen = m.snapScreen[best];
+		return true;
+	};
+	// The moving point nearest a target.
+	const auto nearestSource = [&](V target)
+	{
 		V base = m.selectedPoints.first();
 		double closest = INFINITY;
 		for (const auto &p : std::as_const(m.selectedPoints))
@@ -849,7 +917,17 @@ void ModelEditorTools::updateModalPreview()
 				base = p;
 			}
 		}
-		V move = sub(target, base);
+		return base;
+	};
+	// Moves: the moving point nearest the target lands on it, within any axis
+	// or plane constraint.
+	const auto snapToVertex = [&](V *delta)
+	{
+		V target{};
+		QPointF screen;
+		if (element == 4 || !findTarget(&target, &screen))
+			return false;
+		V move = sub(target, nearestSource(target));
 		if (m.axis >= 0)
 		{
 			const V direction = unit(axisDirection(m.axis));
@@ -857,10 +935,7 @@ void ModelEditorTools::updateModalPreview()
 		}
 		*delta = move;
 		m.snapped = true;
-		if (onFace)
-			m_viewport->projectToView(hit, &m.snapPoint);
-		else
-			m.snapPoint = m.snapScreen[best];
+		m.snapPoint = screen;
 		return true;
 	};
 	ModelEdit edit;
@@ -921,6 +996,36 @@ void ModelEditorTools::updateModalPreview()
 			if (!ok)
 				break;
 			const bool vertexSnap = snapToVertex(&delta);
+			if (element == 4 && snapping && !hasTyped && kind == ModelEditKind::Transform && !m.snapVertices.isEmpty())
+			{
+				// Face Project: every moving vertex lands on the still face
+				// behind it in the view, or keeps the move where none is.
+				auto place = toolEdit(ModelEditKind::SetVertexPositions);
+				place.selection = m.selection;
+				int projected = 0;
+				for (int i = 0; i < m.snapVertices.size(); ++i)
+				{
+					V p = add(m.selectedPoints[i], delta);
+					QPointF screen;
+					V hit{};
+					if (m_viewport->projectToView(p, &screen))
+					{
+						const auto ray = m_viewport->viewRay(screen);
+						if (nearestTriangleHit(ray.origin, ray.direction, m.snapTriangles, &hit))
+						{
+							p = hit;
+							++projected;
+						}
+					}
+					place.tool.topology.vertices.append(m.snapVertices[i]);
+					place.tool.topology.positions.append({p.x, p.y, p.z});
+				}
+				m.snapped = projected > 0;
+				m.snapPoint = m.lastActual;
+				edit = place;
+				m.editReady = true;
+				break;
+			}
 			if (edit.transformSpace == ModelTransformSpace::Selection)
 				delta = modelBasisFromWorld(delta, m.basis);
 			edit.translation = delta;
@@ -934,7 +1039,18 @@ void ModelEditorTools::updateModalPreview()
 			V axis = m.axis >= 0 && !m.plane ? axisDirection(m.axis) : scale(forward, -1);
 			if (!hasTyped && dot(axis, forward) > 0)
 				degrees = -degrees;
-			if (snapping)
+			V target{};
+			QPointF screen;
+			double turned = 0;
+			// Snapping to a target turns the moving point nearest it onto the
+			// target's direction from the pivot, about the rotation axis.
+			if (!m.local && element != 4 && findTarget(&target, &screen) && angleAbout(axis, sub(nearestSource(target), m.pivot), sub(target, m.pivot), &turned))
+			{
+				degrees = turned;
+				m.snapped = true;
+				m.snapPoint = screen;
+			}
+			else if (snapping)
 				degrees = snapValue(degrees, m_editor->m_rotationGrid->value());
 			if (m.axis >= 0 && !m.plane && !m.local)
 				(m.axis == 0 ? edit.rotation.x : m.axis == 1 ? edit.rotation.y : edit.rotation.z) = float(degrees);
@@ -952,7 +1068,24 @@ void ModelEditorTools::updateModalPreview()
 		else
 		{
 			double factor = hasTyped ? typed : QLineF(m.pointer, m.pivotScreen).length() / m.startDistance;
-			if (snapping)
+			V target{};
+			QPointF screen;
+			// Snapping to a target scales the moving point nearest it out to
+			// the target's distance from the pivot, along the scaled axes.
+			const auto measured = [&](V offset)
+			{
+				if (m.axis < 0)
+					return length(offset);
+				const V direction = axisDirection(m.axis);
+				return m.plane ? length(sub(offset, scale(direction, dot(offset, direction)))) : std::abs(dot(offset, direction));
+			};
+			if (!m.local && element != 4 && findTarget(&target, &screen) && measured(sub(nearestSource(target), m.pivot)) > 1e-6)
+			{
+				factor = measured(sub(target, m.pivot)) / measured(sub(nearestSource(target), m.pivot));
+				m.snapped = true;
+				m.snapPoint = screen;
+			}
+			else if (snapping)
 				factor = 1 + snapValue(factor - 1, m_editor->m_scaleGrid->value());
 			factor = std::max(factor, 0.0001);
 			V factors{float(factor), float(factor), float(factor)};
@@ -1002,17 +1135,30 @@ void ModelEditorTools::updateModalPreview()
 		if (m.op == ModelModalOperator::Extrude && !m.edges && m.axis < 0)
 		{
 			double distance = 0;
-			if (hasTyped)
-				distance = typed;
+			V target{};
+			QPointF screen;
+			// Snapping to a target extrudes to the target's depth along the
+			// normal, even when the view looks straight down the normal.
+			if (element != 4 && findTarget(&target, &screen))
+			{
+				distance = dot(sub(target, nearestSource(target)), m.normal);
+				m.snapped = true;
+				m.snapPoint = screen;
+			}
 			else
 			{
-				double t0 = 0, t1 = 0;
-				if (!closestOnLine(startRay, m.pivot, m.normal, &t0) || !closestOnLine(ray, m.pivot, m.normal, &t1))
-					break;
-				distance = t1 - t0;
+				if (hasTyped)
+					distance = typed;
+				else
+				{
+					double t0 = 0, t1 = 0;
+					if (!closestOnLine(startRay, m.pivot, m.normal, &t0) || !closestOnLine(ray, m.pivot, m.normal, &t1))
+						break;
+					distance = t1 - t0;
+				}
+				if (snapping)
+					distance = snapValue(distance, grid);
 			}
-			if (snapping)
-				distance = snapValue(distance, grid);
 			delta = scale(m.normal, distance);
 		}
 		else

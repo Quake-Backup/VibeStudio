@@ -334,7 +334,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("delete"), ModelEditKind::DeleteGeometry}, {QStringLiteral("dissolve-edges"), ModelEditKind::DissolveEdges},
 		{QStringLiteral("limited-dissolve"), ModelEditKind::LimitedDissolve}, {QStringLiteral("recalculate-outside"), ModelEditKind::RecalculateOutside},
 		{QStringLiteral("mark-sharp"), ModelEditKind::MarkSharp}, {QStringLiteral("clear-sharp"), ModelEditKind::ClearSharp},
-		{QStringLiteral("place"), ModelEditKind::SetVertexPositions}};
+		{QStringLiteral("place"), ModelEditKind::SetVertexPositions}, {QStringLiteral("smoothing-group"), ModelEditKind::MarkSharp}};
 	const auto toolName = args.values.value(QStringLiteral("--tool"));
 	if (!tools.contains(toolName))
 	{
@@ -398,7 +398,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("recalculate-outside"), {QStringLiteral("--faces"), QStringLiteral("--inside")}},
 		{QStringLiteral("mark-sharp"), {QStringLiteral("--edges")}},
 		{QStringLiteral("clear-sharp"), {QStringLiteral("--edges")}},
-		{QStringLiteral("place"), {QStringLiteral("--vertices"), QStringLiteral("--positions"), QStringLiteral("--frame")}}};
+		{QStringLiteral("place"), {QStringLiteral("--vertices"), QStringLiteral("--positions"), QStringLiteral("--frame")}},
+		{QStringLiteral("smoothing-group"), {QStringLiteral("--faces")}}};
 	const QSet<QString> shared{QStringLiteral("--cli"),	  QStringLiteral("--json"),			  QStringLiteral("--quiet"),
 							   QStringLiteral("--verbose"), QStringLiteral("--dry-run"),		  QStringLiteral("--overwrite"),
 							   QStringLiteral("--input"),   QStringLiteral("--output"),		  QStringLiteral("--tool"),
@@ -593,6 +594,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	tool.topology.dissolveVertices = !args.seen.contains(QStringLiteral("--keep-vertices"));
 	tool.topology.inside = args.seen.contains(QStringLiteral("--inside"));
 	tool.topology.refuseIntersections = args.seen.contains(QStringLiteral("--refuse-intersections"));
+	tool.topology.smoothingGroup = toolName == QStringLiteral("smoothing-group");
 	if (args.values.contains(QStringLiteral("--auto-merge")) &&
 		(!number(args.values.value(QStringLiteral("--auto-merge")), &tool.topology.autoMergeDistance) || tool.topology.autoMergeDistance <= 0 ||
 		 tool.topology.autoMergeDistance > 1000))
@@ -897,14 +899,19 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		result.payload.insert(QStringLiteral("jointMap"), pairs);
 		result.payload.insert(QStringLiteral("keepJointNames"), tool.keepJointNames);
 	}
-	if (!report.introducedIntersections.isEmpty() || report.intersectionCheckLimited)
+	if (!report.introducedIntersections.isEmpty() || !report.introducedCrossings.isEmpty() || report.intersectionCheckLimited)
 	{
 		QJsonArray pairs;
 		for (const auto &[first, second] : std::as_const(report.introducedIntersections))
 			pairs.append(QJsonArray{first, second});
+		QJsonArray crossings;
+		for (const auto &crossing : std::as_const(report.introducedCrossings))
+			crossings.append(QJsonObject{{QStringLiteral("face"), crossing[0]}, {QStringLiteral("otherSurface"), crossing[1]}, {QStringLiteral("otherFace"), crossing[2]}});
 		result.payload.insert(QStringLiteral("introducedIntersections"), pairs);
+		result.payload.insert(QStringLiteral("introducedCrossings"), crossings);
 		result.payload.insert(QStringLiteral("intersectionCheckLimited"), report.intersectionCheckLimited);
-		result.lines << Text::tr("Warning: %1 pairs of faces now cross each other.").arg(report.introducedIntersections.size());
+		const int count = int(report.introducedIntersections.size() + report.introducedCrossings.size());
+		result.lines << Text::tr("Warning: %n pair(s) of faces now cross each other.", nullptr, count);
 	}
 	if (kind == ModelEditKind::AlignVertices)
 	{

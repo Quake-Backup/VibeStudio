@@ -815,7 +815,8 @@ int readableSourceVersion(const ModelMesh &mesh)
 	const bool timed = std::any_of(mesh.animations.cbegin(), mesh.animations.cend(), [](const auto &clip) { return clip.framesPerSecond > 0; });
 	const bool collisionAnimation = std::any_of(mesh.collisionBoxes.cbegin(), mesh.collisionBoxes.cend(), [](const auto &box) { return !box.framePoses.isEmpty(); });
 	const bool explicitTopology = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return !s.topologyVertices.isEmpty(); });
-	return !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3;
+	const bool sharp = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return !s.sharpEdges.isEmpty(); });
+	return sharp ? 16 : !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3;
 }
 // Packed sources (version 12) store the bulk arrays as base64 strings of
 // little-endian 32-bit words; the rest of the source is the same JSON.
@@ -860,6 +861,12 @@ QJsonObject sourceJson(const ModelMesh &mesh, QString *error, const ModelWorkCon
 			if (!surface.topologyVertices.isEmpty())
 			{
 				surfaceObject.insert(QStringLiteral("topologyVertices"), packModelSourceIntegers(surface.topologyVertices));
+			}
+			if (!surface.sharpEdges.isEmpty())
+			{
+				auto sharp = surface.sharpEdges.values();
+				std::sort(sharp.begin(), sharp.end());
+				surfaceObject.insert(QStringLiteral("sharpEdges"), packModelSourceEdges(sharp));
 			}
 			surfaces.append(surfaceObject);
 			continue;
@@ -926,6 +933,16 @@ QJsonObject sourceJson(const ModelMesh &mesh, QString *error, const ModelWorkCon
 				identities.append(identity);
 			}
 			surfaceObject.insert(QStringLiteral("topologyVertices"), identities);
+		}
+		if (!surface.sharpEdges.isEmpty())
+		{
+			// Sharp edges as pairs of topology identities, lower first.
+			auto sharp = surface.sharpEdges.values();
+			std::sort(sharp.begin(), sharp.end());
+			QJsonArray pairs;
+			for (const auto &edge : std::as_const(sharp))
+				pairs.append(QJsonArray{edge.first, edge.second});
+			surfaceObject.insert(QStringLiteral("sharpEdges"), pairs);
 		}
 		surfaces.append(surfaceObject);
 	}
@@ -1195,7 +1212,8 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 		 root.value(QStringLiteral("version")) != QJsonValue(3) && root.value(QStringLiteral("version")) != QJsonValue(4) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(5) && root.value(QStringLiteral("version")) != QJsonValue(6) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(7) && root.value(QStringLiteral("version")) != QJsonValue(8) && root.value(QStringLiteral("version")) != QJsonValue(9) && root.value(QStringLiteral("version")) != QJsonValue(10) && root.value(QStringLiteral("version")) != QJsonValue(11) &&
-		 root.value(QStringLiteral("version")) != QJsonValue(modelSourcePackedVersion) && root.value(QStringLiteral("version")) != QJsonValue(13) && root.value(QStringLiteral("version")) != QJsonValue(14)) ||
+		 root.value(QStringLiteral("version")) != QJsonValue(modelSourcePackedVersion) && root.value(QStringLiteral("version")) != QJsonValue(13) && root.value(QStringLiteral("version")) != QJsonValue(14) &&
+		 root.value(QStringLiteral("version")) != QJsonValue(16)) ||
 		!root.value(QStringLiteral("source")).isString())
 	{
 		return malformed();
@@ -1420,6 +1438,29 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 		if (root.value(QStringLiteral("version")) == QJsonValue(1) && !surface.uvSeams.isEmpty())
 		{
 			return malformed();
+		}
+		// Version 16: sharp edges as pairs of topology identities.
+		const auto sharpValue = object.value(QStringLiteral("sharpEdges"));
+		if (!sharpValue.isUndefined())
+		{
+			QVector<QPair<int, int>> sharp;
+			if (result.version < 16 || surface.topologyVertices.isEmpty() || !bulk(sharpValue) ||
+				(sharpValue.isString() && !unpackModelSourceEdges(sharpValue, triangles * 3, &sharp)) ||
+				(sharpValue.isArray() && sharpValue.toArray().size() > triangles * 3))
+				return malformed();
+			for (const auto &pair : sharpValue.toArray())
+			{
+				const auto edge = pair.toArray();
+				if (edge.size() != 2 || edge[0] != QJsonValue(edge[0].toInt(-1)) || edge[1] != QJsonValue(edge[1].toInt(-1)))
+					return malformed();
+				sharp.append({edge[0].toInt(), edge[1].toInt()});
+			}
+			for (const auto &edge : std::as_const(sharp))
+			{
+				if (edge.first < 0 || edge.second <= edge.first || edge.second >= surface.vertexCount || surface.sharpEdges.contains(edge))
+					return malformed();
+				surface.sharpEdges.insert(edge);
+			}
 		}
 		for (const auto &triangle : trianglesValue.toArray())
 		{
@@ -2630,7 +2671,8 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		}
 		break;
 	case ModelEditKind::RecalculateNormals:
-		if (!recalculate(&surface, work, edit.frame))
+		// Stored sharp edges stay hard (core/model_topology_tools.h).
+		if (!recalculate(&surface, work, edit.frame) || !applyModelSharpEdges(&surface, edit.frame, error, control))
 		{
 			return false;
 		}

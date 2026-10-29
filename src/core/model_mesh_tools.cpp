@@ -1633,21 +1633,33 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 	if (!applyModelMeshToolEditUnguarded(candidate, edit, selection, error, control, report))
 		return false;
 	QVector<QPair<int, int>> introduced;
+	QVector<std::array<int, 3>> crossings;
 	bool limited = false;
-	if (!introducedModelIntersections(before, *candidate, surface, &introduced, &limited, error, control))
+	if (!introducedModelIntersections(before, *candidate, surface, &introduced, &crossings, &limited, error, control))
 		return false;
 	if (edit.tool.topology.refuseIntersections && !introduced.isEmpty())
 	{
-		const int count = introduced.size();
+		const int count = introduced.size() + crossings.size();
 		return fail(error, Text::tr("The edit would make %n pair(s) of faces cross each other, starting with faces %1 and %2. Turn off Refuse New "
 									"Intersections to keep it anyway.",
 									nullptr, count)
 							   .arg(introduced.first().first)
 							   .arg(introduced.first().second));
 	}
+	if (edit.tool.topology.refuseIntersections && !crossings.isEmpty())
+	{
+		const int count = crossings.size();
+		return fail(error, Text::tr("The edit would make %n face(s) cross another surface, starting with face %1 and face %2 of surface %3. Turn off "
+									"Refuse New Intersections to keep it anyway.",
+									nullptr, count)
+							   .arg(crossings.first()[0])
+							   .arg(crossings.first()[2])
+							   .arg(crossings.first()[1]));
+	}
 	if (report)
 	{
 		report->introducedIntersections = introduced;
+		report->introducedCrossings = crossings;
 		report->intersectionCheckLimited = limited;
 	}
 	return true;
@@ -1693,6 +1705,7 @@ bool applyModelMeshToolEditUnguarded(ModelMesh *candidate, const ModelEdit &edit
 			!only(!topology.positions.isEmpty(), {ModelEditKind::SetVertexPositions}) ||
 			!only(topology.targetVertex != -1, {ModelEditKind::MergeVertices}) ||
 			!only(topology.autoMergeDistance != 0, {ModelEditKind::WeightedTransform}) ||
+			!only(topology.smoothingGroup, {ModelEditKind::MarkSharp}) ||
 			(topology.targetVertex != -1) != (edit.kind == ModelEditKind::MergeVertices && options.merge == ModelMergeMode::Target))
 			return fail(error, Text::tr("A tool setting was given to a tool that does not use it, or Merge at Target has no target vertex."));
 		if (int(topology.deleteMode) < 0 || int(topology.deleteMode) > int(ModelDeleteMode::Faces) || !std::isfinite(topology.dissolveAngle) ||
@@ -1783,7 +1796,9 @@ bool applyModelMeshToolEditUnguarded(ModelMesh *candidate, const ModelEdit &edit
 	case ModelEditKind::ShadeFlat:
 	case ModelEditKind::ShadeSmooth:
 	case ModelEditKind::ShadeAutoSmooth:
-		return shadeFaces(candidate, edit, selection, error, work);
+		// Stored sharp edges stay hard through smoothing.
+		return shadeFaces(candidate, edit, selection, error, work) &&
+			   applyModelSharpEdges(&candidate->surfaces[selection->surface], edit.frame, error, control);
 	case ModelEditKind::Bisect:
 		return bisectFaces(candidate, edit, selection, error, work);
 	case ModelEditKind::Symmetrize:

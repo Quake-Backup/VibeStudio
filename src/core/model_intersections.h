@@ -2,6 +2,8 @@
 
 #include "core/model_triangle_contact.h"
 
+#include <QSet>
+
 namespace vibestudio
 {
 inline constexpr qint64 modelIntersectionMaxPairs = 67108864;
@@ -13,6 +15,9 @@ struct ModelIntersectionOptions
 {
 	int frame = -1;	  // -1 scans all stored poses, otherwise one zero-based pose.
 	int surface = -1; // -1 includes all pairs; otherwise at least one face must belong to this surface.
+	// With a surface: when not empty, at least one face of each pair must be one
+	// of these faces of that surface (the faces an edit made or moved).
+	QSet<int> faces;
 	// Callers may lower these ceilings. Exhaustion fails atomically, never returns a partial clean report.
 	qint64 pairLimit = modelIntersectionMaxPairs;
 	qint64 nodeLimit = modelIntersectionMaxNodeChecks;

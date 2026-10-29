@@ -373,10 +373,25 @@ toggle, or Ctrl held during **G**) lands on:
 | Increment | Grid steps of the Move snap step |
 | Vertex | The vertex under the pointer |
 | Edge Midpoint | The middle of the edge under the pointer |
+| Edge | The point of the edge under the pointer nearest the pointer's line of sight |
 | Face | The point of the face under the pointer, so armour and attachments conform to a body |
+| Face Project | Every moving vertex, each on its own: it lands on the face behind it in the view, or keeps the move where there is none |
 
 The banner says what the move snapped to, and only geometry that is not
-moving is a target.
+moving is a target. The same targets work beyond moves:
+
+- **Rotate** turns the moving vertex nearest the target onto the target's
+  direction from the pivot, about the rotation axis.
+- **Scale** stretches the moving vertex nearest the target out to the target's
+  distance from the pivot, measured along the constrained axis or plane.
+- **Extrude** along the normal reaches the target's depth, even in a view that
+  looks straight down the normal.
+- **Snap > Pivot at Target Under Pointer** moves the custom pivot onto the
+  target under the pointer (the vertex, edge midpoint, edge point or face
+  point, as **Snap to** says), so the next rotation or scale turns about it.
+
+Face Project is one **Place Vertices** step: **Adjust Last Operation** keeps
+it, and with **Apply to: Current frame** the other poses stay as they were.
 
 **Merge > Merge at Target Under Pointer** welds the selected vertices onto the
 vertex under the pointer. The target keeps its position in every pose, its UVs
@@ -390,9 +405,13 @@ within the **Weld Distance** (Item page) of another vertex, in the same undo
 step, as Blender's Auto Merge and MilkShape 3D's Snap Together do. It works
 with the **All frames** scope only, since a weld changes every pose.
 
-`model tool --tool place --vertices a,b --positions x,y,z;x,y,z` gives
-vertices explicit positions: the reference pose takes each position and other
-poses keep their offsets from it, or with `--frame N` that pose alone changes.
+**Snap > Place Vertex…** (also in the **Vertex** menu) types exact X, Y and Z
+coordinates for one selected vertex and every UV seam copy of it; **Adjust
+Last Operation** keeps the coordinates editable. `model tool --tool place
+--vertices a,b --positions x,y,z;x,y,z` gives several vertices explicit
+positions. Either way the shown (reference) pose takes each position and other
+poses keep their offsets from it, or with `--frame N` (**Apply to: Current frame**)
+that pose alone changes.
 
 ### New intersections
 
@@ -406,13 +425,23 @@ Select New Intersections** selects them. Crossings that were there before the
 edit are not reported again. Intentional interpenetration (a belt through a
 torso, overlapping armour plates) is common, so this is a warning by default;
 **Mesh > Clean Up > Refuse New Intersections** turns it into a refusal that
-leaves the model unchanged, for this session.
+leaves the model unchanged; the choice is kept between sessions.
 
-The check scans the edited surface in every stored pose with the same
-inspection as **Health**; on a model too large for its work limits the edit
-goes ahead and the CLI reports `intersectionCheckLimited`. Crossings with other
-surfaces are left to **Health**. On a dense surface the check adds a scan of
-the surface before and after each of these edits.
+The check runs the same inspection as **Health**, in every stored pose, but
+only for the faces the edit made or moved (found by their corners in every
+pose), against every face of the edited surface and of the other surfaces:
+two faces that were there before cross now exactly when they did then. A
+crossing with another surface (an inset pushed through a separate belt
+surface, say) is reported the same way, naming the other surface; the CLI
+lists those as `introducedCrossings`. On a model too large for the
+inspection's work limits the edit goes ahead and the CLI reports
+`intersectionCheckLimited`.
+
+Measured on a 32,768-triangle surface with two poses (a debug-optimised
+build), an inset of one quad took 76 ms on its own and 134 ms with the check,
+against 188 ms for a whole-model **Health** scan: the check costs a spatial
+index over the model plus the queries for the changed faces, not a scan of
+every face before and after.
 
 ### Recalculate outside
 
@@ -451,12 +480,23 @@ fans across the selected edges again, welds copies that share a UV and gives
 them one normal; UV seam copies stay separate. In vertex or face mode both use
 the edges between the selected vertices.
 
+**Make Smoothing Group** (**Normals**) works as MilkShape 3D's and 3ds Max's
+smoothing groups do: the selected faces become one smooth region, smooth across
+the edges inside it and hard along its border. The group number itself is not
+kept; to keep two neighbouring regions smooth against each other, select both
+before making the group.
+
 Each new vertex counts against the MD3 (999 per surface), MD2 and MDL vertex
-budgets, which the **Delivery targets** button shows. The marks are not stored:
-**Recalculate Normals**, **Shade Smooth** and **Shade Auto Smooth** compute
-normals again and can soften them, so mark sharp edges as a finishing step.
-Border edges are always hard and are refused, as is an edit that changes
-nothing.
+budgets: the banner says how many vertices the edit added or welded back and
+where the surface stands against each format's limit for its delivery target.
+
+The marks are saved with the editable source (version 16) as pairs of vertex
+connectivity identities, so they stay on the same edges through later edits
+that renumber vertices. **Recalculate Normals**, **Shade Smooth** and **Shade
+Auto Smooth** split the normals along them again after computing new ones, and
+MD3, MD2 and MDL exports carry the split normals. Edges that a later edit
+removes lose their mark. Border edges are always hard and are refused, as is an
+edit that changes nothing.
 
 ### Delete and dissolve
 
@@ -702,6 +742,7 @@ its `binding`.
 | `uv-cylinder`, `uv-sphere` | `--faces`, `--axis` (default z), `--fit` |
 | `recalculate-outside` | `--faces` (default all), `--inside` |
 | `mark-sharp`, `clear-sharp` | `--edges` |
+| `smoothing-group` | `--faces` (the region that becomes smooth, hard along its border) |
 | `delete` | selection, `--mode vertices\|edges\|faces` (default faces) |
 | `dissolve-edges` | `--edges`, `--keep-vertices`, `--angle` (quad pairing) |
 | `limited-dissolve` | `--faces` (default all), `--angle` (default 5) |

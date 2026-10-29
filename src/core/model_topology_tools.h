@@ -64,6 +64,9 @@ struct ModelTopologyToolOptions
 	// Topology tools that only check local collapse: refuse, rather than
 	// report, faces that newly intersect other faces (core/model_intersections.h).
 	bool refuseIntersections = false;
+	// Mark Sharp as a smoothing group (MilkShape 3D, 3ds Max): the selected
+	// faces become one smooth region, hard along its border.
+	bool smoothingGroup = false;
 	bool operator==(const ModelTopologyToolOptions &) const = default;
 };
 
@@ -84,4 +87,7 @@ bool markModelSharpEdges(ModelMesh *candidate, const ModelEdit &edit, ModelSelec
 						 const ModelWorkControl &control);
 bool setModelVertexPositions(ModelMesh *candidate, const ModelEdit &edit, ModelSelection *selection, QString *error,
 							 const ModelWorkControl &control);
+// Splits vertex normals along the surface's stored sharp edges (after
+// Recalculate Normals or Shade Smooth recomputed them); frame -1 for every pose.
+bool applyModelSharpEdges(ModelSurface *surface, int frame, QString *error, const ModelWorkControl &control = {});
 } // namespace vibestudio

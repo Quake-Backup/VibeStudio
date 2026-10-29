@@ -345,14 +345,18 @@ cuts and their slide. See
 **Weld and conform.** Point at a vertex and choose **Merge > Merge at Target
 Under Pointer** to weld the selection onto it, or turn on **Snap > Auto Merge
 Vertices** so moves weld what they bring together. Set **Snap to** to
-**Face** to slide armour or attachments over a body, or **Edge Midpoint** to
-centre them on an edge. See
+**Face** to slide armour or attachments over a body, **Face Project** to drop
+every moving vertex onto the surface behind it, or **Edge Midpoint** to centre
+them on an edge; Rotate, Scale and Extrude snap to the same targets, and
+**Snap > Pivot at Target Under Pointer** puts the pivot there. **Snap > Place
+Vertex…** types exact coordinates for one vertex. See
 [Snapping and welding](../MODEL_TOOLS.md#snapping-and-welding).
 
 **Catch faces pushed through the model.** When a bevel, inset, spin or similar
 tool makes faces cross other faces, the banner says so and **Mesh > Clean Up >
 Select New Intersections** selects them; turn on **Refuse New Intersections**
-to refuse such edits instead. See [New intersections](../MODEL_TOOLS.md#new-intersections).
+(kept between sessions) to refuse such edits instead. Crossings with other
+surfaces count too. See [New intersections](../MODEL_TOOLS.md#new-intersections).
 
 **Fix faces that vanish in game.** Choose **Mesh > Normals > Recalculate
 Outside** (<kbd>Shift</kbd>+<kbd>N</kbd> in the Blender profile) to turn every
@@ -360,7 +364,11 @@ face of the selection, or the whole surface, to face outward, across UV
 seams. See [Recalculate outside](../MODEL_TOOLS.md#recalculate-outside).
 
 **Make an edge hard or soft.** Select the edges and choose **Normals > Mark
-Sharp** for a crisp edge in game lighting, or **Clear Sharp** to smooth it.
+Sharp** for a crisp edge in game lighting, or **Clear Sharp** to smooth it;
+**Make Smoothing Group** makes the selected faces one smooth region with a hard
+border. The marks are saved with the source and survive **Recalculate
+Normals**, and the banner shows the vertices they cost against the MD3, MD2 and
+MDL budgets.
 See [Hard edges](../MODEL_TOOLS.md#hard-edges).
 
 **Remove geometry without leaving holes.** <kbd>X</kbd> opens **Delete**:

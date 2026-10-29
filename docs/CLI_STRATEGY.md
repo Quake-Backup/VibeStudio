@@ -2406,7 +2406,7 @@ Each resolved path may be a definition file or a folder of them.
   connect (`--vertices` path in order), connect-edges (`--edges`, `--cuts`,
   `--slide`), delete (`--mode vertices|edges|faces`), dissolve-edges
   (`--keep-vertices`), limited-dissolve (`--angle`), recalculate-outside
-  (`--inside`), mark-sharp and clear-sharp (`--edges`), and place (`--vertices`
+  (`--inside`), mark-sharp and clear-sharp (`--edges`), smoothing-group (`--faces`), and place (`--vertices`
   with `--positions`); merge takes `--merge target --target-vertex N` and
   transform `--auto-merge D`. Components use
   `--surface`, `--faces`, `--vertices` and `--edges`; each tool refuses options

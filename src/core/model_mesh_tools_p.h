@@ -144,11 +144,12 @@ bool weldModelToTarget(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *s
 bool autoMergeModelVertices(ModelMesh *mesh, const ModelSurface &before, const ModelEdit &edit, ModelSelection *selection, QString *error,
 							const ModelWorkControl &control);
 // Intersection guard (model_intersection_guard.cpp): tools that only check
-// local collapse, and the face pairs of the edited surface that cross after
-// the edit but did not before. `limited` is set when the scan hit its limits.
+// local collapse, and the faces the edit made or moved on the edited surface
+// that now cross another face of it (`introduced`) or of another surface
+// (`crossings`). `limited` is set when the scan hit its limits.
 bool isModelIntersectionGuardedEdit(ModelEditKind kind);
-bool introducedModelIntersections(const ModelMesh &before, const ModelMesh &after, int surface, QVector<QPair<int, int>> *introduced, bool *limited,
-								  QString *error, const ModelWorkControl &control);
+bool introducedModelIntersections(const ModelMesh &before, const ModelMesh &after, int surface, QVector<QPair<int, int>> *introduced,
+								  QVector<std::array<int, 3>> *crossings, bool *limited, QString *error, const ModelWorkControl &control);
 bool spinGeometry(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
 bool ripGeometry(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
 bool solidify(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);

@@ -66,8 +66,9 @@ together, and `--tool place --vertices a,b --positions x,y,z;x,y,z` sets exact
 positions. See [Snapping and welding](../MODEL_TOOLS.md#snapping-and-welding).
 
 `model tool` reports faces a bevel, inset, spin or similar tool made cross as
-`introducedIntersections` in JSON; `--refuse-intersections` refuses such an
-edit with exit code 4. See [New intersections](../MODEL_TOOLS.md#new-intersections).
+`introducedIntersections` in JSON (and crossings with other surfaces as
+`introducedCrossings`); `--refuse-intersections` refuses such an edit with
+exit code 4. See [New intersections](../MODEL_TOOLS.md#new-intersections).
 
 `model tool --tool mark-sharp --edges a:b,c:d` makes edges hard for vertex
 normals and `--tool clear-sharp` smooths them. See

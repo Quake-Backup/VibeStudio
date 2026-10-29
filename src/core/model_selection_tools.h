@@ -77,6 +77,10 @@ struct ModelSelectRequest
 	bool extend = false;
 	// Linked selection stops at UV seams (indexed connectivity).
 	bool delimitSeams = false;
+	// Linked selection also stops at stored sharp edges, and (when above zero)
+	// at edges whose faces differ by more than this angle in degrees.
+	bool delimitSharp = false;
+	double delimitAngle = 0;
 	ModelSimilarity similarity = ModelSimilarity::Normal;
 	// Similar tolerance; Sharp angle in degrees; Side margin; Facing cone in degrees.
 	double threshold = 5;

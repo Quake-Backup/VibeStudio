@@ -115,6 +115,8 @@ bool partition(const ModelSurface &source, const QSet<int> &faces, ModelSurface 
 			}
 		}
 		output.vertexCount = output.texCoords.size();
+		// Sharp edges keep their identity labels until compaction relabels them.
+		output.sharpEdges = source.sharpEdges;
 		compactModelVertexIdentities(&output);
 		rebuildModelVertexOrigins(&output, source.editOrigins, kept);
 		for (int i = 0; i < source.triangles.size(); ++i)
@@ -147,6 +149,8 @@ bool appendSurface(ModelSurface *target, ModelSurface source, ModelWorkProgress 
 		if (!work.step()) return false;
 		target->topologyVertices.append(identity + offset);
 	}
+	for (const auto &edge : std::as_const(source.sharpEdges))
+		target->sharpEdges.insert({edge.first + offset, edge.second + offset});
 	for (const auto uv : source.texCoords)
 	{
 		if (!work.step())

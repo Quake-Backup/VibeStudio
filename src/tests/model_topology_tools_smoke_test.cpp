@@ -8,11 +8,13 @@
 #include "core/model_whole_transform.h"
 #include "core/model_document.h"
 #include "core/model_geometric_topology.h"
+#include "core/model_intersections.h"
 #include "core/model_mesh_tools.h"
 #include "core/model_selection_tools.h"
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -966,6 +968,94 @@ void sharpChecks()
 
 // ---- Target weld, auto-merge and explicit positions -------------------------
 
+// The top corners' normals point straight up on the top face and sideways on the sides.
+bool topSplit(const ModelSurface &s)
+{
+	bool ok = s.vertexCount == 12;
+	for (const auto &t : s.triangles)
+	{
+		bool top = true;
+		for (int v : {t.a, t.b, t.c})
+			top &= near(s.frames[0].positions[v].z, 8);
+		for (int v : {t.a, t.b, t.c})
+		{
+			const auto n = s.frames[0].normals[v];
+			if (top)
+				ok &= near(n.z, 1, 1e-4);
+			else if (near(s.frames[0].positions[v].z, 8))
+				ok &= near(n.z, 0, 1e-4);
+		}
+	}
+	return ok;
+}
+
+void sharpPersistenceChecks()
+{
+	QString error;
+	auto mesh = cubeMesh();
+	expect(applyModelEdit(&mesh, toolOf(ModelEditKind::MarkSharp, {0, {}, {}, topEdges(mesh.surfaces[0])}), nullptr, &error) &&
+			   mesh.surfaces[0].sharpEdges.size() == 4,
+		   "Mark Sharp stores the four top edges", error);
+	// The editable source keeps them (version 16), readable and packed.
+	const auto json = editableModelJson(mesh);
+	expect(json.value("version").toInt() == 16 && json.value("surfaces").toArray().first().toObject().value("sharpEdges").toArray().size() == 4,
+		   "the source writes sharpEdges at version 16");
+	for (auto encoding : {ModelSourceEncoding::Readable, ModelSourceEncoding::Packed})
+	{
+		ModelMesh reloaded;
+		const auto bytes = serializeEditableModel(mesh, &error, {}, encoding);
+		expect(parseEditableModel(bytes, &reloaded, &error) && reloaded.surfaces[0].sharpEdges == mesh.surfaces[0].sharpEdges,
+			   "sharp edges survive a save and reload", error);
+	}
+	// Recalculate Normals and Shade Smooth keep the marked edges hard.
+	ModelEdit recalc;
+	recalc.kind = ModelEditKind::RecalculateNormals;
+	auto recalculated = mesh;
+	expect(applyModelEdit(&recalculated, recalc, nullptr, &error) && topSplit(recalculated.surfaces[0]), "Recalculate Normals keeps the top hard", error);
+	auto smooth = toolOf(ModelEditKind::ShadeSmooth, {0, {}, {}});
+	for (int face = 0; face < 12; ++face)
+		smooth.selection.faces.insert(face);
+	auto smoothed = mesh;
+	expect(applyModelEdit(&smoothed, smooth, nullptr, &error) && topSplit(smoothed.surfaces[0]) && smoothed.surfaces[0].sharpEdges.size() == 4,
+		   "Shade Smooth welds, then splits again along the stored edges", error);
+	// Edits that renumber vertices keep the marks on the same edges.
+	auto poked = mesh;
+	auto poke = toolOf(ModelEditKind::PokeFaces, {0, {}, {0}});
+	expect(applyModelEdit(&poked, poke, nullptr, &error) && poked.surfaces[0].sharpEdges.size() == 4 && applyModelEdit(&poked, recalc, nullptr, &error),
+		   "the marks survive a topology edit elsewhere", error);
+	// A smoothing group of the top face is hard against the sides.
+	auto grouped = cubeMesh();
+	auto group = toolOf(ModelEditKind::MarkSharp, {0, {}, {2, 3}});
+	group.tool.topology.smoothingGroup = true;
+	expect(applyModelEdit(&grouped, group, nullptr, &error) && topSplit(grouped.surfaces[0]) && grouped.surfaces[0].sharpEdges.size() == 4,
+		   "a smoothing group of the top face marks its border sharp", error);
+	auto noFaces = toolOf(ModelEditKind::MarkSharp, {0, {}, {}, topEdges(cubeMesh().surfaces[0])});
+	noFaces.tool.topology.smoothingGroup = true;
+	auto plain = cubeMesh();
+	expect(!applyModelEdit(&plain, noFaces, nullptr, &error), "a smoothing group needs faces");
+	// Clearing removes the marks; MD3 export carries the split normals.
+	auto cleared = mesh;
+	expect(applyModelEdit(&cleared, toolOf(ModelEditKind::ClearSharp, {0, {}, {}, topEdges(cleared.surfaces[0])}), nullptr, &error) &&
+			   cleared.surfaces[0].sharpEdges.isEmpty() && editableModelJson(cleared).value("version").toInt() < 16,
+		   "Clear Sharp removes the marks and the source drops back below version 16", error);
+	auto native = mesh;
+	native.surfaces[0].skinPaths = {QStringLiteral("models/cube/skin.pcx")};
+	const auto md3 = exportEditableModel(native, QStringLiteral("md3"), 0, &error);
+	const auto restored = decodeModelMesh(QStringLiteral("cube.md3"), md3);
+	bool upright = false, sideways = false;
+	if (restored.isValid())
+		for (int v = 0; v < restored.surfaces[0].vertexCount; ++v)
+		{
+			const auto p = restored.surfaces[0].frames[0].positions[v], n = restored.surfaces[0].frames[0].normals[v];
+			if (near(p.z, 8, 0.05) && near(p.x, 8, 0.05) && near(p.y, 8, 0.05))
+			{
+				upright |= n.z > 0.95f;
+				sideways |= std::abs(n.z) < 0.05f;
+			}
+		}
+	expect(restored.isValid() && upright && sideways, "the MD3 keeps a hard top edge as two normals at the corner", error);
+}
+
 void weldChecks()
 {
 	QString error;
@@ -1101,6 +1191,81 @@ void intersectionChecks()
 		expect(applyModelEdit(&mesh, edit, nullptr, &error, {}, &report) && report.introducedIntersections.isEmpty(),
 			   "a blade through the cube from before the edit is not reported", error);
 	}
+	// Other surfaces: a plate through the cube's walls (crossing them before the
+	// edit) is crossed anew only by the walls of a shallow inset.
+	{
+		auto mesh = cubeMesh();
+		const auto plate = meshOf({{-12, -12, 4}, {12, -12, 4}, {12, 12, 4}, {-12, 12, 4}}, {{0, 1, 2}, {0, 2, 3}});
+		auto surface = plate.surfaces[0];
+		surface.name = QStringLiteral("plate");
+		mesh.surfaces << surface;
+		updateEditableModelMetadata(&mesh);
+		auto edit = toolOf(ModelEditKind::InsetFaces, {0, {}, {2, 3}});
+		edit.tool.insetThickness = 2;
+		edit.tool.insetDepth = -6;
+		ModelEditReport report;
+		auto kept = mesh;
+		expect(applyModelEdit(&kept, edit, nullptr, &error, {}, &report) && report.introducedIntersections.isEmpty() &&
+				   !report.introducedCrossings.isEmpty(),
+			   "the inset's walls are reported crossing the plate", error);
+		bool named = true;
+		for (const auto &crossing : std::as_const(report.introducedCrossings))
+		{
+			const auto &s = kept.surfaces[0];
+			const bool face = crossing[0] >= 0 && crossing[0] < s.triangles.size();
+			// A face of the inset ring (|x|, |y| up to 6), not an old wall (8).
+			bool inner = false;
+			if (face)
+				for (int v : {s.triangles[crossing[0]].a, s.triangles[crossing[0]].b, s.triangles[crossing[0]].c})
+					inner |= std::max(std::abs(s.frames[0].positions[v].x), std::abs(s.frames[0].positions[v].y)) < 7.5f;
+			named &= crossing[1] == 1 && crossing[2] >= 0 && crossing[2] < 2 && face && inner;
+		}
+		expect(named, "each crossing names a new face of the cube and a face of the plate; the old walls are not listed");
+		auto refused = mesh;
+		edit.tool.topology.refuseIntersections = true;
+		const auto before = bytesOf(refused);
+		expect(!applyModelEdit(&refused, edit, nullptr, &error) && bytesOf(refused) == before && error.contains(QStringLiteral("surface 1")),
+			   "Refuse New Intersections refuses a crossing of another surface", error);
+	}
+	// Dense meshes: the guard scans only the faces an edit makes or moves.
+	{
+		const int cells = 128;
+		QVector<ModelVec3> positions;
+		QVector<ModelTriangle> triangles;
+		for (int j = 0; j <= cells; ++j)
+			for (int i = 0; i <= cells; ++i)
+				positions.append({float(i), float(j), float(((i * 7 + j * 3) % 5) * 0.05)});
+		const auto at = [&](int i, int j) { return j * (cells + 1) + i; };
+		for (int j = 0; j < cells; ++j)
+			for (int i = 0; i < cells; ++i)
+			{
+				triangles.append({at(i, j), at(i + 1, j), at(i + 1, j + 1)});
+				triangles.append({at(i, j), at(i + 1, j + 1), at(i, j + 1)});
+			}
+		const auto dense = meshOf(positions, triangles);
+		// The two faces of the middle cell.
+		const int middle = 2 * ((cells / 2) * cells + cells / 2);
+		auto edit = toolOf(ModelEditKind::InsetFaces, {0, {}, {middle, middle + 1}});
+		edit.tool.insetThickness = 0.1;
+		QElapsedTimer timer;
+		auto plain = dense;
+		timer.start();
+		const bool plainOk = applyModelEdit(&plain, edit, nullptr, &error);
+		const qint64 plainMs = timer.elapsed();
+		auto guarded = dense;
+		ModelEditReport report;
+		timer.restart();
+		const bool guardedOk = applyModelEdit(&guarded, edit, nullptr, &error, {}, &report);
+		const qint64 guardedMs = timer.elapsed();
+		ModelIntersectionReport full;
+		timer.restart();
+		const bool scanned = inspectModelIntersections(guarded, {}, &full, &error);
+		const qint64 fullMs = timer.elapsed();
+		expect(plainOk && guardedOk && scanned && report.introducedIntersections.isEmpty() && !report.intersectionCheckLimited && full.findings.isEmpty(),
+			   "a dense grid's inset passes the guard", error);
+		std::cout << "intersection guard on " << triangles.size() << " triangles in 2 poses: inset " << plainMs << " ms, inset with guard "
+				  << guardedMs << " ms, whole-mesh scan " << fullMs << " ms\n";
+	}
 }
 
 cli::ModelToolsCliResult runTool(const QStringList &arguments)
@@ -1159,6 +1324,10 @@ void alignCli(const QString &input, const QString &output)
 		result = runTool({smoothCube, "--tool", "mark-sharp", "--edges", top.join(QLatin1Char(',')), "--output", output, "--overwrite"});
 		expect(result.exitCode == 0 && result.payload.value("surface").toObject().value("vertices").toInt() == 12, "mark-sharp splits the top corners",
 			   result.error);
+		result = runTool({smoothCube, "--tool", "smoothing-group", "--faces", "2,3", "--output", output, "--overwrite"});
+		ModelDocument grouped;
+		expect(result.exitCode == 0 && grouped.load(output, &error) && grouped.mesh().surfaces[0].sharpEdges.size() == 4,
+			   "smoothing-group saves the region's hard border", result.error);
 		result = runTool({smoothCube, "--tool", "inset", "--faces", "2,3", "--thickness", "2", "--depth", "-20", "--output", output, "--overwrite"});
 		expect(result.exitCode == 0 && !result.payload.value("introducedIntersections").toArray().isEmpty(),
 			   "JSON lists the faces an inset made cross", result.error);
@@ -1204,6 +1373,7 @@ int main(int argc, char **argv)
 	dissolveChecks();
 	outsideChecks();
 	sharpChecks();
+	sharpPersistenceChecks();
 	weldChecks();
 	intersectionChecks();
 	QString error;
