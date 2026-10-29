@@ -89,10 +89,30 @@ class TransformModelDialog final : public QDialog
 		m_pivot[0]->setValue(pivot.x);
 		m_pivot[1]->setValue(pivot.y);
 		m_pivot[2]->setValue(pivot.z);
+		// Live preview: why the current values cannot be applied, if they cannot.
+		m_problem = new QLabel;
+		m_problem->setObjectName(QStringLiteral("meshTransformModelProblem"));
+		m_problem->setWordWrap(true);
+		m_problem->setAccessibleName(Text::tr("Transform problem"));
+		m_problem->hide();
+		form->addRow(m_problem);
 		auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 		connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
 		connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 		form->addRow(buttons);
+	}
+	// Calls `changed` whenever a value changes, for the live preview.
+	void onChange(const std::function<void()> &changed)
+	{
+		for (auto *fields : {m_offset, m_rotation, m_scale, m_pivot})
+			for (int axis = 0; axis < 3; ++axis)
+				connect(fields[axis], &QDoubleSpinBox::valueChanged, this, [changed] { changed(); });
+	}
+	void setProblem(const QString &problem)
+	{
+		m_problem->setText(problem);
+		m_problem->setVisible(!problem.isEmpty());
+		m_problem->setAccessibleDescription(problem);
 	}
 	void fill(ModelEdit *edit) const
 	{
@@ -104,6 +124,7 @@ class TransformModelDialog final : public QDialog
 
   private:
 	QDoubleSpinBox *m_offset[3]{}, *m_rotation[3]{}, *m_scale[3]{}, *m_pivot[3]{};
+	QLabel *m_problem = nullptr;
 };
 } // namespace
 
@@ -494,7 +515,30 @@ void ModelEditorTools::buildModelTransformActions()
 			  [this]
 			  {
 				  TransformModelDialog dialog(m_cursor, m_editor);
-				  if (dialog.exec() != QDialog::Accepted)
+				  // Live preview: the view shows the transformed model while the
+				  // dialog is open; Cancel puts the document's view back.
+				  dialog.onChange(
+					  [this, &dialog]
+					  {
+						  auto edit = wholeModelEdit();
+						  dialog.fill(&edit);
+						  auto preview = m_editor->m_document.mesh();
+						  ModelSelection resulting;
+						  QString problem;
+						  if (applyModelEdit(&preview, edit, &resulting, &problem))
+						  {
+							  showPreview(preview, resulting);
+							  dialog.setProblem({});
+						  }
+						  else
+						  {
+							  restoreDocumentView();
+							  dialog.setProblem(problem);
+						  }
+					  });
+				  const bool accepted = dialog.exec() == QDialog::Accepted;
+				  restoreDocumentView();
+				  if (!accepted)
 					  return;
 				  auto edit = wholeModelEdit();
 				  dialog.fill(&edit);

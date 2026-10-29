@@ -385,7 +385,7 @@ nearly flat faces of an import to meet the MD3, MD2 or MDL budget. See
 Model**: **Origin to Bounds Bottom (Feet)** puts a standing model's feet on the
 origin, **Turn Model 90° Left** or **Right** makes an import face +X, **Scale
 Model to Height…** scales it to Quake units, and **Transform Model…** takes
-exact values. Attachment tags, collision boxes, the skeleton and the MDL eye
+exact values, previewing them in the view as you type. Attachment tags, collision boxes, the skeleton and the MDL eye
 position move with the geometry in every frame, as one undo step. See
 [Transform Model](../MODEL_MESH.md#transform-model).
 

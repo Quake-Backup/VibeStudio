@@ -684,7 +684,10 @@ the selection, and is one undo step; **Adjust Last Operation** changes the
 move, rotation, scale and pivot. The commands:
 
 - **Transform Model…**: offset, rotation (degrees, X then Y then Z), scale and
-  pivot (the 3D cursor by default) in one dialog.
+  pivot (the 3D cursor by default) in one dialog. The view previews the result
+  as you type, without touching the document or its history; a value the
+  edit would refuse is named under the fields, and **Cancel** puts the view
+  back.
 - **Origin to Bounds Centre**, **Origin to Bounds Bottom (Feet)**, **Origin to
   3D Cursor** and **Origin to Selection** (also in the **Snap** menu) move the
   model so that point lands on the origin; the bounds are measured in the

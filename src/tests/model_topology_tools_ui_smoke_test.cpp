@@ -262,7 +262,40 @@ void transformModelChecks(QApplication &app, ModelEditorDialog &editor)
 	expect(near(after.x, -before.y) && near(after.y, before.x) && document.undoSteps() == steps + 1, "Turn Model 90° Left turns about Z");
 	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
 	app.processEvents();
-	// The numeric dialog.
+	// The numeric dialog, with a live preview in the view.
+	auto *viewport = editor.findChild<ModelViewport *>(QStringLiteral("meshPreview"));
+	bool previewed = false, refused = false, restored = false;
+	QTimer::singleShot(0, &app,
+					   [&]
+					   {
+						   for (auto *widget : QApplication::topLevelWidgets())
+							   if (auto *dialog = qobject_cast<QDialog *>(widget); dialog && dialog->objectName() == QStringLiteral("meshTransformModelDialog"))
+							   {
+								   auto *offset = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelOffsetX"));
+								   auto *scale = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelScaleX"));
+								   auto *problem = dialog->findChild<QLabel *>(QStringLiteral("meshTransformModelProblem"));
+								   if (offset && scale && problem && viewport)
+								   {
+									   offset->setValue(10);
+									   previewed = near(viewport->mesh().surfaces[0].frames[0].positions[1].x, before.x + 10) &&
+												   near(document.mesh().surfaces[0].frames[0].positions[1].x, before.x) && document.undoSteps() == steps;
+									   scale->setValue(0);
+									   refused = !problem->isHidden() && !problem->text().isEmpty();
+									   scale->setValue(1);
+									   restored = problem->isHidden();
+								   }
+								   dialog->accept();
+							   }
+					   });
+	tools->action(QStringLiteral("meshTransformModel"))->trigger();
+	app.processEvents();
+	expect(previewed, "the view previews the dialog's offset before the document changes");
+	expect(refused && restored, "the dialog names a refused value and clears it once the value is valid");
+	expect(near(document.mesh().surfaces[0].frames[0].positions[1].x, before.x + 10) && document.undoSteps() == steps + 1,
+		   "Transform Model… applies the dialog's offset as one step");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// Cancel leaves the document and its view as they were.
 	QTimer::singleShot(0, &app,
 					   [&]
 					   {
@@ -270,16 +303,14 @@ void transformModelChecks(QApplication &app, ModelEditorDialog &editor)
 							   if (auto *dialog = qobject_cast<QDialog *>(widget); dialog && dialog->objectName() == QStringLiteral("meshTransformModelDialog"))
 							   {
 								   if (auto *offset = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelOffsetX")))
-									   offset->setValue(10);
-								   dialog->accept();
+									   offset->setValue(5);
+								   dialog->reject();
 							   }
 					   });
 	tools->action(QStringLiteral("meshTransformModel"))->trigger();
 	app.processEvents();
-	expect(near(document.mesh().surfaces[0].frames[0].positions[1].x, before.x + 10) && document.undoSteps() == steps + 1,
-		   "Transform Model… applies the dialog's offset as one step");
-	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
-	app.processEvents();
+	expect(viewport && near(viewport->mesh().surfaces[0].frames[0].positions[1].x, before.x) && document.undoSteps() == steps,
+		   "cancelling the dialog restores the view and changes nothing");
 	auto *menu = editor.findChild<QMenu *>(QStringLiteral("meshMenuTransformModel"));
 	expect(menu && menu->actions().contains(tools->action(QStringLiteral("meshScaleModelHeight"))) &&
 			   editor.findChild<QMenu *>(QStringLiteral("meshMenuSnap"))->actions().contains(tools->action(QStringLiteral("meshOriginCursor"))),
