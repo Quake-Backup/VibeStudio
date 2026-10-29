@@ -2629,9 +2629,9 @@ Each resolved path may be a definition file or a folder of them.
   on decode failures, damage or round trips outside tolerance. See
   [bulk audit](MODEL_FORMATS.md#audit-models-in-bulk).
 - [x] `model import <input> --output <source.mesh.json>` creates an editable
-  mesh source from any model format `model formats` lists (decoded model format (OBJ, MDL, MD2, MD3,
-  MD5, IQM, glTF and the rest) MDC, MD5 mesh,
-  IQM, ASE, LWO, MDR, MDS, MDM, GLM, FM, KVX) or a baked primitive design; decode omissions
+  mesh source from any model format `model formats` lists (OBJ, MDL, MD2, MD3,
+  MDC, MD5 mesh, IQM, glTF, ASE, LWO, MDR, MDS, MDM, GLM, FM, KVX and the rest)
+  or a baked primitive design; decode omissions
   need `--accept-omissions` and damage refuses.
   `model import <package> <entry>` (or `--package`/`--entry`) reads an archive,
   folder or portable draft entry with its in-package companions and palette, as

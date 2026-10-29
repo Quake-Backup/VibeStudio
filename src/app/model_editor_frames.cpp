@@ -25,6 +25,7 @@
 #include <QSet>
 #include <QSignalBlocker>
 #include <QSpinBox>
+#include <QAction>
 #include <QToolBar>
 
 #include <algorithm>
@@ -597,7 +598,7 @@ void ModelEditorAnimationPanel::buildTimeline()
 	if (!toolbar)
 		return;
 	m_timeline = new ModelFrameTimeline;
-	toolbar->addWidget(m_timeline);
+	m_timelineAction = toolbar->addWidget(m_timeline);
 	connect(m_timeline, &QAbstractSlider::valueChanged, this,
 			[this](int frame)
 			{
@@ -948,6 +949,9 @@ void ModelEditorAnimationPanel::refresh()
 		m_timeline->setFrameRange(m_first->value(), m_last->value());
 		m_timeline->setHighContrast(m_editor->m_highContrast);
 		m_timeline->setEnabled(!m_editor->m_working);
+		// A single pose has nothing to scrub; keep the transport compact.
+		if (m_timelineAction)
+			m_timelineAction->setVisible(mesh.frames.size() > 1);
 	}
 	m_timelineRevision = revision;
 	if (revision != m_checkedRevision)

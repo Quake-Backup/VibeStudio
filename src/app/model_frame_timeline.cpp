@@ -9,6 +9,9 @@
 #include <QPainterPath>
 #include <QStyle>
 #include <QStyleOptionFocusRect>
+#include <QHash>
+#include <QHelpEvent>
+#include <QToolTip>
 
 #include <algorithm>
 #include <cmath>
@@ -79,6 +82,26 @@ void ModelFrameTimeline::setModel(const ModelMesh &mesh)
 		laneEnd[lane] = m_clips[index].firstFrame + m_clips[index].frameCount - 1;
 		m_clipLane[index] = lane;
 	}
+	// Event markers at absolute frames: a vertex clip's events count from its
+	// first frame, a skeletal clip's from its first baked frame.
+	m_events.clear();
+	const auto eventText = [](const ModelAnimationEvent &event)
+	{ return event.args.isEmpty() ? event.command : event.command + QLatin1Char(' ') + event.args.join(QLatin1Char(' ')); };
+	for (const auto &clip : std::as_const(m_clips))
+		for (const auto &event : clip.events)
+			if (event.frame >= 0 && event.frame < clip.frameCount)
+				m_events.append({clip.firstFrame + event.frame, eventText(event)});
+	QHash<int, int> firstBaked;
+	for (int frame = 0; frame < mesh.skeleton.bakedClipForFrame.size(); ++frame)
+		if (const int clip = mesh.skeleton.bakedClipForFrame[frame]; clip >= 0 && !firstBaked.contains(clip))
+			firstBaked.insert(clip, frame);
+	for (auto it = firstBaked.cbegin(); it != firstBaked.cend(); ++it)
+		if (it.key() < mesh.skeleton.clips.size())
+			for (const auto &event : mesh.skeleton.clips[it.key()].events)
+				if (event.frame >= 0 && it.value() + event.frame < mesh.frames.size() &&
+					mesh.skeleton.bakedClipForFrame.value(it.value() + event.frame, -1) == it.key())
+					m_events.append({it.value() + event.frame, eventText(event)});
+	std::stable_sort(m_events.begin(), m_events.end(), [](const auto &a, const auto &b) { return a.first < b.first; });
 	const int last = std::max(0, int(m_names.size()) - 1);
 	setMaximum(last);
 	m_rangeFirst = std::min(m_rangeFirst, last);
@@ -119,6 +142,9 @@ void ModelFrameTimeline::setHighContrast(bool enabled)
 
 int ModelFrameTimeline::lanes() const
 {
+	// No clips, no lane: the transport stays one row high at large text.
+	if (m_clips.isEmpty())
+		return 0;
 	int count = 0;
 	for (int lane : m_clipLane)
 		count = std::max(count, lane + 1);
@@ -164,10 +190,40 @@ QString ModelFrameTimeline::frameDescription(int frame) const
 			clips.append(clip.name);
 	if (!clips.isEmpty())
 		text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelEditor", "In clips: %1.").arg(clips.join(QStringLiteral(", ")));
+	if (const auto here = eventsAt(frame); !here.isEmpty())
+		text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelEditor", "Events: %1.").arg(here.join(QStringLiteral("; ")));
 	text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelEditor", "Range %1 to %2.")
 								   .arg(locale.toString(m_rangeFirst))
 								   .arg(locale.toString(m_rangeLast));
 	return text;
+}
+
+QStringList ModelFrameTimeline::eventsAt(int frame) const
+{
+	QStringList result;
+	for (const auto &event : m_events)
+		if (event.first == frame)
+			result.append(event.second);
+	return result;
+}
+
+bool ModelFrameTimeline::event(QEvent *event)
+{
+	// Hovering an event marker names its commands; elsewhere the usual tooltip.
+	if (event->type() == QEvent::ToolTip && !m_events.isEmpty())
+	{
+		const auto *help = static_cast<QHelpEvent *>(event);
+		const int frame = frameAt(help->pos().x());
+		if (const auto here = eventsAt(frame); !here.isEmpty())
+		{
+			QToolTip::showText(help->globalPos(),
+							   QCoreApplication::translate("VibeStudioModelEditor", "Frame %1 events: %2")
+								   .arg(QLocale().toString(frame), here.join(QStringLiteral("; "))),
+							   this);
+			return true;
+		}
+	}
+	return QAbstractSlider::event(event);
 }
 
 void ModelFrameTimeline::describe()
@@ -269,6 +325,26 @@ void ModelFrameTimeline::paintEvent(QPaintEvent *)
 		painter.setPen(text);
 		const auto more = QCoreApplication::translate("VibeStudioModelEditor", "+%1").arg(locale.toString(hidden));
 		painter.drawText(QRectF(0, laneTop + (maximumLanes - 1) * laneHeight, width() - 2, laneHeight), Qt::AlignRight | Qt::AlignVCenter, more);
+	}
+	// Animation events: outlined diamonds on the tick band, so they read by
+	// shape as well as colour.
+	if (!m_events.isEmpty())
+	{
+		painter.setRenderHint(QPainter::Antialiasing, true);
+		const double r = std::clamp(metrics.height() / 5.0, 3.0, 6.0), y = tickTop + 3;
+		painter.setPen(QPen(text, 1));
+		painter.setBrush(m_highContrast ? background : accent);
+		int previous = -1;
+		for (const auto &event : m_events)
+		{
+			if (event.first == previous)
+				continue;
+			previous = event.first;
+			const double ex = frameX(event.first);
+			const QPointF diamond[4] = {{ex, y - r}, {ex + r, y}, {ex, y + r}, {ex - r, y}};
+			painter.drawPolygon(diamond, 4);
+		}
+		painter.setRenderHint(QPainter::Antialiasing, false);
 	}
 	// Timed MDL native groups as brackets.
 	if (!m_groups.isEmpty())

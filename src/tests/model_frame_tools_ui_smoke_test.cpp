@@ -1,6 +1,7 @@
 #include "app/model_editor_dialog.h"
 #include "app/model_editor_frames.h"
 #include "app/model_editor_tools.h"
+#include "app/model_frame_timeline.h"
 #include "app/model_obj_import_dialog.h"
 #include "app/model_skeletal_dialog.h"
 #include "app/model_viewport.h"
@@ -542,6 +543,40 @@ int main(int argc, char **argv)
 		expect(editor.setMesh(original, &error), QStringLiteral("retire the test recovery"));
 		if (scenario > 0)
 			app.removeTranslator(&expansion);
+	}
+	// Animation events show as timeline markers and in the frame description;
+	// a single-pose model hides the timeline.
+	{
+		ModelEditorDialog editor;
+		auto withEvents = original;
+		if (expect(!withEvents.animations.isEmpty(), QStringLiteral("the fixture has a clip for events")))
+		{
+			auto &clip = withEvents.animations[0];
+			clip.events.append({1, QStringLiteral("sound"), {QStringLiteral("step.wav")}});
+			expect(editor.setMesh(withEvents, &error), QStringLiteral("open the fixture with an event: ") + error);
+			editor.show();
+			app.processEvents();
+			// ModelFrameTimeline has no Q_OBJECT; find it as the slider it is.
+			auto *timeline = static_cast<ModelFrameTimeline *>(editor.findChild<QAbstractSlider *>("meshFrameTimeline"));
+			const int at = clip.firstFrame + 1;
+			expect(timeline && timeline->events().size() == 1 && timeline->events().first().first == at &&
+					   timeline->frameDescription(at).contains(QStringLiteral("sound step.wav")) &&
+					   !timeline->frameDescription(clip.firstFrame).contains(QStringLiteral("sound")),
+				   QStringLiteral("the timeline marks the clip event at its frame and describes it"));
+			auto single = withEvents;
+			single.frames.resize(1);
+			for (auto &surface : single.surfaces)
+				surface.frames.resize(1);
+			single.animations.clear();
+			single.tags.clear();
+			single.collisionBoxes.clear();
+			if (editor.setMesh(single, &error))
+			{
+				app.processEvents();
+				expect(timeline && !timeline->isVisible(), QStringLiteral("a single-pose model hides the timeline"));
+			}
+			expect(editor.setMesh(original, &error), QStringLiteral("retire the event test recovery"));
+		}
 	}
 	return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

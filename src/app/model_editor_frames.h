@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QPointer>
 
+class QAction;
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
@@ -88,6 +89,8 @@ class ModelEditorAnimationPanel final : public QObject
 	QPointer<ModelViewport> m_viewport;
 	QWidget *m_page = nullptr;
 	QPointer<ModelFrameTimeline> m_timeline;
+	// The toolbar action holding the timeline; hidden while the model has one frame.
+	QPointer<QAction> m_timelineAction;
 	QSpinBox *m_first = nullptr, *m_last = nullptr, *m_destination = nullptr, *m_startNumber = nullptr;
 	QCheckBox *m_renameClips = nullptr;
 	QPushButton *m_move = nullptr, *m_duplicate = nullptr, *m_delete = nullptr, *m_reverse = nullptr, *m_pingPong = nullptr,
