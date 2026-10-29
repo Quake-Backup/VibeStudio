@@ -346,7 +346,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("limited-dissolve"), ModelEditKind::LimitedDissolve}, {QStringLiteral("recalculate-outside"), ModelEditKind::RecalculateOutside},
 		{QStringLiteral("mark-sharp"), ModelEditKind::MarkSharp}, {QStringLiteral("clear-sharp"), ModelEditKind::ClearSharp},
 		{QStringLiteral("place"), ModelEditKind::SetVertexPositions},
-		{QStringLiteral("uv-quake-frontback"), ModelEditKind::ProjectUvMapping}};
+		{QStringLiteral("uv-quake-frontback"), ModelEditKind::ProjectUvMapping}, {QStringLiteral("smoothing-group"), ModelEditKind::MarkSharp}};
 	const auto toolName = args.values.value(QStringLiteral("--tool"));
 	if (!tools.contains(toolName))
 	{
@@ -410,9 +410,9 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("uv-cylinder"), {QStringLiteral("--faces"), QStringLiteral("--fit"), QStringLiteral("--axis")}},
 		{QStringLiteral("uv-sphere"), {QStringLiteral("--faces"), QStringLiteral("--fit"), QStringLiteral("--axis")}},
 		{QStringLiteral("align"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--axis"),
-			QStringLiteral("--value"), QStringLiteral("--to"), QStringLiteral("--frame")}},
+			QStringLiteral("--value"), QStringLiteral("--to"), QStringLiteral("--frame"), QStringLiteral("--mirror")}},
 		{QStringLiteral("snap-grid"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--axis"),
-			QStringLiteral("--grid"), QStringLiteral("--frame")}},
+			QStringLiteral("--grid"), QStringLiteral("--frame"), QStringLiteral("--mirror")}},
 		{QStringLiteral("connect"), {QStringLiteral("--vertices"), QStringLiteral("--angle")}},
 		{QStringLiteral("connect-edges"), {QStringLiteral("--edges"), QStringLiteral("--cuts"), QStringLiteral("--slide"), QStringLiteral("--angle")}},
 		{QStringLiteral("delete"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--mode")}},
@@ -422,7 +422,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("mark-sharp"), {QStringLiteral("--edges")}},
 		{QStringLiteral("clear-sharp"), {QStringLiteral("--edges")}},
 		{QStringLiteral("place"), {QStringLiteral("--vertices"), QStringLiteral("--positions"), QStringLiteral("--frame")}},
-		{QStringLiteral("uv-quake-frontback"), {QStringLiteral("--faces"), QStringLiteral("--axis")}}};
+		{QStringLiteral("uv-quake-frontback"), {QStringLiteral("--faces"), QStringLiteral("--axis")}},
+		{QStringLiteral("smoothing-group"), {QStringLiteral("--faces")}}};
 	const QSet<QString> shared{QStringLiteral("--cli"),	  QStringLiteral("--json"),			  QStringLiteral("--quiet"),
 							   QStringLiteral("--verbose"), QStringLiteral("--dry-run"),		  QStringLiteral("--overwrite"),
 							   QStringLiteral("--input"),   QStringLiteral("--output"),		  QStringLiteral("--tool"),
@@ -626,6 +627,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 	tool.topology.dissolveVertices = !args.seen.contains(QStringLiteral("--keep-vertices"));
 	tool.topology.inside = args.seen.contains(QStringLiteral("--inside"));
 	tool.topology.refuseIntersections = args.seen.contains(QStringLiteral("--refuse-intersections"));
+	tool.topology.smoothingGroup = toolName == QStringLiteral("smoothing-group");
 	if (args.values.contains(QStringLiteral("--auto-merge")) &&
 		(!number(args.values.value(QStringLiteral("--auto-merge")), &tool.topology.autoMergeDistance) || tool.topology.autoMergeDistance <= 0 ||
 		 tool.topology.autoMergeDistance > 1000))
@@ -687,9 +689,11 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		}
 		else
 		{
-			if (args.values.contains(QStringLiteral("--value")) == args.values.contains(QStringLiteral("--to")))
-				return fail(2, Text::tr("--tool align requires exactly one of --value N (or x,y,z) or --to centroid|min|max."));
 			const auto to = args.values.value(QStringLiteral("--to"));
+			// --to median moves the selection so its median takes --value.
+			const bool median = to == QStringLiteral("median");
+			if (median ? !args.values.contains(QStringLiteral("--value")) : args.values.contains(QStringLiteral("--value")) == args.values.contains(QStringLiteral("--to")))
+				return fail(2, Text::tr("--tool align requires exactly one of --value N (or x,y,z) or --to centroid|min|max, or --to median with --value."));
 			if (args.values.contains(QStringLiteral("--value")))
 			{
 				const auto text = args.values.value(QStringLiteral("--value"));
@@ -699,6 +703,10 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 				else if (!triple(text, &align.value))
 					return fail(2, Text::tr("Use --value N, or --value x,y,z with one number per axis."));
 			}
+			if (median)
+				align.target = ModelAlignTarget::Median;
+			else if (args.values.contains(QStringLiteral("--value")))
+				align.target = ModelAlignTarget::Value;
 			else if (to == QStringLiteral("centroid"))
 				align.target = ModelAlignTarget::Centroid;
 			else if (to == QStringLiteral("min"))
@@ -706,7 +714,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			else if (to == QStringLiteral("max"))
 				align.target = ModelAlignTarget::Maximum;
 			else
-				return fail(2, Text::tr("Use --to centroid, min or max."));
+				return fail(2, Text::tr("Use --to centroid, min, max or median."));
 		}
 	}
 	// Quake front/back faces along +X by default, Quake's forward axis.
@@ -1061,22 +1069,30 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		result.payload.insert(QStringLiteral("jointMap"), pairs);
 		result.payload.insert(QStringLiteral("keepJointNames"), tool.keepJointNames);
 	}
-	if (!report.introducedIntersections.isEmpty() || report.intersectionCheckLimited)
+	if (!report.introducedIntersections.isEmpty() || !report.introducedCrossings.isEmpty() || report.intersectionCheckLimited)
 	{
 		QJsonArray pairs;
 		for (const auto &[first, second] : std::as_const(report.introducedIntersections))
 			pairs.append(QJsonArray{first, second});
+		QJsonArray crossings;
+		for (const auto &crossing : std::as_const(report.introducedCrossings))
+			crossings.append(QJsonObject{{QStringLiteral("face"), crossing[0]}, {QStringLiteral("otherSurface"), crossing[1]}, {QStringLiteral("otherFace"), crossing[2]}});
 		result.payload.insert(QStringLiteral("introducedIntersections"), pairs);
+		result.payload.insert(QStringLiteral("introducedCrossings"), crossings);
 		result.payload.insert(QStringLiteral("intersectionCheckLimited"), report.intersectionCheckLimited);
-		result.lines << Text::tr("Warning: %1 pairs of faces now cross each other.").arg(report.introducedIntersections.size());
+		const int count = int(report.introducedIntersections.size() + report.introducedCrossings.size());
+		result.lines << Text::tr("Warning: %n pair(s) of faces now cross each other.", nullptr, count);
 	}
 	if (kind == ModelEditKind::AlignVertices)
 	{
-		const QStringList targets{QStringLiteral("value"), QStringLiteral("centroid"), QStringLiteral("min"), QStringLiteral("max"), QStringLiteral("grid")};
+		const QStringList targets{QStringLiteral("value"), QStringLiteral("centroid"), QStringLiteral("min"),
+								  QStringLiteral("max"),   QStringLiteral("grid"),	   QStringLiteral("median")};
 		QJsonObject align{{QStringLiteral("axes"), modelAlignAxesText(tool.align.axes)}, {QStringLiteral("target"), targets.value(int(tool.align.target))},
 						  {QStringLiteral("frame"), edit.frame < 0 ? QJsonValue(QStringLiteral("all")) : QJsonValue(edit.frame)}};
-		if (tool.align.target == ModelAlignTarget::Value)
+		if (tool.align.target == ModelAlignTarget::Value || tool.align.target == ModelAlignTarget::Median)
 			align.insert(QStringLiteral("value"), QJsonArray{tool.align.value[0], tool.align.value[1], tool.align.value[2]});
+		if (tool.mirrorAxes != 0)
+			align.insert(QStringLiteral("mirror"), modelAlignAxesText(tool.mirrorAxes));
 		if (tool.align.target == ModelAlignTarget::Grid)
 			align.insert(QStringLiteral("grid"), tool.align.grid);
 		result.payload.insert(QStringLiteral("align"), align);
@@ -1100,12 +1116,13 @@ ModelToolsCliResult runModelSelect(const QStringList &arguments)
 {
 	const QSet<QString> flags{QStringLiteral("--cli"),	 QStringLiteral("--json"),			QStringLiteral("--quiet"),
 							  QStringLiteral("--verbose"), QStringLiteral("--extend"),		QStringLiteral("--delimit-seams"),
-							  QStringLiteral("--negative")};
+							  QStringLiteral("--negative"), QStringLiteral("--delimit-sharp")};
 	const QSet<QString> options{QStringLiteral("--input"),	 QStringLiteral("--select"),   QStringLiteral("--mode"),		QStringLiteral("--surface"),
 								QStringLiteral("--faces"),	 QStringLiteral("--vertices"), QStringLiteral("--edges"),		QStringLiteral("--edge"),
 								QStringLiteral("--from"),	 QStringLiteral("--to"),	   QStringLiteral("--similar"),		QStringLiteral("--threshold"),
 								QStringLiteral("--ratio"),	 QStringLiteral("--seed"),	   QStringLiteral("--nth"),			QStringLiteral("--offset"),
 								QStringLiteral("--axis"),	 QStringLiteral("--frame"),	   QStringLiteral("--angle"),		QStringLiteral("--settings-file"),
+								QStringLiteral("--delimit-angle"),
 								QStringLiteral("--locale"), QStringLiteral("--catalog-root")};
 	Arguments args;
 	QString error;
@@ -1161,7 +1178,9 @@ ModelToolsCliResult runModelSelect(const QStringList &arguments)
 		(args.values.contains(QStringLiteral("--ratio")) &&
 		 (!number(args.values.value(QStringLiteral("--ratio")), &request.ratio) || request.ratio < 0 || request.ratio > 1)) ||
 		(args.values.contains(QStringLiteral("--angle")) &&
-		 (!number(args.values.value(QStringLiteral("--angle")), &request.maxAngle) || request.maxAngle < 0 || request.maxAngle > 180)))
+		 (!number(args.values.value(QStringLiteral("--angle")), &request.maxAngle) || request.maxAngle < 0 || request.maxAngle > 180)) ||
+		(args.values.contains(QStringLiteral("--delimit-angle")) &&
+		 (!number(args.values.value(QStringLiteral("--delimit-angle")), &request.delimitAngle) || request.delimitAngle < 0 || request.delimitAngle > 180)))
 		return fail(2, Text::tr("A numeric selection option is malformed or outside its range."));
 	if (args.values.contains(QStringLiteral("--seed")))
 	{
@@ -1186,6 +1205,7 @@ ModelToolsCliResult runModelSelect(const QStringList &arguments)
 	request.positive = !args.seen.contains(QStringLiteral("--negative"));
 	request.extend = args.seen.contains(QStringLiteral("--extend"));
 	request.delimitSeams = args.seen.contains(QStringLiteral("--delimit-seams"));
+	request.delimitSharp = args.seen.contains(QStringLiteral("--delimit-sharp"));
 	if (args.values.contains(QStringLiteral("--similar")))
 	{
 		const QHash<QString, ModelSimilarity> similarities{

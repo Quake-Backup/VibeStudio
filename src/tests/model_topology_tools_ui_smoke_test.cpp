@@ -1,6 +1,6 @@
 // Mesh Editor commands for Align Vertices and the topology tools of the
 // polygon modelling round: profile keys, menus, Adjust Last Operation, the Item
-// page's selection position row and one undo step per command.
+// page's selection position row, snapped drags and one undo step per command.
 #include "app/model_editor_dialog.h"
 #include "app/model_editor_tools.h"
 #include "app/model_viewport.h"
@@ -17,6 +17,7 @@
 #include <QDir>
 #include <QDoubleSpinBox>
 #include <QFont>
+#include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
 #include <QTemporaryDir>
@@ -86,6 +87,15 @@ ModelMesh gridMesh(int cells = 4, double size = 8, bool flat = false)
 	surface.topologyVertices.clear();
 	updateEditableModelMetadata(&mesh);
 	return mesh;
+}
+// The open dialog with this object name. Found before acting on it: a live
+// preview can delete other top-level widgets while the loop would still run.
+QDialog *openDialog(const QString &name)
+{
+	for (auto *widget : QApplication::topLevelWidgets())
+		if (auto *dialog = qobject_cast<QDialog *>(widget); dialog && dialog->objectName() == name)
+			return dialog;
+	return nullptr;
 }
 QDoubleSpinBox *lastField(ModelEditorTools *tools, const QString &name)
 {
@@ -213,17 +223,18 @@ void alignChecks(QApplication &app, ModelEditorDialog &editor)
 	expect(snap && snap->actions().contains(tools->action(QStringLiteral("meshSnapSelectionToGrid"))) &&
 			   editor.findChild<QMenu *>(QStringLiteral("meshMenuAlign")),
 		   "the Snap menu lists Snap Selection to Grid and the Align submenu");
-	// The Item page's selection position row sets an exact coordinate.
+	// The Item page's selection position row moves the selection's median.
 	tools->applySelection({0, {10, 15}, {}});
 	app.processEvents();
 	auto *positionX = editor.findChild<QDoubleSpinBox *>(QStringLiteral("meshSelectionPositionX"));
 	if (expect(positionX && positionX->isEnabled() && !positionX->accessibleName().isEmpty(), "the Item page shows the selection position"))
 	{
+		// The selected X coordinates are 0.6 and 0.9, so the median moves by -4.75.
 		positionX->setValue(-4);
 		app.processEvents();
-		expect(document.mesh().surfaces[0].frames[0].positions[10].x == -4.0f && document.mesh().surfaces[0].frames[1].positions[15].x == -4.0f &&
+		expect(near(document.mesh().surfaces[0].frames[0].positions[10].x, -4.15) && near(document.mesh().surfaces[0].frames[1].positions[15].x, -3.85) &&
 				   document.undoSteps() == steps + 1,
-			   "typing a selection position gives every selected vertex that coordinate in one step");
+			   "typing a selection position moves the selection so its median takes the value, in one step");
 		editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
 		app.processEvents();
 		expect(near(positionX->value(), (0.3 * 2 + 0.3 * 3) / 2), "the row shows the restored centroid after undo");
@@ -260,24 +271,53 @@ void transformModelChecks(QApplication &app, ModelEditorDialog &editor)
 	expect(near(after.x, -before.y) && near(after.y, before.x) && document.undoSteps() == steps + 1, "Turn Model 90° Left turns about Z");
 	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
 	app.processEvents();
-	// The numeric dialog.
+	// The numeric dialog, with a live preview in the view.
+	auto *viewport = editor.findChild<ModelViewport *>(QStringLiteral("meshPreview"));
+	bool previewed = false, refused = false, restored = false;
 	QTimer::singleShot(0, &app,
 					   [&]
 					   {
-						   for (auto *widget : QApplication::topLevelWidgets())
-							   if (auto *dialog = qobject_cast<QDialog *>(widget); dialog && dialog->objectName() == QStringLiteral("meshTransformModelDialog"))
+						   if (auto *dialog = openDialog(QStringLiteral("meshTransformModelDialog")))
+						   {
+							   auto *offset = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelOffsetX"));
+							   auto *scale = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelScaleX"));
+							   auto *problem = dialog->findChild<QLabel *>(QStringLiteral("meshTransformModelProblem"));
+							   if (offset && scale && problem && viewport)
 							   {
-								   if (auto *offset = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelOffsetX")))
-									   offset->setValue(10);
-								   dialog->accept();
+								   offset->setValue(10);
+								   previewed = near(viewport->mesh().surfaces[0].frames[0].positions[1].x, before.x + 10) &&
+											   near(document.mesh().surfaces[0].frames[0].positions[1].x, before.x) && document.undoSteps() == steps;
+								   scale->setValue(0);
+								   refused = !problem->isHidden() && !problem->text().isEmpty();
+								   scale->setValue(1);
+								   restored = problem->isHidden();
 							   }
+							   dialog->accept();
+						   }
 					   });
 	tools->action(QStringLiteral("meshTransformModel"))->trigger();
 	app.processEvents();
+	expect(previewed, "the view previews the dialog's offset before the document changes");
+	expect(refused && restored, "the dialog names a refused value and clears it once the value is valid");
 	expect(near(document.mesh().surfaces[0].frames[0].positions[1].x, before.x + 10) && document.undoSteps() == steps + 1,
 		   "Transform Model… applies the dialog's offset as one step");
 	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
 	app.processEvents();
+	// Cancel leaves the document and its view as they were.
+	QTimer::singleShot(0, &app,
+					   [&]
+					   {
+						   if (auto *dialog = openDialog(QStringLiteral("meshTransformModelDialog")))
+						   {
+							   if (auto *offset = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshTransformModelOffsetX")))
+								   offset->setValue(5);
+							   dialog->reject();
+						   }
+					   });
+	tools->action(QStringLiteral("meshTransformModel"))->trigger();
+	app.processEvents();
+	expect(viewport && near(viewport->mesh().surfaces[0].frames[0].positions[1].x, before.x) && document.undoSteps() == steps,
+		   "cancelling the dialog restores the view and changes nothing");
 	auto *menu = editor.findChild<QMenu *>(QStringLiteral("meshMenuTransformModel"));
 	expect(menu && menu->actions().contains(tools->action(QStringLiteral("meshScaleModelHeight"))) &&
 			   editor.findChild<QMenu *>(QStringLiteral("meshMenuSnap"))->actions().contains(tools->action(QStringLiteral("meshOriginCursor"))),
@@ -302,6 +342,37 @@ void connectChecks(QApplication &app, ModelEditorDialog &editor)
 			joined |= modelEdge(a, b) == modelEdge(1, 4);
 	expect(joined && surface.vertexCount == 16 && document.undoSteps() == 1, "Connect Vertex Path turns the quad's diagonal as one step");
 	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// Three vertices picked one at a time join in that order, as the CLI's
+	// --vertices 0,6,13 path does.
+	auto expected = gridMesh(3, 8, true);
+	ModelEdit path;
+	path.kind = ModelEditKind::ConnectVertices;
+	path.selection = {0, {0, 6, 13}, {}};
+	path.tool.topology.vertices = {0, 6, 13};
+	expect(applyModelEdit(&expected, path, nullptr, &error) && expected.surfaces[0].vertexCount > 16, "the core cuts the path 0, 6, 13");
+	for (const QSet<int> &picked : {QSet<int>{0}, QSet<int>{0, 6}, QSet<int>{0, 6, 13}})
+	{
+		tools->applySelection({0, picked, {}});
+		app.processEvents();
+	}
+	tools->action(QStringLiteral("meshConnectVertexPath"))->trigger();
+	app.processEvents();
+	expect(document.undoSteps() == 1 && document.mesh().surfaces[0].vertexCount == expected.surfaces[0].vertexCount &&
+			   document.mesh().surfaces[0].triangles.size() == expected.surfaces[0].triangles.size(),
+		   "Connect Vertex Path follows the picking order for three vertices");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// Picked all at once (as a box selection does), the order is unknown and
+	// no path is cut through them.
+	tools->applySelection({0, {}, {}});
+	tools->applySelection({0, {0, 6, 13}, {}});
+	app.processEvents();
+	tools->action(QStringLiteral("meshConnectVertexPath"))->trigger();
+	app.processEvents();
+	expect(document.mesh().surfaces[0].vertexCount == 16, "three vertices selected at once are not joined as a path");
+	if (document.undoSteps() > 0)
+		editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
 	app.processEvents();
 	// Connect Edges in vertex mode: the left and right sides of the first quad.
 	tools->applySelection({0, {}, {}, {modelEdge(0, 4), modelEdge(1, 5)}});
@@ -457,7 +528,18 @@ void sharpChecks(QApplication &app, ModelEditorDialog &editor)
 	tools->applySelection({0, {4, 5, 6, 7}, {}});
 	tools->action(QStringLiteral("meshMarkSharp"))->trigger();
 	app.processEvents();
-	expect(document.mesh().surfaces[0].vertexCount == 12 && document.undoSteps() == 1, "Mark Sharp splits the top corners as one step");
+	expect(document.mesh().surfaces[0].vertexCount == 12 && document.undoSteps() == 1 && document.mesh().surfaces[0].sharpEdges.size() == 4,
+		   "Mark Sharp splits the top corners and stores the edges as one step");
+	auto *status = editor.findChild<QLabel *>(QStringLiteral("meshStatus"));
+	expect(status && status->text().contains(QStringLiteral("4")), "the banner counts the vertices the hard edges cost");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// A smoothing group of the top face does the same from a face selection.
+	tools->applySelection({0, {}, {2, 3}});
+	tools->action(QStringLiteral("meshSmoothingGroup"))->trigger();
+	app.processEvents();
+	expect(document.mesh().surfaces[0].vertexCount == 12 && document.mesh().surfaces[0].sharpEdges.size() == 4 && document.undoSteps() == 1,
+		   "Make Smoothing Group hardens the region's border in one step");
 	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
 	app.processEvents();
 	expect(document.mesh().surfaces[0].vertexCount == 8, "one undo makes the cube smooth again");
@@ -478,6 +560,204 @@ void sharpChecks(QApplication &app, ModelEditorDialog &editor)
 	expect(inset.tool.topology.refuseIntersections && !tools->runTool(inset, &error) && document.undoSteps() == 0,
 		   "with Refuse New Intersections on, the same inset is refused");
 	tools->action(QStringLiteral("meshRefuseIntersections"))->trigger();
+}
+
+// Select Linked's limits in Adjust Last Operation: sharp edges and a normal angle.
+void linkedChecks(QApplication &app, ModelEditorDialog &editor)
+{
+	auto *tools = editor.tools();
+	const auto &document = editor.document();
+	QString error;
+	ModelDesign design;
+	ModelDesignPart part;
+	part.primitive = QStringLiteral("box");
+	design.parts << part;
+	if (!expect(editor.setMesh(buildModelDesignMesh(design), &error), "open a box for Select Linked"))
+		return;
+	const int faces = document.mesh().surfaces[0].triangles.size();
+	tools->action(QStringLiteral("meshModeFace"))->trigger();
+	tools->applySelection({0, {}, {0}});
+	tools->action(QStringLiteral("meshAdjustLast"))->trigger();
+	tools->action(QStringLiteral("meshSelectLinked"))->trigger();
+	app.processEvents();
+	expect(int(document.selection().faces.size()) == faces, "Select Linked reaches the whole box");
+	QCheckBox *sharp = nullptr;
+	for (auto *box : tools->lastOperationPanel()->findChildren<QCheckBox *>())
+		if (box->accessibleName() == QStringLiteral("Stop at sharp edges"))
+			sharp = box;
+	auto *angle = lastField(tools, QStringLiteral("Stop above angle (degrees, 0 = off)"));
+	if (expect(sharp && angle, "Adjust Last Operation offers Stop at sharp edges and an angle limit"))
+	{
+		angle->setValue(45);
+		app.processEvents();
+		const int side = document.selection().faces.size();
+		expect(side >= 2 && side < faces && document.undoSteps() == 0, "a 45-degree limit keeps the selection on the box's first side");
+	}
+	tools->action(QStringLiteral("meshAdjustLast"))->trigger();
+	tools->applySelection({0, {}, {}});
+}
+
+// A flat 4x4 grid at z = 0 and, above it, a 2x2 grid at z = 10 offset by (3, 5).
+ModelMesh layeredMesh()
+{
+	auto mesh = gridMesh(4, 8, true);
+	auto upper = gridMesh(2, 8, true).surfaces[0];
+	upper.name = QStringLiteral("upper");
+	for (auto &frame : upper.frames)
+		for (auto &p : frame.positions)
+			p = {p.x + 3, p.y + 5, p.z + 10};
+	mesh.surfaces << upper;
+	updateEditableModelMetadata(&mesh);
+	return mesh;
+}
+
+void snapChecks(QApplication &app, ModelEditorDialog &editor)
+{
+	auto *tools = editor.tools();
+	const auto &document = editor.document();
+	auto *viewport = editor.findChild<ModelViewport *>(QStringLiteral("meshPreview"));
+	auto *element = editor.findChild<QComboBox *>(QStringLiteral("meshSnapElement"));
+	auto *snap = editor.findChild<QCheckBox *>(QStringLiteral("meshSnapTranslation"));
+	QString error;
+	if (!expect(viewport && element && snap && editor.setMesh(layeredMesh(), &error), "open two layered grids for snapping"))
+		return;
+	tools->alignView(2, true);
+	viewport->frameModel();
+	expect(tests::settleModelViewport(*viewport), "the top view settles");
+	const auto view = [&](ModelVec3 point)
+	{
+		QPointF screen;
+		viewport->projectToView(point, &screen);
+		return screen;
+	};
+	const auto upper = [&](int frame = 0) { return document.mesh().surfaces[1].frames[frame].positions; };
+	QSet<int> everything;
+	for (int v = 0; v < 9; ++v)
+		everything << v;
+	snap->setChecked(true);
+	// Edge Midpoint: the upper grid's nearest corner lands on the midpoint of
+	// the lower edge from (16, 16) to (24, 16).
+	element->setCurrentIndex(2);
+	tools->applySelection({1, everything, {}});
+	expect(tools->beginModal(ModelModalOperator::Move, view({11, 13, 10})), "start a snapped move");
+	tools->moveModal(view({20, 16, 0}));
+	app.processEvents();
+	expect(tools->modalText().contains(QStringLiteral("midpoint")), "the move reports an edge midpoint snap");
+	expect(tools->finishModal(true, &error), "confirm the edge-midpoint move");
+	bool landed = false;
+	for (const auto &p : upper())
+		landed |= near(p.x, 20) && near(p.y, 16);
+	expect(landed && document.undoSteps() == 1, "an upper corner lands over the edge midpoint in one step");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// Face Project: every moving vertex lands on the lower grid behind it.
+	element->setCurrentIndex(4);
+	tools->applySelection({1, everything, {}});
+	expect(tools->beginModal(ModelModalOperator::Move, view({11, 13, 10})), "start a projected move");
+	tools->moveModal(view({11, 13, 10}) + QPointF(6, 0));
+	app.processEvents();
+	expect(tools->modalText().contains(QStringLiteral("projected")), "the move reports face projection");
+	expect(tools->finishModal(true, &error), "confirm the projected move");
+	bool flat = true;
+	for (const auto &p : upper())
+		flat &= near(p.z, 0, 1e-3);
+	bool offsets = true;
+	for (const auto &p : upper(1))
+		offsets &= near(p.z, 8, 1e-3);
+	expect(flat && offsets && document.undoSteps() == 1, "Face Project drops every upper vertex onto the lower grid and keeps the second pose's offset");
+	expect(lastField(tools, QStringLiteral("Position X")) == nullptr, "Adjust Last Operation shows no single position for a projection");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// Extrude depth: the upper grid's first face extrudes down to the depth of
+	// the lower vertex at (16, 16, 0), though the view looks along the normal.
+	element->setCurrentIndex(1);
+	tools->applySelection({1, {}, {0}});
+	expect(tools->beginModal(ModelModalOperator::Extrude, view({7, 9, 10})), "start a snapped face extrusion");
+	tools->moveModal(view({16, 16, 0}));
+	app.processEvents();
+	expect(tools->modalText().contains(QStringLiteral("snapped")), "the extrusion reports a snap");
+	expect(tools->finishModal(true, &error), "confirm the snapped extrusion");
+	int down = 0;
+	for (const auto &p : upper())
+		down += near(p.z, 0, 1e-3);
+	expect(down == 3 && document.undoSteps() == 1, "the extruded face reaches z = 0");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// Pivot at Target Under Pointer, then a rotation that turns the nearest
+	// corner, (19, 13, 10), toward the lower vertex at (32, 16, 0).
+	expect(tools->pivotAtTarget(view({11, 13, 10})), "Pivot at Target Under Pointer finds the upper centre vertex");
+	const auto pivot = tools->toolEdit(ModelEditKind::Transform).pivot;
+	expect(near(pivot.x, 11) && near(pivot.y, 13) && near(pivot.z, 10), "the custom pivot moves to the vertex");
+	auto *snapMenu = editor.findChild<QMenu *>(QStringLiteral("meshMenuSnap"));
+	expect(snapMenu && snapMenu->actions().contains(tools->action(QStringLiteral("meshPivotTarget"))) &&
+			   snapMenu->actions().contains(tools->action(QStringLiteral("meshPlaceVertex"))),
+		   "the Snap menu lists Pivot at Target Under Pointer and Place Vertex");
+	tools->applySelection({1, everything, {}});
+	expect(tools->beginModal(ModelModalOperator::Rotate, view({19, 5, 10})), "start a snapped rotation");
+	tools->moveModal(view({32, 16, 0}));
+	app.processEvents();
+	expect(tools->finishModal(true, &error), "confirm the snapped rotation");
+	// Vertex 5 is the upper grid's right middle vertex, (19, 13, 10).
+	const int corner = 5;
+	const auto turned = upper()[corner];
+	const double ux = turned.x - 11, uy = turned.y - 13;
+	expect(near(ux * 3 - uy * 21, 0, 1e-2) && ux > 0 && near(std::hypot(ux, uy), 8, 1e-3) && document.undoSteps() == 1,
+		   "the rotation turns the nearest corner onto the target's direction from the pivot");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// Scale along X: the nearest corner stretches out to the target's X.
+	tools->applySelection({1, everything, {}});
+	expect(tools->beginModal(ModelModalOperator::Scale, view({3, 5, 10})), "start a snapped scale");
+	tools->constrainModal(0, false);
+	tools->moveModal(view({32, 16, 0}));
+	app.processEvents();
+	expect(tools->finishModal(true, &error), "confirm the snapped scale");
+	expect(near(upper()[corner].x, 32, 1e-3) && near(upper()[corner].y, 13, 1e-3) && document.undoSteps() == 1,
+		   "Scale along X stretches the nearest corner to the target's X");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	snap->setChecked(false);
+	element->setCurrentIndex(0);
+	// Merge at Target: the selected upper centre welds onto the vertex under the point.
+	tools->applySelection({1, {4}, {}});
+	expect(!tools->mergeAtTarget(QPointF(-100, -100)) && document.undoSteps() == 0, "Merge at Target with no vertex under the point is refused");
+	expect(tools->mergeAtTarget(view({3, 5, 10})) && document.mesh().surfaces[1].vertexCount == 8 && document.undoSteps() == 1,
+		   "Merge at Target welds the centre onto the corner under the point");
+	bool kept = false;
+	for (const auto &p : upper())
+		kept |= near(p.x, 3) && near(p.y, 5) && near(p.z, 10);
+	expect(kept, "the target keeps its position");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// Place Vertex: exact coordinates through the dialog, as one step.
+	tools->applySelection({1, {4}, {}});
+	QTimer::singleShot(0, &app,
+					   [&]
+					   {
+						   if (auto *dialog = openDialog(QStringLiteral("meshPlaceVertexDialog")))
+						   {
+							   if (auto *z = dialog->findChild<QDoubleSpinBox *>(QStringLiteral("meshPlaceVertexZ")))
+								   z->setValue(-2.5);
+							   dialog->accept();
+						   }
+					   });
+	tools->action(QStringLiteral("meshPlaceVertex"))->trigger();
+	app.processEvents();
+	expect(near(upper()[4].z, -2.5) && near(upper(1)[4].z, 5.5) && near(upper()[4].x, 11) && document.undoSteps() == 1,
+		   "Place Vertex moves the vertex in the shown pose and keeps the other pose's offset");
+	auto *placeZ = lastField(tools, QStringLiteral("Position Z"));
+	if (expect(placeZ, "Adjust Last Operation shows the placed position"))
+	{
+		placeZ->setValue(1);
+		app.processEvents();
+		expect(near(upper()[4].z, 1) && document.undoSteps() == 1, "adjusting the position replaces the placement in place");
+	}
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	tools->applySelection({1, {3, 4}, {}});
+	tools->action(QStringLiteral("meshPlaceVertex"))->trigger();
+	app.processEvents();
+	expect(document.undoSteps() == 0, "Place Vertex with two vertices selected is refused");
 }
 } // namespace
 
@@ -523,6 +803,8 @@ int main(int argc, char **argv)
 		dissolveChecks(app, editor);
 		outsideChecks(app, editor);
 		sharpChecks(app, editor);
+		snapChecks(app, editor);
+		linkedChecks(app, editor);
 	}
 	std::cout << checks << " topology tool UI checks; " << failures << " failures\n";
 	return failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;

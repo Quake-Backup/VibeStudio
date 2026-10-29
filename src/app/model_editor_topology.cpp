@@ -4,10 +4,13 @@
 // runTool, so it is one undo step with Adjust Last Operation and Repeat Last.
 #include "app/model_editor_tools.h"
 
+#include "app/locale_number.h"
 #include "app/model_editor_dialog.h"
 #include "app/model_viewport.h"
 #include "core/model_align.h"
 #include "core/model_geometric_topology.h"
+#include "core/model_targets.h"
+#include "core/studio_settings.h"
 #include "core/model_whole_transform.h"
 
 #include <QAction>
@@ -28,6 +31,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QSignalBlocker>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -85,10 +89,30 @@ class TransformModelDialog final : public QDialog
 		m_pivot[0]->setValue(pivot.x);
 		m_pivot[1]->setValue(pivot.y);
 		m_pivot[2]->setValue(pivot.z);
+		// Live preview: why the current values cannot be applied, if they cannot.
+		m_problem = new QLabel;
+		m_problem->setObjectName(QStringLiteral("meshTransformModelProblem"));
+		m_problem->setWordWrap(true);
+		m_problem->setAccessibleName(Text::tr("Transform problem"));
+		m_problem->hide();
+		form->addRow(m_problem);
 		auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 		connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
 		connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 		form->addRow(buttons);
+	}
+	// Calls `changed` whenever a value changes, for the live preview.
+	void onChange(const std::function<void()> &changed)
+	{
+		for (auto *fields : {m_offset, m_rotation, m_scale, m_pivot})
+			for (int axis = 0; axis < 3; ++axis)
+				connect(fields[axis], &QDoubleSpinBox::valueChanged, this, [changed] { changed(); });
+	}
+	void setProblem(const QString &problem)
+	{
+		m_problem->setText(problem);
+		m_problem->setVisible(!problem.isEmpty());
+		m_problem->setAccessibleDescription(problem);
 	}
 	void fill(ModelEdit *edit) const
 	{
@@ -100,6 +124,7 @@ class TransformModelDialog final : public QDialog
 
   private:
 	QDoubleSpinBox *m_offset[3]{}, *m_rotation[3]{}, *m_scale[3]{}, *m_pivot[3]{};
+	QLabel *m_problem = nullptr;
 };
 } // namespace
 
@@ -119,21 +144,278 @@ ModelEdit ModelEditorTools::wholeModelEdit() const
 	return edit;
 }
 
+bool ModelEditorTools::runSharp(const ModelEdit &edit)
+{
+	// Hard edges cost vertices: the banner says how many, against the budgets.
+	const auto &mesh = m_editor->m_document.mesh();
+	const int surface = edit.selection.surface;
+	const int before = surface >= 0 && surface < mesh.surfaces.size() ? mesh.surfaces[surface].vertexCount : 0;
+	QString error;
+	if (!runTool(edit, &error))
+		return false;
+	const auto &after = m_editor->m_document.mesh();
+	if (surface < 0 || surface >= after.surfaces.size())
+		return true;
+	const int count = after.surfaces[surface].vertexCount, added = count - before;
+	QStringList limits;
+	for (const auto &format : {QStringLiteral("md3"), QStringLiteral("md2"), QStringLiteral("mdl")})
+	{
+		ModelTargetProfile target;
+		if (findModelTargetProfile(format, m_editor->deliveryTarget(format), &target) && target.limits.vertices > 0)
+			limits << Text::tr("%1 %2 of %3").arg(format.toUpper(), localeNumber(count), localeNumber(target.limits.vertices));
+	}
+	const int change = std::abs(added);
+	showBanner(added >= 0 ? Text::tr("%n vertex(es) added for hard edges.", nullptr, change) : Text::tr("%n vertex(es) welded back.", nullptr, change),
+			   Text::tr("Surface vertices against the budgets: %1.").arg(limits.join(QStringLiteral("; "))));
+	return true;
+}
+
 void ModelEditorTools::noteIntersections(const ModelEdit &edit, const ModelEditReport &report)
 {
 	m_lastIntersections = report.introducedIntersections;
+	m_lastCrossings = report.introducedCrossings;
 	m_lastIntersectionSurface = edit.selection.surface;
-	if (report.introducedIntersections.isEmpty())
+	if (report.introducedIntersections.isEmpty() && report.introducedCrossings.isEmpty())
 		return;
 	// A warning, not a refusal: intentional interpenetration is common.
-	const int count = report.introducedIntersections.size();
-	const auto &first = report.introducedIntersections.first();
+	const int count = report.introducedIntersections.size() + report.introducedCrossings.size();
+	const QString where = !report.introducedIntersections.isEmpty()
+							  ? Text::tr("Faces %1 and %2 cross, among others.")
+									.arg(report.introducedIntersections.first().first)
+									.arg(report.introducedIntersections.first().second)
+							  : Text::tr("Face %1 crosses face %2 of surface %3, among others.")
+									.arg(report.introducedCrossings.first()[0])
+									.arg(report.introducedCrossings.first()[2])
+									.arg(report.introducedCrossings.first()[1]);
 	showBanner(Text::tr("%n pair(s) of faces now cross each other.", nullptr, count),
-			   Text::tr("Faces %1 and %2 cross, among others. Mesh > Clean Up > Select New Intersections selects them; Refuse New "
-						"Intersections refuses such edits.")
-				   .arg(first.first)
-				   .arg(first.second),
+			   Text::tr("%1 Mesh > Clean Up > Select New Intersections selects them; Refuse New Intersections refuses such edits.").arg(where),
 			   LiveStatus::Problem);
+}
+
+bool ModelEditorTools::mergeAtTarget(const QPointF &point)
+{
+	const int target = vertexAt(point);
+	if (target < 0)
+	{
+		showBanner(Text::tr("Point at the vertex to weld onto, then run Merge at Target."), {}, LiveStatus::Problem);
+		return false;
+	}
+	auto edit = toolEdit(ModelEditKind::MergeVertices);
+	edit.tool.merge = ModelMergeMode::Target;
+	edit.tool.topology.targetVertex = target;
+	QString error;
+	return runTool(edit, &error);
+}
+
+bool ModelEditorTools::pivotAtTarget(const QPointF &point)
+{
+	const auto &mesh = m_editor->m_document.mesh();
+	const int element = m_snapElement ? m_snapElement->currentIndex() : 1;
+	const auto framed = [&](int s) { return std::clamp(m_editor->m_frame->currentIndex(), 0, std::max(0, int(mesh.surfaces[s].frames.size()) - 1)); };
+	const auto at = [&](int s, int v) { return mesh.surfaces[s].frames[framed(s)].positions[v]; };
+	const auto ray = m_viewport->viewRay(point);
+	const auto dotOf = [](const ModelVec3 &a, const ModelVec3 &b) { return double(a.x) * b.x + double(a.y) * b.y + double(a.z) * b.z; };
+	const auto minus = [](const ModelVec3 &a, const ModelVec3 &b) { return ModelVec3{a.x - b.x, a.y - b.y, a.z - b.z}; };
+	const auto along = [](const ModelVec3 &a, const ModelVec3 &d, double t) { return ModelVec3{float(a.x + d.x * t), float(a.y + d.y * t), float(a.z + d.z * t)}; };
+	ModelVec3 target{};
+	bool found = false;
+	if (element == 3 || element == 4)
+	{
+		int s = -1;
+		const int face = faceAt(point, &s);
+		if (face >= 0 && s >= 0 && s < mesh.surfaces.size() && !mesh.surfaces[s].frames.isEmpty())
+		{
+			// Where the view ray meets the face's plane.
+			const auto &t = mesh.surfaces[s].triangles[face];
+			const ModelVec3 a = at(s, t.a), e1 = minus(at(s, t.b), a), e2 = minus(at(s, t.c), a);
+			const ModelVec3 n{e1.y * e2.z - e1.z * e2.y, e1.z * e2.x - e1.x * e2.z, e1.x * e2.y - e1.y * e2.x};
+			const double denominator = dotOf(ray.direction, n);
+			if (std::abs(denominator) > 1e-12)
+			{
+				target = along(ray.origin, ray.direction, dotOf(minus(a, ray.origin), n) / denominator);
+				found = std::isfinite(target.x) && std::isfinite(target.y) && std::isfinite(target.z);
+			}
+		}
+	}
+	else if (element == 2 || element == 5)
+	{
+		int s = -1;
+		const auto edge = edgeNear(point, &s);
+		if (edge.first >= 0 && s >= 0 && s < mesh.surfaces.size() && !mesh.surfaces[s].frames.isEmpty())
+		{
+			const ModelVec3 a = at(s, edge.first), d = minus(at(s, edge.second), a);
+			double t = 0.5;
+			if (element == 5)
+			{
+				// The point of the edge nearest the view ray.
+				const ModelVec3 w = minus(a, ray.origin);
+				const double aa = dotOf(d, d), b = dotOf(d, ray.direction), c = dotOf(ray.direction, ray.direction);
+				const double denominator = aa * c - b * b;
+				if (std::abs(denominator) > 1e-12)
+					t = std::clamp((b * dotOf(ray.direction, w) - c * dotOf(d, w)) / denominator, 0.0, 1.0);
+			}
+			target = along(a, d, t);
+			found = true;
+		}
+	}
+	else
+	{
+		// The nearest vertex within 16 pixels, on any surface.
+		double nearest = 16;
+		for (int s = 0; s < mesh.surfaces.size(); ++s)
+		{
+			if (mesh.surfaces[s].frames.isEmpty())
+				continue;
+			for (int v = 0; v < mesh.surfaces[s].vertexCount; ++v)
+			{
+				QPointF screen;
+				if (!m_viewport->projectToView(at(s, v), &screen))
+					continue;
+				const double d = QLineF(screen, point).length();
+				if (d < nearest)
+				{
+					nearest = d;
+					target = at(s, v);
+					found = true;
+				}
+			}
+		}
+	}
+	if (!found)
+	{
+		showBanner(element == 2	  ? Text::tr("Point at the edge whose midpoint the pivot moves to.")
+				   : element == 5 ? Text::tr("Point at the edge the pivot moves onto.")
+				   : element >= 3 ? Text::tr("Point at the face the pivot moves onto.")
+								  : Text::tr("Point at the vertex the pivot moves to."),
+				   {}, LiveStatus::Problem);
+		return false;
+	}
+	m_editor->m_pivotMode->setCurrentIndex(2);
+	m_editor->m_pivot[0]->setValue(target.x);
+	m_editor->m_pivot[1]->setValue(target.y);
+	m_editor->m_pivot[2]->setValue(target.z);
+	showBanner(Text::tr("Transforms now pivot around %1.").arg(localeNumberList({target.x, target.y, target.z}, 4)));
+	return true;
+}
+
+bool ModelEditorTools::placeVertex()
+{
+	const auto &mesh = m_editor->m_document.mesh();
+	const auto selection = m_editor->m_document.selection();
+	if (selection.surface < 0 || selection.surface >= mesh.surfaces.size())
+		return false;
+	const auto &surface = mesh.surfaces[selection.surface];
+	QSet<int> vertices = selection.vertices;
+	for (auto edge : selection.edges)
+		vertices << edge.first << edge.second;
+	for (int face : selection.faces)
+		if (face >= 0 && face < surface.triangles.size())
+			vertices << surface.triangles[face].a << surface.triangles[face].b << surface.triangles[face].c;
+	ModelGeometricTopology topology;
+	QSet<int> groups;
+	if (buildModelGeometricTopology(surface, &topology))
+		for (int v : std::as_const(vertices))
+			groups.insert(topology.group(v));
+	if (groups.size() != 1)
+	{
+		showBanner(Text::tr("Select one vertex to place. For several, use Selection position on the Item page."), {}, LiveStatus::Problem);
+		return false;
+	}
+	const int vertex = *groups.cbegin();
+	const int frame = std::clamp(m_editor->m_frame->currentIndex(), 0, std::max(0, int(surface.frames.size()) - 1));
+	const auto at = surface.frames[frame].positions[vertex];
+	QDialog dialog(m_editor);
+	dialog.setObjectName(QStringLiteral("meshPlaceVertexDialog"));
+	dialog.setWindowTitle(Text::tr("Place Vertex"));
+	auto *form = new QFormLayout(&dialog);
+	QDoubleSpinBox *fields[3]{};
+	const float values[3]{at.x, at.y, at.z};
+	for (int axis = 0; axis < 3; ++axis)
+	{
+		const QString name = QStringLiteral("XYZ").mid(axis, 1);
+		auto *spin = new QDoubleSpinBox;
+		spin->setObjectName(QStringLiteral("meshPlaceVertex%1").arg(name));
+		spin->setRange(-1000000, 1000000);
+		spin->setDecimals(4);
+		spin->setValue(values[axis]);
+		spin->setLayoutDirection(Qt::LeftToRight);
+		spin->setAccessibleName(Text::tr("Vertex position %1").arg(name));
+		form->addRow(name, spin);
+		fields[axis] = spin;
+	}
+	auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+	form->addRow(buttons);
+	if (dialog.exec() != QDialog::Accepted)
+		return false;
+	auto edit = toolEdit(ModelEditKind::SetVertexPositions);
+	edit.selection = {selection.surface, {vertex}, {}};
+	edit.tool.topology.vertices = {vertex};
+	edit.tool.topology.positions = {{fields[0]->value(), fields[1]->value(), fields[2]->value()}};
+	QString error;
+	return runTool(edit, &error);
+}
+
+void ModelEditorTools::trackSelectionOrder()
+{
+	const auto &mesh = m_editor->m_document.mesh();
+	const auto selection = m_editor->m_document.selection();
+	const auto revision = m_editor->m_document.revisionFingerprint();
+	// Another surface, or an edit that may renumber vertices: start again
+	// from the selection as it stands.
+	if (selection.surface != m_vertexOrderSurface || revision != m_vertexOrderRevision)
+	{
+		m_vertexOrder.clear();
+		m_vertexOrderKnown = true;
+		m_vertexOrderSurface = selection.surface;
+		m_vertexOrderRevision = revision;
+	}
+	QVector<int> order;
+	for (int v : std::as_const(m_vertexOrder))
+		if (selection.vertices.contains(v))
+			order.append(v);
+	const QSet<int> known(order.cbegin(), order.cend());
+	QVector<int> added;
+	for (int v : selection.vertices)
+		if (!known.contains(v))
+			added.append(v);
+	std::sort(added.begin(), added.end());
+	// A fresh selection starts with a known order again.
+	if (order.isEmpty())
+		m_vertexOrderKnown = true;
+	// One pick adds one geometric vertex: its seam copies share a position.
+	if (added.size() > 1 && selection.surface >= 0 && selection.surface < mesh.surfaces.size() && !mesh.surfaces[selection.surface].frames.isEmpty())
+	{
+		const auto &positions = mesh.surfaces[selection.surface].frames[0].positions;
+		for (int v : std::as_const(added))
+		{
+			const auto a = positions.value(v), b = positions.value(added.first());
+			if (a.x != b.x || a.y != b.y || a.z != b.z)
+				m_vertexOrderKnown = false;
+		}
+	}
+	m_vertexOrder = order + added;
+}
+
+QVector<int> ModelEditorTools::pickedVertexPath() const
+{
+	const auto selection = m_editor->m_document.selection();
+	if (!m_vertexOrderKnown || selection.surface != m_vertexOrderSurface || !selection.faces.isEmpty() || !selection.edges.isEmpty() ||
+		m_vertexOrder.size() != selection.vertices.size())
+		return {};
+	// Three or more geometric vertices make a path; two connect without one.
+	const auto &mesh = m_editor->m_document.mesh();
+	if (selection.surface < 0 || selection.surface >= mesh.surfaces.size() || mesh.surfaces[selection.surface].frames.isEmpty())
+		return {};
+	const auto &positions = mesh.surfaces[selection.surface].frames[0].positions;
+	int distinct = 0;
+	for (int i = 0; i < m_vertexOrder.size(); ++i)
+	{
+		const auto a = positions.value(m_vertexOrder[i]), b = positions.value(m_vertexOrder[std::max(0, i - 1)]);
+		distinct += i == 0 || a.x != b.x || a.y != b.y || a.z != b.z;
+	}
+	return distinct >= 3 ? m_vertexOrder : QVector<int>{};
 }
 
 int ModelEditorTools::vertexAt(const QPointF &point)
@@ -233,7 +515,30 @@ void ModelEditorTools::buildModelTransformActions()
 			  [this]
 			  {
 				  TransformModelDialog dialog(m_cursor, m_editor);
-				  if (dialog.exec() != QDialog::Accepted)
+				  // Live preview: the view shows the transformed model while the
+				  // dialog is open; Cancel puts the document's view back.
+				  dialog.onChange(
+					  [this, &dialog]
+					  {
+						  auto edit = wholeModelEdit();
+						  dialog.fill(&edit);
+						  auto preview = m_editor->m_document.mesh();
+						  ModelSelection resulting;
+						  QString problem;
+						  if (applyModelEdit(&preview, edit, &resulting, &problem))
+						  {
+							  showPreview(preview, resulting);
+							  dialog.setProblem({});
+						  }
+						  else
+						  {
+							  restoreDocumentView();
+							  dialog.setProblem(problem);
+						  }
+					  });
+				  const bool accepted = dialog.exec() == QDialog::Accepted;
+				  restoreDocumentView();
+				  if (!accepted)
 					  return;
 				  auto edit = wholeModelEdit();
 				  dialog.fill(&edit);
@@ -249,6 +554,8 @@ bool ModelEditorTools::runAlign(int axes, ModelAlignTarget target, const std::ar
 	edit.tool.align.target = target;
 	edit.tool.align.value = value;
 	edit.tool.align.grid = target == ModelAlignTarget::Grid ? grid : 0;
+	// Symmetry: mirror counterparts follow and centre-line vertices stay put.
+	edit.tool.mirrorAxes = (m_mirror[0]->isChecked() ? 1 : 0) | (m_mirror[1]->isChecked() ? 2 : 0) | (m_mirror[2]->isChecked() ? 4 : 0);
 	QString failure;
 	if (runTool(edit, &failure))
 		return true;
@@ -263,7 +570,16 @@ void ModelEditorTools::buildTopologyActions()
 	// Connect: Blender's J joins the selected vertices (two, or opposite
 	// corners of quads) with new edges; 3ds Max's Connect adds edges between
 	// the selected opposite sides of quads.
-	addAction(QStringLiteral("meshConnectVertexPath"), Text::tr("Connect Vertex Path"), {}, [this] { runKind(ModelEditKind::ConnectVertices); });
+	// Connect Vertex Path: three or more vertices picked one at a time join in
+	// that order; otherwise two vertices, or opposite corners of quads.
+	addAction(QStringLiteral("meshConnectVertexPath"), Text::tr("Connect Vertex Path"), {},
+			  [this]
+			  {
+				  auto edit = toolEdit(ModelEditKind::ConnectVertices);
+				  edit.tool.topology.vertices = pickedVertexPath();
+				  QString error;
+				  runTool(edit, &error);
+			  });
 	addAction(QStringLiteral("meshConnectEdges"), Text::tr("Connect Edges"), {},
 			  [this]
 			  {
@@ -286,21 +602,11 @@ void ModelEditorTools::buildTopologyActions()
 	// Merge at Target (3ds Max Target Weld): the selection joins the vertex
 	// under the pointer, keeping that vertex's position, UVs and normal.
 	addAction(QStringLiteral("meshMergeTarget"), Text::tr("Merge at Target Under Pointer"), {},
-			  [this]
-			  {
-				  const int target = vertexAt(pointerInViewport());
-				  if (target < 0)
-				  {
-					  showBanner(Text::tr("Point at the vertex to weld onto, then run Merge at Target."), {}, LiveStatus::Problem);
-					  return;
-				  }
-				  runKind(ModelEditKind::MergeVertices,
-						  [target](ModelEdit &e)
-						  {
-							  e.tool.merge = ModelMergeMode::Target;
-							  e.tool.topology.targetVertex = target;
-						  });
-			  });
+			  [this] { mergeAtTarget(pointerInViewport()); });
+	// Place Vertex: exact coordinates for one vertex (every seam copy).
+	addAction(QStringLiteral("meshPlaceVertex"), Text::tr("Place Vertex…"), {}, [this] { placeVertex(); });
+	// Pivot at Target Under Pointer: the Snap to choice picks the target.
+	addAction(QStringLiteral("meshPivotTarget"), Text::tr("Pivot at Target Under Pointer"), {}, [this] { pivotAtTarget(pointerInViewport()); });
 	// Auto Merge: modal moves weld what they bring within the weld distance.
 	auto *autoMerge = addAction(QStringLiteral("meshAutoMerge"), Text::tr("Auto Merge Vertices"), {},
 								[this] { m_autoMerge = m_actions.value(QStringLiteral("meshAutoMerge"))->isChecked(); });
@@ -309,22 +615,34 @@ void ModelEditorTools::buildTopologyActions()
 	addAction(QStringLiteral("meshSelectIntroducedIntersections"), Text::tr("Select New Intersections"), {},
 			  [this]
 			  {
-				  if (m_lastIntersections.isEmpty() || m_lastIntersectionSurface < 0)
+				  if ((m_lastIntersections.isEmpty() && m_lastCrossings.isEmpty()) || m_lastIntersectionSurface < 0)
 				  {
 					  showBanner(Text::tr("The last tool made no faces cross."));
 					  return;
 				  }
+				  // The edited surface's faces; other surfaces' faces are named in the banner.
 				  ModelSelection selection{m_lastIntersectionSurface, {}, {}};
 				  for (const auto &[first, second] : std::as_const(m_lastIntersections))
 					  selection.faces << first << second;
+				  for (const auto &crossing : std::as_const(m_lastCrossings))
+					  selection.faces << crossing[0];
 				  setSelectionMode(0);
 				  applySelection(selection);
 				  const int count = int(selection.faces.size());
 				  showBanner(Text::tr("%n crossing face(s) selected.", nullptr, count));
 			  });
+	// The choice is kept between sessions (model/refuseIntersections).
 	auto *refuse = addAction(QStringLiteral("meshRefuseIntersections"), Text::tr("Refuse New Intersections"), {},
-							 [this] { m_refuseIntersections = m_actions.value(QStringLiteral("meshRefuseIntersections"))->isChecked(); });
+							 [this]
+							 {
+								 m_refuseIntersections = m_actions.value(QStringLiteral("meshRefuseIntersections"))->isChecked();
+								 StudioSettings settings;
+								 settings.setModelRefuseIntersections(m_refuseIntersections);
+								 settings.sync();
+							 });
 	refuse->setCheckable(true);
+	m_refuseIntersections = StudioSettings(StudioSettings::AccessMode::ReadOnly).modelRefuseIntersections();
+	refuse->setChecked(m_refuseIntersections);
 	// Normals: wind faces outward (Blender's Shift+N) or inward.
 	const auto recalculate = [this](bool inside)
 	{
@@ -374,10 +692,34 @@ void ModelEditorTools::buildTopologyActions()
 		}
 		edit.selection.faces.clear();
 		edit.selection.vertices.clear();
-		QString error;
-		runTool(edit, &error);
+		runSharp(edit);
 	};
 	addAction(QStringLiteral("meshMarkSharp"), Text::tr("Mark Sharp"), {}, [sharp] { sharp(ModelEditKind::MarkSharp); });
+	// MilkShape 3D and 3ds Max smoothing groups: the selected faces become one
+	// smooth region, hard against the faces around it.
+	addAction(QStringLiteral("meshSmoothingGroup"), Text::tr("Make Smoothing Group"), {},
+			  [this]
+			  {
+				  auto edit = toolEdit(ModelEditKind::MarkSharp);
+				  const auto &mesh = m_editor->m_document.mesh();
+				  if (edit.selection.faces.isEmpty() && edit.selection.surface >= 0 && edit.selection.surface < mesh.surfaces.size())
+				  {
+					  QSet<int> vertices = edit.selection.vertices;
+					  for (auto e : std::as_const(edit.selection.edges))
+						  vertices << e.first << e.second;
+					  const auto &surface = mesh.surfaces[edit.selection.surface];
+					  for (int face = 0; face < surface.triangles.size(); ++face)
+					  {
+						  const auto &t = surface.triangles[face];
+						  if (vertices.contains(t.a) && vertices.contains(t.b) && vertices.contains(t.c))
+							  edit.selection.faces.insert(face);
+					  }
+				  }
+				  edit.selection.vertices.clear();
+				  edit.selection.edges.clear();
+				  edit.tool.topology.smoothingGroup = true;
+				  runSharp(edit);
+			  });
 	addAction(QStringLiteral("meshClearSharp"), Text::tr("Clear Sharp"), {}, [sharp] { sharp(ModelEditKind::ClearSharp); });
 	addAction(QStringLiteral("meshRecalculateInside"), Text::tr("Recalculate Inside"), {}, [recalculate] { recalculate(true); });
 	// Delete and dissolve variants (Blender's X menu, 3ds Max's Remove).
@@ -469,6 +811,9 @@ void ModelEditorTools::buildTopologyMenus()
 	};
 	place(QStringLiteral("meshMenuVertex"), QStringLiteral("meshBevelVertices"), QStringLiteral("meshConnectVertexPath"));
 	place(QStringLiteral("meshMenuMerge"), QStringLiteral("meshMergeCollapse"), QStringLiteral("meshMergeTarget"));
+	place(QStringLiteral("meshMenuVertex"), QStringLiteral("meshBevelVertices"), QStringLiteral("meshPlaceVertex"));
+	place(QStringLiteral("meshMenuSnap"), QStringLiteral("meshPivotCursor"), QStringLiteral("meshPlaceVertex"));
+	place(QStringLiteral("meshMenuSnap"), QStringLiteral("meshPivotCursor"), QStringLiteral("meshPivotTarget"));
 	place(QStringLiteral("meshMenuCleanUp"), QStringLiteral("meshCheckTargets"), QStringLiteral("meshSelectIntroducedIntersections"));
 	place(QStringLiteral("meshMenuCleanUp"), QStringLiteral("meshCheckTargets"), QStringLiteral("meshRefuseIntersections"));
 	place(QStringLiteral("meshMenuSnap"), QStringLiteral("meshPivotCursor"), QStringLiteral("meshAutoMerge"));
@@ -483,6 +828,7 @@ void ModelEditorTools::buildTopologyMenus()
 	place(QStringLiteral("meshMenuNormals"), QStringLiteral("meshRecalculateNormals"), QStringLiteral("meshRecalculateInside"));
 	place(QStringLiteral("meshMenuNormals"), QString(), QStringLiteral("meshMarkSharp"));
 	place(QStringLiteral("meshMenuNormals"), QString(), QStringLiteral("meshClearSharp"));
+	place(QStringLiteral("meshMenuNormals"), QString(), QStringLiteral("meshSmoothingGroup"));
 	place(QStringLiteral("meshMenuEdge"), QStringLiteral("meshMarkSeam"), QStringLiteral("meshMarkSharp"));
 	place(QStringLiteral("meshMenuEdge"), QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSharp"));
 	if (auto *snap = m_menuBar->findChild<QMenu *>(QStringLiteral("meshMenuSnap")))
@@ -527,8 +873,9 @@ void ModelEditorTools::buildTopologyMenus()
 
 void ModelEditorTools::buildAlignRow()
 {
-	// Item page: the selection's position in the displayed pose. Typing a value
-	// gives every selected vertex that coordinate (Align Vertices to a value).
+	// Item page: the selection's median in the displayed pose. Typing a value
+	// moves the whole selection so its median takes it (Align Vertices to the
+	// median, as Blender's Median fields do).
 	auto *contents = m_editor->findChild<QWidget *>(QStringLiteral("meshPageForm-item"));
 	auto *form = contents ? qobject_cast<QFormLayout *>(contents->layout()) : nullptr;
 	if (!form)
@@ -551,8 +898,9 @@ void ModelEditorTools::buildAlignRow()
 		spin->setMinimumWidth(0);
 		spin->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		spin->setAccessibleName(Text::tr("Selection position %1").arg(name));
-		spin->setAccessibleDescription(Text::tr("The centroid of the selection in the displayed pose. Enter a value to give every selected "
-												"vertex this %1 coordinate, as one undo step that follows the Apply to scope.")
+		spin->setAccessibleDescription(Text::tr("The median of the selection in the displayed pose. Enter a value to move the selection, "
+												"keeping its shape, until its median %1 is that value, as one undo step that follows the Apply "
+												"to scope. Snap > Align sets every vertex to one coordinate.")
 										   .arg(name));
 		spin->setToolTip(spin->accessibleDescription());
 		connect(spin, &QDoubleSpinBox::valueChanged, this,
@@ -563,7 +911,7 @@ void ModelEditorTools::buildAlignRow()
 					std::array<double, 3> values{0, 0, 0};
 					values[axis] = value;
 					QString error;
-					if (!runAlign(1 << axis, ModelAlignTarget::Value, values, 0, &error))
+					if (!runAlign(1 << axis, ModelAlignTarget::Median, values, 0, &error))
 						refreshAlignRow();
 				});
 		auto *line = new QWidget;
@@ -685,7 +1033,11 @@ QVector<SelectField> selectFields(const ModelSelectRequest &request)
 		return {axis, extend};
 	case ModelSelectOperation::Linked:
 		return {{Text::tr("Stop at UV seams"), 0, 1, 0, [](const R &r) { return double(r.delimitSeams); }, [](R &r, double v) { r.delimitSeams = v > 0.5; },
-				 true}};
+				 true},
+				{Text::tr("Stop at sharp edges"), 0, 1, 0, [](const R &r) { return double(r.delimitSharp); }, [](R &r, double v) { r.delimitSharp = v > 0.5; },
+				 true},
+				{Text::tr("Stop above angle (degrees, 0 = off)"), 0, 180, 1, [](const R &r) { return r.delimitAngle; },
+				 [](R &r, double v) { r.delimitAngle = v; }}};
 	default:
 		return {};
 	}

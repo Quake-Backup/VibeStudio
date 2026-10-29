@@ -33,7 +33,10 @@ enum class ModelAlignTarget
 	Minimum,
 	Maximum,
 	// Each coordinate rounds to the nearest multiple of ModelAlignOptions::grid.
-	Grid
+	Grid,
+	// The whole selection moves, keeping its shape, so its centroid takes
+	// ModelAlignOptions::value on each chosen axis (Blender's Median fields).
+	Median
 };
 
 struct ModelAlignOptions

@@ -361,16 +361,19 @@ threshold, ratio, seed or spacing; the selection updates without an undo step.
 
 **Put vertices on an exact coordinate.** Select the vertices, then choose
 **Mesh > Snap > Align > Flatten X** (or **Y**, **Z**) to line them up on their
-centroid, or type a value in **Selection position** on the **Item** page, for
-example X = 0 for a model's centre line before **Symmetrize**. **Snap
+centroid, or **Align X to 3D Cursor** with the cursor at X = 0 for a model's
+centre line before **Symmetrize**. Typing a value in **Selection position** on
+the **Item** page moves the whole selection until its median takes it. **Snap
 Selection to Grid** rounds every selected vertex to the Move snap step. Press
 <kbd>F9</kbd> to switch between a value, the centroid, the minimum, the
-maximum and the grid. Seam copies move together, **Apply to** chooses every
+maximum, the grid and the median. With **Symmetry** on, mirror counterparts
+follow and centre-line vertices stay on the mirror plane. Seam copies move together, **Apply to** chooses every
 frame or the current one, and an alignment that would collapse a face is
 refused. See [Align vertices](../MODEL_TOOLS.md#align-vertices).
 
 **Add an edge where you need it.** Select two vertices and press <kbd>J</kbd>
-(**Vertex > Connect Vertex Path**) to join them with a straight cut, or select
+(**Vertex > Connect Vertex Path**) to join them with a straight cut (pick three
+or more one at a time to cut a path through them in that order), or select
 opposite sides of quads and choose **Edge > Connect Edges** to add edges
 across them without cutting a whole loop; <kbd>F9</kbd> sets the number of
 cuts and their slide. See
@@ -379,14 +382,18 @@ cuts and their slide. See
 **Weld and conform.** Point at a vertex and choose **Merge > Merge at Target
 Under Pointer** to weld the selection onto it, or turn on **Snap > Auto Merge
 Vertices** so moves weld what they bring together. Set **Snap to** to
-**Face** to slide armour or attachments over a body, or **Edge Midpoint** to
-centre them on an edge. See
+**Face** to slide armour or attachments over a body, **Face Project** to drop
+every moving vertex onto the surface behind it, or **Edge Midpoint** to centre
+them on an edge; Rotate, Scale and Extrude snap to the same targets, and
+**Snap > Pivot at Target Under Pointer** puts the pivot there. **Snap > Place
+Vertex…** types exact coordinates for one vertex. See
 [Snapping and welding](../MODEL_TOOLS.md#snapping-and-welding).
 
 **Catch faces pushed through the model.** When a bevel, inset, spin or similar
 tool makes faces cross other faces, the banner says so and **Mesh > Clean Up >
 Select New Intersections** selects them; turn on **Refuse New Intersections**
-to refuse such edits instead. See [New intersections](../MODEL_TOOLS.md#new-intersections).
+(kept between sessions) to refuse such edits instead. Crossings with other
+surfaces count too. See [New intersections](../MODEL_TOOLS.md#new-intersections).
 
 **Fix faces that vanish in game.** Choose **Mesh > Normals > Recalculate
 Outside** (<kbd>Shift</kbd>+<kbd>N</kbd> in the Blender profile) to turn every
@@ -394,7 +401,11 @@ face of the selection, or the whole surface, to face outward, across UV
 seams. See [Recalculate outside](../MODEL_TOOLS.md#recalculate-outside).
 
 **Make an edge hard or soft.** Select the edges and choose **Normals > Mark
-Sharp** for a crisp edge in game lighting, or **Clear Sharp** to smooth it.
+Sharp** for a crisp edge in game lighting, or **Clear Sharp** to smooth it;
+**Make Smoothing Group** makes the selected faces one smooth region with a hard
+border. The marks are saved with the source and survive **Recalculate
+Normals**, and the banner shows the vertices they cost against the MD3, MD2 and
+MDL budgets.
 See [Hard edges](../MODEL_TOOLS.md#hard-edges).
 
 **Remove geometry without leaving holes.** <kbd>X</kbd> opens **Delete**:
@@ -408,7 +419,7 @@ nearly flat faces of an import to meet the MD3, MD2 or MDL budget. See
 Model**: **Origin to Bounds Bottom (Feet)** puts a standing model's feet on the
 origin, **Turn Model 90° Left** or **Right** makes an import face +X, **Scale
 Model to Height…** scales it to Quake units, and **Transform Model…** takes
-exact values. Attachment tags, collision boxes, the skeleton and the MDL eye
+exact values, previewing them in the view as you type. Attachment tags, collision boxes, the skeleton and the MDL eye
 position move with the geometry in every frame, as one undo step. See
 [Transform Model](../MODEL_MESH.md#transform-model).
 

@@ -170,6 +170,12 @@ class ModelEditorTools final : public QObject
 	bool selectEdgeLoops(bool ring);
 	bool pickPath(const QPointF &point);
 	bool pickLinked(const QPointF &point, bool subtract);
+	// Merge at Target: the selection welds onto the vertex at the point
+	// (within 16 px), as the Merge menu's command does under the pointer.
+	bool mergeAtTarget(const QPointF &point);
+	// Pivot at Target Under Pointer: the custom pivot moves to the vertex, edge
+	// midpoint, edge point or face point under the pointer (the Snap to choice).
+	bool pivotAtTarget(const QPointF &point);
 
 	void setCursor3d(const ModelVec3 &point);
 	[[nodiscard]] ModelVec3 cursor3d() const;
@@ -287,6 +293,10 @@ class ModelEditorTools final : public QObject
 		QVector<ModelVec3> snapWorld, selectedPoints;
 		// Face snapping: the faces that do not move, in the displayed pose.
 		QVector<std::array<ModelVec3, 3>> snapTriangles;
+		// Edge snapping: the still edges, as end points.
+		QVector<std::array<ModelVec3, 2>> snapSegments;
+		// Face Project: the moving vertices (every seam copy), each projected.
+		QVector<int> snapVertices;
 		bool snapped = false;
 		QPointF snapPoint;
 		ModelKnifeOptions knife;
@@ -426,9 +436,27 @@ class ModelEditorTools final : public QObject
 	// Intersection guard: the face pairs the last tool made cross, and whether
 	// tools refuse such edits instead (model_editor_topology.cpp).
 	QVector<QPair<int, int>> m_lastIntersections;
+	// {edited-surface face, other surface, its face} for other surfaces.
+	QVector<std::array<int, 3>> m_lastCrossings;
 	int m_lastIntersectionSurface = -1;
 	bool m_refuseIntersections = false;
+	// Selection order: vertices in the order they joined the selection, for
+	// Connect Vertex Path. `m_vertexOrderKnown` stays true while each change
+	// added one vertex (with its seam copies) at a time; a box or loop
+	// selection adds many at once and leaves the order unknown.
+	QVector<int> m_vertexOrder;
+	int m_vertexOrderSurface = -1;
+	QByteArray m_vertexOrderRevision;
+	bool m_vertexOrderKnown = true;
+	void trackSelectionOrder();
+	// The vertex path for Connect Vertex Path: the selection in the order it
+	// was picked, when it was picked one vertex at a time; empty otherwise.
+	[[nodiscard]] QVector<int> pickedVertexPath() const;
 	void noteIntersections(const ModelEdit &edit, const ModelEditReport &report);
+	// Mark/Clear Sharp and smoothing groups, with the vertex cost in the banner.
+	bool runSharp(const ModelEdit &edit);
+	// Place Vertex…: a dialog of exact coordinates for one selected vertex.
+	bool placeVertex();
 	// Auto Merge: a modal move, rotate or scale welds what it brings within the
 	// weld distance (model_editor_topology.cpp).
 	bool m_autoMerge = false;

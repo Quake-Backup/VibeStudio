@@ -1684,6 +1684,16 @@ int StudioSettings::modelHistoryBudgetMiB() const
 	return std::clamp(m_settings->value(QStringLiteral("model/historyBudgetMiB"), 64).toInt(), 16, 4096);
 }
 
+bool StudioSettings::modelRefuseIntersections() const
+{
+	return m_settings->value(QStringLiteral("model/refuseIntersections"), false).toBool();
+}
+
+void StudioSettings::setModelRefuseIntersections(bool refuse)
+{
+	writeValue(QStringLiteral("model/refuseIntersections"), refuse);
+}
+
 void StudioSettings::setModelHistoryBudgetMiB(int mib)
 {
 	writeValue(QStringLiteral("model/historyBudgetMiB"), std::clamp(mib, 16, 4096));

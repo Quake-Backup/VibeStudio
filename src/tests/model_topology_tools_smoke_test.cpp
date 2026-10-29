@@ -8,11 +8,13 @@
 #include "core/model_whole_transform.h"
 #include "core/model_document.h"
 #include "core/model_geometric_topology.h"
+#include "core/model_intersections.h"
 #include "core/model_mesh_tools.h"
 #include "core/model_selection_tools.h"
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -217,6 +219,36 @@ void alignChecks()
 		other.selection = {0, {0}, {}};
 		other.tool.align.axes = 1;
 		expect(!applyModelEdit(&mesh, other, nullptr, &error), "alignment settings on another tool are refused");
+	}
+	// Median: the selection moves, keeping its shape, so its centroid takes the value.
+	{
+		// x in {-8, 0, 8}, y in {0, 8}: 0 (-8,0) 1 (0,0) 2 (8,0) 3 (-8,8) 4 (0,8) 5 (8,8).
+		auto mesh = gridMesh(2, 1, 8, -8, 0);
+		ModelSelection selection{0, {2, 5}, {}};
+		expect(applyModelEdit(&mesh, alignEdit(selection, 2, ModelAlignTarget::Median, {0, 10, 0}), &selection, &error), "move the median Y to 10",
+			   error);
+		const auto &s = mesh.surfaces[0];
+		expect(near(s.frames[0].positions[2].y, 6) && near(s.frames[0].positions[5].y, 14) && near(s.frames[1].positions[2].y, 6) &&
+				   near(s.frames[1].positions[2].z, 8) && near(s.frames[0].positions[2].x, 8),
+			   "the median lands on 10 with the shape kept, every pose moving by the reference pose's offset");
+	}
+	// Symmetry: mirror counterparts follow, centre-line vertices stay on the plane.
+	{
+		auto mesh = gridMesh(2, 1, 8, -8, 0);
+		auto edit = alignEdit({0, {1, 2, 5}, {}}, 1, ModelAlignTarget::Value, {4, 0, 0});
+		edit.tool.mirrorAxes = 1;
+		expect(applyModelEdit(&mesh, edit, nullptr, &error), "align X with Symmetry X", error);
+		const auto &s = mesh.surfaces[0];
+		expect(near(s.frames[0].positions[2].x, 4) && near(s.frames[0].positions[5].x, 4) && near(s.frames[0].positions[0].x, -4) &&
+				   near(s.frames[0].positions[3].x, -4) && near(s.frames[1].positions[0].x, -4),
+			   "the unselected mirror counterparts take the reflected coordinate");
+		expect(s.frames[0].positions[1].x == 0.0f && s.frames[0].positions[4].x == 0.0f, "the centre-line vertex stays on the mirror plane");
+		auto other = gridMesh(2, 1, 8, -8, 0);
+		auto lift = alignEdit({0, {2}, {}}, 2, ModelAlignTarget::Value, {0, 3, 0});
+		lift.tool.mirrorAxes = 1;
+		expect(applyModelEdit(&other, lift, nullptr, &error) && near(other.surfaces[0].frames[0].positions[0].y, 3) &&
+				   near(other.surfaces[0].frames[0].positions[0].x, -8) && near(other.surfaces[0].frames[0].positions[3].y, 8),
+			   "a counterpart takes the aligned axis only", error);
 	}
 }
 
@@ -816,9 +848,40 @@ bool outward(const ModelMesh &mesh, ModelVec3 centre, int surface = 0)
 	return true;
 }
 
+// An open hat: a crown (four walls and a top, open underneath) on a wide brim.
+// The brim outweighs the crown, so a vote against the centre alone would turn
+// the whole hat inside out; ray parity through the crown decides instead.
+ModelMesh hatMesh()
+{
+	const QVector<ModelVec3> p{{-5, -5, 0},	 {5, -5, 0},	 {5, 5, 0},		 {-5, 5, 0},	 {-5, -5, 10},	{5, -5, 10},
+							   {5, 5, 10},	 {-5, 5, 10},	 {-100, -100, 0}, {100, -100, 0}, {100, 100, 0}, {-100, 100, 0}};
+	const QVector<ModelTriangle> t{{4, 5, 6},  {4, 6, 7},	 {0, 1, 5},	 {0, 5, 4},	 {1, 2, 6},	 {1, 6, 5},	 {2, 3, 7},	 {2, 7, 6},
+								   {3, 0, 4},  {3, 4, 7},	 {8, 9, 1},	 {8, 1, 0},	 {9, 10, 2}, {9, 2, 1}, {10, 11, 3}, {10, 3, 2},
+								   {11, 8, 0}, {11, 0, 3}};
+	return meshOf(p, t);
+}
+
 void outsideChecks()
 {
 	QString error;
+	// Open pieces: ray parity through the crown keeps the hat outward.
+	{
+		auto hat = hatMesh();
+		const auto upward = [&](const ModelMesh &mesh, int face)
+		{
+			const auto &s = mesh.surfaces[0];
+			const auto &t = s.triangles[face];
+			const auto a = s.frames[0].positions[t.a], b = s.frames[0].positions[t.b], c = s.frames[0].positions[t.c];
+			return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+		};
+		expect(upward(hat, 0) > 0 && upward(hat, 10) > 0, "the hat's top and brim face up");
+		for (auto &t : hat.surfaces[0].triangles)
+			std::swap(t.b, t.c);
+		expect(applyModelEdit(&hat, toolOf(ModelEditKind::RecalculateOutside, {0, {}, {}}), nullptr, &error), "recalculate the inside-out hat", error);
+		expect(upward(hat, 0) > 0 && upward(hat, 10) > 0, "ray parity through the crown turns the open hat outward again");
+		expect(!applyModelEdit(&hat, toolOf(ModelEditKind::RecalculateOutside, {0, {}, {}}), nullptr, &error),
+			   "the outward hat is left alone");
+	}
 	// A seamed cube with faces flipped on several sides ends fully outward.
 	{
 		auto mesh = seamedCube();
@@ -966,6 +1029,94 @@ void sharpChecks()
 
 // ---- Target weld, auto-merge and explicit positions -------------------------
 
+// The top corners' normals point straight up on the top face and sideways on the sides.
+bool topSplit(const ModelSurface &s)
+{
+	bool ok = s.vertexCount == 12;
+	for (const auto &t : s.triangles)
+	{
+		bool top = true;
+		for (int v : {t.a, t.b, t.c})
+			top &= near(s.frames[0].positions[v].z, 8);
+		for (int v : {t.a, t.b, t.c})
+		{
+			const auto n = s.frames[0].normals[v];
+			if (top)
+				ok &= near(n.z, 1, 1e-4);
+			else if (near(s.frames[0].positions[v].z, 8))
+				ok &= near(n.z, 0, 1e-4);
+		}
+	}
+	return ok;
+}
+
+void sharpPersistenceChecks()
+{
+	QString error;
+	auto mesh = cubeMesh();
+	expect(applyModelEdit(&mesh, toolOf(ModelEditKind::MarkSharp, {0, {}, {}, topEdges(mesh.surfaces[0])}), nullptr, &error) &&
+			   mesh.surfaces[0].sharpEdges.size() == 4,
+		   "Mark Sharp stores the four top edges", error);
+	// The editable source keeps them (version 16), readable and packed.
+	const auto json = editableModelJson(mesh);
+	expect(json.value("version").toInt() == 16 && json.value("surfaces").toArray().first().toObject().value("sharpEdges").toArray().size() == 4,
+		   "the source writes sharpEdges at version 16");
+	for (auto encoding : {ModelSourceEncoding::Readable, ModelSourceEncoding::Packed})
+	{
+		ModelMesh reloaded;
+		const auto bytes = serializeEditableModel(mesh, &error, {}, encoding);
+		expect(parseEditableModel(bytes, &reloaded, &error) && reloaded.surfaces[0].sharpEdges == mesh.surfaces[0].sharpEdges,
+			   "sharp edges survive a save and reload", error);
+	}
+	// Recalculate Normals and Shade Smooth keep the marked edges hard.
+	ModelEdit recalc;
+	recalc.kind = ModelEditKind::RecalculateNormals;
+	auto recalculated = mesh;
+	expect(applyModelEdit(&recalculated, recalc, nullptr, &error) && topSplit(recalculated.surfaces[0]), "Recalculate Normals keeps the top hard", error);
+	auto smooth = toolOf(ModelEditKind::ShadeSmooth, {0, {}, {}});
+	for (int face = 0; face < 12; ++face)
+		smooth.selection.faces.insert(face);
+	auto smoothed = mesh;
+	expect(applyModelEdit(&smoothed, smooth, nullptr, &error) && topSplit(smoothed.surfaces[0]) && smoothed.surfaces[0].sharpEdges.size() == 4,
+		   "Shade Smooth welds, then splits again along the stored edges", error);
+	// Edits that renumber vertices keep the marks on the same edges.
+	auto poked = mesh;
+	auto poke = toolOf(ModelEditKind::PokeFaces, {0, {}, {0}});
+	expect(applyModelEdit(&poked, poke, nullptr, &error) && poked.surfaces[0].sharpEdges.size() == 4 && applyModelEdit(&poked, recalc, nullptr, &error),
+		   "the marks survive a topology edit elsewhere", error);
+	// A smoothing group of the top face is hard against the sides.
+	auto grouped = cubeMesh();
+	auto group = toolOf(ModelEditKind::MarkSharp, {0, {}, {2, 3}});
+	group.tool.topology.smoothingGroup = true;
+	expect(applyModelEdit(&grouped, group, nullptr, &error) && topSplit(grouped.surfaces[0]) && grouped.surfaces[0].sharpEdges.size() == 4,
+		   "a smoothing group of the top face marks its border sharp", error);
+	auto noFaces = toolOf(ModelEditKind::MarkSharp, {0, {}, {}, topEdges(cubeMesh().surfaces[0])});
+	noFaces.tool.topology.smoothingGroup = true;
+	auto plain = cubeMesh();
+	expect(!applyModelEdit(&plain, noFaces, nullptr, &error), "a smoothing group needs faces");
+	// Clearing removes the marks; MD3 export carries the split normals.
+	auto cleared = mesh;
+	expect(applyModelEdit(&cleared, toolOf(ModelEditKind::ClearSharp, {0, {}, {}, topEdges(cleared.surfaces[0])}), nullptr, &error) &&
+			   cleared.surfaces[0].sharpEdges.isEmpty() && editableModelJson(cleared).value("version").toInt() < 16,
+		   "Clear Sharp removes the marks and the source drops back below version 16", error);
+	auto native = mesh;
+	native.surfaces[0].skinPaths = {QStringLiteral("models/cube/skin.pcx")};
+	const auto md3 = exportEditableModel(native, QStringLiteral("md3"), 0, &error);
+	const auto restored = decodeModelMesh(QStringLiteral("cube.md3"), md3);
+	bool upright = false, sideways = false;
+	if (restored.isValid())
+		for (int v = 0; v < restored.surfaces[0].vertexCount; ++v)
+		{
+			const auto p = restored.surfaces[0].frames[0].positions[v], n = restored.surfaces[0].frames[0].normals[v];
+			if (near(p.z, 8, 0.05) && near(p.x, 8, 0.05) && near(p.y, 8, 0.05))
+			{
+				upright |= n.z > 0.95f;
+				sideways |= std::abs(n.z) < 0.05f;
+			}
+		}
+	expect(restored.isValid() && upright && sideways, "the MD3 keeps a hard top edge as two normals at the corner", error);
+}
+
 void weldChecks()
 {
 	QString error;
@@ -1042,6 +1193,126 @@ void weldChecks()
 	}
 }
 
+// ---- Quad-preferring refill ----------------------------------------------------
+
+void quadRefillChecks()
+{
+	QString error;
+	// Dissolve the inner edges of two neighbouring cells, keeping the side
+	// midpoints: the six-cornered polygon is filled again as two squares.
+	auto mesh = gridMesh(3, 3);
+	const auto &s = mesh.surfaces[0];
+	QSet<ModelEdge> inner;
+	QHash<ModelEdge, int> uses;
+	for (int face : {0, 1, 2, 3})
+	{
+		const auto &t = s.triangles[face];
+		for (auto e : {modelEdge(t.a, t.b), modelEdge(t.b, t.c), modelEdge(t.c, t.a)})
+			++uses[e];
+	}
+	for (auto it = uses.cbegin(); it != uses.cend(); ++it)
+		if (it.value() == 2)
+			inner.insert(it.key());
+	auto edit = toolOf(ModelEditKind::DissolveEdges, {0, {}, {}, inner});
+	edit.tool.topology.dissolveVertices = false;
+	ModelSelection selection;
+	expect(inner.size() == 3 && applyModelEdit(&mesh, edit, &selection, &error) && selection.faces.size() == 4, "dissolve two cells into one polygon",
+		   error);
+	const auto &after = mesh.surfaces[0];
+	ModelQuadTopology quads;
+	int squares = 0;
+	if (expect(buildModelQuadTopology(after, 0, 40, &quads, &error), "pair the result into quads", error))
+		for (const auto &element : std::as_const(quads.elements))
+			if (element.quad() && selection.faces.contains(element.faces[0]) && selection.faces.contains(element.faces[1]))
+				++squares;
+	bool shared = false;
+	for (int face : std::as_const(selection.faces))
+	{
+		const auto &t = after.triangles[face];
+		for (const auto &[a, b] : {std::pair{t.a, t.b}, std::pair{t.b, t.c}, std::pair{t.c, t.a}})
+		{
+			const auto p = after.frames[0].positions[a], q = after.frames[0].positions[b];
+			shared |= near(p.x, 8) && near(q.x, 8) && std::abs(p.y - q.y) > 7;
+		}
+	}
+	expect(squares == 2 && shared, "the refill is two quads that share the side between the cells");
+	// A 2x2 block keeping its side midpoints: an eight-cornered square. Ear
+	// clipping leaves a diamond the quad view pairs only once; the refill
+	// the quad view reads as the most quads pairs two of its three.
+	auto block = gridMesh(3, 3);
+	QSet<int> blockFaces;
+	for (int cell : {0, 1, 3, 4})
+		blockFaces << 2 * cell << 2 * cell + 1;
+	QHash<ModelEdge, int> blockUses;
+	for (int face : std::as_const(blockFaces))
+	{
+		const auto &bt = block.surfaces[0].triangles[face];
+		for (auto e : {modelEdge(bt.a, bt.b), modelEdge(bt.b, bt.c), modelEdge(bt.c, bt.a)})
+			++blockUses[e];
+	}
+	QSet<ModelEdge> blockInner;
+	for (auto it = blockUses.cbegin(); it != blockUses.cend(); ++it)
+		if (it.value() == 2)
+			blockInner.insert(it.key());
+	auto blockEdit = toolOf(ModelEditKind::DissolveEdges, {0, {}, {}, blockInner});
+	blockEdit.tool.topology.dissolveVertices = false;
+	ModelSelection refilled;
+	expect(applyModelEdit(&block, blockEdit, &refilled, &error) && refilled.faces.size() == 6, "dissolve a 2x2 block into an eight-cornered polygon",
+		   error);
+	ModelQuadTopology blockQuads;
+	int paired = 0;
+	if (expect(buildModelQuadTopology(block.surfaces[0], 0, 40, &blockQuads, &error), "pair the block's refill", error))
+		for (const auto &element : std::as_const(blockQuads.elements))
+			if (element.quad() && refilled.faces.contains(element.faces[0]) && refilled.faces.contains(element.faces[1]))
+				++paired;
+	expect(paired == 2, "the block's refill pairs into two quads and one pair of triangles");
+}
+
+// ---- Select Linked limits -----------------------------------------------------
+
+void linkedLimitChecks(const QString &path)
+{
+	QString error;
+	auto mesh = cubeMesh();
+	expect(applyModelEdit(&mesh, toolOf(ModelEditKind::MarkSharp, {0, {}, {}, topEdges(mesh.surfaces[0])}), nullptr, &error),
+		   "mark the cube's top edges sharp", error);
+	ModelSelectRequest request;
+	request.operation = ModelSelectOperation::Linked;
+	request.mode = ModelSelectionMode::Faces;
+	const ModelSelection top{0, {}, {2, 3}};
+	ModelSelection result;
+	expect(selectModelComponents(mesh, top, request, &result, &error) && result.faces.size() == 12, "Select Linked crosses sharp edges by default", error);
+	request.delimitSharp = true;
+	expect(selectModelComponents(mesh, top, request, &result, &error) && result.faces == QSet<int>{2, 3}, "Stop at sharp edges keeps the top face", error);
+	// The angle limit on an unmarked cube: its 90-degree edges stop a 45-degree limit.
+	const auto plain = cubeMesh();
+	request.delimitSharp = false;
+	request.delimitAngle = 45;
+	expect(selectModelComponents(plain, top, request, &result, &error) && result.faces == QSet<int>{2, 3}, "a 45-degree limit stops at the cube's edges",
+		   error);
+	request.delimitAngle = 95;
+	expect(selectModelComponents(plain, top, request, &result, &error) && result.faces.size() == 12, "a limit above 90 degrees links the whole cube",
+		   error);
+	request.delimitAngle = 200;
+	expect(!selectModelComponents(plain, top, request, &result, &error), "an angle limit above 180 degrees is refused");
+	// The CLI: --delimit-sharp and --delimit-angle.
+	ModelDocument document;
+	expect(document.setMesh(mesh, &error) && document.save(path, false, &error), "save the marked cube", error);
+	const auto select = [&](const QStringList &extra)
+	{
+		return cli::runModelSelect(QStringList{QStringLiteral("vibestudio"), QStringLiteral("model"), QStringLiteral("select"), path,
+											   QStringLiteral("--select"), QStringLiteral("linked"), QStringLiteral("--faces"), QStringLiteral("2,3")} +
+								   extra);
+	};
+	auto run = select({QStringLiteral("--delimit-sharp")});
+	expect(run.exitCode == 0 && run.payload.value("selection").toObject().value("faces").toArray().size() == 2, "model select --delimit-sharp", run.error);
+	run = select({QStringLiteral("--delimit-angle"), QStringLiteral("45")});
+	expect(run.exitCode == 0 && run.payload.value("selection").toObject().value("faces").toArray().size() == 2, "model select --delimit-angle 45",
+		   run.error);
+	run = select({QStringLiteral("--delimit-angle"), QStringLiteral("181")});
+	expect(run.exitCode == 2, "model select refuses --delimit-angle 181");
+}
+
 // ---- Intersection guard -------------------------------------------------------
 
 ModelEdit deepInset(bool refuse)
@@ -1101,6 +1372,81 @@ void intersectionChecks()
 		expect(applyModelEdit(&mesh, edit, nullptr, &error, {}, &report) && report.introducedIntersections.isEmpty(),
 			   "a blade through the cube from before the edit is not reported", error);
 	}
+	// Other surfaces: a plate through the cube's walls (crossing them before the
+	// edit) is crossed anew only by the walls of a shallow inset.
+	{
+		auto mesh = cubeMesh();
+		const auto plate = meshOf({{-12, -12, 4}, {12, -12, 4}, {12, 12, 4}, {-12, 12, 4}}, {{0, 1, 2}, {0, 2, 3}});
+		auto surface = plate.surfaces[0];
+		surface.name = QStringLiteral("plate");
+		mesh.surfaces << surface;
+		updateEditableModelMetadata(&mesh);
+		auto edit = toolOf(ModelEditKind::InsetFaces, {0, {}, {2, 3}});
+		edit.tool.insetThickness = 2;
+		edit.tool.insetDepth = -6;
+		ModelEditReport report;
+		auto kept = mesh;
+		expect(applyModelEdit(&kept, edit, nullptr, &error, {}, &report) && report.introducedIntersections.isEmpty() &&
+				   !report.introducedCrossings.isEmpty(),
+			   "the inset's walls are reported crossing the plate", error);
+		bool named = true;
+		for (const auto &crossing : std::as_const(report.introducedCrossings))
+		{
+			const auto &s = kept.surfaces[0];
+			const bool face = crossing[0] >= 0 && crossing[0] < s.triangles.size();
+			// A face of the inset ring (|x|, |y| up to 6), not an old wall (8).
+			bool inner = false;
+			if (face)
+				for (int v : {s.triangles[crossing[0]].a, s.triangles[crossing[0]].b, s.triangles[crossing[0]].c})
+					inner |= std::max(std::abs(s.frames[0].positions[v].x), std::abs(s.frames[0].positions[v].y)) < 7.5f;
+			named &= crossing[1] == 1 && crossing[2] >= 0 && crossing[2] < 2 && face && inner;
+		}
+		expect(named, "each crossing names a new face of the cube and a face of the plate; the old walls are not listed");
+		auto refused = mesh;
+		edit.tool.topology.refuseIntersections = true;
+		const auto before = bytesOf(refused);
+		expect(!applyModelEdit(&refused, edit, nullptr, &error) && bytesOf(refused) == before && error.contains(QStringLiteral("surface 1")),
+			   "Refuse New Intersections refuses a crossing of another surface", error);
+	}
+	// Dense meshes: the guard scans only the faces an edit makes or moves.
+	{
+		const int cells = 128;
+		QVector<ModelVec3> positions;
+		QVector<ModelTriangle> triangles;
+		for (int j = 0; j <= cells; ++j)
+			for (int i = 0; i <= cells; ++i)
+				positions.append({float(i), float(j), float(((i * 7 + j * 3) % 5) * 0.05)});
+		const auto at = [&](int i, int j) { return j * (cells + 1) + i; };
+		for (int j = 0; j < cells; ++j)
+			for (int i = 0; i < cells; ++i)
+			{
+				triangles.append({at(i, j), at(i + 1, j), at(i + 1, j + 1)});
+				triangles.append({at(i, j), at(i + 1, j + 1), at(i, j + 1)});
+			}
+		const auto dense = meshOf(positions, triangles);
+		// The two faces of the middle cell.
+		const int middle = 2 * ((cells / 2) * cells + cells / 2);
+		auto edit = toolOf(ModelEditKind::InsetFaces, {0, {}, {middle, middle + 1}});
+		edit.tool.insetThickness = 0.1;
+		QElapsedTimer timer;
+		auto plain = dense;
+		timer.start();
+		const bool plainOk = applyModelEdit(&plain, edit, nullptr, &error);
+		const qint64 plainMs = timer.elapsed();
+		auto guarded = dense;
+		ModelEditReport report;
+		timer.restart();
+		const bool guardedOk = applyModelEdit(&guarded, edit, nullptr, &error, {}, &report);
+		const qint64 guardedMs = timer.elapsed();
+		ModelIntersectionReport full;
+		timer.restart();
+		const bool scanned = inspectModelIntersections(guarded, {}, &full, &error);
+		const qint64 fullMs = timer.elapsed();
+		expect(plainOk && guardedOk && scanned && report.introducedIntersections.isEmpty() && !report.intersectionCheckLimited && full.findings.isEmpty(),
+			   "a dense grid's inset passes the guard", error);
+		std::cout << "intersection guard on " << triangles.size() << " triangles in 2 poses: inset " << plainMs << " ms, inset with guard "
+				  << guardedMs << " ms, whole-mesh scan " << fullMs << " ms\n";
+	}
 }
 
 cli::ModelToolsCliResult runTool(const QStringList &arguments)
@@ -1125,6 +1471,13 @@ void alignCli(const QString &input, const QString &output)
 	expect(runTool({input, "--tool", "align", "--axis", "xx", "--value", "0", "--vertices", "0", "--output", output, "--overwrite"}).exitCode == 2,
 		   "a repeated axis is a usage error");
 	expect(runTool({input, "--tool", "snap-grid", "--vertices", "0", "--output", output, "--overwrite"}).exitCode == 2, "snap-grid needs --grid");
+	result = runTool({input, "--tool", "align", "--axis", "x", "--to", "median", "--value", "5", "--vertices", "0,1", "--mirror", "y", "--output", output,
+					  "--overwrite"});
+	expect(result.exitCode == 0 && result.payload.value("align").toObject().value("target").toString() == "median" &&
+			   result.payload.value("align").toObject().value("mirror").toString() == "y",
+		   "align --to median --value with --mirror", result.error);
+	expect(runTool({input, "--tool", "align", "--axis", "x", "--to", "median", "--vertices", "0", "--output", output, "--overwrite"}).exitCode == 2,
+		   "align --to median without --value is a usage error");
 	result = runTool({input, "--tool", "connect", "--vertices", "8,15", "--output", output, "--overwrite"});
 	expect(result.exitCode == 0 && result.payload.value("selection").toObject().value("edges").toArray().size() == 4, "connect --vertices cuts a path",
 		   result.error);
@@ -1159,6 +1512,10 @@ void alignCli(const QString &input, const QString &output)
 		result = runTool({smoothCube, "--tool", "mark-sharp", "--edges", top.join(QLatin1Char(',')), "--output", output, "--overwrite"});
 		expect(result.exitCode == 0 && result.payload.value("surface").toObject().value("vertices").toInt() == 12, "mark-sharp splits the top corners",
 			   result.error);
+		result = runTool({smoothCube, "--tool", "smoothing-group", "--faces", "2,3", "--output", output, "--overwrite"});
+		ModelDocument grouped;
+		expect(result.exitCode == 0 && grouped.load(output, &error) && grouped.mesh().surfaces[0].sharpEdges.size() == 4,
+			   "smoothing-group saves the region's hard border", result.error);
 		result = runTool({smoothCube, "--tool", "inset", "--faces", "2,3", "--thickness", "2", "--depth", "-20", "--output", output, "--overwrite"});
 		expect(result.exitCode == 0 && !result.payload.value("introducedIntersections").toArray().isEmpty(),
 			   "JSON lists the faces an inset made cross", result.error);
@@ -1202,8 +1559,11 @@ int main(int argc, char **argv)
 	wholeTransformChecks();
 	connectChecks();
 	dissolveChecks();
+	quadRefillChecks();
 	outsideChecks();
 	sharpChecks();
+	sharpPersistenceChecks();
+	linkedLimitChecks(temporary.filePath("sharp-cube.mesh.json"));
 	weldChecks();
 	intersectionChecks();
 	QString error;

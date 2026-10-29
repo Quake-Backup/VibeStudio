@@ -75,9 +75,11 @@ scope, validation and guarded output match the Mesh Editor. See
 
 `model tool --tool align` gives the selected vertices one coordinate:
 `--axis x` (or several axes, such as `xz`) with `--value N` or
-`--to centroid|min|max`. `model tool --tool snap-grid --grid STEP` rounds them
-to the grid. Both move seam copies together, take `--frame all|N` and refuse
-an edit that would collapse a face. See
+`--to centroid|min|max`; `--to median --value N` instead moves the selection
+until its median takes the value. `model tool --tool snap-grid --grid STEP`
+rounds them to the grid. Both move seam copies together, take `--frame all|N`
+and `--mirror x|y|z` (mirror counterparts follow) and refuse an edit that would
+collapse a face. See
 [Align vertices](../MODEL_TOOLS.md#align-vertices).
 
 `model tool --tool connect --vertices a,b,c` joins a path of vertices with
@@ -95,8 +97,9 @@ together, and `--tool place --vertices a,b --positions x,y,z;x,y,z` sets exact
 positions. See [Snapping and welding](../MODEL_TOOLS.md#snapping-and-welding).
 
 `model tool` reports faces a bevel, inset, spin or similar tool made cross as
-`introducedIntersections` in JSON; `--refuse-intersections` refuses such an
-edit with exit code 4. See [New intersections](../MODEL_TOOLS.md#new-intersections).
+`introducedIntersections` in JSON (and crossings with other surfaces as
+`introducedCrossings`); `--refuse-intersections` refuses such an edit with
+exit code 4. See [New intersections](../MODEL_TOOLS.md#new-intersections).
 
 `model tool --tool mark-sharp --edges a:b,c:d` makes edges hard for vertex
 normals and `--tool clear-sharp` smooths them. See

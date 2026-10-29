@@ -1000,9 +1000,13 @@ void ModelEditorTools::buildHeader()
 	m_snapElement = new QComboBox;
 	m_snapElement->setObjectName(QStringLiteral("meshSnapElement"));
 	m_snapElement->setAccessibleName(Text::tr("Snap to"));
-	m_snapElement->setToolTip(Text::tr("While snapping (the Snap toggle, or Ctrl held during a move), snap to grid increments, or "
-									   "make the nearest moving vertex land on the vertex, edge midpoint or face under the pointer."));
-	m_snapElement->addItems({Text::tr("Snap: Increment"), Text::tr("Snap: Vertex"), Text::tr("Snap: Edge Midpoint"), Text::tr("Snap: Face")});
+	m_snapElement->setToolTip(Text::tr("While snapping (the Snap toggle, or Ctrl held during a move), snap to grid increments, make the "
+									   "nearest moving vertex land on the vertex, edge midpoint, face or edge under the pointer, or project "
+									   "every moving vertex onto the faces behind it. Rotate and Scale turn or stretch the nearest vertex "
+									   "onto the target about the pivot, Extrude reaches the target's depth, and Pivot at Target Under "
+									   "Pointer moves the pivot there."));
+	m_snapElement->addItems({Text::tr("Snap: Increment"), Text::tr("Snap: Vertex"), Text::tr("Snap: Edge Midpoint"), Text::tr("Snap: Face"),
+							 Text::tr("Snap: Face Project"), Text::tr("Snap: Edge")});
 	m_connected = new QCheckBox(Text::tr("Connected"));
 	m_connected->setObjectName(QStringLiteral("meshProportionalConnected"));
 	m_connected->setToolTip(Text::tr("Measure the falloff along the mesh instead of straight through space."));
@@ -2311,6 +2315,16 @@ QVector<LastField> lastFields(const ModelEdit &edit, const ModelMesh *mesh = nul
 				 [](E &e, double v) { e.tool.targetTriangles = int(v); }},
 				{Text::tr("Keep borders"), 0, 1, 0, [](const E &e) { return double(e.tool.preserveBoundary); },
 				 [](E &e, double v) { e.tool.preserveBoundary = v > 0.5; }, true}};
+	case ModelEditKind::SetVertexPositions:
+	{
+		QVector<LastField> fields;
+		const char *names[3]{"X", "Y", "Z"};
+		for (int axis = 0; edit.tool.topology.positions.size() == 1 && axis < 3; ++axis)
+			fields.append({Text::tr("Position %1").arg(QLatin1String(names[axis])), -1000000, 1000000, 4,
+						   [axis](const E &e) { return e.tool.topology.positions.first()[axis]; },
+						   [axis](E &e, double v) { e.tool.topology.positions.first()[axis] = v; }});
+		return fields;
+	}
 	case ModelEditKind::TransformModel:
 		return vector3(Text::tr("Move"), &E::translation, -1000000, 1000000) + vector3(Text::tr("Rotate"), &E::rotation, -36000, 36000) +
 			   vector3(Text::tr("Scale"), &E::scale, -10000, 10000) + vector3(Text::tr("Pivot"), &E::pivot, -1000000, 1000000);
@@ -2337,19 +2351,20 @@ QVector<LastField> lastFields(const ModelEdit &edit, const ModelMesh *mesh = nul
 	case ModelEditKind::AlignVertices:
 	{
 		const auto target = edit.tool.align.target;
-		QVector<LastField> fields{{Text::tr("Align to"), 0, 4, 0, [](const E &e) { return double(int(e.tool.align.target)); },
+		QVector<LastField> fields{{Text::tr("Align to"), 0, 5, 0, [](const E &e) { return double(int(e.tool.align.target)); },
 								   [](E &e, double v)
 								   {
 									   e.tool.align.target = ModelAlignTarget(int(v));
 									   // The grid step belongs to grid snapping only.
 									   e.tool.align.grid = e.tool.align.target != ModelAlignTarget::Grid ? 0 : e.tool.align.grid > 0 ? e.tool.align.grid : 1;
 								   },
-								   false, {Text::tr("Value"), Text::tr("Centroid"), Text::tr("Minimum"), Text::tr("Maximum"), Text::tr("Grid")}, true}};
+								   false, {Text::tr("Value"), Text::tr("Centroid"), Text::tr("Minimum"), Text::tr("Maximum"), Text::tr("Grid"), Text::tr("Median")},
+								   true}};
 		const char *axes[3]{"X", "Y", "Z"};
 		for (int axis = 0; axis < 3; ++axis)
 			fields.append({Text::tr("Axis %1").arg(QLatin1String(axes[axis])), 0, 1, 0, [axis](const E &e) { return double((e.tool.align.axes >> axis) & 1); },
 						   [axis](E &e, double v) { e.tool.align.axes = v > 0.5 ? e.tool.align.axes | (1 << axis) : e.tool.align.axes & ~(1 << axis); }, true});
-		for (int axis = 0; target == ModelAlignTarget::Value && axis < 3; ++axis)
+		for (int axis = 0; (target == ModelAlignTarget::Value || target == ModelAlignTarget::Median) && axis < 3; ++axis)
 			fields.append({Text::tr("Value %1").arg(QLatin1String(axes[axis])), -1000000, 1000000, 4, [axis](const E &e) { return e.tool.align.value[axis]; },
 						   [axis](E &e, double v) { e.tool.align.value[axis] = v; }});
 		if (target == ModelAlignTarget::Grid)
@@ -2440,6 +2455,8 @@ QString kindTitle(ModelEditKind kind)
 		return Text::tr("UV Projection");
 	case ModelEditKind::AlignVertices:
 		return Text::tr("Align Vertices");
+	case ModelEditKind::SetVertexPositions:
+		return Text::tr("Place Vertices");
 	case ModelEditKind::TransformModel:
 		return Text::tr("Transform Model");
 	case ModelEditKind::ConnectVertices:
@@ -2815,6 +2832,7 @@ QString ModelEditorTools::budgetSummary() const
 
 void ModelEditorTools::documentChanged()
 {
+	trackSelectionOrder();
 	// Hidden faces are kept by index; a surface whose faces changed shows
 	// again rather than hiding the wrong ones.
 	if (hasHidden())

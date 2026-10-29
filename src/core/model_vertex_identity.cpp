@@ -17,6 +17,19 @@ bool validateModelVertexIdentities(const ModelSurface &surface, QString *error, 
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, error);
 	if (!work.check())
 		return false;
+	if (surface.topologyVertices.isEmpty() && !surface.sharpEdges.isEmpty())
+	{
+		if (error)
+			*error = Text::tr("Surface %1 has sharp edges without vertex connectivity identities.").arg(surface.name);
+		return false;
+	}
+	for (const auto &edge : surface.sharpEdges)
+		if (edge.first < 0 || edge.second <= edge.first || edge.second >= surface.vertexCount)
+		{
+			if (error)
+				*error = Text::tr("Surface %1 has an invalid sharp edge.").arg(surface.name);
+			return false;
+		}
 	if (surface.topologyVertices.isEmpty())
 		return true;
 	if (surface.topologyVertices.size() != surface.vertexCount)
@@ -67,6 +80,20 @@ void compactModelVertexIdentities(ModelSurface *surface)
 			labels.insert(identity, label);
 			identity = label;
 		}
+	}
+	// Sharp edges name identities; they follow the relabelling, and an edge
+	// whose vertices are gone goes with them.
+	if (!surface->sharpEdges.isEmpty())
+	{
+		QSet<QPair<int, int>> sharp;
+		for (const auto &edge : std::as_const(surface->sharpEdges))
+			if (labels.contains(edge.first) && labels.contains(edge.second))
+			{
+				const int a = labels.value(edge.first), b = labels.value(edge.second);
+				if (a != b)
+					sharp.insert({std::min(a, b), std::max(a, b)});
+			}
+		surface->sharpEdges = std::move(sharp);
 	}
 }
 void detachModelVertexIdentity(ModelSurface *surface, int vertex, QHash<int, int> *copies)

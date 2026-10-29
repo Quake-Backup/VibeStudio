@@ -78,6 +78,9 @@ struct ModelEditReport
 	// resulting face indices on the edited surface (lower index first).
 	// Intersections that were there before the edit are not listed.
 	QVector<QPair<int, int>> introducedIntersections;
+	// The same for faces of other surfaces: {edited-surface face, other
+	// surface, its face}, ordered.
+	QVector<std::array<int, 3>> introducedCrossings;
 	// The intersection check stopped at its work limits; the list may be short.
 	bool intersectionCheckLimited = false;
 	// What a tool adjusted on its own, in words for the status line and CLI,

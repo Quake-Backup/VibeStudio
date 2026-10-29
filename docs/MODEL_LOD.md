@@ -50,7 +50,8 @@ after `R_LoadMD3` lowercases them and drops a final `_` and character, and
 - **hand-made**: another model file (an editable source, or an MD3, MD2, MDL or
   OBJ imported as one), absolute or relative to the base source's folder.
 
-An editable source with a recipe is schema version 13 and stores it under
+Stored sharp edges ([Hard edges](MODEL_TOOLS.md#hard-edges)) make a source
+version 16. An editable source with a recipe is schema version 13 and stores it under
 `detailLevels`:
 
 ```json

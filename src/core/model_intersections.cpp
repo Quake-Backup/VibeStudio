@@ -177,10 +177,14 @@ bool inspectModelIntersections(const ModelMesh &mesh, const ModelIntersectionOpt
 			return false;
 		QVector<int> stack;
 		stack.reserve(32);
+		// The faces whose pairs are scanned: every face, the chosen surface's,
+		// or the chosen faces of that surface.
+		const auto chosen = [&](const Face &face)
+		{ return options.surface < 0 || (face.surface == options.surface && (options.faces.isEmpty() || options.faces.contains(face.face))); };
 		for (int first = 0; first < faces.size(); ++first)
 		{
 			const auto &a = faces[first];
-			if (options.surface >= 0 && a.surface != options.surface)
+			if (!chosen(a))
 				continue;
 			stack = {0};
 			while (!stack.isEmpty())
@@ -206,7 +210,7 @@ bool inspectModelIntersections(const ModelMesh &mesh, const ModelIntersectionOpt
 					if (second == first || (options.surface < 0 && second < first))
 						continue;
 					const auto &b = faces[second];
-					if ((options.surface >= 0 && b.surface == options.surface && second < first) || !a.bounds.touches(b.bounds))
+					if ((options.surface >= 0 && chosen(b) && second < first) || !a.bounds.touches(b.bounds))
 						continue;
 					if (++report.candidatePairs > options.pairLimit)
 						return fail(error, Text::tr("The intersection scan exceeded its face-pair limit. Scan one pose or one surface."));

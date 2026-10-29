@@ -261,12 +261,15 @@ Selection operators are adjustable the same way, without touching the model or
 its history: after **Select Similar**, **Sharp Edges**, **Random**, **Checker
 Deselect**, **Side of Axis**, **Mirror Selection** or **Select Linked**, the
 panel shows the operator's threshold (degrees, or percent for area and
-length), ratio and seed, every nth and offset, axis and side, or **Stop at UV
-seams**, with **Extend** where the operator can add to the selection. Each
-change selects again from the selection the operator started with, so the
-result is the same as running it with those settings, as `model select` does
-with `--threshold`, `--ratio`, `--seed`, `--nth`, `--offset`, `--axis`,
-`--negative`, `--extend` and `--delimit-seams`. Changing the selection any
+length), ratio and seed, every nth and offset, axis and side, or **Select
+Linked**'s limits (**Stop at UV seams**, **Stop at sharp edges** for edges
+marked sharp, and **Stop above angle** for edges whose faces turn by more than
+that many degrees, as Blender's Delimit options do), with **Extend** where the
+operator can add to the selection. Each change selects again from the
+selection the operator started with, so the result is the same as running it
+with those settings, as `model select` does with `--threshold`, `--ratio`,
+`--seed`, `--nth`, `--offset`, `--axis`, `--negative`, `--extend`,
+`--delimit-seams`, `--delimit-sharp` and `--delimit-angle`. Changing the selection any
 other way, or editing the model, returns the panel to the last edit.
 
 ## Keyboard Focus
@@ -423,10 +426,25 @@ toggle, or Ctrl held during **G**) lands on:
 | Increment | Grid steps of the Move snap step |
 | Vertex | The vertex under the pointer |
 | Edge Midpoint | The middle of the edge under the pointer |
+| Edge | The point of the edge under the pointer nearest the pointer's line of sight |
 | Face | The point of the face under the pointer, so armour and attachments conform to a body |
+| Face Project | Every moving vertex, each on its own: it lands on the face behind it in the view, or keeps the move where there is none |
 
 The banner says what the move snapped to, and only geometry that is not
-moving is a target.
+moving is a target. The same targets work beyond moves:
+
+- **Rotate** turns the moving vertex nearest the target onto the target's
+  direction from the pivot, about the rotation axis.
+- **Scale** stretches the moving vertex nearest the target out to the target's
+  distance from the pivot, measured along the constrained axis or plane.
+- **Extrude** along the normal reaches the target's depth, even in a view that
+  looks straight down the normal.
+- **Snap > Pivot at Target Under Pointer** moves the custom pivot onto the
+  target under the pointer (the vertex, edge midpoint, edge point or face
+  point, as **Snap to** says), so the next rotation or scale turns about it.
+
+Face Project is one **Place Vertices** step: **Adjust Last Operation** keeps
+it, and with **Apply to: Current frame** the other poses stay as they were.
 
 **Merge > Merge at Target Under Pointer** welds the selected vertices onto the
 vertex under the pointer. The target keeps its position in every pose, its UVs
@@ -440,9 +458,13 @@ within the **Weld Distance** (Item page) of another vertex, in the same undo
 step, as Blender's Auto Merge and MilkShape 3D's Snap Together do. It works
 with the **All frames** scope only, since a weld changes every pose.
 
-`model tool --tool place --vertices a,b --positions x,y,z;x,y,z` gives
-vertices explicit positions: the reference pose takes each position and other
-poses keep their offsets from it, or with `--frame N` that pose alone changes.
+**Snap > Place Vertex…** (also in the **Vertex** menu) types exact X, Y and Z
+coordinates for one selected vertex and every UV seam copy of it; **Adjust
+Last Operation** keeps the coordinates editable. `model tool --tool place
+--vertices a,b --positions x,y,z;x,y,z` gives several vertices explicit
+positions. Either way the shown (reference) pose takes each position and other
+poses keep their offsets from it, or with `--frame N` (**Apply to: Current frame**)
+that pose alone changes.
 
 ### New intersections
 
@@ -456,13 +478,23 @@ Select New Intersections** selects them. Crossings that were there before the
 edit are not reported again. Intentional interpenetration (a belt through a
 torso, overlapping armour plates) is common, so this is a warning by default;
 **Mesh > Clean Up > Refuse New Intersections** turns it into a refusal that
-leaves the model unchanged, for this session.
+leaves the model unchanged; the choice is kept between sessions.
 
-The check scans the edited surface in every stored pose with the same
-inspection as **Health**; on a model too large for its work limits the edit
-goes ahead and the CLI reports `intersectionCheckLimited`. Crossings with other
-surfaces are left to **Health**. On a dense surface the check adds a scan of
-the surface before and after each of these edits.
+The check runs the same inspection as **Health**, in every stored pose, but
+only for the faces the edit made or moved (found by their corners in every
+pose), against every face of the edited surface and of the other surfaces:
+two faces that were there before cross now exactly when they did then. A
+crossing with another surface (an inset pushed through a separate belt
+surface, say) is reported the same way, naming the other surface; the CLI
+lists those as `introducedCrossings`. On a model too large for the
+inspection's work limits the edit goes ahead and the CLI reports
+`intersectionCheckLimited`.
+
+Measured on a 32,768-triangle surface with two poses (a debug-optimised
+build), an inset of one quad took 76 ms on its own and 134 ms with the check,
+against 188 ms for a whole-model **Health** scan: the check costs a spatial
+index over the model plus the queries for the changed faces, not a scan of
+every face before and after.
 
 ### Recalculate outside
 
@@ -473,9 +505,14 @@ does:
 
 1. Winding is made consistent across shared edges, including UV and normal
    seams, so islands split by seams are oriented together.
-2. Each connected piece then faces outward: a closed piece by the sign of its
-   volume, an open one (a cup, a cape) by an area-weighted vote of its faces
-   against its centre, in the displayed pose.
+2. Each connected piece then faces outward, in the displayed pose: a closed
+   piece by the sign of its volume. An open one (a cup, a hat, a cape) is
+   judged by ray parity: a line along a face's normal that crosses the piece
+   an even number of times in front and an odd number behind means the face
+   points out of the hollow. Up to 512 faces spread over the piece are
+   tested; lines that escape through an opening tell nothing, and when no
+   face tells (a flat cape), an area-weighted vote against the piece's centre
+   decides.
 3. The faces that turn get fresh normals in every pose.
 
 **Recalculate Inside** (and **Inside** in Adjust Last Operation) turns the
@@ -501,12 +538,23 @@ fans across the selected edges again, welds copies that share a UV and gives
 them one normal; UV seam copies stay separate. In vertex or face mode both use
 the edges between the selected vertices.
 
+**Make Smoothing Group** (**Normals**) works as MilkShape 3D's and 3ds Max's
+smoothing groups do: the selected faces become one smooth region, smooth across
+the edges inside it and hard along its border. The group number itself is not
+kept; to keep two neighbouring regions smooth against each other, select both
+before making the group.
+
 Each new vertex counts against the MD3 (999 per surface), MD2 and MDL vertex
-budgets, which the **Delivery targets** button shows. The marks are not stored:
-**Recalculate Normals**, **Shade Smooth** and **Shade Auto Smooth** compute
-normals again and can soften them, so mark sharp edges as a finishing step.
-Border edges are always hard and are refused, as is an edit that changes
-nothing.
+budgets: the banner says how many vertices the edit added or welded back and
+where the surface stands against each format's limit for its delivery target.
+
+The marks are saved with the editable source (version 16) as pairs of vertex
+connectivity identities, so they stay on the same edges through later edits
+that renumber vertices. **Recalculate Normals**, **Shade Smooth** and **Shade
+Auto Smooth** split the normals along them again after computing new ones, and
+MD3, MD2 and MDL exports carry the split normals. Edges that a later edit
+removes lose their mark. Border edges are always hard and are refused, as is an
+edit that changes nothing.
 
 ### Delete and dissolve
 
@@ -531,8 +579,14 @@ on the selected faces, or the whole surface when nothing is selected. A group
 of faces with a hole is left alone, and the edit is refused when nothing
 changes.
 
-Both check every pose for collapsed faces, keep skin influences, UVs and seams
-of the vertices that remain, select the new faces and are one undo step.
+Both fill each merged polygon of five or more corners the way the quad view
+will read as the most quads, so edge loops and rings keep running through it:
+for up to ten corners every possible fill is compared, scored by the same
+pairing the quad view uses (best-shaped pairs first, joined across their
+longest edge), with the largest smallest angle breaking ties; larger polygons
+compare strips of quads from every corner and ear clipping. Both check every
+pose for collapsed faces, keep skin influences, UVs and seams of the vertices
+that remain, select the new faces and are one undo step.
 
 ### Connect vertices and edges
 
@@ -545,9 +599,11 @@ profiles) adds edges between vertices without cutting a whole loop:
   unfolded into a plane in the displayed pose, with a new vertex where it
   crosses each edge. A path that would leave those faces or pass within a
   hair of another vertex is refused; connect through that vertex instead.
-- With more than two vertices selected, every pair on opposite corners of a
-  quad is connected. The CLI takes a whole path in order
-  (`--vertices a,b,c`).
+- Three or more vertices picked one at a time (clicks, or Shift+clicks to
+  add) are joined as a path in the order they were picked, as the CLI's
+  `--vertices a,b,c` does. Picked together, by a box, loop or other
+  selection command, their order is unknown, and every pair on opposite
+  corners of a quad is connected instead.
 
 **Edge > Connect Edges** (Ctrl+Shift+E in the 3ds Max profile) adds edges
 across each quad whose two opposite sides are selected, as 3ds Max's Connect
@@ -574,12 +630,25 @@ coordinate, as MilkShape 3D's Flatten and Blender's scale-to-zero do:
 - **Align X/Y/Z to 3D Cursor** use the cursor's coordinate instead.
 - **Snap Selection to Grid** (Ctrl+G in the MilkShape 3D profile) rounds every
   selected vertex to the Move snap step on its own.
-- On the **Item** page, **Selection position** shows the selection's centroid
-  in the displayed pose; typing a value gives every selected vertex that
-  coordinate, which puts a centre line exactly on X = 0 before **Symmetrize**.
+- On the **Item** page, **Selection position** shows the selection's median
+  (centroid) in the displayed pose; typing a value moves the whole selection,
+  keeping its shape, until its median takes that value, as Blender's
+  **Median** fields do. With one vertex selected it places that vertex.
+  To give every selected vertex one coordinate, such as a centre line exactly
+  on X = 0 before **Symmetrize**, use **Align X to 3D Cursor** or **Adjust
+  Last Operation**'s **Value**.
 
 **Adjust Last Operation** changes the target (**Value**, **Centroid**,
-**Minimum**, **Maximum** or **Grid**), the axes, the value and the grid step.
+**Minimum**, **Maximum**, **Grid** or **Median**), the axes, the value and the
+grid step. A median move shifts every pose by the offset measured in the
+displayed pose.
+
+With the header's **Symmetry** axes on, every alignment keeps the model
+symmetric: an unselected mirror counterpart of a selected vertex takes the
+reflected coordinate on the aligned axes, and a selected vertex on an active
+mirror plane keeps its coordinate across that plane, so a centre line stays
+on it. A counterpart that is selected too aligns as selected. In the CLI,
+`--mirror x|y|z` does the same for `align` and `snap-grid`.
 Every UV and hard-normal seam copy of a vertex moves with it, so seams stay
 closed. The edit follows the **Apply to** scope: with **All frames** each pose
 aligns to its own centroid, minimum or maximum (a value or the grid applies
@@ -770,13 +839,14 @@ its `binding`.
 | `uv-cylinder`, `uv-sphere` | `--faces`, `--axis` (default z), `--fit` |
 | `recalculate-outside` | `--faces` (default all), `--inside` |
 | `mark-sharp`, `clear-sharp` | `--edges` |
+| `smoothing-group` | `--faces` (the region that becomes smooth, hard along its border) |
 | `delete` | selection, `--mode vertices\|edges\|faces` (default faces) |
 | `dissolve-edges` | `--edges`, `--keep-vertices`, `--angle` (quad pairing) |
 | `limited-dissolve` | `--faces` (default all), `--angle` (default 5) |
 | `connect` | `--vertices a,b[,c…]` (the path in order), `--angle` |
 | `connect-edges` | `--edges`, `--cuts` (1–64), `--slide` (-1 to 1), `--angle` |
-| `align` | selection, `--axis x\|y\|z\|xz…`, exactly one of `--value N` (or `x,y,z`) or `--to centroid\|min\|max`, `--frame all\|N`; JSON adds `align` |
-| `snap-grid` | selection, `--grid STEP`, `--axis` (default xyz), `--frame all\|N`; JSON adds `align` |
+| `align` | selection, `--axis x\|y\|z\|xz…`, exactly one of `--value N` (or `x,y,z`) or `--to centroid\|min\|max`, or `--to median` with `--value`; `--frame all\|N`, `--mirror x\|y\|z`; JSON adds `align` |
+| `snap-grid` | selection, `--grid STEP`, `--axis` (default xyz), `--frame all\|N`, `--mirror x\|y\|z`; JSON adds `align` |
 
 All tools accept `--surface N` (default 0) and `--reference-frame N` (the pose
 used for geometric choices, default 0), and require `--output <new.mesh.json>`.
@@ -822,7 +892,9 @@ selection with `--faces`, `--vertices` or `--edges`; a loop or ring seed with
 `--threshold` (degrees, or percent for area and length); `--ratio` and
 `--seed` for random; `--nth` and `--offset` for checker; `--axis x|y|z` and
 `--negative` for side, facing and mirror. `--delimit-seams` keeps linked
-selection on one UV island, `--extend` adds to the given selection and
+selection on one UV island, `--delimit-sharp` stops it at edges marked sharp
+and `--delimit-angle DEGREES` at edges whose faces differ by more than that
+angle; `--extend` adds to the given selection and
 `--frame N` chooses the pose. It never writes files.
 
 Without `--edge`, `--select loop` and `--select ring` grow every edge in
