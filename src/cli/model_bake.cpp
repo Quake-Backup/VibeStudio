@@ -1,6 +1,7 @@
 #include "cli/model_bake.h"
 #include "core/model_bake.h"
 #include "core/model_document.h"
+#include "core/model_skin_paint.h"
 #include "core/texture_export.h"
 
 #include <QCoreApplication>
@@ -50,7 +51,7 @@ ModelBakeCliResult runModelBake(const QStringList &arguments)
 {
 	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite"};
 	const QSet<QString> valued{"--type", "--surface", "--frame", "--size", "--samples", "--distance", "--cage", "--padding", "--seed", "--ambient",
-							   "--high", "--output", "--settings-file", "--locale", "--catalog-root"};
+							   "--high", "--output", "--model-output", "--strength", "--settings-file", "--locale", "--catalog-root"};
 	QStringList positional;
 	QHash<QString, QString> values;
 	QSet<QString> seen;
@@ -77,7 +78,8 @@ ModelBakeCliResult runModelBake(const QStringList &arguments)
 		values.insert(key, value);
 	}
 	const bool dryRun = seen.contains("--dry-run");
-	if (positional.size() != 3 || positional[0] != "model" || positional[1] != "bake" || (!dryRun && !values.contains("--output")))
+	if (positional.size() != 3 || positional[0] != "model" || positional[1] != "bake" ||
+		(!dryRun && !values.contains("--output") && !values.contains("--model-output")))
 		return fail(2, Text::tr("Use model bake <model> --type ao|object-normal|normal|lighting --output <map.png|map.tga>."));
 	ModelBakeOptions options;
 	if (!modelBakeTypeFromId(values.value("--type", "ao"), &options.type))
@@ -140,9 +142,48 @@ ModelBakeCliResult runModelBake(const QStringList &arguments)
 		if (target.exists() && !seen.contains("--overwrite"))
 			return fail(1, Text::tr("%1 exists; add --overwrite to replace it.").arg(QDir::toNativeSeparators(output)));
 	}
+	// --model-output shades the surface's MDL skin with the map, as the Mesh
+	// Editor's Apply to Model does, and writes the editable source.
+	const QString modelOutput = values.value("--model-output");
+	double strength = 1.0;
+	if (!real("--strength", 0, 1, &strength))
+		return fail(2, Text::tr("--strength takes 0 to 1."));
+	const int shadedSurface = surfaces.isEmpty() ? 0 : surfaces.first();
+	if (!modelOutput.isEmpty())
+	{
+		if (!modelOutput.endsWith(".mesh.json", Qt::CaseInsensitive))
+			return fail(2, Text::tr("--model-output writes an editable source (.mesh.json)."));
+		if (options.type != ModelBakeType::AmbientOcclusion && options.type != ModelBakeType::Lighting)
+			return fail(2, Text::tr("--model-output shades the skin with an ao or lighting map."));
+		if (modelSkinPaintMdlSlot(mesh, shadedSurface) < 0)
+			return fail(2, Text::tr("--model-output shades a model's MDL skin; surface %1 has none.").arg(shadedSurface));
+		if (QFileInfo(modelOutput).absoluteFilePath().compare(QFileInfo(input).absoluteFilePath(), Qt::CaseInsensitive) == 0)
+			return fail(2, Text::tr("Write the map and model to other files; the models are never overwritten."));
+		if (QFileInfo::exists(modelOutput) && !seen.contains("--overwrite"))
+			return fail(1, Text::tr("%1 exists; add --overwrite to replace it.").arg(QDir::toNativeSeparators(modelOutput)));
+	}
 	ModelBakeResult baked;
 	if (!bakeModelMaps(mesh, surfaces, frame, values.contains("--high") ? &high : nullptr, options, &baked, &error))
 		return fail(4, error);
+	if (!dryRun && !modelOutput.isEmpty())
+	{
+		ModelMesh editable = mesh;
+		if (!input.endsWith(".mesh.json", Qt::CaseInsensitive))
+		{
+			QFile source(input);
+			if (!source.open(QIODevice::ReadOnly) || !importEditableModel(QFileInfo(input).absoluteFilePath(), source.readAll(), &editable, &error))
+				return fail(4, error);
+		}
+		QImage shaded;
+		ModelEdit edit;
+		if (!multiplyModelBakeIntoSkin(modelSurfaceIndexedSkin(editable, shadedSurface), baked.image, options.type, strength, 224, &shaded, &error) ||
+			!modelSkinPaintMdlEdit(editable, shadedSurface, shaded, &edit, &error) || !applyModelEdit(&editable, edit, nullptr, &error))
+			return fail(4, error);
+		const QByteArray source = serializeEditableModel(editable, &error);
+		QSaveFile written(modelOutput);
+		if (source.isEmpty() || !written.open(QIODevice::WriteOnly) || written.write(source) != source.size() || !written.commit())
+			return fail(1, error.isEmpty() ? Text::tr("The model could not be written to %1.").arg(QDir::toNativeSeparators(modelOutput)) : error);
+	}
 	if (!dryRun && !output.isEmpty())
 	{
 		QByteArray bytes;
@@ -167,6 +208,11 @@ ModelBakeCliResult runModelBake(const QStringList &arguments)
 	result.payload.insert("written", !dryRun && !output.isEmpty());
 	result.payload.insert("output", output.isEmpty() ? QString() : QFileInfo(output).absoluteFilePath());
 	result.payload.insert("high", values.contains("--high"));
+	if (!modelOutput.isEmpty())
+	{
+		result.payload.insert("modelOutput", dryRun ? QString() : QFileInfo(modelOutput).absoluteFilePath());
+		result.payload.insert("strength", strength);
+	}
 	if (dryRun)
 		result.lines << Text::tr("Would bake %1 (%2 x %3, %n texel(s)).", nullptr, baked.texels)
 							.arg(modelBakeTypeDisplayName(options.type))
@@ -178,6 +224,8 @@ ModelBakeCliResult runModelBake(const QStringList &arguments)
 							.arg(baked.image.width())
 							.arg(baked.image.height())
 							.arg(QDir::toNativeSeparators(output));
+	if (!dryRun && !modelOutput.isEmpty())
+		result.lines << Text::tr("Wrote the model with its MDL skin shaded by the map to %1.").arg(QDir::toNativeSeparators(modelOutput));
 	result.lines += baked.notes;
 	return result;
 }

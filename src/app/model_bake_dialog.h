@@ -2,7 +2,9 @@
 
 // UV > Bake Maps… (UVSKIN-06): bakes ambient occlusion, normal or lighting
 // maps (core/model_bake.h) for the open model on a worker thread, with
-// progress, Cancel, a preview and Save. Read-only towards the model.
+// progress, Cancel, a preview and Save. Apply to Model hands the map to the
+// editor's handler (shading the skin by Strength, or staging a normal map
+// beside it); without one the dialog never changes the model.
 
 #include "core/model_bake.h"
 
@@ -37,6 +39,10 @@ class ModelBakeDialog final : public QDialog
 	[[nodiscard]] const ModelBakeResult &result() const { return m_result; }
 	// Saves the last bake as PNG or TGA; false with the reason in the status.
 	bool saveTo(const QString &path);
+	// Apply to Model: what it does (its tooltip) and the editor's handler,
+	// given the map, its type and the shade strength.
+	void setApplyTarget(const QString &description, std::function<bool(const QImage &, ModelBakeType, double, QString *)> apply);
+	bool applyToModel();
 
   protected:
 	void reject() override;
@@ -51,7 +57,10 @@ class ModelBakeDialog final : public QDialog
 	int m_frame = 0;
 	QComboBox *m_type = nullptr, *m_size = nullptr, *m_scope = nullptr;
 	QSpinBox *m_samples = nullptr, *m_padding = nullptr, *m_seed = nullptr;
-	QDoubleSpinBox *m_distance = nullptr, *m_cage = nullptr;
+	QDoubleSpinBox *m_distance = nullptr, *m_cage = nullptr, *m_strength = nullptr;
+	QPushButton *m_apply = nullptr;
+	std::function<bool(const QImage &, ModelBakeType, double, QString *)> m_applyHandler;
+	ModelBakeType m_resultType = ModelBakeType::AmbientOcclusion;
 	QLineEdit *m_high = nullptr;
 	QPushButton *m_browse = nullptr, *m_bake = nullptr, *m_cancel = nullptr, *m_save = nullptr, *m_close = nullptr;
 	QProgressBar *m_progress = nullptr;

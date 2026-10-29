@@ -2,8 +2,13 @@
 // occlusion of an open plane and an inside corner, tangent-space normals
 // projected from a tilted high-poly plane in Doom 3's convention, lighting,
 // determinism by seed, cancellation and the memory budget, and the command.
+// The handoff: occlusion and lighting shade a colour or indexed skin (keeping
+// fullbright indices), normal maps are refused there and named beside the
+// skin, and model bake --model-output shades an MDL skin in the source.
 #include "core/model_bake.h"
 #include "core/model_document.h"
+#include "core/model_mdl.h"
+#include "core/model_skin_paint.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -184,6 +189,38 @@ int main(int argc, char **argv)
 		   "a bake over its memory budget is refused");
 	expect(!bakeModelMaps(room, {7}, 0, nullptr, options, &untouched, &error), "a missing surface is refused");
 
+	// Handing a map to a skin.
+	QImage halfDark(16, 16, QImage::Format_ARGB32);
+	halfDark.fill(qRgb(255, 255, 255));
+	for (int y = 0; y < 16; ++y)
+		for (int x = 0; x < 8; ++x)
+			halfDark.setPixel(x, y, qRgb(0, 0, 0));
+	QImage colourSkin(32, 32, QImage::Format_ARGB32);
+	colourSkin.fill(qRgb(200, 100, 50));
+	QImage shaded;
+	expect(multiplyModelBakeIntoSkin(colourSkin, halfDark, ModelBakeType::AmbientOcclusion, 1.0, -1, &shaded, &error) && shaded.size() == colourSkin.size() &&
+			   shaded.pixel(2, 10) == qRgb(0, 0, 0) && shaded.pixel(30, 10) == qRgb(200, 100, 50),
+		   "occlusion multiplies a colour skin, the map scaled to it");
+	expect(multiplyModelBakeIntoSkin(colourSkin, halfDark, ModelBakeType::Lighting, 0.5, -1, &shaded, &error) && shaded.pixel(2, 10) == qRgb(100, 50, 25),
+		   "the strength blends towards the unshaded skin");
+	QImage indexedSkin(16, 16, QImage::Format_Indexed8);
+	QVector<QRgb> ramp;
+	for (int i = 0; i < 256; ++i)
+		ramp << qRgb(i, i, i);
+	indexedSkin.setColorTable(ramp);
+	indexedSkin.fill(200);
+	indexedSkin.setPixel(1, 1, 230);
+	QImage grey(16, 16, QImage::Format_ARGB32);
+	grey.fill(qRgb(128, 128, 128));
+	if (expect(multiplyModelBakeIntoSkin(indexedSkin, grey, ModelBakeType::AmbientOcclusion, 1.0, 224, &shaded, &error) &&
+				   shaded.format() == QImage::Format_Indexed8,
+			   "an indexed skin stays indexed"))
+		expect(shaded.pixelIndex(5, 5) == 100 && shaded.pixelIndex(1, 1) == 230, "indices take the nearest shade, and fullbrights stay lit");
+	expect(!multiplyModelBakeIntoSkin(colourSkin, halfDark, ModelBakeType::TangentNormal, 1.0, -1, &shaded, &error), "a normal map does not shade a skin");
+	expect(modelBakeCompanionPath("models/ogre/ogre.tga", ModelBakeType::TangentNormal) == "models/ogre/ogre_local.tga" &&
+			   modelBakeCompanionPath("models/ogre/ogre.pcx", ModelBakeType::AmbientOcclusion) == "models/ogre/ogre_ao.tga",
+		   "baked maps are named beside the skin, Doom 3's _local for normals");
+
 	// The command.
 	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
 	if (argc == 2 && !root.isEmpty() && QDir().mkpath(root))
@@ -217,6 +254,46 @@ int main(int argc, char **argv)
 			   "a dry run bakes without writing");
 		expect(run({"--type", "ao", "--output", png}, &dry) == 1, "an existing output needs --overwrite");
 		expect(run({"--type", "glossy", "--output", temporary.filePath("x.png")}, &dry) == 2, "an unknown map type is a usage error");
+
+		// --model-output shades the room's MDL skin with the occlusion.
+		ModelMesh quake = room;
+		ModelEdit add;
+		add.kind = ModelEditKind::AddMdlSkin;
+		add.mdlSkin.size = {32, 32};
+		add.mdlSkin.pixels = QByteArray(32 * 32, char(200));
+		for (int i = 0; i < 256; ++i)
+			add.mdlSkin.palette.append(QByteArray(3, char(i)));
+		const QString quakeSource = temporary.filePath("quake.mesh.json"), quakeOutput = temporary.filePath("quake-ao.mesh.json");
+		if (expect(applyModelEdit(&quake, add, nullptr, &error), "give the room an MDL skin"))
+		{
+			QFile file(quakeSource);
+			const QByteArray bytes = serializeEditableModel(quake, &error);
+			expect(file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size(), "write the MDL room");
+		}
+		QJsonObject handed;
+		QProcess process;
+		process.start(program, {"--cli", "model", "bake", quakeSource, "--type", "ao", "--surface", "0", "--size", "32x32", "--samples", "64", "--model-output",
+								   quakeOutput, "--json"});
+		expect(process.waitForFinished(180000) && process.exitCode() == 0, "model bake --model-output runs");
+		QFile written(quakeOutput);
+		ModelMesh reparsed;
+		if (expect(written.open(QIODevice::ReadOnly) && parseEditableModel(written.readAll(), &reparsed, &error), "the shaded model parses"))
+		{
+			const QImage after = modelSurfaceIndexedSkin(reparsed, 0);
+			int darker = 0;
+			bool lowRange = true;
+			for (int y = 0; y < 32; ++y)
+				for (int x = 0; x < 32; ++x)
+				{
+					darker += after.pixelIndex(x, y) < 200 ? 1 : 0;
+					lowRange &= after.pixelIndex(x, y) <= 200;
+				}
+			expect(darker > 0 && lowRange, "the corner's occlusion darkens the MDL skin and never brightens it");
+		}
+		QProcess normals;
+		normals.start(program, {"--cli", "model", "bake", quakeSource, "--type", "normal", "--model-output", temporary.filePath("n.mesh.json")});
+		expect(normals.waitForFinished(180000) && normals.exitCode() == 2 && !QFileInfo::exists(temporary.filePath("n.mesh.json")),
+			   "a normal map does not shade the skin from the command line either");
 	}
 	std::cout << "model_bake_smoke_test: " << checks << " checks, " << failures << " failure(s)\n";
 	return failures == 0 ? 0 : 1;

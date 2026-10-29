@@ -54,6 +54,7 @@ class QWidget;
 
 namespace vibestudio
 {
+class ModelBakeDialog;
 class ModelEditorDialog;
 class ModelSkinPaintDialog;
 class ModelViewport;
@@ -135,6 +136,11 @@ class ModelEditorTools final : public QObject
 	// UV > Paint Skin… (model_editor_skin_paint.cpp): the paint dialog on the
 	// active surface's skin, wired to Apply to Model and Paint in View.
 	ModelSkinPaintDialog *openSkinPaint();
+	// UV > Bake Maps… with Apply to Model wired to the surface's skin.
+	ModelBakeDialog *openBake();
+	// The surface's skin for both: its MDL skin as indices, else its material
+	// image (full size from the package when it can be; `imagePath` is set).
+	static QImage surfaceSkin(ModelEditorDialog *editor, int surface, QString *imagePath);
 	[[nodiscard]] ModelModalOperator modalOperator() const;
 	[[nodiscard]] QString modalText() const;
 	[[nodiscard]] bool modalPreviewValid() const;

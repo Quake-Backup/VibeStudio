@@ -97,6 +97,13 @@ ModelBakeDialog::ModelBakeDialog(const ModelMesh &mesh, int surface, int frame, 
 	m_seed->setValue(1);
 	m_seed->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Random seed"));
 	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "S&eed"), m_seed);
+	m_strength = new QDoubleSpinBox;
+	m_strength->setObjectName(QStringLiteral("modelBakeStrength"));
+	m_strength->setRange(0.0, 1.0);
+	m_strength->setSingleStep(0.1);
+	m_strength->setValue(1.0);
+	m_strength->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "How strongly Apply to Model shades the skin"));
+	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "Shade s&trength"), m_strength);
 	layout->addLayout(form);
 	auto *strip = new QHBoxLayout;
 	m_status = new QLabel(QCoreApplication::translate("VibeStudioModelBake", "Choose a map, then Bake."));
@@ -126,10 +133,14 @@ ModelBakeDialog::ModelBakeDialog(const ModelMesh &mesh, int surface, int frame, 
 	m_cancel->setObjectName(QStringLiteral("modelBakeCancel"));
 	m_save = buttons->addButton(QCoreApplication::translate("VibeStudioModelBake", "&Save Map…"), QDialogButtonBox::ActionRole);
 	m_save->setObjectName(QStringLiteral("modelBakeSave"));
+	m_apply = buttons->addButton(QCoreApplication::translate("VibeStudioModelBake", "&Apply to Model"), QDialogButtonBox::ActionRole);
+	m_apply->setObjectName(QStringLiteral("modelBakeApply"));
 	m_close = buttons->addButton(QDialogButtonBox::Close);
 	m_close->setObjectName(QStringLiteral("modelBakeClose"));
-	for (auto *button : {m_bake, m_cancel, m_save, m_close})
+	for (auto *button : {m_bake, m_cancel, m_save, m_apply, m_close})
 		button->setAccessibleName(button->text().remove(QLatin1Char('&')));
+	setApplyTarget(QCoreApplication::translate("VibeStudioModelBake", "This surface has no skin in the model or the open package to hand the map to; use Save Map…"), {});
+	connect(m_apply, &QPushButton::clicked, this, [this] { applyToModel(); });
 	layout->addWidget(buttons);
 	connect(m_bake, &QPushButton::clicked, this, [this] { start(); });
 	connect(m_cancel, &QPushButton::clicked, this, [this] { cancel(); });
@@ -171,6 +182,7 @@ void ModelBakeDialog::setRunning(bool running)
 		widget->setEnabled(!running);
 	m_cancel->setEnabled(running);
 	m_save->setEnabled(!running && !m_result.image.isNull());
+	m_apply->setEnabled(!running && !m_result.image.isNull() && bool(m_applyHandler));
 	setProperty("operationRunning", running);
 }
 
@@ -255,6 +267,7 @@ void ModelBakeDialog::finished(const ModelBakeResult &result, const QString &err
 	if (ok)
 	{
 		m_result = result;
+		m_resultType = m_lastOptions.type;
 		m_preview->setPixmap(QPixmap::fromImage(result.image.scaled(m_preview->size().boundedTo(QSize(512, 512)), Qt::KeepAspectRatio, Qt::SmoothTransformation)));
 		QString text = QCoreApplication::translate("VibeStudioModelBake", "Baked %n texel(s).", nullptr, result.texels);
 		if (!result.notes.isEmpty())
@@ -271,6 +284,26 @@ void ModelBakeDialog::finished(const ModelBakeResult &result, const QString &err
 	}
 	m_status->setAccessibleDescription(m_status->text());
 	setRunning(false);
+}
+
+void ModelBakeDialog::setApplyTarget(const QString &description, std::function<bool(const QImage &, ModelBakeType, double, QString *)> apply)
+{
+	m_applyHandler = std::move(apply);
+	m_apply->setToolTip(description);
+	m_apply->setAccessibleDescription(description);
+	m_apply->setEnabled(!running() && !m_result.image.isNull() && bool(m_applyHandler));
+}
+
+bool ModelBakeDialog::applyToModel()
+{
+	if (!m_applyHandler || m_result.image.isNull() || running())
+		return false;
+	QString error;
+	const bool applied = m_applyHandler(m_result.image, m_resultType, m_strength->value(), &error);
+	m_status->setText(applied ? QCoreApplication::translate("VibeStudioModelBake", "Applied the %1 map: %2").arg(modelBakeTypeDisplayName(m_resultType), m_apply->toolTip())
+							  : (error.isEmpty() ? QCoreApplication::translate("VibeStudioModelBake", "The map was not applied.") : error));
+	m_status->setAccessibleDescription(m_status->text());
+	return applied;
 }
 
 bool ModelBakeDialog::saveTo(const QString &path)

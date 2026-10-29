@@ -417,12 +417,7 @@ void ModelEditorTools::buildActions()
 	// Paints the surface's skin: its MDL skin as indices, else its material
 	// image, else a blank skin (model_editor_skin_paint.cpp).
 	addAction(QStringLiteral("meshPaintSkin"), Text::tr("Paint Skin…"), {}, [this] { openSkinPaint(); });
-	addAction(QStringLiteral("meshBakeMaps"), Text::tr("Bake Maps…"), {}, [this] {
-		const auto &document = m_editor->document();
-		auto *dialog = new ModelBakeDialog(document.mesh(), std::max(0, document.selection().surface), m_editor->m_preview->frame(), m_editor);
-		dialog->setAttribute(Qt::WA_DeleteOnClose);
-		dialog->show();
-	});
+	addAction(QStringLiteral("meshBakeMaps"), Text::tr("Bake Maps…"), {}, [this] { openBake(); });
 	addAction(QStringLiteral("meshExportLods"), Text::tr("Export Quake III Detail Levels…"), {},
 			  [this]
 			  {

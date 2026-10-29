@@ -4,6 +4,7 @@
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
+#include <QHash>
 #include <QJsonArray>
 
 #include <algorithm>
@@ -467,6 +468,94 @@ QJsonObject modelBakeResultJson(const ModelBakeResult& result, const ModelBakeOp
 		{QStringLiteral("texels"), result.texels}, {QStringLiteral("misses"), result.misses},
 		{QStringLiteral("maxDistance"), std::round(result.maxDistance * 1e6) / 1e6}, {QStringLiteral("cageDistance"), std::round(result.cageDistance * 1e6) / 1e6},
 		{QStringLiteral("sha256"), QString::fromLatin1(hash.result().toHex())}, {QStringLiteral("notes"), QJsonArray::fromStringList(result.notes)}};
+}
+
+bool multiplyModelBakeIntoSkin(const QImage& skin, const QImage& map, ModelBakeType type, double strength, int fullbrightStart, QImage* result,
+	QString* error)
+{
+	const auto refuse = [error](const QString& message) {
+		if (error) {
+			*error = message;
+		}
+		return false;
+	};
+	if (type != ModelBakeType::AmbientOcclusion && type != ModelBakeType::Lighting) {
+		return refuse(QCoreApplication::translate("VibeStudioModelBake", "Only occlusion and lighting maps shade a skin; stage a normal map beside it instead."));
+	}
+	if (!result || skin.isNull() || map.isNull() || !std::isfinite(strength) || strength < 0.0 || strength > 1.0) {
+		return refuse(QCoreApplication::translate("VibeStudioModelBake", "Shading a skin needs the skin, a baked map and a strength of 0 to 1."));
+	}
+	const QImage shade = (map.size() == skin.size() ? map : map.scaled(skin.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation))
+							 .convertToFormat(QImage::Format_ARGB32);
+	const auto factor = [&](int x, int y) {
+		const QRgb texel = reinterpret_cast<const QRgb*>(shade.constScanLine(y))[x];
+		const double value = (qRed(texel) + qGreen(texel) + qBlue(texel)) / (3.0 * 255.0);
+		return 1.0 - strength + strength * value;
+	};
+	const auto scale = [](QRgb colour, double amount) {
+		return qRgba(int(std::lround(qRed(colour) * amount)), int(std::lround(qGreen(colour) * amount)), int(std::lround(qBlue(colour) * amount)),
+			qAlpha(colour));
+	};
+	if (skin.format() != QImage::Format_Indexed8) {
+		QImage shaded = skin.convertToFormat(QImage::Format_ARGB32);
+		for (int y = 0; y < shaded.height(); ++y) {
+			auto* line = reinterpret_cast<QRgb*>(shaded.scanLine(y));
+			for (int x = 0; x < shaded.width(); ++x) {
+				line[x] = scale(line[x], factor(x, y));
+			}
+		}
+		*result = shaded;
+		return true;
+	}
+	const QVector<QRgb> table = skin.colorTable();
+	const int usable = fullbrightStart > 0 ? std::min<int>(fullbrightStart, int(table.size())) : int(table.size());
+	if (usable <= 0) {
+		return refuse(QCoreApplication::translate("VibeStudioModelBake", "The indexed skin has no palette entries to shade with."));
+	}
+	QHash<QRgb, int> nearest;
+	const auto closest = [&](QRgb colour) {
+		const auto known = nearest.constFind(colour);
+		if (known != nearest.cend()) {
+			return known.value();
+		}
+		int best = 0;
+		long long bestDistance = -1;
+		for (int i = 0; i < usable; ++i) {
+			const long long dr = qRed(table.at(i)) - qRed(colour), dg = qGreen(table.at(i)) - qGreen(colour), db = qBlue(table.at(i)) - qBlue(colour);
+			const long long distance = dr * dr + dg * dg + db * db;
+			if (bestDistance < 0 || distance < bestDistance) {
+				bestDistance = distance;
+				best = i;
+			}
+		}
+		nearest.insert(colour, best);
+		return best;
+	};
+	QImage shaded = skin;
+	for (int y = 0; y < shaded.height(); ++y) {
+		uchar* line = shaded.scanLine(y);
+		for (int x = 0; x < shaded.width(); ++x) {
+			const int index = line[x];
+			if (index >= usable || index >= table.size()) {
+				continue;
+			}
+			line[x] = uchar(closest(scale(table.at(index), factor(x, y))));
+		}
+	}
+	*result = shaded;
+	return true;
+}
+
+QString modelBakeCompanionPath(const QString& imagePath, ModelBakeType type)
+{
+	const int slash = int(imagePath.lastIndexOf(QLatin1Char('/')));
+	const int dot = int(imagePath.lastIndexOf(QLatin1Char('.')));
+	const QString base = dot > slash ? imagePath.left(dot) : imagePath;
+	const QString suffix = type == ModelBakeType::TangentNormal ? QStringLiteral("_local")
+		: type == ModelBakeType::ObjectNormal				   ? QStringLiteral("_objnormal")
+		: type == ModelBakeType::Lighting					   ? QStringLiteral("_light")
+															   : QStringLiteral("_ao");
+	return base + suffix + QStringLiteral(".tga");
 }
 
 } // namespace vibestudio

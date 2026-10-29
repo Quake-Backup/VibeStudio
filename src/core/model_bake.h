@@ -95,4 +95,16 @@ qint64 modelBakeMemoryEstimate(const ModelMesh& target, const ModelMesh* highPol
 // {type, width, height, texels, misses, maxDistance, cageDistance, sha256, notes}
 QJsonObject modelBakeResultJson(const ModelBakeResult& result, const ModelBakeOptions& options);
 
+// Hands a baked occlusion or lighting map to a skin (UVSKIN-06): every texel's
+// colour times lerp(1, map, strength), the map scaled to the skin. An indexed
+// skin takes the nearest palette entry below `fullbrightStart` (texels at or
+// above it keep their index, so fullbrights stay lit); -1 uses the whole
+// palette. Normal maps are refused: they are not a shade.
+bool multiplyModelBakeIntoSkin(const QImage& skin, const QImage& map, ModelBakeType type, double strength, int fullbrightStart, QImage* result,
+	QString* error = nullptr);
+// The package path a baked map is staged at beside a skin image: Doom 3's
+// "<name>_local.tga" for tangent-space normals, "<name>_ao.tga",
+// "<name>_objnormal.tga" and "<name>_light.tga" for the others.
+QString modelBakeCompanionPath(const QString& imagePath, ModelBakeType type);
+
 } // namespace vibestudio

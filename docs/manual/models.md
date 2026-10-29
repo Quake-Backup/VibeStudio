@@ -330,8 +330,10 @@ layout (or every surface's):
 - **Lighting** bakes a simple light and shadow.
 
 Choose **Bake**; the map appears when it is done, and **Cancel Bake** stops a
-long one. **Save Map…** writes a PNG or TGA; the model itself does not change.
-See [Baking Texture Maps](../MODEL_BAKE.md).
+long one. **Save Map…** writes a PNG or TGA. **Apply to Model** shades a Quake
+skin with occlusion or lighting (by **Shade strength**, as one step you can
+undo), or, for a skin image from the open package, shades it or stages a
+normal map beside it. See [Baking Texture Maps](../MODEL_BAKE.md).
 
 ### Review what the decoder reported
 

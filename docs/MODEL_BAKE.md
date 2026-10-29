@@ -1,9 +1,10 @@
 # Baking Texture Maps
 
 Status: Partial. **UV** > **Bake Maps…** in the Mesh Editor and `model bake`
-bake ambient occlusion, normal and lighting maps into a model's UV layout. They
-are checked against fixtures with known answers, not yet against renderbump or
-other bakers on real models.
+bake ambient occlusion, normal and lighting maps into a model's UV layout, and
+**Apply to Model** (or `--model-output`) hands occlusion or lighting to the
+skin. They are checked against fixtures with known answers, not yet against
+renderbump or other bakers on real models, or in the games.
 
 The baker is `src/core/model_bake.*` with its own bounding volume hierarchy
 (`src/core/model_bvh.*`); the dialog is `src/app/model_bake_dialog.*` and the
@@ -51,7 +52,16 @@ that would use more than 768 MiB is refused before it starts.
    choose its file under **High-poly**.
 3. Choose **Bake**. The bake runs in the background with progress; **Cancel
    Bake** stops it and keeps the previous result.
-4. Choose **Save Map…** to write a PNG or TGA. The model is not changed.
+4. Choose **Save Map…** to write a PNG or TGA, or **Apply to Model** to hand
+   the map over (its tooltip says which of these it does):
+   - an MDL skin is shaded by an occlusion or lighting map, as one undo step:
+     each texel's colour times the map, blended by **Shade strength**, then
+     the nearest palette entry below the fullbrights (indices 224 and up keep
+     their own, so they stay lit);
+   - a skin image from the open package is shaded the same way (an indexed
+     PCX keeps its palette) and staged at its own path; a normal map is staged
+     beside it instead, as `<name>_local.tga` for Doom 3's tangent-space bump
+     map (`_objnormal` for object space).
 
 ## Command line
 
@@ -65,12 +75,14 @@ vibestudio --cli model bake ./models/low.obj --type normal --high ./models/high.
 `--padding`, `--seed` and `--ambient` match the dialog. `--dry-run` bakes and
 reports without writing. JSON gives the texels covered, high-poly misses, the
 distances used and a SHA-256 of the image, so scripts can compare runs.
+`--model-output FILE.mesh.json` shades the first baked surface's MDL skin with
+an `ao` or `lighting` map (`--strength 0-1`, default 1) and writes the model;
+it is refused, before anything is written, for normal maps or a surface
+without an MDL skin.
 
 ## Still open
 
-- Handing the map to the model's material (a Doom 3 material stub, a staged
-  TGA, or a quantised PCX/MDL skin for Quake and Quake II) and multiplying
-  occlusion or lighting into an existing skin.
+- Writing a Doom 3 material stub that names a staged `_local` map.
 - Curvature and thickness maps, cage meshes, and averaged-normal projection.
 - A Doom 3 interaction check of a baked bump map through the Materials
   renderer.

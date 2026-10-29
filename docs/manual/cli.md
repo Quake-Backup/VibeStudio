@@ -484,7 +484,9 @@ unlit layer. See [Game preview](../MODEL_GAME_PREVIEW.md).
 
 `model bake MODEL --type ao|object-normal|normal|lighting --output FILE` bakes a
 map into the model's UV layout, optionally from a high-poly `--high` model within
-`--cage`; `--dry-run` bakes and reports without writing. `model paint-skin MODEL
+`--cage`; `--dry-run` bakes and reports without writing, and `--model-output
+FILE.mesh.json` shades the model's MDL skin with an `ao` or `lighting` map.
+`model paint-skin MODEL
 --strokes FILE --output FILE` replays 3D paint strokes onto a surface's skin;
 `--model-output FILE.mesh.json` also writes the model with the painted MDL
 skin.

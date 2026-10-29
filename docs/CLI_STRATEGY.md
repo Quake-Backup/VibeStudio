@@ -2484,7 +2484,9 @@ Each resolved path may be a definition file or a folder of them.
   <map.png|map.tga>` bakes ambient occlusion, object or Doom 3 tangent-space
   normals (optionally projected from `--high` within `--cage`) or shadowed
   lighting into the model's UV layout, with `--surface`, `--frame`, `--size`,
-  `--samples`, `--distance`, `--padding`, `--seed` and `--dry-run`. See
+  `--samples`, `--distance`, `--padding`, `--seed` and `--dry-run`;
+  `--model-output FILE.mesh.json` (with `--strength`) shades the model's MDL
+  skin with an ao or lighting map, as **Apply to Model** does. See
   [Baking](MODEL_BAKE.md).
 - [x] `model game-skin <model> --output <skin.png>` writes the Game preview of
   one surface at `--time`: Quake MDL skins with `--top`/`--bottom` player
