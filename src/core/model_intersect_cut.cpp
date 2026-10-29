@@ -356,15 +356,23 @@ bool intersectCut(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *select
 		else if (partPieces.contains(sources[face]))
 			partB << face;
 	}
-	const P3 ray = unit(P3{0.5773, 0.5774, 0.5775});
+	// Five skewed rays vote, so a ray that grazes an edge or a vertex of the
+	// other part (and counts it twice or not at all) cannot decide alone.
+	const P3 rays[5]{unit(P3{0.5773, 0.5774, 0.5775}), unit(P3{-0.31, 0.82, 0.48}), unit(P3{0.71, -0.29, 0.64}),
+					 unit(P3{-0.43, -0.56, 0.71}), unit(P3{0.12, 0.33, -0.94})};
 	const auto inside = [&](int face, const QVector<int> &other)
 	{
 		const auto t = triangleAt(surface, frame, surface.triangles[face]);
 		const P3 centre = (t[0] + t[1] + t[2]) * (1.0 / 3);
-		int count = 0;
-		for (int o : other)
-			count += crosses(centre, ray, triangleAt(surface, frame, surface.triangles[o]));
-		return count % 2 == 1;
+		int votes = 0;
+		for (const auto &ray : rays)
+		{
+			int count = 0;
+			for (int o : other)
+				count += crosses(centre, ray, triangleAt(surface, frame, surface.triangles[o]));
+			votes += count % 2;
+		}
+		return votes >= 3;
 	};
 	QVector<bool> drop(surface.triangles.size(), false), flip(surface.triangles.size(), false);
 	for (int face : std::as_const(partA))

@@ -220,6 +220,8 @@ int main(int argc, char **argv)
 	}
 	// CLI: model tool and model edit.
 	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	if (!root.isEmpty())
+		QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("pieces-XXXXXX"));
 	ModelDocument document;
 	const auto input = temporary.filePath("squares.mesh.json"), output = temporary.filePath("scaled.mesh.json");

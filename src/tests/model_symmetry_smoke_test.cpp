@@ -173,6 +173,8 @@ int main(int argc, char **argv)
 	}
 	// CLI.
 	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	if (!root.isEmpty())
+		QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("symmetry-XXXXXX"));
 	ModelDocument document;
 	const auto input = temporary.filePath("halves.mesh.json"), output = temporary.filePath("mirrored.mesh.json");
