@@ -2,6 +2,7 @@
 #include "core/material_script.h"
 
 #include <QCoreApplication>
+#include <QHash>
 #include <QJsonArray>
 #include <QSet>
 
@@ -183,6 +184,103 @@ MaterialEngine materialEngineFromId(const QString& id)
 QVector<MaterialEngine> materialEngines()
 {
 	return {MaterialEngine::Doom, MaterialEngine::Quake, MaterialEngine::Quake2, MaterialEngine::Quake3, MaterialEngine::Doom3};
+}
+
+QString materialDialectId(MaterialDialect dialect)
+{
+	switch (dialect) {
+	case MaterialDialect::Automatic:
+		return QStringLiteral("auto");
+	case MaterialDialect::Quake3:
+		return QStringLiteral("quake3");
+	case MaterialDialect::Quake3Original:
+		return QStringLiteral("quake3-1.32");
+	case MaterialDialect::Wolfenstein:
+		return QStringLiteral("rtcw");
+	case MaterialDialect::EnemyTerritory:
+		return QStringLiteral("et");
+	case MaterialDialect::JediKnight:
+		return QStringLiteral("jediknight");
+	}
+	return QStringLiteral("auto");
+}
+
+QString materialDialectDisplayName(MaterialDialect dialect)
+{
+	switch (dialect) {
+	case MaterialDialect::Automatic:
+		return Text::tr("Automatic");
+	case MaterialDialect::Quake3:
+		return Text::tr("Quake III Arena (ioquake3)");
+	case MaterialDialect::Quake3Original:
+		return Text::tr("Quake III Arena 1.32");
+	case MaterialDialect::Wolfenstein:
+		return Text::tr("Return to Castle Wolfenstein");
+	case MaterialDialect::EnemyTerritory:
+		return Text::tr("Wolfenstein: Enemy Territory");
+	case MaterialDialect::JediKnight:
+		return Text::tr("Jedi Knight II and Jedi Academy");
+	}
+	return QString();
+}
+
+bool materialDialectFromId(const QString& id, MaterialDialect* dialect)
+{
+	static const QHash<QString, MaterialDialect> aliases {
+		{QStringLiteral("auto"), MaterialDialect::Automatic},
+		{QStringLiteral("automatic"), MaterialDialect::Automatic},
+		{QStringLiteral("quake3"), MaterialDialect::Quake3},
+		{QStringLiteral("q3"), MaterialDialect::Quake3},
+		{QStringLiteral("q3a"), MaterialDialect::Quake3},
+		{QStringLiteral("ioq3"), MaterialDialect::Quake3},
+		{QStringLiteral("ioquake3"), MaterialDialect::Quake3},
+		{QStringLiteral("quake3-1.32"), MaterialDialect::Quake3Original},
+		{QStringLiteral("quake3-original"), MaterialDialect::Quake3Original},
+		{QStringLiteral("q3-1.32"), MaterialDialect::Quake3Original},
+		{QStringLiteral("rtcw"), MaterialDialect::Wolfenstein},
+		{QStringLiteral("wolf"), MaterialDialect::Wolfenstein},
+		{QStringLiteral("iortcw"), MaterialDialect::Wolfenstein},
+		{QStringLiteral("et"), MaterialDialect::EnemyTerritory},
+		{QStringLiteral("wolfet"), MaterialDialect::EnemyTerritory},
+		{QStringLiteral("etlegacy"), MaterialDialect::EnemyTerritory},
+		{QStringLiteral("jediknight"), MaterialDialect::JediKnight},
+		{QStringLiteral("jk"), MaterialDialect::JediKnight},
+		{QStringLiteral("jk2"), MaterialDialect::JediKnight},
+		{QStringLiteral("jka"), MaterialDialect::JediKnight},
+		{QStringLiteral("openjk"), MaterialDialect::JediKnight},
+	};
+	const auto found = aliases.constFind(id.trimmed().toLower());
+	if (found == aliases.constEnd()) {
+		return false;
+	}
+	*dialect = *found;
+	return true;
+}
+
+QVector<MaterialDialect> materialDialects()
+{
+	return {MaterialDialect::Quake3, MaterialDialect::Quake3Original, MaterialDialect::Wolfenstein, MaterialDialect::EnemyTerritory,
+		MaterialDialect::JediKnight};
+}
+
+MaterialDialect materialDialectForGameKey(const QString& gameKey)
+{
+	MaterialDialect dialect = MaterialDialect::Automatic;
+	const QString key = gameKey.trimmed().toLower();
+	// A plain "quake3" install may still run a derivative's mod; only the
+	// derivatives' own keys decide.
+	if (key == QStringLiteral("quake3") || !materialDialectFromId(key, &dialect)) {
+		return MaterialDialect::Automatic;
+	}
+	return dialect;
+}
+
+bool materialDialectLastScriptWins(MaterialDialect dialect)
+{
+	// Quake III 1.32 fills its shader text hash in listing order and takes the
+	// first match; ioquake3, iortcw, Enemy Territory and OpenJK concatenate the
+	// scripts in reverse and find the first match in the text.
+	return dialect != MaterialDialect::Quake3Original;
 }
 
 QString materialDiagnosticSeverityId(MaterialDiagnosticSeverity severity)
@@ -375,6 +473,8 @@ QString materialTexModKindId(MaterialTexModKind kind)
 		return QStringLiteral("turb");
 	case MaterialTexModKind::EntityTranslate:
 		return QStringLiteral("entityTranslate");
+	case MaterialTexModKind::Swap:
+		return QStringLiteral("swap");
 	case MaterialTexModKind::Translate:
 		return QStringLiteral("translate");
 	case MaterialTexModKind::ScaleExpression:
@@ -823,8 +923,19 @@ QStringList MaterialDefinition::imageReferences() const
 		for (const QString& frame : stage.animationFrames) {
 			add(frame);
 		}
+		QVector<int> programs;
 		if (stage.imageProgram >= 0) {
-			QVector<int> pending {stage.imageProgram};
+			programs << stage.imageProgram;
+		}
+		for (int program : stage.fragmentMaps) {
+			// _currentRender is the frame so far, not an image to read.
+			if (program >= 0 && program < imagePrograms.size()
+				&& imagePrograms.at(program).path.compare(QStringLiteral("_currentRender"), Qt::CaseInsensitive) != 0) {
+				programs << program;
+			}
+		}
+		for (int program : std::as_const(programs)) {
+			QVector<int> pending {program};
 			while (!pending.isEmpty()) {
 				const int index = pending.takeFirst();
 				if (index < 0 || index >= imagePrograms.size()) {
@@ -1020,6 +1131,15 @@ QJsonObject materialDefinitionJson(const MaterialDefinition& definition, bool in
 		if (!stage.animationFrames.isEmpty()) {
 			item.insert(QStringLiteral("animationFrames"), stringsJson(stage.animationFrames));
 			item.insert(QStringLiteral("animationFrequency"), stage.animationFrequency);
+			if (stage.animationOnce) {
+				item.insert(QStringLiteral("animationOnce"), true);
+			}
+		}
+		if (stage.glow) {
+			item.insert(QStringLiteral("glow"), true);
+		}
+		if (stage.surfaceSprites) {
+			item.insert(QStringLiteral("surfaceSprites"), true);
 		}
 		if (stage.imageProgram >= 0) {
 			item.insert(QStringLiteral("imageProgram"), materialImageProgramText(definition.imagePrograms, stage.imageProgram));
@@ -1154,6 +1274,9 @@ QJsonObject materialScriptJson(const MaterialScript& script, bool includeDirecti
 	QJsonObject object;
 	object.insert(QStringLiteral("path"), script.path);
 	object.insert(QStringLiteral("engine"), materialEngineId(script.engine));
+	if (script.engine == MaterialEngine::Quake3) {
+		object.insert(QStringLiteral("dialect"), materialDialectId(script.dialect));
+	}
 	QJsonArray materials;
 	for (const MaterialDefinition& definition : script.materials) {
 		materials.append(materialDefinitionJson(definition, includeDirectives));

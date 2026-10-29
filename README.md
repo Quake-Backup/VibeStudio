@@ -260,7 +260,10 @@ surface rules read in the GPL sources of [Quake III Arena](https://github.com/id
 [Quake](https://github.com/id-Software/Quake), [Quake II](https://github.com/id-Software/Quake-2)
 and their re-release code, Boom's SWANTBLS format via [SMMU](https://github.com/fragglet/smmu),
 ZDoom's ANIMDEFS, [ericw-tools](https://github.com/ericwa/ericw-tools)' `.wal_json`, and
-QuakeSpasm, DarkPlaces and FTE companion images, reviewed 2026-10-07 to 2026-10-08.
+QuakeSpasm, DarkPlaces and FTE companion images, reviewed 2026-10-07 to 2026-10-08;
+the [iortcw](https://github.com/iortcw/iortcw) and [OpenJK](https://github.com/JACoders/OpenJK)
+shader dialects, the RoQ video format as the [MultimediaWiki](https://wiki.multimedia.cx/index.php/RoQ)
+describes it, and the BSP, Doom and UDMF map layouts, reviewed 2026-10-28.
 No code or game data is copied. See [Materials, Shaders And Textures](docs/CREDITS.md#materials-shaders-and-textures-2026-10-08).
 
 The 3D renderer draws with OpenGL or Vulkan through Qt's public OpenGL classes

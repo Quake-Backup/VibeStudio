@@ -72,6 +72,10 @@ struct MaterialTexture {
 
 using MaterialTexturePtr = std::shared_ptr<const MaterialTexture>;
 
+// A decoded RoQ video (core/material_video.h).
+class MaterialVideo;
+using MaterialVideoPtr = std::shared_ptr<const MaterialVideo>;
+
 // Six faces in +X, -X, +Y, -Y, +Z, -Z order (Z up, idTech axes).
 struct MaterialCubeTexture {
 	std::array<MaterialTexturePtr, 6> faces;
@@ -137,6 +141,8 @@ struct MaterialImageSource {
 struct MaterialImageSet {
 	QHash<QString, MaterialTexturePtr> textures;
 	QHash<QString, MaterialCubeTexturePtr> cubes;
+	// videoMap stages' videos; their first frame is also in textures.
+	QHash<QString, MaterialVideoPtr> videos;
 	// The palette paletted images were decoded with, and whether it is a
 	// generated stand-in.
 	QVector<QRgb> palette;
@@ -154,6 +160,7 @@ struct MaterialImageSet {
 
 	[[nodiscard]] MaterialTexturePtr find(const QString& reference) const;
 	[[nodiscard]] MaterialCubeTexturePtr findCube(const QString& reference) const;
+	[[nodiscard]] MaterialVideoPtr findVideo(const QString& reference) const;
 	// References that resolved to nothing usable, sorted.
 	[[nodiscard]] QStringList missing() const;
 	[[nodiscard]] int readyCount() const;
@@ -174,9 +181,12 @@ QStringList quake3SkyFaceSuffixes();
 // $whiteimage and its default box image. Null for unknown names.
 MaterialTexturePtr materialBuiltinTexture(const QString& name, bool developerDefault = false);
 MaterialTexturePtr quake3DefaultTexture();
-// A placeholder for a video stage (RoQ/CIN are not decoded): dark with a
-// moving bar, so playback is visible.
+// A placeholder for a video stage whose RoQ file cannot be decoded: dark
+// with a moving bar, so playback is visible.
 MaterialTexturePtr materialVideoPlaceholder();
+// Where the engine looks for a videoMap file: a bare name under video/, and
+// .roq when the name has no extension.
+QStringList materialVideoCandidates(const QString& reference);
 
 // Everything a material needs: stage images and animation frames, sky
 // boxes, cube maps, light falloff and projection images, classic frames,

@@ -574,6 +574,10 @@ void quake3TexCoords(const MaterialStage& stage, const Vertex& vertex, const Cam
 			*t = s0 * mod.values[1] + t0 * mod.values[3] + mod.values[5];
 			break;
 		}
+		case MaterialTexModKind::Swap:
+			// Enemy Territory RB_CalcSwapTexCoords.
+			std::swap(*s, *t);
+			break;
 		default:
 			break;
 		}
@@ -739,13 +743,19 @@ MaterialTexturePtr quake3StageTexture(const MaterialStage& stage, const Material
 		if (stage.animationFrames.isEmpty()) {
 			return {};
 		}
-		// R_BindAnimatedImage: (int)(time * fps * 1024) >> 10, at least 0.
+		// R_BindAnimatedImage: (int)(time * fps * 1024) >> 10, at least 0;
+		// Jedi Knight's one-shot animations hold the last frame.
 		long long index = static_cast<long long>(time * stage.animationFrequency * kQuake3FunctionTableSize) >> 10;
-		index = std::max(0LL, index) % stage.animationFrames.size();
+		index = stage.animationOnce ? std::clamp(index, 0LL, static_cast<long long>(stage.animationFrames.size() - 1))
+									: std::max(0LL, index) % stage.animationFrames.size();
 		return images.find(stage.animationFrames.at(static_cast<int>(index)));
 	}
 	case MaterialImageKind::Video:
-		return materialVideoPlaceholder();
+		// cl_cin.c plays shader videos looping (CIN_loop).
+		if (const MaterialVideoPtr video = images.findVideo(stage.imagePath)) {
+			return video->frameAt(time, true);
+		}
+		return images.find(stage.imagePath);
 	default:
 		return {};
 	}
@@ -878,6 +888,12 @@ void cloudTexMods(const MaterialStage& stage, const Quake3Frame& frame, Material
 			m[1][0] = mod.values[1];
 			m[1][1] = mod.values[3];
 			m[1][2] = mod.values[5];
+			break;
+		case MaterialTexModKind::Swap:
+			m[0][0] = 0;
+			m[0][1] = 1;
+			m[1][0] = 1;
+			m[1][1] = 0;
 			break;
 		default:
 			continue;
@@ -1041,6 +1057,13 @@ MaterialRenderResult renderQuake3Material(const MaterialDefinition& source, cons
 		}
 		if (++stageNumber > 8 || stage.imageKind == MaterialImageKind::None) {
 			continue;
+		}
+		if (stage.surfaceSprites) {
+			result.notes << Text::tr("Stage %1 scatters surface sprites in game; the preview leaves it out.").arg(stage.index + 1);
+			continue;
+		}
+		if (stage.glow) {
+			result.notes << Text::tr("Stage %1 also glows in game (bloom), which the preview does not add.").arg(stage.index + 1);
 		}
 		const bool lightmap = stage.imageKind == MaterialImageKind::Lightmap;
 		MaterialTexturePtr texture;

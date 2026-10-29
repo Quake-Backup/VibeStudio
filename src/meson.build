@@ -169,6 +169,9 @@ install_headers('core/material_render.h', 'core/material_render_p.h', subdir: 'v
 install_headers('core/render_device.h', 'core/render_device_p.h', 'core/render_shaders.h', subdir: 'vibestudio/core')
 install_headers('core/material_library.h', subdir: 'vibestudio/core')
 install_headers('core/material_graph.h', subdir: 'vibestudio/core')
+install_headers('core/material_video.h', subdir: 'vibestudio/core')
+install_headers('core/material_usage.h', subdir: 'vibestudio/core')
+install_headers('core/material_lookup.h', subdir: 'vibestudio/core')
 
 core_sources = files(
   'core/render_device.cpp',
@@ -273,6 +276,9 @@ core_sources = files(
   'core/material_render_doom3.cpp',
   'core/material_library.cpp',
   'core/material_graph.cpp',
+  'core/material_video.cpp',
+  'core/material_usage.cpp',
+  'core/material_lookup.cpp',
   'core/ai_connectors.cpp',
   'core/ai_gguf_runtime.cpp',
   'core/ai_harness.cpp',
@@ -1241,6 +1247,17 @@ material_graph_smoke_test = executable(
   install: false,
 )
 test('material-graph-smoke', material_graph_smoke_test, timeout: 120)
+
+# Dialects, RoQ videos, base packages, map usage, whole-definition edits, the
+# Levels face lookup and Doom 3 heat haze, on generated files.
+material_integration_smoke_test = executable(
+  'material_integration_smoke_test',
+  ['tests/material_integration_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep],
+  install: false,
+)
+test('material-integration-smoke', material_integration_smoke_test, timeout: 180)
 
 material_cli_smoke_test = executable(
   'material_cli_smoke_test',

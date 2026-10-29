@@ -20,6 +20,7 @@
 #include "core/studio_query.h"
 
 #include <QJsonObject>
+#include <QSet>
 #include <QString>
 #include <QStringList>
 #include <QVector>
@@ -57,6 +58,9 @@ struct MaterialLibraryEntry {
 	// Another definition of the same name wins in game.
 	bool shadowed = false;
 	QString shadowedBy;
+	// Read from a base package beneath the open one (a game installation's
+	// pak0.pk3, the IWAD): the game has it, the package does not.
+	bool base = false;
 };
 
 struct MaterialLibraryOptions {
@@ -70,6 +74,51 @@ struct MaterialLibraryOptions {
 	qint64 maximumTotalBytes = 512LL * 1024 * 1024;
 	// Engines to scan; empty scans all.
 	QVector<MaterialEngine> engines;
+	// The Quake III game the scripts are read for; Automatic works it out
+	// from every script together.
+	MaterialDialect dialect = MaterialDialect::Automatic;
+	// Packages the game mounts beneath the open one, lowest first: a game
+	// installation's base packages or a PWAD's IWAD. Their materials join
+	// the library marked as base; the package's own shadow them, and Doom
+	// textures, flats and patches merge as the game merges WADs.
+	QVector<std::shared_ptr<const PackageArchiveReader>> baseReaders;
+	// Base materials are listed (otherwise their images, tables and Doom
+	// lumps are still used, but only the package's materials are listed).
+	bool listBaseMaterials = true;
+};
+
+// A package over the packages beneath it, read as the game reads them:
+// entries() lists the lowest layer first, so Doom's last-lump-wins search
+// finds the package's lump, and a path in a higher layer hides the same path
+// below it. Base entries carry layerId "base:<n>" (n counts from the lowest).
+class MaterialLayeredReader final : public PackageArchiveReader {
+public:
+	MaterialLayeredReader(std::shared_ptr<const PackageArchiveReader> package, QVector<std::shared_ptr<const PackageArchiveReader>> base);
+
+	[[nodiscard]] PackageArchiveFormat format() const override;
+	[[nodiscard]] QString sourcePath() const override;
+	[[nodiscard]] QString wadMagic() const override;
+	[[nodiscard]] bool isOpen() const override;
+	[[nodiscard]] QVector<PackageEntry> entries() const override { return m_entries; }
+	bool readEntryBytes(const QString& virtualPath, QByteArray* out, QString* error, qint64 maxBytes = -1) const override;
+	bool readEntryAt(qsizetype index, QByteArray* out, QString* error, qint64 maxBytes = -1) const override;
+
+	[[nodiscard]] const std::shared_ptr<const PackageArchiveReader>& package() const { return m_package; }
+	[[nodiscard]] int baseCount() const { return static_cast<int>(m_base.size()); }
+	// True when the entry at `index` comes from a base layer.
+	[[nodiscard]] bool isBaseEntry(qsizetype index) const;
+
+private:
+	struct Source {
+		int layer = 0; // 0..baseCount()-1 base, baseCount() the package
+		qsizetype index = 0;
+	};
+	[[nodiscard]] const PackageArchiveReader* layer(int index) const;
+
+	std::shared_ptr<const PackageArchiveReader> m_package;
+	QVector<std::shared_ptr<const PackageArchiveReader>> m_base;
+	QVector<PackageEntry> m_entries;
+	QVector<Source> m_sources;
 };
 
 using MaterialLibraryProgress = std::function<bool(int done, int total, const QString& phase)>;
@@ -84,6 +133,13 @@ public:
 	QStringList warnings;
 	bool complete = true;
 	bool cancelled = false;
+	// The Quake III game the scripts were read for (never Automatic).
+	MaterialDialect dialect = MaterialDialect::Quake3;
+	// What images are read from: the package, or the package over its base
+	// packages (MaterialLayeredReader). Null for a library of loose scripts.
+	std::shared_ptr<const PackageArchiveReader> reader;
+	// How many base packages are beneath the package.
+	int baseCount = 0;
 
 	// The entry the game would use for a name, preferring an engine.
 	[[nodiscard]] int indexOf(const QString& name, MaterialEngine engine = MaterialEngine::Unknown) const;
@@ -113,12 +169,20 @@ public:
 	// Candidate images for implicit materials, and their engine.
 	QStringList implicitImages;
 	MaterialEngine implicitEngine = MaterialEngine::Unknown;
+	// Lower-case paths (and Doom lump names) the game reads from a base
+	// package, and whether entries from there are listed.
+	QSet<QString> basePaths;
+	bool listBase = true;
 
 private:
 	void resolveShadowing();
 };
 
 MaterialLibrary scanMaterialLibrary(const PackageArchiveReader& reader, const MaterialLibraryOptions& options = {},
+	const MaterialLibraryProgress& progress = {});
+// The same, keeping the reader (over options.baseReaders when there are
+// any) as the library's image source.
+MaterialLibrary scanMaterialLibrary(std::shared_ptr<const PackageArchiveReader> reader, const MaterialLibraryOptions& options = {},
 	const MaterialLibraryProgress& progress = {});
 
 // Where the game reads a script file: its path inside `packageRoot` when it

@@ -25,9 +25,20 @@ namespace vibestudio {
 MaterialEngine materialEngineForScriptPath(const QString& path);
 bool isMaterialScriptPath(const QString& path);
 
-MaterialScript parseMaterialScript(const QString& text, MaterialEngine engine, const QString& path = QString());
+// Quake III scripts are read as `dialect`'s game reads them; Automatic
+// detects it from the script's own keywords (detectMaterialDialect).
+MaterialScript parseMaterialScript(const QString& text, MaterialEngine engine, const QString& path = QString(),
+	MaterialDialect dialect = MaterialDialect::Automatic);
 bool loadMaterialScript(const QString& path, MaterialScript* script, QString* error = nullptr,
-	MaterialEngine engine = MaterialEngine::Unknown);
+	MaterialEngine engine = MaterialEngine::Unknown, MaterialDialect dialect = MaterialDialect::Automatic);
+
+// The Quake III game whose keywords a script uses: Enemy Territory's implicit
+// keywords, distanceCull, the lightmap stage or tcMod swap; Jedi Knight's
+// surface sprites, glow, material or one-shot animations; Wolfenstein's fog,
+// sun, light grid and compression keywords; otherwise Quake III Arena. Several
+// texts (a package's scripts) are read together, so one dialect covers them.
+MaterialDialect detectMaterialDialect(const QString& text);
+MaterialDialect detectMaterialDialect(const QStringList& texts);
 
 // Parses a Doom 3 expression on its own, for the graph editor and the CLI.
 // Nodes are appended to `nodes`; returns the root or -1 with `error` set.
@@ -41,9 +52,10 @@ QString materialImageProgramText(const QVector<MaterialImageProgramNode>& nodes,
 QStringList materialImageProgramImages(const QVector<MaterialImageProgramNode>& nodes, int root);
 
 // Keyword catalogues, for completion, highlighting and the graph editor's
-// property choices. Lower case.
-QStringList materialGlobalKeywords(MaterialEngine engine);
-QStringList materialStageKeywords(MaterialEngine engine);
+// property choices. Lower case. A Quake III dialect adds its game's keywords;
+// Automatic adds every derivative's.
+QStringList materialGlobalKeywords(MaterialEngine engine, MaterialDialect dialect = MaterialDialect::Automatic);
+QStringList materialStageKeywords(MaterialEngine engine, MaterialDialect dialect = MaterialDialect::Automatic);
 // One-line help for a keyword, translated; empty when unknown.
 QString materialKeywordHelp(MaterialEngine engine, const QString& keyword, bool stage);
 
@@ -70,9 +82,12 @@ enum class MaterialEditKind {
 	// Append a new definition's text to the end of the script.
 	AddDefinition,
 	RemoveDefinition,
+	// `text` is the new name.
 	RenameDefinition,
 	// Move a directive within its block to index `position`.
 	MoveDirective,
+	// Insert a copy of the definition, named `text`, right after it.
+	DuplicateDefinition,
 };
 
 QString materialEditKindId(MaterialEditKind kind);

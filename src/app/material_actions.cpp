@@ -1,12 +1,18 @@
 // The Materials workbench inside the shell: it reads the package view (staged
-// edits included) and saves through the package's staging, so material
-// edits join the same undo, review and save as every other package change.
+// edits included) over the selected game installation's base packages, and
+// saves through the package's staging, so material edits join the same undo,
+// review and save as every other package change. Its Maps tab opens maps in
+// Levels with the material's faces selected.
 
 #include "app/application_shell.h"
 
 #include "app/material_workbench.h"
+#include "core/game_installation.h"
+#include "core/level_map.h"
+#include "core/material_library.h"
 #include "core/package_staging.h"
 
+#include <QComboBox>
 #include <QDir>
 #include <QFileInfo>
 #include <QStatusBar>
@@ -73,6 +79,10 @@ QWidget* ApplicationShell::buildMaterialWorkbench()
 	};
 	host.showTexture = [this](const QString& reference) { showTextureReference(reference); };
 	host.openInCode = [this](const QString& path, int line) { openCodeFileAt(path, std::max(1, line)); };
+	host.openMapUse = [this](const MaterialMapUse& use, const QString& material, QString* error) { return openMaterialMapUse(use, material, error); };
+	host.revealInPackage = [this](const QString& path) { revealPackageEntry(path); };
+	host.loadState = [this]() { return m_settings.shellLayoutState(QStringLiteral("materialsWorkbench")); };
+	host.saveState = [this](const QByteArray& state) { m_settings.setShellLayoutState(QStringLiteral("materialsWorkbench"), state); };
 	m_materialWorkbench->setHost(host);
 	connect(m_materialWorkbench, &MaterialWorkbench::statusMessage, this, [this](const QString& message) { statusBar()->showMessage(message); });
 	connect(m_materialWorkbench, &MaterialWorkbench::contentChanged, this, [this]() { refreshSurfaceStates(); });
@@ -90,12 +100,119 @@ void ApplicationShell::syncMaterialWorkbench()
 		m_materialWorkbench->clearPackage();
 		return;
 	}
+	// A different game installation changes what lies beneath the package.
+	m_materialWorkbench->setBasePackages(materialBasePackagePaths());
 	// The view only changes with the staging revision; copy it only then.
 	const QString key = packageViewKey();
 	if (key == m_materialWorkbench->packageRevision()) {
 		return;
 	}
 	m_materialWorkbench->setPackage(std::make_shared<PackageArchive>(packageViewArchive()), packageOpenPath(), key);
+}
+
+QStringList ApplicationShell::materialBasePackagePaths() const
+{
+	GameInstallationProfile installation;
+	if (!m_packageArchive.isOpen() || !selectedGameInstallation(&installation)) {
+		return {};
+	}
+	// Only an installation of the package's own engine: a Quake III install
+	// says nothing about a Doom PWAD's textures.
+	const PackageArchive& view = packageViewArchive();
+	const MaterialEngine engine = detectMaterialEngine(view);
+	const GameEngineFamily family = installation.engineFamily;
+	bool matches = family == GameEngineFamily::Unknown;
+	switch (engine) {
+	case MaterialEngine::Doom:
+		matches = matches || family == GameEngineFamily::IdTech1;
+		break;
+	case MaterialEngine::Quake:
+	case MaterialEngine::Quake2:
+		matches = matches || family == GameEngineFamily::IdTech2;
+		break;
+	case MaterialEngine::Quake3:
+		matches = matches || family == GameEngineFamily::IdTech3;
+		break;
+	case MaterialEngine::Doom3:
+		break;
+	case MaterialEngine::Unknown:
+		matches = view.format() == PackageArchiveFormat::Wad ? family == GameEngineFamily::IdTech1 : true;
+		break;
+	}
+	if (!matches) {
+		return {};
+	}
+	QStringList paths;
+	const QString open = QFileInfo(packageOpenPath()).absoluteFilePath();
+	for (const QString& path : installation.basePackagePaths) {
+		const QString absolute = QFileInfo(QDir(installation.rootPath).absoluteFilePath(path)).absoluteFilePath();
+		// The package itself is never beneath itself.
+		if (QFileInfo::exists(absolute) && absolute.compare(open, Qt::CaseInsensitive) != 0) {
+			paths << absolute;
+		}
+	}
+	return paths;
+}
+
+void ApplicationShell::showMaterialMapUses()
+{
+	if (!m_materialWorkbench) {
+		return;
+	}
+	syncMaterialWorkbench();
+	setMode(StudioMode::Shaders);
+	if (m_shaderPageTabs) {
+		m_shaderPageTabs->setCurrentIndex(0);
+	}
+	m_materialWorkbench->showMapUses();
+}
+
+bool ApplicationShell::openMaterialMapUse(const MaterialMapUse& use, const QString& material, QString* error)
+{
+	const auto failed = [error](const QString& message) {
+		if (error) {
+			*error = message;
+		}
+		return false;
+	};
+	if (use.kind == MaterialMapKind::Bsp) {
+		return failed(tr("Compiled maps do not open in Levels; open the map's .map source."));
+	}
+	// The map's file: the open WAD itself, a file of a folder package, or a
+	// copy of an entry inside an archive.
+	const QString packagePath = packageOpenPath();
+	QString path;
+	if (use.kind == MaterialMapKind::DoomMap && use.mapPath.isEmpty()) {
+		path = packagePath;
+	} else if (QFileInfo(packagePath).isDir()) {
+		path = QDir(packagePath).filePath(use.mapPath);
+	}
+	if (path.isEmpty() || !QFileInfo(path).isFile()) {
+		const QVector<PackageEntry> entries = packageViewArchive().entries();
+		const bool inPackage = std::any_of(entries.cbegin(), entries.cend(),
+			[&](const PackageEntry& entry) { return entry.virtualPath.compare(use.mapPath, Qt::CaseInsensitive) == 0; });
+		if (!inPackage) {
+			return failed(tr("%1 is in a base package; open it from that package.").arg(use.mapPath));
+		}
+		path = extractPackageEntryCopy(use.mapPath);
+		if (path.isEmpty()) {
+			return failed(tr("%1 could not be copied out of the package.").arg(use.mapPath));
+		}
+	}
+	if (!confirmLevelMapEditsHandled(tr("Save the open map before opening %1?").arg(QFileInfo(path).fileName()))) {
+		return failed(tr("The open map was kept."));
+	}
+	// A WAD map is named by its marker; Levels reads the name from its field.
+	if (m_levelMapName && use.kind == MaterialMapKind::DoomMap) {
+		m_levelMapName->setEditText(use.mapName);
+	}
+	loadLevelMapPath(path);
+	if (QDir::cleanPath(m_levelMapDocument.sourcePath).compare(QDir::cleanPath(path), Qt::CaseInsensitive) != 0) {
+		return failed(tr("%1 did not open; see Levels for why.").arg(QDir::toNativeSeparators(path)));
+	}
+	setMode(StudioMode::Levels);
+	selectLevelMapObjectsByTexture(use.textureName.isEmpty() ? material : use.textureName);
+	return true;
 }
 
 void ApplicationShell::showMaterialsForImage(const QString& virtualPath)

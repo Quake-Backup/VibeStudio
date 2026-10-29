@@ -44,6 +44,9 @@ public:
 		KindRole,
 		AnimatedRole,
 		ShadowedRole,
+		BaseRole,
+		ProblemsRole,
+		SourceRole,
 	};
 
 	explicit MaterialLibraryModel(QObject* parent = nullptr);
@@ -97,22 +100,41 @@ private:
 
 class MaterialLibraryFilter final : public QSortFilterProxyModel {
 public:
+	// The library's own order (script by script), or by a column of choice.
+	enum class Order {
+		Library,
+		Name,
+		Engine,
+		Source,
+		Problems,
+		MostUsed,
+	};
+
 	explicit MaterialLibraryFilter(QObject* parent = nullptr);
+
+	void setOrder(Order order);
+	[[nodiscard]] Order order() const { return m_order; }
+	// Map uses per library row, for Order::MostUsed.
+	void setUseCounts(const QHash<int, int>& counts);
 
 	void setQuery(const QString& text);
 	[[nodiscard]] QString queryText() const { return m_text; }
 	void setEngine(MaterialEngine engine);
 	[[nodiscard]] MaterialEngine engine() const { return m_engine; }
 	void setShowShadowed(bool show);
+	[[nodiscard]] bool showShadowed() const { return m_showShadowed; }
 	// Keys the query tests that no material has: a likely typo.
 	[[nodiscard]] QStringList unknownKeys() const;
 
 protected:
 	bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
+	bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
 
 private:
 	void refilter(const std::function<void()>& change);
 
+	Order m_order = Order::Library;
+	QHash<int, int> m_useCounts;
 	QString m_text;
 	StudioQuery m_query;
 	MaterialEngine m_engine = MaterialEngine::Unknown;

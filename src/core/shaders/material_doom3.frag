@@ -147,13 +147,57 @@ vec4 interaction()
 	return vec4(added, 0.0);
 }
 
+// The heatHaze programs: the frame so far (slot 7) read at the pixel's
+// screen position moved by the normal map in slot 0, scrolled by params[3].xy;
+// params[3].z is the strength, flag 64 scales it by the mask in slot 1, flag
+// 128 by the vertex colour.
+vec4 heatHaze()
+{
+	vec2 screen = vec2(gl_FragCoord.x / viewport.x, 1.0 - gl_FragCoord.y / viewport.y);
+	vec2 bump = sampleSlot(0, vTexCoord.xy + params[3].xy, true, 0.0).xy * 2.0 - 1.0;
+	float amount = params[3].z * 0.01;
+	if (flag(64)) {
+		amount *= sampleSlot(1, vTexCoord.xy, true, 0.0).r;
+	}
+	if (flag(128)) {
+		amount *= vColor.r;
+	}
+	vec2 st = screen + bump * amount;
+	ivec2 size = ivec2(viewport.xy);
+	int x = clamp(int(st.x * float(size.x)), 0, size.x - 1);
+	int y = clamp(int((1.0 - st.y) * float(size.y)), 0, size.y - 1);
+	return vec4(texelFetch(tex7, ivec2(x, y), 0).rgb, 1.0) * color;
+}
+
+// The bumpyEnvironment program: the cube map in samplerInfo 0..5 seen in the
+// view direction reflected about the normal, bent by the tangent-space
+// normal map in slot 6 (matrix 6) with flag 512.
+vec4 bumpyEnvironment()
+{
+	vec3 normal = normalize(vNormal);
+	if (flag(512)) {
+		vec3 local = sampleSlot(6, applyMatrix(6, vTexCoord.xy), true, 0.0).rgb * 2.0 - 1.0;
+		normal = normalize(normalize(vTangent) * local.x + normalize(vBitangent) * local.y + normal * local.z);
+	}
+	vec3 view = normalize(vPosition - eye.xyz);
+	vec3 reflected = view - normal * (2.0 * dot(normal, view));
+	return cubeMap(reflected) * color;
+}
+
 // mode.w texgen: 0 the stage's coordinates, 1 normal, 2 reflect, 3 skybox,
 // 4 wobblesky (params[0..2] its rotation rows), 5 screen. Flags: 1 bilinear,
 // 2 a cube map in samplerInfo 0..5, 4 _currentRender (the frame so far, slot 7),
-// 8 inverse vertex colour, 16 a 2D image in slot 0. The texture matrix is
-// matrix 6; lighting.w the image's texels a world unit.
+// 8 inverse vertex colour, 16 a 2D image in slot 0, 32 a heat haze (see
+// heatHaze()), 256 a bumpy environment (see bumpyEnvironment()). The texture
+// matrix is matrix 6; lighting.w the image's texels a world unit.
 vec4 stage()
 {
+	if (flag(32)) {
+		return heatHaze();
+	}
+	if (flag(256)) {
+		return bumpyEnvironment();
+	}
 	vec3 position = vPosition;
 	vec3 normal = normalize(vNormal);
 	vec3 view = normalize(position - eye.xyz);

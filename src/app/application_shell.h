@@ -111,6 +111,7 @@ struct LevelShapeRequest;
 struct LevelBuildWorkspace;
 
 class MaterialWorkbench;
+struct MaterialMapUse;
 class PackageEntryView;
 class PackageStagingView;
 class PackageFolderView;
@@ -1465,6 +1466,11 @@ private:
 	void openMaterialScript(const QString& path);
 	void showMaterialsForImage(const QString& virtualPath);
 	void showMaterialNamed(const QString& name);
+	// Opens a map from the Materials page's Maps tab in Levels, with the faces
+	// using the material selected; the base packages the workbench reads.
+	bool openMaterialMapUse(const MaterialMapUse& use, const QString& material, QString* error);
+	void showMaterialMapUses();
+	[[nodiscard]] QStringList materialBasePackagePaths() const;
 	void createAdvancedSpritePlan();
 	void indexAdvancedCodeWorkspace();
 	void createAdvancedAiProposal();

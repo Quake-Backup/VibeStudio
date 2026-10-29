@@ -1,6 +1,7 @@
 // The `material` CLI family end to end: list, inspect, validate, render,
-// graph, edit, templates, new, doom-tables and wal, run as a separate
-// process against packages generated here (no game data).
+// graph, edit, templates, new, doom-tables, wal and usage, with base packages
+// and Quake III dialects, run as a separate process against packages
+// generated here (no game data).
 
 #include <QCoreApplication>
 #include <QDir>
@@ -423,6 +424,77 @@ int main(int argc, char** argv)
 	result = run({QStringLiteral("wal"), root.filePath(QStringLiteral("q2")), QStringLiteral("--material"), QStringLiteral("e1u1/anim_2")});
 	expect(lastExit == 0 && result.value(QStringLiteral("name")).toString() == QStringLiteral("e1u1/anim_2"), "wal reads a texture in a package",
 		lastOutput);
+
+	// Whole-definition edits without a JSON file.
+	const QString shortcuts = root.filePath(QStringLiteral("shortcuts.shader"));
+	writeFile(shortcuts, QByteArray(kShaders));
+	result = run({QStringLiteral("edit"), shortcuts, QStringLiteral("--material"), QStringLiteral("textures/test/glow"), QStringLiteral("--duplicate"),
+		QStringLiteral("textures/test/glow2"), QStringLiteral("--dry-run")});
+	QStringList edited;
+	for (const QJsonValue& each : result.value(QStringLiteral("materials")).toArray()) {
+		edited << each.toString();
+	}
+	expect(lastExit == 0 && edited.contains(QStringLiteral("textures/test/glow")) && edited.contains(QStringLiteral("textures/test/glow2")),
+		"edit --duplicate adds a renamed copy", lastOutput);
+	run({QStringLiteral("edit"), shortcuts, QStringLiteral("--material"), QStringLiteral("textures/test/glow"), QStringLiteral("--rename"),
+		QStringLiteral("textures/test/shine"), QStringLiteral("--output"), shortcuts, QStringLiteral("--overwrite")});
+	expect(lastExit == 0 && readFile(shortcuts).contains("textures/test/shine") && !readFile(shortcuts).contains("textures/test/glow\n"),
+		"edit --rename renames in place", lastOutput);
+	run({QStringLiteral("edit"), shortcuts, QStringLiteral("--material"), QStringLiteral("textures/test/shine"), QStringLiteral("--remove"),
+		QStringLiteral("--output"), shortcuts, QStringLiteral("--overwrite")});
+	expect(lastExit == 0 && !readFile(shortcuts).contains("textures/test/shine"), "edit --remove deletes the definition", lastOutput);
+	run({QStringLiteral("edit"), shortcuts, QStringLiteral("--rename"), QStringLiteral("x"), QStringLiteral("--dry-run")});
+	expect(lastExit == 2, "--rename needs --material", lastOutput);
+
+	// Dialects: a Jedi Knight keyword loads in Jedi Knight and drops the
+	// shader in Quake III Arena.
+	const QString jedi = root.filePath(QStringLiteral("jedi.shader"));
+	writeFile(jedi, "textures/jk/sign\n{\n\t{\n\t\tmap textures/jk/sign.tga\n\t\tglow\n\t}\n}\n");
+	result = run({QStringLiteral("inspect"), jedi, QStringLiteral("--no-images")});
+	expect(lastExit == 0 && !result.value(QStringLiteral("entry")).toObject().value(QStringLiteral("rejected")).toBool(),
+		"a Jedi Knight script is read as Jedi Knight's", lastOutput);
+	result = run({QStringLiteral("inspect"), jedi, QStringLiteral("--no-images"), QStringLiteral("--dialect"), QStringLiteral("quake3")});
+	expect(lastExit == 0 && result.value(QStringLiteral("entry")).toObject().value(QStringLiteral("rejected")).toBool(),
+		"--dialect quake3 reads it as Quake III Arena, which drops it", lastOutput);
+	run({QStringLiteral("list"), q3, QStringLiteral("--dialect"), QStringLiteral("doom9")});
+	expect(lastExit == 2, "an unknown dialect is a usage error", lastOutput);
+	result = run({QStringLiteral("list"), q3, QStringLiteral("--dialect"), QStringLiteral("quake3-1.32")});
+	expect(lastExit == 0 && result.value(QStringLiteral("dialect")).toString() == QStringLiteral("quake3-1.32"), "the listing names its dialect",
+		lastOutput);
+
+	// Base packages: a mod over the base folder.
+	const QString mod = root.filePath(QStringLiteral("mod"));
+	writeFile(mod + QStringLiteral("/scripts/mod.shader"), "textures/mod/lamp\n{\n\t{\n\t\tmap textures/test/glow.tga\n\t}\n}\n");
+	run({QStringLiteral("validate"), mod});
+	expect(lastExit == 4, "without its base, a mod's borrowed image is missing", lastOutput);
+	result = run({QStringLiteral("validate"), mod, QStringLiteral("--base"), q3});
+	expect(lastExit == 0 && result.value(QStringLiteral("checked")).toInt() == 1, "with --base the image is found and base materials are not checked",
+		lastOutput);
+	result = run({QStringLiteral("list"), mod, QStringLiteral("--base"), q3, QStringLiteral("--include-base")});
+	names.clear();
+	for (const QJsonValue& entry : result.value(QStringLiteral("entries")).toArray()) {
+		names << entry.toObject().value(QStringLiteral("name")).toString();
+	}
+	expect(lastExit == 0 && names.contains(QStringLiteral("textures/test/glow")) && names.contains(QStringLiteral("textures/mod/lamp"))
+			&& result.value(QStringLiteral("basePackages")).toInt() == 1,
+		"--include-base lists the base package's materials too", lastOutput);
+
+	// usage: the maps that use a material.
+	writeFile(q3 + QStringLiteral("/maps/test.map"),
+		"{\n\"classname\" \"worldspawn\"\n{\n( 0 0 0 ) ( 1 0 0 ) ( 0 1 0 ) test/glow 0 0 0 0.5 0.5 0 0 0\n"
+		"( 0 0 0 ) ( 0 1 0 ) ( 0 0 1 ) test/glow 0 0 0 0.5 0.5 0 0 0\n( 0 0 0 ) ( 0 0 1 ) ( 1 0 0 ) test/anim 0 0 0 0.5 0.5 0 0 0\n}\n}\n");
+	result = run({QStringLiteral("usage"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow")});
+	expect(lastExit == 0 && result.value(QStringLiteral("total")).toInt() == 2 && result.value(QStringLiteral("uses")).toArray().size() == 1,
+		"usage counts a material's faces in each map", lastOutput);
+	result = run({QStringLiteral("usage"), q3, QStringLiteral("--unused")});
+	QStringList unused;
+	for (const QJsonValue& each : result.value(QStringLiteral("unused")).toArray()) {
+		unused << each.toObject().value(QStringLiteral("name")).toString();
+	}
+	expect(lastExit == 0 && unused.contains(QStringLiteral("textures/test/bad")) && !unused.contains(QStringLiteral("textures/test/glow")),
+		"usage --unused lists the materials no map uses", lastOutput);
+	run({QStringLiteral("usage"), jedi});
+	expect(lastExit == 2, "usage needs a package with maps, not a loose script", lastOutput);
 
 	// usage
 	run({QStringLiteral("render")});

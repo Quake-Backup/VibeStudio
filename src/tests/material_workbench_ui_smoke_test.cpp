@@ -2,8 +2,11 @@
 // materials, the live preview, node and property edits that rewrite the
 // text, text edits that rebuild the graph, undo, keyboard navigation and
 // screen-reader children in the graph, saving loose scripts, and staging
-// scripts, Doom lumps and Quake II WAL headers through the host hooks.
-// Every package is generated here; no game data.
+// scripts, Doom lumps and Quake II WAL headers through the host hooks;
+// rename, duplicate and delete, Save All, the Maps tab, problems of the whole
+// package, base packages and Override in Package, export, the find bar and
+// the view state kept between sessions. Every package is generated here; no
+// game data.
 
 #include "app/code_editor.h"
 #include "app/material_graph_view.h"
@@ -12,6 +15,7 @@
 #include "app/material_property_panel.h"
 #include "app/material_workbench.h"
 #include "app/studio_theme.h"
+#include "core/material_usage.h"
 #include "core/package_archive.h"
 #include "tests/render_test_support.h"
 
@@ -55,7 +59,9 @@ bool expect(bool condition, const std::string& message, const QString& detail = 
 	return condition;
 }
 
-bool waitFor(const std::function<bool()>& condition, int timeoutMs = 20000)
+// Generous: the first frame waits for the 3D renderer to start, and a
+// loaded machine slows every frame.
+bool waitFor(const std::function<bool()>& condition, int timeoutMs = 60000)
 {
 	QElapsedTimer timer;
 	timer.start();
@@ -286,6 +292,16 @@ int main(int argc, char** argv)
 		return true;
 	};
 	host.showTexture = [&](const QString& reference) { shownTextures << reference; };
+	QStringList openedMaps;
+	host.openMapUse = [&](const MaterialMapUse& use, const QString& material, QString*) {
+		openedMaps << use.mapPath + QLatin1Char('|') + material;
+		return true;
+	};
+	QStringList revealed;
+	host.revealInPackage = [&](const QString& path) { revealed << path; };
+	QByteArray savedState;
+	host.saveState = [&](const QByteArray& state) { savedState = state; };
+	host.loadState = [&]() { return savedState; };
 	workbench.setHost(host);
 	workbench.resize(1400, 900);
 	workbench.show();
@@ -488,6 +504,115 @@ int main(int argc, char** argv)
 	expect(workbench.selectMaterial(QStringLiteral("e1u1/water1")), "a WAL can be chosen");
 	expect(workbench.currentTextKind() == MaterialTextKind::Quake2WalJson, "a WAL header is edited as .wal_json");
 	expect(rendered(), "the warped WAL renders");
+
+	// Whole definitions: duplicate, rename through the material node's name,
+	// delete; each one undo step in the text.
+	workbench.setPackage(archive, q3, QStringLiteral("q3-defs"));
+	expect(idle(), "the Quake III package scans for definition edits");
+	workbench.selectMaterial(QStringLiteral("textures/test/glow"));
+	expect(idle(), "the glow shader loads for definition edits");
+	expect(workbench.duplicateCurrentMaterial(QStringLiteral("textures/test/glow_copy"), &error), "a material can be duplicated", error);
+	expect(workbench.currentMaterial() == QStringLiteral("textures/test/glow_copy") && workbench.currentText().contains(QStringLiteral("textures/test/glow\n"))
+			&& workbench.currentText().contains(QStringLiteral("textures/test/glow_copy\n")),
+		"the copy follows the original and is selected", workbench.currentMaterial());
+	MaterialGraphEdit renaming;
+	renaming.kind = MaterialGraphEditKind::SetProperty;
+	renaming.node = QStringLiteral("material");
+	renaming.property = QStringLiteral("name");
+	renaming.value = QStringLiteral("textures/test/glow_renamed");
+	expect(workbench.applyGraphEdit(renaming, &error), "the material node's name renames it", error);
+	expect(workbench.currentMaterial() == QStringLiteral("textures/test/glow_renamed") && !workbench.currentText().contains(QStringLiteral("glow_copy")),
+		"the rename keeps the material selected under its new name", workbench.currentMaterial());
+	expect(!workbench.renameCurrentMaterial(QStringLiteral("textures/test/glow"), &error), "a rename onto another definition's name is refused");
+	expect(workbench.deleteCurrentMaterial(&error), "a material can be deleted", error);
+	expect(!workbench.currentText().contains(QStringLiteral("glow_renamed")) && !workbench.currentMaterial().isEmpty(),
+		"deleting removes the definition and selects another", workbench.currentMaterial());
+	workbench.editor()->undo();
+	QCoreApplication::processEvents();
+	expect(workbench.currentText().contains(QStringLiteral("glow_renamed")), "Undo brings the deleted definition back");
+	workbench.revert();
+	idle();
+
+	// Save All: two texts with unsaved changes, both staged.
+	workbench.selectMaterial(QStringLiteral("textures/test/glow"));
+	idle();
+	expect(workbench.applyGraphEdit(frequency, &error), "an edit before Save All", error);
+	expect(workbench.addMaterialFromTemplate(QStringLiteral("d3-standard"), QStringLiteral("textures/test/panel2"), QString(), &error),
+		"a Doom 3 template starts a second text", error);
+	staged.clear();
+	expect(workbench.saveAll(&error), "Save All saves every changed text", error);
+	expect(staged.contains(QStringLiteral("scripts/test.shader")) && staged.contains(QStringLiteral("materials/vibestudio.mtr")) && !workbench.hasUnsavedChanges(),
+		"both texts are staged and nothing is left unsaved", staged.join(QLatin1Char(',')));
+
+	// Problems of the whole package.
+	workbench.setWholePackageProblems(true);
+	bool listsBad = false;
+	for (int row = 0; row < workbench.problemsList()->topLevelItemCount(); ++row) {
+		listsBad = listsBad || workbench.problemsList()->topLevelItem(row)->text(2).startsWith(QStringLiteral("textures/test/bad:"));
+	}
+	expect(listsBad, "the whole package's problems name their material");
+	workbench.setWholePackageProblems(false);
+
+	// The Maps tab: the maps that use the material, opened in Levels.
+	writeFile(q3 + QStringLiteral("/maps/test.map"),
+		"{\n\"classname\" \"worldspawn\"\n{\n( 0 0 0 ) ( 1 0 0 ) ( 0 1 0 ) test/glow 0 0 0 0.5 0.5 0 0 0\n"
+		"( 0 0 0 ) ( 0 1 0 ) ( 0 0 1 ) test/glow 0 0 0 0.5 0.5 0 0 0\n}\n}\n");
+	auto withMap = openPackage(q3);
+	workbench.setPackage(withMap, q3, QStringLiteral("q3-maps"));
+	expect(idle(), "the package with a map scans");
+	workbench.selectMaterial(QStringLiteral("textures/test/glow"));
+	idle();
+	workbench.showMapUses();
+	expect(waitFor([&]() { return !workbench.usageScanning() && workbench.usage(); }), "the maps are read in the background");
+	QTreeWidget* maps = workbench.mapsList();
+	expect(maps->topLevelItemCount() == 1 && maps->topLevelItem(0)->text(0) == QStringLiteral("maps/test.map") && maps->topLevelItem(0)->text(1) == QStringLiteral("2"),
+		"the Maps tab lists the map and its uses", maps->topLevelItemCount() > 0 ? maps->topLevelItem(0)->text(0) + QLatin1Char(' ') + maps->topLevelItem(0)->text(1) : QString());
+	if (maps->topLevelItemCount() > 0) {
+		Q_EMIT maps->itemActivated(maps->topLevelItem(0), 0);
+		expect(openedMaps.contains(QStringLiteral("maps/test.map|textures/test/glow")), "Enter on a map opens it in Levels for the material",
+			openedMaps.join(QLatin1Char(',')));
+	}
+
+	// Base packages: the Quake III folder beneath a mod; base materials are
+	// read only, and Override in Package copies one into the mod.
+	const QString mod = root.filePath(QStringLiteral("mod"));
+	writeFile(mod + QStringLiteral("/scripts/mod.shader"), "textures/mod/lamp\n{\n\t{\n\t\tmap textures/test/glow.tga\n\t}\n}\n");
+	workbench.setBasePackages({q3});
+	workbench.setPackage(openPackage(mod), mod, QStringLiteral("mod-1"));
+	expect(idle(), "the mod scans over its base package");
+	expect(workbench.selectMaterial(QStringLiteral("textures/test/glow")) && idle(), "a base material is listed");
+	expect(workbench.currentIsBase() && workbench.editor()->isReadOnly() && workbench.currentDocumentTitle().contains(QStringLiteral("read only")),
+		"a base material's script is shown read only", workbench.currentDocumentTitle());
+	expect(!workbench.applyGraphEdit(frequency, &error), "a base material is not edited in place");
+	expect(workbench.overrideInPackage(&error), "Override in Package copies the base material", error);
+	expect(workbench.currentDocumentTitle().contains(QStringLiteral("zz_vibestudio_overrides")) && !workbench.editor()->isReadOnly()
+			&& workbench.currentText().contains(QStringLiteral("textures/test/glow")),
+		"the copy is in a script the game reads after the base scripts", workbench.currentDocumentTitle());
+	staged.clear();
+	expect(workbench.save(&error) && staged.contains(QStringLiteral("scripts/zz_vibestudio_overrides.shader")), "the override is staged into the mod", error);
+	workbench.selectMaterial(QStringLiteral("textures/mod/lamp"));
+	expect(idle() && !workbench.currentIsBase(), "the mod's own material is not base");
+	if (canRender) {
+		expect(rendered() && !workbench.preview()->lastResult().fallback, "the mod's material draws with the base package's image");
+		const QString exported = root.filePath(QStringLiteral("export.png"));
+		expect(workbench.exportPreview(exported, 1, QSize(64, 64), &error) && QImage(exported).size() == QSize(64, 64), "the preview exports to PNG",
+			error);
+	}
+	workbench.setBasePackages({});
+
+	// The find bar on the Text tab.
+	workbench.editorTabs()->setCurrentIndex(1);
+	QCoreApplication::processEvents();
+	expect(workbench.findBar() != nullptr, "the Text tab has a find bar");
+
+	// The view state is kept between sessions.
+	workbench.libraryFilter()->setOrder(MaterialLibraryFilter::Order::Name);
+	const QByteArray state = workbench.saveState();
+	MaterialWorkbench restored;
+	MaterialWorkbenchHost restoredHost;
+	restoredHost.loadState = [state]() { return state; };
+	restored.setHost(restoredHost);
+	expect(restored.libraryFilter()->order() == MaterialLibraryFilter::Order::Name, "a new workbench takes the saved library order");
 
 	// Reduced motion: nothing starts playing by itself.
 	workbench.setReducedMotion(true);

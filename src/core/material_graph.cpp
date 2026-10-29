@@ -172,6 +172,8 @@ void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph
 	output.subtitle = Text::tr("Quake III shader");
 	output.line = definition.span.line;
 	output.imageReference = definition.editorImage;
+	output.properties.push_back(property(QStringLiteral("name"), Text::tr("Name"), MaterialGraphPropertyType::Text, definition.name, {},
+		Text::tr("The shader's name; maps and models refer to it by this.")));
 	output.properties.push_back(property(QStringLiteral("cull"), Text::tr("Cull"), MaterialGraphPropertyType::Enum, materialCullId(definition.cull),
 		{QStringLiteral("front"), QStringLiteral("back"), QStringLiteral("none")}, materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("cull"), false)));
 	const int sortDirective = findDirective(definition.directives, {QStringLiteral("sort")});
@@ -690,6 +692,8 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 	output.subtitle = definition.isLight() ? Text::tr("Doom 3 light") : Text::tr("Doom 3 material");
 	output.line = definition.span.line;
 	output.imageReference = definition.editorImage;
+	output.properties.push_back(property(QStringLiteral("name"), Text::tr("Name"), MaterialGraphPropertyType::Text, definition.name, {},
+		Text::tr("The material's name; maps, models and entities refer to it by this.")));
 	const auto flag = [&](const char* id, const QString& label) {
 		output.properties.push_back(property(QString::fromLatin1(id), label, MaterialGraphPropertyType::Bool,
 			boolText(definition.hasFlag(QString::fromLatin1(id).toLower()))));
@@ -1356,6 +1360,8 @@ QString materialGraphEditKindId(MaterialGraphEditKind kind)
 		return QStringLiteral("unwrap");
 	case MaterialGraphEditKind::ExpandShorthand:
 		return QStringLiteral("expand");
+	case MaterialGraphEditKind::RenameMaterial:
+		return QStringLiteral("rename");
 	}
 	return QStringLiteral("set");
 }
@@ -1364,7 +1370,7 @@ bool materialGraphEditKindFromId(const QString& id, MaterialGraphEditKind* kind)
 {
 	for (MaterialGraphEditKind candidate : {MaterialGraphEditKind::SetProperty, MaterialGraphEditKind::AddNode, MaterialGraphEditKind::RemoveNode,
 			 MaterialGraphEditKind::MoveNode, MaterialGraphEditKind::WrapExpression, MaterialGraphEditKind::UnwrapExpression,
-			 MaterialGraphEditKind::ExpandShorthand}) {
+			 MaterialGraphEditKind::ExpandShorthand, MaterialGraphEditKind::RenameMaterial}) {
 		if (materialGraphEditKindId(candidate) == id.trimmed().toLower()) {
 			*kind = candidate;
 			return true;
@@ -2916,7 +2922,7 @@ MaterialGraphEditResult walJsonEdit(const QString& text, const MaterialGraphEdit
 } // namespace
 
 MaterialGraphEditResult applyMaterialGraphEdit(const QString& text, MaterialTextKind kind, const QString& material, const MaterialGraphEdit& edit,
-	const QString& sourcePath)
+	const QString& sourcePath, MaterialDialect dialect)
 {
 	switch (kind) {
 	case MaterialTextKind::DoomSwantbls:
@@ -2932,7 +2938,7 @@ MaterialGraphEditResult applyMaterialGraphEdit(const QString& text, MaterialText
 		break;
 	}
 	const MaterialEngine engine = kind == MaterialTextKind::Doom3Material ? MaterialEngine::Doom3 : MaterialEngine::Quake3;
-	const MaterialScript script = parseMaterialScript(text, engine, sourcePath);
+	const MaterialScript script = parseMaterialScript(text, engine, sourcePath, dialect);
 	const MaterialDefinition* definition = script.find(material);
 	if (!definition && !(edit.kind == MaterialGraphEditKind::AddNode && edit.nodeTemplate == QStringLiteral("d3.table"))) {
 		return fail(Text::tr("No material named '%1' in this text.").arg(material));
@@ -2944,6 +2950,25 @@ MaterialGraphEditResult applyMaterialGraphEdit(const QString& text, MaterialText
 	QString error;
 	QString focus = edit.node;
 	bool ok = false;
+	// The material node's name is the definition's name: setting it renames.
+	const bool rename = edit.kind == MaterialGraphEditKind::RenameMaterial
+		|| (edit.kind == MaterialGraphEditKind::SetProperty && edit.node == QStringLiteral("material") && edit.property == QStringLiteral("name"));
+	if (rename) {
+		MaterialEdit renaming;
+		renaming.kind = MaterialEditKind::RenameDefinition;
+		renaming.material = subject.name;
+		renaming.text = edit.value.trimmed();
+		const MaterialEditResult applied = applyMaterialEdit(script, renaming);
+		if (!applied.ok) {
+			return fail(applied.error);
+		}
+		MaterialGraphEditResult result;
+		result.ok = true;
+		result.text = applied.text;
+		result.focusNode = QStringLiteral("material");
+		result.renamedTo = renaming.text;
+		return result;
+	}
 	switch (edit.kind) {
 	case MaterialGraphEditKind::SetProperty:
 		ok = engine == MaterialEngine::Doom3 ? doom3PropertyEdit(subject, graph, edit, &edits, &error)
@@ -2966,6 +2991,8 @@ MaterialGraphEditResult applyMaterialGraphEdit(const QString& text, MaterialText
 		} else {
 			ok = programEdit(subject, graph, edit, &edits, &error);
 		}
+		break;
+	case MaterialGraphEditKind::RenameMaterial:
 		break;
 	case MaterialGraphEditKind::ExpandShorthand: {
 		const int stageIndex = stageOf(edit.node);

@@ -443,32 +443,120 @@ const QStringList& quake3SurfaceParms()
 	return parms;
 }
 
-// Stage keywords of Quake III derivatives (Return to Castle Wolfenstein,
-// Enemy Territory, Jedi Knight II/Academy). Vanilla Quake III rejects them.
-const QStringList& quake3ExtensionStageKeywords()
+// The keywords each Quake III derivative adds to ParseShader (general) and
+// ParseStage, from their GPL releases' tr_shader.c: iortcw (MP), id's Enemy
+// Territory and OpenJK (rd-vanilla). Quake III Arena drops a shader using
+// any of them. Jedi Knight also takes every stage keyword starting "ss" (the
+// surface-sprite options).
+const QStringList& wolfensteinGlobalKeywords()
 {
 	static const QStringList keywords {
-		QStringLiteral("glow"), QStringLiteral("surfacesprites"), QStringLiteral("ssfademax"), QStringLiteral("ssfadescale"),
-		QStringLiteral("ssvariance"), QStringLiteral("sshangdown"), QStringLiteral("ssanyangle"), QStringLiteral("ssfaceup"),
-		QStringLiteral("sswind"), QStringLiteral("sswindidle"), QStringLiteral("ssduration"), QStringLiteral("ssgrow"),
-		QStringLiteral("ssweather"), QStringLiteral("mapcomp"), QStringLiteral("mapnocomp"), QStringLiteral("animmapcomp"),
-		QStringLiteral("animmapnocomp"), QStringLiteral("fog"), QStringLiteral("nodepthtest"), QStringLiteral("lightmap"),
+		QStringLiteral("nomipmap"), QStringLiteral("fogvars"), QStringLiteral("skyfogvars"), QStringLiteral("waterfogvars"),
+		QStringLiteral("sunshader"), QStringLiteral("lightgridmulamb"), QStringLiteral("lightgridmuldir"), QStringLiteral("nofog"),
+		QStringLiteral("allowcompress"), QStringLiteral("nocompress"),
 	};
 	return keywords;
 }
 
-// General keywords of Quake III derivatives: Return to Castle Wolfenstein
-// and Enemy Territory (fog, sun, light grid and compression controls) and
-// the Jedi Knight games (surface materials). Vanilla Quake III rejects them.
-const QStringList& quake3ExtensionGlobalKeywords()
+const QStringList& wolfensteinStageKeywords()
 {
 	static const QStringList keywords {
-		QStringLiteral("fogvars"), QStringLiteral("skyfogvars"), QStringLiteral("waterfogvars"), QStringLiteral("sunshader"),
-		QStringLiteral("lightgridmulamb"), QStringLiteral("lightgridmuldir"), QStringLiteral("nofog"), QStringLiteral("allowcompress"),
-		QStringLiteral("nocompress"), QStringLiteral("distancecull"), QStringLiteral("material"), QStringLiteral("hitlocation"),
+		QStringLiteral("map16"), QStringLiteral("map32"), QStringLiteral("mapcomp"), QStringLiteral("mapnocomp"),
+		QStringLiteral("animmapcomp"), QStringLiteral("animmapnocomp"), QStringLiteral("fog"),
+	};
+	return keywords;
+}
+
+const QStringList& enemyTerritoryGlobalKeywords()
+{
+	static const QStringList keywords = wolfensteinGlobalKeywords()
+		+ QStringList {QStringLiteral("distancecull"), QStringLiteral("implicitmap"), QStringLiteral("implicitmask"), QStringLiteral("implicitblend")};
+	return keywords;
+}
+
+const QStringList& enemyTerritoryStageKeywords()
+{
+	static const QStringList keywords = wolfensteinStageKeywords() + QStringList {QStringLiteral("lightmap")};
+	return keywords;
+}
+
+const QStringList& jediKnightGlobalKeywords()
+{
+	static const QStringList keywords {
+		QStringLiteral("material"), QStringLiteral("sun"), QStringLiteral("surfacelight"), QStringLiteral("lightcolor"),
+		QStringLiteral("deform"), QStringLiteral("noglfog"), QStringLiteral("notc"), QStringLiteral("hitlocation"),
 		QStringLiteral("hitmaterial"),
 	};
 	return keywords;
+}
+
+const QStringList& jediKnightStageKeywords()
+{
+	static const QStringList keywords {
+		QStringLiteral("clampanimmap"), QStringLiteral("oneshotanimmap"), QStringLiteral("glow"), QStringLiteral("surfacesprites"),
+		QStringLiteral("ssfademax"), QStringLiteral("ssfadescale"), QStringLiteral("ssvariance"), QStringLiteral("sshangdown"),
+		QStringLiteral("ssanyangle"), QStringLiteral("ssfaceup"), QStringLiteral("sswind"), QStringLiteral("sswindidle"),
+		QStringLiteral("ssvertskew"), QStringLiteral("ssfxduration"), QStringLiteral("ssfxgrow"), QStringLiteral("ssfxalpharange"),
+		QStringLiteral("ssfxweather"),
+	};
+	return keywords;
+}
+
+bool dialectHasGlobalKeyword(MaterialDialect dialect, const QString& key)
+{
+	switch (dialect) {
+	case MaterialDialect::Wolfenstein:
+		return wolfensteinGlobalKeywords().contains(key);
+	case MaterialDialect::EnemyTerritory:
+		// ParseShader takes any keyword starting "implicit" as implicitMap.
+		return enemyTerritoryGlobalKeywords().contains(key) || key.startsWith(QStringLiteral("implicit"));
+	case MaterialDialect::JediKnight:
+		return jediKnightGlobalKeywords().contains(key);
+	default:
+		return false;
+	}
+}
+
+bool dialectHasStageKeyword(MaterialDialect dialect, const QString& key)
+{
+	switch (dialect) {
+	case MaterialDialect::Wolfenstein:
+		return wolfensteinStageKeywords().contains(key);
+	case MaterialDialect::EnemyTerritory:
+		return enemyTerritoryStageKeywords().contains(key);
+	case MaterialDialect::JediKnight:
+		return jediKnightStageKeywords().contains(key) || key.startsWith(QStringLiteral("ss"));
+	default:
+		return false;
+	}
+}
+
+// The derivative a keyword Quake III does not know comes from, for messages;
+// Automatic when none has it.
+MaterialDialect dialectOwningKeyword(const QString& key, bool stage)
+{
+	for (MaterialDialect dialect : {MaterialDialect::Wolfenstein, MaterialDialect::EnemyTerritory, MaterialDialect::JediKnight}) {
+		if (stage ? dialectHasStageKeyword(dialect, key) : dialectHasGlobalKeyword(dialect, key)) {
+			return dialect;
+		}
+	}
+	return MaterialDialect::Automatic;
+}
+
+// What a game calls itself in messages: "Quake III" for both Arena dialects,
+// as the engine's own warnings do.
+QString dialectShortName(MaterialDialect dialect)
+{
+	switch (dialect) {
+	case MaterialDialect::Wolfenstein:
+		return Text::tr("Return to Castle Wolfenstein");
+	case MaterialDialect::EnemyTerritory:
+		return Text::tr("Enemy Territory");
+	case MaterialDialect::JediKnight:
+		return Text::tr("Jedi Knight");
+	default:
+		return Text::tr("Quake III");
+	}
 }
 
 const QStringList& quake3StageKeywordList()
@@ -500,6 +588,8 @@ const QStringList& quake3GlobalKeywordList()
 class Quake3Parser final : public ParserBase {
 public:
 	using ParserBase::ParserBase;
+
+	void setDialect(MaterialDialect dialect) { m_dialect = dialect; }
 
 	void parse()
 	{
@@ -646,6 +736,7 @@ private:
 
 	QString m_implicitKind;
 	QString m_implicitImage;
+	MaterialDialect m_dialect = MaterialDialect::Quake3;
 
 	// Consumes the rest of the line, as SkipRestOfLine does, warning when a
 	// brace is swallowed with it.
@@ -817,6 +908,33 @@ private:
 				definition->sort = value->text;
 				definition->sortValue = named != quake3SortValues().constEnd() ? *named : toNumber(value->text);
 			}
+		} else if (dialectHasGlobalKeyword(m_dialect, key)) {
+			parseDialectGlobal(definition, keywordIndex, &previewIgnored);
+		} else {
+			recognised = false;
+			const MaterialDialect owner = dialectOwningKeyword(key, false);
+			reject(definition,
+				owner != MaterialDialect::Automatic
+					? Text::tr("'%1' is a %2 keyword; %3 does not know it, drops this shader and draws its default.")
+						  .arg(keyword.text, dialectShortName(owner), dialectShortName(m_dialect))
+					: Text::tr("Unknown general shader parameter '%1'; %2 drops this shader and draws its default.")
+						  .arg(keyword.text, dialectShortName(m_dialect)),
+				&keyword);
+			skipRestOfLine(definition, -1);
+		}
+		MaterialDirective directive = directiveFrom(keywordIndex, m_position);
+		directive.recognised = recognised;
+		directive.previewIgnored = previewIgnored;
+		definition->directives.push_back(directive);
+	}
+
+	// A general keyword the dialect's game adds to Quake III's.
+	void parseDialectGlobal(MaterialDefinition* definition, int keywordIndex, bool* previewIgnored)
+	{
+		const QString key = m_tokens.at(keywordIndex).text.toLower();
+		if (key == QStringLiteral("nomipmap")) {
+			definition->noMipMaps = true;
+			definition->noPicMip = true;
 		} else if (key.startsWith(QStringLiteral("implicit"))) {
 			// Enemy Territory (tr_shader.c ParseShader): any keyword starting
 			// "implicit" draws an image, or the shader's own name for "-",
@@ -828,28 +946,23 @@ private:
 			const Token* image = takeOnLine();
 			m_implicitImage = image ? image->text : QString();
 			skipRestOfLine(definition, -1);
-			diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("extension-keyword"),
-				Text::tr("'%1' is an Enemy Territory keyword; vanilla Quake III rejects the shader. The preview draws it as Enemy Territory does.")
-					.arg(keyword.text),
-				&keyword);
-		} else if (quake3ExtensionGlobalKeywords().contains(key)) {
-			previewIgnored = true;
+		} else if (key == QStringLiteral("deform")) {
+			// Jedi Knight's other spelling of deformVertexes.
+			parseDeform(definition, keywordIndex);
+		} else if (key == QStringLiteral("material")) {
+			// Jedi Knight surface material: footsteps, impacts, decals.
+			if (const Token* type = takeOnLine()) {
+				definition->surfaceType = type->text;
+			}
 			skipRestOfLine(definition, -1);
-			diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("extension-keyword"),
-				Text::tr("'%1' belongs to a Quake III derivative (Wolfenstein, Jedi Knight); vanilla Quake III rejects the shader. "
-						 "The preview ignores it.")
-					.arg(keyword.text),
-				&keyword);
+			*previewIgnored = true;
 		} else {
-			recognised = false;
-			reject(definition, Text::tr("Unknown general shader parameter '%1'; Quake III drops this shader and draws its default.").arg(keyword.text),
-				&keyword);
+			// Fog, sun, light grid, texture compression, distance culling,
+			// surface lights and hit materials act on the map or the game, not
+			// on how the surface itself looks.
 			skipRestOfLine(definition, -1);
+			*previewIgnored = true;
 		}
-		MaterialDirective directive = directiveFrom(keywordIndex, m_position);
-		directive.recognised = recognised;
-		directive.previewIgnored = previewIgnored;
-		definition->directives.push_back(directive);
 	}
 
 	void parseDeform(MaterialDefinition* definition, int keywordIndex)
@@ -957,44 +1070,11 @@ private:
 		const auto missing = [&](const QString& what) {
 			reject(definition, Text::tr("Missing parameter for '%1'; Quake III drops this shader.").arg(what), &keyword, stageIndex);
 		};
+		bool previewIgnored = false;
 		if (key == QStringLiteral("map") || key == QStringLiteral("clampmap")) {
-			const Token* image = takeOnLine();
-			if (!image) {
-				missing(keyword.text);
-			} else {
-				const QString name = image->text;
-				stage->clamp = key == QStringLiteral("clampmap");
-				if (name.compare(QStringLiteral("$lightmap"), Qt::CaseInsensitive) == 0) {
-					stage->imageKind = MaterialImageKind::Lightmap;
-					stage->tcGen.source = MaterialTexCoordSource::Lightmap;
-				} else if (name.compare(QStringLiteral("$whiteimage"), Qt::CaseInsensitive) == 0
-					|| name.compare(QStringLiteral("*white"), Qt::CaseInsensitive) == 0) {
-					stage->imageKind = MaterialImageKind::White;
-				} else {
-					stage->imageKind = MaterialImageKind::File;
-					stage->imagePath = name;
-				}
-			}
+			parseMapImage(definition, stage, keyword, key == QStringLiteral("clampmap"));
 		} else if (key == QStringLiteral("animmap")) {
-			const Token* frequency = takeOnLine();
-			if (!frequency) {
-				missing(keyword.text);
-			} else {
-				stage->imageKind = MaterialImageKind::Animation;
-				stage->animationFrequency = toNumber(frequency->text);
-				while (nextOnLine()) {
-					const Token* frame = take();
-					if (stage->animationFrames.size() < 8) {
-						stage->animationFrames << frame->text;
-					} else {
-						diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("too-many"),
-							Text::tr("animMap uses at most 8 images; Quake III ignores '%1'.").arg(frame->text), frame, stageIndex);
-					}
-				}
-				if (stage->animationFrames.isEmpty()) {
-					stage->imageKind = MaterialImageKind::None;
-				}
-			}
+			parseAnimMap(definition, stage, keyword);
 		} else if (key == QStringLiteral("videomap")) {
 			const Token* video = takeOnLine();
 			if (!video) {
@@ -1070,25 +1150,107 @@ private:
 		} else if (key == QStringLiteral("depthwrite")) {
 			stage->depthWrite = true;
 			stage->depthWriteExplicit = true;
-		} else if (quake3ExtensionStageKeywords().contains(key)) {
-			diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("extension-keyword"),
-				Text::tr("'%1' belongs to a Quake III derivative (Wolfenstein, Jedi Knight); vanilla Quake III rejects the shader. "
-						 "The preview ignores it.")
-					.arg(keyword.text),
-				&keyword, stageIndex);
-			takeLineWords();
+		} else if (dialectHasStageKeyword(m_dialect, key)) {
+			parseDialectStage(definition, stage, keyword, &previewIgnored);
 		} else {
 			recognised = false;
-			reject(definition, Text::tr("Unknown stage keyword '%1'; Quake III drops this shader and draws its default.").arg(keyword.text),
+			const MaterialDialect owner = dialectOwningKeyword(key, true);
+			reject(definition,
+				owner != MaterialDialect::Automatic
+					? Text::tr("'%1' is a %2 keyword; %3 does not know it, drops this shader and draws its default.")
+						  .arg(keyword.text, dialectShortName(owner), dialectShortName(m_dialect))
+					: Text::tr("Unknown stage keyword '%1'; %2 drops this shader and draws its default.").arg(keyword.text, dialectShortName(m_dialect)),
 				&keyword, stageIndex);
 			takeLineWords();
 		}
 		MaterialDirective directive = directiveFrom(keywordIndex, m_position);
 		directive.recognised = recognised;
+		directive.previewIgnored = previewIgnored;
 		if (key == QStringLiteral("tcmod") && !stage->tcMods.isEmpty() && stage->tcMods.last().directive == -2) {
 			stage->tcMods.last().directive = stage->directives.size();
 		}
 		stage->directives.push_back(directive);
+	}
+
+	// map and clampmap: an image, $lightmap or $whiteimage.
+	void parseMapImage(MaterialDefinition* definition, MaterialStage* stage, const Token& keyword, bool clamp)
+	{
+		const Token* image = takeOnLine();
+		if (!image) {
+			reject(definition, Text::tr("Missing parameter for '%1'; Quake III drops this shader.").arg(keyword.text), &keyword, stage->index);
+			return;
+		}
+		const QString name = image->text;
+		stage->clamp = clamp;
+		if (name.compare(QStringLiteral("$lightmap"), Qt::CaseInsensitive) == 0) {
+			stage->imageKind = MaterialImageKind::Lightmap;
+			stage->tcGen.source = MaterialTexCoordSource::Lightmap;
+		} else if (name.compare(QStringLiteral("$whiteimage"), Qt::CaseInsensitive) == 0 || name.compare(QStringLiteral("*white"), Qt::CaseInsensitive) == 0) {
+			stage->imageKind = MaterialImageKind::White;
+		} else {
+			stage->imageKind = MaterialImageKind::File;
+			stage->imagePath = name;
+		}
+	}
+
+	void parseAnimMap(MaterialDefinition* definition, MaterialStage* stage, const Token& keyword)
+	{
+		const Token* frequency = takeOnLine();
+		if (!frequency) {
+			reject(definition, Text::tr("Missing parameter for '%1'; Quake III drops this shader.").arg(keyword.text), &keyword, stage->index);
+			return;
+		}
+		stage->imageKind = MaterialImageKind::Animation;
+		stage->animationFrequency = toNumber(frequency->text);
+		while (nextOnLine()) {
+			const Token* frame = take();
+			if (stage->animationFrames.size() < 8) {
+				stage->animationFrames << frame->text;
+			} else {
+				diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("too-many"),
+					Text::tr("animMap uses at most 8 images; Quake III ignores '%1'.").arg(frame->text), frame, stage->index);
+			}
+		}
+		if (stage->animationFrames.isEmpty()) {
+			stage->imageKind = MaterialImageKind::None;
+		}
+	}
+
+	// A stage keyword the dialect's game adds to Quake III's. The preview
+	// draws as a 32-bit display without texture compression would.
+	void parseDialectStage(MaterialDefinition* definition, MaterialStage* stage, const Token& keyword, bool* previewIgnored)
+	{
+		const QString key = keyword.text.toLower();
+		if (key == QStringLiteral("map32") || key == QStringLiteral("mapnocomp")) {
+			parseMapImage(definition, stage, keyword, false);
+		} else if (key == QStringLiteral("animmapnocomp")) {
+			parseAnimMap(definition, stage, keyword);
+		} else if (key == QStringLiteral("map16") || key == QStringLiteral("mapcomp") || key == QStringLiteral("animmapcomp")) {
+			// Read only at 16-bit colour or with compressed textures.
+			takeLineWords();
+			*previewIgnored = true;
+		} else if (key == QStringLiteral("lightmap")) {
+			// Enemy Territory: a clamped image drawn with lightmap coordinates.
+			parseMapImage(definition, stage, keyword, true);
+			if (!stage->tcGen.explicitlySet) {
+				stage->tcGen.source = MaterialTexCoordSource::Lightmap;
+			}
+		} else if (key == QStringLiteral("clampanimmap") || key == QStringLiteral("oneshotanimmap")) {
+			parseAnimMap(definition, stage, keyword);
+			stage->clamp = key == QStringLiteral("clampanimmap");
+			stage->animationOnce = key == QStringLiteral("oneshotanimmap");
+		} else if (key == QStringLiteral("glow")) {
+			stage->glow = true;
+			*previewIgnored = true;
+		} else if (key == QStringLiteral("surfacesprites")) {
+			stage->surfaceSprites = true;
+			takeLineWords();
+			*previewIgnored = true;
+		} else {
+			// fog on/off and the surface-sprite options.
+			takeLineWords();
+			*previewIgnored = true;
+		}
 	}
 
 	void parseBlendFunc(MaterialDefinition* definition, MaterialStage* stage, const Token& keyword)
@@ -1276,6 +1438,8 @@ private:
 			mod.values[0] = toNumber(words.value(1));
 		} else if (type == QStringLiteral("entitytranslate")) {
 			mod.kind = MaterialTexModKind::EntityTranslate;
+		} else if (type == QStringLiteral("swap") && m_dialect == MaterialDialect::EnemyTerritory) {
+			mod.kind = MaterialTexModKind::Swap;
 		} else {
 			diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("bad-arguments"),
 				Text::tr("Unknown tcMod '%1'; Quake III ignores it.").arg(words.first()), &keyword, stage->index);
@@ -2485,24 +2649,41 @@ private:
 			diagnose(definition, MaterialDiagnosticSeverity::Info, QStringLiteral("not-simulated"),
 				Text::tr("ARB programs run on the graphics card in game; the preview draws the stage's image without them."), &keyword, stageIndex);
 		} else if (key == QStringLiteral("vertexparm")) {
-			parseFloat();
-			parseExpression(definition, &keyword, stageIndex);
+			const int parm = static_cast<int>(parseFloat().value_or(-1.0));
+			std::array<int, 4> expressions {-1, -1, -1, -1};
+			expressions[0] = parseExpression(definition, &keyword, stageIndex);
 			for (int extra = 0; extra < 3 && peek() && peek()->text == QStringLiteral(","); ++extra) {
 				take();
-				parseExpression(definition, &keyword, stageIndex);
+				expressions[static_cast<size_t>(extra + 1)] = parseExpression(definition, &keyword, stageIndex);
+			}
+			if (parm >= 0 && parm < 16) {
+				if (stage->vertexParms.size() <= parm) {
+					stage->vertexParms.resize(parm + 1, {-1, -1, -1, -1});
+				}
+				stage->vertexParms[parm] = expressions;
 			}
 			previewIgnored = true;
 		} else if (key == QStringLiteral("fragmentmap")) {
-			parseFloat();
+			const int unit = static_cast<int>(parseFloat().value_or(-1.0));
+			int cube = 0;
 			while (peek() && peek()->type == TokenType::Word
 				&& QStringList {QStringLiteral("cubemap"), QStringLiteral("cameracubemap"), QStringLiteral("nearest"), QStringLiteral("linear"),
 					   QStringLiteral("clamp"), QStringLiteral("noclamp"), QStringLiteral("zeroclamp"), QStringLiteral("alphazeroclamp"),
 					   QStringLiteral("forcehighquality"), QStringLiteral("uncompressed"), QStringLiteral("highquality"),
 					   QStringLiteral("nopicmip")}
 					   .contains(peek()->text.toLower())) {
-				take();
+				const QString option = take()->text.toLower();
+				cube = option == QStringLiteral("cubemap") ? 1 : option == QStringLiteral("cameracubemap") ? 2 : cube;
 			}
-			parseImageProgram(definition, &keyword, stageIndex);
+			const int program = parseImageProgram(definition, &keyword, stageIndex);
+			if (unit >= 0 && unit < 16) {
+				if (stage->fragmentMaps.size() <= unit) {
+					stage->fragmentMaps.resize(unit + 1, -1);
+					stage->fragmentMapCubes.resize(unit + 1, 0);
+				}
+				stage->fragmentMaps[unit] = program;
+				stage->fragmentMapCubes[unit] = cube;
+			}
 			previewIgnored = true;
 		} else {
 			recognised = false;
@@ -2911,7 +3092,7 @@ MaterialEditResult finish(const MaterialScript& script, const QString& text, int
 {
 	MaterialEditResult result;
 	result.text = text;
-	result.script = parseMaterialScript(text, script.engine, script.path);
+	result.script = parseMaterialScript(text, script.engine, script.path, script.dialect);
 	result.ok = true;
 	result.changeStart = changeStart;
 	result.changeEnd = changeEnd;
@@ -2980,7 +3161,49 @@ bool isMaterialScriptPath(const QString& path)
 	return materialEngineForScriptPath(path) != MaterialEngine::Unknown;
 }
 
-MaterialScript parseMaterialScript(const QString& text, MaterialEngine engine, const QString& path)
+MaterialDialect detectMaterialDialect(const QStringList& texts)
+{
+	// Keywords at the start of a line (after indentation), so shader names
+	// such as textures/base/glow do not count; comments are skipped.
+	static const QRegularExpression enemyTerritory(
+		QStringLiteral("^[ \\t]*(implicitmap|implicitmask|implicitblend|distancecull|lightmap[ \\t]+\\S|tcmod[ \\t]+swap)\\b"),
+		QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
+	static const QRegularExpression jediKnight(
+		QStringLiteral("^[ \\t]*(surfacesprites|ss(fademax|fadescale|variance|hangdown|anyangle|faceup|wind|windidle|vertskew|fxduration|fxgrow|"
+					   "fxalpharange|fxweather)|glow|clampanimmap|oneshotanimmap|material|q3map_material|hitlocation|hitmaterial|notc|noglfog|"
+					   "surfacelight|deform)\\b"),
+		QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
+	static const QRegularExpression wolfenstein(
+		QStringLiteral("^[ \\t]*(fogvars|skyfogvars|waterfogvars|sunshader|lightgridmulamb|lightgridmuldir|nofog|allowcompress|nocompress|"
+					   "nomipmap|map16|map32|mapcomp|mapnocomp|animmapcomp|animmapnocomp|fog[ \\t]+(on|off))\\b"),
+		QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
+	int jedi = 0;
+	int wolf = 0;
+	bool et = false;
+	for (const QString& text : texts) {
+		et = et || enemyTerritory.match(text).hasMatch();
+		for (auto match = jediKnight.globalMatch(text); match.hasNext(); match.next()) {
+			++jedi;
+		}
+		for (auto match = wolfenstein.globalMatch(text); match.hasNext(); match.next()) {
+			++wolf;
+		}
+	}
+	if (et) {
+		return MaterialDialect::EnemyTerritory;
+	}
+	if (jedi > 0 || wolf > 0) {
+		return jedi >= wolf ? MaterialDialect::JediKnight : MaterialDialect::Wolfenstein;
+	}
+	return MaterialDialect::Quake3;
+}
+
+MaterialDialect detectMaterialDialect(const QString& text)
+{
+	return detectMaterialDialect(QStringList {text});
+}
+
+MaterialScript parseMaterialScript(const QString& text, MaterialEngine engine, const QString& path, MaterialDialect dialect)
 {
 	MaterialScript script;
 	script.path = path;
@@ -2993,7 +3216,9 @@ MaterialScript parseMaterialScript(const QString& text, MaterialEngine engine, c
 		Doom3Parser parser(script.text, &script);
 		parser.parse();
 	} else {
+		script.dialect = dialect == MaterialDialect::Automatic ? detectMaterialDialect(text) : dialect;
 		Quake3Parser parser(script.text, &script);
+		parser.setDialect(script.dialect);
 		parser.parse();
 	}
 	// Same-name definitions inside one script: the first one is reported as
@@ -3020,7 +3245,7 @@ MaterialScript parseMaterialScript(const QString& text, MaterialEngine engine, c
 	return script;
 }
 
-bool loadMaterialScript(const QString& path, MaterialScript* script, QString* error, MaterialEngine engine)
+bool loadMaterialScript(const QString& path, MaterialScript* script, QString* error, MaterialEngine engine, MaterialDialect dialect)
 {
 	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly)) {
@@ -3042,7 +3267,7 @@ bool loadMaterialScript(const QString& path, MaterialScript* script, QString* er
 	if (decoder.hasError()) {
 		text = QString::fromLatin1(bytes);
 	}
-	*script = parseMaterialScript(text, engine, path);
+	*script = parseMaterialScript(text, engine, path, dialect);
 	return true;
 }
 
@@ -3099,26 +3324,44 @@ QStringList materialImageProgramImages(const QVector<MaterialImageProgramNode>& 
 	return images;
 }
 
-QStringList materialGlobalKeywords(MaterialEngine engine)
+QStringList materialGlobalKeywords(MaterialEngine engine, MaterialDialect dialect)
 {
 	if (engine == MaterialEngine::Doom3) {
 		return doom3GlobalKeywordList();
 	}
-	if (engine == MaterialEngine::Quake3) {
-		return quake3GlobalKeywordList();
+	if (engine != MaterialEngine::Quake3) {
+		return {};
 	}
-	return {};
+	QStringList keywords = quake3GlobalKeywordList();
+	if (dialect == MaterialDialect::Wolfenstein) {
+		keywords += wolfensteinGlobalKeywords();
+	} else if (dialect == MaterialDialect::EnemyTerritory || dialect == MaterialDialect::Automatic) {
+		keywords += enemyTerritoryGlobalKeywords();
+	}
+	if (dialect == MaterialDialect::JediKnight || dialect == MaterialDialect::Automatic) {
+		keywords += jediKnightGlobalKeywords();
+	}
+	return keywords;
 }
 
-QStringList materialStageKeywords(MaterialEngine engine)
+QStringList materialStageKeywords(MaterialEngine engine, MaterialDialect dialect)
 {
 	if (engine == MaterialEngine::Doom3) {
 		return doom3StageKeywordList();
 	}
-	if (engine == MaterialEngine::Quake3) {
-		return quake3StageKeywordList();
+	if (engine != MaterialEngine::Quake3) {
+		return {};
 	}
-	return {};
+	QStringList keywords = quake3StageKeywordList();
+	if (dialect == MaterialDialect::Wolfenstein) {
+		keywords += wolfensteinStageKeywords();
+	} else if (dialect == MaterialDialect::EnemyTerritory || dialect == MaterialDialect::Automatic) {
+		keywords += enemyTerritoryStageKeywords();
+	}
+	if (dialect == MaterialDialect::JediKnight || dialect == MaterialDialect::Automatic) {
+		keywords += jediKnightStageKeywords();
+	}
+	return keywords;
 }
 
 namespace {
@@ -3157,6 +3400,17 @@ const KeywordHelp kKeywordHelp[] = {
 	{MaterialEngine::Quake3, false, "portal", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Marks a mirror or portal surface.")},
 	{MaterialEngine::Quake3, false, "qer_editorimage", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image level editors show for this shader.")},
 	{MaterialEngine::Quake3, false, "tesssize", QT_TRANSLATE_NOOP("VibeStudioMaterials", "How finely q3map2 subdivides surfaces so vertex deforms look smooth.")},
+	{MaterialEngine::Quake3, true, "glow", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: the stage also lights the glow (bloom) pass.")},
+	{MaterialEngine::Quake3, true, "surfacesprites", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: scatters sprites such as grass over the surface instead of drawing the stage on it.")},
+	{MaterialEngine::Quake3, true, "oneshotanimmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: plays the images once and holds the last.")},
+	{MaterialEngine::Quake3, true, "clampanimmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: animMap with images that do not repeat.")},
+	{MaterialEngine::Quake3, true, "lightmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Enemy Territory: a clamped image drawn with lightmap coordinates.")},
+	{MaterialEngine::Quake3, true, "mapnocomp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the image used while texture compression is off.")},
+	{MaterialEngine::Quake3, true, "mapcomp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the image used while texture compression is on.")},
+	{MaterialEngine::Quake3, false, "implicitmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Enemy Territory: the engine's default stages for an image (- for the shader's own name).")},
+	{MaterialEngine::Quake3, false, "fogvars", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the map's global fog colour and distance.")},
+	{MaterialEngine::Quake3, false, "sunshader", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the shader drawn as the sun.")},
+	{MaterialEngine::Quake3, false, "material", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: the surface material for footsteps, impacts and decals.")},
 	{MaterialEngine::Doom3, true, "blend", QT_TRANSLATE_NOOP("VibeStudioMaterials", "blend, add, filter, modulate, none, two GL factors, or diffusemap, bumpmap, specularmap for lighting.")},
 	{MaterialEngine::Doom3, true, "map", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The stage's image or image program, such as heightmap( image, 4 ).")},
 	{MaterialEngine::Doom3, true, "cubemap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A cube map from six images with _px, _nx... suffixes.")},
@@ -3229,6 +3483,8 @@ QString materialEditKindId(MaterialEditKind kind)
 		return QStringLiteral("rename");
 	case MaterialEditKind::MoveDirective:
 		return QStringLiteral("move");
+	case MaterialEditKind::DuplicateDefinition:
+		return QStringLiteral("duplicate");
 	}
 	return QStringLiteral("set");
 }
@@ -3247,6 +3503,7 @@ bool materialEditKindFromId(const QString& id, MaterialEditKind* kind)
 		{QStringLiteral("remove-definition"), MaterialEditKind::RemoveDefinition},
 		{QStringLiteral("rename"), MaterialEditKind::RenameDefinition},
 		{QStringLiteral("move"), MaterialEditKind::MoveDirective},
+		{QStringLiteral("duplicate"), MaterialEditKind::DuplicateDefinition},
 	};
 	const auto found = kinds.constFind(id.trimmed().toLower());
 	if (found == kinds.constEnd()) {
@@ -3291,13 +3548,30 @@ MaterialEditResult applyMaterialEdit(const MaterialScript& script, const Materia
 	}
 	QString error;
 	switch (edit.kind) {
-	case MaterialEditKind::RenameDefinition: {
+	case MaterialEditKind::RenameDefinition:
+	case MaterialEditKind::DuplicateDefinition: {
 		const QString name = edit.text.trimmed();
-		if (name.isEmpty() || name.contains(QRegularExpression(QStringLiteral("\\s")))) {
-			return failure(Text::tr("A material name cannot be empty or contain spaces."));
+		if (name.isEmpty() || name.contains(QRegularExpression(QStringLiteral("[\\s{}\"]")))) {
+			return failure(Text::tr("A material name cannot be empty or hold spaces, braces or quotes."));
 		}
-		const Patch patch {definition.nameSpan.start, definition.nameSpan.end, name};
-		return finish(script, applyPatch(text, patch), patch.start, patch.start + name.size());
+		if (materialLookupKey(name) != materialLookupKey(definition.name) && script.find(name)) {
+			return failure(Text::tr("This script already defines %1.").arg(name));
+		}
+		if (edit.kind == MaterialEditKind::RenameDefinition) {
+			const Patch patch {definition.nameSpan.start, definition.nameSpan.end, name};
+			return finish(script, applyPatch(text, patch), patch.start, patch.start + name.size());
+		}
+		if (materialLookupKey(name) == materialLookupKey(definition.name)) {
+			return failure(Text::tr("A copy needs a name of its own."));
+		}
+		// The copy keeps the original's text and layout, renamed, on the
+		// lines after it.
+		QString copy = text.mid(definition.span.start, definition.span.end - definition.span.start);
+		copy.replace(definition.nameSpan.start - definition.span.start, definition.nameSpan.end - definition.nameSpan.start, name);
+		const QString insertion = newline + newline + copy;
+		const Patch patch {definition.span.end, definition.span.end, insertion};
+		const int start = definition.span.end + static_cast<int>(newline.size()) * 2;
+		return finish(script, applyPatch(text, patch), start, start + static_cast<int>(copy.size()));
 	}
 	case MaterialEditKind::ReplaceDefinition: {
 		QString replacement = edit.text.trimmed();
@@ -3361,7 +3635,7 @@ MaterialEditResult applyMaterialEdit(const MaterialScript& script, const Materia
 			return finish(script, text, directive.span.start, directive.span.end);
 		}
 		const QString removed = applyPatch(text, {start, end, QString()});
-		MaterialScript intermediate = parseMaterialScript(removed, script.engine, script.path);
+		MaterialScript intermediate = parseMaterialScript(removed, script.engine, script.path, script.dialect);
 		const int intermediateIndex = intermediate.indexOf(definition.name);
 		if (intermediateIndex < 0) {
 			return failure(Text::tr("The directive could not be moved."));
@@ -3435,7 +3709,7 @@ MaterialEditResult applyMaterialEdit(const MaterialScript& script, const Materia
 		}
 		const auto [start, end] = stageLines(text, stage);
 		const QString removed = applyPatch(text, {start, end, QString()});
-		MaterialScript intermediate = parseMaterialScript(removed, script.engine, script.path);
+		MaterialScript intermediate = parseMaterialScript(removed, script.engine, script.path, script.dialect);
 		MaterialEdit insert;
 		insert.kind = MaterialEditKind::AddStage;
 		insert.material = definition.name;

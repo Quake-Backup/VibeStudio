@@ -145,13 +145,41 @@ Wrap stageWrap(const MaterialStage& stage, const MaterialDefinition& definition)
 	return Wrap::Repeat;
 }
 
-MaterialTexturePtr stageTexture(const MaterialDefinition& definition, const MaterialStage& stage, const MaterialImageSet& images)
+// The heatHaze family of Doom 3's stock ARB programs (heatHaze,
+// heatHazeWithMask, heatHazeWithMaskAndVertex, as the modding wiki
+// documents them): the frame so far, read through a scrolling normal map.
+// vertexParm 0 scrolls the map, vertexParm 1 sets the strength;
+// fragmentMap 1 is the normal map and fragmentMap 2 the mask.
+bool heatHazeProgram(const MaterialStage& stage, bool* mask, bool* vertex)
+{
+	const QString program = stage.fragmentProgram.section(QLatin1Char('.'), 0, 0).toLower();
+	if (!program.startsWith(QStringLiteral("heathaze"))) {
+		return false;
+	}
+	*mask = program.contains(QStringLiteral("withmask"));
+	*vertex = program.contains(QStringLiteral("vertex"));
+	return true;
+}
+
+// Doom 3's stock bumpyEnvironment program (glass, polished metal): the
+// cube map in fragmentMap 0 reflected about the surface normal, bent by the
+// normal map in fragmentMap 1.
+bool bumpyEnvironmentProgram(const MaterialStage& stage)
+{
+	return stage.fragmentProgram.section(QLatin1Char('.'), 0, 0).toLower().startsWith(QStringLiteral("bumpyenvironment"));
+}
+
+MaterialTexturePtr stageTexture(const MaterialDefinition& definition, const MaterialStage& stage, const MaterialImageSet& images, double time)
 {
 	switch (stage.imageKind) {
 	case MaterialImageKind::White:
 		return materialBuiltinTexture(QStringLiteral("_white"));
 	case MaterialImageKind::Video:
-		return materialVideoPlaceholder();
+		// idCinematic: a looping video wraps, another holds its last frame.
+		if (const MaterialVideoPtr video = images.findVideo(stage.imagePath)) {
+			return video->frameAt(time, stage.videoLoop);
+		}
+		return images.find(stage.imagePath);
 	case MaterialImageKind::None:
 		return images.find(QStringLiteral("_default"));
 	default:
@@ -516,7 +544,7 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 				continue;
 			}
 			preview.color = {2.0 * rgb.r, 2.0 * rgb.g, 2.0 * rgb.b, 1.0};
-			const MaterialTexturePtr projection = stageTexture(definition, stage, images);
+			const MaterialTexturePtr projection = stageTexture(definition, stage, images, options.time);
 			const bool projected = projection && projection->usable();
 			const bool fades = falloff && falloff->usable();
 			MaterialUniforms u = gpu.uniforms();
@@ -563,7 +591,7 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 				if (tested >= 4 || stage.alphaTest != MaterialAlphaTest::Expression || !stageActive(stage, registers)) {
 					continue;
 				}
-				const MaterialTexturePtr texture = stageTexture(definition, stage, images);
+				const MaterialTexturePtr texture = stageTexture(definition, stage, images, options.time);
 				if (!texture || !texture->usable()) {
 					continue;
 				}
@@ -595,7 +623,7 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 				if (!stage) {
 					return;
 				}
-				const MaterialTexturePtr texture = stageTexture(definition, *stage, images);
+				const MaterialTexturePtr texture = stageTexture(definition, *stage, images, options.time);
 				if (!texture || !texture->usable()) {
 					return;
 				}
@@ -638,7 +666,80 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 			continue;
 		}
 		const TextureMatrix matrix = stageMatrix(stage, registers, tables);
-		const MaterialTexturePtr texture = stageTexture(definition, stage, images);
+		bool hazeMask = false;
+		bool hazeVertex = false;
+		if (heatHazeProgram(stage, &hazeMask, &hazeVertex)) {
+			const auto parm = [&](int parmIndex, int component, double fallback) {
+				if (parmIndex >= stage.vertexParms.size()) {
+					return fallback;
+				}
+				const int expression = stage.vertexParms.at(parmIndex)[static_cast<size_t>(component)];
+				return expression < 0 ? fallback : registers.at(expression, fallback);
+			};
+			const auto fragmentTexture = [&](int unit) {
+				const int program = unit < stage.fragmentMaps.size() ? stage.fragmentMaps.at(unit) : -1;
+				return program < 0 ? MaterialTexturePtr() : images.find(materialImageProgramText(definition.imagePrograms, program));
+			};
+			const MaterialTexturePtr normals = fragmentTexture(1);
+			if (!normals || !normals->usable()) {
+				result.notes << Text::tr("Stage %1's heat haze has no normal map (fragmentMap 1), so it draws nothing.").arg(index + 1);
+				continue;
+			}
+			MaterialUniforms u = gpu.uniforms();
+			u.mode[0] = 2;
+			GpuDraw textures;
+			gpu.bindSnapshot(&textures, &u, 7);
+			gpu.bind(&textures, &u, 0, gpu.texture(normals.get()), Wrap::Repeat);
+			int flags = 1 | 32 | (hazeVertex ? 128 : 0);
+			if (hazeMask) {
+				const MaterialTexturePtr mask = fragmentTexture(2);
+				if (mask && mask->usable()) {
+					gpu.bind(&textures, &u, 1, gpu.texture(mask.get()), Wrap::Clamp);
+					flags |= 64;
+				}
+			}
+			u.mode[2] = flags;
+			u.setParam(3, parm(0, 0, 0.0), parm(0, 1, 0.0), parm(1, 0, 1.0));
+			u.setColor(color);
+			GpuState state = stageState(stage.blend, GpuCompare::GreaterOrEqual, false, cull);
+			gpu.draw(GpuProgram::MaterialDoom3, u, state, vertices, textures);
+			++result.stagesDrawn;
+			result.notes << Text::tr("Stage %1 approximates %2: the view behind it, rippled by its normal map.").arg(index + 1).arg(stage.fragmentProgram);
+			continue;
+		}
+		if (bumpyEnvironmentProgram(stage)) {
+			const auto fragmentText = [&](int unit) {
+				const int program = unit < stage.fragmentMaps.size() ? stage.fragmentMaps.at(unit) : -1;
+				return program < 0 ? QString() : materialImageProgramText(definition.imagePrograms, program);
+			};
+			const MaterialCubeTexturePtr environment = images.findCube(fragmentText(0));
+			if (!environment) {
+				result.notes << Text::tr("Stage %1's environment has no cube map (fragmentMap 0), so it draws nothing.").arg(index + 1);
+				continue;
+			}
+			MaterialUniforms u = gpu.uniforms();
+			u.mode[0] = 2;
+			GpuDraw textures;
+			for (int face = 0; face < 6; ++face) {
+				const MaterialTexturePtr& faceTexture = environment->faces[size_t(face)];
+				gpu.bind(&textures, &u, face, faceTexture && faceTexture->usable() ? gpu.texture(faceTexture.get()) : -1, Wrap::Clamp);
+			}
+			int flags = 1 | 256;
+			const MaterialTexturePtr normals = images.find(fragmentText(1));
+			if (normals && normals->usable()) {
+				gpu.bind(&textures, &u, 6, gpu.texture(normals.get()), Wrap::Repeat);
+				setMatrix(&u, 6, matrix);
+				flags |= 512;
+			}
+			u.mode[2] = flags;
+			u.setColor(color);
+			const GpuCompare depth = translucent || stage.ignoreAlphaTest ? GpuCompare::GreaterOrEqual : GpuCompare::Equal;
+			gpu.draw(GpuProgram::MaterialDoom3, u, stageState(stage.blend, depth, false, cull), vertices, textures);
+			++result.stagesDrawn;
+			result.notes << Text::tr("Stage %1 approximates %2: the cube map reflected about its normal map.").arg(index + 1).arg(stage.fragmentProgram);
+			continue;
+		}
+		const MaterialTexturePtr texture = stageTexture(definition, stage, images, options.time);
 		const MaterialCubeTexturePtr cube = stage.imageKind == MaterialImageKind::CubeMap ? images.findCube(stage.imagePath) : MaterialCubeTexturePtr();
 		const bool renderTarget = stage.imageKind == MaterialImageKind::RenderTarget;
 		if (!renderTarget && !cube && (!texture || !texture->usable())) {

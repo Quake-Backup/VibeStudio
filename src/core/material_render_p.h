@@ -7,6 +7,7 @@
 // the engines compute per vertex and per stage, and choose the passes.
 
 #include "core/material_render.h"
+#include "core/material_video.h"
 #include "core/render_device.h"
 #include "core/render_shaders.h"
 

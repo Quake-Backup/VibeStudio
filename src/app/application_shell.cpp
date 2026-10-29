@@ -15648,6 +15648,23 @@ void ApplicationShell::buildCommands()
 				m_materialWorkbench->showNewMaterialDialog();
 			}
 		});
+	add(QStringLiteral("material.saveAll"), StudioCommandGroup::Tools, tr("Save All Mat&erials"),
+		tr("Save or stage every material text with unsaved changes on the Materials page."), QStringLiteral("save"), false, false, false,
+		[this]() {
+			if (m_materialWorkbench) {
+				m_materialWorkbench->saveAll();
+			}
+		});
+	add(QStringLiteral("material.findUses"), StudioCommandGroup::Tools, tr("Find Material Uses in Maps"),
+		tr("List the maps that use the material chosen on the Materials page, and open one in Levels."), QStringLiteral("map"), false, false, false,
+		[this]() { showMaterialMapUses(); });
+	add(QStringLiteral("material.exportPreview"), StudioCommandGroup::Tools, tr("Export Material Preview…"),
+		tr("Write the Materials page's preview, or an animation sheet, to a PNG."), QStringLiteral("export"), false, false, false,
+		[this]() {
+			if (m_materialWorkbench) {
+				m_materialWorkbench->chooseExportImage(false);
+			}
+		});
 	add(QStringLiteral("extension.discover"), StudioCommandGroup::Tools, tr("Discover &Extensions"),
 		tr("Load vibestudio.extension.json manifests and report their trust metadata."), QStringLiteral("plugin"), false, false, false,
 		[this]() {
