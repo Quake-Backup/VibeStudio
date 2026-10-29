@@ -458,6 +458,21 @@ advisories and accepted omissions. See
 vibestudio --cli model inspect ./models/crate.lwo --json
 vibestudio --cli model import ./models/crate.lwo --accept-omissions --output ./out/crate.mesh.json --json
 ```
+
+`model audit PATH` checks every model in a package, a folder or a whole game
+installation (its loose files and every package inside it) and never writes to
+it. Each entry gets a verdict (`clean`, `advisories`, `accept-omissions`,
+`damaged` or `failed`), whether it imports for editing, and with `--round-trip`
+whether the model written back in its own format decodes to the same corners
+within the format's quantisation. A summary per format comes first. `--formats
+mdl,md3` limits the formats, `--report FILE` saves the JSON somewhere outside
+the source, and `--strict` exits 4 when anything fails, is damaged or drifts
+past its tolerance, so a run can guard against decoder regressions.
+
+```sh
+vibestudio --cli model audit ./quake/id1 --formats mdl --round-trip --json
+vibestudio --cli model audit ./baseq3/pak0.pk3 --report ./out/pak0-audit.json --strict
+```
 `model import` and `model edit` report the source they wrote (or would write
 with `--dry-run`) in JSON as `"source": {"bytes", "encoding", "limitBytes"}`.
 The encoding is `readable`, or `packed` when the readable source would pass the

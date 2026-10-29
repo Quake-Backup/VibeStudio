@@ -126,6 +126,28 @@ The Mesh Editor's **Open / Import…** dialog offers every suffix of every forma
 `model formats` lists with geometry; animation-only files (`.md5anim`, `.mdx`,
 `.gla`) open through their mesh.
 
+## Audit Models In Bulk
+
+`model audit PATH` (`src/core/model_audit.*`) measures the decoders, the
+editable gate and the writers on real files. `PATH` is a package (PAK, PK3, PK4,
+WAD, ZIP and the other formats the package browser opens), a folder of loose
+files, or a game installation, whose loose files and every package inside are
+audited. It opens everything read-only and keeps written-back bytes in memory.
+
+For every model entry it records the format, whether it decodes and how long
+it takes (`--timings`), the decode issues by severity and their verdict, the
+counts, and whether `importEditableModel` would accept it (with omissions
+accepted when only they stand in the way). `--round-trip` writes each editable
+MDL, MD2, MD3, MD5 mesh, IQM, ASE or OBJ back in its own format, decodes the
+bytes and compares every triangle corner in every frame: the result is within
+tolerance when the counts match and no corner moved more than the format's
+quantisation (one step of the 8-bit grid for MDL and MD2, 1/64 unit for MD3, a
+thousandth of the model's size for the text and float formats).
+
+The JSON (`vibestudio.model-audit` version 1) sorts entries by container and
+path and formats by id, and leaves timings out unless asked, so two runs over
+the same files compare byte for byte. Use `--strict` in a regression run.
+
 ## glTF 2.0 Import
 
 `src/core/model_format_gltf.cpp` reads glTF 2.0 from Blender or any other
@@ -394,9 +416,10 @@ current frame.
 
 ## Known Gaps
 
-- No decoder has been run against real game files in bulk; malformed but
-  loadable files may still be refused, and some valid variants may not be
-  recognised.
+- No decoder has been run against real game files in bulk yet; `model audit`
+  is the tool for it, and its results on real installations are still to be
+  recorded. Malformed but loadable files may still be refused, and some valid
+  variants may not be recognised.
 - The glTF importer has been checked against fixtures built from the
   specification and VibeStudio's own writers, not yet against files exported
   by Blender or other tools; it has no unit scale option yet (one metre is

@@ -48,6 +48,7 @@
 #include "cli/model_transform_options.h"
 #include "cli/model_skin_bindings.h"
 #include "cli/model_skin_variants.h"
+#include "cli/model_audit.h"
 #include "cli/model_surfaces.h"
 #include "cli/materials.h"
 #include "cli/render.h"
@@ -558,6 +559,7 @@ QVector<CliCommandDescriptor> cliCommandDescriptors()
 		{QStringLiteral("model"), QStringLiteral("prepare"), QCoreApplication::translate("ModelToolsCli", "Prepare a model for a delivery target: apply the fixes its preflight suggests (split surfaces over their vertex or triangle budget, join surfaces for MDL and MD2, decimate, move or scale into MD3's range, reduce joint influences) through the editor's own edits, then report every change and what still blocks the target. --format names the export; --target the target (default: the project's, else the format's); --skip split,join,decimate,fit,influences leaves fixes out. The result is written as a new editable source with --output name.mesh.json (existing files need --overwrite), or only reviewed with --dry-run; it exits 4 when limits remain."), {QStringLiteral("vibestudio --cli model prepare ./models/prop.mesh.json --format md3 --target ioquake3 --output ./models/prop.prepared.mesh.json --json"), QStringLiteral("vibestudio --cli model prepare ./models/monster.mesh.json --format mdl --skip decimate --dry-run --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("profiles"), QStringLiteral("List the modeller's controls profiles: the studio's Blender-style controls, Blender, 3ds Max and MilkShape 3D. Each lists its layout (one view or four), transform style (modal or tool), sidebar family and selection-mode names, what it changes and where it differs from the reference editor. The current profile is marked."), {QStringLiteral("vibestudio --cli model profiles"), QStringLiteral("vibestudio --cli model profiles --json")}, true, true, false},
 		{QStringLiteral("model"), QStringLiteral("controls"), QStringLiteral("Print every navigation gesture, selection gesture, transform rule, layout choice and key of a modeller profile (--profile studio|blender|3ds-max|milkshape-3d, default the current one), with your saved changes unless --defaults. --section navigation|selection|transform|layout|keys narrows the list; --check exits 4 when two gestures or keys collide. --export <file> writes a shareable controls file (existing files need --overwrite); --import <file> saves its changes for its profile; --select makes the profile current; --reset drops your changes. Use --settings-file to work on a separate settings store."), {QStringLiteral("vibestudio --cli model controls --profile 3ds-max --section keys"), QStringLiteral("vibestudio --cli model controls --profile blender --check --json"), QStringLiteral("vibestudio --cli model controls --profile milkshape-3d --export ./milkshape-controls.json")}, true, true, false},
+		{QStringLiteral("model"), QStringLiteral("audit"), QCoreApplication::translate("ModelAuditCli", "Audit every model in a package, a folder or a game installation (its loose files and every package inside it) without writing to it: per entry the format, whether it decodes and how long it takes, decode issues by severity, whether it imports for editing (and whether omissions must be accepted), and with --round-trip whether the model written back in its own format (MDL, MD2, MD3, MD5, IQM, ASE, OBJ) decodes to the same geometry within the format's quantisation. --formats a,b limits the formats; --max-entries and --max-mib bound the run; --report FILE writes the JSON report (outside the source; --overwrite replaces it); --timings adds decode times; --strict exits 4 when anything fails to decode, is damaged or round-trips outside its tolerance. The JSON is sorted so two runs can be compared."), {QStringLiteral("vibestudio --cli model audit ./baseq3/pak0.pk3 --json"), QStringLiteral("vibestudio --cli model audit ./quake --formats mdl,md2 --round-trip --report ./out/audit.json --strict")}, true, true, false},
 		{QStringLiteral("model"), QStringLiteral("formats"), QStringLiteral("List every model format the studio reads, with its file suffixes, engines (idtech1 through Doom ports, idtech2, idtech3, idtech4, goldsrc), games, whether it is skeletal or animation only, the companion files it reads (md5anim, MDX, GLA, Half-Life texture and sequence files), whether the studio also writes it, and what the decoder keeps."), {QStringLiteral("vibestudio --cli model formats"), QStringLiteral("vibestudio --cli model formats --json")}, true, true, false},
 		{QStringLiteral("model"), QStringLiteral("skin"), QCoreApplication::translate("ModelSkinBindingsCli", "Apply Quake III .skin assignments to every surface's primary material in an editable model. Choose --file or --package with --entry/--entry-index; package drafts are supported. Requires --output .mesh.json; --dry-run validates without writing and existing outputs require --overwrite. Unused bindings and tag markers are reported."), {QStringLiteral("vibestudio --cli model skin ./models/prop.mesh.json --file ./models/prop.skin --output ./models/skinned.mesh.json --dry-run --json")}, true, true, true},
 		{QStringLiteral("model"), QStringLiteral("skin-variants"), QCoreApplication::translate("ModelSkinVariantsCli", "List or edit the named skin variants (such as red and blue) an editable source owns. Each variant gives some surfaces another material by surface name; the others keep their primary material, so default always means the primary materials. --operation list (default), add --name NAME with optional repeated --surface-material SURFACE=MATERIAL, rename --name NAME --to NEW, remove --name NAME, or set --name NAME with repeated --surface-material SURFACE=MATERIAL (an empty material returns the surface to its primary material). Edits require --output .mesh.json; --dry-run validates and --overwrite replaces an existing output. Player packages publish a part's variant as the skin of the same name."), {QStringLiteral("vibestudio --cli model skin-variants ./models/prop.mesh.json --json"), QStringLiteral("vibestudio --cli model skin-variants ./models/prop.mesh.json --operation add --name red --surface-material body=models/prop/body_red.tga --output ./models/prop.mesh.json --overwrite --json")}, true, true, true},
@@ -16918,6 +16920,21 @@ int runSubcommand(const QStringList& args)
 				printJson(output);
 			} else { std::cout << text(result.lines.join(QLatin1Char('\n'))) << '\n'; }
 			return 0;
+		}
+		if (action == QStringLiteral("audit")) {
+			// The report is printed even when --strict fails the run.
+			const auto result = runModelAudit(args);
+			if (result.payload.isEmpty()) { return printCliError(QStringLiteral("model audit"), static_cast<CliExitCode>(result.exitCode), result.error, format); }
+			if (format == CliOutputFormat::Json) {
+				auto output = cliResultJson(QStringLiteral("model audit"), static_cast<CliExitCode>(result.exitCode));
+				for (auto it = result.payload.begin(); it != result.payload.end(); ++it) { output.insert(it.key(), it.value()); }
+				if (!result.error.isEmpty()) { output.insert(QStringLiteral("message"), result.error); }
+				printJson(output);
+			} else {
+				std::cout << text(result.lines.join(QLatin1Char('\n'))) << '\n';
+				if (!result.error.isEmpty()) { std::cerr << text(result.error) << '\n'; }
+			}
+			return result.exitCode;
 		}
 		if (action == QStringLiteral("skin-variants") || action == QStringLiteral("skin-export")) {
 			const auto name = QStringLiteral("model ") + action;

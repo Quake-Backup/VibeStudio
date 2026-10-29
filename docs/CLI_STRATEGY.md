@@ -2474,8 +2474,19 @@ Each resolved path may be a definition file or a folder of them.
   model, or with `--format doom3` a Doom 3 skin declaration (`--model-path`,
   `--decl-name`). Both writers are the Mesh Editor's; refusals exit 4 without
   writing. See [Skin Variants](MODEL_SKIN_VARIANTS.md).
+- [x] `model audit <package|folder|installation>` decodes every model it
+  finds (loose files and every package inside a folder) without writing to it
+  and reports, per entry, the format, decode success and time (`--timings`),
+  decode issues by severity, the editable verdict and, with `--round-trip`,
+  whether the same format written back decodes to the same geometry within its
+  quantisation. `--formats`, `--max-entries` and `--max-mib` bound the run;
+  `--report FILE` writes the sorted JSON outside the source; `--strict` exits 4
+  on decode failures, damage or round trips outside tolerance. See
+  [bulk audit](MODEL_FORMATS.md#audit-models-in-bulk).
 - [x] `model import <input> --output <source.mesh.json>` creates an editable
-  mesh source from polygonal OBJ, MDL, MD2, MD3, or a baked primitive design. `model edit <source>
+  mesh source from any model format `model formats` lists (OBJ, MDL, MD2, MD3,
+  MD5, IQM, glTF and the rest) or a baked primitive design; decode omissions
+  need `--accept-omissions` and damage refuses. `model edit <source>
   --operation <name> --output <source.mesh.json>` applies a validated component,
   UV, material, or frame operation. Both support `--dry-run`, `--overwrite`, and
   text/JSON results. See [Editable Meshes](MODEL_MESH.md) for selectors, transform
