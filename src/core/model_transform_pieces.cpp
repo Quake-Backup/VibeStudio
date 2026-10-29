@@ -3,13 +3,17 @@
 #include "core/model_document.h"
 #include "core/model_geometric_topology.h"
 #include "core/model_geometry_helpers.h"
+#include "core/model_mesh_tools.h"
 #include "core/model_surface_selection.h"
 
 #include <QCoreApplication>
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <functional>
+#include <map>
 #include <numeric>
+#include <queue>
 
 namespace vibestudio
 {
@@ -274,6 +278,307 @@ ModelTransform ModelTransformPieceMap::transformFor(const ModelTransform &transf
 		return transform;
 	const auto found = pieceOf.constFind(wholeSurfaces ? surface : vertex);
 	return found == pieceOf.cend() ? transform : modelPieceTransform(transform, pieces[found.value()]);
+}
+
+ModelVec3 ModelTransformPieceMap::apply(const ModelTransform &transform, int surface, int vertex, const ModelVec3 &point) const
+{
+	const auto found = wholeSurfaces ? weights.cend() : weights.constFind(vertex);
+	if (found == weights.cend())
+		return transformModelPoint(point, transformFor(transform, surface, vertex));
+	const int piece = found->piece;
+	return modelWeightedTransformPoint(point, piece >= 0 && piece < pieces.size() ? modelPieceTransform(transform, pieces[piece]) : transform,
+									   *found);
+}
+
+ModelVec3 ModelTransformPieceMap::applyNormal(const ModelTransform &transform, int surface, int vertex, const ModelVec3 &normal) const
+{
+	const auto found = wholeSurfaces ? weights.cend() : weights.constFind(vertex);
+	if (found == weights.cend())
+		return transformModelNormal(normal, transformFor(transform, surface, vertex));
+	const int piece = found->piece;
+	return modelWeightedTransformNormal(normal, piece >= 0 && piece < pieces.size() ? modelPieceTransform(transform, pieces[piece]) : transform,
+										*found);
+}
+
+namespace
+{
+P3 reflected(P3 p, int axes)
+{
+	if (axes & 1)
+		p.x = -p.x;
+	if (axes & 2)
+		p.y = -p.y;
+	if (axes & 4)
+		p.z = -p.z;
+	return p;
+}
+ModelTransform weighted(const ModelTransform &transform, double weight)
+{
+	ModelTransform t = transform;
+	t.translation = {float(transform.translation.x * weight), float(transform.translation.y * weight), float(transform.translation.z * weight)};
+	t.rotation = {float(transform.rotation.x * weight), float(transform.rotation.y * weight), float(transform.rotation.z * weight)};
+	t.scale = {float(1 + (transform.scale.x - 1) * weight), float(1 + (transform.scale.y - 1) * weight), float(1 + (transform.scale.z - 1) * weight)};
+	return t;
+}
+ModelVec3 vec(P3 p)
+{
+	return {float(p.x), float(p.y), float(p.z)};
+}
+P3 at(const ModelSurface &surface, int frame, int vertex)
+{
+	return point(surface.frames[frame].positions[vertex]);
+}
+} // namespace
+
+ModelVec3 modelWeightedTransformPoint(const ModelVec3 &position, const ModelTransform &transform, const ModelTransformWeight &weight)
+{
+	const auto t = weighted(transform, weight.weight);
+	const P3 p = point(position);
+	if (weight.mirror != 0)
+		return vec(reflected(point(transformModelPoint(vec(reflected(p, weight.mirror)), t)), weight.mirror));
+	P3 result = point(transformModelPoint(position, t));
+	if (weight.plane != 0)
+	{
+		// Vertices on an active mirror plane stay on it: average both reflections.
+		const P3 mirror = reflected(point(transformModelPoint(vec(reflected(p, weight.plane)), t)), weight.plane);
+		result = (result + mirror) * 0.5;
+	}
+	return vec(result);
+}
+
+ModelVec3 modelWeightedTransformNormal(const ModelVec3 &normal, const ModelTransform &transform, const ModelTransformWeight &weight)
+{
+	const auto t = weighted(transform, weight.weight);
+	if (weight.mirror != 0)
+		return vec(reflected(point(transformModelNormal(vec(reflected(point(normal), weight.mirror)), t)), weight.mirror));
+	return transformModelNormal(normal, t);
+}
+
+bool modelTransformWeights(const ModelSurface &surface, const ModelGeometricTopology &topology, const QSet<int> &vertices, int reference,
+						   const ModelMeshToolOptions &options, const QHash<int, int> &pieceOf, QHash<int, ModelTransformWeight> *result,
+						   ModelWorkProgress &work)
+{
+	if (!result || reference < 0 || reference >= surface.frames.size())
+		return false;
+	result->clear();
+	QHash<int, int> groupPiece;
+	// Weight 1 for the selection; the proportional falloff for the rest.
+	QSet<int> selectedGroups;
+	for (int v : vertices)
+	{
+		selectedGroups.insert(topology.group(v));
+		groupPiece.insert(topology.group(v), pieceOf.value(v));
+	}
+	QHash<int, double> weights;
+	for (int group : selectedGroups)
+		weights.insert(group, 1.0);
+	const double radius = options.proportionalRadius;
+	if (radius > 0)
+	{
+		QHash<int, double> distance;
+		if (options.connectedOnly)
+		{
+			// Geodesic distance along edges from any selected vertex.
+			QHash<int, QVector<int>> adjacency;
+			for (auto it = topology.edgeFaces.cbegin(); it != topology.edgeFaces.cend(); ++it)
+			{
+				adjacency[it.key().first].append(it.key().second);
+				adjacency[it.key().second].append(it.key().first);
+			}
+			using Entry = std::pair<double, int>;
+			std::priority_queue<Entry, std::vector<Entry>, std::greater<>> queue;
+			for (int group : selectedGroups)
+			{
+				distance.insert(group, 0);
+				queue.push({0, group});
+			}
+			while (!queue.empty())
+			{
+				if (!work.step())
+					return false;
+				const auto [d, group] = queue.top();
+				queue.pop();
+				if (d > distance.value(group, INFINITY) || d >= radius)
+					continue;
+				for (int other : adjacency.value(group))
+				{
+					const double next = d + length(at(surface, reference, other) - at(surface, reference, group));
+					if (next < distance.value(other, INFINITY) && next < radius)
+					{
+						distance.insert(other, next);
+						if (!selectedGroups.contains(other))
+							groupPiece.insert(other, groupPiece.value(group));
+						queue.push({next, other});
+					}
+				}
+			}
+		}
+		else
+		{
+			// Ascending groups, so equal distances fall to the lowest source.
+			auto ordered = selectedGroups.values();
+			std::sort(ordered.begin(), ordered.end());
+			QVector<P3> sources;
+			for (int group : std::as_const(ordered))
+				sources.append(at(surface, reference, group));
+			for (int v = 0; v < surface.vertexCount; ++v)
+			{
+				if (!work.step())
+					return false;
+				if (topology.group(v) != v || selectedGroups.contains(v))
+					continue;
+				const P3 p = at(surface, reference, v);
+				double nearest = INFINITY;
+				int source = -1;
+				for (int i = 0; i < sources.size(); ++i)
+				{
+					const double d = length(p - sources[i]);
+					if (d < nearest)
+					{
+						nearest = d;
+						source = i;
+					}
+				}
+				if (nearest < radius)
+				{
+					distance.insert(v, nearest);
+					groupPiece.insert(v, groupPiece.value(ordered[source]));
+				}
+			}
+		}
+		for (auto it = distance.cbegin(); it != distance.cend(); ++it)
+		{
+			if (!selectedGroups.contains(it.key()))
+			{
+				const double w = modelFalloffWeight(options.falloff, it.value() / radius);
+				if (w > 0)
+					weights.insert(it.key(), w);
+			}
+		}
+	}
+	// Mirror counterparts take the reflected transform with the same weight.
+	QHash<int, std::pair<int, double>> mirrored; // group -> (axes, weight)
+	if (options.mirrorAxes != 0)
+	{
+		double scale = 0;
+		for (const auto &p : surface.frames[reference].positions)
+			scale = std::max({scale, double(std::abs(p.x)), double(std::abs(p.y)), double(std::abs(p.z))});
+		const double tolerance = std::max(options.mergeThreshold, scale * 1e-6);
+		// Grid cells twice the tolerance wide; a match lies in a neighbouring cell.
+		const double cell = std::max(tolerance * 2, 1e-9);
+		const auto cellOf = [&](P3 p)
+		{ return std::array<qint64, 3>{qint64(std::floor(p.x / cell)), qint64(std::floor(p.y / cell)), qint64(std::floor(p.z / cell))}; };
+		std::map<std::array<qint64, 3>, QVector<int>> grid;
+		for (int v = 0; v < surface.vertexCount; ++v)
+		{
+			if (topology.group(v) == v)
+				grid[cellOf(at(surface, reference, v))].append(v);
+		}
+		const auto weightedGroups = weights;
+		for (auto it = weightedGroups.cbegin(); it != weightedGroups.cend(); ++it)
+		{
+			for (int axes = 1; axes <= 7; ++axes)
+			{
+				if ((axes & ~options.mirrorAxes) != 0)
+					continue;
+				const P3 target = reflected(at(surface, reference, it.key()), axes);
+				int match = -1;
+				double best = tolerance;
+				const auto centre = cellOf(target);
+				for (qint64 dx = -1; dx <= 1; ++dx)
+				{
+					for (qint64 dy = -1; dy <= 1; ++dy)
+					{
+						for (qint64 dz = -1; dz <= 1; ++dz)
+						{
+							const auto found = grid.find({centre[0] + dx, centre[1] + dy, centre[2] + dz});
+							if (found == grid.end())
+								continue;
+							for (int candidate : found->second)
+							{
+								const double d = length(at(surface, reference, candidate) - target);
+								if (d < best || (d == best && match >= 0 && candidate < match) || (d == best && match < 0))
+								{
+									best = d;
+									match = candidate;
+								}
+							}
+						}
+					}
+				}
+				if (match < 0 || weights.contains(match) || mirrored.contains(match))
+					continue;
+				if (match == it.key())
+					continue;
+				mirrored.insert(match, {axes, it.value()});
+				groupPiece.insert(match, groupPiece.value(it.key()));
+			}
+		}
+	}
+	const double planeTolerance = std::max(options.mergeThreshold, 1e-6);
+	for (auto it = weights.cbegin(); it != weights.cend(); ++it)
+	{
+		ModelTransformWeight weight;
+		weight.weight = it.value();
+		weight.piece = groupPiece.value(it.key());
+		const P3 p = at(surface, reference, it.key());
+		if ((options.mirrorAxes & 1) && std::abs(p.x) <= planeTolerance)
+			weight.plane |= 1;
+		if ((options.mirrorAxes & 2) && std::abs(p.y) <= planeTolerance)
+			weight.plane |= 2;
+		if ((options.mirrorAxes & 4) && std::abs(p.z) <= planeTolerance)
+			weight.plane |= 4;
+		result->insert(it.key(), weight);
+	}
+	for (auto it = mirrored.cbegin(); it != mirrored.cend(); ++it)
+	{
+		ModelTransformWeight weight;
+		weight.weight = it.value().second;
+		weight.mirror = it.value().first;
+		weight.piece = groupPiece.value(it.key());
+		result->insert(it.key(), weight);
+	}
+	return true;
+}
+
+bool modelWeightedTransformPieceMap(const ModelMesh &mesh, int surface, const QSet<int> &vertices, int frame, bool individualOrigins,
+									bool normalAxes, const ModelMeshToolOptions &options, ModelTransformPieceMap *map)
+{
+	if (!map || surface < 0 || surface >= mesh.surfaces.size())
+		return false;
+	const auto &part = mesh.surfaces[surface];
+	if (frame < 0 || frame >= part.frames.size())
+		return false;
+	ModelGeometricTopology topology;
+	if (!buildModelGeometricTopology(part, &topology))
+		return false;
+	// Seam copies move with their group, as in the committed transform.
+	QSet<int> expanded;
+	for (int v : vertices)
+	{
+		const int group = topology.group(v);
+		if (group < 0)
+			return false;
+		for (int copy : topology.copies[group])
+			expanded.insert(copy);
+	}
+	if (expanded.isEmpty())
+		return false;
+	ModelTransformPieceMap result;
+	if (individualOrigins && !modelTransformPieceMap(mesh, surface, expanded, {}, frame, normalAxes, &result))
+		return false;
+	const ModelWorkControl control;
+	ModelWorkProgress work(control, ModelWorkPhase::Editing);
+	QHash<int, ModelTransformWeight> groups;
+	if (!modelTransformWeights(part, topology, expanded, frame, options, result.pieceOf, &groups, work))
+		return false;
+	for (auto it = groups.cbegin(); it != groups.cend(); ++it)
+	{
+		for (int copy : topology.copies[it.key()])
+			result.weights.insert(copy, it.value());
+	}
+	*map = std::move(result);
+	return true;
 }
 
 bool modelTransformPieceMap(const ModelMesh &mesh, int surface, const QSet<int> &vertices, const QSet<int> &surfaces, int frame,

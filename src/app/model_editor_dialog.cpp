@@ -1568,6 +1568,16 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 				const auto collision = findModelCollisionBox(m_document.mesh(), edit.selection.collision);
 				edit.frame = (collision && collision->framePoses.isEmpty()) || m_frameScope->currentIndex() == 0 ? -1 : m_frame->currentIndex();
 				edit.pivotFrame = m_frame->currentIndex();
+				// Proportional editing and Symmetry apply to gizmo drags of
+				// vertices, edges and faces as they do to G/R/S.
+				ModelMeshToolOptions weighting;
+				const bool components = !edit.selection.faces.isEmpty() || !edit.selection.vertices.isEmpty() || !edit.selection.edges.isEmpty();
+				if (edit.kind == ModelEditKind::Transform && components && m_tools && m_tools->transformWeighting(&weighting))
+				{
+					weighting.referenceFrame = m_frame->currentIndex();
+					edit.kind = ModelEditKind::WeightedTransform;
+					edit.tool = weighting;
+				}
 				QString error;
 				if (!applyEdit(edit, &error))
 				{

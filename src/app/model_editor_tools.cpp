@@ -993,6 +993,20 @@ void ModelEditorTools::buildHeader()
 		row->addWidget(button);
 		m_mirror[axis] = button;
 	}
+	// Gizmo drags move nearby vertices and counterparts like G/R/S do.
+	const auto syncWeighting = [this]
+	{
+		ModelMeshToolOptions options;
+		transformWeighting(&options);
+		m_editor->m_preview->setTransformWeighting(options.proportionalRadius, int(options.falloff), options.connectedOnly, options.mirrorAxes);
+	};
+	connect(m_proportional, &QToolButton::toggled, this, syncWeighting);
+	connect(m_falloff, &QComboBox::currentIndexChanged, this, syncWeighting);
+	connect(m_radius, &QDoubleSpinBox::valueChanged, this, syncWeighting);
+	connect(m_connected, &QCheckBox::toggled, this, syncWeighting);
+	for (auto *button : m_mirror)
+		connect(button, &QToolButton::toggled, this, syncWeighting);
+	syncWeighting();
 	m_budget = new QToolButton;
 	m_budget->setObjectName(QStringLiteral("meshExportBudget"));
 	m_budget->setAccessibleName(Text::tr("Delivery targets"));
@@ -1381,6 +1395,22 @@ ModelEdit ModelEditorTools::toolEdit(ModelEditKind kind) const
 		}
 	}
 	return edit;
+}
+
+bool ModelEditorTools::transformWeighting(ModelMeshToolOptions *options) const
+{
+	ModelMeshToolOptions result;
+	if (m_proportional && m_proportional->isChecked())
+	{
+		result.proportionalRadius = m_radius->value();
+		result.falloff = ModelFalloff(m_falloff->currentIndex());
+		result.connectedOnly = m_connected->isChecked();
+	}
+	if (m_mirror[0])
+		result.mirrorAxes = (m_mirror[0]->isChecked() ? 1 : 0) | (m_mirror[1]->isChecked() ? 2 : 0) | (m_mirror[2]->isChecked() ? 4 : 0);
+	if (options)
+		*options = result;
+	return result.proportionalRadius > 0 || result.mirrorAxes != 0;
 }
 
 bool ModelEditorTools::runTool(const ModelEdit &operation, QString *error)

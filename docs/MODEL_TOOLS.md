@@ -170,8 +170,8 @@ edge counts are separate messages.
 
 ### Proportional editing and symmetry
 
-**O** or the header's proportional button makes Move, Rotate and Scale affect
-nearby vertices with a falloff: Smooth, Sphere, Root, Inverse Square, Sharp,
+**O** or the header's proportional button makes Move, Rotate and Scale (the
+G, R and S keys and gizmo drags alike) affect nearby vertices with a falloff: Smooth, Sphere, Root, Inverse Square, Sharp,
 Linear or Constant (Shift+**O** cycles them). The radius is in model units;
 **Connected** measures distance along the mesh instead of straight through
 space. A dotted circle shows the radius during the tool.
@@ -196,8 +196,11 @@ merge distance of the plane join both halves. Symmetric edits need the **All
 frames** scope. On a skinned surface the joint mirror map last confirmed for
 **Symmetrize** is used; run Symmetrize once first when joints sit off the plane.
 `model tool` takes `--symmetry x|y|z|xy…` (with `--joint-map`) on these tools.
-The viewport gizmo still moves only the selection, without symmetry or
-proportional falloff: use the G, R and S keys for those.
+Gizmo drags of vertices, edges and faces follow proportional editing and
+Symmetry too: the preview moves the falloff vertices and the counterparts, and
+releasing commits the same weighted transform the G, R and S keys make, as one
+undo step. The CLI form is `model tool --tool transform` with
+`--proportional-radius`, `--falloff`, `--connected` and `--mirror x|y|z`.
 
 **Mesh > Symmetrize > Mirror Faces Across X/Y/Z** reflects the selected faces
 across the plane through the 3D cursor, flipping their winding so they keep

@@ -389,6 +389,57 @@ void symmetry(QApplication &app, ModelEditorDialog &editor, ModelEditorTools &to
 	tools.action("meshMirrorFacesX")->trigger();
 	app.processEvents();
 	expect(bytes(editor.document().mesh()) == bytes(grid) && !editor.document().canUndo(), "Mirror Faces refuses faces attached to the rest");
+
+	// Gizmo drags: Symmetry X, then proportional editing, preview and commit
+	// what the matching Weighted Transform does, each as one undo step.
+	auto *gizmo = editor.findChild<QCheckBox *>("meshMoveGizmo");
+	auto *proportional = editor.findChild<QToolButton *>("meshProportional");
+	auto *radius = editor.findChild<QDoubleSpinBox *>("meshProportionalRadius");
+	if (!expect(gizmo && proportional && radius, "the gizmo and proportional controls exist"))
+		return;
+	gizmo->setChecked(true);
+	editor.findChild<QComboBox *>("meshTransformTool")->setCurrentIndex(0);
+	for (int pass = 0; pass < 2; ++pass)
+	{
+		mirrorX->setChecked(pass == 0);
+		proportional->setChecked(pass == 1);
+		radius->setValue(10);
+		ModelSelection vertex;
+		vertex.vertices = {3};
+		tools.applySelection(vertex);
+		view.frameModel();
+		expect(settleModelViewport(view), "gizmo view settles");
+		const auto handles = view.transformGizmoPoints();
+		const QPointF along = handles[0] - handles[3];
+		const double reach = std::hypot(along.x(), along.y());
+		expect(reach > 1 && view.beginEditTransform(handles[0]) && view.updateEditTransform(handles[0] + along * (40 / reach)),
+			   "drag the X move handle");
+		ModelEdit weighted;
+		weighted.kind = ModelEditKind::WeightedTransform;
+		weighted.selection = vertex;
+		weighted.translation = view.editTransform().translation;
+		weighted.tool.mirrorAxes = pass == 0 ? 1 : 0;
+		weighted.tool.proportionalRadius = pass == 1 ? 10 : 0;
+		auto expected = grid;
+		expect(weighted.translation.x > 0.5f && applyModelEdit(&expected, weighted, nullptr, &error), "prepare the weighted move", error);
+		// Vertex 1 is the counterpart across X; vertex 4 lies inside the radius.
+		const int follower = pass == 0 ? 1 : 4;
+		QPointF projected;
+		expect(view.projectToView(expected.surfaces[0].frames[0].positions[follower], &projected) &&
+				   QLineF(view.vertexScreenPosition(0, follower), projected).length() < 1 &&
+				   !nearPoint(expected.surfaces[0].frames[0].positions[follower], grid.surfaces[0].frames[0].positions[follower], 0.1),
+			   pass == 0 ? "the gizmo preview moves the mirror counterpart the other way" : "the gizmo preview drags nearby vertices with the falloff");
+		view.finishEditTransform(true);
+		app.processEvents();
+		expect(samePoses(editor.document().mesh().surfaces[0], expected.surfaces[0], 1e-4) && editor.document().canUndo(),
+			   pass == 0 ? "the symmetric gizmo commit matches its preview" : "the proportional gizmo commit matches its preview");
+		editor.findChild<QAction *>("undoMesh")->trigger();
+		app.processEvents();
+		expect(bytes(editor.document().mesh()) == bytes(grid), "the gizmo drag is one undo step");
+	}
+	mirrorX->setChecked(false);
+	proportional->setChecked(false);
+	gizmo->setChecked(false);
 }
 
 // Poly Build in the front view: three clicks make a face, the fourth carries

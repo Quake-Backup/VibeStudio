@@ -213,8 +213,8 @@ struct ModelViewport::RasterWork {
 		if (frameBlend > 0 && blendFrame < part.frames.size() && part.frames[blendFrame].positions.size() == pose.positions.size()) {
 			point = interpolateModelPosition(point, part.frames[blendFrame].positions[vertex], frameBlend);
 		}
-		return editMoveActive && (editSurfaces.contains(surface) || (surface == editSurface && editVertices.contains(vertex)))
-			? transformModelPoint(point, editPieces.transformFor(editTransform, surface, vertex))
+		return editMoveActive && (editSurfaces.contains(surface) || (surface == editSurface && (editVertices.contains(vertex) || editPieces.moves(vertex))))
+			? editPieces.apply(editTransform, surface, vertex, point)
 			: point;
 	}
 	void toView(const ModelVec3& point, double* x, double* y, double* z) const

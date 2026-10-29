@@ -441,7 +441,7 @@ std::shared_ptr<const ModelViewport::GpuGeometry> ModelViewport::buildGpuGeometr
 						vertexNormal = {};
 					}
 				}
-				return transforming ? transformModelNormal(vertexNormal, work.editPieces.transformFor(work.editTransform, currentSurface, vertex)) : vertexNormal;
+				return transforming ? work.editPieces.applyNormal(work.editTransform, currentSurface, vertex, vertexNormal) : vertexNormal;
 			};
 			const auto na = normalAt(source.a);
 			const auto nb = normalAt(source.b);

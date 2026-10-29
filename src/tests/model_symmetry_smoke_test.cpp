@@ -1,8 +1,10 @@
 // Live symmetric modelling and Mirror Faces: extrude, loop cut, inset and
 // dissolve on one side mirrored to the other in every pose, plane vertices,
-// refusals, selection on both sides, mirrored winding and the CLI.
+// refusals, selection on both sides, mirrored winding, gizmo previews that
+// match the committed weighted transform, and the CLI.
 #include "core/model_mesh_tools.h"
 #include "core/model_symmetry.h"
+#include "core/model_transform_pieces.h"
 #include "tests/model_polygon_test_helpers.h"
 
 #include <QCoreApplication>
@@ -170,6 +172,66 @@ int main(int argc, char **argv)
 		attached.selection.faces = quad(3, 0);
 		const auto before = bytes(grid);
 		expect(!applyModelEdit(&grid, attached, nullptr, &error) && bytes(grid) == before, "faces attached to unselected faces are refused");
+	}
+	{
+		// Gizmo previews: the weighted preview map reproduces the committed
+		// Weighted Transform for symmetry, proportional editing, both, and
+		// symmetry with Individual Origins, in every pose.
+		const auto grid = halves(2);
+		struct Case
+		{
+			int mirror;
+			double radius;
+			bool individual;
+			QSet<int> vertices;
+		};
+		const QVector<Case> cases{{1, 0, false, {3, 4}}, {0, 12, false, {4}}, {1, 12, false, {8, 9}}, {1, 0, true, {3, 9, 14}}};
+		for (const auto &c : cases)
+		{
+			ModelEdit edit;
+			edit.kind = ModelEditKind::WeightedTransform;
+			edit.selection.vertices = c.vertices;
+			edit.translation = {2, 3, 1};
+			edit.rotation = {0, 0, 15};
+			edit.scale = {1.25f, 1.25f, 1.25f};
+			edit.pivotMode = c.individual ? ModelTransformPivot::IndividualOrigins : ModelTransformPivot::SelectionCentre;
+			edit.tool.mirrorAxes = c.mirror;
+			edit.tool.proportionalRadius = c.radius;
+			auto committed = grid;
+			expect(applyModelEdit(&committed, edit, nullptr, &error), "the weighted transform applies", error);
+			ModelTransformPieceMap map;
+			expect(modelWeightedTransformPieceMap(grid, 0, c.vertices, 0, c.individual, false, edit.tool, &map) && !map.weights.isEmpty(),
+				   "the preview map builds");
+			ModelTransform transform;
+			transform.translation = edit.translation;
+			transform.rotation = edit.rotation;
+			transform.scale = edit.scale;
+			expect(modelTransformPivot(grid.surfaces[0].frames[0].positions, c.vertices, ModelTransformPivot::SelectionCentre, {}, &transform.pivot),
+				   "the preview pivot resolves");
+			bool same = true, counterpartMoved = c.mirror == 0;
+			for (int frame = 0; frame < 2; ++frame)
+			{
+				for (int v = 0; v < grid.surfaces[0].vertexCount; ++v)
+				{
+					const auto p = grid.surfaces[0].frames[frame].positions[v];
+					const auto preview = c.vertices.contains(v) || map.moves(v) ? map.apply(transform, 0, v, p) : p;
+					same = same && nearPoint(preview, committed.surfaces[0].frames[frame].positions[v], 1e-4);
+					counterpartMoved = counterpartMoved || (map.weights.value(v).mirror == 1 && !nearPoint(preview, p, 1e-3));
+				}
+			}
+			expect(same && counterpartMoved, "the gizmo preview equals the committed result, counterparts included");
+		}
+		// Vertices on the plane stay on it.
+		ModelEdit edit;
+		edit.kind = ModelEditKind::WeightedTransform;
+		edit.selection.vertices = {2, 3};
+		edit.translation = {3, 0, 0};
+		edit.pivotMode = ModelTransformPivot::SelectionCentre;
+		edit.tool.mirrorAxes = 1;
+		auto mesh = grid;
+		expect(applyModelEdit(&mesh, edit, nullptr, &error) && std::abs(mesh.surfaces[0].frames[0].positions[2].x) < 1e-5f &&
+				   std::abs(mesh.surfaces[0].frames[0].positions[1].x + 11) < 1e-4f,
+			   "a plane vertex stays on X = 0 while the counterpart of its neighbour moves the other way", error);
 	}
 	// CLI.
 	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");

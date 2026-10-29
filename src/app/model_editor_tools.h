@@ -242,6 +242,10 @@ class ModelEditorTools final : public QObject
 	// The display copy of a mesh with hidden faces collapsed, so face indices
 	// stay stable while nothing hidden draws or picks.
 	[[nodiscard]] ModelMesh displayMesh(const ModelMesh &mesh, const ModelEditReport *report = nullptr) const;
+	// Proportional editing and Symmetry from the header for transforms of
+	// vertices, edges and faces (modal keys and gizmo drags). False when both
+	// are off, so a plain Transform applies.
+	bool transformWeighting(ModelMeshToolOptions *options) const;
 
   protected:
 	bool eventFilter(QObject *watched, QEvent *event) override;

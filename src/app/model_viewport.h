@@ -215,6 +215,12 @@ public:
 	// Individual Origins previews each connected piece about its own centre,
 	// and with pieceNormals in its own normal axes (core/model_transform_pieces.h).
 	void setTransformPivot(ModelTransformPivot mode, ModelVec3 custom = {}, bool pieceNormals = false);
+	// Proportional editing (radius > 0, a ModelFalloff, connected-only) and
+	// symmetry (mirror axes bits X=1, Y=2, Z=4) for gizmo drags of vertices,
+	// edges and faces: the preview moves nearby vertices and counterparts as the
+	// committed Weighted Transform does. Takes effect from the next drag.
+	void setTransformWeighting(double radius, int falloff, bool connectedOnly, int mirrorAxes);
+	[[nodiscard]] bool transformWeighted() const { return m_weightRadius > 0 || m_weightMirror != 0; }
 	void setTransformAxes(const ModelTransformBasis& basis, const QString& name = {}, bool available = true);
 	[[nodiscard]] std::array<QPointF, 4> transformGizmoPoints();
 	[[nodiscard]] std::array<QPolygonF, 3> rotationGizmoRings();
@@ -1043,6 +1049,10 @@ private:
 	ModelTransformPivot m_transformPivot = ModelTransformPivot::SelectionCentre;
 	ModelVec3 m_customTransformPivot;
 	bool m_transformPieceNormals = false;
+	double m_weightRadius = 0;
+	int m_weightFalloff = 0;
+	bool m_weightConnected = false;
+	int m_weightMirror = 0;
 	ModelTransformPieceMap m_editPieces;
 	ModelTransformBasis m_transformBasis;
 	QString m_transformAxesName;

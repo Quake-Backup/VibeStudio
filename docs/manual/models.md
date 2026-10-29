@@ -547,7 +547,8 @@ To build half a model and mirror it as you go, turn on **Symmetry X** (or Y or
 Z) in the editing header. Extrusions, insets, loop cuts, bevels, dissolves and
 the other topology tools then change the other side too, from the side you
 selected, in one undo step; moving vertices with <kbd>G</kbd>, <kbd>R</kbd> and
-<kbd>S</kbd> moves their mirror counterparts. **Mesh > Symmetrize > Mirror Faces
+<kbd>S</kbd> or with the gizmo moves their mirror counterparts, and with
+proportional editing on, nearby vertices follow with the falloff. **Mesh > Symmetrize > Mirror Faces
 Across X** flips a separate piece, such as an ear or a pauldron, to the other
 side. See [modelling tools](../MODEL_TOOLS.md#proportional-editing-and-symmetry).
 
