@@ -106,11 +106,35 @@ pose validation, with guarded `.mesh.json` outputs and `--dry-run`. See
 [animation curves](../MODEL_ANIMATION_CURVES.md#automate-curve-edits) for options
 and examples. Native game exports receive sampled motion.
 
+`model constraints` lists and edits a skeletal clip's persistent constraints
+(IK, aim, child of, copy transform, foot lock) and layers, and `--operation
+bake` turns them into plain samples. See
+[constraints and layers](../MODEL_ANIMATION_CONSTRAINTS.md).
+
+`model events` lists and edits animation events, the game-side frame commands
+on clip frames (`--operation add --clip N --frame N --command "sound_body
+snd_footstep"`). `model declarations --target doom3|quakec|quake2|gzdoom`
+prints or writes the Doom 3 model declaration, QuakeC `$frame` macros, Quake II
+frame header or GZDoom MODELDEF generated from a source; `--target doom3 --set
+DIR` writes the md5mesh, every clip's md5anim and the `.def`. See
+[game declarations](../MODEL_GAME_DECLARATIONS.md).
+
+```sh
+vibestudio --cli model declarations ./models/imp.mesh.json --target doom3 --name monster_imp --set ./out/base --json
+```
+
 `model ik` solves two-bone inverse kinematics over an inclusive clip sample
-range with an explicit end joint, target and pole. `--nearest-reachable` clamps
+range with an explicit end joint, target and pole. `--root-joint` with
+`--solver fabrik|ccd` solves a longer chain, `--limits` keeps it within the
+joint limits that `model rig --operation limits` sets, and `--target-joint` or
+`--targets file.json` replace the fixed target. `--nearest-reachable` clamps
 unreachable targets without stretching; JSON reports reach and residual distance
 per sample. It shares the GUI pose service, source writer and dry-run validation.
 See [inverse kinematics](../MODEL_IK.md) for required options and examples.
+
+```sh
+vibestudio --cli model ik ./models/monster.mesh.json --clip 0 --first 0 --last 20 --root-joint tail1 --end-joint tail6 --solver fabrik --target 0,-40,8 --pole 0,-20,30 --output ./out/tail.mesh.json --json
+```
 
 `model build` first checks the model against a delivery target, the game the
 file is for: `--target ID` names one (such as `quakespasm` for MDL, `q2pro` for
@@ -453,7 +477,11 @@ See [skeleton authoring](../MODEL_RIG.md#automate-the-workflow) for options and
 examples shared with **Edit Skeleton** in the Mesh Editor.
 
 `model pose` manages skeletal clips, transforms bind joints and pose ranges,
-copies joint poses and interpolates hierarchical motion. Both commands share
+copies joint poses and interpolates hierarchical motion. `--operation copy-out`
+writes a pose or key copy to a file, `paste --clipboard` applies one (a copy
+from another rig needs `--joint-map`), and `mirror` mirrors a range onto the
+left/right partner joints, and `import --source FILE` adds a clip from another
+file, exactly or with `--retarget`. Both commands share
 the modeller's document service, guarded outputs and dry-run validation. See
 [skeletal animation authoring](../MODEL_RIG.md#author-skeletal-animation).
 `model pose --operation working-set --clips a,b` chooses the clips baked into
@@ -469,6 +497,7 @@ still finds its companion files (md5anim, GLA, `.def`) beside it. See
 ```sh
 vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --json
 vibestudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json
+vibestudio --cli model pose ./out/walk.mesh.json --operation mirror --clip 0 --first 0 --last 11 --output ./out/walk-mirrored.mesh.json
 ```
 `model import` and `model edit` report the source they wrote (or would write
 with `--dry-run`) in JSON as `"source": {"bytes", "encoding", "limitBytes"}`.

@@ -373,6 +373,8 @@ class ModelEditorTools final : public QObject
 
 	void buildActions();
 	void buildProfileActions();
+	// Copy Pose, Paste Pose, Paste Pose Mirrored, Mirror Pose (model_editor_pose.cpp).
+	void buildPoseActions();
 	void buildMenus();
 	void buildHeader();
 	void buildShelf();

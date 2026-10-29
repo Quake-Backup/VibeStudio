@@ -1163,6 +1163,31 @@ engines do. No engine code is copied; every fixture is built by the tests. See
 | [Doom 3 GPL source](https://github.com/id-Software/DOOM-3) (`neo/renderer/Model_md5.cpp`, `Model_ase.cpp`, `tr_trisurf.cpp`, `neo/idlib/math/Quat.h`, `Quat.cpp`, `JointTransform.h`, `neo/game/anim/Anim.cpp`, `neo/framework/FileSystem.cpp`, `DeclManager.cpp`) | The oracle's MD5 and ASE readers: `CalcW`, `ToMat3`, weight offsets, joint concatenation, face planes and material naming; Doom 3's absence of MD5 count limits | GPL release, reviewed 2026-10-22 | GPL-3.0 with id's additional terms; conventions only |
 | q3map2 in [q3mapx](https://github.com/themuffinator/q3mapx) (`tools/quake3/q3map2/model.cpp`, `AssModelMesh`) | The oracle's q3map2 ASE shader-name rule | `8975244`, reviewed 2026-10-22 | GPL-2.0-or-later; behaviour only |
 
+## Modeller Animation Authoring (2026-10-28)
+
+The pose clipboard, chain inverse kinematics and joint limits, clip import and
+retargeting, animation events and the game declaration writers
+(`src/core/model_pose_clipboard.*`, `src/core/model_ik.*`,
+`src/core/model_animation_authoring.*`, `src/core/model_clip_import.*`,
+`src/core/model_animation_events.*`, `src/core/model_game_declarations.*`,
+`src/app/model_editor_pose.*`, `src/app/model_ik_dialog.*`,
+`src/app/model_clip_import_dialog.*`, `src/app/model_events_dialog.*`,
+`src/app/model_declarations_dialog.*`, `src/cli/model_ik.cpp`,
+`src/cli/model_events.cpp`) are original VibeStudio code. The chain solvers
+follow published algorithm descriptions and the declarations follow the
+published formats below; no code was copied. See
+[inverse kinematics](MODEL_IK.md#solve-longer-chains) and
+[game declarations](MODEL_GAME_DECLARATIONS.md).
+
+| Reference | What it informed | Revision | Licence / use |
+|---|---|---|---|
+| A. Aristidou and J. Lasenby, "FABRIK: A fast, iterative solver for the Inverse Kinematics problem", *Graphical Models* 73(5), 2011, [doi:10.1016/j.gmod.2011.05.003](https://doi.org/10.1016/j.gmod.2011.05.003) | The forward and backward reaching passes of the FABRIK chain solver | Published paper, read 2026-10-28 | Algorithm description only |
+| L.-C. T. Wang and C. C. Chen, "A combined optimization method for solving the inverse kinematics problem of mechanical manipulators", *IEEE Transactions on Robotics and Automation* 7(4), 1991, [doi:10.1109/70.86079](https://doi.org/10.1109/70.86079) | Cyclic coordinate descent, turning each joint from the end towards the target | Published paper, read 2026-10-28 | Algorithm description only |
+| [Doom 3 GPL source](https://github.com/id-Software/DOOM-3) (`neo/game/anim/Anim.cpp` `idAnim::AddFrameCommand`, `neo/game/anim/Anim_Blend.cpp` `idDeclModelDef::Parse`/`ParseAnim`) | The `.def` `model` declaration layout written by `model declarations --target doom3`, and the one-based `frame N command` lines read and written as animation events | GPL release, reviewed 2026-10-28 | GPL-3.0 with id's additional terms; format only |
+| [Quake GPL source](https://github.com/id-Software/Quake) (`qw-qc` and `progs` QuakeC monsters such as `soldier.qc`, and `qcc`'s `$` directives) | The `$cd`, `$base`, `$skin` and `$frame` macro layout of the QuakeC frame output | master, reviewed 2026-10-28 | GPL-2.0-or-later; format only |
+| [Quake II GPL source](https://github.com/id-Software/Quake-2) (`game/m_soldier.h` and the other `m_*.h` headers) | The `#define FRAME_name index` and `MODEL_SCALE` layout of the Quake II frame header | master, reviewed 2026-10-28 | GPL-2.0-or-later; format only |
+| [ZDoom wiki: MODELDEF](https://zdoom.org/wiki/MODELDEF) | The `Model`, `Path`, `Model`, `Skin`, `Scale`, `Offset`, `AngleOffset` and `FrameIndex` keywords and the sprite frame letters of the generated GZDoom block | Page as of 2026-10-28 | GFDL 1.2 wiki text; format only |
+
 ## Imported Compiler Toolchains
 
 | Tool | Role | Upstream | Imported revision | License notes |

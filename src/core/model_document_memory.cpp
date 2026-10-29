@@ -41,6 +41,12 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 	for (const auto &clip : mesh.animations)
 	{
 		string(clip.name);
+		list(clip.events);
+		for (const auto &event : clip.events)
+		{
+			string(event.command);
+			strings(event.args);
+		}
 	}
 	list(mesh.tags);
 	for (const auto &tag : mesh.tags)
@@ -101,6 +107,39 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 			for (const auto &channel : group.channels)
 			{
 				list(channel);
+			}
+		}
+		list(clip.events);
+		for (const auto &event : clip.events)
+		{
+			string(event.command);
+			strings(event.args);
+		}
+		list(clip.base);
+		for (const auto &pose : clip.base)
+		{
+			list(pose);
+		}
+		list(clip.constraints);
+		for (const auto &constraint : clip.constraints)
+		{
+			string(constraint.name);
+			string(constraint.joint);
+			string(constraint.rootJoint);
+			string(constraint.target);
+		}
+		list(clip.layers);
+		for (const auto &layer : clip.layers)
+		{
+			string(layer.name);
+			list(layer.curves);
+			for (const auto &group : layer.curves)
+			{
+				string(group.joint);
+				for (const auto &channel : group.channels)
+				{
+					list(channel);
+				}
 			}
 		}
 	}

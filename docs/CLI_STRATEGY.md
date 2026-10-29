@@ -44,7 +44,9 @@ reject independent frame changes. See [Skeleton authoring](MODEL_RIG.md).
 same candidate transaction: bind positioning, creation/duplication/rename/delete,
 tail resizing, timing, joint transforms, full joint-pose copying, parent-space
 interpolation and `--operation working-set`, which chooses the clips baked into
-editable frames. Inspection returns clip metadata, preview ranges, the
+editable frames. `copy-out`, `paste` and `mirror` move poses and keys through the
+pose clipboard (`application/x-vibestudio-pose+json`), across clips, models and,
+with a joint map, rigs, optionally mirrored left to right. `import --source FILE` adds another file's clip, exactly or retargeted. Inspection returns clip metadata, preview ranges, the
 `workingSet` report and model-space joint matrices. New displayed clips must
 fit the full editable frame budget; no authoring operation silently skips its
 requested output. `model import` re-bakes a skeletal model over the editable
@@ -3372,11 +3374,30 @@ and `mapWritten` on success or failure; failed map saving retains the source.
 See [clipboard limits and examples](LEVEL_PASTE.md#cli). **Status: Partial.**
 
 
-### Two-bone inverse kinematics
+### Clip constraints and layers
 
-`model ik` shares the modeller's two-bone solver over an inclusive clip sample
-range. Model-space target/pole inputs, fixed bone lengths, optional nearest
-reachable clamping and end-joint following use the shared service. Normal
+`model constraints` lists and edits a clip's persistent constraints and layers
+through the shared `EditClipStack` edit, with list, add, update, remove,
+add-layer, update-layer, remove-layer and bake operations, guarded `.mesh.json`
+outputs and JSON reports. See [constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md).
+
+### Animation events and game declarations
+
+`model events` lists and edits clip events (game-side frame commands) through
+the shared `EditAnimationEvents` edit, with guarded `.mesh.json` outputs.
+`model declarations` generates Doom 3 model declarations (and, with `--set`,
+the whole md5mesh, md5anim and `.def` set, every destination checked before
+any write), QuakeC `$frame` macros, Quake II frame headers and GZDoom MODELDEF
+from the same services as **Skeleton > Game Declarations**. See
+[game declarations](MODEL_GAME_DECLARATIONS.md).
+
+### Inverse kinematics
+
+`model ik` shares the modeller's two-bone and chain (FABRIK, CCD) solvers over
+an inclusive clip sample range. Model-space target/pole inputs, a followed
+target joint or per-sample targets, fixed bone lengths, joint limits
+(`model rig --operation limits`), optional nearest reachable clamping and
+end-joint following use the shared service. Normal
 `--dry-run`, `--output .mesh.json` and `--overwrite` publication rules apply.
 See the [CLI manual](manual/cli.md).
 

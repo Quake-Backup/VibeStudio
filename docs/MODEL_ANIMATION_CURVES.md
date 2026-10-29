@@ -281,8 +281,16 @@ The captured destination baseline and transferred curves must fit the model's
 a dense baseline; capture and reduce those destination curves first if the
 budget is exceeded.
 
-This transfers local channel values within one rig. Cross-document exchange,
-retargeting, animation layers and blending remain separate planned workflows.
+This transfers local channel values within one rig. To move keys between
+models, select them in **Edit Animation Keys** and choose **Copy Keys**
+(<kbd>Ctrl</kbd>+<kbd>C</kbd>: the selected joints and channels over the samples the
+selection spans), or use `model pose --operation copy-out --keys`, then paste
+them with **Paste Pose** or **Edit Skeletal Animation**; see
+[the pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses).
+To bring motion from another rig, [import and retarget](MODEL_RIG.md#import-and-retarget-clips)
+its clip. [Constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md) keep IK, aim,
+follow and foot-lock results and additive or override layers over a clip's
+curves; with a stack, curves describe the clip's base samples.
 
 ### Automate range transfers
 
@@ -311,8 +319,11 @@ the editable source. Refresh derivatives used by level placement, attachments
 and packaging; review collision, animation scripts and engine playback.
 Export fixtures do not prove acceptance in the original engines.
 
-Curve clipboard exchange, quaternion tracks, cyclic
-extrapolation, layers/blending, persistent constraints, long-chain IK and
-retargeting remain planned. Physical keyboard/screen-reader acceptance,
+Key copy and paste between clips and models goes through the
+[pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses). Quaternion tracks, cyclic
+extrapolation and layer weight curves remain planned
+([persistent constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md),
+[long-chain IK](MODEL_IK.md#solve-longer-chains) and
+[retargeting](MODEL_RIG.md#import-and-retarget-clips) are available). Physical keyboard/screen-reader acceptance,
 maximum-size performance, real projects and clean cross-platform release
 checks remain open. This workflow works offline and adds no dependency.

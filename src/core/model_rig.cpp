@@ -1,4 +1,5 @@
 #include "core/model_rig.h"
+#include "core/model_animation_constraints.h"
 #include "core/model_document.h"
 #include "core/model_skeleton.h"
 
@@ -257,11 +258,23 @@ bool applyModelRigEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 		return false;
 	if (edit.kind == ModelEditKind::SetJointWeight)
 		return setWeights(mesh, edit, joint, error, work);
+	// Clip stacks keep base samples per joint: hierarchy edits wait for a bake.
+	if (!rename && std::any_of(skeleton.clips.cbegin(), skeleton.clips.cend(), [](const auto &clip) { return modelClipHasStack(clip); }))
+		return fail(error, Text::tr("Bake the clips' constraints and layers before adding, reparenting or removing joints."));
 	if (rename)
 	{
+		const auto old = skeleton.joints[joint].name;
 		for (auto &clip : skeleton.clips)
+		{
 			for (auto &group : clip.curves)
-				if (group.joint == skeleton.joints[joint].name) group.joint = options.name;
+				if (group.joint == old) group.joint = options.name;
+			for (auto &constraint : clip.constraints)
+				for (auto *name : {&constraint.joint, &constraint.rootJoint, &constraint.target})
+					if (*name == old) *name = options.name;
+			for (auto &layer : clip.layers)
+				for (auto &group : layer.curves)
+					if (group.joint == old) group.joint = options.name;
+		}
 		skeleton.joints[joint].name = options.name;
 		return true;
 	}

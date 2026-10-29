@@ -177,7 +177,7 @@ watch the meter, then choose **Apply** or press Enter; **Fit Automatically**
 and **Bind Pose Only** set the checklist for you, and **Show Details** lists the
 full report. A clip too long to bake cannot be checked.
 It is one undoable edit, and a clip whose frames you edited on their own stays
-until those edits are undone. **Two-Bone Inverse Kinematics**, **Animation
+until those edits are undone. **Inverse Kinematics**, **Animation
 Curves**, **Edit Animation Keys** and **Transfer Animation Range** list clips
 outside the working set too and preview them one sample at a time. See
 [the skeletal working set](../MODEL_SKELETAL_WORKING_SET.md).
@@ -244,11 +244,45 @@ that would overwrite independent geometry or attachment changes are refused.
 
 Save preserves all joint samples. MD5 animation and IQM exports use those samples;
 MDL, MD2 and MD3 use the baked preview frames. Native format limits still apply.
-Viewport bone manipulation, [two-bone IK](../MODEL_IK.md) and
-[animation curves](../MODEL_ANIMATION_CURVES.md) are available; persistent
-constraints remain planned. The
+Viewport bone manipulation, [inverse kinematics](../MODEL_IK.md),
+[animation curves](../MODEL_ANIMATION_CURVES.md) and
+[persistent constraints and layers](../MODEL_ANIMATION_CONSTRAINTS.md) are available. The
 [skeletal authoring reference](../MODEL_RIG.md#author-skeletal-animation) includes
 `model pose` automation and exact limits.
+
+### Import an animation from another file
+
+Choose **Skeleton** > **Import Animation…**, then **Choose File…** and pick an
+md5anim, IQM, MDS, MDR, MDX or GLA file, or another `.mesh.json`. Pick the
+**Clip**, give it a **Name** this model does not use yet, and choose the
+**Mode**: **Exact (same skeleton)** for animation made for this rig, or
+**Retarget (different proportions)** to move motion between characters. The
+table lists each joint of this model with the source joint that drives it;
+same names match automatically. The line under it says what the import will
+do, or why it cannot. **Apply** adds the clip as one undo step. See
+[clip import and retargeting](../MODEL_RIG.md#import-and-retarget-clips).
+
+### Copy, paste and mirror poses
+
+Show a frame of a skeletal clip, select a joint (or none for the whole rig) and
+choose **Skeleton** > **Copy Pose**. **Paste Pose** writes the copy at the
+frame you show; it works across clips and across models with the same
+skeleton. **Paste Pose Mirrored** puts a copied left-side pose on the right
+side, reflected, and **Mirror Pose** swaps the shown pose between left and
+right in one step, which turns half of a walk cycle into the other half. The
+mirror axis and the left/right joint pairs come from joint names such as
+`l_arm`/`r_arm`, `Lhand`/`Rhand` or `Bip01 L Thigh`; a joint that sits off the
+centre without a partner is refused rather than mirrored onto itself.
+
+For a range, open **Edit Skeletal Animation**, choose the clip and the first and
+last poses, and press **Copy Pose Range** (<kbd>Ctrl</kbd>+<kbd>C</kbd>). Then
+choose **Paste pose or keys** (<kbd>Ctrl</kbd>+<kbd>V</kbd>), the destination
+clip and first pose, and optionally **Mirror left and right**. Joints with
+animation curves receive keys instead of samples: the dialog refuses to paste
+over existing keys unless **Replace keys already there** is on, while the
+viewport commands replace the keys at the frame you show. Each paste is one
+undo step. A copy from a differently named rig needs a joint map, which the
+command line takes; see [pose clipboard](../MODEL_RIG.md#copy-paste-and-mirror-poses).
 
 ## Edit a mesh
 
@@ -925,6 +959,29 @@ fewer levels than the source stores, or none, **Stage in Package** stages the
 model with the levels the target loads, and the report says which stay in the
 source.
 
+### Keep constraints on a clip
+
+To keep a hand on a prop, a head looking at a target or a foot planted while
+you go on editing the motion, choose **Skeleton** > **Constraints and Layers…**,
+pick the clip, set the **Kind**, **Joint** and **Target joint** or **Point**, the
+sample range and **Weight**, then **Add Constraint**. The clip re-evaluates its
+constraints whenever you change its keys, solve IK or paste a pose; **Bake
+Stack** turns the result into plain samples again. See
+[constraints and layers](../MODEL_ANIMATION_CONSTRAINTS.md).
+
+### Write game declarations
+
+Games need more than the model file. Choose **Skeleton** > **Game
+Declarations…** to generate a Doom 3 model declaration, QuakeC `$frame`
+macros, a Quake II frame header or a GZDoom MODELDEF from the model, then
+**Copy** or **Save As…**. For Doom 3, **Export Model Set…** writes the md5mesh,
+every clip as an md5anim and the `.def` into a game folder in one step.
+
+Footsteps, sounds and attack triggers belong on frames: choose **Skeleton** >
+**Animation Events…**, pick the clip, **Add Event** and type the command, such
+as `sound_body snd_footstep`. Doom 3 declarations write events as frame
+commands. See [animation events and game declarations](../MODEL_GAME_DECLARATIONS.md).
+
 ## Manipulate joints in the viewport
 
 Choose a joint in **Skeleton**, or select **Joints** in the component table.
@@ -977,9 +1034,15 @@ mirroring, joint maps, export handoff and CLI options.
 
 ## Place a hand or foot
 
-Open **Skeleton → Two-Bone Inverse Kinematics**. Choose a clip, an end joint
-and an inclusive sample range. Its parent and grandparent form the chain.
-Set the target in model units and a pole point on the desired elbow/knee side.
+Open **Skeleton → Inverse Kinematics**. Choose a clip, an end joint
+and an inclusive sample range. With **Two bones (exact)** its parent and
+grandparent form the chain; for a spine, neck or tail choose **Chain (FABRIK)**
+or **Chain (CCD)** and a **Root joint** further up.
+Set the target in model units and a pole point on the desired elbow/knee side,
+or put the 3D cursor on the spot in the viewport and choose **Target at 3D
+Cursor**. To keep a hand on a moving prop, set **Target source** to **Follow a
+joint**. **Apply joint limits** keeps the chain inside the limits set with
+**Edit Skeleton > Set joint limits**.
 **Require target** refuses unreachable poses; **Nearest reachable** clamps
 without stretching and reports the remaining distance. Choose whether the
 end keeps its orientation or follows the lower bone.
@@ -1014,7 +1077,9 @@ channels, select rows or an inclusive sample range, then choose retime, duplicat
 remove or reduce. Retiming changes sample times around a pivot and refuses key
 collisions; reduction checks continuous channel error, including between samples.
 **Review** reports key counts and changes, and previews the resulting motion.
-**Apply** commits the whole selection as one undo step. See
+**Apply** commits the whole selection as one undo step. **Copy Keys**
+(<kbd>Ctrl</kbd>+<kbd>C</kbd>) copies the selected keys for **Paste Pose** in another
+clip or model. See
 [key groups](../MODEL_ANIMATION_CURVES.md#edit-groups-of-keys) for tangent,
 rounding, selection and tolerance rules, and the `model curve-keys` CLI.
 
@@ -1035,12 +1100,15 @@ for boundary behaviour and the `model curve-transfer` CLI.
   MD5, IQM or ASE export has been loaded in the original games yet.
 - MDC, MDS, MDM, MDR, Ghoul 2, Half-Life, Hexen II, Heretic II, LightWave and
   KVX models are read only; export them as MD3 or another written format.
-- Long-chain IK, persistent constraints, animation layers, retargeting and
-  joint modal pointer-following remain planned. Two-bone IK, bone overlays,
+- IK drag handles, layer weight curves and joint modal pointer-following
+  remain planned. Two-bone and chain IK, persistent constraints and layers,
+  clip import and retargeting, bone overlays,
   shared viewport handles and numeric joint,
   weight and skeletal pose tools are available.
   Game animation scripts (Jedi Academy `animation.cfg`,
-  Wolfenstein scripts, GZDoom MODELDEF) are not read.
+  Wolfenstein scripts, GZDoom MODELDEF) are not read; Doom 3 `.def` frame
+  commands are, and VibeStudio writes Doom 3, QuakeC, Quake II and GZDoom
+  declarations.
 - A skeletal clip too long for the editable frame budget on its own cannot
   join the working set: edit it through the skeletal tools, which preview one
   sample at a time. See [the working set limits](../MODEL_SKELETAL_WORKING_SET.md#limits).
@@ -1085,6 +1153,8 @@ vibestudio --cli model controls --profile 3ds-max --section keys
 | Retime, duplicate, remove or reduce selected skeletal keys | `model curve-keys` |
 | Assemblies, and opening or publishing a Quake III player | `model assembly` |
 | Build game files or detail levels | `model build`, `model lod`, `model targets`, `model prepare` |
+| Animation events and game declarations (Doom 3 `.def`, QuakeC, Quake II, GZDoom) | `model events`, `model declarations` |
+| Persistent clip constraints and layers | `model constraints` |
 | Controls profiles, and print, check, share or reset controls | `model profiles`, `model controls` |
 | Recovery copies | `model recoveries`, `model recover` |
 | Place an MD3 in a Quake III map | `map place-model` |
@@ -1099,6 +1169,7 @@ See [Command line](cli.md) for options and exit codes.
 - [Skin weights through mesh edits](../MODEL_SKIN_PROVENANCE.md): how edits keep, interpolate and mirror joint weights.
 - [Native formats and skeletons](../MODEL_FORMATS.md) and [modeller profiles](../MODELLER_PROFILES.md).
 - [Delivery targets](../MODEL_TARGETS.md) and [detail levels](../MODEL_LOD.md): each engine's limits, Prepare for Target and linked detail levels.
+- [Animation events and game declarations](../MODEL_GAME_DECLARATIONS.md): frame commands, Doom 3 `.def` and model sets, QuakeC, Quake II and GZDoom output.
 - [Model design](../MODEL_DESIGN.md) and [model assemblies](../MODEL_ASSEMBLY.md): props and linked models.
 - [Model collision](../MODEL_COLLISION.md), [material slots](../MODEL_MATERIAL_SLOTS.md) and [skin variants](../MODEL_SKIN_VARIANTS.md).
 - [Modeller release checklist](../MODELLER_RELEASE.md): what has and has not been verified.

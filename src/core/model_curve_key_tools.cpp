@@ -1,4 +1,5 @@
 #include "core/model_curve_key_tools.h"
+#include "core/model_animation_constraints.h"
 #include "core/model_document.h"
 #include "core/model_skeleton.h"
 #include <QCoreApplication>
@@ -257,7 +258,7 @@ bool replaceModelCurveGroups(ModelMesh *mesh, int clip, const QVector<ModelPoseC
 		for (int i = 0; i < groups.size(); ++i)
 			if (groups[i] != original[i])
 				groupForJoint[modelJointIndex(mesh->skeleton, groups[i].joint, Qt::CaseSensitive)] = i;
-		auto samples = mesh->skeleton.clips[clip].frames;
+		auto samples = modelClipEditableSamples(mesh->skeleton.clips[clip]);
 		for (int frame = 0; frame < samples.size(); ++frame)
 		{
 			const auto before = samples[frame];

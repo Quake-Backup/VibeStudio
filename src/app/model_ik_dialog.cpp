@@ -7,6 +7,7 @@
 #include "core/model_joint_tools.h"
 #include "core/model_skeleton.h"
 #include <QAbstractTableModel>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
@@ -108,7 +109,7 @@ class ModelIkTable final : public QAbstractTableModel
 ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int frame, QWidget *parent)
 	: QDialog(parent), m_source(mesh), m_result(mesh)
 {
-	setWindowTitle(Text::tr("Two-Bone Inverse Kinematics"));
+	setWindowTitle(Text::tr("Inverse Kinematics"));
 	setAccessibleName(windowTitle());
 	auto *layout = new QVBoxLayout(this);
 	m_tabs = new QTabWidget;
@@ -118,6 +119,7 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 	scroll->setWidgetResizable(true);
 	auto *settings = new QWidget;
 	auto *form = new QFormLayout(settings);
+	m_form = form;
 	form->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	scroll->setWidget(settings);
 	m_tabs->addTab(scroll, Text::tr("&Chain and target"));
@@ -137,8 +139,20 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 			m_end->addItem(mesh.skeleton.joints[i].name, i);
 	}
 	accessible(m_end, Text::tr("End joint"),
-			   Text::tr("The end joint, its parent and its grandparent form the chain. The grandparent stays in place."));
+			   Text::tr("The joint placed at the target. With the two-bone solver its parent and grandparent form the chain; chain "
+						"solvers run from the root joint you choose."));
 	row(form, Text::tr("&End joint"), m_end);
+	m_solver = new QComboBox;
+	m_solver->setObjectName("ikSolver");
+	m_solver->addItems({Text::tr("Two bones (exact)"), Text::tr("Chain (FABRIK)"), Text::tr("Chain (CCD)")});
+	accessible(m_solver, Text::tr("Solver"),
+			   Text::tr("Two bones solves an arm or leg exactly. Chain solvers bend any number of joints from the root joint: FABRIK keeps a "
+						"smooth bend steered by the pole; CCD turns joints from the end and ignores the pole."));
+	row(form, Text::tr("&Solver"), m_solver);
+	m_root = new QComboBox;
+	m_root->setObjectName("ikRootJoint");
+	accessible(m_root, Text::tr("Root joint"), Text::tr("The chain's first joint, two or more bones above the end. It stays in place."));
+	row(form, Text::tr("Root &joint"), m_root);
 	m_chain = new QLabel;
 	m_chain->setWordWrap(true);
 	m_chain->setTextFormat(Qt::PlainText);
@@ -155,6 +169,20 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 		Text::tr("Last affected clip sample, inclusive. Each sample uses its own root and bone lengths with the same model-space target."));
 	row(form, Text::tr("&First sample"), m_first);
 	row(form, Text::tr("&Last sample"), m_last);
+	m_targetSource = new QComboBox;
+	m_targetSource->setObjectName("ikTargetSource");
+	m_targetSource->addItems({Text::tr("Fixed point"), Text::tr("Follow a joint")});
+	accessible(m_targetSource, Text::tr("Target source"),
+			   Text::tr("Keep one model-space target for every sample, or follow another joint (a prop, a hand) sample by sample; the target "
+						"fields are then an offset in that joint's space."));
+	row(form, Text::tr("&Target source"), m_targetSource);
+	m_targetJoint = new QComboBox;
+	m_targetJoint->setObjectName("ikTargetJoint");
+	m_targetJoint->setLayoutDirection(Qt::LeftToRight);
+	for (const auto &item : mesh.skeleton.joints)
+		m_targetJoint->addItem(item.name, item.name);
+	accessible(m_targetJoint, Text::tr("Followed joint"), Text::tr("The joint the end follows. It must not move with the chain itself."));
+	row(form, Text::tr("Followed joi&nt"), m_targetJoint);
 	const QStringList targetLabels{Text::tr("Target X"), Text::tr("Target Y"), Text::tr("Target Z")};
 	const QStringList poleLabels{Text::tr("Pole X"), Text::tr("Pole Y"), Text::tr("Pole Z")};
 	for (int i = 0; i < 3; ++i)
@@ -182,6 +210,17 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 			   Text::tr("Set the target to the current end position and the pole to the current bend. A straight chain uses a "
 						"perpendicular model axis."));
 	form->addRow(use);
+	m_targetCursor = new QPushButton(Text::tr("Target at 3D Cursor"));
+	m_targetCursor->setObjectName("ikTargetCursor");
+	accessible(m_targetCursor, Text::tr("Target at 3D cursor"),
+			   Text::tr("Place the target where the editor's 3D cursor is. Place the cursor in the viewport first."));
+	form->addRow(m_targetCursor);
+	m_poleCursor = new QPushButton(Text::tr("Pole at 3D Cursor"));
+	m_poleCursor->setObjectName("ikPoleCursor");
+	accessible(m_poleCursor, Text::tr("Pole at 3D cursor"), Text::tr("Place the bend pole where the editor's 3D cursor is."));
+	form->addRow(m_poleCursor);
+	for (auto *button : {m_targetCursor, m_poleCursor})
+		button->setEnabled(false);
 	m_reach = new QComboBox;
 	m_reach->setObjectName("ikReach");
 	m_reach->addItems({Text::tr("Require target"), Text::tr("Nearest reachable")});
@@ -196,6 +235,23 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 			   Text::tr("Keep the hand or foot's original model-space orientation, or rotate it with the lower bone. Its descendants "
 						"follow this choice."));
 	row(form, Text::tr("End &orientation"), m_orientation);
+	m_iterations = new QSpinBox;
+	m_iterations->setObjectName("ikIterations");
+	m_iterations->setRange(1, 1000);
+	m_iterations->setValue(32);
+	m_iterations->setLayoutDirection(Qt::LeftToRight);
+	accessible(m_iterations, Text::tr("Iterations"), Text::tr("The most solver passes per sample. Each sample stops as soon as the end reaches the target."));
+	row(form, Text::tr("&Iterations"), m_iterations);
+	m_usePole = new QCheckBox(Text::tr("Steer the bend with the pole"));
+	m_usePole->setObjectName("ikUsePole");
+	m_usePole->setChecked(true);
+	accessible(m_usePole, m_usePole->text(), Text::tr("FABRIK turns the chain's joints towards the pole. Clear it to keep each sample's own bend."));
+	form->addRow(m_usePole);
+	m_limits = new QCheckBox(Text::tr("Apply joint limits"));
+	m_limits->setObjectName("ikLimits");
+	accessible(m_limits, m_limits->text(),
+			   Text::tr("Keep every joint the chain turns within the limits set in Edit Skeleton > Set joint limits."));
+	form->addRow(m_limits);
 	auto *previewPage = new QWidget;
 	auto *previewLayout = new QVBoxLayout(previewPage);
 	auto *previewForm = new QFormLayout;
@@ -268,6 +324,7 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 	const int named = m_end->findText(joint);
 	if (named >= 0)
 		m_end->setCurrentIndex(named);
+	endChanged();
 	clipChanged();
 	m_first->setValue(current.local);
 	m_last->setValue(current.local);
@@ -279,8 +336,27 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 				clipChanged();
 				changed();
 			});
-	for (auto *w : {m_end, m_reach, m_orientation})
+	connect(m_end, &QComboBox::currentIndexChanged, this, [this] { endChanged(); });
+	for (auto *w : {m_end, m_reach, m_orientation, m_solver, m_root, m_targetSource, m_targetJoint})
 		connect(w, &QComboBox::currentIndexChanged, this, [this] { changed(); });
+	connect(m_iterations, &QSpinBox::valueChanged, this, [this] { changed(); });
+	for (auto *box : {m_usePole, m_limits})
+		connect(box, &QCheckBox::toggled, this, [this] { changed(); });
+	connect(m_targetCursor, &QPushButton::clicked, this,
+			[this]
+			{
+				const float point[3]{m_cursor.x, m_cursor.y, m_cursor.z};
+				m_targetSource->setCurrentIndex(0);
+				for (int i = 0; i < 3; ++i)
+					m_target[i]->setValue(point[i]);
+			});
+	connect(m_poleCursor, &QPushButton::clicked, this,
+			[this]
+			{
+				const float point[3]{m_cursor.x, m_cursor.y, m_cursor.z};
+				for (int i = 0; i < 3; ++i)
+					m_pole[i]->setValue(point[i]);
+			});
 	for (auto *w : {m_first, m_last})
 		connect(w, &QSpinBox::valueChanged, this, [this] { changed(); });
 	for (int i = 0; i < 3; ++i)
@@ -308,16 +384,32 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 ModelEdit ModelIkDialog::request() const
 {
 	ModelEdit edit;
-	edit.kind = ModelEditKind::SolveTwoBoneIk;
+	const bool chain = m_solver->currentIndex() > 0;
+	edit.kind = chain ? ModelEditKind::SolveChainIk : ModelEditKind::SolveTwoBoneIk;
 	auto &o = edit.ik;
 	o.clip = m_clip->currentIndex() < 0 ? -1 : m_clip->currentData().toInt();
 	o.endJoint = m_end->currentText();
 	o.first = m_first->value();
 	o.last = m_last->value();
-	o.target = {float(m_target[0]->value()), float(m_target[1]->value()), float(m_target[2]->value())};
+	const ModelVec3 point{float(m_target[0]->value()), float(m_target[1]->value()), float(m_target[2]->value())};
+	if (m_targetSource->currentIndex() == 1)
+	{
+		o.targetJoint = m_targetJoint->currentData().toString();
+		o.targetOffset = point;
+	}
+	else
+		o.target = point;
 	o.pole = {float(m_pole[0]->value()), float(m_pole[1]->value()), float(m_pole[2]->value())};
 	o.nearestReachable = m_reach->currentIndex() == 1;
 	o.keepEndOrientation = m_orientation->currentIndex() == 0;
+	if (chain)
+	{
+		o.rootJoint = m_root->currentData().toString();
+		o.solver = m_solver->currentIndex() == 2 ? ModelIkSolver::Ccd : ModelIkSolver::Fabrik;
+		o.iterations = m_iterations->value();
+		o.usePole = m_usePole->isChecked() && o.solver == ModelIkSolver::Fabrik;
+		o.limits = m_limits->isChecked();
+	}
 	return edit;
 }
 void ModelIkDialog::clipChanged()
@@ -330,6 +422,28 @@ void ModelIkDialog::clipChanged()
 		w->setRange(0, std::max(0, count - 1));
 		w->setValue(0);
 	}
+}
+void ModelIkDialog::setCursorPoint(const ModelVec3 &point)
+{
+	m_cursor = point;
+	m_hasCursor = true;
+	for (auto *button : {m_targetCursor, m_poleCursor})
+		button->setEnabled(true);
+}
+void ModelIkDialog::endChanged()
+{
+	const auto previous = m_root->currentData().toString();
+	QSignalBlocker blocker(m_root);
+	m_root->clear();
+	if (m_end->currentIndex() >= 0)
+	{
+		const auto &joints = m_source.skeleton.joints;
+		int depth = 0;
+		for (int j = m_end->currentData().toInt(); j >= 0; j = joints[j].parent, ++depth)
+			if (depth >= 2)
+				m_root->addItem(joints[j].name, joints[j].name);
+	}
+	m_root->setCurrentIndex(std::max(0, m_root->findData(previous)));
 }
 void ModelIkDialog::usePose()
 {
@@ -365,10 +479,26 @@ void ModelIkDialog::changed()
 	m_result = m_source;
 	m_table->setSamples({});
 	QStringList chain;
+	const bool chained = m_solver->currentIndex() > 0, following = m_targetSource->currentIndex() == 1;
+	const auto root = m_root->currentData().toString();
 	if (m_end->currentIndex() >= 0)
-		for (int j = m_end->currentData().toInt(), n = 0; n < 3 && j >= 0; ++n, j = m_source.skeleton.joints[j].parent)
+		for (int j = m_end->currentData().toInt(), n = 0; (chained || n < 3) && j >= 0; ++n, j = m_source.skeleton.joints[j].parent)
+		{
 			chain.prepend(QStringLiteral("\u2068%1\u2069").arg(m_source.skeleton.joints[j].name));
+			if (chained && m_source.skeleton.joints[j].name == root)
+				break;
+		}
 	m_chain->setText(chain.join(QStringLiteral(" → ")));
+	m_form->setRowVisible(m_root, chained);
+	m_form->setRowVisible(m_iterations, chained);
+	m_form->setRowVisible(m_usePole, chained);
+	m_form->setRowVisible(m_limits, chained);
+	m_form->setRowVisible(m_targetJoint, following);
+	m_usePole->setEnabled(m_solver->currentIndex() == 1);
+	const QStringList axes{QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")};
+	for (int i = 0; i < 3; ++i)
+		accessible(m_target[i], following ? Text::tr("Target offset %1").arg(axes[i]) : Text::tr("Target %1").arg(axes[i]),
+				   following ? Text::tr("Offset from the followed joint, in its own space.") : Text::tr("End-joint target in model-space units."));
 	m_review->setEnabled(m_clip->count() > 0 && m_end->count() > 0);
 	m_status->setText(m_review->isEnabled() ? Text::tr("Choose Review to inspect the solved pose and target distance.")
 											: Text::tr("A skeletal clip and a three-joint chain are required."));
@@ -406,7 +536,7 @@ void ModelIkDialog::review()
 			candidate = source;
 			if (!applyModelEdit(&candidate, operation, nullptr, failure, control))
 				return false;
-			samples = modelIkSamples(candidate, operation.ik);
+			samples = modelIkSamples(candidate, operation.ik, operation.kind == ModelEditKind::SolveChainIk);
 			return modelWorkCheckpoint(control, ModelWorkPhase::Validating, 0, 0, failure);
 		},
 		&error, false, &m_cancel);

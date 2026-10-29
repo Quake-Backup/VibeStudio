@@ -74,14 +74,32 @@ contexts. Semantic Qt checks and owned renders cover scaling, high contrast,
 expanded translations and RTL; physical keyboard/screen-reader acceptance remains
 open. See [animation curves](MODEL_ANIMATION_CURVES.md).
 
-**Two-Bone Inverse Kinematics** uses labelled native clip/joint/sample controls,
-numeric target and pole fields, a scrollable settings form and a virtual result
+**Inverse Kinematics** uses labelled native clip/joint/sample/solver/root-joint
+controls, numeric target and pole fields (renamed as offsets when following a
+joint), 3D-cursor buttons, a scrollable settings form and a virtual result
 table with a full selected-row detail field. Reach status includes words and
 numbers. Review is cancellable; changing settings invalidates Apply and results.
 The preview is static and shares the modeller camera profile. Strings use
 `ModelIk`, `ModelIkCli`, `ModelIkDialog` and the existing editor/skeletal
 contexts. Physical keyboard and screen-reader acceptance remains open. See
 [inverse kinematics](MODEL_IK.md).
+
+The animation authoring dialogs added on 2026-10-28 (**Import Animation**,
+**Animation Events**, **Game Declarations**, **Constraints and Layers**, and the
+pose clipboard's **Copy Pose Range** and **Paste pose or keys** in **Edit
+Skeletal Animation**) use labelled native combo boxes, spin boxes, tables and
+buttons with accessible names and descriptions, keyboard focus, left-to-right
+technical fields (joint names, paths, generated text) inside right-to-left
+layouts, and a live status line that states what will happen or why an action
+is refused in words. Long work (reading a source, writing a model set) runs in
+the cancellable model worker. Copy and paste use the standard Ctrl+C and Ctrl+V
+keys; the Skeleton page's pose commands are also searchable and can be bound in
+every controls profile. Strings use `ModelPoseClipboard`, `ModelClipImport`,
+`ModelClipImportDialog`, `ModelAnimationEvents`, `ModelEventsDialog`,
+`ModelGameDeclarations`, `ModelDeclarationsDialog`, `ModelAnimationConstraints`,
+`ModelConstraintsDialog` and the matching CLI contexts. The UI smoke tests cover
+100% and 200% text and right-to-left; physical keyboard and screen-reader
+acceptance remains open.
 
 **Transfer Skin Weights** uses native focusable controls, wrapped labels and a
 scrollable form; joint mapping, locks and before/after weights use native tables.

@@ -9,6 +9,10 @@
 #include "app/model_skeletal_dialog.h"
 #include "app/model_skeletal_working_set_dialog.h"
 #include "app/model_ik_dialog.h"
+#include "app/model_clip_import_dialog.h"
+#include "app/model_declarations_dialog.h"
+#include "app/model_constraints_dialog.h"
+#include "app/model_events_dialog.h"
 #include "app/model_animation_curves_dialog.h"
 #include "app/model_curve_keys_dialog.h"
 #include "app/model_curve_transfer_dialog.h"
@@ -22,8 +26,10 @@
 #include "core/model_skeleton.h"
 
 #include <QCoreApplication>
+#include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFileInfo>
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QLocale>
@@ -226,10 +232,10 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		else { m_document.setSelection(selection); refresh(); }
 	});
 	form->addRow(transferWeights);
-	auto *ik = new WrappingActionButton(Text::tr("Two-Bone Inverse Kinematics…"), 2);
+	auto *ik = new WrappingActionButton(Text::tr("Inverse Kinematics…"), 2);
 	ik->setObjectName(QStringLiteral("editMeshIk"));
-	ik->setAccessibleName(Text::tr("Two-bone inverse kinematics"));
-	ik->setAccessibleDescription(Text::tr("Place a hand or foot at a model-space target with an explicit bend pole. Review selected clip samples before applying."));
+	ik->setAccessibleName(Text::tr("Inverse kinematics"));
+	ik->setAccessibleDescription(Text::tr("Place a hand, foot, head or tail at a target, a followed joint or the 3D cursor, with two bones or a longer chain, a bend pole and joint limits. Review selected clip samples before applying."));
 	ik->setToolTip(ik->accessibleDescription());
 	connect(ik, &QPushButton::clicked, this, [this] {
 		if (m_working) return;
@@ -239,9 +245,11 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		ModelIkDialog dialog(m_document.mesh(), selection.joint, m_preview->frame(), this);
 		if (auto *preview = dialog.findChild<ModelViewport *>(QStringLiteral("ikPreview")))
 			preview->setCameraControls(m_preview->cameraControls());
+		if (m_tools)
+			dialog.setCursorPoint(m_tools->cursor3d());
 		if (dialog.exec() != QDialog::Accepted) return;
 		if (revision != m_document.revisionFingerprint()) {
-			m_status->setText(Text::tr("The model changed while reviewing inverse kinematics. Reopen Two-Bone Inverse Kinematics.")); return;
+			m_status->setText(Text::tr("The model changed while reviewing inverse kinematics. Reopen Inverse Kinematics.")); return;
 		}
 		QString error;
 		if (!applyEdit(dialog.edit(), &error)) m_status->setText(error);
@@ -334,6 +342,103 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		if (!applyEdit(dialog.edit(), &error)) m_status->setText(error);
 	});
 	form->addRow(editPoses);
+	auto *importClip = new WrappingActionButton(Text::tr("Import Animation…"), 2);
+	importClip->setObjectName(QStringLiteral("importMeshAnimation"));
+	importClip->setAccessibleName(Text::tr("Import animation"));
+	importClip->setAccessibleDescription(Text::tr("Add a clip from an md5anim, IQM, MDS, MDR, MDX, GLA or another source to this rig, exactly or retargeted between rigs."));
+	importClip->setToolTip(importClip->accessibleDescription());
+	connect(importClip, &QPushButton::clicked, this, [this] {
+		if (m_working) return;
+		m_preview->finishEditTransform(false); m_preview->pause();
+		const auto revision = m_document.revisionFingerprint();
+		ModelClipImportDialog dialog(m_document.mesh(), this);
+		if (dialog.exec() != QDialog::Accepted) return;
+		if (revision != m_document.revisionFingerprint()) {
+			m_status->setText(Text::tr("The model changed while choosing the animation. Reopen Import Animation.")); return;
+		}
+		auto edit = dialog.edit();
+		edit.selection = m_document.selection();
+		QString error;
+		if (!applyEdit(edit, &error)) m_status->setText(error);
+		else m_status->setText(Text::tr("Imported clip %1.").arg(m_document.mesh().skeleton.clips.last().name));
+	});
+	form->addRow(importClip);
+	auto *events = new WrappingActionButton(Text::tr("Animation Events…"), 2);
+	events->setObjectName(QStringLiteral("editMeshAnimationEvents"));
+	events->setAccessibleName(Text::tr("Animation events"));
+	events->setAccessibleDescription(Text::tr("Add sounds, footsteps and other game-side frame commands to frames of a clip. Doom 3 model declarations carry them."));
+	events->setToolTip(events->accessibleDescription());
+	connect(events, &QPushButton::clicked, this, [this] {
+		if (m_working) return;
+		m_preview->finishEditTransform(false); m_preview->pause();
+		const auto revision = m_document.revisionFingerprint();
+		ModelEventsDialog dialog(m_document.mesh(), m_preview->frame(), this);
+		if (dialog.exec() != QDialog::Accepted) return;
+		if (revision != m_document.revisionFingerprint()) {
+			m_status->setText(Text::tr("The model changed while editing events. Reopen Animation Events.")); return;
+		}
+		auto edit = dialog.edit();
+		edit.selection = m_document.selection();
+		QString error;
+		if (!applyEdit(edit, &error)) m_status->setText(error);
+		else m_status->setText(Text::tr("Updated the animation events."));
+	});
+	form->addRow(events);
+	auto *constraints = new WrappingActionButton(Text::tr("Constraints and Layers…"), 2);
+	constraints->setObjectName(QStringLiteral("editMeshConstraints"));
+	constraints->setAccessibleName(Text::tr("Constraints and layers"));
+	constraints->setAccessibleDescription(Text::tr("Keep IK, aim, child-of, copy-transform and foot-lock constraints and animation layers on a clip, evaluated again whenever its motion changes."));
+	constraints->setToolTip(constraints->accessibleDescription());
+	connect(constraints, &QPushButton::clicked, this, [this] {
+		if (m_working) return;
+		m_preview->finishEditTransform(false); m_preview->pause();
+		const auto revision = m_document.revisionFingerprint();
+		ModelConstraintsDialog dialog(m_document.mesh(), m_preview->frame(), this);
+		if (dialog.exec() != QDialog::Accepted) return;
+		if (revision != m_document.revisionFingerprint()) {
+			m_status->setText(Text::tr("The model changed while editing constraints. Reopen Constraints and Layers.")); return;
+		}
+		auto edit = dialog.edit();
+		edit.selection = m_document.selection();
+		QString error;
+		if (!applyEdit(edit, &error)) m_status->setText(error);
+		else m_status->setText(Text::tr("Updated the clip's constraints and layers."));
+	});
+	form->addRow(constraints);
+	auto *declarations = new WrappingActionButton(Text::tr("Game Declarations…"), 2);
+	declarations->setObjectName(QStringLiteral("exportMeshDeclarations"));
+	declarations->setAccessibleName(Text::tr("Game declarations"));
+	declarations->setAccessibleDescription(Text::tr("Generate a Doom 3 model declaration and model set, QuakeC frame macros, a Quake II frame header or a GZDoom MODELDEF from this model."));
+	declarations->setToolTip(declarations->accessibleDescription());
+	connect(declarations, &QPushButton::clicked, this, [this] {
+		if (m_working) return;
+		m_preview->finishEditTransform(false); m_preview->pause();
+		ModelDeclarationsDialog dialog(m_document.mesh(), QFileInfo(m_document.path()).fileName(), this);
+		dialog.exec();
+	});
+	form->addRow(declarations);
+	// The pose clipboard commands (model_editor_pose.cpp) on the shown sample.
+	for (const auto &item : {qMakePair(QStringLiteral("meshCopyPose"), Text::tr("Copy the shown pose of the selected joint and its children, or of every joint, to the clipboard.")),
+							 qMakePair(QStringLiteral("meshPastePose"), Text::tr("Paste the copied pose or keys at the shown clip sample, replacing keys there.")),
+							 qMakePair(QStringLiteral("meshPastePoseMirrored"), Text::tr("Paste the copied pose onto the opposite left/right joints, reflected.")),
+							 qMakePair(QStringLiteral("meshMirrorPose"), Text::tr("Swap and reflect the shown pose between left and right joints."))})
+	{
+		const QString id = item.first;
+		const auto title = id == QStringLiteral("meshCopyPose")			 ? Text::tr("Copy Pose")
+						   : id == QStringLiteral("meshPastePose")		 ? Text::tr("Paste Pose")
+						   : id == QStringLiteral("meshPastePoseMirrored") ? Text::tr("Paste Pose Mirrored")
+																		   : Text::tr("Mirror Pose");
+		auto *button = new WrappingActionButton(title, 2);
+		button->setObjectName(id + QStringLiteral("Button"));
+		button->setAccessibleName(title);
+		button->setAccessibleDescription(item.second);
+		button->setToolTip(item.second);
+		connect(button, &QPushButton::clicked, this, [this, id] {
+			if (auto *action = m_tools ? m_tools->action(id) : nullptr)
+				action->trigger();
+		});
+		form->addRow(button);
+	}
 	m_exportMd5 = new WrappingActionButton(Text::tr("Export MD5 Mesh…"), 2);
 	m_exportMd5->setObjectName(QStringLiteral("exportMeshMd5"));
 	m_exportMd5->setToolTip(Text::tr("Write a Doom 3, Quake 4 or Prey md5mesh; a model without joints gets one origin joint."));

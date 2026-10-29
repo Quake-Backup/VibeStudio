@@ -1,4 +1,7 @@
 #include "core/model_skeleton.h"
+#include "core/model_ik.h"
+#include "core/model_animation_constraints.h"
+#include "core/model_animation_events.h"
 #include "core/model_animation_curves.h"
 #include "core/model_source_encoding.h"
 
@@ -1059,8 +1062,12 @@ QJsonObject modelSkeletonJson(const ModelMesh& mesh, bool packed, const ModelWor
 	object.insert(QStringLiteral("sourceFormat"), skeleton.sourceFormat);
 	QJsonArray joints;
 	for (const ModelJoint& joint : skeleton.joints) {
-		joints.append(QJsonObject{{QStringLiteral("name"), joint.name}, {QStringLiteral("parent"), joint.parent},
-			{QStringLiteral("bind"), matrixJson(joint.bind)}, {QStringLiteral("flags"), double(joint.flags)}});
+		QJsonObject entry{{QStringLiteral("name"), joint.name}, {QStringLiteral("parent"), joint.parent},
+			{QStringLiteral("bind"), matrixJson(joint.bind)}, {QStringLiteral("flags"), double(joint.flags)}};
+		if (joint.limits.enabled) {
+			entry.insert(QStringLiteral("limits"), modelJointLimitsJson(joint.limits));
+		}
+		joints.append(entry);
 	}
 	object.insert(QStringLiteral("joints"), joints);
 	QJsonArray tags;
@@ -1096,6 +1103,8 @@ QJsonObject modelSkeletonJson(const ModelMesh& mesh, bool packed, const ModelWor
 			entry.insert(QStringLiteral("maxs"), packed ? packModelSourceVectors(clip.frameMaxs) : QJsonValue(vectorsJson(clip.frameMaxs)));
 		}
 		if (!clip.curves.isEmpty()) entry.insert(QStringLiteral("curves"), modelClipCurvesJson(clip.curves));
+		if (!clip.events.isEmpty()) entry.insert(QStringLiteral("events"), modelAnimationEventsJson(clip.events));
+		writeModelClipStackJson(clip, packed, &entry);
 		clips.append(entry);
 	}
 	object.insert(QStringLiteral("clips"), clips);
@@ -1156,7 +1165,8 @@ bool modelSkeletonFromJson(const QJsonObject& object, ModelMesh* mesh, QString* 
 		joint.parent = entry.value(QStringLiteral("parent")).toInt(-2);
 		joint.flags = quint32(entry.value(QStringLiteral("flags")).toDouble());
 		if (!entry.value(QStringLiteral("name")).isString() || !entry.value(QStringLiteral("parent")).isDouble()
-			|| !readMatrix(entry.value(QStringLiteral("bind")), &joint.bind)) {
+			|| !readMatrix(entry.value(QStringLiteral("bind")), &joint.bind)
+			|| (entry.contains(QStringLiteral("limits")) && !modelJointLimitsFromJson(entry.value(QStringLiteral("limits")), &joint.limits))) {
 			return fail(malformed);
 		}
 		skeleton.joints.append(joint);
@@ -1218,6 +1228,10 @@ bool modelSkeletonFromJson(const QJsonObject& object, ModelMesh* mesh, QString* 
 			return fail(malformed);
 		}
 		if (entry.contains(QStringLiteral("curves")) && !modelClipCurvesFromJson(entry.value(QStringLiteral("curves")), int(clip.frames.size()), &clip.curves, error)) return false;
+		if (entry.contains(QStringLiteral("events")) && !modelAnimationEventsFromJson(entry.value(QStringLiteral("events")), int(clip.frames.size()), &clip.events, error)) return false;
+		if (!readModelClipStackJson(entry, int(skeleton.joints.size()), packedArrays, &clip)) {
+			return fail(malformed);
+		}
 		skeleton.clips.append(clip);
 	}
 	for (const QJsonValue& value : object.value(QStringLiteral("bakedClipForFrame")).toArray()) {

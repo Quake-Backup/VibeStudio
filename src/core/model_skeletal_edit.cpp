@@ -1,4 +1,5 @@
 #include "core/model_skeletal_edit.h"
+#include "core/model_animation_constraints.h"
 #include "core/model_collision.h"
 #include "core/model_document.h"
 #include "core/model_joint_tools.h"
@@ -534,7 +535,7 @@ bool chooseWorkingSet(const ModelMesh &mesh, const QVector<int> &chosen, QVector
 
 bool isModelSkeletalEdit(ModelEditKind kind)
 {
-	return (kind >= ModelEditKind::TransformBindJoint && kind <= ModelEditKind::InterpolateSkeletalPoses) || kind == ModelEditKind::SolveTwoBoneIk || kind == ModelEditKind::EditAnimationCurves || kind == ModelEditKind::EditCurveKeys || kind == ModelEditKind::TransferAnimationCurves || kind == ModelEditKind::SetSkeletalWorkingSet;
+	return (kind >= ModelEditKind::TransformBindJoint && kind <= ModelEditKind::InterpolateSkeletalPoses) || kind == ModelEditKind::SolveTwoBoneIk || kind == ModelEditKind::EditAnimationCurves || kind == ModelEditKind::EditCurveKeys || kind == ModelEditKind::TransferAnimationCurves || kind == ModelEditKind::SetSkeletalWorkingSet || isModelAnimationAuthoringEdit(kind);
 }
 bool defaultModelSkeletalOptions(const ModelSkeletalEditOptions &o)
 {
@@ -553,6 +554,8 @@ bool applyModelSkeletalEdit(ModelMesh *mesh, const ModelEdit &edit, QString *err
         return applyModelCurveTransfer(mesh, edit, error, control);
 	if (edit.kind == ModelEditKind::EditCurveKeys)
 		return applyModelCurveKeys(mesh, edit, nullptr, error, control);
+	if (isModelAnimationAuthoringEdit(edit.kind))
+		return applyModelAnimationAuthoringEdit(mesh, edit, error, control);
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
 	if (!mesh || !isModelSkeletalEdit(edit.kind) || !work.check())
 		return false;
@@ -560,6 +563,18 @@ bool applyModelSkeletalEdit(ModelMesh *mesh, const ModelEdit &edit, QString *err
 		return false;
 	const auto &o = edit.skeletal;
 	const auto kind = edit.kind;
+	// Direct sample edits would leave a clip stack's evaluation stale: they
+	// apply to clips without constraints or layers (curves, IK and paste edit
+	// the base instead).
+	const bool stacked = o.clip >= 0 && o.clip < mesh->skeleton.clips.size() && modelClipHasStack(mesh->skeleton.clips[o.clip]);
+	if (stacked && (kind == ModelEditKind::TransformSkeletalPose || kind == ModelEditKind::CopySkeletalPose ||
+					kind == ModelEditKind::InterpolateSkeletalPoses || kind == ModelEditKind::ResizeSkeletalClip))
+		return fail(error, Text::tr("Clip %1 has constraints or layers. Edit its base with curves, inverse kinematics or paste, or bake its stack "
+									"first.")
+							   .arg(mesh->skeleton.clips[o.clip].name));
+	if (kind == ModelEditKind::TransformBindJoint &&
+		std::any_of(mesh->skeleton.clips.cbegin(), mesh->skeleton.clips.cend(), [](const auto &clip) { return modelClipHasStack(clip); }))
+		return fail(error, Text::tr("Bake the clips' constraints and layers before moving bind joints."));
 	const bool bind = kind == ModelEditKind::TransformBindJoint, add = kind == ModelEditKind::AddSkeletalClip;
 	const bool duplicate = kind == ModelEditKind::DuplicateSkeletalClip, rename = kind == ModelEditKind::RenameSkeletalClip;
 	const bool resize = kind == ModelEditKind::ResizeSkeletalClip, timing = kind == ModelEditKind::SetSkeletalClipTiming;
@@ -794,13 +809,24 @@ bool replaceModelSkeletalSamples(ModelMesh *mesh, int clip, int first, const QVe
 	QVector<QVector<Frame>> clips;
 	if (!layout(before, &plan, &clips, error) || plan.isEmpty()) return false;
 	if (curves) mesh->skeleton.clips[clip].curves = *curves;
+	// A clip with constraints or layers takes the samples as its base and
+	// evaluates them again (core/model_animation_constraints.h).
+	auto &target = mesh->skeleton.clips[clip];
+	auto updated = modelClipEditableSamples(target);
 	for (int i = 0; i < samples.size(); ++i)
 	{
 		if (!work.step()) return false;
 		if (samples[i].size() != mesh->skeleton.joints.size())
 			return fail(error, Text::tr("Every replacement pose must contain every joint."));
-		mesh->skeleton.clips[clip].frames[first+i] = samples[i];
+		updated[first+i] = samples[i];
 	}
+	if (modelClipHasStack(target))
+	{
+		if (!rebaseModelClipStack(mesh->skeleton, &target, updated, error, control))
+			return false;
+	}
+	else
+		target.frames = std::move(updated);
 	if (!validateModelSkeleton(*mesh, error, control)) return false;
 	mesh->skeleton.clips[clip].frameMins.clear();
 	mesh->skeleton.clips[clip].frameMaxs.clear();

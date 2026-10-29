@@ -60,13 +60,18 @@ struct Doom3ModelDecl {
 	ModelVec3 offset;
 	// (animation name, md5anim path) in declaration order.
 	QVector<QPair<QString, QString>> anims;
+	// Parallel to `anims`: each anim block's `frame N command args` lines as
+	// animation events, with frame numbers zero-based (the file's are
+	// one-based). Other anim flags are not kept.
+	QVector<QVector<ModelAnimationEvent>> animEvents;
 	// 1-based line of the `model` keyword.
 	int line = 0;
 };
 
 // Every `model` declaration in a .def file's text. Other declarations
-// (entityDef, skin, ...) are skipped; frame commands inside anim blocks are
-// ignored. Problems go to `warnings` with their line numbers.
+// (entityDef, skin, ...) are skipped; frame commands inside anim blocks
+// become animation events, one per `frame` line (the command and the words
+// after it on that line). Problems go to `warnings` with their line numbers.
 [[nodiscard]] QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* warnings = nullptr);
 
 } // namespace vibestudio

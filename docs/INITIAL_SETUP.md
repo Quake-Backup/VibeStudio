@@ -41,11 +41,14 @@ Animation** before capturing keys. The GUI requires editable preview frames;
 `model curves` also handles complete retained clips outside that budget. It adds
 no setup option, dependency or AI connector. See [animation curves](MODEL_ANIMATION_CURVES.md).
 
-**Two-Bone Inverse Kinematics** works offline with the current skeleton and
+**Inverse Kinematics** works offline with the current skeleton and
 retained clips, camera profile, language, theme and text scale. A three-joint
 chain and a previewable clip enable the GUI workflow; `model ik` also handles
 retained clips outside the preview budget. No extra setup, dependency or AI
-connector is required. See [inverse kinematics](MODEL_IK.md).
+connector is required. See [inverse kinematics](MODEL_IK.md). The pose
+clipboard, clip import, animation events, game declarations and clip
+constraints likewise work offline with no setup option; the pose commands take
+keys from the chosen controls profile like every other modeller command.
 
 **Transfer Skin Weights** needs no additional setup, connector or dependency.
 It uses the current model's retained bind frame and skeleton, modeller camera

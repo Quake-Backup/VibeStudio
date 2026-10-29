@@ -6,6 +6,7 @@
 #include "core/model_mesh.h"
 #include "core/model_rig.h"
 #include "core/model_ik.h"
+#include "core/model_animation_authoring.h"
 #include "core/model_animation_curves.h"
 #include "core/model_curve_key_tools.h"
 #include "core/model_curve_transfer.h"
@@ -204,6 +205,13 @@ enum class ModelEditKind
 	// Convex collision hull fitted to vertices (core/model_collision_hull.h);
 	// collisionBox.name, frame, selection, collisionHullProfile and collisionHullMaxFaces.
 	FitCollisionHull,
+	// Animation authoring (core/model_animation_authoring.h); settings in ModelEdit::animation.
+	PastePose,
+	SolveChainIk,
+	SetJointLimits,
+	ImportSkeletalClip,
+	EditAnimationEvents,
+	EditClipStack,
 };
 
 struct ModelEdit
@@ -283,6 +291,7 @@ struct ModelEdit
 	// optional lower face budget (0 keeps the profile's).
 	QString collisionHullProfile = QStringLiteral("quake3");
 	int collisionHullMaxFaces = 0;
+	ModelAnimationAuthoringOptions animation{};
 };
 
 struct ModelExportReport

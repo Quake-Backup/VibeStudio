@@ -8,11 +8,13 @@
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSignalBlocker>
 #include <QVBoxLayout>
 #include <algorithm>
 
@@ -60,6 +62,7 @@ ModelRigDialog::ModelRigDialog(const ModelMesh &mesh, const ModelSelection &sele
 	m_operation->addItem(Text::tr("Reparent joint"), int(ModelEditKind::ReparentJoint));
 	m_operation->addItem(Text::tr("Delete unused joint"), int(ModelEditKind::DeleteJoint));
 	m_operation->addItem(Text::tr("Assign vertex weight"), int(ModelEditKind::SetJointWeight));
+	m_operation->addItem(Text::tr("Set joint limits"), int(ModelEditKind::SetJointLimits));
 	m_form->addRow(Text::tr("&Operation"), m_operation);
 	const auto combo = [&](const char *name, const QString &label, const QString &description) {
 		auto *box = new QComboBox;
@@ -117,6 +120,35 @@ ModelRigDialog::ModelRigDialog(const ModelMesh &mesh, const ModelSelection &sele
 						"influences share the remainder proportionally. Zero removes "
 						"this influence; one assigns the vertex entirely."));
 	m_form->addRow(Text::tr("&Weight"), m_weight);
+	m_limitsEnabled = new QComboBox;
+	m_limitsEnabled->setObjectName("rigLimitsEnabled");
+	m_limitsEnabled->addItem(Text::tr("Limit rotation"), true);
+	m_limitsEnabled->addItem(Text::tr("No limits"), false);
+	accessible(m_limitsEnabled, Text::tr("Joint limits"),
+			   Text::tr("Chain inverse kinematics keeps a limited joint's rotation, relative to its bind pose, within these angles."));
+	m_form->addRow(Text::tr("&Limits"), m_limitsEnabled);
+	m_limits = new QWidget;
+	auto *limitsLayout = new QGridLayout(m_limits);
+	limitsLayout->setContentsMargins(0, 0, 0, 0);
+	const QStringList bounds{Text::tr("Minimum"), Text::tr("Maximum")};
+	for (int bound = 0; bound < 2; ++bound)
+		for (int axis = 0; axis < 3; ++axis)
+		{
+			auto *spin = new QDoubleSpinBox;
+			spin->setObjectName(QStringLiteral("rigLimit%1%2").arg(bound ? QStringLiteral("Max") : QStringLiteral("Min")).arg(axis));
+			spin->setRange(-180, 180);
+			spin->setDecimals(2);
+			spin->setValue(bound ? 180 : -180);
+			spin->setLayoutDirection(Qt::LeftToRight);
+			const auto label = QString(QChar('X' + axis));
+			spin->setPrefix(label + QLatin1Char(' '));
+			spin->setSuffix(QStringLiteral("°"));
+			accessible(spin, Text::tr("%1 %2 angle").arg(bounds[bound], label),
+					   Text::tr("Degrees about %1, applied X then Y then Z, relative to the joint's bind pose.").arg(label));
+			limitsLayout->addWidget(spin, bound, axis);
+			m_limitAxes[bound * 3 + axis] = spin;
+		}
+	m_form->addRow(Text::tr("Angles"), m_limits);
 	m_summary = new QLabel;
 	m_summary->setObjectName("rigSummary");
 	m_summary->setTextFormat(Qt::PlainText);
@@ -135,6 +167,7 @@ ModelRigDialog::ModelRigDialog(const ModelMesh &mesh, const ModelSelection &sele
 	layout->addWidget(buttons);
 	connect(m_operation, &QComboBox::currentIndexChanged, this, [this] { refresh(); });
 	connect(m_joint, &QComboBox::currentIndexChanged, this, [this] { refresh(); });
+	connect(m_limitsEnabled, &QComboBox::currentIndexChanged, this, [this] { m_limits->setEnabled(m_limitsEnabled->currentData().toBool()); });
 	const auto updateApply = [this, apply = buttons->button(QDialogButtonBox::Apply)] {
 		const auto kind = ModelEditKind(m_operation->currentData().toInt());
 		const bool add = kind == ModelEditKind::AddJoint;
@@ -163,6 +196,19 @@ ModelEdit ModelRigDialog::edit() const
 		result.rig.parent = m_parent->currentData().toString();
 	if (result.kind == ModelEditKind::AddJoint)
 		result.rig.origin = {float(m_axes[0]->value()), float(m_axes[1]->value()), float(m_axes[2]->value())};
+	if (result.kind == ModelEditKind::SetJointLimits)
+	{
+		auto &o = result.animation.limits;
+		o.joint = result.rig.joint;
+		result.rig.joint.clear();
+		o.limits.enabled = m_limitsEnabled->currentData().toBool();
+		if (o.limits.enabled)
+			for (int axis = 0; axis < 3; ++axis)
+			{
+				o.limits.minimum[axis] = m_limitAxes[axis]->value();
+				o.limits.maximum[axis] = m_limitAxes[3 + axis]->value();
+			}
+	}
 	if (result.kind == ModelEditKind::SetJointWeight)
 		result.rig.weight = m_weight->value();
 	return result;
@@ -176,10 +222,33 @@ void ModelRigDialog::refresh()
 	m_form->setRowVisible(m_parent, add || kind == ModelEditKind::ReparentJoint);
 	m_form->setRowVisible(m_origin, add);
 	m_form->setRowVisible(m_weight, weight);
+	const bool limits = kind == ModelEditKind::SetJointLimits;
+	m_form->setRowVisible(m_limitsEnabled, limits);
+	m_form->setRowVisible(m_limits, limits);
+	m_limits->setEnabled(m_limitsEnabled->currentData().toBool());
 	if (kind == ModelEditKind::RenameJoint)
 		m_name->setText(m_joint->currentData().toString());
 	QString summary;
-	if (add)
+	if (limits)
+	{
+		const int joint = modelJointIndex(m_mesh.skeleton, m_joint->currentData().toString(), Qt::CaseSensitive);
+		if (joint >= 0)
+		{
+			// A joint without limits starts from the full range, ready to narrow.
+			const auto &current = m_mesh.skeleton.joints[joint].limits;
+			const QSignalBlocker blocker(m_limitsEnabled);
+			m_limitsEnabled->setCurrentIndex(0);
+			for (int axis = 0; axis < 3; ++axis)
+			{
+				m_limitAxes[axis]->setValue(current.minimum[axis]);
+				m_limitAxes[3 + axis]->setValue(current.maximum[axis]);
+			}
+			m_limits->setEnabled(true);
+		}
+		summary = Text::tr("Limits bound the joint's rotation relative to its bind pose when chain inverse kinematics solves with "
+						   "Apply joint limits. They do not change existing poses.");
+	}
+	else if (add)
 		summary = m_mesh.skeleton.isEmpty() ? Text::tr("The first joint binds every vertex of a single-frame "
 													   "model. Existing vertex animation requires a separate "
 													   "static source.")

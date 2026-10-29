@@ -50,6 +50,11 @@ bool sliceModelCurve(const QVector<ModelPoseCurveKey> &keys, int first, int last
 bool validateModelAnimationCurves(const ModelMesh &mesh, QString *error, const ModelWorkControl &control = {});
 bool captureModelPoseCurves(const ModelMesh &mesh, int clip, const QString &joint, ModelPoseCurves *result, QString *error,
 							const ModelWorkControl &control = {});
+// The nine channel values (translation, X-then-Y-then-Z Euler degrees, scale)
+// that reproduce a parent-local pose, with the rotation solution nearest
+// `previous` when one is given (so keys stay continuous). False for shear,
+// reflection or nonpositive scale, which curves cannot hold.
+bool modelPoseCurveValues(const ModelJointMatrix &local, const std::array<double, 3> *previous, std::array<double, 9> *values);
 // Numeric/graphical key editors and the CLI share the same group mutation.
 bool editModelCurveGroup(ModelPoseCurves *group, int frameCount, const ModelCurveEditOptions &options, QString *error);
 bool applyModelAnimationCurves(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});

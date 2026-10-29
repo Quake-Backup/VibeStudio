@@ -29,7 +29,8 @@ class ModelSkeletalDialog final : public QDialog
 	QLineEdit *m_name = nullptr;
 	QSpinBox *m_first = nullptr, *m_last = nullptr, *m_count = nullptr, *m_sourceFrame = nullptr;
 	QDoubleSpinBox *m_rate = nullptr;
-	QCheckBox *m_loop = nullptr, *m_children = nullptr;
+	QCheckBox *m_loop = nullptr, *m_children = nullptr, *m_mirror = nullptr, *m_replaceKeys = nullptr;
+	QPushButton *m_copy = nullptr;
 	std::array<QWidget *, 3> m_vectors{};
 	std::array<std::array<QDoubleSpinBox *, 3>, 3> m_axes{};
 	QLabel *m_summary = nullptr;

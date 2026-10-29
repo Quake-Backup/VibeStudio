@@ -2,9 +2,11 @@
 #include "app/dialog_screen_fit.h"
 #include "app/model_curve_keys_table.h"
 #include "app/model_document_work.h"
+#include "app/model_editor_pose.h"
 #include "app/model_skeletal_working_set_dialog.h"
 #include "app/model_viewport.h"
 #include "core/model_joint_tools.h"
+#include "core/model_pose_clipboard.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
@@ -12,6 +14,7 @@
 #include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QHeaderView>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -22,6 +25,7 @@
 #include <QTableView>
 #include <QVBoxLayout>
 #include <algorithm>
+#include <limits>
 namespace vibestudio
 {
 namespace
@@ -228,6 +232,54 @@ ModelCurveKeysDialog::ModelCurveKeysDialog(const ModelMesh &mesh, const QString 
 	auto *buttons = new QDialogButtonBox(QDialogButtonBox::Apply | QDialogButtonBox::Cancel);
 	m_apply = buttons->button(QDialogButtonBox::Apply);
 	m_apply->setObjectName("curveKeysApply");
+	// Copy Keys (Ctrl+C) puts the selected keys' joints, channels and sample
+	// span on the pose clipboard (core/model_pose_clipboard.h); Paste Pose or
+	// Edit Skeletal Animation pastes them into another clip or model.
+	auto *copyKeys = buttons->addButton(Text::tr("Copy Keys"), QDialogButtonBox::ActionRole);
+	copyKeys->setObjectName("curveKeysCopy");
+	copyKeys->setShortcut(QKeySequence::Copy);
+	accessible(copyKeys, Text::tr("Copy selected keys"),
+			   Text::tr("Copy the selected keys' joints and channels over the samples they span to the clipboard (Ctrl+C). Paste them with "
+						"Paste Pose or Edit Skeletal Animation."));
+	connect(copyKeys, &QPushButton::clicked, this,
+			[this]
+			{
+				QVector<QPair<int, int>> ranges;
+				for (const auto &range : m_keys->selectionModel()->selection())
+					ranges.append({range.top(), range.bottom()});
+				QVector<ModelCurveKeySelection> selection;
+				QString error;
+				if (ranges.isEmpty() || !modelCurveKeysFromRows(m_table->snapshot(), ranges, &selection, &error))
+				{
+					m_status->setText(error.isEmpty() ? Text::tr("Select keys to copy first.") : error, LiveStatus::Problem);
+					return;
+				}
+				ModelPoseCopyOptions options;
+				options.clip = clip();
+				options.keys = true;
+				options.first = std::numeric_limits<int>::max();
+				options.last = 0;
+				for (const auto &item : selection)
+				{
+					if (!options.joints.contains(item.joint))
+						options.joints.append(item.joint);
+					if (!options.channels.contains(item.channel))
+						options.channels.append(item.channel);
+					for (int sample : item.samples)
+					{
+						options.first = std::min(options.first, sample);
+						options.last = std::max(options.last, sample);
+					}
+				}
+				ModelPoseClipboard clipboard;
+				if (options.first > options.last || !copyModelPose(m_source, options, &clipboard, &error))
+				{
+					m_status->setText(error.isEmpty() ? Text::tr("Select keys to copy first.") : error, LiveStatus::Problem);
+					return;
+				}
+				modelPoseClipboardToSystem(modelPoseClipboardBytes(clipboard));
+				m_status->setText(Text::tr("Copied. %1").arg(modelPoseClipboardSummary(clipboard)), LiveStatus::Result);
+			});
 	m_review = buttons->addButton(Text::tr("Review"), QDialogButtonBox::ActionRole);
 	m_review->setObjectName("curveKeysReview");
 	accessible(m_review, Text::tr("Review animation keys"),

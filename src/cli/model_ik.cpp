@@ -1,6 +1,7 @@
 #include "cli/model_tools.h"
 #include "core/model_document.h"
 #include <QCoreApplication>
+#include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -47,9 +48,11 @@ bool vector(const QString &s, ModelVec3 *result)
 } // namespace
 ModelToolsCliResult runModelIk(const QStringList &args)
 {
-	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--nearest-reachable", "--follow-end"};
+	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--nearest-reachable", "--follow-end",
+							  "--limits"};
 	const QSet<QString> options{"--input",	"--output", "--clip",		   "--first",  "--last",		"--end-joint",
-								"--target", "--pole",	"--settings-file", "--locale", "--catalog-root"};
+								"--target", "--pole",	"--settings-file", "--locale", "--catalog-root", "--root-joint", "--solver",
+								"--iterations", "--tolerance", "--target-joint", "--target-offset", "--targets"};
 	QSet<QString> seen;
 	QHash<QString, QString> values;
 	QStringList positional;
@@ -81,14 +84,69 @@ ModelToolsCliResult runModelIk(const QStringList &args)
 	if (!values.value("--output").endsWith(".mesh.json", Qt::CaseInsensitive))
 		return fail(2, Text::tr("Inverse kinematics requires --output ending in .mesh.json."));
 	ModelEdit edit;
-	edit.kind = ModelEditKind::SolveTwoBoneIk;
 	auto &o = edit.ik;
+	// Chain IK (--root-joint, --solver fabrik|ccd) or the analytic two-bone solve.
+	const auto solver = values.value("--solver", seen.contains("--root-joint") ? "fabrik" : "two-bone");
+	if (solver != "two-bone" && solver != "fabrik" && solver != "ccd")
+		return fail(2, Text::tr("Solver must be two-bone, fabrik or ccd."));
+	const bool chained = solver != "two-bone";
+	edit.kind = chained ? ModelEditKind::SolveChainIk : ModelEditKind::SolveTwoBoneIk;
+	if (chained != seen.contains("--root-joint"))
+		return fail(2, Text::tr("Chain solvers (fabrik, ccd) need --root-joint; the two-bone solve takes none."));
+	for (const auto &key : {"--iterations", "--tolerance", "--limits"})
+		if (!chained && seen.contains(key))
+			return fail(2, Text::tr("Option %1 applies only to chain solvers.").arg(key));
 	if (!integer(values.value("--clip"), &o.clip) || !integer(values.value("--first"), &o.first) ||
 		!integer(values.value("--last"), &o.last) || values.value("--end-joint").isEmpty())
 		return fail(2, Text::tr("Provide --clip, --first and --last as nonnegative integers, and --end-joint as an exact joint name."));
 	o.endJoint = values["--end-joint"];
-	if (!vector(values.value("--target"), &o.target) || !vector(values.value("--pole"), &o.pole))
-		return fail(2, Text::tr("Provide --target x,y,z and --pole x,y,z as finite model-space coordinates within one million units."));
+	o.rootJoint = values.value("--root-joint");
+	o.solver = solver == "ccd" ? ModelIkSolver::Ccd : ModelIkSolver::Fabrik;
+	const int sources = int(seen.contains("--target")) + int(seen.contains("--target-joint")) + int(seen.contains("--targets"));
+	if (sources != 1)
+		return fail(2, Text::tr("Give exactly one target: --target x,y,z, --target-joint name (with optional --target-offset x,y,z) or --targets file.json."));
+	if ((seen.contains("--target") && !vector(values.value("--target"), &o.target)) ||
+		(seen.contains("--target-offset") && !vector(values.value("--target-offset"), &o.targetOffset)) ||
+		(seen.contains("--pole") && !vector(values.value("--pole"), &o.pole)))
+		return fail(2, Text::tr("Provide --target, --target-offset and --pole as x,y,z: finite model-space coordinates within one million units."));
+	if (seen.contains("--target-offset") && !seen.contains("--target-joint"))
+		return fail(2, Text::tr("A target offset needs --target-joint."));
+	if (!chained && !seen.contains("--pole"))
+		return fail(2, Text::tr("The two-bone solve needs --pole x,y,z."));
+	o.targetJoint = values.value("--target-joint");
+	if (seen.contains("--targets"))
+	{
+		if (modelPathsReferToSameFile(values["--targets"], values.value("--output")))
+			return fail(1, Text::tr("The output cannot replace the targets input, including aliases of the same file."));
+		QByteArray bytes;
+		QString problem;
+		if (!readModelFile(values["--targets"], &bytes, &problem))
+			return fail(1, problem);
+		const auto points = QJsonDocument::fromJson(bytes).array();
+		for (const auto &point : points)
+		{
+			const auto xyz = point.toArray();
+			if (xyz.size() != 3 || !xyz[0].isDouble() || !xyz[1].isDouble() || !xyz[2].isDouble())
+				return fail(2, Text::tr("A targets file is a JSON array of [x, y, z] points, one per sample from --first to --last."));
+			o.targets.append({float(xyz[0].toDouble()), float(xyz[1].toDouble()), float(xyz[2].toDouble())});
+		}
+		if (o.targets.isEmpty())
+			return fail(2, Text::tr("A targets file is a JSON array of [x, y, z] points, one per sample from --first to --last."));
+	}
+	if (chained)
+	{
+		o.usePole = seen.contains("--pole");
+		o.limits = seen.contains("--limits");
+		if (seen.contains("--iterations") && (!integer(values["--iterations"], &o.iterations) || o.iterations < 1 || o.iterations > 1000))
+			return fail(2, Text::tr("Iterations must be a whole number from 1 to 1000."));
+		if (seen.contains("--tolerance"))
+		{
+			bool ok = false;
+			o.tolerance = values["--tolerance"].toDouble(&ok);
+			if (!ok || !std::isfinite(o.tolerance) || o.tolerance <= 0 || o.tolerance > 1000000)
+				return fail(2, Text::tr("Tolerance must be a positive number of model units."));
+		}
+	}
 	o.nearestReachable = seen.contains("--nearest-reachable");
 	o.keepEndOrientation = !seen.contains("--follow-end");
 	const auto source = input ? values["--input"] : positional[2];
@@ -108,14 +166,20 @@ ModelToolsCliResult runModelIk(const QStringList &args)
 		return fail(1, error);
 	QJsonArray samples;
 	int reached = 0;
-	for (const auto &sample : modelIkSamples(document.mesh(), o))
+	QString limitProblem;
+	bool withinLimits = true;
+	for (const auto &sample : modelIkSamples(document.mesh(), o, chained))
 	{
 		reached += sample.reached;
 		samples.append(QJsonObject{{"sample", sample.frame},
 								   {"end", QJsonArray{sample.end.x, sample.end.y, sample.end.z}},
+								   {"target", QJsonArray{sample.target.x, sample.target.y, sample.target.z}},
 								   {"error", sample.error},
 								   {"tolerance", sample.tolerance},
 								   {"reached", sample.reached}});
+		if (withinLimits)
+			withinLimits = modelPoseWithinJointLimits(document.mesh().skeleton, document.mesh().skeleton.clips[o.clip].frames[sample.frame], 1e-3,
+													  &limitProblem);
 	}
 	ModelToolsCliResult result;
 	result.payload = {{"source", QFileInfo(source).absoluteFilePath()},
@@ -126,10 +190,17 @@ ModelToolsCliResult runModelIk(const QStringList &args)
 					  {"last", o.last},
 					  {"nearestReachable", o.nearestReachable},
 					  {"keepEndOrientation", o.keepEndOrientation},
+					  {"solver", solver},
+					  {"rootJoint", o.rootJoint},
+					  {"targetJoint", o.targetJoint},
+					  {"limits", o.limits},
+					  {"withinLimits", withinLimits},
 					  {"samples", samples},
 					  {"dryRun", dry},
 					  {"written", !dry}};
 	result.lines << Text::tr("Inverse kinematics reviewed. Samples reaching the target: %1 / %2.").arg(reached).arg(samples.size());
+	if (!withinLimits)
+		result.lines << limitProblem;
 	result.payload.insert("outputSource", modelSourceSaveJson(document));
 	if (const auto packed = modelSourceSaveNotice(document); !packed.isEmpty())
 		result.lines << packed;

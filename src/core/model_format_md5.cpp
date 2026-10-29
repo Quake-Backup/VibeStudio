@@ -34,6 +34,7 @@
 #include "core/model_document.h"
 #include "core/model_formats_p.h"
 #include "core/model_md5.h"
+#include "core/model_animation_events.h"
 #include "core/model_skeletal_export.h"
 #include "core/model_skeleton.h"
 
@@ -1193,8 +1194,42 @@ QVector<QPair<QString, QString>> effectiveDeclAnims(const QVector<LoadedDecl>& d
 	return anims;
 }
 
+// The frame commands of each effective anim, by name, with the same
+// inheritance as effectiveDeclAnims: an own anim replaces an inherited one.
+QHash<QString, QVector<ModelAnimationEvent>> effectiveDeclEvents(const QVector<LoadedDecl>& decls, const QHash<QString, int>& byName, int index,
+	int depth)
+{
+	const Doom3ModelDecl& decl = decls.at(index).decl;
+	QHash<QString, QVector<ModelAnimationEvent>> events;
+	if (!decl.inherit.isEmpty() && depth < kMaxDeclInheritDepth) {
+		const int parent = byName.value(decl.inherit.toLower(), -1);
+		if (parent >= 0 && parent != index) {
+			events = effectiveDeclEvents(decls, byName, parent, depth + 1);
+		}
+	}
+	for (int i = 0; i < decl.anims.size(); ++i) {
+		events.insert(decl.anims.at(i).first, decl.animEvents.value(i));
+	}
+	return events;
+}
+
+// Keeps a declaration's frame commands on the clip it names, or warns when
+// they do not fit the clip.
+void applyDeclEvents(ModelMesh* mesh, int clip, const QString& alias, const QVector<ModelAnimationEvent>& events)
+{
+	if (clip < 0 || clip >= mesh->skeleton.clips.size() || events.isEmpty() || !mesh->skeleton.clips.at(clip).events.isEmpty()) {
+		return;
+	}
+	QString problem;
+	if (!validModelAnimationEvents(events, int(mesh->skeleton.clips.at(clip).frames.size()), &problem)) {
+		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "The frame commands of anim \"%1\" are not kept: %2").arg(alias, problem);
+		return;
+	}
+	mesh->skeleton.clips[clip].events = events;
+}
+
 // Looks through def/*.def for model declarations naming this mesh and applies
-// their animation names. False only when the decode must stop.
+// their animation names and frame commands. False only when the decode must stop.
 bool applyModelDeclarations(const QString& path, ModelMesh* mesh, const ModelWorkControl& control, model_formats::Companions& companions,
 	Md5ClipLoader& loader)
 {
@@ -1273,6 +1308,7 @@ bool applyModelDeclarations(const QString& path, ModelMesh* mesh, const ModelWor
 			}
 		}
 		const QVector<QPair<QString, QString>> anims = effectiveDeclAnims(decls, byName, index, 0);
+		const auto declEvents = effectiveDeclEvents(decls, byName, index, 0);
 		for (const auto& anim : anims) {
 			if (!work.step()) {
 				return false;
@@ -1297,6 +1333,7 @@ bool applyModelDeclarations(const QString& path, ModelMesh* mesh, const ModelWor
 					if (uniqueClipName(skeleton, alias, clipIndex) == alias) {
 						skeleton.clips[clipIndex].name = alias;
 					}
+					applyDeclEvents(mesh, clipIndex, alias, declEvents.value(alias));
 				}
 				continue;
 			}
@@ -1309,6 +1346,7 @@ bool applyModelDeclarations(const QString& path, ModelMesh* mesh, const ModelWor
 			}
 			if (added >= 0) {
 				claimed.insert(added);
+				applyDeclEvents(mesh, added, alias, declEvents.value(alias));
 			}
 		}
 	}
@@ -2481,14 +2519,53 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 						break;
 					}
 				}
-				// Frame commands and anim flags are not needed here.
+				// Frame commands become events (idAnim::AddFrameCommand reads one
+				// command and its arguments per `frame N` line); anim flags and
+				// nested blocks are skipped.
+				QVector<ModelAnimationEvent> events;
 				if (lexer.peek().isPunct('{')) {
 					const Md5Token open = nextToken();
-					if (!skipBlock(open.line)) {
-						return false;
+					for (;;) {
+						const Md5Token token = nextToken();
+						if (token.isEnd()) {
+							warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: the block opened here is not closed.").arg(open.line));
+							return false;
+						}
+						if (token.isPunct('}')) {
+							break;
+						}
+						if (token.isPunct('{')) {
+							if (!skipBlock(token.line)) {
+								return false;
+							}
+							continue;
+						}
+						if (!keyIs(token, "frame")) {
+							continue;
+						}
+						qint64 number = 0;
+						const Md5Token frame = nextToken();
+						QStringList words;
+						while (!lexer.peek().isEnd() && lexer.peek().line == token.line && !lexer.peek().isPunct('}') && !lexer.peek().isPunct('{')) {
+							const Md5Token word = nextToken();
+							if (word.isValue()) {
+								words.append(word.utf8());
+							}
+						}
+						ModelAnimationEvent event;
+						QString problem;
+						if (!parseIntegerToken(frame, &number) || number < 1 || number > 1048576 || words.isEmpty() ||
+							!parseModelAnimationEventCommandLine(words.join(QLatin1Char(' ')), int(number - 1), &event, &problem)) {
+							warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: the frame command in anim \"%2\" of model \"%3\" is not "
+																		   "kept: give a frame from 1 and a command.")
+									 .arg(QString::number(token.line), alias, decl.name));
+							continue;
+						}
+						events.append(event);
 					}
 				}
 				decl.anims.append({alias, animPath});
+				decl.animEvents.append(sortedModelAnimationEvents(events));
 			} else if (keyIs(key, "remove")) {
 				QString ignored;
 				readValue(key, &ignored);

@@ -104,6 +104,17 @@ struct ModelJointMatrix {
 	float m[12] = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
 };
 
+// How far inverse kinematics may turn a joint (core/model_ik.h): its
+// parent-local rotation relative to its bind pose's, as X-then-Y-then-Z Euler
+// degrees (the animation curves' convention), each within [minimum, maximum].
+// Editable sources keep enabled limits (mesh version 15).
+struct ModelJointLimits {
+	bool enabled = false;
+	std::array<double, 3> minimum{-180.0, -180.0, -180.0};
+	std::array<double, 3> maximum{180.0, 180.0, 180.0};
+	bool operator==(const ModelJointLimits&) const = default;
+};
+
 struct ModelJoint {
 	QString name;
 	// An earlier joint, or -1 for a root.
@@ -113,6 +124,7 @@ struct ModelJoint {
 	// Format-specific bits kept for round trips (MD5 anim component flags,
 	// MDS/MDM bone flags, Ghoul 2 bone flags).
 	quint32 flags = 0;
+	ModelJointLimits limits{};
 };
 
 struct ModelJointInfluence {
@@ -145,6 +157,48 @@ struct ModelSkeletalTag {
 	ModelJointMatrix offset;
 };
 
+// A game-side frame command on one frame of a clip, numbered from zero within
+// the clip: a Doom 3 `frame` command ("sound_body snd_footstep"), a footstep,
+// a melee or fire trigger. Editable sources keep them (mesh version 15) and the
+// game declarations (core/model_game_declarations.h) write them out.
+struct ModelAnimationEvent {
+	int frame = 0;
+	QString command;
+	QStringList args;
+	bool operator==(const ModelAnimationEvent&) const = default;
+};
+
+// A persistent constraint of a skeletal clip (core/model_animation_constraints.h),
+// evaluated over the clip's base samples into its dense frames.
+enum class ModelClipConstraintKind { Ik, Aim, ChildOf, CopyTransform, FootLock };
+struct ModelClipConstraint {
+	QString name;
+	ModelClipConstraintKind kind = ModelClipConstraintKind::Ik;
+	// The constrained joint: the IK end joint, the joint that aims, follows,
+	// copies or is locked.
+	QString joint;
+	// Ik and FootLock: the chain's first joint; empty uses the joint's
+	// grandparent (two bones).
+	QString rootJoint;
+	// The joint followed: Ik and Aim aim at it, ChildOf follows it,
+	// CopyTransform copies it. Empty uses the fixed `point` (Ik, Aim).
+	QString target;
+	// Ik and Aim: a fixed model-space target, or an offset in the target
+	// joint's space when `target` is set.
+	std::array<double, 3> point{};
+	// Ik: the pole; Aim: the up direction.
+	std::array<double, 3> pole{};
+	bool usePole = true;
+	// Aim: the joint axis that points at the target, 0-2 for +X, +Y, +Z and
+	// 3-5 for -X, -Y, -Z.
+	int axis = 0;
+	// Inclusive sample range; -1 runs to the clip's last sample.
+	int first = 0, last = -1;
+	// Blend from the unconstrained pose (0) to the constrained one (1).
+	double weight = 1.0;
+	bool enabled = true;
+	bool operator==(const ModelClipConstraint&) const = default;
+};
 // Step holds the left value between keys; StepNext holds the right value.
 // Exact key times always return that key's own value, so reversing a step is lossless.
 enum class ModelCurveInterpolation { Step, Linear, Cubic, StepNext };
@@ -163,6 +217,18 @@ struct ModelPoseCurves {
 	std::array<QVector<ModelPoseCurveKey>, 9> channels;
 	bool operator==(const ModelPoseCurves &) const = default;
 };
+// An animation layer over a clip's base samples, before its constraints:
+// additive layers add translation and Euler degrees and multiply scale on the
+// joints they key; override layers replace those channels. Weight blends.
+struct ModelClipLayer {
+	QString name;
+	bool additive = true;
+	double weight = 1.0;
+	bool enabled = true;
+	QVector<ModelPoseCurves> curves;
+	bool operator==(const ModelClipLayer&) const = default;
+};
+
 struct ModelSkeletalClip {
 	QString name;
 	// The file the clip came from when it is not the mesh file (an md5anim,
@@ -178,6 +244,14 @@ struct ModelSkeletalClip {
 	QVector<ModelVec3> frameMaxs;
 	// Editable source curves; native exporters consume the validated dense frames.
 	QVector<ModelPoseCurves> curves{};
+	// Game-side frame commands (mesh version 15).
+	QVector<ModelAnimationEvent> events{};
+	// The evaluation stack (core/model_animation_constraints.h): layers then
+	// constraints over `base`, the samples before them, which `frames` must
+	// equal once evaluated. All empty for a clip without a stack.
+	QVector<ModelClipLayer> layers{};
+	QVector<ModelClipConstraint> constraints{};
+	QVector<QVector<ModelJointMatrix>> base{};
 };
 
 struct ModelSkeleton {
@@ -286,6 +360,9 @@ struct ModelAnimation {
 	int frameCount = 0;
 	// Zero leaves playback timing unspecified. Positive rates persist in mesh v6.
 	double framesPerSecond = 0;
+	// Game-side frame commands of a vertex-animated model (mesh version 15).
+	// Skeletal models keep theirs on ModelSkeletalClip.
+	QVector<ModelAnimationEvent> events{};
 };
 
 struct ModelTag {
