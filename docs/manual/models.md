@@ -295,6 +295,21 @@ it, rather than only its image:
 The line beside the controls says what the preview cannot show, such as
 environment mapping. See [Game preview](../MODEL_GAME_PREVIEW.md).
 
+### Paint the skin on the model
+
+Choose **UV** > **Paint Skin…** to paint the active surface's skin where you
+see it on the model:
+
+1. Turn the model with **Yaw**, **Pitch** and **Zoom**.
+2. Choose **Colour**, **Radius**, **Opacity** and **Hardness**; **Mirror**
+   paints the other side of a symmetric model at the same time.
+3. Drag across the model. Strokes cross UV seams without a gap and never
+   reach faces hidden behind others. Press <kbd>Esc</kbd> to cancel a stroke.
+4. Choose **Save Skin…** to keep the result as a PNG or TGA.
+
+A Quake skin is painted with palette colours only. See
+[Painting Skins](../MODEL_SKIN_PAINT.md).
+
 ### Bake occlusion and normal maps
 
 Choose **UV** > **Bake Maps…** to bake a map into the active surface's UV

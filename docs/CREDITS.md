@@ -3554,8 +3554,9 @@ The decode issue severities (`src/core/model_decode_issues.*`,
 (`src/tests/model_legacy_fuzz_seeds.h`, `model_format_legacy_fuzz_smoke_test.cpp`),
 the bulk model audit (`src/core/model_audit.*`), the Game preview
 (`src/core/model_game_preview.*`, `src/app/model_editor_game_preview.cpp`)
-and the map baker (`src/core/model_bake.*`, `src/core/model_bvh.*`,
-`src/app/model_bake_dialog.*`) are original VibeStudio code.
+the map baker (`src/core/model_bake.*`, `src/core/model_bvh.*`,
+`src/app/model_bake_dialog.*`) and skin painting (`src/core/model_skin_paint.*`,
+`src/app/model_skin_paint_dialog.*`) are original VibeStudio code.
 
 | Reference | What it informed | Revision | Licence / use |
 |---|---|---|---|

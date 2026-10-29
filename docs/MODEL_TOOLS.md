@@ -209,7 +209,9 @@ sampling, and Quake III shader stages. See [Game Preview](MODEL_GAME_PREVIEW.md)
 
 **UV** > **Bake Maps…** bakes ambient occlusion, Doom 3 tangent-space or
 object-space normals (from the model or a high-poly model) and lighting into
-the UV layout. See [Baking Texture Maps](MODEL_BAKE.md).
+the UV layout. See [Baking Texture Maps](MODEL_BAKE.md). **UV** > **Paint
+Skin…** paints the skin on the model in 3D, across seams and with a mirror
+axis. See [Painting Skins](MODEL_SKIN_PAINT.md).
 
 **F3** searches every Mesh Editor command by name and shows its shortcut.
 

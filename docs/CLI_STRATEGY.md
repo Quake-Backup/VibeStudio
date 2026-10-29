@@ -2474,6 +2474,10 @@ Each resolved path may be a definition file or a folder of them.
   model, or with `--format doom3` a Doom 3 skin declaration (`--model-path`,
   `--decl-name`). Both writers are the Mesh Editor's; refusals exit 4 without
   writing. See [Skin Variants](MODEL_SKIN_VARIANTS.md).
+- [x] `model paint-skin <model> --strokes <strokes.json> --output <skin.png>`
+  replays 3D paint strokes onto a surface's skin (`--texture`, else the MDL
+  skin as palette indices, else a blank `--size`), the same service as
+  **UV** > **Paint Skin…**. See [Painting Skins](MODEL_SKIN_PAINT.md).
 - [x] `model bake <model> --type ao|object-normal|normal|lighting --output
   <map.png|map.tga>` bakes ambient occlusion, object or Doom 3 tangent-space
   normals (optionally projected from `--high` within `--cage`) or shadowed
