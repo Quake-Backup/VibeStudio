@@ -122,6 +122,8 @@ constexpr CommandEntry kCommands[] = {
 	{"meshUvStitch", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Stitch UVs"), ""},
 	{"meshUvAlign", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Align UVs"), ""},
 	{"meshUvSnapTexels", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Snap UVs to Texels"), ""},
+	{"meshUvPin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Pin UVs"), ""},
+	{"meshUvUnpin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Unpin UVs"), ""},
 	{"meshUvQuakeFrontBack", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Quake Front/Back Skin Layout"), ""},
 	{"meshUvCheckHealth", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Check UV Health"), ""},
 	{"meshUvExportLayout", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Export UV Layout"), ""},

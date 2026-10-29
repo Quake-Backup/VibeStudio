@@ -647,9 +647,13 @@ displayed pose and the skin's original size. See
    **Conformal (seams only)** and choose **Unwrap and Pack Faces**.
 
 You get exactly one island per seam-bounded region, flattened with as little
-angle distortion as the shape allows, at one density. To pin corners, switch to
-vertex selection, select two or more corners of an island at the UVs they
-should keep, and unwrap. Turn off **Pack after a conformal unwrap** to keep the
+angle distortion as the shape allows, at one density. To hold corners in
+place, select them, place them where they should stay and choose **Pin UVs**;
+an island with two or more pins keeps them exactly and flattens around them.
+Pins are drawn as red diamonds and are saved with the model; **Unpin UVs**
+removes them. Pinned islands stay where their pins hold them when the other
+islands are packed. In vertex selection, the selected corners are also pinned for
+that one unwrap. Turn off **Pack after a conformal unwrap** to keep the
 islands where they land. A closed island or one that folds is refused with its
 faces named; add a seam there.
 

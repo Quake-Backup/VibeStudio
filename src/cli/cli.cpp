@@ -129,6 +129,7 @@
 #include "core/model_design.h"
 #include "core/model_document.h"
 #include "core/model_uv_unwrap.h"
+#include "core/model_uv_pins.h"
 #include "core/model_animation.h"
 #include "core/model_tags.h"
 #include "core/model_topology_health.h"
@@ -14921,6 +14922,7 @@ QJsonObject modelMeshJsonForCli(const ModelMesh& mesh)
 		entry.insert(QStringLiteral("vertices"), surface.vertexCount);
 		entry.insert(QStringLiteral("triangles"), static_cast<int>(surface.triangles.size()));
 		entry.insert(QStringLiteral("uvSeams"), static_cast<int>(surface.uvSeams.size()));
+		entry.insert(QStringLiteral("uvPins"), static_cast<int>(surface.uvPins.size()));
 		entry.insert(QStringLiteral("skinPaths"), QJsonArray::fromStringList(surface.skinPaths));
 		surfaces.append(entry);
 	}
@@ -15135,7 +15137,9 @@ int runModelTopologyCommand(const QString& path, const QStringList& args, CliOut
 					{QStringLiteral("mins"),QJsonArray{island.mins.u,island.mins.v}},{QStringLiteral("maxs"),QJsonArray{island.maxs.u,island.maxs.v}}});
 			}
 			for (const auto& edge : topology.edges) { if (edge.seam) { seams.append(QJsonArray{edge.vertices.first,edge.vertices.second}); } }
-			result.insert(QStringLiteral("islands"), islands); result.insert(QStringLiteral("seams"),seams); printJson(result);
+			result.insert(QStringLiteral("islands"), islands); result.insert(QStringLiteral("seams"),seams);
+			// Pinned UV corners (core/model_uv_pins.h), ascending.
+			result.insert(QStringLiteral("pins"), modelUvPinsJson(surface.uvPins)); printJson(result);
 		} else {
 			std::cout << text(QStringLiteral("Surface %1 (%2): %3 UV islands, %4 marked seams\n").arg(surfaceIndex).arg(surface.name).arg(topology.islands.size()).arg(surface.uvSeams.size()));
 			for (int index = 0; index < topology.islands.size(); ++index) {
@@ -15237,6 +15241,7 @@ int runModelSourceCommand(const QString& action, const QString& path, const QStr
 			{QStringLiteral("uv-pack-around"), ModelEditKind::PackUvAround},
 			{QStringLiteral("uv-weld"), ModelEditKind::WeldUv}, {QStringLiteral("uv-stitch"), ModelEditKind::StitchUv},
 			{QStringLiteral("uv-align"), ModelEditKind::AlignUv}, {QStringLiteral("uv-snap-texels"), ModelEditKind::SnapUvTexels},
+			{QStringLiteral("uv-pin"), ModelEditKind::PinUv}, {QStringLiteral("uv-unpin"), ModelEditKind::UnpinUv},
 			{QStringLiteral("md2-skin-size"), ModelEditKind::SetMd2SkinSize},
 			{QStringLiteral("duplicate-frame"), ModelEditKind::DuplicateFrame}, {QStringLiteral("delete-frame"), ModelEditKind::DeleteFrame},
 			{QStringLiteral("rename-frame"), ModelEditKind::RenameFrame},

@@ -23,6 +23,7 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 		strings(surface.skinPaths);
 		strings(surface.warnings);
 		set(surface.uvSeams);
+		set(surface.uvPins);
 		list(surface.skinning.first);
 		list(surface.skinning.count);
 		list(surface.skinning.influences);

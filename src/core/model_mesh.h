@@ -265,6 +265,11 @@ struct ModelSurface {
 	// Empty preserves legacy position-inferred adjacency. Labels are local
 	// to this surface and are stored in editable mesh version 11.
 	QVector<int> topologyVertices{};
+	// UV corners (indexed vertices) pinned for a conformal unwrap: they keep
+	// their UVs while the rest of their island flattens around them. Stored
+	// in editable mesh version 17; applyModelEdit carries them through other
+	// edits (core/model_uv_pins.h).
+	QSet<int> uvPins{};
 	// Transient: filled only while applyModelEdit reconciles a skeletal model.
 	ModelSurfaceOrigins editOrigins{};
 };

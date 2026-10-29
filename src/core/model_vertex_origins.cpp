@@ -777,6 +777,8 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::StitchUv:
 	case ModelEditKind::AlignUv:
 	case ModelEditKind::SnapUvTexels:
+	case ModelEditKind::PinUv:
+	case ModelEditKind::UnpinUv:
 		return ModelEditSkinHandling::Provenance;
 	}
 	return ModelEditSkinHandling::Provenance;

@@ -2,6 +2,7 @@
 
 #include "core/model_document.h"
 #include "core/model_uv.h"
+#include "core/model_uv_pins.h"
 #include "core/model_vertex_identity.h"
 #include "core/model_vertex_origins.h"
 
@@ -151,6 +152,11 @@ bool weldMapped(ModelSurface *surface, const QVector<int> &mapping, ModelSelecti
 	}
 	result.triangles = std::move(triangles);
 	result.vertexCount = int(result.texCoords.size());
+	// A joined corner is pinned when any corner it joined was.
+	result.uvPins.clear();
+	for (int pin : surface->uvPins)
+		if (pin >= 0 && pin < surface->vertexCount && newIndex[mapping[pin]] >= 0)
+			result.uvPins.insert(newIndex[mapping[pin]]);
 	compactModelVertexIdentities(&result);
 	rebuildModelVertexOrigins(&result, surface->editOrigins, kept);
 	if (selection)
@@ -496,7 +502,7 @@ bool align(ModelSurface *surface, const QSet<int> &vertices, const ModelUvToolOp
 bool isModelUvToolEdit(ModelEditKind kind)
 {
 	return kind == ModelEditKind::WeldUv || kind == ModelEditKind::StitchUv || kind == ModelEditKind::AlignUv ||
-		   kind == ModelEditKind::SnapUvTexels;
+		   kind == ModelEditKind::SnapUvTexels || isModelUvPinEdit(kind);
 }
 
 bool validModelUvToolSettings(const ModelEdit &edit, QString *error)
@@ -550,6 +556,14 @@ bool applyModelUvToolEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection
 	const auto &options = edit.uvTools;
 	if (!mesh || !selection || selection->surface < 0 || selection->surface >= mesh->surfaces.size())
 		return fail(error, Text::tr("Select a model surface first."));
+	if (isModelUvPinEdit(edit.kind))
+	{
+		if (options != ModelUvToolOptions{})
+			return fail(error, Text::tr("Pin UVs and Unpin UVs take no UV settings."));
+		auto pinned = edit;
+		pinned.selection = *selection;
+		return applyModelUvPinEdit(mesh, pinned, error) && work.check();
+	}
 	if (options.packRotate || options.unwrapMethod != ModelUvUnwrapMethod::Automatic || !options.unwrapPack || !options.packSurfaces.isEmpty())
 		return fail(error, Text::tr("Packing and unwrap settings apply only to Unwrap and Pack."));
 	if (!std::isfinite(options.weldTolerance) || options.weldTolerance < 0 || options.weldTolerance > 1 || options.alignAxis < 0 ||

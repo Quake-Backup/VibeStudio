@@ -632,12 +632,21 @@ commands are also in the **UV** menu and can take keys in **Controls**.
   by default) of the corner they join. Joined corners take their mean UV and the
   copies are removed, so Weld exactly undoes **Detach UV Faces**, seam marks
   included. Faces that would collapse or duplicate are refused.
-- **Stitch UVs** works on boundary edges of a UV seam in edge selection: it
-  finds each edge's split copy on another island, turns and moves the smaller
-  island rigidly (an orthogonal Procrustes fit of the seam corners; never a
-  reflection or a scale) so the edges meet, snaps the seam corners together,
-  welds those that match in every pose and clears the seam marks it joined. One
-  pair of islands is stitched at a time; a mirrored island is refused.
+- **Stitch UVs** works on boundary edges of UV seams in edge selection: it
+  finds each edge's split copy on another island and joins every pair of
+  islands the selected edges connect in one run. In each group of connected
+  islands the largest stays put (the lowest-numbered on a tie); the others are
+  placed breadth first, each turned and moved rigidly (an orthogonal Procrustes
+  fit of its seam corners onto every island already placed that it shares a
+  seam with; never a reflection or a scale). The seam corners then snap
+  together, those that match in every pose weld, and the seam marks it joined
+  are cleared. Islands joined in a loop meet at the corners of the last seam
+  as well, which may bend those faces slightly. A mirrored island anywhere in a
+  group refuses the stitch; the status line says how many islands joined.
+- **Pin UVs** and **Unpin UVs** mark the selected corners (vertices, edge ends or
+  face corners) for a conformal unwrap. Pins are drawn in the UV view as a red
+  diamond with a white cross, distinct from selection by shape, and are saved
+  with the model (editable source version 17); see Conformal unwrap.
 - **Align UVs** lines the selected corners up at the lowest, middle or highest U
   or V, or **Straighten** puts them on the line between the two corners farthest
   apart along their principal direction. Faces sharing those corners follow.
@@ -676,21 +685,37 @@ Jacobi-scaled conjugate-gradient least-squares solve in double precision finds
 the map, at most 20,000 iterations per island, checking for Cancel throughout.
 
 Unpinned islands are pinned at their two boundary corners farthest apart and
-scaled to their model area, so density is uniform. In vertex selection the
-selected vertices are pins: their islands unwrap and every island with two or
-more pins keeps them at their current UVs exactly (one pin alone is ignored).
+scaled to their model area, so density is uniform. Corners pinned with **Pin
+UVs**, and in vertex selection the selected vertices too, are pins: every
+island with two or more pins keeps them at their current UVs exactly (one pin
+alone is ignored), as Blender's pins do.
+
+Pins (`ModelSurface::uvPins`, core/model_uv_pins.h) are saved in the editable
+source as each surface's ascending `uvPins` corner indices; a source with pins
+is version 17, and one without stays at the version its other content needs.
+They follow their corners through edits: UV moves, packing and unwraps keep
+corner indices, and a corner an unwrap or packer splits passes its pin to the
+copy; compaction, Weld UVs and Stitch UVs remap pins with the corners; any
+other edit that renumbers corners keeps a pin on each corner whose
+reference-pose position and UV are unchanged, so a corner the edit removed or
+rebuilt loses its pin.
 **Pack after a conformal unwrap** (on by default) packs the islands with the
 atlas settings, keeping their shapes, orientation and relative density;
-otherwise they lie in a row at one density inside the tile. A closed island
+otherwise they lie in a row at one density inside the tile. Islands held by two
+or more pins are never packed (as in Blender): they stay where their pins put
+them, and the packed islands may overlap them, so follow with **Pack Around
+Unselected** when they share the tile. A closed island
 (no boundary) is refused with its faces named so a seam can be added, as is an
 island that folds over or overlaps itself when flattened. Every pose, normal,
 seam mark and skin influence survives corner splits, and failure or Cancel
 changes nothing.
 
 `model edit --operation uv-unwrap --uv-method conformal` runs the same unwrap;
-`--uv-pins` lists pinned vertices, `--no-pack` keeps the row, and JSON adds an
-`unwrap` object with each island's faces, iterations, mean and largest angle
-distortion (σ1/σ2) and area-ratio range.
+`--uv-pins` lists extra pinned vertices for that run, `--no-pack` keeps the
+row, and JSON adds an `unwrap` object with each island's faces, iterations,
+mean and largest angle distortion (σ1/σ2) and area-ratio range.
+`model edit --operation uv-pin|uv-unpin` stores or removes pins, and `model uv
+--json` lists a surface's pins.
 
 ### UV layouts and skin transfer
 

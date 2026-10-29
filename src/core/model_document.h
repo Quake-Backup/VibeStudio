@@ -207,6 +207,10 @@ enum class ModelEditKind
 	StitchUv,
 	AlignUv,
 	SnapUvTexels,
+	// Pins or unpins the selected UV corners (ModelSurface::uvPins,
+	// core/model_uv_pins.h).
+	PinUv,
+	UnpinUv,
 };
 
 struct ModelEdit

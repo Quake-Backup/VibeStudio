@@ -504,6 +504,13 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 	surface->addRow(QCoreApplication::translate("ModelUvOps", "Snap To"), m_uvSnapMode);
 	toolButton(QCoreApplication::translate("ModelUvOps", "Snap UVs to Texels"), QStringLiteral("snapMeshUvTexels"), ModelEditKind::SnapUvTexels,
 			   m_uvSnapMode->toolTip());
+	// Pins (core/model_uv_pins.h), saved with the model, hold UV corners in
+	// place during a conformal unwrap.
+	toolButton(QCoreApplication::translate("ModelUvOps", "Pin UVs"), QStringLiteral("pinMeshUvs"), ModelEditKind::PinUv,
+			   QCoreApplication::translate("ModelUvOps", "Pin the selected UV corners: a conformal unwrap keeps them where they are and flattens "
+														 "the rest of their island around them. Pins are saved with the model."));
+	toolButton(QCoreApplication::translate("ModelUvOps", "Unpin UVs"), QStringLiteral("unpinMeshUvs"), ModelEditKind::UnpinUv,
+			   QCoreApplication::translate("ModelUvOps", "Remove the pins from the selected UV corners."));
 	// Unwrap method and packing choices, read by Unwrap and Pack.
 	m_uvUnwrapMethod = new QComboBox;
 	m_uvUnwrapMethod->setObjectName(QStringLiteral("meshUvUnwrapMethod"));
@@ -512,8 +519,8 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 	m_uvUnwrapMethod->setAccessibleName(QCoreApplication::translate("ModelUvOps", "UV unwrap method"));
 	m_uvUnwrapMethod->setToolTip(QCoreApplication::translate(
 		"ModelUvOps", "Automatic charts may add cuts of their own. Conformal makes exactly one island per seam-bounded region with "
-					  "least squares conformal maps; a closed region needs a seam first. In vertex selection, the selected vertices pin "
-					  "their UVs and their islands unwrap."));
+					  "least squares conformal maps; a closed region needs a seam first. Pinned UV corners keep their place; in "
+					  "vertex selection, the selected vertices are pinned for that unwrap too and their islands unwrap."));
 	m_uvUnwrapMethod->setAccessibleDescription(m_uvUnwrapMethod->toolTip());
 	surface->addRow(QCoreApplication::translate("ModelUvOps", "Unwrap Method"), m_uvUnwrapMethod);
 	m_uvUnwrapPack = new WrappingCheckBox(QCoreApplication::translate("ModelUvOps", "Pack after a conformal unwrap"));

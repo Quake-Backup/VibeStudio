@@ -484,6 +484,7 @@ core_sources = files(
   'core/model_uv_layout.cpp',
   'core/model_skin_transfer.cpp',
   'core/model_skin_handoff.cpp',
+  'core/model_uv_pins.cpp',
   'core/model_file_io.cpp',
   'core/model_work.cpp',
   'core/model_export.cpp',
@@ -678,6 +679,7 @@ install_headers('core/model_uv_unwrap.h', subdir: 'vibestudio/core')
 install_headers('core/model_uv_layout.h', subdir: 'vibestudio/core')
 install_headers('core/model_skin_transfer.h', subdir: 'vibestudio/core')
 install_headers('core/model_skin_handoff.h', subdir: 'vibestudio/core')
+install_headers('core/model_uv_pins.h', subdir: 'vibestudio/core')
 install_headers('core/model_file_io.h', 'core/model_work.h', subdir: 'vibestudio/core')
 install_headers('core/package_validation.h', subdir: 'vibestudio/core')
 install_headers('core/package_publication.h', subdir: 'vibestudio/core')
@@ -4095,6 +4097,11 @@ model_uv_tools_ui_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
 )
 test('model-uv-tools-ui-smoke', model_uv_tools_ui_smoke_test, env: model_document_test_env, timeout: 300)
+model_uv_pins_smoke_test = executable(
+  'model_uv_pins_smoke_test', ['tests/model_uv_pins_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-uv-pins-smoke', model_uv_pins_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
 
 model_uv_islands_ui_smoke_test = executable(
   'model_uv_islands_ui_smoke_test', ['tests/model_uv_islands_ui_smoke_test.cpp'],

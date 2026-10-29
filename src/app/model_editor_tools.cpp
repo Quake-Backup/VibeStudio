@@ -416,6 +416,8 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshUvStitch"), Text::tr("Stitch UVs"), {}, [this] { m_editor->runUvTool(ModelEditKind::StitchUv); });
 	addAction(QStringLiteral("meshUvAlign"), Text::tr("Align UVs"), {}, [this] { m_editor->runUvTool(ModelEditKind::AlignUv); });
 	addAction(QStringLiteral("meshUvSnapTexels"), Text::tr("Snap UVs to Texels"), {}, [this] { m_editor->runUvTool(ModelEditKind::SnapUvTexels); });
+	addAction(QStringLiteral("meshUvPin"), Text::tr("Pin UVs"), {}, [this] { m_editor->runUvTool(ModelEditKind::PinUv); });
+	addAction(QStringLiteral("meshUvUnpin"), Text::tr("Unpin UVs"), {}, [this] { m_editor->runUvTool(ModelEditKind::UnpinUv); });
 	addAction(QStringLiteral("meshUnwrapConformal"), Text::tr("Unwrap (Seams Only)"), {},
 			  [this]
 			  {

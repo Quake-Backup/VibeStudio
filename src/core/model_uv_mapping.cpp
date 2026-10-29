@@ -44,6 +44,9 @@ bool applyModelUvMapping(const ModelSurface &source, const QVector<int> &faces, 
 			candidate.texCoords.append(uv[v]);
 			if (!candidate.topologyVertices.isEmpty())
 				candidate.topologyVertices.append(candidate.topologyVertices[sourceVertices[v]]);
+			// A split pinned corner stays pinned on both sides.
+			if (source.uvPins.contains(old))
+				candidate.uvPins.insert(index);
 			appendModelVertexOriginCopy(&candidate, old);
 			for (int f = 0; f < candidate.frames.size(); ++f)
 			{
