@@ -13,6 +13,18 @@ for overwrite rules and the limits of a dry run.
 density. `--faces` expands to complete islands; dry-run and output protection
 share the editor's document service. See [texture density](../MODEL_UV_DENSITY.md).
 
+`model frames` lists which clips come back from MDL, MD2 and MD3 frame names.
+With `--operation move|duplicate|delete|reverse|ping-pong` and `--first`,
+`--last` (and `--to` for a move) it edits a frame range; `name-from-clips`
+names frames after their clips; `resample` and `close-loop` (and their
+`-skeletal` forms) resample clips and close loops; `follow-tag` fits a tag to
+components; `transform-range`, `blend-pose` and `relative-pose` sculpt over a
+range; `import --source ...` adds frames from an OBJ sequence or another model;
+`export-obj` writes one OBJ per frame. Edits need a separate `.mesh.json`
+`--output`. `model import` takes `--obj-up z|y`, `--obj-scale`,
+`--obj-materials` and `--obj-loose` for OBJ files.
+See [vertex animation frames](../MODEL_VERTEX_ANIMATION.md#command-line).
+
 `model curve-transfer` also requires an output different from its input,
 including path aliases, even with `--overwrite` or `--dry-run`.
 

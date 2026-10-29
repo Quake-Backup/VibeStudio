@@ -313,6 +313,8 @@ Export fixtures do not prove acceptance in the original engines.
 
 Curve clipboard exchange, quaternion tracks, cyclic
 extrapolation, layers/blending, persistent constraints, long-chain IK and
-retargeting remain planned. Physical keyboard/screen-reader acceptance,
+retargeting remain planned. Resampling a clip to another rate or frame count
+rescales its keys when each lands on a whole frame, or bakes the curves on
+request; see [vertex animation frames](MODEL_VERTEX_ANIMATION.md#resample-a-clip-and-close-its-loop). Physical keyboard/screen-reader acceptance,
 maximum-size performance, real projects and clean cross-platform release
 checks remain open. This workflow works offline and adds no dependency.

@@ -1,5 +1,6 @@
 #include "app/model_editor_dialog.h"
 
+#include "app/model_editor_frames.h"
 #include "app/model_viewport.h"
 #include "app/wrapping_action_button.h"
 #include "app/wrapping_check_box.h"
@@ -176,9 +177,11 @@ void ModelEditorDialog::addAnimationControls(QFormLayout *animation)
 	m_inbetweenPrefix = text(
 		"meshInbetweenPrefix", QCoreApplication::translate("VibeStudioModelEditor", "Frame-name prefix"),
 		QCoreApplication::translate("VibeStudioModelEditor",
-									"Generated names add _001, _002 and so on. Game formats enforce their shorter name limits at export."),
+									"Generated names add _001, _002 and so on. Left empty, frames between two frames that share a name stem "
+									"(walk1, walk2) take that stem, so MDL, MD2 and MD3 files keep them in the clip; otherwise blend. Game "
+									"formats enforce their shorter name limits at export."),
 		123);
-	m_inbetweenPrefix->setText(QStringLiteral("blend"));
+	m_inbetweenPrefix->setPlaceholderText(QCoreApplication::translate("VibeStudioModelEditor", "Frame stem or blend"));
 	m_insertInbetweens = button(
 		"insertMeshInbetweens", QCoreApplication::translate("VibeStudioModelEditor", "Insert In-between Frames"),
 		QCoreApplication::translate("VibeStudioModelEditor",
@@ -315,6 +318,8 @@ void ModelEditorDialog::refreshAnimationControls()
 	gate(m_insertInbetweens, ModelEditKind::InsertInbetweens);
 	m_animationSummary->setText(m_preview->playbackSummary());
 	m_animationSummary->setAccessibleDescription(m_animationSummary->text());
+	if (m_animationPanel)
+		m_animationPanel->refresh();
 }
 
 void ModelEditorDialog::restoreAnimationPreview(int frame, bool keepView)

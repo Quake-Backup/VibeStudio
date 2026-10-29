@@ -1,4 +1,5 @@
 #include "app/model_editor_dialog.h"
+#include "app/model_editor_frames.h"
 #include "core/model_lod.h"
 #include "app/dialog_screen_fit.h"
 #include "app/locale_number.h"
@@ -961,6 +962,7 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 		   ModelEditKind::DeleteFrame);
 	addAnimationControls(animation);
 	addTagControls(animation);
+	m_animationPanel = new ModelEditorAnimationPanel(this, animation);
 	addCollisionControls(page(QStringLiteral("collision")));
 	addMdlControls(page(QStringLiteral("mdl")));
 	auto *handoffPage = page(QStringLiteral("export"));

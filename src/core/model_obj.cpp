@@ -5,6 +5,8 @@
 #include "core/package_staging.h"
 
 #include <QCoreApplication>
+#include <QFileInfo>
+#include <QHash>
 #include <QStringDecoder>
 #include <algorithm>
 #include <array>
@@ -69,7 +71,9 @@ using SurfaceKey = std::tuple<QString, QString, QString>;
 class Reader
 {
   public:
-	Reader(const QString &path, const ModelWorkControl &control) : m_control(control), work(control, ModelWorkPhase::Reading, &mesh.error)
+	Reader(const QString &path, const ModelWorkControl &control, const ModelObjImportOptions &options = {},
+		   const ModelCompanionSource *companions = nullptr)
+		: m_control(control), work(control, ModelWorkPhase::Reading, &mesh.error), m_options(options), m_companions(companions)
 	{
 		mesh.sourcePath = path;
 		mesh.format = ModelMeshFormat::WavefrontObj;
@@ -157,11 +161,21 @@ class Reader
 		}
 		if (usedPositions.size() != positions.size())
 		{
-			fail(QCoreApplication::translate("VibeStudioModelObj",
-											 "OBJ contains loose vertices. Remove vertices unused by faces before importing."));
-			return failed();
+			if (m_options.refuseLooseData)
+			{
+				fail(QCoreApplication::translate("VibeStudioModelObj",
+												 "OBJ contains loose vertices. Remove vertices unused by faces before importing."));
+				return failed();
+			}
+			const int loose = int(positions.size() - usedPositions.size());
+			notes << QCoreApplication::translate("VibeStudioModelObj", "Dropped %n vertices that no face uses.", nullptr, loose);
 		}
-		if (!build() || !work.check())
+		if (looseRecords > 0)
+		{
+			notes << QCoreApplication::translate("VibeStudioModelObj", "Dropped %n line and point records; only faces are imported.", nullptr,
+												 looseRecords);
+		}
+		if (!build() || !bindMaterials() || !work.check())
 		{
 			return failed();
 		}
@@ -183,10 +197,18 @@ class Reader
 		return mesh;
 	}
 
+	QStringList notes;
+
   private:
 	const ModelWorkControl &m_control;
 	ModelMesh mesh;
 	ModelWorkProgress work;
+	ModelObjImportOptions m_options;
+	const ModelCompanionSource *m_companions = nullptr;
+	int looseRecords = 0;
+	// newmtl name -> diffuse map (map_Kd) from resolved material libraries.
+	QHash<QString, QString> diffuseMaps;
+	QStringList libraries;
 	QVector<ModelVec3> positions, normals;
 	QVector<ModelTexCoord> uvs;
 	QVector<Face> faces;
@@ -329,8 +351,23 @@ class Reader
 					"VibeStudioModelObj",
 					"Weighted positions and 3D texture coordinates cannot be represented. Export polygon positions and 2D UVs."));
 			}
+			if (command != "vt" && m_options.up == ModelObjUpAxis::Y)
+			{
+				// Y up, -Z forward (Blender's default) to idTech's Z up:
+				// (x, y, z) -> (x, -z, y), a rotation, so winding is kept.
+				values = {values[0], -values[2], values[1], values[3]};
+			}
 			if (command == "v")
 			{
+				for (int i = 0; i < 3; ++i)
+				{
+					values[i] *= m_options.scale;
+					if (std::abs(values[i]) > 1000000)
+					{
+						return fail(QCoreApplication::translate("VibeStudioModelObj",
+																"A scaled position falls outside ±1,000,000. Choose a smaller scale."));
+					}
+				}
 				positions.append({float(values[0]), float(values[1]), float(values[2])});
 			}
 			else if (command == "vt")
@@ -392,9 +429,28 @@ class Reader
 		}
 		if (command == "mtllib")
 		{
-			return fail(QCoreApplication::translate("VibeStudioModelObj",
-													"Wavefront material libraries are not yet supported. Export without "
-													"materials, then assign package materials in the modeller."));
+			if (m_options.materials == ModelObjMaterials::Refuse)
+			{
+				return fail(QCoreApplication::translate("VibeStudioModelObj",
+														"This import refuses Wavefront material libraries. Export without materials, or "
+														"resolve or ignore the library."));
+			}
+			QString library;
+			if (!name(tokens, &library))
+			{
+				return false;
+			}
+			return readLibrary(library);
+		}
+		if (command == "l" || command == "p")
+		{
+			if (m_options.refuseLooseData)
+			{
+				return fail(QCoreApplication::translate("VibeStudioModelObj",
+														"OBJ contains line or point records. Export faces only, or drop loose data."));
+			}
+			++looseRecords;
+			return true;
 		}
 		if (command != "f")
 		{
@@ -605,6 +661,118 @@ class Reader
 		face->triangles.append({remaining[0], remaining[1], remaining[2]});
 		return true;
 	}
+	QString sourceDirectory() const
+	{
+		const auto slash = mesh.sourcePath.lastIndexOf(QLatin1Char('/'));
+		return slash < 0 ? QString() : mesh.sourcePath.left(slash);
+	}
+	// Reads one material library through the companions, keeping each
+	// material's diffuse map. Shading parameters are not representable.
+	bool readLibrary(const QString &library)
+	{
+		libraries << library;
+		const bool resolve = m_options.materials == ModelObjMaterials::Resolve && m_companions && m_companions->read;
+		const QString directory = sourceDirectory();
+		const QString path = directory.isEmpty() ? library : directory + QLatin1Char('/') + library;
+		QByteArray bytes;
+		QString problem;
+		if (!resolve || library.contains(QLatin1String("..")) || !m_companions->read(path, &bytes, &problem))
+		{
+			notes << QCoreApplication::translate("VibeStudioModelObj",
+												 "Material library %1 was not read; material names are kept as material paths.")
+						 .arg(library);
+			return true;
+		}
+		if (bytes.size() > 1024 * 1024)
+		{
+			notes << QCoreApplication::translate("VibeStudioModelObj", "Material library %1 is larger than 1 MiB and was not read.")
+						 .arg(library);
+			return true;
+		}
+		QString current;
+		int ignored = 0;
+		for (const auto &raw : bytes.split('\n'))
+		{
+			if (!work.step())
+			{
+				return false;
+			}
+			auto text = QString::fromUtf8(raw).trimmed();
+			const auto comment = text.indexOf(QLatin1Char('#'));
+			if (comment >= 0)
+			{
+				text = text.left(comment).trimmed();
+			}
+			if (text.isEmpty())
+			{
+				continue;
+			}
+			const auto key = text.section(QLatin1Char(' '), 0, 0, QString::SectionSkipEmpty);
+			const auto value = text.section(QLatin1Char(' '), 1, -1, QString::SectionSkipEmpty).trimmed();
+			if (key == QLatin1String("newmtl"))
+			{
+				current = value;
+			}
+			else if (key == QLatin1String("map_Kd") && !current.isEmpty() && !value.isEmpty())
+			{
+				// Options such as -s 1 1 1 precede the file name, which is last.
+				diffuseMaps.insert(current, value.section(QLatin1Char(' '), -1, -1, QString::SectionSkipEmpty));
+			}
+			else
+			{
+				++ignored;
+			}
+		}
+		if (ignored > 0)
+		{
+			notes << QCoreApplication::translate("VibeStudioModelObj",
+												 "Material library %1: kept diffuse maps; %n shading statements (colours, "
+												 "specular, transparency and other maps) have no idTech equivalent.",
+												 nullptr, ignored)
+						 .arg(library);
+		}
+		return true;
+	}
+	// A surface whose material has a diffuse map binds that image, as a path
+	// beside the OBJ in the package; other materials keep their name.
+	bool bindMaterials()
+	{
+		if (libraries.isEmpty())
+		{
+			return true;
+		}
+		const QString directory = sourceDirectory();
+		const QString virtualDirectory = QFileInfo(directory).isAbsolute() ? QString() : directory;
+		for (auto &surface : mesh.surfaces)
+		{
+			if (surface.skinPaths.isEmpty())
+			{
+				continue;
+			}
+			const auto found = diffuseMaps.constFind(surface.skinPaths.first());
+			if (found == diffuseMaps.cend())
+			{
+				continue;
+			}
+			QString image = found.value();
+			image.replace(QLatin1Char('\\'), QLatin1Char('/'));
+			if (QFileInfo(image).isAbsolute() || image.contains(QLatin1String("..")) || image.contains(QLatin1Char(':')))
+			{
+				image = image.section(QLatin1Char('/'), -1, -1);
+			}
+			const QString bound = virtualDirectory.isEmpty() ? image : virtualDirectory + QLatin1Char('/') + image;
+			if (!isSafePackageVirtualPath(bound))
+			{
+				notes << QCoreApplication::translate("VibeStudioModelObj", "Material %1 keeps its name: its image %2 is not a package path.")
+							 .arg(surface.skinPaths.first(), found.value());
+				continue;
+			}
+			notes << QCoreApplication::translate("VibeStudioModelObj", "Surface %1 uses image %2 from material %3.")
+						 .arg(surface.name, bound, surface.skinPaths.first());
+			surface.skinPaths.first() = bound;
+		}
+		return true;
+	}
 	bool build()
 	{
 		QVector<std::map<VertexKey, int>> vertices(mesh.surfaces.size());
@@ -667,6 +835,28 @@ class Reader
 };
 } // namespace
 
+ModelMesh decodeModelObj(const QString &path, const QByteArray &bytes, const ModelObjImportOptions &options,
+						 const ModelCompanionSource *companions, QStringList *notes, const ModelWorkControl &control)
+{
+	if (!std::isfinite(options.scale) || options.scale < 0.000001 || options.scale > 1000000)
+	{
+		ModelMesh mesh;
+		mesh.sourcePath = path;
+		mesh.error = QCoreApplication::translate("VibeStudioModelObj", "OBJ scale must be from 0.000001 to 1,000,000.");
+		return mesh;
+	}
+	Reader reader(path, control, options, companions);
+	auto mesh = reader.run(bytes);
+	if (notes)
+	{
+		*notes = reader.notes;
+		if (options.up == ModelObjUpAxis::Y)
+		{
+			notes->prepend(QCoreApplication::translate("VibeStudioModelObj", "Converted Y-up, -Z-forward coordinates to Z up."));
+		}
+	}
+	return mesh;
+}
 ModelMesh decodeModelObj(const QString &path, const QByteArray &bytes, const ModelWorkControl &control)
 {
 	return Reader(path, control).run(bytes);

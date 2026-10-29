@@ -682,6 +682,18 @@ animation poses. Polygon filling uses ear clipping after G. H. Meisters,
 "Polygons Have Ears" (American Mathematical Monthly 82, 1975). Both are
 published algorithms; no third-party code is used.
 
+## Vertex Animation Frame Tools (2026-10-28)
+
+Tag following (`src/core/model_tag_follow.cpp`) fits rotations with the
+closed-form unit-quaternion solution published by Berthold K. P. Horn,
+["Closed-form solution of absolute orientation using unit quaternions"](https://doi.org/10.1364/JOSAA.4.000629)
+(Journal of the Optical Society of America A 4(4), 1987), with a cyclic Jacobi
+eigen-solver. The Quake MDL, MD2 and MD3 frame-name clip convention follows the
+released Quake and Quake II sources already credited under Format And Engine
+Lineage. Blender's default OBJ axes (Y up, -Z forward) follow its documented
+exporter behaviour (GPL-2.0-or-later application, reviewed 2026-10-28; no code
+used). All implementations are original; no third-party code is used.
+
 ## Level Geometry, Patch And Navigation Tools (2026-10-15)
 
 The Levels page's vertex editing, patch matrix commands, Thicken, hollow modes,

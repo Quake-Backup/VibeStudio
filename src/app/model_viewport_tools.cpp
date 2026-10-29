@@ -47,4 +47,10 @@ void ModelViewport::setOverlayPainter(std::function<void(QPainter &)> painter)
 	m_overlayPainter = std::move(painter);
 	update();
 }
+
+void ModelViewport::setAnimationOverlayPainter(std::function<void(QPainter &)> painter)
+{
+	m_animationOverlayPainter = std::move(painter);
+	update();
+}
 } // namespace vibestudio

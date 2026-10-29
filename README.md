@@ -440,7 +440,9 @@ proportional editing, the 3D cursor and Adjust Last Operation) follows the
 documented behaviour of [Blender](https://www.blender.org/) (GPL-2.0-or-later,
 reviewed 2026-10-07; no code used), and decimation implements Garland and
 Heckbert's [quadric error metric](https://doi.org/10.1145/258734.258849)
-(SIGGRAPH 1997). Knife interaction follows the [Blender knife manual](https://docs.blender.org/manual/en/dev/modeling/meshes/editing/mesh/knife_topology_tool.html)
+(SIGGRAPH 1997). Tags that follow the mesh use Horn's closed-form
+[absolute orientation](https://doi.org/10.1364/JOSAA.4.000629) solution (1987).
+Knife interaction follows the [Blender knife manual](https://docs.blender.org/manual/en/dev/modeling/meshes/editing/mesh/knife_topology_tool.html)
 (CC-BY-SA-4.0, reviewed 2026-10-21; behaviour only). Texel-density matching
 references [Average Island Scale](https://docs.blender.org/manual/en/3.3/modeling/meshes/uv/editing.html#average-island-scale)
 (3.3 manual, CC-BY-SA-4.0, reviewed 2026-10-21; original implementation).

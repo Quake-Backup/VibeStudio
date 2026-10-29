@@ -656,9 +656,16 @@ runs on the cancellable document worker, and commits one undo step.
 
 Clips containing both endpoint frames expand to include the new poses. A clip
 ending at the first endpoint stays unchanged; clips starting at the next frame
-or later shift forward. Generated names use a prefix (default `blend`, at most
-123 characters) followed by `_001`, `_002`, and so on. Native export still
-enforces its shorter name limits. Linked parts use the separate
+or later shift forward. Generated names use a prefix (at most 123 characters)
+followed by `_001`, `_002`, and so on. Left empty, the prefix is the name stem
+both endpoint frames share (`walk_001`), so MDL, MD2 and MD3 readers keep the
+new frames in the clip; without a shared stem it is `blend`. Native export
+still enforces its shorter name limits.
+
+**Frame range** moves, duplicates, deletes, reverses and ping-pongs ranges of
+frames, keeping tags, collision poses, MDL groups and clip ranges in step, and
+**Name Frames From Clips** names frames so clips survive files without a clip
+table. See [vertex animation frames](MODEL_VERTEX_ANIMATION.md). Linked parts use the separate
 [assembly editor](MODEL_ASSEMBLY.md); game timing configuration remains release work.
 
 ### Quake III skin assignments
@@ -720,7 +727,9 @@ input paths, and 4 for invalid skin data or edits.
 ### Attachment Tags
 
 Animation > Attachment tags creates, duplicates, renames, and deletes named
-attachments across every frame. Tags are model-wide; choose **Tags** in the
+attachments across every frame. **Follow Selection** fits a tag to selected
+mesh components in every frame, for vertex-animated models (see
+[make a tag follow the mesh](MODEL_VERTEX_ANIMATION.md#make-a-tag-follow-the-mesh)). Tags are model-wide; choose **Tags** in the
 component table to select one attachment by name. **Show Tags** draws its origin
 as a diamond with labelled local X/Y/Z axes through the model. Tag mode keeps
 these markers visible. Picking an origin and selecting its table row share the
@@ -945,7 +954,9 @@ are normalized and take precedence over smoothing groups. Missing normals use
 area-weighted smoothing groups, or one flat normal per polygon when smoothing is
 off. Missing UVs start at zero. UV V is converted from OBJ's bottom origin to the
 studio's top origin once. No implicit axis, unit, scale, winding or welding
-conversion is performed.
+conversion is performed by default; `model import --obj-up y --obj-scale N`
+and frame import convert Blender's Y-up, -Z-forward output and scale positions
+(see [OBJ import settings](MODEL_VERTEX_ANIMATION.md#obj-import-settings)).
 
 Positive and relative negative indices, UTF-8 names/BOM, comments, CRLF and
 backslash continuations are accepted. Faces must reference already-declared
@@ -956,16 +967,18 @@ Intersection and triangulation work has a shared 16-million-check budget;
 triangulate complex source polygons before importing when it is exceeded.
 Cancellation is polled inside parsing, triangulation and assembly.
 
-Wavefront `mtllib` shading libraries are **not yet supported**. Export without
-materials in the source modeller, then assign game/package materials here.
-Without `mtllib`, `usemtl` names are treated as direct package-relative material
-references; an empty assignment clears the material. OBJ export explicitly
-clears unassigned surfaces so they cannot inherit a preceding surface's material.
-Free-form curves/surfaces, lines, points, loose vertices, vertex colours,
-non-unit position weights, 3D UVs, unknown records and external commands fail
-instead of being discarded. Empty object/group declarations carry no geometry.
-The imported result is one pose; OBJ does not provide the studio's animation,
-attachment or collision authoring data.
+Wavefront `mtllib` material libraries beside a loose OBJ are read: a material
+with a diffuse map (`map_Kd`) binds that image, and shading statements with no
+idTech equivalent are noted. Without the library file, or inside a package,
+`usemtl` names are treated as direct package-relative material references; an
+empty assignment clears the material. OBJ export explicitly clears unassigned
+surfaces so they cannot inherit a preceding surface's material. Lines, points
+and vertices no face uses are dropped with a note (or refused with
+`--obj-loose refuse`). Free-form curves/surfaces, vertex colours, non-unit
+position weights, 3D UVs, unknown records and external commands fail instead of
+being discarded. Empty object/group declarations carry no geometry. One OBJ
+holds one pose; an OBJ sequence imports as frames of an existing model (see
+[vertex animation frames](MODEL_VERTEX_ANIMATION.md#import-frames-from-other-files)).
 
 The package browser streams and verifies the selected OBJ on a worker, then
 resolves each surface's package material independently. Loading, Cancel Preview,

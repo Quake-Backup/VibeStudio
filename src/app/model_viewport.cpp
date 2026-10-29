@@ -1927,6 +1927,11 @@ void ModelViewport::paintEvent(QPaintEvent*)
 		if (!m_brushDrawTool && !m_assembleTool) { paintNoGeometryState(painter, palette); }
 	} else {
 		paintTriangles(painter, palette);
+		if (m_animationOverlayPainter) {
+			painter.save();
+			m_animationOverlayPainter(painter);
+			painter.restore();
+		}
 		paintCollisionOverlays(painter);
 		paintEditOverlays(painter);
 		// Beneath the resize box, whose handles are controls.
