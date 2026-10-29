@@ -698,7 +698,7 @@ bool ModelEditorDialog::layoutQuakeFrontBack(int axis, QString *error)
 	edit.tool.axis = std::clamp(axis, 0, 2);
 	edit.tool.referenceFrame = std::clamp(m_preview->frame(), 0, std::max(0, int(m_document.mesh().frames.size()) - 1));
 	QString failure;
-	if (!applyEdit(edit, &failure))
+	if (!(m_tools ? m_tools->runTool(edit, &failure) : applyEdit(edit, &failure)))
 	{
 		if (error)
 			*error = failure;

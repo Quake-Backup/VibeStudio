@@ -673,6 +673,10 @@ In the UV controls on the **Surface** page (or the **UV** menu):
   turn when that fits them larger; **Pack with surfaces sharing this material**
   packs those surfaces into the same skin.
 
+After Weld, Align, Snap or the Quake front/back layout, **Adjust Last
+Operation** (<kbd>F9</kbd> in the Blender profile, or the **View** menu) changes
+its settings and replays it in place.
+
 In the UV view, press <kbd>S</kbd> to scale or <kbd>R</kbd> to rotate the
 selection (or your profile's keys), move the pointer or type a value, then press
 <kbd>Enter</kbd>; <kbd>Esc</kbd> cancels.

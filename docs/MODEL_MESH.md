@@ -622,9 +622,13 @@ listed problem is present, for automation. See [CLI](#cli).
 ### UV operators
 
 Each operator is one undo step through the document service, so the CLI
-(`model edit --operation uv-weld|uv-stitch|uv-align|uv-snap-texels`), recovery
-and saves share it. Settings sit in the Surface panel's UV controls; the
-commands are also in the **UV** menu and can take keys in **Controls**.
+(`model edit --operation uv-weld|uv-stitch|uv-align|uv-snap-texels|uv-pin|uv-unpin`),
+recovery and saves share it. Settings sit in the Surface panel's UV controls;
+the commands are also in the **UV** menu and can take keys in **Controls**.
+**Adjust Last Operation** (F9 in the Blender profile) changes the last one's
+settings and replays it in place: the weld distance, the alignment, the snap
+grid (texel centres or corners, and a grid size where 0 keeps the skin's), and
+for **Quake Front/Back Skin Layout** the facing axis.
 
 - **Weld UVs** joins the selected corners with their split copies: corners whose
   positions and normals match bit for bit in every pose, with the same topology

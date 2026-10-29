@@ -2028,9 +2028,16 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 				 [](E &e, double v) { e.tool.evenThickness = v > 0.5; }, true}};
 	case ModelEditKind::ProjectUvMapping:
 	{
-		QVector<LastField> fields{{Text::tr("Projection"), 0, 3, 0, [](const E &e) { return double(int(e.tool.uvProjection)); },
+		QVector<LastField> fields{{Text::tr("Projection"), 0, 4, 0, [](const E &e) { return double(int(e.tool.uvProjection)); },
 								   [](E &e, double v) { e.tool.uvProjection = ModelUvProjection(int(v)); }, false,
-								   {Text::tr("Cube"), Text::tr("From View"), Text::tr("Cylinder"), Text::tr("Sphere")}, true}};
+								   {Text::tr("Cube"), Text::tr("From View"), Text::tr("Cylinder"), Text::tr("Sphere"), Text::tr("Quake Front/Back")}, true}};
+		// The front/back layout faces along an axis and always fits the skin.
+		if (edit.tool.uvProjection == ModelUvProjection::QuakeFrontBack)
+		{
+			fields.append({Text::tr("Facing axis"), 0, 2, 0, [](const E &e) { return double(e.tool.axis); }, [](E &e, double v) { e.tool.axis = int(v); },
+						   false, {QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")}});
+			return fields;
+		}
 		if (edit.tool.uvProjection == ModelUvProjection::Cube || edit.tool.uvProjection == ModelUvProjection::View)
 			fields.append({Text::tr("Units per texture repeat"), 0.001, 100000, 3, [](const E &e) { return e.tool.uvTileSize; },
 						   [](E &e, double v) { e.tool.uvTileSize = v; }});
@@ -2041,6 +2048,49 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 					   [](E &e, double v) { e.tool.uvFit = v > 0.5; }, true});
 		return fields;
 	}
+	// UV operators (core/model_uv_ops.h).
+	case ModelEditKind::WeldUv:
+		return {{Text::tr("Weld distance"), 0, 1, 6, [](const E &e) { return e.uvTools.weldTolerance; }, [](E &e, double v) { e.uvTools.weldTolerance = v; }}};
+	case ModelEditKind::AlignUv:
+		// The UV panel's seven choices: U then V to minimum, centre and
+		// maximum, then Straighten.
+		return {{Text::tr("Align"), 0, 6, 0,
+				 [](const E &e)
+				 {
+					 if (e.uvTools.alignMode == ModelUvAlignMode::Straighten)
+						 return 6.0;
+					 const int mode = e.uvTools.alignMode == ModelUvAlignMode::Minimum ? 0 : e.uvTools.alignMode == ModelUvAlignMode::Centre ? 1 : 2;
+					 return double(e.uvTools.alignAxis * 3 + mode);
+				 },
+				 [](E &e, double v)
+				 {
+					 const int choice = int(v);
+					 e.uvTools.alignAxis = choice >= 3 && choice < 6 ? 1 : 0;
+					 e.uvTools.alignMode = choice == 6 ? ModelUvAlignMode::Straighten
+										   : choice % 3 == 0 ? ModelUvAlignMode::Minimum
+										   : choice % 3 == 1 ? ModelUvAlignMode::Centre
+															 : ModelUvAlignMode::Maximum;
+				 },
+				 false,
+				 {Text::tr("U to minimum"), Text::tr("U to centre"), Text::tr("U to maximum"), Text::tr("V to minimum"), Text::tr("V to centre"),
+				  Text::tr("V to maximum"), Text::tr("Straighten")}}};
+	case ModelEditKind::SnapUvTexels:
+		return {{Text::tr("Snap to"), 0, 1, 0, [](const E &e) { return double(e.uvTools.snapMode == ModelUvSnapMode::Corners); },
+				 [](E &e, double v) { e.uvTools.snapMode = v > .5 ? ModelUvSnapMode::Corners : ModelUvSnapMode::Centres; }, false,
+				 {Text::tr("Texel centres"), Text::tr("Texel corners")}},
+				// Zero uses the model's MDL or MD2 skin size.
+				{Text::tr("Grid width (0: skin width)"), 0, 65536, 0, [](const E &e) { return double(std::max(0, e.uvTools.snapSize.width())); },
+				 [](E &e, double v)
+				 {
+					 const int width = int(v), height = std::max(0, e.uvTools.snapSize.height());
+					 e.uvTools.snapSize = width > 0 && height > 0 ? QSize(width, height) : width > 0 ? QSize(width, width) : QSize();
+				 }},
+				{Text::tr("Grid height (0: skin height)"), 0, 65536, 0, [](const E &e) { return double(std::max(0, e.uvTools.snapSize.height())); },
+				 [](E &e, double v)
+				 {
+					 const int height = int(v), width = std::max(0, e.uvTools.snapSize.width());
+					 e.uvTools.snapSize = width > 0 && height > 0 ? QSize(width, height) : height > 0 ? QSize(height, height) : QSize();
+				 }}};
 	case ModelEditKind::Decimate:
 		return {{Text::tr("Ratio"), 0, 1, 3, [](const E &e) { return e.tool.ratio; }, [](E &e, double v) { e.tool.ratio = v; }},
 				{Text::tr("Triangle budget (0 uses the ratio)"), 0, 131072, 0, [](const E &e) { return double(e.tool.targetTriangles); },
@@ -2117,6 +2167,18 @@ QString kindTitle(ModelEditKind kind)
 		return Text::tr("Solidify");
 	case ModelEditKind::ProjectUvMapping:
 		return Text::tr("UV Projection");
+	case ModelEditKind::WeldUv:
+		return Text::tr("Weld UVs");
+	case ModelEditKind::StitchUv:
+		return Text::tr("Stitch UVs");
+	case ModelEditKind::AlignUv:
+		return Text::tr("Align UVs");
+	case ModelEditKind::SnapUvTexels:
+		return Text::tr("Snap UVs to Texels");
+	case ModelEditKind::PinUv:
+		return Text::tr("Pin UVs");
+	case ModelEditKind::UnpinUv:
+		return Text::tr("Unpin UVs");
 	default:
 		return Text::tr("Mesh Edit");
 	}
