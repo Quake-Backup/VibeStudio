@@ -20761,6 +20761,7 @@ void ApplicationShell::showModelDesign()
 			context.canStage = m_packageStaging.isLoaded() && m_packageStaging.sourceFormat() != PackageArchiveFormat::Wad && !m_packageExtractionRunning && !m_packageSaveRunning && !m_packageReadRunning;
 			context.canPlace = m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map;
 			context.placeSuffixes = levelModelPlacementSuffixes(m_levelMapDocument.format);
+			context.mapRevision = qHashMulti(0, m_levelMapLoadSerial, m_levelMapDocument.revision, m_levelMapDocument.historyRevision);
 			return context;
 		};
 		designer->handoff = [this](const ModelDesign& design, const QString& path, bool place, const LevelMapVec3& origin, bool replace, QString* error) {
@@ -20862,7 +20863,8 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial, const QString& 
 		    m_packageStaging.isLoaded() && m_packageStaging.sourceFormat() != PackageArchiveFormat::Wad && !m_packageExtractionRunning && !m_packageSaveRunning && !m_packageReadRunning,
 		    m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map,
 		    m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map,
-		    levelModelPlacementSuffixes(m_levelMapDocument.format)};
+		    levelModelPlacementSuffixes(m_levelMapDocument.format),
+		    qHashMulti(0, m_levelMapLoadSerial, m_levelMapDocument.revision, m_levelMapDocument.historyRevision)};
 	};
 	editor->collisionDestination = [this]() {
 		const auto commit = levelPlacementCommitter();

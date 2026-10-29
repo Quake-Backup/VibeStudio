@@ -626,7 +626,7 @@ void ModelDesignDialog::refreshContext()
 		return;
 	}
 	const auto state = context ? context() : ModelDesignContext();
-	m_contextKey = state.packagePath + QLatin1Char('\n') + state.mapPath;
+	m_contextKey = state.packagePath + QLatin1Char('\n') + state.mapPath + QLatin1Char('\n') + QString::number(state.mapRevision);
 	m_contextLabel->setText(
 	    QCoreApplication::translate("VibeStudioModelDesignDialog", "Package: %1 · Level: %2")
 	        .arg(state.packagePath.isEmpty() ? QCoreApplication::translate("VibeStudioModelDesignDialog", "none") : state.packagePath,

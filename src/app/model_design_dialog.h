@@ -28,6 +28,9 @@ struct ModelDesignContext {
 	bool canPlaceCollision = false;
 	// The model suffixes the open map places (core/level_model_placement.h).
 	QStringList placeSuffixes;
+	// Changes whenever the open map does (an edit, an undo, another map):
+	// Stage and Place refuses when it changed while the model was prepared.
+	quint64 mapRevision = 0;
 };
 
 class ModelDesignDialog final : public QDialog

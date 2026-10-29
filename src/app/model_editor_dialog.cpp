@@ -2755,6 +2755,8 @@ void ModelEditorDialog::stage(bool place)
 	{
 		return;
 	}
+	// The map as preparation starts; a map edited meanwhile refuses the placement.
+	const quint64 mapRevision = context ? context().mapRevision : 0;
 	QString error;
 	const LevelMapVec3 origin{float(m_placement[0]->value()), float(m_placement[1]->value()), float(m_placement[2]->value())};
 	const auto path = m_virtualPath->text();
@@ -2840,6 +2842,13 @@ void ModelEditorDialog::stage(bool place)
 	{
 		m_status->setText(QCoreApplication::translate(
 							  "VibeStudioModelEditor", "The active package changed while preparing the model. Review the destination and stage again."),
+						  LiveStatus::Problem);
+		return;
+	}
+	if (place && context && context().mapRevision != mapRevision)
+	{
+		m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "The map changed while preparing the model, so nothing was staged or "
+																			  "placed. Review the level origin and stage again."),
 						  LiveStatus::Problem);
 		return;
 	}

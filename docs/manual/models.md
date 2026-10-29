@@ -868,16 +868,18 @@ The Levels page **Models** tab, the Mesh Editor's and **Design Prop**'s
 **Stage and Place**, and `map place-model` all place models the same way:
 
 - A Quake III map bakes MD3, ASE, MDC, MD2, OBJ, LWO and FM models into the map
-  as `misc_model` (VibeMap3 reads them as q3map2 does).
+  as `misc_model` (VibeMap3 reads them as q3map2 does), unless the entity
+  definitions loaded in the Levels workbench declare only `misc_gamemodel`.
 - A Quake or Quake II map places MDL and MD2 models as the class your loaded
   definitions use for models (`misc_model`, else `misc_gamemodel`). Other
   formats place with a warning that only source ports read them, and the studio
   says so when no loaded definition declares the class.
 - Doom maps have no model entities.
 
-**Stage and Place** commits the new entity as one undoable map edit, selects it
-and frames it; if the map changed while the model was being prepared, nothing is
-staged or placed and you are asked to try again. The **Stage and Place** tooltip
+**Stage and Place** uses the entity definitions loaded in the Levels workbench,
+commits the new entity as one undoable map edit, selects it and frames it; if
+the map was edited, undone or reopened while the model was being prepared,
+nothing is staged or placed and you are asked to try again. The **Stage and Place** tooltip
 names the formats the open map places.
 
 Right-click a placed entity with a `model` key in a view or the object list for

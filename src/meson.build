@@ -4199,6 +4199,14 @@ model_stage_review_ui_smoke_test = executable(
   install: false,
 )
 test('model-stage-review-ui-smoke', model_stage_review_ui_smoke_test, env: model_document_test_env, timeout: 180)
+model_stage_place_ui_smoke_test = executable(
+  'model_stage_place_ui_smoke_test',
+  ['tests/model_stage_place_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep],
+  install: false,
+)
+test('model-stage-place-ui-smoke', model_stage_place_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 model_editor_ui_smoke_test = executable(
   'model_editor_ui_smoke_test',

@@ -196,13 +196,50 @@ int main(int argc, char **argv)
 	stage->trigger();
 	expect(staged.size() == 3 && stagedReplace, "choosing Replace stages over the existing files");
 
-	// Without the shell's review the editor stages directly, as before.
-	editor.reviewStage = {};
+	// Stage and Place refuses when the map changed while the model was prepared
+	// (SI-3): readPackageFiles runs during preparation, so a map edit there
+	// stands for one made meanwhile in the Levels workbench.
+	quint64 mapRevision = 7;
+	editor.context = [&]
+	{
+		ModelDesignContext context{QStringLiteral("C:/mods/mymod.pk3"), QStringLiteral("C:/mods/maps/arena.map"), true, true, false,
+								   {QStringLiteral("md3")}};
+		context.mapRevision = mapRevision;
+		return context;
+	};
+	bool placed = false;
+	editor.handoff = [&](const QByteArray &, const QString &, bool place, const LevelMapVec3 &, bool, QString *)
+	{
+		placed = place;
+		++singles;
+		return true;
+	};
+	editor.readPackageFiles = [&](const QStringList &)
+	{
+		++mapRevision;
+		return QHash<QString, QByteArray>{};
+	};
 	conflicting = false;
 	skins->setChecked(false);
+	answer = 1;
+	editor.refreshContext();
+	auto *placeAction = editor.findChild<QAction *>(QStringLiteral("placeMesh"));
+	const int before = singles;
+	expect(placeAction && placeAction->isEnabled(), "Stage and Place is offered for an MD3 with a Quake III map");
+	if (placeAction)
+		placeAction->trigger();
+	expect(singles == before && !placed, "a map changed while preparing refuses Stage and Place and stages nothing");
+	editor.readPackageFiles = {};
+	if (placeAction)
+		placeAction->trigger();
+	expect(singles == before + 1 && placed, "an unchanged map stages and places");
+
+	// Without the shell's review the editor stages directly, as before.
+	editor.reviewStage = {};
 	answer = 0;
+	const int direct = singles;
 	stage->trigger();
-	expect(singles == 1, "an editor without a package plan stages without a review");
+	expect(singles == direct + 1, "an editor without a package plan stages without a review");
 	StudioSettings::setOverrideFilePath(QString());
 	std::cout << failures << " failures\n";
 	return failures ? 1 : 0;

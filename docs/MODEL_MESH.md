@@ -1214,10 +1214,13 @@ staging over existing files needs **Replace existing package files** there. An
 editor hosted without a package plan stages directly. Placement goes through the shared service (core/level_model_placement.h): a
 Quake III map bakes MD3, ASE, MDC, MD2, OBJ, LWO and FM as `misc_model`, a Quake
 map places MDL and MD2 (other formats with a source-port warning) as the class the
-loaded definitions use. The shell prepares the package and the map on copies and
-commits the entity through the guarded level committer before adopting the
-package plan, so a map that changed meanwhile refuses and nothing is staged; the
-new entity is selected. Package replacement remains explicit. Save the editable source,
+loaded definitions use. The shell places through `placeLevelModelEntity` with the
+Levels workbench's loaded definitions, prepares the package and the map on
+copies, and commits the entity through the guarded level committer (captured
+before staging) before adopting the package plan; the new entity is selected.
+`ModelDesignContext::mapRevision` changes with every map edit, undo or reload,
+and the Mesh Editor and **Design Prop** refuse a placement whose map changed
+while the model was prepared, staging nothing. Package replacement remains explicit. Save the editable source,
 package plan, and map separately. `model stage` prepares the same sets
 (`prepareModelStageSet`: MD3 detail levels, md5mesh clips) with a material review
 against the package (`inspectModelMaterialDependencies`) and writes a new package

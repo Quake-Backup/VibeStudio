@@ -232,14 +232,28 @@ bool ApplicationShell::commitModelHandoff(const std::function<bool(PackageStagin
 	LevelMapDocument candidate;
 	if (place)
 		candidate = m_levelMapDocument;
+	const auto commit = levelPlacementCommitter();
 	if (!stage(&staged, place ? &candidate : nullptr, error))
 		return false;
 	int placed = -1;
 	if (place)
 	{
 		if (candidate.entities.size() > m_levelMapDocument.entities.size())
-			placed = candidate.entities.last().id;
-		const auto commit = levelPlacementCommitter();
+		{
+			// The handoff placed with the default class; place it again through
+			// the shared service with the definitions the Levels workbench loaded
+			// (core/level_model_placement.h), so a mod's misc_gamemodel is used.
+			const auto added = candidate.entities.last();
+			LevelModelPlacementRequest request;
+			request.virtualPath = levelEntityModelPath(added);
+			request.origin = added.origin;
+			request.definitions = m_entityDefinitions.isEmpty() ? nullptr : &m_entityDefinitions;
+			LevelModelPlacementResult result;
+			candidate = m_levelMapDocument;
+			if (!placeLevelModelEntity(&candidate, request, &result, error))
+				return false;
+			placed = result.entityId;
+		}
 		if (!commit(candidate, error))
 			return false;
 	}
