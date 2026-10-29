@@ -91,7 +91,9 @@ The review beside the options updates as you change them:
 - **From the Game** lists the references the game provides and which of its packages holds each.
 - **Problems** lists what blocks publishing first, such as a missing texture or a map that has not
   been built, then advisories, such as a sound that a script names but neither the project nor the
-  game has. Activate an unbuilt or out-of-date map to open it on the Build page.
+  game has. Activate an unbuilt or out-of-date map to open it on the Build page. A model exported
+  or staged from a source that has changed since is listed too; refresh it from the Mesh Editor's
+  **Outputs** or with `model outputs --refresh stale`.
 - **Details** is the whole plan as text.
 
 ## Files that game code and scripts load

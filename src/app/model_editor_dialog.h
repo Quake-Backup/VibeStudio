@@ -52,6 +52,9 @@ class ModelViewport;
 class ModelUvView;
 class ModelRecoveryWriter;
 struct ModelSourceWatchState;
+struct ModelOutputsState;
+struct ModelOutputRecord;
+struct ModelOutputFile;
 class SidebarPage;
 class StudioSidebar;
 
@@ -183,6 +186,11 @@ class ModelEditorDialog final : public QDialog
 	// for Reload with unsaved edits, 0 cancels, 1 saves as first, 2 discards.
 	std::function<int(const QString &)> sourceConflictChoice;
 	std::function<int(const QString &)> sourceReloadChoice;
+	// Keeps the receipt of an export or stage with the project
+	// (core/model_outputs.h); the shell owns the manifest.
+	std::function<bool(const ModelOutputRecord &, QString *)> recordOutput;
+	// The Export page's Outputs (app/model_editor_outputs.cpp).
+	void refreshOutputs();
 	// Runs after the user picks another controls profile, so other views
 	// (the Models page preview) can follow it.
 	std::function<void()> profileChanged;
@@ -193,6 +201,8 @@ class ModelEditorDialog final : public QDialog
 	// turns off Play / Pause and says why.
 	void setAccessibility(bool highContrast, bool reducedMotion);
 	void checkpointRecovery();
+	// Model > Recover…: the recovery chooser (the studio's startup notice).
+	void reviewRecoveryCopies() { chooseRecovery(); }
 	[[nodiscard]] bool recoveryBusy() const;
 	[[nodiscard]] QString recoveryPath() const;
 	[[nodiscard]] bool operationBusy() const;
@@ -330,6 +340,13 @@ class ModelEditorDialog final : public QDialog
 	// Before saving over the document's own file: 0 cancel, 1 save as, 2 go on.
 	int sourceSaveDecision(const QString &path);
 	std::shared_ptr<ModelSourceWatchState> m_sourceWatch;
+	void addOutputControls(QFormLayout *page);
+	void cancelOutputsWork();
+	void showOutputs();
+	void refreshStaleOutputs();
+	void recordDeliveredOutput(const QString &format, const ModelExportOptions &options, const ModelOutputFile &output, const QByteArray &bytes);
+	void prefillPackagePath();
+	std::shared_ptr<ModelOutputsState> m_outputs;
 	bool m_discardConfirmed = false;
 	QHash<QString, int> m_previewMaterialSlots;
 	void addMaterialSlotControls(QFormLayout *surface);

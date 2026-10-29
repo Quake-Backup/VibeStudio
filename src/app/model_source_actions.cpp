@@ -9,6 +9,9 @@
 #include "app/model_assembly_dialog.h"
 #include "app/model_design_dialog.h"
 #include "app/model_editor_dialog.h"
+#include "core/level_model_placement.h"
+#include "core/model_outputs.h"
+#include "core/package_staging.h"
 #include "core/project_manifest.h"
 
 #include <QDir>
@@ -94,7 +97,11 @@ QString ApplicationShell::editableSourceForModelEntry(const QString &virtualPath
 	if (virtualPath.isEmpty() || modelSourceKind(virtualPath) != ModelSourceKind::None)
 		return {};
 	const ProjectManifest manifest = currentProjectManifestOrDefault();
-	// A same-named .mesh.json at the same game path, beside a folder
+	// A receipt names the source exactly (core/model_outputs.h).
+	const auto recorded = modelOutputSourceFor(projectModelOutputs(manifest), virtualPath);
+	if (!recorded.isEmpty() && QFileInfo(recorded).isFile())
+		return QFileInfo(recorded).absoluteFilePath();
+	// Otherwise a same-named .mesh.json at the same game path, beside a folder
 	// package's file or in the project's source folders.
 	const QString stem = withoutModelSuffix(virtualPath) + QStringLiteral(".mesh.json");
 	QStringList candidates;
@@ -206,6 +213,72 @@ void ApplicationShell::appendModelSourceItems()
 		item->setToolTip(QDir::toNativeSeparators(path) + QLatin1Char('\n') + tr("Press Enter or double-click to open it in its editor."));
 		m_modelEntries->addItem(item);
 	}
+}
+
+bool ApplicationShell::commitModelHandoff(const std::function<bool(PackageStagingModel *, LevelMapDocument *, QString *)> &stage, bool place,
+										  QString *error)
+{
+	// Both are prepared on copies; the map commits through the guarded committer
+	// first, so a map that changed meanwhile refuses and nothing is staged.
+	auto staged = m_packageStaging;
+	LevelMapDocument candidate;
+	if (place)
+		candidate = m_levelMapDocument;
+	if (!stage(&staged, place ? &candidate : nullptr, error))
+		return false;
+	int placed = -1;
+	if (place)
+	{
+		if (candidate.entities.size() > m_levelMapDocument.entities.size())
+			placed = candidate.entities.last().id;
+		const auto commit = levelPlacementCommitter();
+		if (!commit(candidate, error))
+			return false;
+	}
+	m_packageStaging = std::move(staged);
+	refreshPackageStagingSummary();
+	if (place)
+	{
+		// The new entity is selected, so its keys are in the inspector at once.
+		if (placed >= 0)
+			setLevelMapSelection(&m_levelMapDocument, {{LevelMapSelectionKind::Entity, placed}});
+		refreshLevelMapWorkbench();
+		frameLevelMapSelection();
+	}
+	return true;
+}
+
+QString ApplicationShell::selectedLevelEntityModelPath() const
+{
+	if (m_levelMapDocument.selectionKind != LevelMapSelectionKind::Entity)
+		return {};
+	for (const auto &entity : m_levelMapDocument.entities)
+	{
+		if (entity.id == m_levelMapDocument.selectedObjectId)
+			return levelEntityModelPath(entity);
+	}
+	return {};
+}
+
+bool ApplicationShell::recordProjectModelOutput(const ModelOutputRecord &record, QString *error)
+{
+	ProjectManifest manifest = currentProjectManifestOrDefault();
+	if (manifest.rootPath.isEmpty())
+	{
+		if (error)
+			*error = tr("Open a project to keep receipts of model outputs.");
+		return false;
+	}
+	// A manifest that exists but cannot be read is not replaced.
+	QString loadError;
+	if (QFileInfo::exists(projectManifestPath(manifest.rootPath)) && !loadProjectManifest(manifest.rootPath, &manifest, &loadError))
+	{
+		if (error)
+			*error = loadError;
+		return false;
+	}
+	addProjectModelOutput(&manifest, record);
+	return saveOwnProjectManifest(manifest, error);
 }
 
 void ApplicationShell::openModelSourceItem(QListWidgetItem *item)

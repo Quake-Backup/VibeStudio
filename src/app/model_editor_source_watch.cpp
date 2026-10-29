@@ -10,11 +10,13 @@
 #include "app/studio_layout.h"
 #include "core/document_watch.h"
 #include "core/model_file_io.h"
+#include "core/model_recovery_policy.h"
 
 #include <QBoxLayout>
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QFileInfo>
+#include <QLineEdit>
 #include <QLocale>
 #include <QMessageBox>
 #include <QPushButton>
@@ -63,6 +65,10 @@ void ModelEditorDialog::sourceBindingChanged()
 	const QString path = m_document.path();
 	if (sourcePathChanged && !path.isEmpty())
 		sourcePathChanged(path);
+	// The package path starts where the source came from; Outputs follow the file.
+	if (m_virtualPath->text() == QStringLiteral("models/props/edited.md3"))
+		prefillPackagePath();
+	refreshOutputs();
 	if (!m_sourceWatch)
 		return;
 	auto &watch = *m_sourceWatch;
@@ -167,7 +173,13 @@ void ModelEditorDialog::keepEditingOverSourceChange()
 
 int ModelEditorDialog::sourceSaveDecision(const QString &path)
 {
-	if (m_document.path().isEmpty() || !modelPathsReferToSameFile(path, m_document.path()) || !sourceChangedOnDisk())
+	// A recovered draft goes back over its source only while that file still
+	// holds what the copy started from.
+	const bool draftOverSource = m_document.path().isEmpty() && !m_recoverySourceHash.isEmpty() && QFileInfo::exists(path) &&
+								 modelPathsReferToSameFile(path, m_recoverySourcePath) &&
+								 modelRecoveryFileSha256(path, modelDocumentMaxSourceBytes) != m_recoverySourceHash;
+	if (!draftOverSource &&
+		(m_document.path().isEmpty() || !modelPathsReferToSameFile(path, m_document.path()) || !sourceChangedOnDisk()))
 		return 2;
 	const QString name = QFileInfo(path).fileName();
 	int choice = 0;
@@ -180,7 +192,9 @@ int ModelEditorDialog::sourceSaveDecision(const QString &path)
 		QMessageBox box(QMessageBox::Warning, QCoreApplication::translate("VibeStudioModelEditor", "Source Changed on Disk"),
 						QCoreApplication::translate("VibeStudioModelEditor", "%1 changed outside the studio after you opened it. Replacing it loses those changes.").arg(name),
 						QMessageBox::NoButton, this);
-		box.setInformativeText(sourceComparisonText());
+		box.setInformativeText(draftOverSource ? QCoreApplication::translate("VibeStudioModelEditor",
+																			 "The file was saved or replaced after this recovery copy was taken.")
+											   : sourceComparisonText());
 		auto *saveAs = box.addButton(QCoreApplication::translate("VibeStudioModelEditor", "Save As…"), QMessageBox::AcceptRole);
 		auto *replace = box.addButton(QCoreApplication::translate("VibeStudioModelEditor", "Replace Changed File"), QMessageBox::DestructiveRole);
 		box.addButton(QMessageBox::Cancel);
@@ -188,7 +202,7 @@ int ModelEditorDialog::sourceSaveDecision(const QString &path)
 		box.exec();
 		choice = box.clickedButton() == saveAs ? 1 : box.clickedButton() == replace ? 2 : 0;
 	}
-	if (choice != 2)
+	if (choice != 2 || draftOverSource)
 		return choice;
 	// Re-inspects the file as it is now; a later change is refused again.
 	QString error;

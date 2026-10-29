@@ -440,10 +440,50 @@ a choice over the budget exits 4. A model named relative to the working folder
 still finds its companion files (md5anim, GLA, `.def`) beside it. See
 [the skeletal working set](../MODEL_SKELETAL_WORKING_SET.md#use-the-command-line).
 
+`model import` also reads a model straight out of a package, folder or
+portable draft: give the package and the entry (`model import ./id1/pak0.pak
+progs/player.mdl`, or `--package` and `--entry`). It reads the companions inside
+the package (md5anim, MDX, GLA) and the package's palette, as the Mesh Editor
+does, and the source remembers the entry it came from. The output cannot be
+written inside that package. `--palette quake|quake2|doom|heretic|hexen|generic`
+chooses the palette family for MDL skins when the package has none.
+
 ```sh
+vibestudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./out/player.mesh.json --dry-run --json
 vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --json
 vibestudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json
 ```
+`model outputs` lists the receipts a project keeps of the game files made from
+its model sources (exports, staged models, detail levels), each with whether it
+is `current`, `source-changed`, `output-changed`, `missing` or `unknown`, and
+exits 4 when any is stale or was changed elsewhere. `--refresh stale` (or an
+output path) exports them again with their recorded settings, never over a file
+someone else changed; `--dry-run` writes nothing. `--forget OUTPUT` drops a
+receipt, and `--receipt PACKAGE` checks a player package's embedded receipt (with
+`--assembly` against its parts' sources). See
+[Model outputs and receipts](../MODEL_OUTPUTS.md).
+
+```sh
+vibestudio --cli model outputs ./models/crate.mesh.json --json
+vibestudio --cli model outputs --project ./mymod --refresh stale --dry-run --json
+```
+
+`model stage` stages an editable source in a package as the files the game
+loads with it (an MD3 with its detail levels, an md5mesh with its clips'
+md5anims), reviews the materials it uses against the package, and writes a new
+package or draft; `--dry-run` only reports the set. `map place-model` places an
+MDL or MD2 in a Quake map and an MD3 or ASE in a Quake III map, with optional
+`--angles`, `--modelscale`, `--class` and `--definitions`.
+
+```sh
+vibestudio --cli model stage ./models/crate.mesh.json --package ./mymod.pk3 --as models/props/crate.md3 --lod 2 --output ./out/mymod.pk3 --dry-run --json
+```
+
+`model recoveries --json` says for each copy whether its source is `unchanged`,
+`changed`, `missing`, `unreadable` or `unsaved` (`sourceState`). `--prune`
+removes the oldest copies beyond 32 or 2 GiB, never one a running studio is
+writing; with `--dry-run` it only reports them (`pruned`).
+
 `model import` and `model edit` report the source they wrote (or would write
 with `--dry-run`) in JSON as `"source": {"bytes", "encoding", "limitBytes"}`.
 The encoding is `readable`, or `packed` when the readable source would pass the
@@ -676,6 +716,13 @@ Without `--json`, results go to standard output and errors to standard error.
 | 3 | `not-found` | A requested project, package, entry, installation or tool was not found. |
 | 4 | `validation-failed` | Validation completed and found blocking problems. |
 | 5 | `unavailable` | The workflow is recognised but no capable implementation or tool is available yet. |
+
+Model commands also stop cleanly when interrupted. <kbd>Ctrl</kbd>+<kbd>C</kbd> or
+<kbd>Ctrl</kbd>+<kbd>Break</kbd> (SIGINT or SIGTERM on macOS and Linux) asks a running `model`
+command to stop at its next checkpoint: it publishes nothing, removes its own temporary files and
+exits with 130, with `"cancelled": true` in JSON. A second request ends the process at once.
+`--progress` prints each phase of a long model command as a JSON line on stderr, such as
+`{"progress": {"phase": "serializing", "completed": 1048576, "total": 4194304}}`.
 
 A check that finds a problem exits with 4, not 1, so a script can tell "the check failed" from "the
 command failed". For example, `package validate`, `package compare` and `entity validate` exit with 4

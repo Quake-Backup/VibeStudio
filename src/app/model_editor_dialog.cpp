@@ -1,5 +1,7 @@
 #include "app/model_editor_dialog.h"
 #include "core/asset_formats.h"
+#include "core/model_outputs.h"
+#include "core/package_archive.h"
 #include "core/model_lod.h"
 #include "app/dialog_screen_fit.h"
 #include "app/locale_number.h"
@@ -1021,6 +1023,7 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 		connect(command, &QAction::changed, control, [control, command = command] { control->setEnabled(command->isEnabled()); });
 		handoffPage->addRow(control);
 	}
+	addOutputControls(handoffPage);
 	addHealthControls(page(QStringLiteral("health")));
 	addSkeletonControls(page(QStringLiteral("skeleton")));
 	// The Tool, Materials, View and Add pages hold controls built above, and
@@ -1754,6 +1757,7 @@ bool ModelEditorDialog::performWork(const QString &title, ModelDocumentJob job, 
 }
 ModelEditorDialog::~ModelEditorDialog()
 {
+	cancelOutputsWork();
 	delete m_materialLoader;
 	m_materialLoader = nullptr;
 	m_recoveryTimer->stop();
@@ -2541,8 +2545,13 @@ void ModelEditorDialog::refreshContext()
 	m_stage->setEnabled(bool(handoff) && current.canStage);
 	refreshShowInMaterials();
 	if (m_collisionPlace) { m_collisionPlace->setEnabled(bool(collisionDestination) && current.canPlaceCollision && !m_document.mesh().collisionBoxes.isEmpty()); }
-	m_place->setEnabled(bool(handoff) && current.canStage && current.canPlace &&
-						m_virtualPath->text().endsWith(QStringLiteral(".md3"), Qt::CaseInsensitive));
+	// The map says which formats it places (core/level_model_placement.h).
+	const auto suffix = QFileInfo(m_virtualPath->text()).suffix().toLower();
+	m_place->setEnabled(bool(handoff) && current.canStage && current.canPlace && current.placeSuffixes.contains(suffix));
+	m_place->setToolTip(current.placeSuffixes.isEmpty()
+							? QCoreApplication::translate("VibeStudioModelEditor", "Open a Quake-family map to place the model.")
+							: QCoreApplication::translate("VibeStudioModelEditor", "This map places %1 models.")
+								  .arg(current.placeSuffixes.join(QStringLiteral(", ")).toUpper()));
 	for (auto *field : m_placement)
 	{
 		if (field)
@@ -2576,7 +2585,9 @@ bool ModelEditorDialog::save(bool saveAs)
 	QString path = m_document.path();
 	if (saveAs || path.isEmpty())
 	{
-		path = QFileDialog::getSaveFileName(this, QCoreApplication::translate("VibeStudioModelEditor", "Save Editable Mesh"), path,
+		// A recovered draft offers the source it was copied from.
+		const QString suggested = path.isEmpty() && m_recoverySourcePath.endsWith(QStringLiteral(".mesh.json"), Qt::CaseInsensitive) ? m_recoverySourcePath : path;
+		path = QFileDialog::getSaveFileName(this, QCoreApplication::translate("VibeStudioModelEditor", "Save Editable Mesh"), suggested,
 											QCoreApplication::translate("VibeStudioModelEditor", "VibeStudio mesh (*.mesh.json)"));
 	}
 	if (path.isEmpty())
@@ -2819,6 +2830,10 @@ void ModelEditorDialog::stage(bool place)
 		m_status->setText(error, LiveStatus::Problem);
 		return;
 	}
+	ModelOutputFile staged;
+	staged.package = package;
+	staged.entry = normalizePackageVirtualPath(path, false).normalizedPath;
+	recordDeliveredOutput(suffix, options, staged, bytes);
 	presentExportReport((place ? QCoreApplication::translate("VibeStudioModelEditor", "Model staged and placed. Save the "
 																					  "package and level separately.")
 							   : QCoreApplication::translate("VibeStudioModelEditor", "Model staged. Review and save the package plan.")) +
@@ -2979,6 +2994,7 @@ void ModelEditorDialog::chooseRecovery()
 																					 : (m_document.selection().vertices.isEmpty() ? 0 : 1));
 	}
 	refresh(false);
+	sourceBindingChanged();
 	checkpointRecovery();
 	m_status->setText(
 		QCoreApplication::translate("VibeStudioModelEditor", "Recovered an unsaved draft. Save it to an editable mesh source."), LiveStatus::Result);

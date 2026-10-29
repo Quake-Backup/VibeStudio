@@ -1,6 +1,8 @@
 #include "core/model_design.h"
 #include "core/model_file_io.h"
 #include "core/model_document.h"
+#include "core/level_model_placement.h"
+#include "core/model_stage.h"
 
 #include <QCryptographicHash>
 #include <QCoreApplication>
@@ -373,19 +375,20 @@ bool loadModelDesign(const QString& path, ModelDesign* design, QString* error, Q
 
 bool placeLevelModel(LevelMapDocument* document, const QString& virtualPath, const LevelMapVec3& origin, int* entityId, QString* error)
 {
-	if (!document || document->format != LevelMapFormat::Quake3Map) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Model placement requires an open Quake III map."));
+	// The shared placement service (core/level_model_placement.h): a Quake III
+	// map bakes MD3, ASE and the other picomodel formats; a Quake map places
+	// MDL and MD2.
+	LevelModelPlacementRequest request;
+	request.virtualPath = virtualPath;
+	request.origin = origin;
+	LevelModelPlacementResult placed;
+	if (!placeLevelModelEntity(document, request, &placed, error)) {
+		return false;
 	}
-	const auto normalized = normalizePackageVirtualPath(virtualPath, false);
-	if (!normalized.isSafe() || !normalized.normalizedPath.endsWith(QStringLiteral(".md3"), Qt::CaseInsensitive) ||
-	    normalized.normalizedPath.toUtf8().size() >= 64) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Choose a safe MD3 package path shorter than 64 bytes."));
+	if (entityId) {
+		*entityId = placed.entityId;
 	}
-	if (!std::isfinite(origin.x) || !std::isfinite(origin.y) || !std::isfinite(origin.z)) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Model placement coordinates must be finite."));
-	}
-	return addLevelMapEntity(document, QStringLiteral("misc_model"), {origin.x, origin.y, origin.z, true},
-	                         {{QStringLiteral("model"), normalized.normalizedPath, 0}}, entityId, error);
+	return true;
 }
 
 bool stageModelDesign(const ModelDesign& design, const QString& virtualPath, PackageStagingModel* staging, LevelMapDocument* placeInMap,
@@ -413,18 +416,18 @@ bool stageModelExport(const QByteArray& bytes, const QString& virtualPath, Packa
 		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Open a folder, PAK, ZIP, or PK3 before staging a model."));
 	}
 	const auto normalized = normalizePackageVirtualPath(virtualPath, false);
-	const QString kind = QFileInfo(normalized.normalizedPath).suffix().toLower();
-	if (!normalized.isSafe() || (kind != QStringLiteral("mdl") && kind != QStringLiteral("md3") && kind != QStringLiteral("md2")) ||
-	    normalized.normalizedPath.toUtf8().size() >= 64) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Choose a safe MDL, MD2 or MD3 package path shorter than 64 bytes."));
+	// The same path and header rules as a staged set (core/model_stage.h).
+	if (!checkModelStageEntry(virtualPath, bytes, error)) {
+		return false;
 	}
-	if (placeInMap && kind != QStringLiteral("md3")) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "MDL and MD2 can be staged in the package. Automatic level placement currently requires MD3 and a Quake III map."));
-	}
-	if (bytes.size() > modelDocumentMaxSourceBytes || bytes.size() < 68 ||
-	    !bytes.startsWith(kind == QStringLiteral("mdl") ? QByteArrayLiteral("IDPO") :
-	        kind == QStringLiteral("md2") ? QByteArrayLiteral("IDP2") : QByteArrayLiteral("IDP3"))) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Prepare an MDL, MD2 or MD3 export matching the package path before staging."));
+	// Placement rules come from the map before anything is staged.
+	if (placeInMap) {
+		LevelModelPlacementRequest request;
+		request.virtualPath = normalized.normalizedPath;
+		request.origin = origin;
+		if (!checkLevelModelPlacement(*placeInMap, request, nullptr, error)) {
+			return false;
+		}
 	}
 	auto staged = *staging;
 	if (!staged.addBytes(bytes, normalized.normalizedPath, error,

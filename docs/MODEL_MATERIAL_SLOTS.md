@@ -24,8 +24,11 @@ The editor does not rewrite suffixes, generate texture files or copy materials.
 
 **Preview slot** selects the material shown on that surface in Material mode and
 the UV view. **Assign Material** replaces that selected slot, or creates the
-primary binding when unassigned. **Show Material** opens the displayed path in
-the texture workflow. Preview selection alone changes neither source, history,
+primary binding when unassigned. **Show Image** opens the displayed path in
+the texture workflow; **Show in Materials** opens the Quake III shader or Doom 3
+material of that name (without its image extension) in the Materials workbench,
+falling back to the image on the Textures page when no script declares it. It is
+disabled, with the reason in its description, until a package is open. Preview selection alone changes neither source, history,
 export order nor package state. It is a session choice per surface name and slot
 index. Reordering bindings keeps the index, so the visible material can change.
 Out-of-range indices clamp after removal; removed or renamed surfaces reset

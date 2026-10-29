@@ -116,6 +116,18 @@ The **Skin** page changes the preview only: choose a **Preview surface**,
 file with **Skin File…**, or **Reset**. To change what a model really uses,
 edit its materials in the Mesh Editor.
 
+### Follow a surface to its material
+
+Quake III surfaces name shaders and Doom 3 surfaces name materials, which are
+often not the name of any image. **Show in Materials** (on the **Skin** page,
+in the Mesh Editor's **Surface** page and in **Design Prop**'s **Surface** tab)
+opens the surface's shader or material on the **Materials** page, where you can
+edit its stages, blend modes and maps; the image extension a model stores is
+ignored, as the game ignores it. When no script declares the name, the studio
+shows the image of that name on the **Textures** page instead and says so.
+**Show Image** always opens the image. Both need the package that holds the
+material to be open.
+
 ## Skeletal models
 
 MD5, IQM, MDS, MDM, MDR, Ghoul 2 and Half-Life models animate through joints.
@@ -254,19 +266,54 @@ constraints remain planned. The
 
 1. Select a model and choose **Mesh Editor** on the page header. With no model
    selected it starts a new mesh; **Model > Open / Import…** in the editor
-   opens any format above, or a `.mesh.json` source.
+   opens any format above, a `.model.json` design or a `.mesh.json` source.
 2. Select faces, vertices or edges in the view or the outliner, and edit them
    with the tools below.
 3. Choose **Model > Save** (<kbd>Ctrl</kbd>+<kbd>S</kbd>) to keep an editable
    `.mesh.json` source. Game files are exported separately (see
    [Export and build game files](#export-and-build-game-files)).
 
+### Open your sources
+
+Open an editable source the way you open any other file: drop it on the window,
+pick it in **Go to File** or **File** > **Open Recent** (under **Models**), or
+use **Model > Open / Import…** in the editor. A `.mesh.json` opens in the Mesh
+Editor, a `.model.json` in **Design Prop** and an `.assembly.json` in
+**Assemble**, never as raw JSON text.
+
+The **Models** list ends with **Editable sources**: the sources in a folder
+package and in the project's source folders. Press <kbd>Enter</kbd> or
+double-click one to open it.
+
+When you choose **Mesh Editor** on a game model and its editable source is
+known (a `.mesh.json` of the same name at the same game path, beside the file in
+a folder package or in the project's source folders), the studio asks whether
+to **Open Editable Source** or **Import This File**. Prefer the source: a game
+file cannot store connectivity, curves, collision, clips or seam marks, so an
+import starts again from what was exported.
+
 ### Save and review output
 
 The mesh editor checks that a loaded source still has its original contents and
-resolved path before saving over it. If another application changes or removes
-the file, reload it or save to another path. Saving through a hard-link alias of
-the loaded source is also refused; use its original path.
+resolved path before saving over it. Saving through a hard-link alias of the
+loaded source is also refused; use its original path.
+
+While a source is open the editor watches its file. When another program
+(Blender, a script, a second studio, version control) changes it, a notice above
+the views says so, with three choices:
+
+- **Reload from Disk** replaces the document with the file. With unsaved edits
+  it first asks: **Save Edits As…**, **Discard Edits and Reload** or **Cancel**.
+- **Compare** summarises both: surfaces, vertices, triangles and frames in the
+  document and on disk, and when the file was saved.
+- **Keep Editing** hides the notice until the file changes again. **Save** then
+  asks before replacing the changed file: **Save As…**, **Replace Changed File**
+  or **Cancel**.
+
+A source that is deleted or moved shows **Source file removed** with
+**Save As…**. The editor's own saves never raise the notice. **Design Prop**
+likewise refuses to save over a `.model.json` that changed on disk after it was
+opened; save it to another path or reopen it.
 
 CLI authoring commands use the same checks with `--dry-run`, including complete
 serialisation and the 64 MiB editable-source limit. A dry run leaves files,
@@ -540,16 +587,18 @@ and packing. The property pages cover the details:
 
 - **Item** and **Tool**: exact transforms, pivots and transform axes, and the
   settings of the active tool.
-- **Surface**: UVs, seams, materials, **Manage Surfaces…**,
-  **Manage Material Slots…**, **Skin Variants…** (see
+- **Surface**: UVs, seams, materials, **Show Image**, **Show in Materials**
+  (see [Follow a surface to its material](#follow-a-surface-to-its-material)),
+  **Manage Surfaces…**, **Manage Material Slots…**, **Skin Variants…** (see
   [Skin variants](#skin-variants)) and **Apply .skin File…**.
 - **Animation**: frames, named clips, attachment tags and generated in-between
   frames.
 - **Skeleton**: joints and skeletal clips (see [Skeletal models](#skeletal-models)).
 - **Collision**: static collision boxes (see [Add collision](#add-collision)).
 - **Quake MDL**: indexed skins, frame groups, timing and header flags.
-- **Export**: the package path, MD2 skin size and level origin used for export
-  and staging, with **Stage in Package** and **Stage and Place** beside them.
+- **Export**: the package path used for staging (exports ask for a file name),
+  the MD2 skin size, and the level origin used when placing, with
+  **Stage in Package** and **Stage and Place** beside them.
 - **Health**: reports duplicate faces, unused vertices, inconsistent winding,
   open boundaries and intersecting faces, with one-step repairs for several of
   them.
@@ -561,6 +610,23 @@ the game you are exporting to, format by format (see
 Levels…**. **Model > Keep Local Recovery Copies** checkpoints unsaved work (the
 status strip shows the last copy), and **Model > Recover…** restores a copy as
 an unsaved draft.
+
+### Recover after a crash
+
+When the studio starts after a session that did not close, a notice says how
+many mesh and assembly recovery copies are waiting and how many of their
+sources changed since. **Review Models** opens the recovery chooser, where each
+copy says whether its source is **Source unchanged**, **Source changed since
+the copy**, **Source missing** or has **No saved source**. **Restore as Draft**
+opens it unsaved. **Save** then offers the original source: when that file still
+holds what the copy started from, it is replaced; when it changed since, you
+choose **Save As…**, **Replace Changed File** or **Cancel**.
+
+The oldest mesh copies beyond 32, or beyond 2 GiB in all, are removed at
+startup, never one a running studio is still writing. Turn the notice off with
+**Offer mesh and assembly copies at startup** under **Settings → Getting
+Started → Model Recovery**; the copies stay, and **Model > Recover…** still lists
+them.
 
 **Edge → Edge Slide** moves selected chains or loops along surrounding quad
 faces. Follow the preview rails or type a signed fraction, then confirm or
@@ -626,6 +692,7 @@ material defaults, repair diagnostics, limits and CLI examples.
 1. Add parts, then set their size, position and rotation in the **Part** tab.
 2. In the **Surface** tab, set each part's material path and UV scale, offset
    and rotation. **UV checker** previews tiling without project textures.
+   **Show Image** and **Show in Materials** open the material in the package.
 3. Choose **Save Design…** to keep the editable `.model.json` source.
 4. Choose **Export MD3…** or **Export OBJ…**, **Stage in Package**, or, with a
    Quake III map open, **Stage and Place** to also add an undoable `misc_model`
@@ -768,8 +835,53 @@ open. See
 [what each export keeps](../MODEL_FORMATS.md#what-each-export-keeps-changes-or-leaves-out)
 for the details per format.
 
-MD3 models can be placed in Quake III maps as `misc_model` entities; placing
-other models in a level is game-specific and not automated.
+### Keep game files in step with the source
+
+With a project open, every export and **Stage in Package** leaves a receipt in
+the project: the source and its contents, the settings used, and the file
+written. The **Outputs** list on the **Export** page shows what this source has
+delivered and whether each is **Current**, **Source changed**, **Changed
+elsewhere**, **Missing** or **Unknown** (exported from unsaved edits).
+**Check Outputs** compares them again; **Refresh Stale** exports the stale ones
+again from the saved source with the settings they were made with, and never
+replaces a file someone else changed. `model outputs` does the same from the
+command line (see [Model outputs and receipts](../MODEL_OUTPUTS.md)).
+
+The **Package path** starts as the game path the source was imported from, such
+as `progs/player.mdl`, so staging puts the model back where it came from.
+
+### Place models in a level
+
+The Levels page **Models** tab, the Mesh Editor's and **Design Prop**'s
+**Stage and Place**, and `map place-model` all place models the same way:
+
+- A Quake III map bakes MD3, ASE, MDC, MD2, OBJ, LWO and FM models into the map
+  as `misc_model` (VibeMap3 reads them as q3map2 does).
+- A Quake or Quake II map places MDL and MD2 models as the class your loaded
+  definitions use for models (`misc_model`, else `misc_gamemodel`). Other
+  formats place with a warning that only source ports read them, and the studio
+  says so when no loaded definition declares the class.
+- Doom maps have no model entities.
+
+**Stage and Place** commits the new entity as one undoable map edit, selects it
+and frames it; if the map changed while the model was being prepared, nothing is
+staged or placed and you are asked to try again. The **Stage and Place** tooltip
+names the formats the open map places.
+
+Right-click a placed entity with a `model` key in a view or the object list for
+**Show in Models**, which selects its model on the Models page, and
+**Edit Source**, which opens its editable source when one is known.
+
+### Stage a model with everything it needs
+
+**Stage in Package** stages the model the **Package path** names: an MD3
+together with the detail levels the source stores, as one package step that one
+undo removes, or one MDL, MD2, md5mesh, md5anim, IQM or ASE file. Each file is
+checked first (a safe path, shorter than 64 bytes for MDL, MD2 and MD3, and the
+format's own header). `model stage` stages the same sets from the command line,
+adds generated detail levels (`--lod`) and an md5mesh's clips as md5anims beside
+it, and reviews the materials the model uses against the package, reporting any
+that are missing.
 
 ### Delivery targets
 
@@ -1009,6 +1121,7 @@ for boundary behaviour and the `model curve-transfer` CLI.
 ```sh
 vibestudio --cli model inspect ./id1/pak0.pak progs/player.mdl --json
 vibestudio --cli model import ./prop.obj --output ./prop.mesh.json --dry-run --json
+vibestudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./player.mesh.json --dry-run --json
 vibestudio --cli model build ./prop.mesh.json --output ./build/prop.md5mesh --dry-run --json
 vibestudio --cli model build ./monster.mesh.json --all-clips --output-dir ./build/anims --strict --json
 vibestudio --cli model controls --profile 3ds-max --section keys
@@ -1031,11 +1144,15 @@ vibestudio --cli model controls --profile 3ds-max --section keys
 | Quake MDL skins and timing | `model mdl` |
 | Editable skeletal keys, tangents and baking | `model curves` |
 | Retime, duplicate, remove or reduce selected skeletal keys | `model curve-keys` |
+| Copy or reverse a joint-motion range between clips | `model curve-transfer` |
+| Inspect or even out texture pixels per model unit across UV islands | `model uv-density` |
 | Assemblies, and opening or publishing a Quake III player | `model assembly` |
 | Build game files or detail levels | `model build`, `model lod`, `model targets`, `model prepare` |
 | Controls profiles, and print, check, share or reset controls | `model profiles`, `model controls` |
 | Recovery copies | `model recoveries`, `model recover` |
-| Place an MD3 in a Quake III map | `map place-model` |
+| Receipts of exports and staged models, and refreshing stale ones | `model outputs` |
+| Stage a model with its detail levels or clips in a new package | `model stage` |
+| Place a model in a Quake-family or Quake III map | `map place-model` |
 
 </details>
 

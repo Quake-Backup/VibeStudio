@@ -2228,7 +2228,23 @@ Each resolved path may be a definition file or a folder of them.
   three package parts, the linked skin, native animation from the package's
   `animation.cfg` and the `player-review` options to publish it again. The package
   is never written.
-- [x] `model recoveries [--directory <folder>]` lists bounded recovery headers.
+- [x] `model outputs [<source>] [--project DIR]` lists the project's model output
+  receipts (core/model_outputs.h, kept in the manifest under `modelOutputs`) with
+  their status and exits 4 when any is stale or changed elsewhere;
+  `--refresh OUTPUT|stale [--dry-run]` re-runs export and detail-level receipts
+  through the shared guarded writer, never over a changed output; `--forget OUTPUT`
+  drops one; `--receipt PACKAGE [--assembly FILE]` checks a player package's
+  embedded receipt. `model build` and `model lod` record receipts for sources in a
+  project. See [Model Outputs and Receipts](MODEL_OUTPUTS.md).
+- [x] Model commands share a cancellation token (core/cli_cancellation.h):
+  Ctrl+C/Ctrl+Break (SetConsoleCtrlHandler) or SIGINT/SIGTERM (sigaction) stop
+  at the next ModelWorkControl checkpoint, publish nothing and exit 130 with
+  `"cancelled": true`; a second request exits at once. `--progress` writes phase
+  JSON lines to stderr. Guarded writes remove their own stale staging files.
+- [x] `model recoveries [--directory <folder>]` lists bounded recovery headers,
+  newest first, with each copy's `sourceState` (unchanged, changed, missing,
+  unreadable, unsaved); `--prune [--dry-run]` applies the retention policy
+  (32 copies or 2 GiB, never a live owner's copy) and reports `pruned`.
   JSON distinguishes header validity from payload verification. `model recover
   <copy.vsmeshrecovery> --output <new.mesh.json>` verifies the payload and writes
   a new source, with `--dry-run` and JSON support. Existing files and original
@@ -2475,7 +2491,12 @@ Each resolved path may be a definition file or a folder of them.
   `--decl-name`). Both writers are the Mesh Editor's; refusals exit 4 without
   writing. See [Skin Variants](MODEL_SKIN_VARIANTS.md).
 - [x] `model import <input> --output <source.mesh.json>` creates an editable
-  mesh source from polygonal OBJ, MDL, MD2, MD3, or a baked primitive design. `model edit <source>
+  mesh source from any decoded model format (OBJ, MDL, MD2, MD3, MDC, MD5 mesh,
+  IQM, ASE, LWO, MDR, MDS, MDM, GLM, FM, KVX) or a baked primitive design.
+  `model import <package> <entry>` (or `--package`/`--entry`) reads an archive,
+  folder or portable draft entry with its in-package companions and palette, as
+  the Mesh Editor does, records the entry as the source path and refuses outputs
+  inside the package; `--palette` chooses the MDL palette family. `model edit <source>
   --operation <name> --output <source.mesh.json>` applies a validated component,
   UV, material, or frame operation. Both support `--dry-run`, `--overwrite`, and
   text/JSON results. See [Editable Meshes](MODEL_MESH.md) for selectors, transform
@@ -2554,11 +2575,24 @@ Each resolved path may be a definition file or a folder of them.
   part/vertex/triangle counts, bytes, materials, and write/dry-run state.
   Exit `0` means success, `2` missing arguments, `4` unsupported export format
   or geometry unsupported by the target format, and `1` an invalid input or write failure.
-- [x] `map place-model <map> --package <source> --entry <model.md3>
-  --origin x,y,z --output <map>` adds a `misc_model` to a Quake III map and
-  saves through the shared map service. Use `--engine idTech3` where needed.
-  The model must be readable, unambiguous MD3 geometry without parser warnings,
-  and at most 8 MiB. `--dry-run` and `--overwrite` follow map save-as behavior. Model
+- [x] `map place-model <map> --package <source> --entry <model>
+  --origin x,y,z --output <map>` places a model through the shared placement
+  service (core/level_model_placement.h) the Levels Models tab and Stage and
+  Place use: MD3, ASE, MDC, MD2, OBJ, LWO or FM as `misc_model` in a Quake III
+  map; MDL or MD2 in a Quake or Quake II map as `--class`, else the class the
+  `--definitions` file declares (other formats warn). `--angles` and
+  `--modelscale` are optional; JSON adds `entityClass` and `warnings`. Use
+  `--engine idTech2|idTech3` where needed. The model must be readable,
+  unambiguous geometry without parser warnings, and at most 8 MiB.
+- [x] `model stage <source> --package P --as <path> --output <package|draft>`
+  stages an editable source as the set the game loads with it (an MD3 with
+  `--lod N` detail levels or the source's stored ones, an md5mesh with
+  `--md5-clips all|none|N,N` md5anims), checks every entry, reviews the
+  materials against the package (`--require-materials` refuses missing ones),
+  stages the set as one operation group (`--replace-existing`) and writes a new
+  package or `.vibepackage` draft; the input package is never the output. With
+  `--map M --origin x,y,z --map-output FILE` it also places the model. Supports
+  `--dry-run`, `--overwrite`, `--target`, `--strict` and `--progress`. `--dry-run` and `--overwrite` follow map save-as behavior. Model
   validation failures return `4`, missing arguments `2`, and load/edit failures
   `1`; save failures follow the existing map command contract.
 

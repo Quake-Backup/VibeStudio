@@ -3,6 +3,7 @@
 #include "app/dialog_screen_fit.h"
 #include "app/studio_accessibility.h"
 #include "app/studio_runtime.h"
+#include "core/model_recovery_policy.h"
 
 #include <QCloseEvent>
 #include <QCoreApplication>
@@ -74,19 +75,28 @@ class RecoveryDialog final : public QDialog
 		connect(m_list, &QListWidget::currentRowChanged, this, [this] { showSelection(); });
 		fitDialogToScreen(this, QSize(std::max(720, fontMetrics().averageCharWidth() * 70), std::max(480, fontMetrics().lineSpacing() * 24)));
 		auto result = std::make_shared<ModelRecoveryScan>();
+		auto states = std::make_shared<QVector<ModelRecoverySourceState>>();
 		start(
 			QCoreApplication::translate("VibeStudioModelRecovery", "Reading local recovery copies…"),
-			[result, directory = m_directory] { *result = listModelRecoveries(directory, interrupted); },
-			[this, result]
+			[result, states, directory = m_directory]
+			{
+				*result = listModelRecoveries(directory, interrupted);
+				// Whether each copy's source still holds what the copy started from.
+				for (const auto &record : std::as_const(result->records))
+					states->append(modelRecoverySourceState(record, interrupted));
+			},
+			[this, result, states]
 			{
 				m_records = result->records;
+				m_states = *states;
 				for (int i = 0; i < m_records.size(); ++i)
 				{
 					const auto &record = m_records.at(i);
 					const auto title = record.title.isEmpty() ? QFileInfo(record.path).fileName() : record.title;
+					const QString state = i < m_states.size() ? modelRecoverySourceStateText(m_states.at(i)) : QString();
 					auto *row = new QListWidgetItem(
-						QStringLiteral("%1\n%2").arg(title, record.isValid() ? record.writtenUtc.toLocalTime().toString(Qt::ISODate)
-																			 : record.error),
+						QStringLiteral("%1\n%2 \u00b7 %3")
+							.arg(title, record.isValid() ? record.writtenUtc.toLocalTime().toString(Qt::ISODate) : record.error, state),
 						m_list);
 					row->setData(Qt::UserRole, i);
 					row->setData(Qt::AccessibleTextRole, row->text());
@@ -141,6 +151,7 @@ class RecoveryDialog final : public QDialog
   private:
 	QString m_directory;
 	QVector<ModelRecoveryRecord> m_records;
+	QVector<ModelRecoverySourceState> m_states;
 	QListWidget *m_list = nullptr;
 	QPlainTextEdit *m_details = nullptr;
 	QProgressBar *m_progress = nullptr;
@@ -223,6 +234,8 @@ class RecoveryDialog final : public QDialog
 		{
 			return;
 		}
+		const int row = m_list->currentItem() ? m_list->currentItem()->data(Qt::UserRole).toInt() : -1;
+		const QString state = row >= 0 && row < m_states.size() ? modelRecoverySourceStateText(m_states.at(row)) : QString();
 		m_details->setPlainText(
 			record->isValid()
 				? QCoreApplication::translate(
@@ -233,7 +246,8 @@ class RecoveryDialog final : public QDialog
 														: QDir::toNativeSeparators(record->sourcePath),
 						   live ? QCoreApplication::translate("VibeStudioModelRecovery",
 															  "\nThe owning studio is still running; discarding this copy is disabled.")
-								: QString())
+								: QString()) +
+					  (state.isEmpty() ? QString() : QLatin1Char('\n') + state)
 				: record->error);
 	}
 	void restore()

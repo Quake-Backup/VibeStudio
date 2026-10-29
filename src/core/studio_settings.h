@@ -386,6 +386,9 @@ public:
 	void setAudioRecoveryEnabled(bool enabled);
 	bool audioRecoveryNotifyAtStartup() const;
 	void setAudioRecoveryNotifyAtStartup(bool enabled);
+	// Offer mesh and assembly recovery copies at startup (on by default).
+	bool modelRecoveryNotifyAtStartup() const;
+	void setModelRecoveryNotifyAtStartup(bool enabled);
 	bool modelRecoveryEnabled() const;
 	void setModelRecoveryEnabled(bool enabled);
 	// The memory Mesh Editor undo history may keep beyond the current model

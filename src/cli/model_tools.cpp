@@ -5,6 +5,8 @@
 #include "core/model_file_io.h"
 #include "core/model_lod.h"
 #include "core/model_mesh_tools.h"
+#include "core/model_outputs.h"
+#include "core/studio_manifest.h"
 #include "core/model_selection_tools.h"
 #include "core/model_target_prepare.h"
 #include "core/model_targets.h"
@@ -15,6 +17,8 @@
 #include "core/studio_settings.h"
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
+#include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
 #include <QFile>
@@ -1518,6 +1522,29 @@ ModelToolsCliResult runModelLod(const QStringList &arguments)
 		result.error = error;
 	}
 	const int written = set.written();
+	// The receipt of a published set of a project's source (core/model_outputs.h).
+	if (!dry && published && editable && !delivery.projectRoot.isEmpty())
+	{
+		ModelOutputRecord record;
+		record.kind = QStringLiteral("lod-set");
+		record.sourcePath = QFileInfo(source).absoluteFilePath();
+		record.sourceSha256 = document.sourceFingerprint();
+		record.recipe = {{QStringLiteral("format"), QStringLiteral("md3")}, {QStringLiteral("target"), target.id},
+						 {QStringLiteral("strict"), strict}, {QStringLiteral("lodRecipe"), modelLodRecipeJson(recipe)}};
+		for (const auto &file : std::as_const(set.files))
+		{
+			ModelOutputFile output;
+			output.path = QFileInfo(file.path).absoluteFilePath();
+			output.sha256 = QCryptographicHash::hash(file.bytes, QCryptographicHash::Sha256);
+			record.outputs.append(output);
+		}
+		record.tool = versionString();
+		record.deliveredUtc = QDateTime::currentDateTimeUtc();
+		QString receiptError;
+		result.payload.insert(QStringLiteral("receipt"), recordModelOutput(delivery.projectRoot, record, &receiptError));
+		if (!receiptError.isEmpty())
+			result.payload.insert(QStringLiteral("receiptError"), receiptError);
+	}
 	// Every file's omissions once: the detail levels share the base model's.
 	QStringList omissions;
 	for (const auto &file : std::as_const(set.files))

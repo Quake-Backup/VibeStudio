@@ -1664,6 +1664,16 @@ void StudioSettings::setAudioRecoveryNotifyAtStartup(bool enabled)
 	writeValue(QStringLiteral("audio/recoveryNotifyAtStartup"), enabled);
 }
 
+bool StudioSettings::modelRecoveryNotifyAtStartup() const
+{
+	return m_settings->value(QStringLiteral("model/recoveryNotifyAtStartup"), true).toBool();
+}
+
+void StudioSettings::setModelRecoveryNotifyAtStartup(bool enabled)
+{
+	writeValue(QStringLiteral("model/recoveryNotifyAtStartup"), enabled);
+}
+
 void StudioSettings::setCodeRecoveryEnabled(bool enabled)
 {
 	writeValue(QStringLiteral("code/recoveryEnabled"), enabled);

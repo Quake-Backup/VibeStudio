@@ -26,6 +26,8 @@ struct ModelDesignContext {
 	bool canStage = false;
 	bool canPlace = false;
 	bool canPlaceCollision = false;
+	// The model suffixes the open map places (core/level_model_placement.h).
+	QStringList placeSuffixes;
 };
 
 class ModelDesignDialog final : public QDialog

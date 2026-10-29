@@ -84,6 +84,8 @@ class ModelAssemblyDialog final : public QDialog
 	bool exportAnimation(const ModelAssemblyAnimationOptions &options, const QString &path, bool overwrite, QString *error = nullptr);
 	bool restoreRecovery(const QString &path, const QByteArray &sha256, QString *error = nullptr);
 	void checkpointRecovery();
+	// The assembly recovery chooser (the studio's startup notice).
+	void reviewRecoveryCopies() { chooseRecovery(); }
 	void selectPart(const QString &id);
 	void setMaterialSource(ModelMaterialSource source);
 	void setAccessibility(bool highContrast, bool reducedMotion);

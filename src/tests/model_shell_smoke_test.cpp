@@ -5,6 +5,7 @@
 #include "app/model_assembly_dialog.h"
 #include "app/studio_theme.h"
 #include "core/model_assembly.h"
+#include "core/model_recovery.h"
 #include "core/studio_settings.h"
 
 #include <QApplication>
@@ -18,6 +19,7 @@
 #include <QListWidget>
 #include <QStackedWidget>
 #include <QPointer>
+#include <QProcess>
 #include <QPushButton>
 #include <QTemporaryDir>
 #include <QTimer>
@@ -50,6 +52,19 @@ int main(int argc, char **argv)
 		_CrtSetReportFile(type, _CRTDBG_FILE_STDERR);
 	}
 #endif
+	// A child run writes one mesh recovery copy and exits, so the copy's owner is
+	// a studio that is no longer running, as after a crash.
+	if (argc == 4 && QByteArray(argv[1]) == "--write-recovery")
+	{
+		QCoreApplication child(argc, argv);
+		StudioSettings::setOverrideFilePath(QString::fromLocal8Bit(argv[2]));
+		ModelDesign design;
+		design.parts << ModelDesignPart{};
+		ModelRecoverySnapshot snapshot;
+		snapshot.mesh = buildModelDesignMesh(design);
+		snapshot.title = QStringLiteral("Crashed prop");
+		return writeModelRecovery(snapshot, modelRecoveryDirectory(), QString::fromLocal8Bit(argv[3])).isEmpty() ? EXIT_FAILURE : EXIT_SUCCESS;
+	}
 	// Public widget signals only: this does not inject user input or capture the screen.
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 #ifdef Q_OS_WIN
@@ -326,6 +341,46 @@ int main(int argc, char **argv)
 		}
 		app.sendPostedEvents(nullptr, QEvent::DeferredDelete);
 		shell.modelSourcePrompt = {};
+	}
+	{
+		// A copy left by a studio that is no longer running is offered at
+		// startup with Review Models; the setting turns the notice off.
+		QProcess writer;
+		writer.start(QCoreApplication::applicationFilePath(),
+					 {QStringLiteral("--write-recovery"), QDir(temporary.path()).filePath(QStringLiteral("settings.ini")),
+					  QStringLiteral("0f0e0d0c-0b0a-4908-8706-050403020100")});
+		ok &= expect(writer.waitForFinished(60000) && writer.exitCode() == 0, "a finished process leaves a recovery copy");
+		const auto waitFor = [&](const std::function<bool()> &condition)
+		{
+			QElapsedTimer clock;
+			clock.start();
+			while (!condition() && clock.elapsed() < 20000)
+				app.processEvents(QEventLoop::AllEvents, 20);
+			return condition();
+		};
+		{
+			ApplicationShell shell;
+			shell.show();
+			shell.beginSession(false);
+			QPushButton *review = nullptr;
+			ok &= expect(waitFor([&] { return (review = shell.findChild<QPushButton *>(QStringLiteral("noticeReviewModels"))) != nullptr; }) &&
+							 !review->accessibleName().isEmpty(),
+						 "the startup notice offers Review Models with an accessible name");
+		}
+		app.sendPostedEvents(nullptr, QEvent::DeferredDelete);
+		StudioSettings().setModelRecoveryNotifyAtStartup(false);
+		{
+			ApplicationShell shell;
+			shell.show();
+			shell.beginSession(false);
+			QElapsedTimer settle;
+			settle.start();
+			while (settle.elapsed() < 2000)
+				app.processEvents(QEventLoop::AllEvents, 20);
+			ok &= expect(shell.findChild<QPushButton *>(QStringLiteral("noticeReviewModels")) == nullptr,
+						 "turning off Offer mesh and assembly copies at startup suppresses the notice");
+		}
+		app.sendPostedEvents(nullptr, QEvent::DeferredDelete);
 	}
 	StudioSettings::setOverrideFilePath(QString());
 	timing("complete");

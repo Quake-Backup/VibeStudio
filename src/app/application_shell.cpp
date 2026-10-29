@@ -85,6 +85,8 @@
 #include "core/map_render.h"
 #include "core/model_mesh.h"
 #include "core/model_frame_export.h"
+#include "core/level_model_placement.h"
+#include "core/model_outputs.h"
 #include "core/ai_connectors.h"
 #include "core/ai_audio_transport.h"
 #include "core/ai_gguf_runtime.h"
@@ -4410,6 +4412,7 @@ QWidget* ApplicationShell::buildSettingsPage()
 	setupLayout->addLayout(setupActions);
 	setupContentLayout->addWidget(setupPanel);
 	setupContentLayout->addWidget(buildAudioRecoveryPreferences());
+	setupContentLayout->addWidget(buildModelRecoveryPreferences());
 	addCategory(QStringLiteral("getting-started"), QStringLiteral("check"), tr("Getting Started"), setupContent);
 
 	// Appearance, language and region, editing, and startup.
@@ -20754,14 +20757,14 @@ void ApplicationShell::showModelDesign()
 			ModelDesignContext context;
 			context.packagePath = m_packageStaging.sourcePath(); context.mapPath = m_levelMapDocument.sourcePath;
 			context.canStage = m_packageStaging.isLoaded() && m_packageStaging.sourceFormat() != PackageArchiveFormat::Wad && !m_packageExtractionRunning && !m_packageSaveRunning && !m_packageReadRunning;
-			context.canPlace = m_levelMapDocument.format == LevelMapFormat::Quake3Map;
+			context.canPlace = m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map;
+			context.placeSuffixes = levelModelPlacementSuffixes(m_levelMapDocument.format);
 			return context;
 		};
 		designer->handoff = [this](const ModelDesign& design, const QString& path, bool place, const LevelMapVec3& origin, bool replace, QString* error) {
 			if (m_packageExtractionRunning || m_packageSaveRunning || m_packageReadRunning) { if (error) { *error = tr("Wait for the package operation to finish before staging a model."); } return false; }
-			if (!stageModelDesign(design, path, &m_packageStaging, place ? &m_levelMapDocument : nullptr, origin, replace, error)) { return false; }
-			refreshPackageStagingSummary();
-			if (place) { refreshLevelMapWorkbench(); frameLevelMapSelection(); }
+			if (!commitModelHandoff([&](PackageStagingModel* staging, LevelMapDocument* map, QString* failure) {
+				return stageModelDesign(design, path, staging, map, origin, replace, failure); }, place, error)) { return false; }
 			recordActivity(tr("Model Design Handoff"), path, tr("package"), OperationState::Completed,
 				place ? tr("Generated model staged and placed in the level. Map and package saves are pending.") : tr("Generated model staged for package save-as."));
 			return true;
@@ -20832,11 +20835,12 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial, const QString& 
 	}
 	// A game model whose editable source is known opens from the source, which keeps what the game file cannot.
 	QString openSource = source;
-	if (!initial && openSource.isEmpty() && !chooseModelEditorSource(&openSource)) { return; }
-	if (!initial && openSource.isEmpty() && m_modelPreview && m_modelPreview->busy()) {
+	const bool blank = m_modelEditorBlank;
+	if (!initial && !blank && openSource.isEmpty() && !chooseModelEditorSource(&openSource)) { return; }
+	if (!initial && !blank && openSource.isEmpty() && m_modelPreview && m_modelPreview->busy()) {
 		statusBar()->showMessage(tr("Wait for the model preview to finish, or cancel it before opening the mesh editor.")); return;
 	}
-	if (!initial && openSource.isEmpty() && !m_modelMesh.geometryAvailable && m_modelEntries && m_modelEntries->currentItem()
+	if (!initial && !blank && openSource.isEmpty() && !m_modelMesh.geometryAvailable && m_modelEntries && m_modelEntries->currentItem()
 		&& !m_modelEntries->currentItem()->data(Qt::UserRole).toString().isEmpty()) {
 		statusBar()->showMessage(tr("Select a model with decoded geometry before opening the mesh editor.")); return;
 	}
@@ -20846,7 +20850,7 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial, const QString& 
 	m_modelEditorDialog = editor;
 	// Modeller: the Models preview navigates like the editor's chosen profile.
 	editor->profileChanged = [this]() { applyModelViewportProfile(); };
-	const ModelMesh* selected = initial ? initial : openSource.isEmpty() && m_modelMesh.geometryAvailable ? &m_modelMesh : nullptr;
+	const ModelMesh* selected = initial ? initial : !blank && openSource.isEmpty() && m_modelMesh.geometryAvailable ? &m_modelMesh : nullptr;
 	QString error;
 	if (selected && !editor->setMesh(*selected, &error)) {
 		delete editor; QMessageBox::warning(this, tr("Model Import Failed"), error); return;
@@ -20854,8 +20858,9 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial, const QString& 
 	editor->context = [this]() {
 		return ModelDesignContext{m_packageStaging.sourcePath(), m_levelMapDocument.sourcePath,
 		    m_packageStaging.isLoaded() && m_packageStaging.sourceFormat() != PackageArchiveFormat::Wad && !m_packageExtractionRunning && !m_packageSaveRunning && !m_packageReadRunning,
-		    m_levelMapDocument.format == LevelMapFormat::Quake3Map,
-		    m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map};
+		    m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map,
+		    m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map,
+		    levelModelPlacementSuffixes(m_levelMapDocument.format)};
 	};
 	editor->collisionDestination = [this]() {
 		const auto commit = levelPlacementCommitter();
@@ -20869,9 +20874,8 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial, const QString& 
 	};
 	editor->handoff = [this](const QByteArray& bytes, const QString& path, bool place, const LevelMapVec3& origin, bool replace, QString* outputError) {
 		if (m_packageExtractionRunning || m_packageSaveRunning || m_packageReadRunning) { if (outputError) { *outputError = tr("Wait for the package operation to finish before staging a model."); } return false; }
-		if (!stageModelExport(bytes, path, &m_packageStaging, place ? &m_levelMapDocument : nullptr, origin, replace, outputError)) { return false; }
-		refreshPackageStagingSummary();
-		if (place) { refreshLevelMapWorkbench(); frameLevelMapSelection(); }
+		if (!commitModelHandoff([&](PackageStagingModel* staging, LevelMapDocument* map, QString* failure) {
+			return stageModelExport(bytes, path, staging, map, origin, replace, failure); }, place, outputError)) { return false; }
 		recordActivity(tr("Mesh Handoff"), path, tr("package"), OperationState::Completed,
 		    place ? tr("Edited model staged and placed. Map and package saves are pending.") : tr("Edited model staged for package save-as."));
 		return true;
@@ -20879,14 +20883,15 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial, const QString& 
 	editor->showMaterial = [this](const QString& path) { showTextureReference(path); };
 	editor->showInMaterials = [this](const QString& path) { showModelMaterial(path); };
 	editor->sourcePathChanged = [this](const QString& path) { m_settings.recordRecentFile(QStringLiteral("model"), path); };
+	// Receipts of exports and staged models go into the project manifest (core/model_outputs.h).
+	editor->recordOutput = [this](const ModelOutputRecord& record, QString* outputError) { return recordProjectModelOutput(record, outputError); };
 	// Modeller: an MD3 with stored detail levels stages them in one package step.
 	editor->handoffFiles = [this](const QVector<ModelStagedFile>& files, bool place, const LevelMapVec3& origin, bool replace, QString* outputError) {
 		if (m_packageExtractionRunning || m_packageSaveRunning || m_packageReadRunning) { if (outputError) { *outputError = tr("Wait for the package operation to finish before staging a model."); } return false; }
 		QVector<QPair<QString, QByteArray>> payload;
 		for (const auto& file : files) { payload.append({file.path, file.bytes}); }
-		if (!stageModelExports(payload, &m_packageStaging, place ? &m_levelMapDocument : nullptr, origin, replace, outputError)) { return false; }
-		refreshPackageStagingSummary();
-		if (place) { refreshLevelMapWorkbench(); frameLevelMapSelection(); }
+		if (!commitModelHandoff([&](PackageStagingModel* staging, LevelMapDocument* map, QString* failure) {
+			return stageModelExports(payload, staging, map, origin, replace, failure); }, place, outputError)) { return false; }
 		recordActivity(tr("Mesh Handoff"), files.isEmpty() ? QString() : files.first().path, tr("package"), OperationState::Completed,
 		    tr("Edited model and its detail levels staged as one package step."));
 		return true;
@@ -21681,6 +21686,7 @@ void ApplicationShell::beginSession(bool reopenLast)
 	m_secondaryInstance = last.ownerProcessId != 0 && last.ownerProcessId != QCoreApplication::applicationPid()
 		&& studioProcessIsRunning(last.ownerProcessId);
 	discoverAudioRecoveryAtStartup();
+	discoverModelRecoveryAtStartup();
 	if (previousSessionCrashed()) {
 		offerCrashRecovery(previousSessionCrashReport(), last);
 		return;
@@ -24793,8 +24799,29 @@ void ApplicationShell::showLevelMapContextMenu(const QPoint& globalPosition, boo
 		frameLeak = menu.addAction(studioIcon(QStringLiteral("error")), tr("Frame Leak Trail"));
 		clearLeak = menu.addAction(studioIcon(QStringLiteral("close")), tr("Clear Leak Trail"));
 	}
+	// The model a selected entity names: its Models entry and editable source.
+	QAction* showModel = nullptr;
+	QAction* editModelSource = nullptr;
+	const QString entityModel = selectedLevelEntityModelPath();
+	if (!entityModel.isEmpty()) {
+		menu.addSeparator();
+		showModel = menu.addAction(studioIcon(QStringLiteral("cube")), tr("Show in Models"));
+		showModel->setToolTip(tr("Show %1 on the Models page.").arg(entityModel));
+		editModelSource = menu.addAction(studioIcon(QStringLiteral("edit")), tr("Edit Source"));
+		editModelSource->setEnabled(!editableSourceForModelEntry(entityModel).isEmpty());
+		editModelSource->setToolTip(editModelSource->isEnabled() ? tr("Open the editable source of %1 in its editor.").arg(entityModel)
+			: tr("No editable source is known for %1.").arg(entityModel));
+	}
 	QAction* chosen = menu.exec(globalPosition);
 	if (!chosen) {
+		return;
+	}
+	if (chosen == showModel) {
+		if (!showAssetEntry(StudioMode::Models, entityModel)) { statusBar()->showMessage(tr("%1 is not in the open package.").arg(entityModel)); }
+		return;
+	}
+	if (chosen == editModelSource) {
+		openModelSourcePath(editableSourceForModelEntry(entityModel));
 		return;
 	}
 	if (chosen == addEntity) {

@@ -5,7 +5,9 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QDateTime>
 #include <QLockFile>
+#include <QRegularExpression>
 #include <QSaveFile>
 #include <QTemporaryFile>
 
@@ -209,6 +211,20 @@ bool validateModelWriteTarget(const ModelWriteTarget &target, QString *error, co
 	return true;
 }
 
+int removeStaleModelStagingFiles(const QString &directory, qint64 olderThanSeconds)
+{
+	static const QRegularExpression pattern(QStringLiteral("^\\.vibestudio-model-[A-Za-z0-9]{6}\\.tmp$"));
+	const QDateTime cutoff = QDateTime::currentDateTime().addSecs(-olderThanSeconds);
+	int removed = 0;
+	const auto entries = QDir(directory).entryInfoList({QStringLiteral(".vibestudio-model-*.tmp")}, QDir::Files | QDir::Hidden | QDir::System);
+	for (const auto &entry : entries)
+	{
+		if (!entry.isSymLink() && pattern.match(entry.fileName()).hasMatch() && entry.lastModified() < cutoff && QFile::remove(entry.absoluteFilePath()))
+			++removed;
+	}
+	return removed;
+}
+
 bool writeModelFile(const ModelWriteTarget &target, const QByteArray &bytes, QString *error, const ModelWorkControl &control)
 {
 	if (error)
@@ -239,6 +255,8 @@ bool writeModelFile(const ModelWriteTarget &target, const QByteArray &bytes, QSt
 		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
 													   "Another model writer is using this destination. Try again after it finishes."));
 	}
+	// What an interrupted write left beside its destination.
+	removeStaleModelStagingFiles(directory);
 	if (!unchanged())
 	{
 		return false;

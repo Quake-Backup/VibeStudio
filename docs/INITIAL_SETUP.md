@@ -1419,6 +1419,20 @@ retains existing files. The setup panel shows their folder and **Review Copies**
 The `VIBESTUDIO_AUDIO_RECOVERY_ROOT` override takes precedence over profile storage.
 See [Audio Editor](AUDIO_EDITOR.md).
 
+**Settings → Getting Started → Model Recovery** has **Offer mesh and assembly
+copies at startup** (`model/recoveryNotifyAtStartup`, initially on). Startup
+discovery runs on a worker: it removes the oldest mesh copies beyond 32 copies
+or 2 GiB (never a copy whose studio is still running), counts the mesh and
+assembly copies left by sessions that ended without closing, and says how many
+of their sources changed or went missing since. A notice offers **Review
+Models** (the Mesh Editor's recovery chooser) and, when there are assembly
+copies, **Review Assemblies**; nothing opens or restores by itself and focus
+stays where it was. Turning the choice off cancels the scan and dismisses the
+notice; copies are kept. The panel shows the folder and **Review Copies**, and
+**Model > Recover…** in the Mesh Editor is always available. Each copy in the
+chooser says whether its source is unchanged, changed since the copy, missing
+or never saved, in words.
+
 **Audio → Multitrack…** needs no additional setup or cloud service. The session
 inherits language, scaling, theme and reduced-motion settings. **To Session**
 imports a waveform snapshot; **Edit Mixdown** returns a selected mix range to

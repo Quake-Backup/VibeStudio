@@ -59,7 +59,10 @@ your project's files and the entries of the open package; **File** >
 Windows and Linux).
 
 You can also drop a map, package, project folder, shader script or text file
-onto the window to open it where it belongs.
+onto the window to open it where it belongs. Editable model sources open in
+their editors: a `.mesh.json` in the Mesh Editor, a `.model.json` in
+**Design Prop** and an `.assembly.json` in **Assemble**; **Open Recent** lists
+them under **Models**.
 
 ## The left rail
 
