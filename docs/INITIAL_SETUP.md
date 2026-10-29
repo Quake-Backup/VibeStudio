@@ -20,8 +20,9 @@ The polygon modelling tools (individual origins, normal axes, Array, Screw,
 the extrude variants, bridging options, mesh symmetry, Mirror Faces, Poly Build
 and Intersect) use the current mesh, 3D cursor, view, editor profile, language
 and accessibility settings and need no setup step. The header's **Symmetry**
-buttons now also mirror topology tools; MilkShape 3D users can bind **Poly
-Build** to F6 in **Customise Controls…**. See [modelling tools](MODEL_TOOLS.md).
+buttons now also mirror topology tools and gizmo drags; MilkShape 3D users can
+bind **Poly Build** to F6 in **Customise Controls…**. Intersect can cut against
+another surface of the same model without joining them first. See [modelling tools](MODEL_TOOLS.md).
 
 **Edge Slide** uses the current mesh, frame scope, camera, editor profile,
 language and accessibility settings. Find it in **Edge** or command search;

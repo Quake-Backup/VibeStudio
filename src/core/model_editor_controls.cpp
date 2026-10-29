@@ -93,6 +93,7 @@ constexpr CommandEntry kCommands[] = {
 	{"meshIntersectCut", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Intersect (Knife)"), ""},
 	{"meshIntersectUnion", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Intersect (Union)"), ""},
 	{"meshIntersectDifference", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Intersect (Difference)"), ""},
+	{"meshIntersectShared", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Intersect (Shared Volume)"), ""},
 	{"meshBevelVertices", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bevel Vertices"), "Ctrl+Shift+B"},
 	{"meshBevelEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bevel Edges"), "Ctrl+B"},
 	{"meshKnife", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Knife"), "K"},

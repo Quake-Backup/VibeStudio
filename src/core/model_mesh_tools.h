@@ -85,12 +85,14 @@ enum class ModelUvProjection
 };
 // Intersect (core/model_intersect_cut.cpp): cut along where the selection
 // passes through other faces, then keep both parts (Cut), their outer shell
-// (Union) or the selection less the other part (Difference).
+// (Union), the selection less the other part (Difference) or only the volume
+// they share (Intersection).
 enum class ModelIntersectMode
 {
 	Cut,
 	Union,
-	Difference
+	Difference,
+	Intersection
 };
 // Extrude Faces (core/model_extrude.cpp): the whole region along its averaged
 // normal, each vertex along the region's own vertex normal, or every face
@@ -223,6 +225,9 @@ struct ModelMeshToolOptions
 	int facePointCount = 0;
 	std::array<std::array<double, 3>, 3> facePoints{};
 	ModelIntersectMode intersectMode = ModelIntersectMode::Cut;
+	// The other part for Intersect: -1 is the rest of the selection's surface;
+	// another surface index cuts against (and cuts) that surface.
+	int intersectSurface = -1;
 	// Rip selected vertices/edges toward the incident side face, optionally
 	// bridge the opening. The translation is carried by ModelEdit::translation.
 	int ripFace = -1;

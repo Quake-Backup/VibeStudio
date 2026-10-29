@@ -343,6 +343,8 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshIntersectUnion"), Text::tr("Intersect (Union)"), {}, [intersect] { intersect(ModelIntersectMode::Union); });
 	addAction(QStringLiteral("meshIntersectDifference"), Text::tr("Intersect (Difference)"), {},
 			  [intersect] { intersect(ModelIntersectMode::Difference); });
+	addAction(QStringLiteral("meshIntersectShared"), Text::tr("Intersect (Shared Volume)"), {},
+			  [intersect] { intersect(ModelIntersectMode::Intersection); });
 	addAction(QStringLiteral("meshFillHoles"), Text::tr("Fill Boundary Loops"), {}, [this] { m_editor->execute(ModelEditKind::FillBoundaryLoops); });
 	// Bridging runs as a tool so Adjust Last Operation can change its twist,
 	// segments, open chains and UV strip.
@@ -841,7 +843,7 @@ void ModelEditorTools::buildMenus()
 						  QStringLiteral("meshMenuExtrude"));
 	auto *faceMenu = named(menu(Text::tr("&Face"), {QStringLiteral("meshExtrude"), QStringLiteral("meshExtrudeNormals"), QStringLiteral("meshExtrudeIndividual"), QStringLiteral("meshInset"), QStringLiteral("meshInsetIndividual"),
 													   QStringLiteral("meshSpin"), QStringLiteral("meshSpinDuplicate"), QStringLiteral("meshScrew"), QStringLiteral("meshArray"), QStringLiteral("meshBridgeFaces"), QStringLiteral("meshIntersectCut"),
-													   QStringLiteral("meshIntersectUnion"), QStringLiteral("meshIntersectDifference"), QStringLiteral("meshPoke"), QStringLiteral("meshSolidify"), QStringLiteral("meshSubdivide"), QStringLiteral("meshDissolveFaces"),
+													   QStringLiteral("meshIntersectUnion"), QStringLiteral("meshIntersectDifference"), QStringLiteral("meshIntersectShared"), QStringLiteral("meshPoke"), QStringLiteral("meshSolidify"), QStringLiteral("meshSubdivide"), QStringLiteral("meshDissolveFaces"),
 													   QStringLiteral("meshBeautify"), QStringLiteral("meshMakeFace"), {}, QStringLiteral("meshFlip"),
 													   QStringLiteral("meshShadeSmooth"), QStringLiteral("meshShadeFlat"), QStringLiteral("meshAutoSmooth"), {},
 													   QStringLiteral("meshDeleteFaces")}),
@@ -2036,7 +2038,7 @@ struct LastField
 	// Changing this field changes which other fields apply.
 	bool rebuild = false;
 };
-QVector<LastField> lastFields(const ModelEdit &edit)
+QVector<LastField> lastFields(const ModelEdit &edit, const ModelMesh *mesh = nullptr)
 {
 	using E = ModelEdit;
 	const auto kind = edit.kind;
@@ -2097,9 +2099,22 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 			+ QVector<LastField>{{Text::tr("Axial offset (screw)"), -100000, 100000, 3, [](const E &e) { return e.tool.spinAxialOffset; },
 								  [](E &e, double v) { e.tool.spinAxialOffset = v; }}};
 	case ModelEditKind::IntersectCut:
-		return QVector<LastField>{{Text::tr("Keep"), 0, 2, 0, [](const E &e) { return double(int(e.tool.intersectMode)); },
+	{
+		QVector<LastField> fields{{Text::tr("Keep"), 0, 3, 0, [](const E &e) { return double(int(e.tool.intersectMode)); },
 								   [](E &e, double v) { e.tool.intersectMode = ModelIntersectMode(int(v)); }, false,
-								   {Text::tr("Both parts, cut"), Text::tr("Outer shell (union)"), Text::tr("Selection less the rest (difference)")}}};
+								   {Text::tr("Both parts, cut"), Text::tr("Outer shell (union)"), Text::tr("Selection less the rest (difference)"),
+									Text::tr("Shared volume (intersection)")}}};
+		// The other part: the rest of the selection's surface or another surface.
+		if (mesh && mesh->surfaces.size() > 1)
+		{
+			QStringList surfaces{Text::tr("The rest of this surface")};
+			for (int i = 0; i < mesh->surfaces.size(); ++i)
+				surfaces << (mesh->surfaces[i].name.isEmpty() ? Text::tr("Surface %1").arg(i) : mesh->surfaces[i].name);
+			fields.append({Text::tr("Cut with"), 0, double(mesh->surfaces.size()), 0, [](const E &e) { return double(e.tool.intersectSurface + 1); },
+						   [](E &e, double v) { e.tool.intersectSurface = int(v) - 1; }, false, surfaces});
+		}
+		return fields;
+	}
 	case ModelEditKind::MirrorFaces:
 		return QVector<LastField>{{Text::tr("Axis"), 0, 2, 0, [](const E &e) { return double(e.tool.axis); }, [](E &e, double v) { e.tool.axis = int(v); }, false,
 								   {QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")}}}
@@ -2372,7 +2387,7 @@ void ModelEditorTools::refreshLastPanel()
 	m_lastTitle->setText(current ? kindTitle(m_last.edit.kind) : title);
 	m_lastTitle->setAccessibleName(title);
 	m_lastTitle->setToolTip(title);
-	const auto fields = lastFields(m_last.edit);
+	const auto fields = lastFields(m_last.edit, &m_editor->m_document.mesh());
 	if (fields.isEmpty())
 		form->addRow(new QLabel(Text::tr("This operation has no settings.")));
 	for (int index = 0; index < fields.size(); ++index)
@@ -2385,7 +2400,7 @@ void ModelEditorTools::refreshLastPanel()
 				return;
 			const QScopedValueRollback<bool> adjusting(m_adjustingLast, true);
 			auto edit = m_last.edit;
-			const auto changed = lastFields(edit)[index];
+			const auto changed = lastFields(edit, &m_editor->m_document.mesh())[index];
 			changed.set(edit, value);
 			// The joint mirror map was confirmed for the last plane. A new axis,
 			// or a merge distance that moves joints on or off the plane, needs it

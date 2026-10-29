@@ -1,6 +1,7 @@
 // Mesh Editor coverage for the polygon modelling tools: Individual Origins
-// and Normal axes (modal and gizmo), Array and Screw, extrude variants and
-// bridging.
+// and Normal axes (modal and gizmo), Array and Screw, extrude variants,
+// bridging, Intersect against another surface, symmetry (topology tools and
+// gizmo drags, with proportional editing) and Poly Build.
 // Each scenario runs in the dark theme at 100%, and in high-contrast themes at
 // 200% text with expanded translations, the second right to left.
 #include "app/model_editor_dialog.h"
@@ -342,6 +343,52 @@ void bridges(QApplication &app, ModelEditorDialog &editor, ModelEditorTools &too
 	app.processEvents();
 }
 
+// Intersect from the Face menu against another surface chosen in F9, then the
+// shared volume, as one undo step.
+void intersect(QApplication &app, ModelEditorDialog &editor, ModelEditorTools &tools)
+{
+	QString error;
+	auto parts = polygonCube(4, {}, 2);
+	auto cutter = polygonCube(3, {5, .5f, .5f}, 2).surfaces[0];
+	cutter.name = QStringLiteral("cutter");
+	parts.surfaces << cutter;
+	updateEditableModelMetadata(&parts);
+	expect(editor.setMesh(parts, &error), "open two interpenetrating surfaces", error);
+	auto *face = tools.menuBar()->findChild<QMenu *>("meshMenuFace");
+	expect(face && face->actions().contains(tools.action("meshIntersectShared")), "the Face menu offers Intersect (Shared Volume)");
+	ModelSelection all;
+	all.faces = allFaces(parts.surfaces[0]);
+	tools.applySelection(all);
+	tools.action("meshIntersectCut")->trigger();
+	app.processEvents();
+	expect(bytes(editor.document().mesh()) == bytes(parts), "the rest of surface 0 does not meet the selection, so nothing changes");
+	ModelEdit edit;
+	edit.kind = ModelEditKind::IntersectCut;
+	edit.selection = all;
+	edit.tool.intersectSurface = 1;
+	auto expected = parts;
+	expect(applyModelEdit(&expected, edit, nullptr, &error), "prepare the cut against surface 1", error);
+	expect(tools.runTool(edit, &error) && bytes(editor.document().mesh()) == bytes(expected), "Intersect cuts both surfaces", error);
+	tools.action("meshAdjustLast")->trigger();
+	app.processEvents();
+	auto *panel = tools.lastOperationPanel();
+	const auto combos = panel ? panel->findChildren<QComboBox *>() : QList<QComboBox *>{};
+	if (!expect(combos.size() == 2 && combos[1]->count() == 3 && combos[1]->currentIndex() == 2,
+				"F9 offers what to keep and which surface cuts, set to the cutter"))
+		return;
+	combos[0]->setCurrentIndex(3);
+	app.processEvents();
+	edit.tool.intersectMode = ModelIntersectMode::Intersection;
+	expected = parts;
+	expect(applyModelEdit(&expected, edit, nullptr, &error) && bytes(editor.document().mesh()) == bytes(expected),
+		   "F9 switches to the shared volume and replays once", error);
+	editor.findChild<QAction *>("undoMesh")->trigger();
+	app.processEvents();
+	expect(bytes(editor.document().mesh()) == bytes(parts) && !editor.document().canUndo(), "the adjusted intersect is one undo step");
+	tools.action("meshAdjustLast")->trigger();
+	app.processEvents();
+}
+
 // Symmetry X: E on one side extrudes both; Mirror Faces is in the Symmetrize menu.
 void symmetry(QApplication &app, ModelEditorDialog &editor, ModelEditorTools &tools, ModelViewport &view)
 {
@@ -541,6 +588,7 @@ int main(int argc, char **argv)
 		arraysAndScrews(app, editor, *tools, *view);
 		extrudeVariants(app, editor, *tools, *view);
 		bridges(app, editor, *tools);
+		intersect(app, editor, *tools);
 		symmetry(app, editor, *tools, *view);
 		polyBuild(app, editor, *tools, *view);
 		editor.close();

@@ -304,7 +304,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		QStringLiteral("--bind"), QStringLiteral("--bind-joint"), QStringLiteral("--new-surface"),
 		QStringLiteral("--transform-space"), QStringLiteral("--axis-rotation"), QStringLiteral("--axes-frame"),
 		QStringLiteral("--count"), QStringLiteral("--relative"), QStringLiteral("--axial-offset"), QStringLiteral("--mode"),
-		QStringLiteral("--symmetry"), QStringLiteral("--points"), QStringLiteral("--facing")};
+		QStringLiteral("--symmetry"), QStringLiteral("--points"), QStringLiteral("--facing"), QStringLiteral("--with-surface")};
 	Arguments args;
 	QString error;
 	if (!parse(arguments, flags, options, &args, &error))
@@ -365,7 +365,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("spin"), {QStringLiteral("--faces"), QStringLiteral("--edges"), QStringLiteral("--angle"), QStringLiteral("--steps"),
 			QStringLiteral("--centre"), QStringLiteral("--axis"), QStringLiteral("--axis-vector"), QStringLiteral("--duplicate"),
 			QStringLiteral("--no-close"), QStringLiteral("--tile-size"), QStringLiteral("--axial-offset")}},
-		{QStringLiteral("intersect"), {QStringLiteral("--faces"), QStringLiteral("--mode")}},
+		{QStringLiteral("intersect"), {QStringLiteral("--faces"), QStringLiteral("--mode"), QStringLiteral("--with-surface")}},
 		{QStringLiteral("add-face"), {QStringLiteral("--vertices"), QStringLiteral("--points"), QStringLiteral("--point"), QStringLiteral("--facing"),
 			QStringLiteral("--bind"), QStringLiteral("--bind-joint")}},
 		{QStringLiteral("mirror"), {QStringLiteral("--faces"), QStringLiteral("--axis"), QStringLiteral("--point"), QStringLiteral("--joint-map"),
@@ -639,8 +639,13 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			tool.intersectMode = ModelIntersectMode::Union;
 		else if (mode == QStringLiteral("difference"))
 			tool.intersectMode = ModelIntersectMode::Difference;
+		else if (mode == QStringLiteral("intersection"))
+			tool.intersectMode = ModelIntersectMode::Intersection;
 		else
-			return fail(2, Text::tr("Use --mode cut|union|difference."));
+			return fail(2, Text::tr("Use --mode cut|union|difference|intersection."));
+		// --with-surface N: cut against (and cut) another surface.
+		if (args.values.contains(QStringLiteral("--with-surface")) && !readInt(QStringLiteral("--with-surface"), &tool.intersectSurface, 0, 4095))
+			return fail(2, Text::tr("Use --with-surface with a surface index."));
 	}
 	// Add Face: new corners from --points "x,y,z;x,y,z" or one --point, facing --facing.
 	if (kind == ModelEditKind::AddFace)

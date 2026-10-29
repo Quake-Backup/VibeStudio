@@ -620,8 +620,10 @@ the same cut interpolation. F9 adjusts visibility/selection scope. See
 When two parts pass through each other, select one of them and choose **Face →
 Intersect (Knife)** to cut both where they meet, or **Intersect (Union)** to
 remove the hidden faces as well and save triangles. **Intersect (Difference)**
-carves the other part out of the selection. Join the parts into one surface
-first; union and difference need closed parts.
+carves the other part out of the selection, and **Intersect (Shared Volume)**
+keeps only what both parts enclose. When the parts are separate surfaces,
+choose the other surface in **F9 > Cut with**. Union, difference and shared
+volume need closed parts.
 
 **Face → Spin** and **Edge → Spin** make curved extrusions around the **3D
 Cursor**. Type degrees, choose an axis with **X/Y/Z**, and set steps with the

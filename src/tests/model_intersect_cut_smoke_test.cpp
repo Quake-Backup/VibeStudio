@@ -1,5 +1,6 @@
 // Intersect: two interpenetrating boxes cut along their intersection, then
-// united or subtracted into closed shapes; coplanar overlaps refused; three
+// united, subtracted or reduced to their shared volume; the same against
+// another surface; large crossing grids; coplanar overlaps refused; three
 // poses; the CLI.
 #include "core/model_mesh_tools.h"
 #include "tests/model_polygon_test_helpers.h"
@@ -117,6 +118,112 @@ int main(int argc, char **argv)
 		updateEditableModelMetadata(&open);
 		expect(!applyModelEdit(&open, intersectEdit(ModelIntersectMode::Union), nullptr, &error), "a union needs closed parts");
 	}
+	{
+		// Shared volume: only what lies inside both boxes remains, closed.
+		auto mesh = boxes();
+		expect(applyModelEdit(&mesh, intersectEdit(ModelIntersectMode::Intersection), nullptr, &error) && nonManifoldEdges(mesh.surfaces[0]) == 0 &&
+				   consistentlyWound(mesh.surfaces[0]),
+			   "an intersection leaves one closed shell", error);
+		bool within = !mesh.surfaces[0].triangles.isEmpty();
+		for (const auto &t : mesh.surfaces[0].triangles)
+		{
+			for (int v : {t.a, t.b, t.c})
+			{
+				const auto p = mesh.surfaces[0].frames[0].positions[v];
+				within = within && p.x > 1.9999f && p.x < 4.0001f && std::abs(p.y - .5f) < 3.0001f && std::abs(p.z - .5f) < 3.0001f;
+			}
+		}
+		expect(within, "every remaining corner lies in both boxes");
+	}
+	{
+		// Another surface as the cutter: box A on surface 0, box B on surface 1.
+		const auto separate = [](int poses = 3)
+		{
+			auto mesh = polygonCube(4, {}, poses);
+			auto other = polygonCube(3, {5, .5f, .5f}, poses);
+			auto surface = other.surfaces[0];
+			surface.name = QStringLiteral("cutter");
+			mesh.surfaces << surface;
+			updateEditableModelMetadata(&mesh);
+			return mesh;
+		};
+		const auto centroid = [](const ModelSurface &surface, int face)
+		{
+			const auto &p = surface.frames[0].positions;
+			const auto &t = surface.triangles[face];
+			return ModelVec3{(p[t.a].x + p[t.b].x + p[t.c].x) / 3, (p[t.a].y + p[t.b].y + p[t.c].y) / 3, (p[t.a].z + p[t.b].z + p[t.c].z) / 3};
+		};
+		const auto insideA = [](ModelVec3 c) { return std::abs(c.x) < 3.999f && std::abs(c.y) < 3.999f && std::abs(c.z) < 3.999f; };
+		const auto insideB = [](ModelVec3 c)
+		{ return std::abs(c.x - 5) < 2.999f && std::abs(c.y - .5f) < 2.999f && std::abs(c.z - .5f) < 2.999f; };
+		auto edit = intersectEdit(ModelIntersectMode::Cut);
+		edit.tool.intersectSurface = 1;
+		auto mesh = separate();
+		ModelSelection result;
+		expect(applyModelEdit(&mesh, edit, &result, &error) && mesh.surfaces[0].triangles.size() > 12 && mesh.surfaces[1].triangles.size() > 12 &&
+				   result.surface == 0 && result.edges.size() >= 8,
+			   "cutting against another surface cuts both surfaces and selects the new edges", error);
+		bool poses = true;
+		for (int s = 0; s < 2; ++s)
+			for (int v = 0; v < mesh.surfaces[s].vertexCount; ++v)
+				poses = poses && nearPoint(mesh.surfaces[s].frames[2].positions[v],
+										   {mesh.surfaces[s].frames[0].positions[v].x, mesh.surfaces[s].frames[0].positions[v].y,
+											mesh.surfaces[s].frames[0].positions[v].z + 16},
+										   1e-3);
+		expect(poses, "both surfaces' cut points follow every pose");
+		for (const auto mode : {ModelIntersectMode::Union, ModelIntersectMode::Difference, ModelIntersectMode::Intersection})
+		{
+			auto parts = separate();
+			auto boolean = intersectEdit(mode);
+			boolean.tool.intersectSurface = 1;
+			if (!expect(applyModelEdit(&parts, boolean, nullptr, &error), "a boolean against another surface applies", error))
+				continue;
+			bool right = !parts.surfaces[0].triangles.isEmpty() && !parts.surfaces[1].triangles.isEmpty();
+			for (int f = 0; f < parts.surfaces[0].triangles.size(); ++f)
+			{
+				const bool in = insideB(centroid(parts.surfaces[0], f));
+				right = right && (mode == ModelIntersectMode::Intersection ? in : !in);
+			}
+			for (int f = 0; f < parts.surfaces[1].triangles.size(); ++f)
+			{
+				const bool in = insideA(centroid(parts.surfaces[1], f));
+				right = right && (mode == ModelIntersectMode::Union ? !in : in);
+			}
+			expect(right && consistentlyWound(parts.surfaces[0], true) && consistentlyWound(parts.surfaces[1], true),
+				   mode == ModelIntersectMode::Union		? "union across surfaces drops each surface's hidden faces"
+				   : mode == ModelIntersectMode::Difference ? "difference across surfaces keeps the cutter's inside as the pocket"
+															: "intersection across surfaces keeps each surface's part inside the other");
+		}
+		auto missing = separate(1);
+		auto stray = intersectEdit(ModelIntersectMode::Cut);
+		stray.tool.intersectSurface = 7;
+		const auto before = bytes(missing);
+		expect(!applyModelEdit(&missing, stray, nullptr, &error) && bytes(missing) == before, "a missing cutting surface is refused");
+		ModelEdit other;
+		other.kind = ModelEditKind::Knife;
+		other.selection.faces = {0};
+		other.tool.intersectSurface = 1;
+		expect(!applyModelEdit(&missing, other, nullptr, &error), "the cutting surface applies only to Intersect");
+	}
+	{
+		// Many faces: two crossing 48x48 grids on separate surfaces pair through
+		// the face grid rather than face by face.
+		auto mesh = polygonGrid(48, 48, 1, 1);
+		auto wall = polygonGrid(48, 48, 1, 1);
+		for (auto &p : wall.surfaces[0].frames[0].positions)
+			p = {20.25f, p.x - 4.f, p.y - 24.5f};
+		auto surface = wall.surfaces[0];
+		surface.name = QStringLiteral("wall");
+		mesh.surfaces << surface;
+		updateEditableModelMetadata(&mesh);
+		ModelEdit edit;
+		edit.kind = ModelEditKind::IntersectCut;
+		edit.selection.faces = allFaces(mesh.surfaces[0]);
+		edit.tool.intersectSurface = 1;
+		ModelSelection result;
+		expect(applyModelEdit(&mesh, edit, &result, &error) && result.edges.size() >= 44 && mesh.surfaces[1].triangles.size() > 48 * 48 * 2,
+			   "large crossing grids are cut along their whole crossing", error);
+	}
 	// CLI.
 	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
 	if (!root.isEmpty())
@@ -138,6 +245,25 @@ int main(int argc, char **argv)
 		expect(runPolygonCli(exe, temporary.path(),
 							 {"model", "tool", input, "--tool", "intersect", "--faces", "0", "--mode", "xor", "--overwrite", "--output", output}, 2),
 			   "an unknown mode is a usage error");
+		// Against another surface, keeping the shared volume.
+		auto parts = polygonCube(4, {}, 3);
+		auto cutter = polygonCube(3, {5, .5f, .5f}, 3).surfaces[0];
+		cutter.name = QStringLiteral("cutter");
+		parts.surfaces << cutter;
+		updateEditableModelMetadata(&parts);
+		const auto twoSurfaces = temporary.filePath("two.mesh.json");
+		ModelDocument two;
+		expect(two.setMesh(parts, &error) && two.save(twoSurfaces, false, &error), "save the two-surface CLI source", error);
+		expect(runPolygonCli(exe, temporary.path(),
+							 {"model", "tool", twoSurfaces, "--tool", "intersect", "--faces", "all", "--with-surface", "1", "--mode", "intersection",
+							  "--overwrite", "--output", output},
+							 0) &&
+				   loaded.load(output, &error) && loaded.mesh().surfaces.size() == 2 && loaded.mesh().surfaces[1].triangles.size() > 0,
+			   "model tool intersect --with-surface 1 --mode intersection", error);
+		expect(runPolygonCli(exe, temporary.path(),
+							 {"model", "tool", twoSurfaces, "--tool", "intersect", "--faces", "all", "--with-surface", "x", "--overwrite", "--output", output},
+							 2),
+			   "a non-numeric cutting surface is a usage error");
 	}
 	std::cout << expect.checks << " intersect checks; " << expect.failures << " failures\n";
 	return expect.failures ? 1 : 0;

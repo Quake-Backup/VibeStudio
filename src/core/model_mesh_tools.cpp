@@ -1640,8 +1640,8 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 		return fail(error, Text::tr("Joint mirror maps apply only to Symmetrize."));
 	if (edit.kind != ModelEditKind::AddFace && options.facePointCount != 0)
 		return fail(error, Text::tr("New face points apply only to Add Face."));
-	if (edit.kind != ModelEditKind::IntersectCut && options.intersectMode != ModelIntersectMode::Cut)
-		return fail(error, Text::tr("Union and difference apply only to Intersect."));
+	if (edit.kind != ModelEditKind::IntersectCut && (options.intersectMode != ModelIntersectMode::Cut || options.intersectSurface != -1))
+		return fail(error, Text::tr("Union, difference, intersection and the cutting surface apply only to Intersect."));
 	if ((edit.kind != ModelEditKind::AddPrimitive && edit.kind != ModelEditKind::AddFace &&
 		 (options.newGeometryBinding != ModelNewGeometryBinding::None || !options.bindJoint.isEmpty())) ||
 		(edit.kind != ModelEditKind::AddPrimitive && !options.newSurface.isEmpty()))
@@ -1758,8 +1758,17 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 		return materialiseModelVertexIdentities(&candidate->surfaces[selection->surface], error, control) &&
 			addFace(candidate, edit, selection, error, work);
 	case ModelEditKind::IntersectCut:
-		return authored(materialiseModelVertexIdentities(&candidate->surfaces[selection->surface], error, control) &&
-						intersectCut(candidate, edit, selection, error, control, report));
+	{
+		// Cutting against another surface edits (and authors) that surface too.
+		const int other = edit.tool.intersectSurface;
+		const bool across = other >= 0 && other < candidate->surfaces.size() && other != selection->surface;
+		const bool applied = materialiseModelVertexIdentities(&candidate->surfaces[selection->surface], error, control) &&
+							 (!across || materialiseModelVertexIdentities(&candidate->surfaces[other], error, control)) &&
+							 intersectCut(candidate, edit, selection, error, control, report);
+		if (applied && across)
+			markModelSurfaceOriginsAuthored(&candidate->surfaces[other]);
+		return authored(applied);
+	}
 	default:
 		return fail(error, Text::tr("Unknown mesh tool."));
 	}

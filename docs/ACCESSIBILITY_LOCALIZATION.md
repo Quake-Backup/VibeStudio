@@ -40,6 +40,11 @@ by colour alone. Strings use `VibeStudioModelTools`, `VibeStudioModelControls`,
 `ModelToolsCli` and the tools' own contexts. The owned UI test runs them at
 200% text in both high-contrast themes, with expanded translations and right
 to left; physical keyboard and screen-reader acceptance remains open.
+Branched rips, gizmo drags with **Symmetry** or proportional editing, and
+**Intersect (Shared Volume)** with its **Cut with** surface choice (labelled by
+surface name, or "Surface N" for unnamed surfaces) follow the same rules: the
+gizmo's textual move/rotate/scale readout is unchanged, and counterparts are
+shown by the moving geometry rather than colour.
 
 **Edge Slide** uses the existing named menu/search/profile command, semantic
 modal preview, typed values and textual status. Rail guides supplement the
