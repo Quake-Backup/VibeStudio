@@ -197,7 +197,11 @@ from opening. `model assembly --new --from-player NAME --package PATH --output
 FILE.assembly.json` opens one as a new assembly: three package parts on
 `tag_torso` and `tag_head`, the `--skin-name` skin (by default `default`) linked
 to each part, and native animation from the player's `animation.cfg`. The package
-is never written. JSON `player.publication.arguments` holds the `player-review`
+is never written. `--operation doom3-entities --package PATH` lists the Doom 3
+entityDefs with a head or attachments, and `--new --from-def NAME --package PATH
+--output FILE.assembly.json` opens one with its head and attachments on their
+joints (see [opening a Doom 3 entity](../MODEL_ASSEMBLY.md#opening-a-doom-3-entity)).
+JSON `player.publication.arguments` holds the `player-review`
 options that publish the player again. `animation-set --config-entry PATH` reads
 an `animation.cfg` entry from `--package`; add `--config-entry-index N` when the
 path is repeated. A missing player, model, `animation.cfg` or complete skin exits

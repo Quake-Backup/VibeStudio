@@ -2242,6 +2242,11 @@ Each resolved path may be a definition file or a folder of them.
   three package parts, the linked skin, native animation from the package's
   `animation.cfg` and the `player-review` options to publish it again. The package
   is never written.
+- [x] `model assembly --operation doom3-entities --package <pk4|folder>` and
+  `--new --from-def NAME` share the GUI's Open Doom 3 Entity: the entityDefs of
+  `def/*.def` with `def_head` or `def_attach`, opened as the md5mesh body with the
+  head and attachments on their joints. JSON `doom3Entity` lists the parts and
+  notes. The package is never written.
 - [x] `model recoveries [--directory <folder>]` lists bounded recovery headers.
   JSON distinguishes header validity from payload verification. `model recover
   <copy.vsmeshrecovery> --output <new.mesh.json>` verifies the payload and writes

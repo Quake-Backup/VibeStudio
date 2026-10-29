@@ -656,8 +656,10 @@ older assemblies keep **Shortest arc**. See
 [Attachment blend](../MODEL_ASSEMBLY.md#attachment-blend).
 
 A part can also hang from a joint of a skeletal parent (MD5, IQM): choose
-`joint:<name>` as its **Parent tag**, such as `joint:hand` for a weapon. See
-[Joint attachments](../MODEL_ASSEMBLY.md#joint-attachments).
+`joint:<name>` as its **Parent tag**, such as `joint:hand` for a weapon. For a
+Doom 3 character, **Open Doom 3 Entity…** builds the recipe from the package's
+`def/` files: the body, its `def_head` on the head joint and each `def_attach`
+on its joint. See [Joint attachments](../MODEL_ASSEMBLY.md#joint-attachments).
 
 To keep the parts' collision in a bake, tick **Include part collision in bakes**:
 each part's boxes and hulls are placed as the part is and named after it. See

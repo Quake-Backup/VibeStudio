@@ -255,7 +255,14 @@ polygon winding of `LoadRenderModel` with `idWinding::GetPlane`
 ([`neo/idlib/geometry/Winding.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/idlib/geometry/Winding.cpp)),
 reviewed 2026-10-29. The material check reads the `collision` infoParm of
 [`neo/renderer/Material.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/renderer/Material.cpp)
-through the materials module's existing parser. Behaviour only; no code is copied. Recording placements in a
+through the materials module's existing parser. Opening a Doom 3 entity as an
+assembly (`core/model_doom3_entity_import`) follows `idActor::SetupHead` (the
+`def_head` model at `head_joint` with the actor's axes), the `def_attach` loop of
+`idActor::Spawn` and `idActor::Attach` (`joint`, `origin` in model space,
+`angles` within the joint) in
+[`neo/game/Actor.cpp`](https://github.com/id-Software/DOOM-3/blob/master/neo/game/Actor.cpp),
+`inherit` in `neo/framework/DeclEntityDef.cpp`, and `idAngles::ToMat3` in
+`neo/idlib/math/Angles.cpp`, reviewed 2026-10-29. Behaviour only; no code is copied. Recording placements in a
 `func_group` relies on the compilers merging `func_group` into the world, as
 ericw-tools `qbsp`, Quake II `qbsp3` and q3map2 do and as
 [TrenchBroom](https://github.com/TrenchBroom/TrenchBroom) uses it for groups.

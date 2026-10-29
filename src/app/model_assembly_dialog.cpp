@@ -119,6 +119,9 @@ ModelAssemblyDialog::ModelAssemblyDialog(QWidget *parent) : QDialog(parent)
 	action(QCoreApplication::translate("ModelAssemblyDialog", "Open Player…"), "assemblyOpenPlayer", [this] { choosePlayer(); })
 		->setToolTip(QCoreApplication::translate("ModelAssemblyDialog",
 												 "Open a Quake III player of the current package or folder as a new assembly. The package is not changed."));
+	action(QCoreApplication::translate("ModelAssemblyDialog", "Open Doom 3 Entity…"), "assemblyOpenDoom3Entity", [this] { chooseDoom3Entity(); })
+		->setToolTip(QCoreApplication::translate("ModelAssemblyDialog", "Open a Doom 3 entityDef's body, head and attachments from the current "
+																		"package's def files as a new assembly. The package is not changed."));
 	action(QCoreApplication::translate("ModelAssemblyDialog", "Recoveries…"), "assemblyRecoveries", [this] { chooseRecovery(); });
 	action(QCoreApplication::translate("ModelAssemblyDialog", "Save"), "assemblySave", [this] { chooseSave(); }, QKeySequence::Save);
 	action(

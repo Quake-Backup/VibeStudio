@@ -73,13 +73,36 @@ animation bakes then work as for tags.
 
 A joint that does not exist, or that has no pose in every baked frame, is
 reported by name and leaves the recipe editable for repair, as a missing tag
-does. Joint attachments use assembly schema 4; older schemas refuse them. Reading
-a Doom 3 `.def` entity declaration's head and attachment keys into a recipe is
-not yet available.
+does. Joint attachments use assembly schema 4; older schemas refuse them.
+
+### Opening a Doom 3 entity
+
+**Open Doom 3 Entity…** reads the `def/*.def` files of the current package or
+folder and lists every `entityDef` with a `def_head` or `def_attach` key, after
+`inherit`. Choosing one opens a new, unsaved assembly of package parts, placed as
+Doom 3's `idActor` places them when the actor spawns (`game/Actor.cpp`):
+
+| Part | From | Placement |
+| --- | --- | --- |
+| Body (root) | The entity's `model`: a model declaration's `mesh`, or an `.md5mesh` path. | Its bind pose. |
+| Head | `def_head`: a model declaration or a model path. | On `joint:<head_joint>` with the actor's own axes, as `SetupHead` puts it, so its rotation undoes the joint's. |
+| Attachments | Each `def_attach*` entityDef's `model`. | On `joint:<joint>`, offset by its `origin` in the actor's model space and turned by its `angles` (pitch, yaw, roll) within the joint's axes, as `Attach` does. |
+
+Keys follow `inherit` (a missing key comes from the parent) and the first
+definition of a name wins, as in the game. An entity without an `.md5mesh` body,
+a head without `head_joint` and a joint the body lacks are refused, as the game
+stops on them. An attachment without a model (an attached light or effect) is
+left out with a note. The model declaration's `offset` moves the whole actor in
+game and is left out, so the parts keep their places relative to each other;
+skin keys are not applied, and the recipe shows the bind pose rather than the
+declaration's animations.
 
 ```sh
 vibestudio --cli model assembly ./marine.assembly.json --operation add \
   --part rifle --model ./models/rifle.mesh.json --parent body --tag joint:Rhand \
+  --output ./marine.assembly.json --json
+vibestudio --cli model assembly --operation doom3-entities --package ./base --json
+vibestudio --cli model assembly --new --from-def char_marine --package ./base \
   --output ./marine.assembly.json --json
 ```
 

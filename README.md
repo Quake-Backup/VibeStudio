@@ -263,7 +263,9 @@ source of [Quake II](https://github.com/id-Software/Quake-2), reviewed 2026-10-2
 Doom 3 collision surfaces, `.cm` collision model files and the trace model budget follow
 `CollisionModel_load.cpp`, `CollisionModel_files.cpp` and `TraceModel.h` in the GPL source of
 [Doom 3](https://github.com/id-Software/DOOM-3), reviewed 2026-10-29; see
-[Model Collision](docs/CREDITS.md#model-collision).
+[Model Collision](docs/CREDITS.md#model-collision). Opening a Doom 3 entity's head and
+attachments follows `idActor::SetupHead` and `idActor::Attach` (`Actor.cpp`) and
+`DeclEntityDef.cpp` in the same source, reviewed 2026-10-29.
 
 The materials module (Materials page and `material` commands) reimplements
 surface rules read in the GPL sources of [Quake III Arena](https://github.com/id-Software/Quake-III-Arena),

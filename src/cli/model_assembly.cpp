@@ -4,6 +4,7 @@
 #include "core/model_assembly_recovery.h"
 #include "core/model_player_bundle.h"
 #include "core/model_player_import.h"
+#include "core/model_doom3_entity_import.h"
 #include "core/model_weapon_bundle.h"
 #include "core/model_q2_player_bundle.h"
 #include "core/package_draft.h"
@@ -62,7 +63,7 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 								"--skin-entry-index", "--player-name", "--skin-name", "--head-part", "--icon", "--icon-kind", "--icon-entry-index",
 								"--skin-variants", "--variant-skin", "--variant-icon", "--sound", "--lod-levels", "--lod-ratio",
 								"--from-player", "--config-entry", "--config-entry-index", "--tag-interpolation", "--collision", "--spin-rpm",
-								"--weapon-name", "--weapon-part", "--hand-part", "--barrel-part", "--flash-part",
+								"--weapon-name", "--weapon-part", "--hand-part", "--barrel-part", "--flash-part", "--from-def",
 								"--body", "--weapon", "--weapon-skin", "--q2-skin", "--view-weapon"};
 	// Player options that may be given more than once, kept in order.
 	const QSet<QString> repeatable{"--variant-skin", "--variant-icon", "--sound", "--q2-skin", "--view-weapon"};
@@ -114,8 +115,13 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	const bool fresh = seen.contains("--new"), dryRun = seen.contains("--dry-run"), overwrite = seen.contains("--overwrite");
 	// --new --from-player NAME opens a package player as a new assembly.
 	const bool fromPlayer = seen.contains("--from-player");
+	// --new --from-def NAME opens a Doom 3 entityDef's head and attachments
+	// (core/model_doom3_entity_import.h); --operation doom3-entities lists them.
+	const bool fromDef = seen.contains("--from-def");
 	const auto operation =
-		fromPlayer ? QStringLiteral("open-player") : values.value("--operation", fresh ? QStringLiteral("add") : QStringLiteral("inspect"));
+		fromPlayer ? QStringLiteral("open-player")
+		: fromDef  ? QStringLiteral("open-def")
+				   : values.value("--operation", fresh ? QStringLiteral("add") : QStringLiteral("inspect"));
 	const bool player = operation == "player-review" || operation == "player-export";
 	// Quake III weapon model sets (core/model_weapon_bundle.h).
 	const bool weapon = operation == "weapon-review" || operation == "weapon-export";
@@ -204,6 +210,32 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 			result.lines << packageWriteReportText(written);
 			if (!written.succeeded()) { result.exitCode = 4; result.error = packageWriteReportText(written); }
 		}
+		return result;
+	}
+	if (operation == "doom3-entities")
+	{
+		QSet<QString> allowed{"--cli", "--json", "--quiet", "--verbose", "--operation", "--package"};
+		allowed.unite(globals);
+		if (positional.size() != 2 || !(seen - allowed).isEmpty() || !values.contains("--package"))
+			return fail(2, QCoreApplication::translate("ModelAssemblyCli", "doom3-entities lists the Doom 3 entityDefs with a head or "
+																		   "attachments in --package PATH and takes no assembly source."));
+		QString error;
+		std::shared_ptr<const PackageArchiveReader> archive;
+		QVector<ModelDoom3EntityListing> entities;
+		if (!loadPackage(values.value("--package"), &archive, &error))
+			return fail(1, error);
+		if (!listModelDoom3Entities(*archive, &entities, &error))
+			return fail(4, error);
+		ModelAssemblyCliResult result;
+		QJsonArray items;
+		result.lines << QCoreApplication::translate("ModelAssemblyCli", "%n entityDef(s) with a head or attachments.", nullptr, int(entities.size()));
+		for (const auto &item : entities)
+		{
+			items.append(modelDoom3EntityListingJson(item));
+			result.lines << QCoreApplication::translate("ModelAssemblyCli", "%1 (%2): model %3, head %4, %n attachment(s)", nullptr, item.attachments)
+								.arg(item.name, item.sourcePath, item.model, item.head.isEmpty() ? QStringLiteral("-") : item.head);
+		}
+		result.payload = {{"operation", operation}, {"entities", items}};
 		return result;
 	}
 	if (operation == "players")
@@ -329,21 +361,25 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 		return result;
 	}
 	if (!QSet<QString>{"inspect", "add", "update", "remove", "bake", "bake-animation", "animation-set", "animation-export",
-					   "animation-clear", "player-review", "player-export", "open-player", "weapon-review", "weapon-export"}
+					   "animation-clear", "player-review", "player-export", "open-player", "open-def", "weapon-review", "weapon-export"}
 			 .contains(operation) ||
 		positional.size() != (fresh || values.contains("--input") ? 2 : 3) || (fresh && values.contains("--input")) ||
-		(fresh && operation != "add" && operation != "open-player") || (fromPlayer && (!fresh || seen.contains("--operation"))))
+		(fresh && operation != "add" && operation != "open-player" && operation != "open-def") ||
+		((fromPlayer || fromDef) && (!fresh || seen.contains("--operation") || (fromPlayer && fromDef))))
 	{
 		return fail(
 			2, QCoreApplication::translate(
 				   "ModelAssemblyCli", "Use model assembly <source.assembly.json> with inspect, add, update, remove, bake, bake-animation, "
 									   "animation-set, animation-export, animation-clear, player-review, player-export, weapon-review or weapon-export; "
 									   "--new starts an assembly with add, "
-									   "and --new --from-player NAME opens a package player; --operation players lists them."));
+									   "and --new --from-player NAME opens a package player; --operation players lists them. "
+									   "--new --from-def NAME opens a Doom 3 entityDef; --operation doom3-entities lists them."));
 	}
 	QSet<QString> allowed{"--input", "--operation", "--package", "--palette"};
 	if (fromPlayer)
 		allowed.unite({"--from-player", "--skin-name"});
+	if (fromDef)
+		allowed << "--from-def";
 	if (operation == "inspect" || operation == "bake" || operation == "bake-animation")
 	{
 		allowed << "--time";
@@ -411,7 +447,7 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	{
 		return fail(2, QCoreApplication::translate("ModelAssemblyCli", "--palette requires --package; --kind requires --model."));
 	}
-	if ((fromPlayer && !values.contains("--package")) || (values.contains("--config") && values.contains("--config-entry")) ||
+	if (((fromPlayer || fromDef) && !values.contains("--package")) || (values.contains("--config") && values.contains("--config-entry")) ||
 		(values.contains("--config-entry") && !values.contains("--package")) ||
 		(values.contains("--config-entry-index") && !values.contains("--config-entry")))
 		return fail(2, QCoreApplication::translate("ModelAssemblyCli",
@@ -520,7 +556,17 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	ModelAssemblyDocument document;
 	const auto source = fresh ? QString() : values.value("--input", positional.value(2));
 	ModelQ3PlayerImport imported;
-	if (fromPlayer)
+	ModelDoom3EntityImport importedDef;
+	if (fromDef)
+	{
+		if (!importModelDoom3Entity(*package, values.value("--from-def"), &importedDef, &error))
+			return fail(4, error);
+		if (values.contains("--name"))
+			importedDef.assembly.name = values.value("--name");
+		if (!document.setAssembly(importedDef.assembly, QDir::currentPath(), &error))
+			return fail(4, error);
+	}
+	else if (fromPlayer)
 	{
 		if (!importModelQ3Player(*package, values.value("--from-player"), values.value("--skin-name"), &imported, &error))
 			return fail(4, error);
@@ -956,6 +1002,11 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	{
 		result.payload.insert("player", modelQ3PlayerImportJson(imported));
 		result.lines += modelQ3PlayerImportText(imported);
+	}
+	if (fromDef)
+	{
+		result.payload.insert("doom3Entity", modelDoom3EntityImportJson(importedDef));
+		result.lines += modelDoom3EntityImportText(importedDef);
 	}
 	if (operation == "bake-animation")
 	{

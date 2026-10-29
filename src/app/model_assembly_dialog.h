@@ -65,6 +65,9 @@ class ModelAssemblyDialog final : public QDialog
 	// assembly (core/model_player_import.h) and fills Player Package from it.
 	// The package is read, never changed. An empty skin takes default.
 	bool openPlayer(const QString &player, const QString &skin = {}, QString *error = nullptr);
+	// A Doom 3 entityDef's body, head and attachments from the current package
+	// (core/model_doom3_entity_import.h), as a new unsaved assembly.
+	bool openDoom3Entity(const QString &entity, QString *error = nullptr);
 	const ModelPlayerBundleOptions &playerBundleOptions() const
 	{
 		return m_playerBundleOptions;
@@ -185,6 +188,7 @@ class ModelAssemblyDialog final : public QDialog
 	bool chooseSave(bool saveAs = false);
 	void chooseOpen();
 	void choosePlayer();
+	void chooseDoom3Entity();
 	void chooseExport();
 	void bake();
 	void chooseAnimationBake(bool exporting);
