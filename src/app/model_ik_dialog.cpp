@@ -324,7 +324,13 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 			mark(targetPoint(), false, Text::tr("Target"));
 			mark(polePoint(), true, Text::tr("Pole"));
 		});
-	m_tabs->addTab(previewPage, Text::tr("&Preview"));
+	// The preview page scrolls, as the settings page does, so the dialog still
+	// fits a laptop screen at large text sizes.
+	auto *previewScroll = new QScrollArea;
+	previewScroll->setWidgetResizable(true);
+	previewScroll->setFrameShape(QFrame::NoFrame);
+	previewScroll->setWidget(previewPage);
+	m_tabs->addTab(previewScroll, Text::tr("&Preview"));
 	auto *results = new QWidget;
 	auto *resultLayout = new QVBoxLayout(results);
 	auto *table = new QTableView;

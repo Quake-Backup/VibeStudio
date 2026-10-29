@@ -189,7 +189,9 @@ ModelAssemblyDialog::ModelAssemblyDialog(QWidget *parent) : QDialog(parent)
 	m_preview = new ModelViewport;
 	m_preview->setObjectName(QStringLiteral("assemblyPreview"));
 	m_preview->setAccessibleName(QCoreApplication::translate("ModelAssemblyDialog", "Assembly preview"));
-	m_preview->setMinimumSize(240, 200);
+	// Small enough that, with the playback and attachment rows below it, the
+	// dialog still fits a 1280x720 screen at 200% text; it grows with the window.
+	m_preview->setMinimumSize(240, 150);
 	centreLayout->addWidget(m_preview, 1);
 	m_timeline = new QWidget;
 	auto *timeline = new QGridLayout(m_timeline);

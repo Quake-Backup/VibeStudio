@@ -245,13 +245,13 @@ void ModelEditorAnimationPanel::buildResample(QFormLayout *animation, int *row)
 	m_sourceFps->setSpecialValueText(QCoreApplication::translate("VibeStudioModelEditor", "Clip's FPS"));
 	m_targetFps = doubleBox(form, "meshResampleTargetFps", QCoreApplication::translate("VibeStudioModelEditor", "New FPS"),
 							QCoreApplication::translate("VibeStudioModelEditor",
-														"The rate to resample to, such as 10 for Quake and Quake II frame steps. Use frame "
-														"count resamples to New frame count instead."),
+														"The rate to resample to, such as 10 for Quake and Quake II frame steps. By count "
+														"resamples to New frame count instead."),
 							0, 1000, 3);
-	m_targetFps->setSpecialValueText(QCoreApplication::translate("VibeStudioModelEditor", "Use frame count"));
+	m_targetFps->setSpecialValueText(QCoreApplication::translate("VibeStudioModelEditor", "By count"));
 	m_targetFps->setValue(10);
 	m_targetFrames = spinBox(this, form, "meshResampleTargetFrames", QCoreApplication::translate("VibeStudioModelEditor", "New frame count"),
-							 QCoreApplication::translate("VibeStudioModelEditor", "The number of frames the clip gets, when New FPS is Use frame count."),
+							 QCoreApplication::translate("VibeStudioModelEditor", "The number of frames the clip gets, when New FPS is By count."),
 							 0, modelDocumentMaxFrames, [this] { refresh(); });
 	m_targetFrames->setSpecialValueText(QCoreApplication::translate("VibeStudioModelEditor", "Use FPS"));
 	m_method = comboBox(form, "meshResampleMethod", QCoreApplication::translate("VibeStudioModelEditor", "Sampling"),

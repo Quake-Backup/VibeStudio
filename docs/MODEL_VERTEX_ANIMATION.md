@@ -111,7 +111,7 @@ Animation is often made at 24 or 30 FPS, while Quake and Quake II game code
 step model frames at 10 Hz and MD5 needs a whole frame rate. Under **Resample
 and loop**, with a clip chosen under **Animation clips**:
 
-1. Set **New FPS**, or set it to **Use frame count** and give **New frame
+1. Set **New FPS**, or set it to **By count** and give **New frame
    count**. **Current FPS** is the clip's saved rate unless you give another.
 2. Choose **Sampling**: **Blend** blends positions and origins linearly,
    normals by normalised blending, attachment tags and collision orientations
