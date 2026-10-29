@@ -697,17 +697,33 @@ MDL skin size first; Quake needs a width that is a multiple of 4.
    the open package.
 3. Paint over the layout in **Textures** or any paint program.
 
-**Edit Skin…** opens the surface's skin in the texture editor; staging it there
-updates the model. For a Quake MDL, **Export Member…** and **Replace Member From
-Image…** on the MDL page take a skin member out and back, mapped to the
-model's palette.
+For a Quake MDL, **Export Member…** and **Replace Member From Image…** on the
+MDL page take a skin member out and back, mapped to the model's palette.
+
+### Paint the skin in Textures and bring it back
+
+1. Select the surface and choose **Edit Skin…** in the UV toolbar or the **UV**
+   menu. Textures opens the skin with a locked **UV guide** layer showing the
+   UVs; hide it in the Layers panel when you want to see the skin alone.
+2. Paint on the skin layer, then choose **Save Project**.
+3. Back in **Models**, choose **Apply Skin** in the status strip. A Quake MDL
+   member is replaced as one undo step; any other skin is staged over its
+   package path. **Dismiss** keeps the model's skin.
+
+Turn on **Apply Saved Skins Automatically** in the UV toolbar to apply every
+save at once. The project is kept in the project's `.vibestudio/model-skins`
+folder. If you export or stage from Textures yourself, hide the UV guide first.
 
 ### Keep a painted skin after changing UVs
 
-After unwrapping, packing, scaling or moving islands, choose **Transfer Skin…**
-in the UV toolbar. It repaints the skin for the new UVs from the old one, face
-by face, then replaces the MDL member as one undo step or stages the image over
-the old one. Use it straight after the UV edits: any other edit ends the chain.
+After unwrapping, packing, scaling or moving islands, or after subdividing,
+cutting or rebuilding faces, choose **Transfer Skin…** in the UV toolbar. It
+repaints the skin for the new UVs from the old one, then replaces the MDL
+member as one undo step or stages the image over the old one. With **Match
+faces** set to **Automatic**, faces that kept their corners are matched
+directly and reshaped or new faces take the paint of the nearest part of the
+old surface. Use it straight after those edits: moving vertices or other edits
+end the chain.
 
 ## Design a prop
 

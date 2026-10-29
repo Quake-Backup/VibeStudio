@@ -585,7 +585,16 @@ void ModelEditorDialog::rememberUvTransferSource(const ModelMesh &before, const 
 										ModelEditKind::SetUvDensity, ModelEditKind::ProjectUvMapping, ModelEditKind::WeldUv,
 										ModelEditKind::StitchUv,	ModelEditKind::AlignUv,		   ModelEditKind::SnapUvTexels};
 	const int surface = edit.selection.surface;
-	if (std::find(uvKinds.cbegin(), uvKinds.cend(), edit.kind) == uvKinds.cend() || surface < 0 || surface >= before.surfaces.size())
+	const auto &now = m_document.mesh();
+	// Edits that rebuilt the surface's faces (topology edits) keep the skin
+	// transferable too, by projection onto the surface before them.
+	const bool reshaped = surface >= 0 && surface < before.surfaces.size() && before.surfaces.size() == now.surfaces.size() &&
+						  (before.surfaces[surface].vertexCount != now.surfaces[surface].vertexCount ||
+						   before.surfaces[surface].triangles.size() != now.surfaces[surface].triangles.size() ||
+						   !std::equal(before.surfaces[surface].triangles.cbegin(), before.surfaces[surface].triangles.cend(),
+									   now.surfaces[surface].triangles.cbegin(),
+									   [](const ModelTriangle &a, const ModelTriangle &b) { return a.a == b.a && a.b == b.b && a.c == b.c; }));
+	if ((std::find(uvKinds.cbegin(), uvKinds.cend(), edit.kind) == uvKinds.cend() && !reshaped) || surface < 0 || surface >= before.surfaces.size())
 	{
 		m_uvTransferSurface = -1;
 		m_uvTransferBefore = {};
@@ -605,7 +614,7 @@ bool ModelEditorDialog::canTransferSkin() const
 {
 	const auto &mesh = m_document.mesh();
 	return m_uvTransferSurface >= 0 && m_uvTransferSurface < mesh.surfaces.size() && m_uvTransferRevision == m_document.revisionFingerprint() &&
-		   m_uvTransferBefore.triangles.size() == mesh.surfaces[m_uvTransferSurface].triangles.size();
+		   !m_uvTransferBefore.triangles.isEmpty();
 }
 
 bool ModelEditorDialog::runUvTool(ModelEditKind kind, QString *error)

@@ -270,6 +270,15 @@ void ModelEditorDialog::transferSkin()
 								"to the nearest palette colour."));
 	filter->setAccessibleDescription(filter->toolTip());
 	form->addRow(Text::tr("Sampling"), filter);
+	auto *mapping = new QComboBox;
+	mapping->setObjectName(QStringLiteral("skinTransferMapping"));
+	mapping->addItems({Text::tr("Automatic"), Text::tr("By face"), Text::tr("By projection")});
+	mapping->setAccessibleName(Text::tr("Match faces"));
+	mapping->setToolTip(Text::tr("Automatic matches faces that kept their corners by index and finds reshaped, added or renumbered "
+								 "faces by projection onto the old surface. By face matches by index only; by projection finds "
+								 "every texel on the old surface."));
+	mapping->setAccessibleDescription(mapping->toolTip());
+	form->addRow(Text::tr("Match faces"), mapping);
 	auto *padding = new QSpinBox;
 	padding->setObjectName(QStringLiteral("skinTransferPadding"));
 	padding->setRange(0, 64);
@@ -325,6 +334,8 @@ void ModelEditorDialog::transferSkin()
 	ModelSkinTransferOptions options;
 	options.filter = filter->currentIndex() == 1 ? ModelSkinTransferFilter::Bilinear : ModelSkinTransferFilter::Nearest;
 	options.padding = padding->value();
+	options.mapping = ModelSkinTransferMapping(mapping->currentIndex());
+	options.referenceFrame = std::clamp(m_preview->frame(), 0, int(std::max<qsizetype>(1, std::min(m_uvTransferBefore.frames.size(), mesh.surfaces[surface].frames.size()))) - 1);
 	const QSize size = mdl ? mesh.mdl.skinSize : QSize(width->value(), height->value());
 	const bool toFile = !mdl && (!stageFile || destination->currentIndex() == 1);
 	const QString filePath = path->text().trimmed();
@@ -382,9 +393,10 @@ void ModelEditorDialog::transferSkin()
 		m_status->setText(error, LiveStatus::Problem);
 		return;
 	}
-	m_status->setText(Text::tr("Transferred the skin: %Ln faces repainted on %L1 × %L2 texels.", nullptr, report.faces)
-						  .arg(size.width())
-						  .arg(size.height()),
-					  LiveStatus::Result);
+	auto summary = Text::tr("Transferred the skin: %Ln faces repainted on %L1 × %L2 texels.", nullptr, report.faces).arg(size.width()).arg(size.height());
+	const int projected = int(report.projectedFaces.size());
+	if (projected > 0)
+		summary += QLatin1Char(' ') + Text::tr("%Ln of them were found by projection onto the old surface.", nullptr, projected);
+	m_status->setText(summary, LiveStatus::Result);
 }
 } // namespace vibestudio

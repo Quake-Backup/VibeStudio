@@ -461,7 +461,9 @@ adaptations (the latter reviewed 2026-10-06) are documented in the
 [integration record](external/modelling/xatlas/VIBESTUDIO.md). The conformal
 unwrap is an original implementation of Lévy et al.'s
 [Least Squares Conformal Maps](https://doi.org/10.1145/566654.566590)
-(SIGGRAPH 2002); see [Mesh UV Atlas Generation](docs/CREDITS.md#mesh-uv-atlas-generation).
+(SIGGRAPH 2002), and skin transfer's projection follows Ericson's
+closest-point-on-triangle test (*Real-Time Collision Detection*, 2005); see
+[Mesh UV Atlas Generation](docs/CREDITS.md#mesh-uv-atlas-generation).
 
 - Project search preserves the public [Qt non-path glob contract](https://doc.qt.io/qt-6/qregularexpression.html#WildcardConversionOption-enum)
   on Qt 6.0–6.5 through an original compatibility adapter. Qt 6.4.2/6.10.1,

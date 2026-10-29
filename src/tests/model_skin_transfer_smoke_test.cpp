@@ -8,6 +8,8 @@
 #include <QDir>
 #include <QFile>
 #include <QImageWriter>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QTemporaryDir>
 #include <cmath>
 #include <functional>
@@ -142,11 +144,57 @@ int main(int argc, char **argv)
 	expect(transferModelSkin(before, moved, indexed, {8, 8}, options, &result, &report, &error) && result.format() == QImage::Format_Indexed8 &&
 			   result.colorTable() == table && result.pixelIndex(4, 2) == 100 && result.pixelIndex(7, 5) == 3 * 8 + 3 + 100 && report.indexed,
 		   "indexed skins keep exact palette indices", error);
-	// Faces only one side has are reported.
+	// Matching by face reports faces only one side has; the automatic
+	// mapping projects them instead.
 	auto extra = moved;
 	extra.triangles.append(extra.triangles.first());
+	options.mapping = ModelSkinTransferMapping::Faces;
 	expect(transferModelSkin(before, extra, source, {8, 8}, options, &result, &report, &error) && report.missingFaces == QVector<int>{2},
 		   "faces missing from one side are reported");
+	options.mapping = ModelSkinTransferMapping::Automatic;
+	expect(transferModelSkin(before, extra, source, {8, 8}, options, &result, &report, &error) && report.missingFaces.isEmpty() &&
+			   report.projectedFaces == QVector<int>{2} && report.faces == 3,
+		   "an added face is found by projection", error);
+	// A changed topology: the quad poked into four triangles around a new
+	// centre vertex, with the same UV layout, repaints exactly by projection.
+	{
+		auto poked = before;
+		poked.texCoords.append({.25f, .25f});
+		for (auto &frame : poked.frames)
+		{
+			frame.positions.append({5, 5, frame.positions[0].z});
+			frame.normals.append({0, 0, 1});
+		}
+		poked.vertexCount = 5;
+		poked.triangles = {{0, 1, 4}, {1, 3, 4}, {3, 2, 4}, {2, 0, 4}};
+		expect(transferModelSkin(before, poked, source, {8, 8}, options, &result, &report, &error) && report.projectedFaces.size() == 4 &&
+				   report.maxProjectionDistance < 1e-5 && matches(result, source, poked, [](QPointF p) { return p; }),
+			   "a reshaped surface repaints by projection onto the old one", error);
+		// By face only, the reshaped faces sample the wrong old faces.
+		options.mapping = ModelSkinTransferMapping::Faces;
+		QImage byFace;
+		expect(transferModelSkin(before, poked, source, {8, 8}, options, &byFace, &report, &error) && report.missingFaces == QVector<int>{2, 3} &&
+				   byFace != result,
+			   "face matching cannot follow a topology change");
+		// Projection on an unchanged surface gives the face-matched result.
+		options.mapping = ModelSkinTransferMapping::Projection;
+		QImage projected, matched;
+		expect(transferModelSkin(before, moved, source, {8, 8}, options, &projected, &report, &error) && report.projectedFaces.size() == 2,
+			   "projection of every face", error);
+		options.mapping = ModelSkinTransferMapping::Faces;
+		expect(transferModelSkin(before, moved, source, {8, 8}, options, &matched, nullptr, &error) && projected == matched,
+			   "projection agrees with face matching when nothing moved in 3D");
+		// Indexed skins keep their indices through projection.
+		options.mapping = ModelSkinTransferMapping::Automatic;
+		expect(transferModelSkin(before, poked, indexed, {8, 8}, options, &result, &report, &error) && result.format() == QImage::Format_Indexed8 &&
+				   result.pixelIndex(2, 1) == 1 * 8 + 2 + 100,
+			   "projection keeps palette indices", error);
+		const auto json = modelSkinTransferJson(report);
+		expect(json["projectedFaces"].toArray().size() == 4 && json.contains("maxProjectionDistance"), "the report lists projected faces");
+		options.referenceFrame = 5;
+		expect(!transferModelSkin(before, poked, source, {8, 8}, options, &result, &report, &error), "projection needs the reference pose");
+		options.referenceFrame = 0;
+	}
 	// Determinism, invalid input and cancellation.
 	QImage first, second;
 	transferModelSkin(before, moved, source, {16, 16}, options, &first, nullptr, &error);
@@ -183,6 +231,11 @@ int main(int argc, char **argv)
 											  "--output", texture, "--overwrite"});
 	expect(protect.exitCode != 0, "the source skin is protected");
 	expect(cli::runModelSkinTransfer(base + QStringList{"--filter", "cubic"}).exitCode == 2, "unknown filters are refused");
+	expect(cli::runModelSkinTransfer(base + QStringList{"--mapping", "nearest"}).exitCode == 2, "unknown mappings are refused");
+	auto projectedRun = cli::runModelSkinTransfer(base + QStringList{"--mapping", "projection", "--dry-run", "--overwrite"});
+	expect(projectedRun.exitCode == 0 && projectedRun.payload["transfer"].toObject()["projectedFaces"].toArray().size() == 2 &&
+			   projectedRun.payload["mapping"].toString() == QStringLiteral("projection"),
+		   "CLI projection", projectedRun.error);
 	std::cout << checks << " skin transfer checks; " << failures << " failures\n";
 	return failures ? 1 : 0;
 }

@@ -734,27 +734,61 @@ indices, Quake palette or the MDL's) on the document worker with progress and
 Cancel, then is saved through the guarded writer or staged in the open package.
 `model uv-layout` does the same from the command line.
 
-**Transfer Skin…** repaints a skin after UV edits. Faces keep their indices
-through every UV edit, so each new UV triangle is rasterised at texel centres
-and sampled from the old skin at the same barycentric point of the face's old
-UVs: nearest copies texels and palette indices exactly (islands moved by whole
-texels, turned a quarter turn, scaled or mirrored reproduce their pixels),
-bilinear blends and maps indexed skins to the nearest palette entry. Islands
-are padded outward by up to 64 texels. The "before" layout is the surface as it
-was before the first of the UV edits made in a row; any other edit ends the
-chain. An MDL member is replaced as one undo step; an external skin is staged
-over its package path or saved to a new file. The original image is read from
-the package, not the downsampled preview. `model skin-transfer` takes the two
-sources and the old skin directly. Faces missing from one side, or collapsed in
-either, are reported and left unpainted; a surface whose topology changed has no
-transfer yet.
+**Transfer Skin…** repaints a skin after UV or face edits. Each new UV triangle
+is rasterised at texel centres and sampled from the old skin. **Match faces**
+chooses how a new face finds where it was painted:
+
+- **Automatic** (the default) matches a face by index when it still has the
+  same corners in the reference pose, which every UV edit keeps, and finds the
+  others by projection.
+- **By face** matches by index only; faces only one side has are reported and
+  left unpainted.
+- **By projection** finds every texel's point on the new surface (in the
+  reference pose) and samples the old skin at the nearest point of the old
+  surface, through a bounding volume hierarchy of the old faces and the
+  closest-point-on-triangle test (Ericson, *Real-Time Collision Detection*,
+  2005). Subdivided, poked, decimated, cut or rebuilt faces keep the paint of
+  the surface they replaced.
+
+Nearest sampling copies texels and palette indices exactly (islands moved by
+whole texels, turned a quarter turn, scaled or mirrored reproduce their
+pixels); bilinear blends and maps indexed skins to the nearest palette entry.
+Islands are padded outward by up to 64 texels. The "before" surface is the
+surface as it was before the first of the UV or face edits made in a row on it;
+any other edit (such as moving vertices) ends the chain. An MDL member is
+replaced as one undo step; an external skin is staged over its package path or
+saved to a new file. The original image is read from the package, not the
+downsampled preview. `model skin-transfer` takes the two sources and the old
+skin directly, with `--mapping auto|faces|projection` and `--reference-frame`.
+The report lists faces found by projection and the farthest any of their
+texels lay from the old surface; faces collapsed in either layout are reported
+and left unpainted. Geometry the old surface never had takes the paint of its
+nearest old face.
 
 ### Skin edit round trip
 
-**Edit Skin…** opens the active surface's skin in the Textures workbench's
-editor: the displayed material's original image, or the current MDL member as an
-indexed image. Staging it there replaces the package file, which refreshes the
-model's preview. For an MDL, **Export Member…** writes the member as PCX or
+**Edit Skin…** writes the active surface's skin (the displayed material's
+original image, or the current MDL member as an indexed image in the model's
+palette) as a texture project (`.vtexture`, core/model_skin_roundtrip.h) in the
+open project's `.vibestudio/model-skins` folder, or the studio's local data
+folder with no project open, and opens it in the Textures workbench. The skin is
+the active, editable layer; above it a locked **UV guide** layer at half opacity
+holds the surface's UV layout (yellow edges, magenta island boundaries), which
+the Layers panel can hide. The Mesh Editor watches the file
+(core/document_watch.h): when Textures saves the project, the skin is read back
+on the document worker without the guide layer, and the status strip offers
+**Apply Skin** and **Dismiss** (also **UV → Apply Skin from Textures**). Apply
+replaces an MDL member as one undo step, texels whose colour still matches
+their palette entry keeping their index and changed texels mapping to the
+nearest palette colour (fullbright entries only for exact matches), or stages an
+external skin over its package path (PNG, TGA, JPEG or PCX by the path's
+extension) and refreshes the preview. With **Apply Saved Skins Automatically**
+(UV toolbar, saved as `model/skinRoundTripAutoApply`) each save is applied at
+once. Edit Skin starts from the model's current skin each time; the project
+writer keeps the previous file as its backup, and a save not yet applied must be
+applied or dismissed first. Exporting or staging from Textures with the guide
+layer shown would include it; the round trip never does. For an MDL, **Export
+Member…** writes the member as PCX or
 indexed PNG with its exact palette indices (`model mdl --operation export-skin`)
 and **Replace Member From Image…** brings any image of the skin size back as one
 undo step: an image in the model's own palette keeps its indices; other colours
@@ -1471,10 +1505,12 @@ vibestudio --cli model edit ./out/seamed.mesh.json --operation uv-weld --faces 0
 vibestudio --cli model edit ./out/seamed.mesh.json --operation uv-stitch --edges 6:7 --output ./out/stitched.mesh.json
 vibestudio --cli model edit ./out/panel.mesh.json --operation uv-align --vertices 0,1,2 --uv-align v-min --output ./out/aligned.mesh.json
 vibestudio --cli model edit ./out/panel.mesh.json --operation uv-snap-texels --faces all --uv-snap-size 256x128 --output ./out/snapped.mesh.json
+vibestudio --cli model edit ./out/panel.mesh.json --operation uv-pin --vertices 0,3 --output ./out/pinned.mesh.json
 vibestudio --cli model edit ./out/panel.mesh.json --operation uv-pack --faces all --uv-allow-rotation --uv-pack-surfaces 1,2 --output ./out/shared.mesh.json
 vibestudio --cli model tool ./out/player.mesh.json --tool uv-quake-frontback --axis x --faces all --output ./out/frontback.mesh.json --json
 vibestudio --cli model uv-layout ./out/panel.mesh.json --size 256x256 --surfaces material --fill 0.2 --output ./out/panel_uv.png
 vibestudio --cli model skin-transfer --from ./out/panel.mesh.json --to ./out/packed.mesh.json --texture ./skins/panel.png --output ./skins/panel_packed.png --json
+vibestudio --cli model skin-transfer --from ./out/panel.mesh.json --to ./out/subdivided.mesh.json --texture ./skins/panel.png --output ./skins/panel_subdivided.png --mapping auto --json
 vibestudio --cli model mdl ./out/player.mesh.json --operation export-skin --skin 0 --member 0 --output ./skins/player_0.pcx
 vibestudio --cli model edit ./out/panel.mesh.json --operation uv-unwrap --faces all --uv-atlas-size 512 --uv-padding 4 --output ./out/atlas.mesh.json --dry-run --json
 vibestudio --cli model edit ./out/atlas.mesh.json --operation uv-pack --faces all --uv-atlas-size 512x128 --uv-padding 4 --output ./out/packed.mesh.json
@@ -1667,9 +1703,11 @@ skin size), `--surface N`, `--surfaces all|material|N,N`, `--background
 transparent|white|black`, `--fill 0..1`, `--no-tints`, `--no-seams`,
 `--line-width`, `--antialias`, `--wrap` and, for PCX, `--palette`.
 `model skin-transfer --from before.mesh.json --to after.mesh.json --texture
-old.png|.pcx --output new.png|.tga|.pcx` repaints a skin for changed UVs with
-`--surface`, `--size`, `--filter nearest|bilinear`, `--padding 0..64` and
-`--no-wrap`. Both write through the guarded model writer: `--dry-run`
+old.png|.pcx --output new.png|.tga|.pcx` repaints a skin for changed UVs or
+faces with `--mapping auto|faces|projection` (default auto),
+`--reference-frame N`, `--surface`, `--size`, `--filter nearest|bilinear`,
+`--padding 0..64` and `--no-wrap`; JSON adds `mapping`, and the `transfer`
+report lists `projectedFaces` and `maxProjectionDistance`. Both write through the guarded model writer: `--dry-run`
 validates, existing outputs need `--overwrite`, and inputs and their aliases are
 protected. `model mdl --operation export-skin --skin N --member N --output
 member.pcx|png` writes a member with its exact palette indices under the same
