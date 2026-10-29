@@ -84,6 +84,23 @@ The preview is static and shares the modeller camera profile. Strings use
 contexts. Physical keyboard and screen-reader acceptance remains open. See
 [inverse kinematics](MODEL_IK.md).
 
+The animation authoring dialogs added on 2026-10-28 (**Import Animation**,
+**Animation Events**, **Game Declarations**, **Constraints and Layers**, and the
+pose clipboard's **Copy Pose Range** and **Paste pose or keys** in **Edit
+Skeletal Animation**) use labelled native combo boxes, spin boxes, tables and
+buttons with accessible names and descriptions, keyboard focus, left-to-right
+technical fields (joint names, paths, generated text) inside right-to-left
+layouts, and a live status line that states what will happen or why an action
+is refused in words. Long work (reading a source, writing a model set) runs in
+the cancellable model worker. Copy and paste use the standard Ctrl+C and Ctrl+V
+keys; the Skeleton page's pose commands are also searchable and can be bound in
+every controls profile. Strings use `ModelPoseClipboard`, `ModelClipImport`,
+`ModelClipImportDialog`, `ModelAnimationEvents`, `ModelEventsDialog`,
+`ModelGameDeclarations`, `ModelDeclarationsDialog`, `ModelAnimationConstraints`,
+`ModelConstraintsDialog` and the matching CLI contexts. The UI smoke tests cover
+100% and 200% text and right-to-left; physical keyboard and screen-reader
+acceptance remains open.
+
 **Transfer Skin Weights** uses native focusable controls, wrapped labels and a
 scrollable form; joint mapping, locks and before/after weights use native tables.
 A read-only detail field exposes full numeric rows independently of column width.
