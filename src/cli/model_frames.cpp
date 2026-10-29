@@ -475,6 +475,7 @@ ModelToolsCliResult runModelFrames(const QStringList &args)
 				anchors.append(QJsonObject{{"tag", anchor.tag},
 										   {"surface", anchor.surface},
 										   {"vertices", int(anchor.vertices.size())},
+										   {"removed", anchor.removed},
 										   {"problem", modelTagAnchorProblem(document.mesh(), anchor)}});
 			result.payload.insert("tagAnchors", anchors);
 		}

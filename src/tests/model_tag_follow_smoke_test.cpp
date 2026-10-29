@@ -15,6 +15,7 @@
 
 #include <array>
 #include <cmath>
+#include <functional>
 #include <cstdlib>
 #include <iostream>
 #if defined(_MSC_VER) && defined(_DEBUG)
@@ -181,6 +182,72 @@ void checkCore()
 		   QStringLiteral("MD3 keeps the fitted tag track: ") + error);
 }
 
+// Fits tag_mount to `selection`, applies `topology`, and checks the anchor
+// followed the components: refitting puts the tag back on the plate's rigid
+// motion.
+void checkSurvives(const QString &label, ModelSelection selection, ModelTagFollowMode mode, const ModelEdit &topology,
+				   const std::function<bool(const ModelTagAnchor &)> &mapped)
+{
+	QString error;
+	ModelDocument document;
+	auto fit = followEdit("tag_mount", mode);
+	fit.selection = selection;
+	expect(document.setMesh(plateFixture(), &error) && document.edit(fit, &error), label + QStringLiteral(": fit: ") + error);
+	expect(document.edit(topology, &error), label + QStringLiteral(": edit: ") + error);
+	const auto anchor = document.mesh().tagAnchors.value(0);
+	const auto &surface = document.mesh().surfaces.value(anchor.surface);
+	expect(!anchor.removed && anchor.vertexCount == surface.vertexCount && anchor.triangleCount == surface.triangles.size() &&
+			   modelTagAnchorProblem(document.mesh(), anchor).isEmpty() && mapped(anchor),
+		   label + QStringLiteral(": the anchor follows its components through the edit"));
+	// Spoil the baked track, then refit it from the remapped anchor.
+	auto spoiled = document.mesh();
+	for (auto &tag : spoiled.tags)
+		if (tag.frameIndex != 0)
+			tag.origin = {0, 0, 0};
+	ModelEdit refit;
+	refit.kind = ModelEditKind::RefitAnchoredTags;
+	expect(document.setMesh(spoiled, &error) && document.edit(refit, &error) && followsRigidly(document.mesh(), "tag_mount", 4, {3, 4, 5}, 1),
+		   label + QStringLiteral(": the remapped anchor refits the tag: ") + error);
+}
+
+// Anchors survive topology edits through the edit's vertex provenance.
+void checkTopology()
+{
+	ModelSelection corners;
+	corners.surface = 0;
+	corners.vertices = {0, 1, 2, 3};
+	// Subdivide keeps the corners and adds midpoints.
+	ModelEdit subdivide;
+	subdivide.kind = ModelEditKind::Subdivide;
+	subdivide.selection.surface = 0;
+	subdivide.selection.faces = {0, 1};
+	checkSurvives(QStringLiteral("subdivide"), corners, ModelTagFollowMode::Rigid, subdivide,
+				  [](const ModelTagAnchor &anchor) { return anchor.vertices == QVector<int>({0, 1, 2, 3}) && anchor.vertexCount > 4; });
+	// Faces map to the triangles cut from them.
+	ModelSelection plate;
+	plate.surface = 0;
+	plate.faces = {0, 1};
+	checkSurvives(QStringLiteral("subdivided faces"), plate, ModelTagFollowMode::Surface, subdivide,
+				  [](const ModelTagAnchor &anchor) { return anchor.faces.size() > 2 && anchor.vertices.size() > 4; });
+	// Deleting a face whose other vertex is not anchored renumbers the rest.
+	ModelSelection three;
+	three.surface = 0;
+	three.vertices = {0, 2, 3};
+	ModelEdit drop;
+	drop.kind = ModelEditKind::DeleteFaces;
+	drop.selection.surface = 0;
+	drop.selection.faces = {0};
+	checkSurvives(QStringLiteral("delete an unanchored corner"), three, ModelTagFollowMode::Rigid, drop,
+				  [](const ModelTagAnchor &anchor) { return anchor.vertices == QVector<int>({0, 1, 2}) && anchor.vertexCount == 3; });
+	// A renamed surface keeps its anchors.
+	ModelEdit rename;
+	rename.kind = ModelEditKind::RenameSurface;
+	rename.selection.surface = 0;
+	rename.text = QStringLiteral("plate");
+	checkSurvives(QStringLiteral("rename the surface"), corners, ModelTagFollowMode::Rigid, rename,
+				  [](const ModelTagAnchor &anchor) { return anchor.surfaceName == QStringLiteral("plate"); });
+}
+
 // Anchors keep what Follow Selection fitted, so the tag can be fitted again.
 void checkAnchors(const QDir &dir)
 {
@@ -225,7 +292,8 @@ void checkAnchors(const QDir &dir)
 	rename.selection.tag = "tag_mount";
 	rename.text = "tag_hand";
 	expect(document.edit(rename, &error) && document.mesh().tagAnchors.value(0).tag == "tag_hand", QStringLiteral("a renamed tag keeps its anchor"));
-	// A topology change makes the anchor stale; refitting says so.
+	// Deleting a face that takes an anchored vertex with it marks the anchor
+	// removed; refitting says so, and the mark is saved.
 	ModelEdit cut;
 	cut.kind = ModelEditKind::DeleteFaces;
 	cut.selection.surface = 0;
@@ -233,8 +301,16 @@ void checkAnchors(const QDir &dir)
 	expect(document.edit(cut, &error), QStringLiteral("delete a face: ") + error);
 	const auto stale = modelTagAnchorProblem(document.mesh(), document.mesh().tagAnchors.value(0));
 	const bool refused = !document.edit(refit, &error) && error.contains("Follow Selection again");
-	expect(!stale.isEmpty() && refused, QStringLiteral("a stale anchor is refused with a reason: ") + error);
+	expect(document.mesh().tagAnchors.value(0).removed && !stale.isEmpty() && refused,
+		   QStringLiteral("an anchor that lost a vertex is refused with a reason: ") + error);
+	const auto removedPath = dir.filePath("removed.mesh.json");
+	ModelDocument removedCopy;
+	expect(document.save(removedPath, false, &error) && removedCopy.load(removedPath, &error) &&
+			   removedCopy.mesh().tagAnchors.value(0).removed && !modelTagAnchorProblem(removedCopy.mesh(), removedCopy.mesh().tagAnchors.value(0)).isEmpty(),
+		   QStringLiteral("a removed anchor stays removed after a save and reload: ") + error);
 	document.undo();
+	expect(!document.mesh().tagAnchors.value(0).removed && modelTagAnchorProblem(document.mesh(), document.mesh().tagAnchors.value(0)).isEmpty(),
+		   QStringLiteral("undo restores the anchor"));
 	ModelEdit remove;
 	remove.kind = ModelEditKind::DeleteTag;
 	remove.selection.tag = "tag_hand";
@@ -331,6 +407,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	checkCore();
 	checkAnchors(QDir(temporary.path()));
+	checkTopology();
 	checkAssembly(QDir(temporary.path()));
 	if (argc > 1)
 		checkCli(QString::fromLocal8Bit(argv[1]), QDir(temporary.path()));

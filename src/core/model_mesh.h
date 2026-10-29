@@ -314,6 +314,9 @@ struct ModelTagAnchor {
 	int last = -1;
 	int vertexCount = 0;
 	int triangleCount = 0;
+	// A geometry edit removed an anchored vertex or face, or split the
+	// components across surfaces; the tag must be fitted again by hand.
+	bool removed = false;
 	bool operator==(const ModelTagAnchor&) const = default;
 };
 

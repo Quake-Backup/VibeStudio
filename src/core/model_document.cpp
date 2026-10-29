@@ -1717,11 +1717,28 @@ bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resu
 					const ModelWorkControl &control, ModelEditReport *report)
 {
 	ModelEditReport pending;
+	// Tag anchors (ModelMesh::tagAnchors) follow geometry edits through the
+	// same vertex provenance.
+	const bool anchored = mesh && !mesh->tagAnchors.isEmpty() && modelEditSkinHandling(edit.kind) != ModelEditSkinHandling::Direct;
 	// Skeleton, skin and weight edits write influences directly. Every other
 	// edit carries per-vertex provenance (core/model_vertex_origins.h) and
 	// derives the resulting influences from what the tool actually did.
 	if (!mesh || mesh->skeleton.isEmpty() || isModelRigEdit(edit.kind) || isModelSkeletalEdit(edit.kind) || isModelSkinEdit(edit.kind) || edit.kind == ModelEditKind::PaintSkinWeights || edit.kind == ModelEditKind::TransferSkinWeights)
 	{
+		if (anchored)
+		{
+			const ModelMesh before = *mesh;
+			seedModelVertexOrigins(mesh);
+			if (!applyModelEditUnreconciled(mesh, edit, resultingSelection, error, control, &pending))
+			{
+				*mesh = before;
+				return false;
+			}
+			remapModelTagAnchors(before, mesh, pending.sourceFaces);
+			clearModelVertexOrigins(mesh);
+			if (report) *report = std::move(pending);
+			return true;
+		}
 		const bool ok = applyModelEditUnreconciled(mesh, edit, resultingSelection, error, control, report ? &pending : nullptr);
 		if (ok && report) *report = std::move(pending);
 		return ok;
@@ -1746,11 +1763,13 @@ bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resu
 	const ModelMesh before = *mesh;
 	ModelSelection pendingSelection;
 	seedModelVertexOrigins(mesh);
-	if (!applyModelEditUnreconciled(mesh, edit, resultingSelection ? &pendingSelection : nullptr, error, control, report ? &pending : nullptr))
+	if (!applyModelEditUnreconciled(mesh, edit, resultingSelection ? &pendingSelection : nullptr, error, control, report || anchored ? &pending : nullptr))
 	{
 		*mesh = before;
 		return false;
 	}
+	if (anchored)
+		remapModelTagAnchors(before, mesh, pending.sourceFaces);
 	QString problem;
 	if (!reconcileModelSkinningFromOrigins(before, mesh, options, &pending.skin, &problem, control))
 	{

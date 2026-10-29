@@ -206,12 +206,23 @@ With **Remember the components** on (the default), the editable source keeps
 an anchor: the tag, its surface, the components, the mode and the frames.
 After moving, sculpting, resampling or importing frames, choose **Refit
 Anchored Tags** to fit every anchored tag again in one undo step. The
-**Anchored tags** line lists each anchor; an anchor whose surface gained or
-lost vertices or faces, was renamed or removed, or whose frames no longer
-exist cannot be refitted, and the line and the disabled button say why:
-select the components and choose **Follow Selection** again. Renaming a tag
-keeps its anchor and deleting it removes the anchor. Sources with anchors are
-saved as editable source version 19.
+**Anchored tags** line lists each anchor.
+
+Anchors follow topology edits. Subdividing, deleting other faces, renaming
+the surface and the other mesh tools carry each anchored vertex and face to
+what it became, using the edit's vertex provenance (the same record that keeps
+skin weights exact, see [skin provenance](MODEL_SKIN_PROVENANCE.md)): a vertex
+keeps the vertex it was or its first
+copy, and a face becomes the triangle with the same corners or the triangles
+cut from it. Edge bevel, knife, spin and rip, which write their own vertices,
+are followed by vertices that keep their positions in every frame. Only when
+an edit removes an anchored vertex or face, or leaves the components on two
+surfaces, is the anchor marked removed; the line and the disabled button then
+say why, and Refit refuses until you select the components and choose
+**Follow Selection** again. An anchor whose frames no longer exist is refused
+the same way. Renaming a tag keeps its anchor and deleting it removes the
+anchor. Sources with anchors are saved as editable source version 19, with
+`removed` recorded on a removed anchor.
 
 Assemblies read the fitted tags like any other: a part attached at the tag
 follows it frame by frame (checked with a synthetic assembly; not yet in a
@@ -240,10 +251,13 @@ The same range applies to the **Geometry** page and the 3D view's modal move,
 rotate and scale when **Geometry → Over the frame range** is on (beside
 **Apply to**): the transform covers the frame range with the Range sculpt
 falloff, using the chosen axes and pivot, resolved once in the displayed
-frame. The live preview shows the full amount on the displayed frame; the
-committed edit scales each frame by its falloff weight. Proportional editing
-and mirror are refused with the scope on; tags and collision boxes keep
-**Apply to**.
+frame. The live preview, in a handle drag or a modal move, rotate or scale,
+shows the displayed frame's share: each frame is scaled by its falloff weight,
+none outside the range, and playback between frames blends the two weights.
+The modal status names the range and the share on the displayed frame; the
+drag status says how much of the drag this frame shows. The gizmo follows the
+whole drag. Proportional editing and mirror are refused with the scope on;
+tags and collision boxes keep **Apply to**.
 Normals are rebuilt around the moved vertices only; a whole-surface transform
 or blend carries its normals instead.
 
@@ -336,8 +350,8 @@ Edits need `--output` ending in `.mesh.json`, different from the input.
 output. JSON output lists `frames`, `frameNames`, and `clips` with
 `survivesNativeNames`, `rateLost`, `rebuiltName`, `rebuiltFirst` and
 `rebuiltLast`, plus `nativeClipSummary`; `follow-tag` adds `tagFollow` with
-per-frame `residuals`; `follow-tag` and `refit-tags` list `tagAnchors` with any
-`problem`; `import` adds `importedFrames`, skeletal operations add
+per-frame `residuals`; `follow-tag` and `refit-tags` list `tagAnchors` with
+`removed` and any `problem`; `import` adds `importedFrames`, skeletal operations add
 `skeletalClip`, and `export-obj` lists `files`. Usage errors return 2,
 unreadable sources and outputs 1, and refused edits 4 without writing.
 
@@ -353,11 +367,14 @@ JSON lists `notes`.
   resampled or replaced with these tools; use the skeletal clip tools.
 - Clip names longer than a frame name holds come back shortened, as the stem.
 - Tag following is baked, not a constraint: refit anchored tags after
-  geometry edits. Anchors do not survive topology edits on their surface, and
-  an assembly child on a fitted tag has not been checked in a game.
-- The range scope's live preview shows the full transform on the displayed
-  frame rather than its falloff weight; proportional editing and mirror do not
-  combine with it.
+  geometry edits. An anchor follows its components through topology edits but
+  is marked removed when an edit deletes one of them or splits them across
+  surfaces; a vertex an edge bevel moves is not followed. Anchors keep their
+  frame numbers through frame edits. An assembly child on a fitted tag has not
+  been checked in a game.
+- Proportional editing and mirror do not combine with the range scope, and
+  mirror panes of the four views show a drag preview only in the pane being
+  dragged.
 - Frame import matches whole surfaces; it cannot import a subset of surfaces
   or remap differing topology.
 - There are no animation events or markers on the timeline yet.
