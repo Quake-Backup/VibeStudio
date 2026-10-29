@@ -28,7 +28,7 @@ class ModelRigDialog final : public QDialog
 	std::array<QDoubleSpinBox *, 3> m_axes{};
 	QDoubleSpinBox *m_weight = nullptr;
 	// Set joint limits: an on/off choice and X/Y/Z minimum and maximum degrees.
-	QComboBox *m_limitsEnabled = nullptr;
+	QComboBox *m_limitsEnabled = nullptr, *m_limitMode = nullptr, *m_twistAxis = nullptr;
 	QWidget *m_limits = nullptr;
 	std::array<QDoubleSpinBox *, 6> m_limitAxes{};
 	QLabel *m_summary = nullptr;

@@ -13,6 +13,7 @@
 #include <QTemporaryDir>
 #include <cmath>
 #include <iostream>
+#include <numbers>
 
 using namespace vibestudio;
 using namespace vibestudio::tests;
@@ -168,6 +169,73 @@ int main(int argc, char **argv)
 	ModelMesh parsed;
 	expect(!parseEditableModel(older, &parsed, &error), "a version 14 source cannot carry joint limits");
 
+	// Swing-twist limits: the twist about the bone's own axis and the swing
+	// inside the ellipse of the other two axes' bounds.
+	{
+		ModelJointLimits swing;
+		swing.enabled = true;
+		swing.swingTwist = true;
+		swing.twistAxis = 0;
+		swing.minimum = {-30, -10, -20};
+		swing.maximum = {30, 10, 20};
+		ModelJointLimits read;
+		expect(validModelJointLimits(swing, &error) && modelJointLimitsFromJson(modelJointLimitsJson(swing), &read) && read == swing,
+			   "swing-twist limits round-trip through JSON");
+		auto off = swing;
+		off.minimum[1] = 5;
+		auto axis = swing;
+		axis.twistAxis = 3;
+		auto euler = swing;
+		euler.swingTwist = false;
+		euler.twistAxis = 2;
+		expect(!validModelJointLimits(off) && !validModelJointLimits(axis) && !validModelJointLimits(euler),
+			   "swing bounds must include zero and the twist axis must be X, Y or Z");
+		const auto turn = [](int which, double degrees)
+		{
+			const double half = degrees * std::numbers::pi / 360;
+			ModelQuat q{0, 0, 0, float(std::cos(half))};
+			(which == 0 ? q.x : which == 1 ? q.y : q.z) = float(std::sin(half));
+			return q;
+		};
+		auto skeleton = ikChainFixture(3).skeleton;
+		skeleton.joints[1].limits = swing;
+		auto pose = modelSkeletonBindPose(skeleton);
+		// Twisted 50 degrees about the bone (X), then swung 40 degrees about Z.
+		pose[1] = modelJointMatrix(modelQuatMultiply(turn(2, 40), turn(0, 50)), modelJointTranslation(pose[1]));
+		pose[2] = modelJointMultiply(pose[1], modelJointMatrix({}, {2, 0, 0}));
+		const auto angles = modelJointLimitAngles(skeleton, pose, 1);
+		expect(std::abs(angles[0] - 50) < .01 && std::abs(angles[1]) < .01 && std::abs(angles[2] - 40) < .01,
+			   "swing-twist angles split the twist from the swing");
+		QString problem;
+		expect(!modelPoseWithinJointLimits(skeleton, pose, 1e-3, &problem) && !problem.isEmpty(), "the twisted, swung pose is outside the limits");
+		pose[1] = modelJointMatrix(modelQuatMultiply(turn(2, 10), turn(0, 25)), modelJointTranslation(pose[1]));
+		expect(modelPoseWithinJointLimits(skeleton, pose, 1e-3), "a pose inside the swing ellipse and twist range is within the limits");
+
+		// A chain solve keeps swing-twist joints inside their limits.
+		ModelDocument swung;
+		expect(swung.setMesh(mesh, &error), "open the chain for swing-twist limits");
+		for (const auto *name : {"j0", "j1", "j2", "j3"})
+		{
+			auto set = limit;
+			set.animation.limits.joint = QString::fromLatin1(name);
+			set.animation.limits.limits = swing;
+			set.animation.limits.limits.minimum = {-5, -10, -25};
+			set.animation.limits.limits.maximum = {5, 10, 25};
+			expect(swung.edit(set, &error), "set swing-twist limits on a chain joint");
+		}
+		expect(swung.edit(constrained, &error), "chain IK solves with swing-twist limits");
+		bool inside = true;
+		for (const auto &solved : swung.mesh().skeleton.clips[0].frames)
+			inside = inside && modelPoseWithinJointLimits(swung.mesh().skeleton, solved, 1e-3, &error);
+		expect(inside && lengthsKept(swung.mesh(), joints), "swing-twist limits are never exceeded and bone lengths are kept");
+		const auto savedSwing = QDir(tmp.path()).filePath("swing.mesh.json");
+		ModelDocument reread;
+		expect(swung.save(savedSwing, false, &error) && reread.load(savedSwing, &error) &&
+				   reread.mesh().skeleton.joints[1].limits == swung.mesh().skeleton.joints[1].limits &&
+				   reread.mesh().skeleton.joints[1].limits.swingTwist,
+			   "swing-twist limits survive save and reload");
+	}
+
 	// Curve protection still applies.
 	ModelEdit capture;
 	capture.kind = ModelEditKind::EditAnimationCurves;
@@ -246,6 +314,21 @@ int main(int argc, char **argv)
 							 "--output", limitedOut, "--overwrite"})
 				   .exitCode == 2,
 		   "CLI limits need both bounds");
+	const auto swingOut = QDir(tmp.path()).filePath("swing-cli.mesh.json");
+	rig = cli::runModelRig({"vibestudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-30,-10,-20",
+							"--max", "30,10,20", "--swing-twist", "x", "--output", swingOut, "--json"});
+	expect(rig.exitCode == 0 &&
+			   rig.payload["joints"].toArray()[1].toObject()["limits"].toObject()["mode"].toString() == QStringLiteral("swing-twist") &&
+			   rig.payload["joints"].toArray()[1].toObject()["limits"].toObject()["twistAxis"].toInt() == 0,
+		   "CLI sets swing-twist limits");
+	expect(cli::runModelRig({"vibestudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-30,-10,-20",
+							 "--max", "30,10,20", "--swing-twist", "w", "--output", swingOut, "--overwrite"})
+				   .exitCode == 2,
+		   "CLI swing-twist needs an axis of x, y or z");
+	expect(cli::runModelRig({"vibestudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "5,5,5", "--max",
+							 "30,10,20", "--swing-twist", "x", "--output", swingOut, "--overwrite"})
+				   .exitCode != 0,
+		   "CLI refuses swing bounds that exclude the bind pose");
 	result = cli::runModelIk({"vibestudio", "--cli", "model", "ik", limitedOut, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
 							  "--end-joint", "j4", "--target", "3,4,0", "--pole", "2,8,0", "--limits", "--nearest-reachable", "--output", out,
 							  "--overwrite", "--json"});

@@ -1,8 +1,10 @@
 #include "app/model_ik_dialog.h"
 #include "app/model_rig_dialog.h"
+#include "app/model_viewport.h"
 #include "app/studio_theme.h"
 #include "core/studio_settings.h"
 #include "tests/model_ik_chain_test_helpers.h"
+#include "tests/model_viewport_test_helpers.h"
 #include "tests/render_test_support.h"
 
 #include <QAccessible>
@@ -14,7 +16,9 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QTabWidget>
 #include <QTemporaryDir>
+#include <cmath>
 #include <iostream>
 
 using namespace vibestudio;
@@ -93,6 +97,45 @@ int main(int argc, char **argv)
 			   "review prepares a chain solve");
 		ModelMesh candidate = mesh;
 		expect(applyModelEdit(&candidate, edit, nullptr, &error), "the reviewed chain edit applies");
+		// The preview's drag handle: the shared move gizmo on the target, then the pole.
+		auto *handle = dialog.findChild<QComboBox *>("ikHandle");
+		auto *tabs = dialog.findChild<QTabWidget *>("ikTabs");
+		auto *preview = dialog.preview();
+		expect(handle && !handle->accessibleName().isEmpty() && !handle->accessibleDescription().isEmpty() && handle->currentIndex() == 1,
+			   "the preview offers a target drag handle");
+		tabs->setCurrentIndex(1);
+		QCoreApplication::processEvents();
+		expect(settleModelViewport(*preview), "the IK preview settles");
+		const auto dragAlongX = [&](const char *label)
+		{
+			const auto points = preview->transformGizmoPoints();
+			const QPointF tip = points[0], centre = points[3];
+			const auto along = tip - centre;
+			const double length = std::hypot(along.x(), along.y());
+			if (!std::isfinite(length) || length < 4)
+				return expect(false, label);
+			const auto step = along * (40.0 / length);
+			const bool begun = preview->beginEditTransform(tip);
+			preview->updateEditTransform(tip + step * .5);
+			preview->updateEditTransform(tip + step);
+			preview->finishEditTransform(true);
+			return expect(begun, label);
+		};
+		const double before = dialog.findChild<QDoubleSpinBox *>("ikTarget0")->value();
+		dragAlongX("the target handle starts a drag on its X arrow");
+		const double after = dialog.findChild<QDoubleSpinBox *>("ikTarget0")->value();
+		expect(after > before + .01 && std::abs(dialog.findChild<QDoubleSpinBox *>("ikTarget1")->value() - 4) < 1e-6 && !dialog.ready(),
+			   "dropping the target handle moves the target along X and needs a new review");
+		expect(std::abs(dialog.targetPoint().x - after) < 1e-4, "the handle and the target fields agree");
+		dialog.setHandle(2);
+		const double pole = dialog.findChild<QDoubleSpinBox *>("ikPole0")->value();
+		dragAlongX("the pole handle starts a drag on its X arrow");
+		expect(dialog.findChild<QDoubleSpinBox *>("ikPole0")->value() > pole + .01 &&
+				   std::abs(dialog.findChild<QDoubleSpinBox *>("ikTarget0")->value() - after) < 1e-9,
+			   "dropping the pole handle moves only the pole");
+		dialog.setHandle(0);
+		expect(preview->transformGizmoAt(preview->transformGizmoPoints()[3]) < 0, "no handle hides the gizmo");
+		tabs->setCurrentIndex(0);
 		source->setCurrentIndex(1);
 		expect(dialog.findChild<QComboBox *>("ikTargetJoint")->isVisibleTo(&dialog), "following a joint shows the joint choice");
 		dialog.reject();
@@ -113,6 +156,18 @@ int main(int argc, char **argv)
 			   "the dialog builds a joint limits edit");
 		candidate = mesh;
 		expect(applyModelEdit(&candidate, limits, nullptr, &error) && candidate.skeleton.joints[1].limits.minimum[2] == -30, "joint limits apply");
+		auto *mode = rig.findChild<QComboBox *>("rigLimitMode");
+		auto *twist = rig.findChild<QComboBox *>("rigTwistAxis");
+		expect(mode && twist && mode->isVisibleTo(&rig) && !mode->accessibleDescription().isEmpty() && !twist->isEnabled(),
+			   "Edit Skeleton offers swing-twist limits");
+		mode->setCurrentIndex(1);
+		expect(twist->isEnabled(), "swing and twist enables the twist axis");
+		twist->setCurrentIndex(0);
+		const auto swing = rig.edit();
+		candidate = mesh;
+		expect(swing.animation.limits.limits.swingTwist && swing.animation.limits.limits.twistAxis == 0 &&
+				   applyModelEdit(&candidate, swing, nullptr, &error) && candidate.skeleton.joints[1].limits.swingTwist,
+			   "the dialog builds swing-twist limits");
 		rig.reject();
 	}
 	std::cout << checks << " chain IK UI checks; " << failures << " failures\n";

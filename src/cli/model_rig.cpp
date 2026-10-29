@@ -34,7 +34,8 @@ ModelToolsCliResult runModelRig(const QStringList &arguments)
 {
 	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--clear"};
 	const QSet<QString> options{"--input",	 "--output",   "--operation", "--joint",		 "--name",	 "--parent",	  "--origin",
-								"--surface", "--vertices", "--weight",	  "--settings-file", "--locale", "--catalog-root", "--min", "--max"};
+								"--surface", "--vertices", "--weight",	  "--settings-file", "--locale", "--catalog-root", "--min", "--max",
+								"--swing-twist"};
 	QSet<QString> seen;
 	QHash<QString, QString> values;
 	QStringList positional;
@@ -89,8 +90,10 @@ ModelToolsCliResult runModelRig(const QStringList &arguments)
 		allowed.unite({"--surface", "--vertices"});
 	if (limits)
 		allowed.unite({"--min", "--max"});
-	if ((seen.contains("--min") || seen.contains("--max") || seen.contains("--clear")) && !limits)
-		return fail(2, Text::tr("Options --min, --max and --clear apply only to the limits operation."));
+	if ((seen.contains("--min") || seen.contains("--max") || seen.contains("--clear") || seen.contains("--swing-twist")) && !limits)
+		return fail(2, Text::tr("Options --min, --max, --swing-twist and --clear apply only to the limits operation."));
+	if (seen.contains("--swing-twist") && (seen.contains("--clear") || !QStringList{"x", "y", "z"}.contains(values.value("--swing-twist"))))
+		return fail(2, Text::tr("--swing-twist takes the twist axis x, y or z, with --min and --max."));
 	if (limits && (seen.contains("--clear") == (seen.contains("--min") || seen.contains("--max")) ||
 				   (!seen.contains("--clear") && seen.contains("--min") != seen.contains("--max"))))
 		return fail(2, Text::tr("The limits operation needs --min and --max together, or --clear."));
@@ -118,6 +121,11 @@ ModelToolsCliResult runModelRig(const QStringList &arguments)
 				(*field.second)[i] = parts[i].toDouble(&ok);
 			if (!ok)
 				return fail(2, Text::tr("Limits are three comma-separated angles in degrees about X, Y and Z."));
+		}
+		if (seen.contains("--swing-twist"))
+		{
+			o.limits.swingTwist = true;
+			o.limits.twistAxis = int(QStringList{"x", "y", "z"}.indexOf(values.value("--swing-twist")));
 		}
 	}
 	else
@@ -204,7 +212,16 @@ ModelToolsCliResult runModelRig(const QStringList &arguments)
 			entry.insert("limits", modelJointLimitsJson(joint.limits));
 		joints.append(entry);
 		result.lines << Text::tr("%1: %2 · parent %3 · %4 influences").arg(i).arg(joint.name).arg(joint.parent).arg(influences[i]);
-		if (joint.limits.enabled)
+		if (joint.limits.enabled && joint.limits.swingTwist)
+			result.lines << Text::tr("  swing-twist limits about %1: X %2 to %3 · Y %4 to %5 · Z %6 to %7 degrees")
+								.arg(QStringList{QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")}.value(joint.limits.twistAxis))
+								.arg(joint.limits.minimum[0])
+								.arg(joint.limits.maximum[0])
+								.arg(joint.limits.minimum[1])
+								.arg(joint.limits.maximum[1])
+								.arg(joint.limits.minimum[2])
+								.arg(joint.limits.maximum[2]);
+		else if (joint.limits.enabled)
 			result.lines << Text::tr("  limits X %1 to %2 · Y %3 to %4 · Z %5 to %6 degrees")
 								.arg(joint.limits.minimum[0])
 								.arg(joint.limits.maximum[0])

@@ -107,11 +107,17 @@ struct ModelJointMatrix {
 // How far inverse kinematics may turn a joint (core/model_ik.h): its
 // parent-local rotation relative to its bind pose's, as X-then-Y-then-Z Euler
 // degrees (the animation curves' convention), each within [minimum, maximum].
+// Swing-twist limits instead split that rotation into a twist about the
+// joint's own bind axis `twistAxis` (0-2), kept within that axis's bounds, and
+// a swing (a rotation vector in degrees across the other two axes), kept
+// inside the ellipse those axes' bounds span; their bounds must include zero.
 // Editable sources keep enabled limits (mesh version 15).
 struct ModelJointLimits {
 	bool enabled = false;
 	std::array<double, 3> minimum{-180.0, -180.0, -180.0};
 	std::array<double, 3> maximum{180.0, 180.0, 180.0};
+	bool swingTwist = false;
+	int twistAxis = 0;
 	bool operator==(const ModelJointLimits&) const = default;
 };
 

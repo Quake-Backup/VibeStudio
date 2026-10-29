@@ -1144,6 +1144,7 @@ published formats below; no code was copied. See
 | [Quake GPL source](https://github.com/id-Software/Quake) (`qw-qc` and `progs` QuakeC monsters such as `soldier.qc`, and `qcc`'s `$` directives) | The `$cd`, `$base`, `$skin` and `$frame` macro layout of the QuakeC frame output | master, reviewed 2026-10-28 | GPL-2.0-or-later; format only |
 | [Quake II GPL source](https://github.com/id-Software/Quake-2) (`game/m_soldier.h` and the other `m_*.h` headers) | The `#define FRAME_name index` and `MODEL_SCALE` layout of the Quake II frame header | master, reviewed 2026-10-28 | GPL-2.0-or-later; format only |
 | [ZDoom wiki: MODELDEF](https://zdoom.org/wiki/MODELDEF) | The `Model`, `Path`, `Model`, `Skin`, `Scale`, `Offset`, `AngleOffset` and `FrameIndex` keywords and the sprite frame letters of the generated GZDoom block | Page as of 2026-10-28 | GFDL 1.2 wiki text; format only |
+| Swing-twist decomposition of a rotation quaternion into a twist about an axis and the remaining swing (the standard construction, as described for example in P. Dobrowolski, "Swing-twist decomposition in Clifford algebra", 2015, [arXiv:1506.05481](https://arxiv.org/abs/1506.05481)) | Swing-twist joint limits: the twist clamped to its range and the swing vector scaled onto an ellipse | Published description, read 2026-10-29 | Algorithm description only |
 
 ## Imported Compiler Toolchains
 

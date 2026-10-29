@@ -15,6 +15,7 @@
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QPainter>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollArea>
@@ -40,6 +41,10 @@ void accessible(QWidget *w, const QString &name, const QString &description)
 	w->setAccessibleName(name);
 	w->setAccessibleDescription(description);
 	w->setToolTip(description);
+}
+ModelVec3 sum(ModelVec3 a, ModelVec3 b)
+{
+	return {a.x + b.x, a.y + b.y, a.z + b.z};
 }
 void row(QFormLayout *form, const QString &text, QWidget *widget)
 {
@@ -266,12 +271,42 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 	m_view->addItems({Text::tr("Reviewed result"), Text::tr("Original model")});
 	accessible(m_view, Text::tr("Preview source"), Text::tr("Compare before and after using the same sample and camera."));
 	row(previewForm, Text::tr("Preview &source"), m_view);
+	m_handle = new QComboBox;
+	m_handle->setObjectName("ikHandle");
+	m_handle->addItems({Text::tr("None"), Text::tr("Target"), Text::tr("Pole")});
+	m_handle->setCurrentIndex(1);
+	accessible(m_handle, Text::tr("Drag handle"),
+			   Text::tr("Show the move handle on the target or the pole in the preview. Drag an arrow to move along that axis, or the "
+						"centre to move in the view plane; the point fields follow. The fields stay the keyboard route."));
+	row(previewForm, Text::tr("Drag &handle"), m_handle);
 	m_preview = new ModelViewport;
 	m_preview->setObjectName("ikPreview");
 	m_preview->setMinimumSize(240, 220);
 	m_preview->setShowJoints(true);
 	m_preview->setXrayJoints(true);
 	previewLayout->addWidget(m_preview, 1);
+	// Target and pole markers: a ring and a diamond, each labelled, so the
+	// shapes and words tell them apart without colour.
+	m_preview->setOverlayPainter(
+		[this](QPainter &painter)
+		{
+			const auto mark = [&](const ModelVec3 &point, bool diamond, const QString &label)
+			{
+				QPointF screen;
+				if (!m_preview->projectToView(point, &screen))
+					return;
+				painter.setPen(QPen(palette().highlight().color(), 2));
+				painter.setBrush(Qt::NoBrush);
+				if (diamond)
+					painter.drawPolygon(QPolygonF{screen + QPointF(0, -7), screen + QPointF(7, 0), screen + QPointF(0, 7), screen + QPointF(-7, 0)});
+				else
+					painter.drawEllipse(screen, 6, 6);
+				painter.setPen(palette().text().color());
+				painter.drawText(screen + QPointF(10, -8), label);
+			};
+			mark(targetPoint(), false, Text::tr("Target"));
+			mark(polePoint(), true, Text::tr("Pole"));
+		});
 	m_tabs->addTab(previewPage, Text::tr("&Preview"));
 	auto *results = new QWidget;
 	auto *resultLayout = new QVBoxLayout(results);
@@ -370,6 +405,19 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 			});
 	connect(m_sample, &QSpinBox::valueChanged, this, [this] { showPreview(); });
 	connect(m_view, &QComboBox::currentIndexChanged, this, [this] { showPreview(); });
+	connect(m_handle, &QComboBox::currentIndexChanged, this, [this] { updateHandle(); });
+	connect(m_preview, &ModelViewport::editTransformRequested, this,
+			[this](const ModelTransform &transform) { dropHandle(sum(transform.pivot, modelBasisToWorld(transform.translation, transform.basis))); });
+	connect(m_preview, &ModelViewport::editTransformPreviewChanged, this,
+			[this]
+			{
+				if (!m_preview->editingMove() || m_handle->currentIndex() == 0)
+					return;
+				const auto transform = m_preview->editTransform();
+				const auto point = sum(transform.pivot, modelBasisToWorld(transform.translation, transform.basis));
+				m_status->setText((m_handle->currentIndex() == 1 ? Text::tr("Target at %1, %2, %3.") : Text::tr("Pole at %1, %2, %3."))
+									  .arg(localeNumber(point.x, 4), localeNumber(point.y, 4), localeNumber(point.z, 4)));
+			});
 	connect(m_review, &QPushButton::clicked, this, &ModelIkDialog::review);
 	connect(m_apply, &QPushButton::clicked, this,
 			[this]
@@ -422,6 +470,58 @@ void ModelIkDialog::clipChanged()
 		w->setRange(0, std::max(0, count - 1));
 		w->setValue(0);
 	}
+}
+ModelVec3 ModelIkDialog::targetPoint() const
+{
+	const ModelVec3 point{float(m_target[0]->value()), float(m_target[1]->value()), float(m_target[2]->value())};
+	ModelJointMatrix pose;
+	if (m_targetSource->currentIndex() == 1 && m_preview->jointPose(m_targetJoint->currentData().toString(), &pose))
+		return modelJointTransformPoint(pose, point);
+	return point;
+}
+ModelVec3 ModelIkDialog::polePoint() const
+{
+	return {float(m_pole[0]->value()), float(m_pole[1]->value()), float(m_pole[2]->value())};
+}
+void ModelIkDialog::setHandle(int handle)
+{
+	m_handle->setCurrentIndex(std::clamp(handle, 0, 2));
+}
+void ModelIkDialog::updateHandle()
+{
+	const int handle = m_handle->currentIndex();
+	m_preview->setTransformGizmo(handle > 0 && !m_busy, ModelTransformTool::Move);
+	if (handle > 0)
+		m_preview->setTransformPivot(ModelTransformPivot::Custom, handle == 1 ? targetPoint() : polePoint());
+	m_preview->update();
+}
+void ModelIkDialog::dropHandle(const ModelVec3 &point)
+{
+	const int handle = m_handle->currentIndex();
+	if (handle == 0 || m_busy)
+		return;
+	auto value = point;
+	ModelJointMatrix pose;
+	if (handle == 1 && m_targetSource->currentIndex() == 1)
+	{
+		// A followed joint's target is an offset in its space.
+		bool invertible = false;
+		const auto inverse = m_preview->jointPose(m_targetJoint->currentData().toString(), &pose) ? modelJointInverse(pose, &invertible)
+																							  : modelJointIdentity();
+		if (!invertible)
+			return;
+		value = modelJointTransformPoint(inverse, point);
+	}
+	auto **fields = handle == 1 ? m_target : m_pole;
+	const float values[3]{value.x, value.y, value.z};
+	for (int i = 0; i < 3; ++i)
+	{
+		const QSignalBlocker blocker(fields[i]);
+		fields[i]->setValue(values[i]);
+	}
+	changed();
+	m_status->setText((handle == 1 ? Text::tr("Target moved to %1, %2, %3. Choose Review to solve.") : Text::tr("Pole moved to %1, %2, %3. Choose Review to solve."))
+						  .arg(localeNumber(point.x, 4), localeNumber(point.y, 4), localeNumber(point.z, 4)));
 }
 void ModelIkDialog::setCursorPoint(const ModelVec3 &point)
 {
@@ -512,6 +612,7 @@ void ModelIkDialog::showPreview()
 	m_preview->setMesh(modelSkeletalSamplePreview(m_ready && m_view->currentIndex() == 0 ? m_result : m_source, clip, m_sample->value(), &frame), true);
 	m_preview->setFrame(std::max(0, frame));
 	m_preview->setEditJoint(m_end->currentText());
+	updateHandle();
 }
 void ModelIkDialog::review()
 {
