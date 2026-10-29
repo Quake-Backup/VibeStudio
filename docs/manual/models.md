@@ -258,9 +258,13 @@ md5anim, IQM, MDS, MDR, MDX or GLA file, or another `.mesh.json`. Pick the
 **Mode**: **Exact (same skeleton)** for animation made for this rig, or
 **Retarget (different proportions)** to move motion between characters. The
 table lists each joint of this model with the source joint that drives it;
-same names match automatically. The line under it says what the import will
-do, or why it cannot. **Apply** adds the clip as one undo step. See
-[clip import and retargeting](../MODEL_RIG.md#import-and-retarget-clips).
+same names match automatically. The clip's events and animation curves come
+along unless you clear **Import the clip's events** or **Import the clip's
+animation curves** (retargeting captures fresh keys instead of copying them).
+The line under it says what the import will do, or why it cannot. **Update
+Preview** shows the source and the imported result side by side at the same
+**Sample** before anything changes. **Apply** adds the clip as one undo step.
+See [clip import and retargeting](../MODEL_RIG.md#import-and-retarget-clips).
 
 ### Copy, paste and mirror poses
 
@@ -281,8 +285,9 @@ clip and first pose, and optionally **Mirror left and right**. Joints with
 animation curves receive keys instead of samples: the dialog refuses to paste
 over existing keys unless **Replace keys already there** is on, while the
 viewport commands replace the keys at the frame you show. Each paste is one
-undo step. A copy from a differently named rig needs a joint map, which the
-command line takes; see [pose clipboard](../MODEL_RIG.md#copy-paste-and-mirror-poses).
+undo step. A copy from a differently named rig lands through the **Joint map**
+table, which matches names regardless of case or a `prefix:` namespace and
+asks you to choose the rest; see [pose clipboard](../MODEL_RIG.md#copy-paste-and-mirror-poses).
 
 ## Edit a mesh
 
@@ -912,18 +917,25 @@ source.
 To keep a hand on a prop, a head looking at a target or a foot planted while
 you go on editing the motion, choose **Skeleton** > **Constraints and Layers…**,
 pick the clip, set the **Kind**, **Joint** and **Target joint** or **Point**, the
-sample range and **Weight**, then **Add Constraint**. The clip re-evaluates its
-constraints whenever you change its keys, solve IK or paste a pose; **Bake
-Stack** turns the result into plain samples again. See
-[constraints and layers](../MODEL_ANIMATION_CONSTRAINTS.md).
+sample range and **Weight**, then **Add Constraint**. **Weight keys** such as
+`0:0, 12:1` blend a constraint in over the clip, and **Keep joints within their
+limits** makes an IK constraint respect joint limits. To add motion on top of a
+clip without touching its keys, key a layer in the same dialog: pick a
+**Keyed joint** and **Layer channel**, set keys in the graph or with **Set
+Key**, then **Add Layer**; the **Layer weight** channel fades the layer over
+the clip. The clip re-evaluates its constraints and layers whenever you change
+its keys, solve IK or paste a pose; **Bake Stack** turns the result into plain
+samples again. See [constraints and layers](../MODEL_ANIMATION_CONSTRAINTS.md).
 
 ### Write game declarations
 
 Games need more than the model file. Choose **Skeleton** > **Game
 Declarations…** to generate a Doom 3 model declaration, QuakeC `$frame`
-macros, a Quake II frame header or a GZDoom MODELDEF from the model, then
-**Copy** or **Save As…**. For Doom 3, **Export Model Set…** writes the md5mesh,
-every clip as an md5anim and the `.def` into a game folder in one step.
+macros, a Quake II frame header, a GZDoom MODELDEF or, for a voxel opened
+from a `.kvx`, a GZDoom VOXELDEF from the model, then **Copy** or **Save
+As…**. For Doom 3, **Export Model Set…** writes the md5mesh, every clip as an
+md5anim and the `.def` into a game folder in one step, and **Stage in
+Package** stages the same files into the open package as one package step.
 
 Footsteps, sounds and attack triggers belong on frames: choose **Skeleton** >
 **Animation Events…**, pick the clip, **Add Event** and type the command, such
@@ -988,9 +1000,11 @@ grandparent form the chain; for a spine, neck or tail choose **Chain (FABRIK)**
 or **Chain (CCD)** and a **Root joint** further up.
 Set the target in model units and a pole point on the desired elbow/knee side,
 or put the 3D cursor on the spot in the viewport and choose **Target at 3D
-Cursor**. To keep a hand on a moving prop, set **Target source** to **Follow a
-joint**. **Apply joint limits** keeps the chain inside the limits set with
-**Edit Skeleton > Set joint limits**.
+Cursor**, or drag the target or pole with the move handle in **Preview**
+(**Drag handle**). To keep a hand on a moving prop, set **Target source** to
+**Follow a joint**. **Apply joint limits** keeps the chain inside the limits
+set with **Edit Skeleton > Set joint limits**, as Euler angles or, for
+shoulders and hips, as **Swing and twist** limits.
 **Require target** refuses unreachable poses; **Nearest reachable** clamps
 without stretching and reports the remaining distance. Choose whether the
 end keeps its orientation or follows the lower bone.
@@ -1016,6 +1030,9 @@ samples the curves and validates the resulting skin and attachments. Compare
 original/result motion in **Preview**, then **Apply** one document undo step.
 Save uses source schema 10 for hold-next curves, or schema 9 for other curves;
 native game exports use dense samples.
+**Copy Keys** (<kbd>Ctrl</kbd>+<kbd>C</kbd>) copies the shown channel and
+**Paste Keys** (<kbd>Ctrl</kbd>+<kbd>V</kbd>) pastes copied keys or a copied
+pose into the draft from the **Sample** field on.
 To return to pose or IK tools, explicitly **Stage Bake Joint Curves**, review
 and apply: motion remains, and undo restores the editable keys. See
 [animation curves](../MODEL_ANIMATION_CURVES.md) for controls, limits and CLI use.
@@ -1101,7 +1118,7 @@ vibestudio --cli model controls --profile 3ds-max --section keys
 | Retime, duplicate, remove or reduce selected skeletal keys | `model curve-keys` |
 | Assemblies, and opening or publishing a Quake III player | `model assembly` |
 | Build game files or detail levels | `model build`, `model lod`, `model targets`, `model prepare` |
-| Animation events and game declarations (Doom 3 `.def`, QuakeC, Quake II, GZDoom) | `model events`, `model declarations` |
+| Animation events and game declarations (Doom 3 `.def`, QuakeC, Quake II, GZDoom MODELDEF and VOXELDEF) | `model events`, `model declarations` |
 | Persistent clip constraints and layers | `model constraints` |
 | Controls profiles, and print, check, share or reset controls | `model profiles`, `model controls` |
 | Recovery copies | `model recoveries`, `model recover` |
@@ -1117,7 +1134,7 @@ See [Command line](cli.md) for options and exit codes.
 - [Skin weights through mesh edits](../MODEL_SKIN_PROVENANCE.md): how edits keep, interpolate and mirror joint weights.
 - [Native formats and skeletons](../MODEL_FORMATS.md) and [modeller profiles](../MODELLER_PROFILES.md).
 - [Delivery targets](../MODEL_TARGETS.md) and [detail levels](../MODEL_LOD.md): each engine's limits, Prepare for Target and linked detail levels.
-- [Animation events and game declarations](../MODEL_GAME_DECLARATIONS.md): frame commands, Doom 3 `.def` and model sets, QuakeC, Quake II and GZDoom output.
+- [Animation events and game declarations](../MODEL_GAME_DECLARATIONS.md): frame commands, Doom 3 `.def` and model sets (written or staged), QuakeC, Quake II and GZDoom MODELDEF and VOXELDEF output.
 - [Model design](../MODEL_DESIGN.md) and [model assemblies](../MODEL_ASSEMBLY.md): props and linked models.
 - [Model collision](../MODEL_COLLISION.md), [material slots](../MODEL_MATERIAL_SLOTS.md) and [skin variants](../MODEL_SKIN_VARIANTS.md).
 - [Modeller release checklist](../MODELLER_RELEASE.md): what has and has not been verified.
