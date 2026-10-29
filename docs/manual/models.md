@@ -1025,7 +1025,9 @@ channels, select rows or an inclusive sample range, then choose retime, duplicat
 remove or reduce. Retiming changes sample times around a pivot and refuses key
 collisions; reduction checks continuous channel error, including between samples.
 **Review** reports key counts and changes, and previews the resulting motion.
-**Apply** commits the whole selection as one undo step. See
+**Apply** commits the whole selection as one undo step. **Copy Keys**
+(<kbd>Ctrl</kbd>+<kbd>C</kbd>) copies the selected keys for **Paste Pose** in another
+clip or model. See
 [key groups](../MODEL_ANIMATION_CURVES.md#edit-groups-of-keys) for tangent,
 rounding, selection and tolerance rules, and the `model curve-keys` CLI.
 

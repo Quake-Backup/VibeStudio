@@ -282,8 +282,10 @@ a dense baseline; capture and reduce those destination curves first if the
 budget is exceeded.
 
 This transfers local channel values within one rig. To move keys between
-models, copy them with `model pose --operation copy-out --keys` (or **Copy Pose**
-on a keyed joint) and paste them; see
+models, select them in **Edit Animation Keys** and choose **Copy Keys**
+(<kbd>Ctrl</kbd>+<kbd>C</kbd>: the selected joints and channels over the samples the
+selection spans), or use `model pose --operation copy-out --keys`, then paste
+them with **Paste Pose** or **Edit Skeletal Animation**; see
 [the pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses).
 To bring motion from another rig, [import and retarget](MODEL_RIG.md#import-and-retarget-clips)
 its clip. [Constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md) keep IK, aim,
