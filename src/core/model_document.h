@@ -209,6 +209,8 @@ enum class ModelEditKind
 	BridgeFaces,
 	// Reflects a detached face selection across an axis plane (core/model_symmetry.h).
 	MirrorFaces,
+	// One triangle from selected vertices and new points (core/model_add_face.cpp).
+	AddFace,
 };
 
 struct ModelEdit

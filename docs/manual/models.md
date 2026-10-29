@@ -551,6 +551,15 @@ selected, in one undo step; moving vertices with <kbd>G</kbd>, <kbd>R</kbd> and
 Across X** flips a separate piece, such as an ear or a pauldron, to the other
 side. See [modelling tools](../MODEL_TOOLS.md#proportional-editing-and-symmetry).
 
+To build a low-poly model vertex by vertex over a reference image, as in
+MilkShape 3D, choose **Vertex > Poly Build** in a front, side or top view.
+Click to place each corner, or click near an existing vertex to reuse it; every
+third corner makes a face, and clicking on keeps building a strip. Press
+<kbd>N</kbd> for a new face, <kbd>Backspace</kbd> to take back a corner and
+<kbd>Enter</kbd> when you are done. Each face is one undo step. With the
+MilkShape 3D controls you can put **Poly Build** on <kbd>F6</kbd> in
+**Customise Controls…**.
+
 The mesh menus (**View**, **Select**, **Add**, **Mesh**, **Vertex**, **Edge**,
 **Face** and **UV**) hold the rest: primitives, merging, dissolving, bisecting,
 symmetrising, smoothing, solidify, decimation, normals, UV projections, seams

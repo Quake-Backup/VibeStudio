@@ -204,6 +204,11 @@ struct ModelMeshToolOptions
 	// is mirrored across these model planes (bit mask X = 1, Y = 2, Z = 4),
 	// using mergeThreshold and, on skinned surfaces, mirrorJoints.
 	int symmetryAxes = 0;
+	// Add Face (core/model_add_face.cpp): new corners that, with the selected
+	// vertices, make three. Without a neighbouring face to follow, the face
+	// turns towards `normal`.
+	int facePointCount = 0;
+	std::array<std::array<double, 3>, 3> facePoints{};
 	// Rip selected vertices/edges toward the incident side face, optionally
 	// bridge the opening. The translation is carried by ModelEdit::translation.
 	int ripFace = -1;

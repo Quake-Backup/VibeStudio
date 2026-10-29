@@ -1593,6 +1593,7 @@ bool isModelMeshToolEdit(ModelEditKind kind)
 	case ModelEditKind::Array:
 	case ModelEditKind::ExtrudeFaces:
 	case ModelEditKind::MirrorFaces:
+	case ModelEditKind::AddFace:
 		return true;
 	default:
 		return false;
@@ -1636,8 +1637,11 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 		return fail(error, Text::tr("Slide distance mode applies only to edge sliding."));
 	if (edit.kind != ModelEditKind::Symmetrize && edit.kind != ModelEditKind::MirrorFaces && (!options.mirrorJoints.isEmpty() || options.keepJointNames))
 		return fail(error, Text::tr("Joint mirror maps apply only to Symmetrize."));
-	if (edit.kind != ModelEditKind::AddPrimitive &&
-		(options.newGeometryBinding != ModelNewGeometryBinding::None || !options.bindJoint.isEmpty() || !options.newSurface.isEmpty()))
+	if (edit.kind != ModelEditKind::AddFace && options.facePointCount != 0)
+		return fail(error, Text::tr("New face points apply only to Add Face."));
+	if ((edit.kind != ModelEditKind::AddPrimitive && edit.kind != ModelEditKind::AddFace &&
+		 (options.newGeometryBinding != ModelNewGeometryBinding::None || !options.bindJoint.isEmpty())) ||
+		(edit.kind != ModelEditKind::AddPrimitive && !options.newSurface.isEmpty()))
 		return fail(error, Text::tr("New geometry bindings and new surfaces apply only to Add Primitive."));
 	if (int(options.newGeometryBinding) < 0 || int(options.newGeometryBinding) > int(ModelNewGeometryBinding::NearestBones) ||
 		(options.newGeometryBinding == ModelNewGeometryBinding::Joint) == options.bindJoint.isEmpty())
@@ -1745,6 +1749,9 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 		return extrudeFaces(candidate, edit, selection, error, control, report);
 	case ModelEditKind::MirrorFaces:
 		return mirrorFaces(candidate, edit, selection, error, work);
+	case ModelEditKind::AddFace:
+		return materialiseModelVertexIdentities(&candidate->surfaces[selection->surface], error, control) &&
+			addFace(candidate, edit, selection, error, work);
 	default:
 		return fail(error, Text::tr("Unknown mesh tool."));
 	}

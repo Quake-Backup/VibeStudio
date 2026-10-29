@@ -324,6 +324,8 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshDissolveVertices"), Text::tr("Dissolve Vertices"), {}, [this] { runKind(ModelEditKind::DissolveVertices); });
 	addAction(QStringLiteral("meshDissolveFaces"), Text::tr("Dissolve Faces"), {}, [this] { runKind(ModelEditKind::DissolveFaces); });
 	addAction(QStringLiteral("meshMakeFace"), Text::tr("Make Face"), QStringLiteral("F"), [this] { runKind(ModelEditKind::MakeFace); });
+	addAction(QStringLiteral("meshPolyBuild"), Text::tr("Poly Build"), {}, [this] { startModalAtPointer(ModelModalOperator::PolyBuild); },
+			  QStringLiteral("vertex-mode"));
 	addAction(QStringLiteral("meshFillHoles"), Text::tr("Fill Boundary Loops"), {}, [this] { m_editor->execute(ModelEditKind::FillBoundaryLoops); });
 	// Bridging runs as a tool so Adjust Last Operation can change its twist,
 	// segments, open chains and UV strip.
@@ -805,7 +807,7 @@ void ModelEditorTools::buildMenus()
 	mesh->addMenu(normals);
 	mesh->addMenu(cleanup);
 	m_menuBar->addMenu(mesh);
-	m_menuBar->addMenu(named(menu(Text::tr("&Vertex"), {QStringLiteral("meshMakeFace"), QStringLiteral("meshBevelVertices"), QStringLiteral("meshMergeCentre"),
+	m_menuBar->addMenu(named(menu(Text::tr("&Vertex"), {QStringLiteral("meshMakeFace"), QStringLiteral("meshPolyBuild"), QStringLiteral("meshBevelVertices"), QStringLiteral("meshMergeCentre"),
 														 QStringLiteral("meshRip"), QStringLiteral("meshRipFill"),
 														 QStringLiteral("meshMergeCursor"), QStringLiteral("meshDissolveVertices"),
 														 QStringLiteral("meshSmooth"), QStringLiteral("meshMergeDistance")}),

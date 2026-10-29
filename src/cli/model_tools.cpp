@@ -304,7 +304,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		QStringLiteral("--bind"), QStringLiteral("--bind-joint"), QStringLiteral("--new-surface"),
 		QStringLiteral("--transform-space"), QStringLiteral("--axis-rotation"), QStringLiteral("--axes-frame"),
 		QStringLiteral("--count"), QStringLiteral("--relative"), QStringLiteral("--axial-offset"), QStringLiteral("--mode"),
-		QStringLiteral("--symmetry")};
+		QStringLiteral("--symmetry"), QStringLiteral("--points"), QStringLiteral("--facing")};
 	Arguments args;
 	QString error;
 	if (!parse(arguments, flags, options, &args, &error))
@@ -317,6 +317,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("array"), ModelEditKind::Array},
 		{QStringLiteral("extrude"), ModelEditKind::ExtrudeFaces},
 		{QStringLiteral("mirror"), ModelEditKind::MirrorFaces},
+		{QStringLiteral("add-face"), ModelEditKind::AddFace},
 		{QStringLiteral("rip"), ModelEditKind::Rip},
 		{QStringLiteral("knife"), ModelEditKind::Knife},
 		{QStringLiteral("bevel-edges"), ModelEditKind::BevelEdges},
@@ -362,6 +363,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("spin"), {QStringLiteral("--faces"), QStringLiteral("--edges"), QStringLiteral("--angle"), QStringLiteral("--steps"),
 			QStringLiteral("--centre"), QStringLiteral("--axis"), QStringLiteral("--axis-vector"), QStringLiteral("--duplicate"),
 			QStringLiteral("--no-close"), QStringLiteral("--tile-size"), QStringLiteral("--axial-offset")}},
+		{QStringLiteral("add-face"), {QStringLiteral("--vertices"), QStringLiteral("--points"), QStringLiteral("--point"), QStringLiteral("--facing"),
+			QStringLiteral("--bind"), QStringLiteral("--bind-joint")}},
 		{QStringLiteral("mirror"), {QStringLiteral("--faces"), QStringLiteral("--axis"), QStringLiteral("--point"), QStringLiteral("--joint-map"),
 			QStringLiteral("--keep-joint-names")}},
 		{QStringLiteral("extrude"), {QStringLiteral("--faces"), QStringLiteral("--mode"), QStringLiteral("--distance"), QStringLiteral("--tile-size"),
@@ -621,6 +624,26 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			tool.extrudeTileSize = tool.uvTileSize;
 			tool.uvTileSize = ModelMeshToolOptions{}.uvTileSize;
 		}
+	}
+	// Add Face: new corners from --points "x,y,z;x,y,z" or one --point, facing --facing.
+	if (kind == ModelEditKind::AddFace)
+	{
+		QStringList points;
+		if (args.values.contains(QStringLiteral("--points")))
+			points = args.values.value(QStringLiteral("--points")).split(QLatin1Char(';'));
+		if (args.values.contains(QStringLiteral("--point")))
+			points << args.values.value(QStringLiteral("--point"));
+		if (points.size() > 3)
+			return fail(2, Text::tr("Add Face takes at most three new points."));
+		for (int i = 0; i < points.size(); ++i)
+		{
+			if (!triple(points[i].trimmed(), &tool.facePoints[i]))
+				return fail(2, Text::tr("Use --points 'x,y,z;x,y,z;x,y,z' with three finite numbers per point."));
+		}
+		tool.facePointCount = int(points.size());
+		tool.point = {0, 0, 0};
+		if (args.values.contains(QStringLiteral("--facing")) && !triple(args.values.value(QStringLiteral("--facing")), &tool.normal))
+			return fail(2, Text::tr("--facing takes a direction x,y,z."));
 	}
 	// Array: the offset and rotation are per copy.
 	if (kind == ModelEditKind::Array)

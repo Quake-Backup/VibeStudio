@@ -100,7 +100,9 @@ enum class ModelModalOperator
 	RipFill,
 	// Extrude Faces along each vertex's region normal, or each face on its own.
 	ExtrudeNormals,
-	ExtrudeIndividual
+	ExtrudeIndividual,
+	// Click to place corners; every third makes a face (model_editor_poly_build.cpp).
+	PolyBuild
 };
 
 class ModelEditorTools final : public QObject
@@ -146,6 +148,15 @@ class ModelEditorTools final : public QObject
 	void setKnifeSelectedOnly(bool selectedOnly);
 	void setKnifeAngleSnap(bool enabled, double degrees = 45);
 	void setRipOptions(bool opposite, bool fill);
+	// Poly Build: a corner at a viewport point (an existing vertex within reach,
+	// else a new point on the view plane through the 3D cursor); the third
+	// corner commits a face as one undo step and the last two carry on as the
+	// next face's first corners. With Ctrl, the selected open border edges are
+	// extruded to the point instead. False when nothing changed.
+	bool addPolyBuildPoint(const QPointF &point, Qt::KeyboardModifiers modifiers = Qt::NoModifier);
+	// Starts the next face afresh, or removes the last corner placed.
+	void newPolyBuildFace();
+	void undoPolyBuildPoint();
 
 	// Region selection in viewport coordinates: shift extends, subtract removes.
 	bool selectRegion(const QPolygonF &region, bool extend, bool subtract);
@@ -282,6 +293,8 @@ class ModelEditorTools final : public QObject
 		bool knifeAngle = false;
 		double knifeAngleStep = 45;
 		ModelEditReport report;
+		// Poly Build: corners placed so far, an existing vertex or -1 with a point.
+		QVector<QPair<int, ModelVec3>> buildCorners;
 	};
 	struct LastOperation
 	{
@@ -442,6 +455,9 @@ class ModelEditorTools final : public QObject
 	bool knifeContextUnchanged() const;
 	bool handleKnifeKey(QKeyEvent *event);
 	void paintKnife(QPainter &painter);
+	bool handlePolyBuildMouse(QMouseEvent *event);
+	bool handlePolyBuildKey(QKeyEvent *event);
+	void paintPolyBuild(QPainter &painter);
 	void remapHiddenAfterEdit(const ModelEdit &edit, const ModelEditReport &report);
 	[[nodiscard]] QPointF pointerInViewport() const;
 	[[nodiscard]] bool selectionCentre(ModelVec3 *centre) const;

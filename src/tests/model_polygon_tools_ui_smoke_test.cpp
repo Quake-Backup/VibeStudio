@@ -390,6 +390,62 @@ void symmetry(QApplication &app, ModelEditorDialog &editor, ModelEditorTools &to
 	app.processEvents();
 	expect(bytes(editor.document().mesh()) == bytes(grid) && !editor.document().canUndo(), "Mirror Faces refuses faces attached to the rest");
 }
+
+// Poly Build in the front view: three clicks make a face, the fourth carries
+// on as a strip, a click near a vertex reuses it, each face is one undo step.
+void polyBuild(QApplication &app, ModelEditorDialog &editor, ModelEditorTools &tools, ModelViewport &view)
+{
+	QString error;
+	QVector<ModelVec3> p;
+	QVector<ModelTriangle> t;
+	appendSquare(&p, &t, {-20, 0, 0}, {1, 0, 0}, {0, 0, 1});
+	const auto base = polygonMesh(p, t, 1);
+	expect(editor.setMesh(base, &error), "open a square to build beside", error);
+	editor.findChild<QComboBox *>("meshViewPreset")->setCurrentIndex(2);
+	tools.setCursor3d({0, 0, 0});
+	view.frameModel();
+	expect(settleModelViewport(view), "front view settles");
+	auto *vertexMenu = tools.menuBar()->findChild<QMenu *>("meshMenuVertex");
+	expect(vertexMenu && vertexMenu->actions().contains(tools.action("meshPolyBuild")), "the Vertex menu offers Poly Build");
+	expect(tools.beginModal(ModelModalOperator::PolyBuild, view.rect().center()), "start Poly Build");
+	const auto at = [&](ModelVec3 world)
+	{
+		QPointF screen;
+		view.projectToView(world, &screen);
+		return screen;
+	};
+	expect(tools.addPolyBuildPoint(at({0, 0, 0})) && tools.addPolyBuildPoint(at({8, 0, 0})) && tools.modalText().contains(QStringLiteral("2")),
+		   "two corners wait for a third");
+	expect(tools.addPolyBuildPoint(at({0, 0, 8})), "the third corner makes a face");
+	const auto &mesh = editor.document().mesh().surfaces[0];
+	expect(mesh.triangles.size() == 3 && mesh.vertexCount == 7 && editor.document().canUndo(), "one face of three new vertices");
+	bool placed = false;
+	for (const auto &q : mesh.frames[0].positions)
+		placed = placed || nearPoint(q, {8, 0, 0}, 0.05);
+	expect(placed, "a click lands on the view plane through the 3D cursor");
+	expect(tools.addPolyBuildPoint(at({8, 0, 8})) && editor.document().mesh().surfaces[0].triangles.size() == 4 &&
+			   editor.document().mesh().surfaces[0].vertexCount == 8 && consistentlyWound(editor.document().mesh().surfaces[0], true),
+		   "the fourth corner continues the strip, wound with its neighbour");
+	tools.newPolyBuildFace();
+	// Snap to the square's corner (-16, 0, -4) and two new points.
+	expect(tools.addPolyBuildPoint(at({-16, 0, -4}) + QPointF(3, 2)) && tools.addPolyBuildPoint(at({-10, 0, -4})) &&
+			   tools.addPolyBuildPoint(at({-10, 0, 4})) && editor.document().mesh().surfaces[0].vertexCount == 10,
+		   "a click near a vertex reuses it");
+	tools.newPolyBuildFace();
+	tools.addPolyBuildPoint(at({-12, 0, 0}));
+	tools.addPolyBuildPoint(at({-12, 0, 2}));
+	tools.undoPolyBuildPoint();
+	expect(tools.modalText().contains(QStringLiteral("1")) && editor.document().mesh().surfaces[0].triangles.size() == 5,
+		   "Backspace takes back the last corner without making a face");
+	tools.finishModal(false);
+	expect(tools.modalOperator() == ModelModalOperator::None && editor.document().mesh().surfaces[0].triangles.size() == 5,
+		   "ending Poly Build keeps every face");
+	for (int step = 0; step < 3; ++step)
+		editor.findChild<QAction *>("undoMesh")->trigger();
+	app.processEvents();
+	expect(bytes(editor.document().mesh()) == bytes(base) && !editor.document().canUndo(), "each face is one undo step");
+	editor.findChild<QComboBox *>("meshViewPreset")->setCurrentIndex(0);
+}
 } // namespace
 int main(int argc, char **argv)
 {
@@ -435,6 +491,7 @@ int main(int argc, char **argv)
 		extrudeVariants(app, editor, *tools, *view);
 		bridges(app, editor, *tools);
 		symmetry(app, editor, *tools, *view);
+		polyBuild(app, editor, *tools, *view);
 		editor.close();
 		app.processEvents();
 		if (scenario)

@@ -284,8 +284,10 @@ Each profile lists its own gaps in `model profiles`. In summary:
   Quickslice, Swift Loop, soft selection, the modifier stack and quad menus are
   not emulated; right-click opens the context menu.
 - **MilkShape 3D**: Groups are surfaces; Joints are tags and skeleton joints.
-  F5 and F6 switch to vertex and face selection instead of MilkShape's
-  creation tools, and F8 picks tags and joints. Snap Together merges at the
+  F5 and F6 switch to vertex and face selection, and F8 picks tags and joints.
+  MilkShape's vertex and face creation tools are **Poly Build** (Vertex menu):
+  click in any view to place corners or reuse vertices, every third makes a
+  face; Customise Controls can put it on F6 for the MilkShape habit. Snap Together merges at the
   centre, Divide Edge splits edges, and Set Keyframe copies the pose to the
   current frame. Click-to-create primitives, Delete All and the Comments tab
   are not emulated.

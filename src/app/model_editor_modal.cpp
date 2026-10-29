@@ -477,6 +477,9 @@ QString ModelEditorTools::modalText() const
 	case ModelModalOperator::ExtrudeIndividual:
 		name = Text::tr("Extrude Individual Faces");
 		break;
+	case ModelModalOperator::PolyBuild:
+		name = Text::tr("Poly Build");
+		break;
 	case ModelModalOperator::None:
 		break;
 	}
@@ -522,6 +525,12 @@ QString ModelEditorTools::modalText() const
 		value = m.hoverEdge.first >= 0 ? Text::tr("%n cut(s)", nullptr, m.cuts)
 									   : Text::tr("Select one edge between quads, or point at one");
 		break;
+	case ModelModalOperator::PolyBuild:
+	{
+		const int placed = int(m.buildCorners.size());
+		value = Text::tr("%n corner(s) placed", nullptr, placed);
+		break;
+	}
 	case ModelModalOperator::Knife:
 	case ModelModalOperator::None:
 		break;
@@ -566,6 +575,8 @@ QString ModelEditorTools::modalText() const
 									(adjust.isEmpty() ? Text::tr("View > Adjust Last Operation then sets the roundness") : Text::tr("%1 adjusts roundness").arg(adjust))
 							  : m.op == ModelModalOperator::EdgeSlide
 							  ? Text::tr("Follow the rails or type a signed fraction · Ctrl snaps to tenths · Shift is precise · Enter confirms · Esc cancels")
+							  : m.op == ModelModalOperator::PolyBuild
+							  ? Text::tr("Click to place corners; a vertex within reach is reused · every third corner makes a face · Ctrl+click extrudes the selected border edges to the pointer · arrows move the pointer and Insert places a corner · N starts a new face · Backspace removes a corner · Enter or Esc ends")
 							  : isFaceExtrude(m.op)
 							  ? Text::tr("Move along the normal or type a distance · Ctrl snaps · Shift is precise · Enter or click confirms · Esc cancels") + QStringLiteral(" · ") +
 									(adjust.isEmpty() ? Text::tr("View > Adjust Last Operation then sets the mode and wall UVs") : Text::tr("%1 adjusts the mode and wall UVs").arg(adjust))
@@ -1120,6 +1131,7 @@ void ModelEditorTools::updateModalPreview()
 			m.error = Text::tr("No quads run across this edge.");
 		break;
 	}
+	case ModelModalOperator::PolyBuild:
 	case ModelModalOperator::Knife:
 	case ModelModalOperator::None:
 		break;
@@ -1324,7 +1336,8 @@ bool ModelEditorTools::eventFilter(QObject *watched, QEvent *event)
 	{
 		const auto *wheel = static_cast<QWheelEvent *>(event);
 		const int steps = wheel->angleDelta().y() > 0 ? 1 : wheel->angleDelta().y() < 0 ? -1 : 0;
-		if (m_modal)
+		// Poly Build leaves the wheel to the view, to zoom while placing corners.
+		if (m_modal && m_modal->op != ModelModalOperator::PolyBuild)
 		{
 			adjustModal(steps);
 			return true;
@@ -1377,6 +1390,7 @@ bool ModelEditorTools::handleModalKey(QKeyEvent *event)
 	if (m_editor->m_working)
 		return true;
 	if (m_modal->op == ModelModalOperator::Knife) return handleKnifeKey(event);
+	if (m_modal->op == ModelModalOperator::PolyBuild) return handlePolyBuildKey(event);
 	const int key = event->key();
 	const auto modifiers = event->modifiers();
 	if (key == Qt::Key_Escape)
@@ -1436,6 +1450,8 @@ bool ModelEditorTools::handleMouse(QMouseEvent *event)
 	m_pointer = point;
 	if (m_modal)
 	{
+		if (m_modal->op == ModelModalOperator::PolyBuild)
+			return handlePolyBuildMouse(event);
 		if (m_modal->op == ModelModalOperator::Knife)
 		{
 			if (event->type() == QEvent::MouseMove) moveModal(point, event->modifiers());
@@ -1891,6 +1907,8 @@ void ModelEditorTools::paintOverlay(QPainter &painter)
 		const auto &m = *m_modal;
 		if (m.op == ModelModalOperator::Knife)
 			paintKnife(painter);
+		else if (m.op == ModelModalOperator::PolyBuild)
+			paintPolyBuild(painter);
 		else if (m.op == ModelModalOperator::LoopCut || m.op == ModelModalOperator::EdgeSlide)
 		{
 			painter.setPen(QPen(QColor(250, 210, 80), 2));

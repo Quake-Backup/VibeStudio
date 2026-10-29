@@ -675,6 +675,7 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::Rip:
 		return ModelEditSkinHandling::Authored;
 	case ModelEditKind::AddPrimitive:
+	case ModelEditKind::AddFace:
 		return ModelEditSkinHandling::Binding;
 	case ModelEditKind::DuplicateFrame:
 	case ModelEditKind::DeleteFrame:

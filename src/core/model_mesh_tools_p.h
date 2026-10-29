@@ -137,5 +137,6 @@ bool solidify(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection,
 bool arrayFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
 bool extrudeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
 bool mirrorFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
+bool addFace(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
 bool projectUvs(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
 } // namespace vibestudio::model_tools

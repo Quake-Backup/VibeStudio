@@ -441,6 +441,7 @@ core_sources = files(
   'core/model_array.cpp',
   'core/model_extrude.cpp',
   'core/model_symmetry.cpp',
+  'core/model_add_face.cpp',
   'core/model_rip.cpp',
   'core/model_vertex_identity.cpp',
   'core/model_vertex_origins.cpp',
@@ -955,6 +956,7 @@ app_sources = files(
   'app/model_editor_modal.cpp',
   'app/model_editor_knife.cpp',
   'app/model_editor_rip.cpp',
+  'app/model_editor_poly_build.cpp',
   # Keyboard focus between panels, Tab keys scoped to the view, key hints.
   'app/model_editor_keyboard.cpp',
   # Modeller profiles, sidebars, four-view panes and the skeleton panel.
@@ -3943,6 +3945,12 @@ model_symmetry_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-symmetry-smoke', model_symmetry_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+
+model_add_face_smoke_test = executable(
+  'model_add_face_smoke_test', ['tests/model_add_face_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-add-face-smoke', model_add_face_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
 
 model_polygon_tools_ui_smoke_test = executable(
   'model_polygon_tools_ui_smoke_test', ['tests/model_polygon_tools_ui_smoke_test.cpp'],

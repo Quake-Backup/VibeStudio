@@ -362,6 +362,7 @@ weights. See [skin weights through mesh edits](MODEL_SKIN_PROVENANCE.md) and the
 | Dissolve Vertices | Removes vertices and refills each fan with ear clipping. Seam copies are dissolved per side. |
 | Dissolve Faces | Replaces each selected region (one UV island, one border, no holes) with a triangulated polygon. |
 | Make Face (**F**) | Builds a triangle or quad from three or four vertices (or two edges), wound to match its neighbours. |
+| Poly Build | **Vertex > Poly Build** builds faces corner by corner, the way models were built over reference images in MilkShape 3D and QME. Click in any view to place a corner: within 12 pixels of a vertex of the active surface it reuses that vertex, otherwise it places a new point on the view plane through the 3D cursor (in the Front view, the plane at the cursor's depth). Every third corner makes a triangle as one undo step, and its last two corners start the next face, so clicking on builds a strip; **N** or a right-click starts a new face and Backspace removes a corner. Ctrl+click extrudes the selected open border edges to the pointer. The arrow keys move the crosshair and Insert places a corner, so it works from the keyboard. The wheel and middle button still navigate; Enter or Esc ends. New corners sit at the same place in every pose with planar UVs and their own identity; a face with no neighbour turns towards the viewer, otherwise it is wound with its neighbour. On a skinned surface the new corners need a binding, chosen as for **Add**. |
 | Poke Faces | Adds a centre vertex to each face, optionally lifted along the face normal. |
 | Beautify Faces | Flips diagonals inside the selection to make triangles more even. |
 | Extrude Edges | Pulls open border edges out into a new strip. |
@@ -526,6 +527,7 @@ its `binding`.
 | `make-face` | `--vertices` or `--edges` |
 | `extrude-edges` | `--edges`, `--offset x,y,z` |
 | `inset` | `--faces`, `--thickness`, `--depth`, `--individual`, `--no-even` |
+| `add-face` | `--vertices` and `--points 'x,y,z;…'` or `--point x,y,z` (three corners in all), `--facing x,y,z` (default 0,0,1), `--bind-joint` or `--bind nearest-bones` on skinned surfaces |
 | `mirror` | `--faces`, `--axis x\|y\|z`, `--point x,y,z` (default the origin), `--joint-map`, `--keep-joint-names` |
 | any symmetric tool | `--symmetry x\|y\|z\|xy…` (with `--joint-map`/`--keep-joint-names` on skinned surfaces) |
 | `extrude` | `--faces`, `--mode region\|normals\|individual`, `--distance` (required), `--tile-size` (side-wall UV strips; omitted copies the border's UVs), `--no-even` |

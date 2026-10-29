@@ -89,6 +89,7 @@ constexpr CommandEntry kCommands[] = {
 	{"meshLoopCut", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Loop Cut"), "Ctrl+R"},
 	{"meshEdgeSlide", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Edge Slide"), ""},
 	{"meshMakeFace", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Make Face"), "F"},
+	{"meshPolyBuild", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Poly Build"), ""},
 	{"meshBevelVertices", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bevel Vertices"), "Ctrl+Shift+B"},
 	{"meshBevelEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bevel Edges"), "Ctrl+B"},
 	{"meshKnife", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Knife"), "K"},
@@ -460,7 +461,7 @@ const ProfileEntry kProfiles[] = {
 		"https://help.autodesk.com/view/3DSMAX/2024/ENU/?guid=GUID-A73E1B09-7BFE-4A22-8153-1D3D2237B8E9", "max|3dsmax|3d-studio-max|3ds|autodesk-3ds-max", &maxControls},
 	{"milkshape-3d", QT_TRANSLATE_NOOP("VibeStudioModelControls", "MilkShape 3D"), "MilkShape 3D",
 		QT_TRANSLATE_NOOP("VibeStudioModelControls", "MilkShape 3D 1.8 defaults: four views (Front, Top, Side, 3D), Ctrl+left drag pans, Shift+left drag zooms, left drag rotates the 3D view, F1-F4 select, move, rotate and scale tools, Shift adds and Shift+right drag removes, Ctrl+W welds, Ctrl+N snaps together, Ctrl+H/Ctrl+U hide and unhide."),
-		QT_TRANSLATE_NOOP("VibeStudioModelControls", "Groups are surfaces and Joints are tags and skeleton joints. F5 and F6 switch to vertex and face selection rather than MilkShape's vertex and face creation tools; F8 picks tags and joints. Snap Together (Ctrl+N) merges the vertices at their centre; Divide Edge (Ctrl+P) splits the selected edges; Subdivide 3 and 4 poke and subdivide faces. Set Keyframe (Ctrl+K) copies the pose to the current frame. Delete All, the sphere, geosphere, box, cylinder and text tools' click-to-create gestures and the Comments tab are not emulated. Ctrl+Alt+Page Down and Page Up step between the four views, which MilkShape 3D does not do; edge loops and rings of the selection are in the Select menu without keys."),
+		QT_TRANSLATE_NOOP("VibeStudioModelControls", "Groups are surfaces and Joints are tags and skeleton joints. F5 and F6 switch to vertex and face selection; Poly Build (Vertex menu) creates vertices and faces corner by corner as MilkShape's vertex and face tools do, and Customise Controls can put it on F6. F8 picks tags and joints. Snap Together (Ctrl+N) merges the vertices at their centre; Divide Edge (Ctrl+P) splits the selected edges; Subdivide 3 and 4 poke and subdivide faces. Set Keyframe (Ctrl+K) copies the pose to the current frame. Delete All, the sphere, geosphere, box, cylinder and text tools' click-to-create gestures and the Comments tab are not emulated. Ctrl+Alt+Page Down and Page Up step between the four views, which MilkShape 3D does not do; edge loops and rings of the selection are in the Select menu without keys."),
 		"https://chumbalum.swissquake.ch/", "milkshape|ms3d|milkshape3d|milk-shape", &milkShapeControls},
 };
 
