@@ -984,7 +984,11 @@ QVector<SelectField> selectFields(const ModelSelectRequest &request)
 		return {axis, extend};
 	case ModelSelectOperation::Linked:
 		return {{Text::tr("Stop at UV seams"), 0, 1, 0, [](const R &r) { return double(r.delimitSeams); }, [](R &r, double v) { r.delimitSeams = v > 0.5; },
-				 true}};
+				 true},
+				{Text::tr("Stop at sharp edges"), 0, 1, 0, [](const R &r) { return double(r.delimitSharp); }, [](R &r, double v) { r.delimitSharp = v > 0.5; },
+				 true},
+				{Text::tr("Stop above angle (degrees, 0 = off)"), 0, 180, 1, [](const R &r) { return r.delimitAngle; },
+				 [](R &r, double v) { r.delimitAngle = v; }}};
 	default:
 		return {};
 	}

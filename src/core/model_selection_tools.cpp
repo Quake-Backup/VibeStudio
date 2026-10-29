@@ -254,7 +254,30 @@ bool growEdgeLoop(const Context &c, const ModelQuadTopology &quads, int surface,
 	return true;
 }
 // Faces reached from `seeds` through geometric (or, delimited, unmarked indexed) edges.
-QSet<int> linkedFaces(const Context &c, const QSet<int> &seeds, bool delimitSeams)
+// Linked selection limits: stored sharp edges (as geometric edges; the
+// identity pairs of model_sharp_edges.cpp) and the largest angle between the
+// normals of two faces that still link (0 = no limit).
+struct LinkLimits
+{
+	QSet<ModelEdge> sharp;
+	double angle = 0;
+};
+LinkLimits linkLimits(const Context &c, const ModelSelectRequest &request)
+{
+	LinkLimits limits;
+	limits.angle = request.delimitAngle;
+	const auto &s = c.surface;
+	if (!request.delimitSharp || s.sharpEdges.isEmpty() || s.topologyVertices.size() != s.vertexCount)
+		return limits;
+	for (auto it = c.topology.edgeFaces.cbegin(); it != c.topology.edgeFaces.cend(); ++it)
+	{
+		const int a = s.topologyVertices[it.key().first], b = s.topologyVertices[it.key().second];
+		if (s.sharpEdges.contains(qMakePair(std::min(a, b), std::max(a, b))))
+			limits.sharp.insert(it.key());
+	}
+	return limits;
+}
+QSet<int> linkedFaces(const Context &c, const QSet<int> &seeds, bool delimitSeams, const LinkLimits &limits = {})
 {
 	QHash<ModelEdge, QVector<int>> byIndexEdge;
 	if (delimitSeams)
@@ -274,10 +297,15 @@ QSet<int> linkedFaces(const Context &c, const QSet<int> &seeds, bool delimitSeam
 		const auto &t = c.surface.triangles[face];
 		for (const auto &[a, b] : {qMakePair(t.a, t.b), qMakePair(t.b, t.c), qMakePair(t.c, t.a)})
 		{
+			const auto geometric = c.topology.geometricEdge(a, b);
+			if (limits.sharp.contains(geometric))
+				continue;
 			const auto neighbours = delimitSeams ? (c.surface.uvSeams.contains(modelEdge(a, b)) ? QVector<int>{} : byIndexEdge.value(modelEdge(a, b)))
-												 : c.topology.edgeFaces.value(c.topology.geometricEdge(a, b));
+												 : c.topology.edgeFaces.value(geometric);
 			for (int other : neighbours)
 			{
+				if (limits.angle > 0 && angleDegrees(c.faceCross(face), c.faceCross(other)) > limits.angle)
+					continue;
 				if (!reached.contains(other))
 				{
 					reached.insert(other);
@@ -379,7 +407,8 @@ bool selectModelComponents(const ModelMesh &mesh, const ModelSelection &current,
 	if (request.frame < 0 || request.frame >= surface.frames.size())
 		return fail(error, Text::tr("Choose an existing animation pose."));
 	if (!std::isfinite(request.threshold) || request.threshold < 0 || !std::isfinite(request.ratio) || request.ratio < 0 || request.ratio > 1 ||
-		request.nth < 2 || request.nth > 1000 || request.offset < 0 || request.axis < 0 || request.axis > 2 || !std::isfinite(request.maxAngle))
+		request.nth < 2 || request.nth > 1000 || request.offset < 0 || request.axis < 0 || request.axis > 2 || !std::isfinite(request.maxAngle) ||
+		!std::isfinite(request.delimitAngle) || request.delimitAngle < 0 || request.delimitAngle > 180)
 		return fail(error, Text::tr("A selection setting is outside its supported range."));
 	ModelGeometricTopology topology;
 	if (!buildModelGeometricTopology(surface, &topology, error, control))
@@ -454,7 +483,7 @@ bool selectModelComponents(const ModelMesh &mesh, const ModelSelection &current,
 		const auto seeds = seedFaces();
 		if (seeds.isEmpty() && current.vertices.isEmpty())
 			return fail(error, Text::tr("Select something to extend to its linked geometry."));
-		selected = fromFaces(c, s, linkedFaces(c, seeds, request.delimitSeams), mode);
+		selected = fromFaces(c, s, linkedFaces(c, seeds, request.delimitSeams, linkLimits(c, request)), mode);
 		if (mode == ModelSelectionMode::Vertices)
 			selected.vertices += current.vertices;
 		break;

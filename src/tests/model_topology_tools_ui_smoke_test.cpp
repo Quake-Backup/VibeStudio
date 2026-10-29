@@ -523,6 +523,41 @@ void sharpChecks(QApplication &app, ModelEditorDialog &editor)
 	tools->action(QStringLiteral("meshRefuseIntersections"))->trigger();
 }
 
+// Select Linked's limits in Adjust Last Operation: sharp edges and a normal angle.
+void linkedChecks(QApplication &app, ModelEditorDialog &editor)
+{
+	auto *tools = editor.tools();
+	const auto &document = editor.document();
+	QString error;
+	ModelDesign design;
+	ModelDesignPart part;
+	part.primitive = QStringLiteral("box");
+	design.parts << part;
+	if (!expect(editor.setMesh(buildModelDesignMesh(design), &error), "open a box for Select Linked"))
+		return;
+	const int faces = document.mesh().surfaces[0].triangles.size();
+	tools->action(QStringLiteral("meshModeFace"))->trigger();
+	tools->applySelection({0, {}, {0}});
+	tools->action(QStringLiteral("meshAdjustLast"))->trigger();
+	tools->action(QStringLiteral("meshSelectLinked"))->trigger();
+	app.processEvents();
+	expect(int(document.selection().faces.size()) == faces, "Select Linked reaches the whole box");
+	QCheckBox *sharp = nullptr;
+	for (auto *box : tools->lastOperationPanel()->findChildren<QCheckBox *>())
+		if (box->accessibleName() == QStringLiteral("Stop at sharp edges"))
+			sharp = box;
+	auto *angle = lastField(tools, QStringLiteral("Stop above angle (degrees, 0 = off)"));
+	if (expect(sharp && angle, "Adjust Last Operation offers Stop at sharp edges and an angle limit"))
+	{
+		angle->setValue(45);
+		app.processEvents();
+		const int side = document.selection().faces.size();
+		expect(side >= 2 && side < faces && document.undoSteps() == 0, "a 45-degree limit keeps the selection on the box's first side");
+	}
+	tools->action(QStringLiteral("meshAdjustLast"))->trigger();
+	tools->applySelection({0, {}, {}});
+}
+
 // A flat 4x4 grid at z = 0 and, above it, a 2x2 grid at z = 10 offset by (3, 5).
 ModelMesh layeredMesh()
 {
@@ -731,6 +766,7 @@ int main(int argc, char **argv)
 		outsideChecks(app, editor);
 		sharpChecks(app, editor);
 		snapChecks(app, editor);
+		linkedChecks(app, editor);
 	}
 	std::cout << checks << " topology tool UI checks; " << failures << " failures\n";
 	return failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;

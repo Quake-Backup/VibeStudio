@@ -937,12 +937,13 @@ ModelToolsCliResult runModelSelect(const QStringList &arguments)
 {
 	const QSet<QString> flags{QStringLiteral("--cli"),	 QStringLiteral("--json"),			QStringLiteral("--quiet"),
 							  QStringLiteral("--verbose"), QStringLiteral("--extend"),		QStringLiteral("--delimit-seams"),
-							  QStringLiteral("--negative")};
+							  QStringLiteral("--negative"), QStringLiteral("--delimit-sharp")};
 	const QSet<QString> options{QStringLiteral("--input"),	 QStringLiteral("--select"),   QStringLiteral("--mode"),		QStringLiteral("--surface"),
 								QStringLiteral("--faces"),	 QStringLiteral("--vertices"), QStringLiteral("--edges"),		QStringLiteral("--edge"),
 								QStringLiteral("--from"),	 QStringLiteral("--to"),	   QStringLiteral("--similar"),		QStringLiteral("--threshold"),
 								QStringLiteral("--ratio"),	 QStringLiteral("--seed"),	   QStringLiteral("--nth"),			QStringLiteral("--offset"),
 								QStringLiteral("--axis"),	 QStringLiteral("--frame"),	   QStringLiteral("--angle"),		QStringLiteral("--settings-file"),
+								QStringLiteral("--delimit-angle"),
 								QStringLiteral("--locale"), QStringLiteral("--catalog-root")};
 	Arguments args;
 	QString error;
@@ -998,7 +999,9 @@ ModelToolsCliResult runModelSelect(const QStringList &arguments)
 		(args.values.contains(QStringLiteral("--ratio")) &&
 		 (!number(args.values.value(QStringLiteral("--ratio")), &request.ratio) || request.ratio < 0 || request.ratio > 1)) ||
 		(args.values.contains(QStringLiteral("--angle")) &&
-		 (!number(args.values.value(QStringLiteral("--angle")), &request.maxAngle) || request.maxAngle < 0 || request.maxAngle > 180)))
+		 (!number(args.values.value(QStringLiteral("--angle")), &request.maxAngle) || request.maxAngle < 0 || request.maxAngle > 180)) ||
+		(args.values.contains(QStringLiteral("--delimit-angle")) &&
+		 (!number(args.values.value(QStringLiteral("--delimit-angle")), &request.delimitAngle) || request.delimitAngle < 0 || request.delimitAngle > 180)))
 		return fail(2, Text::tr("A numeric selection option is malformed or outside its range."));
 	if (args.values.contains(QStringLiteral("--seed")))
 	{
@@ -1023,6 +1026,7 @@ ModelToolsCliResult runModelSelect(const QStringList &arguments)
 	request.positive = !args.seen.contains(QStringLiteral("--negative"));
 	request.extend = args.seen.contains(QStringLiteral("--extend"));
 	request.delimitSeams = args.seen.contains(QStringLiteral("--delimit-seams"));
+	request.delimitSharp = args.seen.contains(QStringLiteral("--delimit-sharp"));
 	if (args.values.contains(QStringLiteral("--similar")))
 	{
 		const QHash<QString, ModelSimilarity> similarities{

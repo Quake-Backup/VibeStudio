@@ -217,12 +217,15 @@ Selection operators are adjustable the same way, without touching the model or
 its history: after **Select Similar**, **Sharp Edges**, **Random**, **Checker
 Deselect**, **Side of Axis**, **Mirror Selection** or **Select Linked**, the
 panel shows the operator's threshold (degrees, or percent for area and
-length), ratio and seed, every nth and offset, axis and side, or **Stop at UV
-seams**, with **Extend** where the operator can add to the selection. Each
-change selects again from the selection the operator started with, so the
-result is the same as running it with those settings, as `model select` does
-with `--threshold`, `--ratio`, `--seed`, `--nth`, `--offset`, `--axis`,
-`--negative`, `--extend` and `--delimit-seams`. Changing the selection any
+length), ratio and seed, every nth and offset, axis and side, or **Select
+Linked**'s limits (**Stop at UV seams**, **Stop at sharp edges** for edges
+marked sharp, and **Stop above angle** for edges whose faces turn by more than
+that many degrees, as Blender's Delimit options do), with **Extend** where the
+operator can add to the selection. Each change selects again from the
+selection the operator started with, so the result is the same as running it
+with those settings, as `model select` does with `--threshold`, `--ratio`,
+`--seed`, `--nth`, `--offset`, `--axis`, `--negative`, `--extend`,
+`--delimit-seams`, `--delimit-sharp` and `--delimit-angle`. Changing the selection any
 other way, or editing the model, returns the panel to the last edit.
 
 ## Keyboard Focus
@@ -808,7 +811,9 @@ selection with `--faces`, `--vertices` or `--edges`; a loop or ring seed with
 `--threshold` (degrees, or percent for area and length); `--ratio` and
 `--seed` for random; `--nth` and `--offset` for checker; `--axis x|y|z` and
 `--negative` for side, facing and mirror. `--delimit-seams` keeps linked
-selection on one UV island, `--extend` adds to the given selection and
+selection on one UV island, `--delimit-sharp` stops it at edges marked sharp
+and `--delimit-angle DEGREES` at edges whose faces differ by more than that
+angle; `--extend` adds to the given selection and
 `--frame N` chooses the pose. It never writes files.
 
 Without `--edge`, `--select loop` and `--select ring` grow every edge in

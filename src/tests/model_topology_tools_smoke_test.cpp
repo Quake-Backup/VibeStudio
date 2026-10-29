@@ -1238,6 +1238,51 @@ void quadRefillChecks()
 	expect(paired == 2, "the block's refill pairs into two quads and one pair of triangles");
 }
 
+// ---- Select Linked limits -----------------------------------------------------
+
+void linkedLimitChecks(const QString &path)
+{
+	QString error;
+	auto mesh = cubeMesh();
+	expect(applyModelEdit(&mesh, toolOf(ModelEditKind::MarkSharp, {0, {}, {}, topEdges(mesh.surfaces[0])}), nullptr, &error),
+		   "mark the cube's top edges sharp", error);
+	ModelSelectRequest request;
+	request.operation = ModelSelectOperation::Linked;
+	request.mode = ModelSelectionMode::Faces;
+	const ModelSelection top{0, {}, {2, 3}};
+	ModelSelection result;
+	expect(selectModelComponents(mesh, top, request, &result, &error) && result.faces.size() == 12, "Select Linked crosses sharp edges by default", error);
+	request.delimitSharp = true;
+	expect(selectModelComponents(mesh, top, request, &result, &error) && result.faces == QSet<int>{2, 3}, "Stop at sharp edges keeps the top face", error);
+	// The angle limit on an unmarked cube: its 90-degree edges stop a 45-degree limit.
+	const auto plain = cubeMesh();
+	request.delimitSharp = false;
+	request.delimitAngle = 45;
+	expect(selectModelComponents(plain, top, request, &result, &error) && result.faces == QSet<int>{2, 3}, "a 45-degree limit stops at the cube's edges",
+		   error);
+	request.delimitAngle = 95;
+	expect(selectModelComponents(plain, top, request, &result, &error) && result.faces.size() == 12, "a limit above 90 degrees links the whole cube",
+		   error);
+	request.delimitAngle = 200;
+	expect(!selectModelComponents(plain, top, request, &result, &error), "an angle limit above 180 degrees is refused");
+	// The CLI: --delimit-sharp and --delimit-angle.
+	ModelDocument document;
+	expect(document.setMesh(mesh, &error) && document.save(path, false, &error), "save the marked cube", error);
+	const auto select = [&](const QStringList &extra)
+	{
+		return cli::runModelSelect(QStringList{QStringLiteral("vibestudio"), QStringLiteral("model"), QStringLiteral("select"), path,
+											   QStringLiteral("--select"), QStringLiteral("linked"), QStringLiteral("--faces"), QStringLiteral("2,3")} +
+								   extra);
+	};
+	auto run = select({QStringLiteral("--delimit-sharp")});
+	expect(run.exitCode == 0 && run.payload.value("selection").toObject().value("faces").toArray().size() == 2, "model select --delimit-sharp", run.error);
+	run = select({QStringLiteral("--delimit-angle"), QStringLiteral("45")});
+	expect(run.exitCode == 0 && run.payload.value("selection").toObject().value("faces").toArray().size() == 2, "model select --delimit-angle 45",
+		   run.error);
+	run = select({QStringLiteral("--delimit-angle"), QStringLiteral("181")});
+	expect(run.exitCode == 2, "model select refuses --delimit-angle 181");
+}
+
 // ---- Intersection guard -------------------------------------------------------
 
 ModelEdit deepInset(bool refuse)
@@ -1481,6 +1526,7 @@ int main(int argc, char **argv)
 	outsideChecks();
 	sharpChecks();
 	sharpPersistenceChecks();
+	linkedLimitChecks(temporary.filePath("sharp-cube.mesh.json"));
 	weldChecks();
 	intersectionChecks();
 	QString error;
