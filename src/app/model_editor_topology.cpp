@@ -335,6 +335,67 @@ bool ModelEditorTools::placeVertex()
 	return runTool(edit, &error);
 }
 
+void ModelEditorTools::trackSelectionOrder()
+{
+	const auto &mesh = m_editor->m_document.mesh();
+	const auto selection = m_editor->m_document.selection();
+	const auto revision = m_editor->m_document.revisionFingerprint();
+	// Another surface, or an edit that may renumber vertices: start again
+	// from the selection as it stands.
+	if (selection.surface != m_vertexOrderSurface || revision != m_vertexOrderRevision)
+	{
+		m_vertexOrder.clear();
+		m_vertexOrderKnown = true;
+		m_vertexOrderSurface = selection.surface;
+		m_vertexOrderRevision = revision;
+	}
+	QVector<int> order;
+	for (int v : std::as_const(m_vertexOrder))
+		if (selection.vertices.contains(v))
+			order.append(v);
+	const QSet<int> known(order.cbegin(), order.cend());
+	QVector<int> added;
+	for (int v : selection.vertices)
+		if (!known.contains(v))
+			added.append(v);
+	std::sort(added.begin(), added.end());
+	// A fresh selection starts with a known order again.
+	if (order.isEmpty())
+		m_vertexOrderKnown = true;
+	// One pick adds one geometric vertex: its seam copies share a position.
+	if (added.size() > 1 && selection.surface >= 0 && selection.surface < mesh.surfaces.size() && !mesh.surfaces[selection.surface].frames.isEmpty())
+	{
+		const auto &positions = mesh.surfaces[selection.surface].frames[0].positions;
+		for (int v : std::as_const(added))
+		{
+			const auto a = positions.value(v), b = positions.value(added.first());
+			if (a.x != b.x || a.y != b.y || a.z != b.z)
+				m_vertexOrderKnown = false;
+		}
+	}
+	m_vertexOrder = order + added;
+}
+
+QVector<int> ModelEditorTools::pickedVertexPath() const
+{
+	const auto selection = m_editor->m_document.selection();
+	if (!m_vertexOrderKnown || selection.surface != m_vertexOrderSurface || !selection.faces.isEmpty() || !selection.edges.isEmpty() ||
+		m_vertexOrder.size() != selection.vertices.size())
+		return {};
+	// Three or more geometric vertices make a path; two connect without one.
+	const auto &mesh = m_editor->m_document.mesh();
+	if (selection.surface < 0 || selection.surface >= mesh.surfaces.size() || mesh.surfaces[selection.surface].frames.isEmpty())
+		return {};
+	const auto &positions = mesh.surfaces[selection.surface].frames[0].positions;
+	int distinct = 0;
+	for (int i = 0; i < m_vertexOrder.size(); ++i)
+	{
+		const auto a = positions.value(m_vertexOrder[i]), b = positions.value(m_vertexOrder[std::max(0, i - 1)]);
+		distinct += i == 0 || a.x != b.x || a.y != b.y || a.z != b.z;
+	}
+	return distinct >= 3 ? m_vertexOrder : QVector<int>{};
+}
+
 int ModelEditorTools::vertexAt(const QPointF &point)
 {
 	const auto &mesh = m_editor->m_document.mesh();
@@ -462,7 +523,16 @@ void ModelEditorTools::buildTopologyActions()
 	// Connect: Blender's J joins the selected vertices (two, or opposite
 	// corners of quads) with new edges; 3ds Max's Connect adds edges between
 	// the selected opposite sides of quads.
-	addAction(QStringLiteral("meshConnectVertexPath"), Text::tr("Connect Vertex Path"), {}, [this] { runKind(ModelEditKind::ConnectVertices); });
+	// Connect Vertex Path: three or more vertices picked one at a time join in
+	// that order; otherwise two vertices, or opposite corners of quads.
+	addAction(QStringLiteral("meshConnectVertexPath"), Text::tr("Connect Vertex Path"), {},
+			  [this]
+			  {
+				  auto edit = toolEdit(ModelEditKind::ConnectVertices);
+				  edit.tool.topology.vertices = pickedVertexPath();
+				  QString error;
+				  runTool(edit, &error);
+			  });
 	addAction(QStringLiteral("meshConnectEdges"), Text::tr("Connect Edges"), {},
 			  [this]
 			  {

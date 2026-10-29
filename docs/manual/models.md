@@ -336,7 +336,8 @@ frame or the current one, and an alignment that would collapse a face is
 refused. See [Align vertices](../MODEL_TOOLS.md#align-vertices).
 
 **Add an edge where you need it.** Select two vertices and press <kbd>J</kbd>
-(**Vertex > Connect Vertex Path**) to join them with a straight cut, or select
+(**Vertex > Connect Vertex Path**) to join them with a straight cut (pick three
+or more one at a time to cut a path through them in that order), or select
 opposite sides of quads and choose **Edge > Connect Edges** to add edges
 across them without cutting a whole loop; <kbd>F9</kbd> sets the number of
 cuts and their slide. See

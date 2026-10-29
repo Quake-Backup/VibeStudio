@@ -535,9 +535,11 @@ profiles) adds edges between vertices without cutting a whole loop:
   unfolded into a plane in the displayed pose, with a new vertex where it
   crosses each edge. A path that would leave those faces or pass within a
   hair of another vertex is refused; connect through that vertex instead.
-- With more than two vertices selected, every pair on opposite corners of a
-  quad is connected. The CLI takes a whole path in order
-  (`--vertices a,b,c`).
+- Three or more vertices picked one at a time (clicks, or Shift+clicks to
+  add) are joined as a path in the order they were picked, as the CLI's
+  `--vertices a,b,c` does. Picked together, by a box, loop or other
+  selection command, their order is unknown, and every pair on opposite
+  corners of a quad is connected instead.
 
 **Edge > Connect Edges** (Ctrl+Shift+E in the 3ds Max profile) adds edges
 across each quad whose two opposite sides are selected, as 3ds Max's Connect

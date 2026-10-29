@@ -304,6 +304,37 @@ void connectChecks(QApplication &app, ModelEditorDialog &editor)
 	expect(joined && surface.vertexCount == 16 && document.undoSteps() == 1, "Connect Vertex Path turns the quad's diagonal as one step");
 	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
 	app.processEvents();
+	// Three vertices picked one at a time join in that order, as the CLI's
+	// --vertices 0,6,13 path does.
+	auto expected = gridMesh(3, 8, true);
+	ModelEdit path;
+	path.kind = ModelEditKind::ConnectVertices;
+	path.selection = {0, {0, 6, 13}, {}};
+	path.tool.topology.vertices = {0, 6, 13};
+	expect(applyModelEdit(&expected, path, nullptr, &error) && expected.surfaces[0].vertexCount > 16, "the core cuts the path 0, 6, 13");
+	for (const QSet<int> &picked : {QSet<int>{0}, QSet<int>{0, 6}, QSet<int>{0, 6, 13}})
+	{
+		tools->applySelection({0, picked, {}});
+		app.processEvents();
+	}
+	tools->action(QStringLiteral("meshConnectVertexPath"))->trigger();
+	app.processEvents();
+	expect(document.undoSteps() == 1 && document.mesh().surfaces[0].vertexCount == expected.surfaces[0].vertexCount &&
+			   document.mesh().surfaces[0].triangles.size() == expected.surfaces[0].triangles.size(),
+		   "Connect Vertex Path follows the picking order for three vertices");
+	editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
+	// Picked all at once (as a box selection does), the order is unknown and
+	// no path is cut through them.
+	tools->applySelection({0, {}, {}});
+	tools->applySelection({0, {0, 6, 13}, {}});
+	app.processEvents();
+	tools->action(QStringLiteral("meshConnectVertexPath"))->trigger();
+	app.processEvents();
+	expect(document.mesh().surfaces[0].vertexCount == 16, "three vertices selected at once are not joined as a path");
+	if (document.undoSteps() > 0)
+		editor.findChild<QAction *>(QStringLiteral("undoMesh"))->trigger();
+	app.processEvents();
 	// Connect Edges in vertex mode: the left and right sides of the first quad.
 	tools->applySelection({0, {}, {}, {modelEdge(0, 4), modelEdge(1, 5)}});
 	tools->action(QStringLiteral("meshConnectEdges"))->trigger();

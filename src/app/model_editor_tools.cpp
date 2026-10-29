@@ -2535,6 +2535,7 @@ QString ModelEditorTools::budgetSummary() const
 
 void ModelEditorTools::documentChanged()
 {
+	trackSelectionOrder();
 	// Hidden faces are kept by index; a surface whose faces changed shows
 	// again rather than hiding the wrong ones.
 	if (hasHidden())

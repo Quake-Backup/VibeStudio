@@ -418,6 +418,18 @@ class ModelEditorTools final : public QObject
 	QVector<std::array<int, 3>> m_lastCrossings;
 	int m_lastIntersectionSurface = -1;
 	bool m_refuseIntersections = false;
+	// Selection order: vertices in the order they joined the selection, for
+	// Connect Vertex Path. `m_vertexOrderKnown` stays true while each change
+	// added one vertex (with its seam copies) at a time; a box or loop
+	// selection adds many at once and leaves the order unknown.
+	QVector<int> m_vertexOrder;
+	int m_vertexOrderSurface = -1;
+	QByteArray m_vertexOrderRevision;
+	bool m_vertexOrderKnown = true;
+	void trackSelectionOrder();
+	// The vertex path for Connect Vertex Path: the selection in the order it
+	// was picked, when it was picked one vertex at a time; empty otherwise.
+	[[nodiscard]] QVector<int> pickedVertexPath() const;
 	void noteIntersections(const ModelEdit &edit, const ModelEditReport &report);
 	// Mark/Clear Sharp and smoothing groups, with the vertex cost in the banner.
 	bool runSharp(const ModelEdit &edit);
