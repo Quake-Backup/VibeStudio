@@ -1723,6 +1723,14 @@ bool ModelEditorDialog::performWork(const QString &title, ModelDocumentJob job, 
 		actionStates.append({action, action->isEnabled()});
 		action->setEnabled(false);
 	}
+	// Disabling the editing area repaints all of it, the 3D view and the
+	// component table included, and enabling it again repaints it once more:
+	// at the maximum size that was the longest stall of an operation. The
+	// window-modal progress surface blocks input meanwhile, so the area is
+	// disabled without repainting and painted once when the work ends.
+	const bool freezePainting = m_editingControls->updatesEnabled();
+	if (freezePainting)
+		m_editingControls->setUpdatesEnabled(false);
 	m_editingControls->setEnabled(false);
 	m_recoveryEnabled->setEnabled(false);
 	m_status->setText(title);
@@ -1733,6 +1741,8 @@ bool ModelEditorDialog::performWork(const QString &title, ModelDocumentJob job, 
 		action->setEnabled(enabled);
 	}
 	m_editingControls->setEnabled(true);
+	if (freezePainting)
+		m_editingControls->setUpdatesEnabled(true);
 	m_recoveryEnabled->setEnabled(true);
 	if (previousFocus && previousFocus->isEnabled() && !m_closeAfterWork)
 	{

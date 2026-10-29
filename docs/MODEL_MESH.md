@@ -1588,6 +1588,18 @@ It checks stable table rows, compact selection and displayed pose values;
 `VIBESTUDIO_MODELLER_TRACE_AUTHORING_EVENTS=1` adds the eight longest GUI event
 dispatches taking at least 20 ms per stage, for diagnosis only. Default timing
 runs omit that instrumentation.
+`model-edit-latency-smoke` times maximum-size edits in core (completion,
+cancellation at 0, 50 and 90 per cent of progress, history and working set,
+save and recovery copy; `VIBESTUDIO_MODELLER_FULL_LATENCY=1` adds delete,
+extrude, flip and the realistic float and skeletal fixtures) and the editor's
+worker path (largest event-loop gap and Cancel latency, optionally bounded by
+`VIBESTUDIO_MODELLER_MAX_EDIT_MS`, `_MAX_CANCEL_MS` and `_MAX_EDIT_GAP_MS`).
+Profiling that path showed the stall was not the edit or the document copy
+(implicitly shared, under 0.1 ms) but repainting: disabling the editing area
+for the work, and enabling it again, repainted every control, the 3D view and
+the component table. The editor now disables the area without painting while
+the window-modal progress surface blocks input, and paints it once when the
+work ends.
 Full save/recovery/export and worst-case translucent overlap remain separate
 performance gates. See the recorded build and limits in
 [Modeller Release](MODELLER_RELEASE.md).
