@@ -847,9 +847,12 @@ int readableSourceVersion(const ModelMesh &mesh)
 	const bool timed = std::any_of(mesh.animations.cbegin(), mesh.animations.cend(), [](const auto &clip) { return clip.framesPerSecond > 0; });
 	const bool collisionAnimation = std::any_of(mesh.collisionBoxes.cbegin(), mesh.collisionBoxes.cend(), [](const auto &box) { return !box.framePoses.isEmpty(); });
 	const bool explicitTopology = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return !s.topologyVertices.isEmpty(); });
-	const bool sharp = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { const bool pinned = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return std::max(modelAnimationAuthoringSourceVersion(mesh), !mesh.tagAnchors.isEmpty() ? modelSourceTagAnchorVersion : !s.sharpEdges.isEmpty(); });
-	return sharp ? 16 : !s.uvPins.isEmpty(); });
-	return pinned ? 17 : !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3);
+	const bool sharp = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return !s.sharpEdges.isEmpty(); });
+	const bool pinned = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return !s.uvPins.isEmpty(); });
+	// Newest feature first: tag anchors 19, UV pins 17, sharp edges 16, then
+	// animation authoring (15) is weighed against the rest by std::max.
+	return std::max(modelAnimationAuthoringSourceVersion(mesh),
+		!mesh.tagAnchors.isEmpty() ? modelSourceTagAnchorVersion : pinned ? 17 : sharp ? 16 : !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3);
 }
 // Packed sources (version 12) store the bulk arrays as base64 strings of
 // little-endian 32-bit words; the rest of the source is the same JSON.

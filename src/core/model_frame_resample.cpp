@@ -97,7 +97,7 @@ bool blendFrame(ModelMesh *mesh, const ModelMesh &source, int to, int a, int b, 
 		if (!sampleModelCollisionBox(original, a, b, amount, &sampled))
 			return fail(error, Text::tr("Collision box %1 cannot be blended between frames %2 and %3.").arg(original.name).arg(a).arg(b));
 		auto poses = mesh->collisionBoxes[box].framePoses;
-		poses[to] = ModelCollisionPose{sampled.centre, sampled.size, sampled.rotation};
+		poses[to] = ModelCollisionPose{sampled.centre, sampled.size, sampled.rotation, sampled.hull};
 		setModelCollisionFrames(&mesh->collisionBoxes[box], std::move(poses));
 	}
 	return true;
