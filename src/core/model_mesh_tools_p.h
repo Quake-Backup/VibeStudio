@@ -139,5 +139,10 @@ bool arrayFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 bool extrudeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
 bool mirrorFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
 bool addFace(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
+// The knife's apply stage with ready cuts on the reference pose's faces.
+bool applyModelKnifeCuts(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, const QVector<ModelKnifeCut> &cuts, QString *error,
+						 const ModelWorkControl &control, ModelEditReport *report);
+bool intersectCut(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control,
+				  ModelEditReport *report);
 bool projectUvs(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
 } // namespace vibestudio::model_tools

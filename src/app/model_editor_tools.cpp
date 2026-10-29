@@ -326,6 +326,23 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshMakeFace"), Text::tr("Make Face"), QStringLiteral("F"), [this] { runKind(ModelEditKind::MakeFace); });
 	addAction(QStringLiteral("meshPolyBuild"), Text::tr("Poly Build"), {}, [this] { startModalAtPointer(ModelModalOperator::PolyBuild); },
 			  QStringLiteral("vertex-mode"));
+	// Intersect: cut where the selected faces pass through the rest of the
+	// surface, optionally keeping only the outer shell or the difference.
+	const auto intersect = [this](ModelIntersectMode mode)
+	{
+		runKind(ModelEditKind::IntersectCut,
+				[this, mode](ModelEdit &e)
+				{
+					e.selection = selectionFor(ModelEditKind::Extrude);
+					e.selection.vertices.clear();
+					e.selection.edges.clear();
+					e.tool.intersectMode = mode;
+				});
+	};
+	addAction(QStringLiteral("meshIntersectCut"), Text::tr("Intersect (Knife)"), {}, [intersect] { intersect(ModelIntersectMode::Cut); });
+	addAction(QStringLiteral("meshIntersectUnion"), Text::tr("Intersect (Union)"), {}, [intersect] { intersect(ModelIntersectMode::Union); });
+	addAction(QStringLiteral("meshIntersectDifference"), Text::tr("Intersect (Difference)"), {},
+			  [intersect] { intersect(ModelIntersectMode::Difference); });
 	addAction(QStringLiteral("meshFillHoles"), Text::tr("Fill Boundary Loops"), {}, [this] { m_editor->execute(ModelEditKind::FillBoundaryLoops); });
 	// Bridging runs as a tool so Adjust Last Operation can change its twist,
 	// segments, open chains and UV strip.
@@ -823,7 +840,8 @@ void ModelEditorTools::buildMenus()
 													  QStringLiteral("meshExtrudeIndividual"), QStringLiteral("meshExtrudeEdges")}),
 						  QStringLiteral("meshMenuExtrude"));
 	auto *faceMenu = named(menu(Text::tr("&Face"), {QStringLiteral("meshExtrude"), QStringLiteral("meshExtrudeNormals"), QStringLiteral("meshExtrudeIndividual"), QStringLiteral("meshInset"), QStringLiteral("meshInsetIndividual"),
-													   QStringLiteral("meshSpin"), QStringLiteral("meshSpinDuplicate"), QStringLiteral("meshScrew"), QStringLiteral("meshArray"), QStringLiteral("meshBridgeFaces"), QStringLiteral("meshPoke"), QStringLiteral("meshSolidify"), QStringLiteral("meshSubdivide"), QStringLiteral("meshDissolveFaces"),
+													   QStringLiteral("meshSpin"), QStringLiteral("meshSpinDuplicate"), QStringLiteral("meshScrew"), QStringLiteral("meshArray"), QStringLiteral("meshBridgeFaces"), QStringLiteral("meshIntersectCut"),
+													   QStringLiteral("meshIntersectUnion"), QStringLiteral("meshIntersectDifference"), QStringLiteral("meshPoke"), QStringLiteral("meshSolidify"), QStringLiteral("meshSubdivide"), QStringLiteral("meshDissolveFaces"),
 													   QStringLiteral("meshBeautify"), QStringLiteral("meshMakeFace"), {}, QStringLiteral("meshFlip"),
 													   QStringLiteral("meshShadeSmooth"), QStringLiteral("meshShadeFlat"), QStringLiteral("meshAutoSmooth"), {},
 													   QStringLiteral("meshDeleteFaces")}),
@@ -2048,6 +2066,10 @@ QVector<LastField> lastFields(const ModelEdit &edit)
 			+ array3(Text::tr("Axis"), &ModelMeshToolOptions::normal, -1, 1)
 			+ QVector<LastField>{{Text::tr("Axial offset (screw)"), -100000, 100000, 3, [](const E &e) { return e.tool.spinAxialOffset; },
 								  [](E &e, double v) { e.tool.spinAxialOffset = v; }}};
+	case ModelEditKind::IntersectCut:
+		return QVector<LastField>{{Text::tr("Keep"), 0, 2, 0, [](const E &e) { return double(int(e.tool.intersectMode)); },
+								   [](E &e, double v) { e.tool.intersectMode = ModelIntersectMode(int(v)); }, false,
+								   {Text::tr("Both parts, cut"), Text::tr("Outer shell (union)"), Text::tr("Selection less the rest (difference)")}}};
 	case ModelEditKind::MirrorFaces:
 		return QVector<LastField>{{Text::tr("Axis"), 0, 2, 0, [](const E &e) { return double(e.tool.axis); }, [](E &e, double v) { e.tool.axis = int(v); }, false,
 								   {QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")}}}
@@ -2264,6 +2286,8 @@ QString kindTitle(ModelEditKind kind)
 		return Text::tr("Bridge Faces");
 	case ModelEditKind::MirrorFaces:
 		return Text::tr("Mirror Faces");
+	case ModelEditKind::IntersectCut:
+		return Text::tr("Intersect");
 	case ModelEditKind::Rip:
 		return Text::tr("Rip");
 	case ModelEditKind::Solidify:

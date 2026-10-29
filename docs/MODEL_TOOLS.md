@@ -380,6 +380,7 @@ weights. See [skin weights through mesh edits](MODEL_SKIN_PROVENANCE.md) and the
 | Loop Cut | Adds 1–64 edge loops across a ring of quads; one cut can slide between the sides. Triangles at the ends of an open ring are split too, so no T-junctions remain. |
 | Bevel Vertices | Replaces each selected vertex with a cap whose corners sit the bevel width along every edge it had. Bevelling both ends of an edge keeps a point on that edge where it folds. A width that reaches past a neighbouring vertex is refused. |
 | Bevel Edges | Builds chamfer/rounded bands and joined corner caps with width, 1–32 segments and roundness; **Clamp width to fit** narrows a width that would reach a neighbour instead of refusing it. Retains face-side UVs, interpolates skin influences and checks every stored pose. See [edge bevel](MODEL_EDGE_BEVEL.md). |
+| Intersect (Knife / Union / Difference) | Cuts where the selected faces pass through the rest of the surface, on both parts, and optionally deletes the hidden faces (union) or keeps the selection less the other part (difference). See [Intersect](MODEL_KNIFE.md#cut-where-parts-meet-intersect). |
 | Knife | Cuts finite, crossing, closed or disconnected paths, with visible/through and selected-face scope. Interpolates every pose, UVs and skinning, preserves hidden child faces and selects path edges. See [knife controls and CLI](MODEL_KNIFE.md). |
 | Solidify | Gives selected faces a thickness: flipped back faces sit behind along the angle-weighted normals (even thickness by default) and a rim with its own hard-edged corners closes open borders. Single-sided sheets such as capes and banners render from both sides in every idTech renderer. |
 | Decimate | Quadric error simplification to a ratio or a triangle budget, measured over up to eight sampled poses. UV seams, borders (unless allowed) and every pose's shape are protected. **Decimate to MD3 Budget** targets Quake III's working limit of 1,999 triangles per surface. |
@@ -527,6 +528,7 @@ its `binding`.
 | `make-face` | `--vertices` or `--edges` |
 | `extrude-edges` | `--edges`, `--offset x,y,z` |
 | `inset` | `--faces`, `--thickness`, `--depth`, `--individual`, `--no-even` |
+| `intersect` | `--faces`, `--mode cut\|union\|difference` (default cut) |
 | `add-face` | `--vertices` and `--points 'x,y,z;…'` or `--point x,y,z` (three corners in all), `--facing x,y,z` (default 0,0,1), `--bind-joint` or `--bind nearest-bones` on skinned surfaces |
 | `mirror` | `--faces`, `--axis x\|y\|z`, `--point x,y,z` (default the origin), `--joint-map`, `--keep-joint-names` |
 | any symmetric tool | `--symmetry x\|y\|z\|xy…` (with `--joint-map`/`--keep-joint-names` on skinned surfaces) |

@@ -214,6 +214,8 @@ enum class ModelEditKind
 	MirrorFaces,
 	// One triangle from selected vertices and new points (core/model_add_face.cpp).
 	AddFace,
+	// Cuts (and optionally unites or subtracts) where faces pass through each other (core/model_intersect_cut.cpp).
+	IntersectCut,
 };
 
 struct ModelEdit

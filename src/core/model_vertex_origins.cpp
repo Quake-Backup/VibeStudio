@@ -673,6 +673,7 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::Knife:
 	case ModelEditKind::Spin:
 	case ModelEditKind::Rip:
+	case ModelEditKind::IntersectCut:
 		return ModelEditSkinHandling::Authored;
 	case ModelEditKind::AddPrimitive:
 	case ModelEditKind::AddFace:

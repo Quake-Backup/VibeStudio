@@ -449,6 +449,10 @@ Spin references the [Blender 4.0 Spin manual](https://docs.blender.org/manual/en
 Rip references the [Blender 4.5 Rip manual](https://docs.blender.org/manual/en/4.5/modeling/meshes/editing/vertex/rip_vertices.html)
 and [Rip and Fill](https://docs.blender.org/manual/en/4.5/modeling/meshes/editing/vertex/rip_vertices_fill.html)
 (CC-BY-SA-4.0, reviewed 2026-10-21; behaviour only, original implementation).
+Individual origins, normal axes, Array, Screw, the extrude variants, bridge
+options, mesh symmetry, Poly Build and Intersect follow the Blender 4.0 manual
+(CC-BY-SA-4.0, reviewed 2026-10-28; behaviour only), and Intersect uses Möller's
+published triangle-triangle and ray-triangle tests (1997).
 See [Blender-Style Mesh Editing](docs/CREDITS.md#blender-style-mesh-editing-2026-10-07).
 
 Automatic mesh UV charting and packing use Jonathan Young's

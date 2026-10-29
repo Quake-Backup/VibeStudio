@@ -318,6 +318,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("extrude"), ModelEditKind::ExtrudeFaces},
 		{QStringLiteral("mirror"), ModelEditKind::MirrorFaces},
 		{QStringLiteral("add-face"), ModelEditKind::AddFace},
+		{QStringLiteral("intersect"), ModelEditKind::IntersectCut},
 		{QStringLiteral("rip"), ModelEditKind::Rip},
 		{QStringLiteral("knife"), ModelEditKind::Knife},
 		{QStringLiteral("bevel-edges"), ModelEditKind::BevelEdges},
@@ -364,6 +365,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("spin"), {QStringLiteral("--faces"), QStringLiteral("--edges"), QStringLiteral("--angle"), QStringLiteral("--steps"),
 			QStringLiteral("--centre"), QStringLiteral("--axis"), QStringLiteral("--axis-vector"), QStringLiteral("--duplicate"),
 			QStringLiteral("--no-close"), QStringLiteral("--tile-size"), QStringLiteral("--axial-offset")}},
+		{QStringLiteral("intersect"), {QStringLiteral("--faces"), QStringLiteral("--mode")}},
 		{QStringLiteral("add-face"), {QStringLiteral("--vertices"), QStringLiteral("--points"), QStringLiteral("--point"), QStringLiteral("--facing"),
 			QStringLiteral("--bind"), QStringLiteral("--bind-joint")}},
 		{QStringLiteral("mirror"), {QStringLiteral("--faces"), QStringLiteral("--axis"), QStringLiteral("--point"), QStringLiteral("--joint-map"),
@@ -626,6 +628,19 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			tool.extrudeTileSize = tool.uvTileSize;
 			tool.uvTileSize = ModelMeshToolOptions{}.uvTileSize;
 		}
+	}
+	// Intersect: cut (default), union or difference.
+	if (kind == ModelEditKind::IntersectCut)
+	{
+		const auto mode = args.values.value(QStringLiteral("--mode"), QStringLiteral("cut"));
+		if (mode == QStringLiteral("cut"))
+			tool.intersectMode = ModelIntersectMode::Cut;
+		else if (mode == QStringLiteral("union"))
+			tool.intersectMode = ModelIntersectMode::Union;
+		else if (mode == QStringLiteral("difference"))
+			tool.intersectMode = ModelIntersectMode::Difference;
+		else
+			return fail(2, Text::tr("Use --mode cut|union|difference."));
 	}
 	// Add Face: new corners from --points "x,y,z;x,y,z" or one --point, facing --facing.
 	if (kind == ModelEditKind::AddFace)

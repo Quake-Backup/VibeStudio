@@ -442,6 +442,7 @@ core_sources = files(
   'core/model_extrude.cpp',
   'core/model_symmetry.cpp',
   'core/model_add_face.cpp',
+  'core/model_intersect_cut.cpp',
   'core/model_rip.cpp',
   'core/model_vertex_identity.cpp',
   'core/model_vertex_origins.cpp',
@@ -3957,6 +3958,12 @@ model_bevel_clamp_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-bevel-clamp-smoke', model_bevel_clamp_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+
+model_intersect_cut_smoke_test = executable(
+  'model_intersect_cut_smoke_test', ['tests/model_intersect_cut_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-intersect-cut-smoke', model_intersect_cut_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
 
 model_polygon_tools_ui_smoke_test = executable(
   'model_polygon_tools_ui_smoke_test', ['tests/model_polygon_tools_ui_smoke_test.cpp'],

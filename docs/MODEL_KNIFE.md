@@ -126,6 +126,33 @@ input source is protected by the shared writer. A `--path-file` input is also
 protected, including hard-link aliases, even with `--overwrite` or `--dry-run`.
 Dry runs share complete source-save preparation and the serialised byte limit.
 
+## Cut where parts meet (Intersect)
+
+**Face → Intersect (Knife)** cuts along the lines where the selected faces pass
+through the other faces of the same surface, such as a weapon piece pushed
+into a hand or a limb into a torso, on both parts and in one undo step; the new
+edges become the selection. Join the parts into one surface first. The lines
+come from the reference pose: each crossing of two triangles is cut into both
+with the same knife stage as a drawn path, so every pose, UV and skin weight
+is interpolated. Where both parts stay together in every pose, the cut points
+on the other part join the selection's (one position and connectivity, each
+side keeping its UVs); where they move apart in another pose they stay separate
+and the status line says how many. Faces lying in one plane and overlapping
+cannot be cut and are refused; move one part slightly. Parts that do not meet
+are refused.
+
+**Face → Intersect (Union)** then deletes what is hidden: the selection's faces
+inside the other part and the other part's faces inside the selection, leaving
+one closed shell that costs fewer triangles and stops z-fighting. **Face →
+Intersect (Difference)** keeps the selection outside the other part and turns
+the other part's inside faces round to line the pocket. Both need the selection
+to be a whole closed piece and the part it passes through to be closed, and an
+unskinned surface; inside and outside are decided by ray parity in the
+reference pose, so review other poses, where the parts may move away from the
+cut. **F9** switches between the three; `model tool --tool intersect --faces …
+--mode cut|union|difference` is the CLI form. Intersecting against another
+surface, and keeping the intersection volume itself, remain open.
+
 No dependency, connector or setup step is added. Curved strokes, saved editable
 knife objects, automatic repair of near-coincident cuts and maximum-size latency
 acceptance remain open. Real-project/engine, physical accessibility and clean

@@ -616,6 +616,12 @@ their visibility when subdivided. Every pose, UV seam and skin influence uses
 the same cut interpolation. F9 adjusts visibility/selection scope. See
 [knife cutting](../MODEL_KNIFE.md) for projection, snapping and refusal limits.
 
+When two parts pass through each other, select one of them and choose **Face →
+Intersect (Knife)** to cut both where they meet, or **Intersect (Union)** to
+remove the hidden faces as well and save triangles. **Intersect (Difference)**
+carves the other part out of the selection. Join the parts into one surface
+first; union and difference need closed parts.
+
 **Face → Spin** and **Edge → Spin** make curved extrusions around the **3D
 Cursor**. Type degrees, choose an axis with **X/Y/Z**, and set steps with the
 wheel or **Page Up/Down**. **Face → Spin Duplicates** makes radial face copies.

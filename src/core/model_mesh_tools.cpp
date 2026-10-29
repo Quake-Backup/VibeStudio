@@ -1594,6 +1594,7 @@ bool isModelMeshToolEdit(ModelEditKind kind)
 	case ModelEditKind::ExtrudeFaces:
 	case ModelEditKind::MirrorFaces:
 	case ModelEditKind::AddFace:
+	case ModelEditKind::IntersectCut:
 		return true;
 	default:
 		return false;
@@ -1639,6 +1640,8 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 		return fail(error, Text::tr("Joint mirror maps apply only to Symmetrize."));
 	if (edit.kind != ModelEditKind::AddFace && options.facePointCount != 0)
 		return fail(error, Text::tr("New face points apply only to Add Face."));
+	if (edit.kind != ModelEditKind::IntersectCut && options.intersectMode != ModelIntersectMode::Cut)
+		return fail(error, Text::tr("Union and difference apply only to Intersect."));
 	if ((edit.kind != ModelEditKind::AddPrimitive && edit.kind != ModelEditKind::AddFace &&
 		 (options.newGeometryBinding != ModelNewGeometryBinding::None || !options.bindJoint.isEmpty())) ||
 		(edit.kind != ModelEditKind::AddPrimitive && !options.newSurface.isEmpty()))
@@ -1754,6 +1757,9 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 	case ModelEditKind::AddFace:
 		return materialiseModelVertexIdentities(&candidate->surfaces[selection->surface], error, control) &&
 			addFace(candidate, edit, selection, error, work);
+	case ModelEditKind::IntersectCut:
+		return authored(materialiseModelVertexIdentities(&candidate->surfaces[selection->surface], error, control) &&
+						intersectCut(candidate, edit, selection, error, control, report));
 	default:
 		return fail(error, Text::tr("Unknown mesh tool."));
 	}
