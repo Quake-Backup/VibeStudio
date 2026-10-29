@@ -437,7 +437,8 @@ examples shared with **Edit Skeleton** in the Mesh Editor.
 copies joint poses and interpolates hierarchical motion. `--operation copy-out`
 writes a pose or key copy to a file, `paste --clipboard` applies one (a copy
 from another rig needs `--joint-map`), and `mirror` mirrors a range onto the
-left/right partner joints. Both commands share
+left/right partner joints, and `import --source FILE` adds a clip from another
+file, exactly or with `--retarget`. Both commands share
 the modeller's document service, guarded outputs and dry-run validation. See
 [skeletal animation authoring](../MODEL_RIG.md#author-skeletal-animation).
 `model pose --operation working-set --clips a,b` chooses the clips baked into

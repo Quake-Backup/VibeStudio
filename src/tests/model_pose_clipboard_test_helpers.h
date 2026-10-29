@@ -12,15 +12,16 @@ inline ModelQuat poseZRotation(double degrees)
 	const double half = degrees * std::numbers::pi / 360.0;
 	return {0, 0, float(std::sin(half)), float(std::cos(half))};
 }
-inline ModelMesh symmetricRigFixture(int samples = 4)
+inline ModelMesh symmetricRigFixture(int samples = 4, float scale = 1)
 {
 	auto mesh = rigFixture();
+	const float k = scale;
 	mesh.skeleton.joints = {{"root", -1, modelJointIdentity()},
-							{"spine", 0, modelJointMatrix({}, {0, 0, 4})},
-							{"l_arm", 1, modelJointMatrix({}, {0, 2, 8})},
-							{"l_hand", 2, modelJointMatrix({}, {0, 6, 8})},
-							{"r_arm", 1, modelJointMatrix({}, {0, -2, 8})},
-							{"r_hand", 4, modelJointMatrix({}, {0, -6, 8})}};
+							{"spine", 0, modelJointMatrix({}, {0, 0, 4 * k})},
+							{"l_arm", 1, modelJointMatrix({}, {0, 2 * k, 8 * k})},
+							{"l_hand", 2, modelJointMatrix({}, {0, 6 * k, 8 * k})},
+							{"r_arm", 1, modelJointMatrix({}, {0, -2 * k, 8 * k})},
+							{"r_hand", 4, modelJointMatrix({}, {0, -6 * k, 8 * k})}};
 	mesh.skeleton.tags = {{"tag_l_hand", 3, modelJointIdentity()}};
 	const auto bind = modelSkeletonBindPose(mesh.skeleton);
 	ModelSkeletalClip clip;
@@ -29,8 +30,8 @@ inline ModelMesh symmetricRigFixture(int samples = 4)
 	for (int f = 0; f < samples; ++f)
 	{
 		auto pose = bind;
-		pose[2] = modelJointMatrix(poseZRotation(20.0 * f), {0, 2, 8});
-		pose[3] = modelJointMultiply(pose[2], modelJointMatrix({}, {0, 4, 0}));
+		pose[2] = modelJointMatrix(poseZRotation(20.0 * f), {0, 2 * k, 8 * k});
+		pose[3] = modelJointMultiply(pose[2], modelJointMatrix({}, {0, 4 * k, 0}));
 		clip.frames.append(pose);
 	}
 	mesh.skeleton.clips = {clip};
@@ -38,7 +39,7 @@ inline ModelMesh symmetricRigFixture(int samples = 4)
 	s.vertexCount = 6;
 	s.triangles = {{0, 1, 2}, {0, 2, 3}, {0, 4, 5}, {0, 5, 1}};
 	s.texCoords = {{0, 0}, {.25f, 0}, {.5f, 0}, {.75f, 0}, {.25f, 1}, {.5f, 1}};
-	s.frames = {{{{0, 0, 0}, {0, 0, 4}, {0, 2, 8}, {0, 6, 8}, {0, -2, 8}, {0, -6, 8}}, QVector<ModelVec3>(6, {1, 0, 0})}};
+	s.frames = {{{{0, 0, 0}, {0, 0, 4 * k}, {0, 2 * k, 8 * k}, {0, 6 * k, 8 * k}, {0, -2 * k, 8 * k}, {0, -6 * k, 8 * k}}, QVector<ModelVec3>(6, {1, 0, 0})}};
 	if (!modelSkinningFromBindPose(mesh.skeleton, s.frames[0].positions, s.frames[0].normals, {0, 1, 2, 3, 4, 5}, {1, 1, 1, 1, 1, 1}, 1,
 								   &s.skinning) ||
 		!bakeModelSkeleton(&mesh))

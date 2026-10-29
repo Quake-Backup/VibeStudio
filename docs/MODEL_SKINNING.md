@@ -3,7 +3,7 @@
 **Status: Partial.** Influence inspection, vertex selection, rigid and distance
 binding, explicit rebinding, weight reduction and unbinding are available through
 the shared mesh document and CLI. [Staged weight painting](MODEL_WEIGHT_PAINT.md)
-and [mirrored/spatial transfer](MODEL_WEIGHT_TRANSFER.md) are available; retargeting remains planned. Mesh, UV and surface
+and [mirrored/spatial transfer](MODEL_WEIGHT_TRANSFER.md) are available, as is [clip retargeting](MODEL_RIG.md#import-and-retarget-clips). Mesh, UV and surface
 edits, and frame edits, keep influences through [per-vertex edit provenance](MODEL_SKIN_PROVENANCE.md); see
 [Weights through other tools](#weights-through-other-tools). VibeStudio is pre-alpha and largely
 untested in real projects.

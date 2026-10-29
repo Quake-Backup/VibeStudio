@@ -285,7 +285,8 @@ This transfers local channel values within one rig. To move keys between
 models, copy them with `model pose --operation copy-out --keys` (or **Copy Pose**
 on a keyed joint) and paste them; see
 [the pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses).
-Retargeting, animation layers and blending remain separate planned workflows.
+To bring motion from another rig, [import and retarget](MODEL_RIG.md#import-and-retarget-clips)
+its clip. Animation layers and blending remain separate planned workflows.
 
 ### Automate range transfers
 
@@ -316,7 +317,8 @@ Export fixtures do not prove acceptance in the original engines.
 
 Key copy and paste between clips and models goes through the
 [pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses). Quaternion tracks, cyclic
-extrapolation, layers/blending, persistent constraints, long-chain IK and
-retargeting remain planned. Physical keyboard/screen-reader acceptance,
+extrapolation, layers/blending and persistent constraints remain planned
+([long-chain IK](MODEL_IK.md#solve-longer-chains) and
+[retargeting](MODEL_RIG.md#import-and-retarget-clips) are available). Physical keyboard/screen-reader acceptance,
 maximum-size performance, real projects and clean cross-platform release
 checks remain open. This workflow works offline and adds no dependency.

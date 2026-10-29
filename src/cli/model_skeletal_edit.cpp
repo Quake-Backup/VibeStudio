@@ -4,6 +4,8 @@
 #include "core/model_joint_tools.h"
 #include "core/model_skeletal_working_set.h"
 #include "core/model_pose_clipboard.h"
+#include "core/model_clip_import.h"
+#include "core/model_mesh.h"
 #include "core/model_vertex_origins.h"
 
 #include <QCoreApplication>
@@ -83,6 +85,135 @@ bool mirrorSettings(const ModelMesh &mesh, const QSet<QString> &seen, const QHas
 		}
 	}
 	return true;
+}
+ModelToolsCliResult runModelPoseImport(const QString &input, const QSet<QString> &seen, const QHash<QString, QString> &values)
+{
+	const bool dry = seen.contains("--dry-run");
+	const auto output = values.value("--output"), sourcePath = values.value("--source");
+	if (modelPathsReferToSameFile(input, output) || modelPathsReferToSameFile(sourcePath, output) ||
+		(seen.contains("--joint-map") && modelPathsReferToSameFile(values.value("--joint-map"), output)))
+		return fail(1, Text::tr("The output cannot replace an input, including aliases of the same file."));
+	ModelDocument document;
+	QString error;
+	if (!document.load(input, &error))
+		return fail(1, error);
+	// The source: another editable source, or any skeletal model or animation
+	// file read with its companions (md5anim, IQM, MDS, MDR, MDX, GLA).
+	ModelMesh source;
+	if (sourcePath.endsWith(".mesh.json", Qt::CaseInsensitive))
+	{
+		ModelDocument other;
+		if (!other.load(sourcePath, &error))
+			return fail(1, error);
+		source = other.mesh();
+	}
+	else
+	{
+		source = decodeModelMeshFile(QFileInfo(sourcePath).absoluteFilePath());
+		if (!source.error.isEmpty())
+			return fail(1, source.error);
+	}
+	if (source.skeleton.clips.isEmpty())
+		return fail(4, Text::tr("The source holds no skeletal clips."));
+	int sourceClip = 0;
+	if (seen.contains("--source-clip"))
+	{
+		const auto wanted = values.value("--source-clip");
+		sourceClip = -1;
+		for (int i = 0; i < source.skeleton.clips.size() && sourceClip < 0; ++i)
+			if (source.skeleton.clips[i].name == wanted)
+				sourceClip = i;
+		if (sourceClip < 0 && !integer(wanted, &sourceClip))
+			return fail(2, Text::tr("Option --source-clip takes a clip name or index of the source."));
+	}
+	ModelEdit edit;
+	edit.kind = ModelEditKind::ImportSkeletalClip;
+	edit.selection = document.selection();
+	auto &o = edit.animation.import;
+	o.name = values.value("--name");
+	o.retarget = seen.contains("--retarget");
+	o.fillFromBind = seen.contains("--fill-from-bind");
+	if (seen.contains("--fps"))
+	{
+		bool ok = false;
+		o.framesPerSecond = values.value("--fps").toDouble(&ok);
+		if (!ok || !std::isfinite(o.framesPerSecond) || o.framesPerSecond < .001 || o.framesPerSecond > 1000)
+			return fail(2, Text::tr("FPS must be from 0.001 to 1000."));
+	}
+	if (seen.contains("--root-scale") && values.value("--root-scale") != "auto")
+	{
+		bool ok = false;
+		o.rootScale = values.value("--root-scale").toDouble(&ok);
+		if (!ok || !std::isfinite(o.rootScale) || o.rootScale <= 0 || o.rootScale > 1000)
+			return fail(2, Text::tr("Root scale must be auto or a positive factor up to 1000."));
+	}
+	if (seen.contains("--copy-translation"))
+		o.copyTranslation = values.value("--copy-translation").split(',');
+	if (seen.contains("--joint-map"))
+	{
+		QByteArray bytes;
+		if (!readModelFile(values.value("--joint-map"), &bytes, &error) || !parseModelJointMapJson(bytes, &o.joints, &error))
+			return fail(2, error);
+	}
+	if (!modelClipImportFromSource(source, sourceClip, QFileInfo(sourcePath).fileName(), &o, &error))
+		return fail(4, error);
+	if (seen.contains("--loop"))
+		o.loops = values.value("--loop") == "yes";
+	if (seen.contains("--loop") && values.value("--loop") != "yes" && values.value("--loop") != "no")
+		return fail(2, Text::tr("Option --loop requires yes or no."));
+	ModelClipImportPlan plan;
+	if (!planModelClipImport(document.mesh(), o, &plan, &error) || !document.edit(edit, &error))
+		return fail(4, error);
+	const auto target = inspectModelWriteTarget(output);
+	if (!target.isValid())
+		return fail(1, target.error);
+	if (target.existed && !seen.contains("--overwrite"))
+		return fail(1, Text::tr("The output exists; use --overwrite to replace it."));
+	if (!document.save(output, seen.contains("--overwrite"), &error, {}, dry))
+		return fail(1, error);
+	ModelToolsCliResult result;
+	QJsonArray joints;
+	int mapped = 0;
+	for (const auto &joint : plan.joints)
+	{
+		mapped += !joint.source.isEmpty();
+		joints.append(QJsonObject{{"joint", joint.destination}, {"source", joint.source}, {"translation", joint.translation}});
+	}
+	const auto &clip = document.mesh().skeleton.clips.last();
+	const bool baked = document.mesh().skeleton.bakedClipForFrame.contains(int(document.mesh().skeleton.clips.size()) - 1);
+	result.lines << (dry ? Text::tr("Clip import validated; no files written.") : Text::tr("Saved the imported clip to %1.").arg(output))
+				 << Text::tr("Imported %1 as clip %2: %3 samples at %4 FPS, %5 of %6 joints mapped.")
+						.arg(source.skeleton.clips[sourceClip].name, clip.name)
+						.arg(clip.frames.size())
+						.arg(clip.framesPerSecond)
+						.arg(mapped)
+						.arg(plan.joints.size());
+	if (o.retarget)
+		result.lines << Text::tr("Retargeted; root motion scaled by %1.").arg(plan.rootScale);
+	if (!baked)
+		result.lines << Text::tr("The clip is outside the working set; add it with --operation working-set to preview it.");
+	if (!plan.unusedSourceJoints.isEmpty())
+		result.lines << Text::tr("Unused source joints: %1.").arg(plan.unusedSourceJoints.join(QStringLiteral(", ")));
+	result.payload = {{"source", QFileInfo(input).absoluteFilePath()},
+					  {"operation", "import"},
+					  {"animationSource", QFileInfo(sourcePath).absoluteFilePath()},
+					  {"sourceClip", source.skeleton.clips[sourceClip].name},
+					  {"clip", int(document.mesh().skeleton.clips.size()) - 1},
+					  {"name", clip.name},
+					  {"samples", int(clip.frames.size())},
+					  {"fps", clip.framesPerSecond},
+					  {"retarget", o.retarget},
+					  {"rootScale", plan.rootScale},
+					  {"inWorkingSet", baked},
+					  {"joints", joints},
+					  {"unusedSourceJoints", QJsonArray::fromStringList(plan.unusedSourceJoints)},
+					  {"outputPath", QFileInfo(output).absoluteFilePath()},
+					  {"written", !dry},
+					  {"dryRun", dry}};
+	result.payload.insert("outputSource", modelSourceSaveJson(document));
+	if (const auto packed = modelSourceSaveNotice(document); !packed.isEmpty())
+		result.lines << packed;
+	return result;
 }
 ModelToolsCliResult runModelPoseClipboard(const QString &input, const QString &operation, const QSet<QString> &seen,
 										  const QHash<QString, QString> &values)
@@ -226,11 +357,13 @@ ModelToolsCliResult runModelPoseClipboard(const QString &input, const QString &o
 } // namespace
 ModelToolsCliResult runModelPose(const QStringList &arguments)
 {
-	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--keys", "--replace-keys"};
+	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--keys", "--replace-keys", "--retarget",
+							  "--fill-from-bind"};
 	const QSet<QString> options{"--input",	"--output", "--operation", "--joint",	 "--name",			"--clip",		  "--frames",
 								"--fps",	"--loop",	"--first",	   "--last",	 "--source-clip",	"--source-frame", "--translate",
 								"--rotate", "--scale", "--matrix", "--space", "--children", "--clips", "--settings-file", "--locale", "--catalog-root",
-								"--clipboard", "--joints", "--channels", "--mirror", "--plane", "--mirror-joints", "--joint-map"};
+								"--clipboard", "--joints", "--channels", "--mirror", "--plane", "--mirror-joints", "--joint-map",
+								"--source", "--root-scale", "--copy-translation"};
 	QSet<QString> seen;
 	QHash<QString, QString> values;
 	QStringList positional;
@@ -272,14 +405,18 @@ ModelToolsCliResult runModelPose(const QStringList &arguments)
 	// Pose clipboard (core/model_pose_clipboard.h): copy-out writes a clipboard
 	// file, paste applies one, mirror copies a range and pastes it mirrored.
 	const bool copyOut = operation == "copy-out", paste = operation == "paste", mirrorRange = operation == "mirror";
-	if (!list && !kinds.contains(operation) && !copyOut && !paste && !mirrorRange)
+	// Clip import (core/model_clip_import.h): another file's clip, exact or retargeted.
+	const bool import = operation == "import";
+	if (!list && !kinds.contains(operation) && !copyOut && !paste && !mirrorRange && !import)
 		return fail(2, Text::tr("Choose list, bind, add, duplicate, rename, remove, resize, timing, transform, copy, interpolate, working-set, "
-								"copy-out, paste or mirror."));
+								"copy-out, paste, mirror or import."));
 	QSet<QString> required;
 	if (!list)
 		required.insert("--output");
-	if (!list && !add && !bind && !workingSet)
+	if (!list && !add && !bind && !workingSet && !import)
 		required.insert("--clip");
+	if (import)
+		required.insert("--source");
 	if (paste)
 		required.unite({"--clipboard", "--first"});
 	if (mirrorRange)
@@ -312,12 +449,15 @@ ModelToolsCliResult runModelPose(const QStringList &arguments)
 		allowed.unite({"--joint-map", "--mirror", "--plane", "--mirror-joints", "--replace-keys"});
 	if (mirrorRange)
 		allowed.unite({"--joints", "--mirror", "--plane", "--mirror-joints", "--replace-keys"});
+	if (import)
+		allowed.unite({"--source-clip", "--joint-map", "--retarget", "--root-scale", "--fill-from-bind", "--copy-translation", "--name", "--fps",
+					   "--loop"});
 	for (const auto &key : required)
 		if (!seen.contains(key))
 			return fail(2, Text::tr("Operation %1 requires %2.").arg(operation, key));
 	for (const auto &key : seen)
 		if ((!flags.contains(key) && !allowed.contains(key)) || (list && (key == "--dry-run" || key == "--overwrite")) ||
-			((key == "--keys" || key == "--replace-keys") && !allowed.contains(key)))
+			((key == "--keys" || key == "--replace-keys" || key == "--retarget" || key == "--fill-from-bind") && !allowed.contains(key)))
 			return fail(2, Text::tr("Option %1 does not apply to %2.").arg(key, operation));
 	if (list && seen.contains("--clip") != seen.contains("--first"))
 		return fail(2, Text::tr("Pose inspection requires --clip and --first together."));
@@ -325,6 +465,8 @@ ModelToolsCliResult runModelPose(const QStringList &arguments)
 		return fail(2, Text::tr("Pose edits require an output ending in .mesh.json."));
 	if (copyOut || paste || mirrorRange)
 		return runModelPoseClipboard(input, operation, seen, values);
+	if (import)
+		return runModelPoseImport(input, seen, values);
 	ModelEdit edit;
 	auto &o = edit.skeletal;
 	o.joint = values.value("--joint");

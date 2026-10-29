@@ -964,6 +964,7 @@ app_sources = files(
   'app/model_editor_budget.cpp',
   'app/model_editor_skeleton.cpp',
   'app/model_editor_pose.cpp',
+  'app/model_clip_import_dialog.cpp',
   'app/model_editor_joints.cpp',
   'app/model_rig_dialog.cpp',
   'app/model_skeletal_dialog.cpp',
@@ -5373,3 +5374,13 @@ model_ik_chain_ui_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
 )
 test('model-ik-chain-ui-smoke', model_ik_chain_ui_smoke_test, env: model_document_test_env, timeout: 240)
+model_clip_import_smoke_test = executable(
+  'model_clip_import_smoke_test', ['tests/model_clip_import_smoke_test.cpp', 'cli/model_skeletal_edit.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-clip-import-smoke', model_clip_import_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+model_clip_import_ui_smoke_test = executable(
+  'model_clip_import_ui_smoke_test', ['tests/model_clip_import_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-clip-import-ui-smoke', model_clip_import_ui_smoke_test, env: model_document_test_env, timeout: 240)

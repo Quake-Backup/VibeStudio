@@ -250,6 +250,18 @@ constraints remain planned. The
 [skeletal authoring reference](../MODEL_RIG.md#author-skeletal-animation) includes
 `model pose` automation and exact limits.
 
+### Import an animation from another file
+
+Choose **Skeleton** > **Import Animation…**, then **Choose File…** and pick an
+md5anim, IQM, MDS, MDR, MDX or GLA file, or another `.mesh.json`. Pick the
+**Clip**, give it a **Name** this model does not use yet, and choose the
+**Mode**: **Exact (same skeleton)** for animation made for this rig, or
+**Retarget (different proportions)** to move motion between characters. The
+table lists each joint of this model with the source joint that drives it;
+same names match automatically. The line under it says what the import will
+do, or why it cannot. **Apply** adds the clip as one undo step. See
+[clip import and retargeting](../MODEL_RIG.md#import-and-retarget-clips).
+
 ### Copy, paste and mirror poses
 
 Show a frame of a skeletal clip, select a joint (or none for the whole rig) and
@@ -1011,8 +1023,9 @@ for boundary behaviour and the `model curve-transfer` CLI.
   MD5, IQM or ASE export has been loaded in the original games yet.
 - MDC, MDS, MDM, MDR, Ghoul 2, Half-Life, Hexen II, Heretic II, LightWave and
   KVX models are read only; export them as MD3 or another written format.
-- Persistent constraints, animation layers, retargeting, IK drag handles and
-  joint modal pointer-following remain planned. Two-bone and chain IK, bone overlays,
+- Persistent constraints, animation layers, IK drag handles and
+  joint modal pointer-following remain planned. Two-bone and chain IK, clip
+  import and retargeting, bone overlays,
   shared viewport handles and numeric joint,
   weight and skeletal pose tools are available.
   Game animation scripts (Jedi Academy `animation.cfg`,

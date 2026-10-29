@@ -9,6 +9,7 @@
 #include "app/model_skeletal_dialog.h"
 #include "app/model_skeletal_working_set_dialog.h"
 #include "app/model_ik_dialog.h"
+#include "app/model_clip_import_dialog.h"
 #include "app/model_animation_curves_dialog.h"
 #include "app/model_curve_keys_dialog.h"
 #include "app/model_curve_transfer_dialog.h"
@@ -337,6 +338,27 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		if (!applyEdit(dialog.edit(), &error)) m_status->setText(error);
 	});
 	form->addRow(editPoses);
+	auto *importClip = new WrappingActionButton(Text::tr("Import Animation…"), 2);
+	importClip->setObjectName(QStringLiteral("importMeshAnimation"));
+	importClip->setAccessibleName(Text::tr("Import animation"));
+	importClip->setAccessibleDescription(Text::tr("Add a clip from an md5anim, IQM, MDS, MDR, MDX, GLA or another source to this rig, exactly or retargeted between rigs."));
+	importClip->setToolTip(importClip->accessibleDescription());
+	connect(importClip, &QPushButton::clicked, this, [this] {
+		if (m_working) return;
+		m_preview->finishEditTransform(false); m_preview->pause();
+		const auto revision = m_document.revisionFingerprint();
+		ModelClipImportDialog dialog(m_document.mesh(), this);
+		if (dialog.exec() != QDialog::Accepted) return;
+		if (revision != m_document.revisionFingerprint()) {
+			m_status->setText(Text::tr("The model changed while choosing the animation. Reopen Import Animation.")); return;
+		}
+		auto edit = dialog.edit();
+		edit.selection = m_document.selection();
+		QString error;
+		if (!applyEdit(edit, &error)) m_status->setText(error);
+		else m_status->setText(Text::tr("Imported clip %1.").arg(m_document.mesh().skeleton.clips.last().name));
+	});
+	form->addRow(importClip);
 	// The pose clipboard commands (model_editor_pose.cpp) on the shown sample.
 	for (const auto &item : {qMakePair(QStringLiteral("meshCopyPose"), Text::tr("Copy the shown pose of the selected joint and its children, or of every joint, to the clipboard.")),
 							 qMakePair(QStringLiteral("meshPastePose"), Text::tr("Paste the copied pose or keys at the shown clip sample, replacing keys there.")),

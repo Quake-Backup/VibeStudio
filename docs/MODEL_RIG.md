@@ -7,8 +7,9 @@ Bone overlays and viewport posing are available, as are [influence inspection,
 explicit binding and weight repair](MODEL_SKINNING.md) and [two-bone IK](MODEL_IK.md).
 [Animation curves](MODEL_ANIMATION_CURVES.md) and [mirrored and spatial weight
 transfer](MODEL_WEIGHT_TRANSFER.md) are available, as are a [pose and key
-clipboard with mirrored paste](#copy-paste-and-mirror-poses). Persistent constraints,
-retargeting remain planned. [Long-chain IK and joint limits](MODEL_IK.md#solve-longer-chains)
+clipboard with mirrored paste](#copy-paste-and-mirror-poses) and
+[clip import and retargeting](#import-and-retarget-clips). Persistent constraints
+remain planned. [Long-chain IK and joint limits](MODEL_IK.md#solve-longer-chains)
 are available.
 [Staged weight painting](MODEL_WEIGHT_PAINT.md) is available.
 These operations do not establish production readiness for the modeller.
@@ -123,6 +124,45 @@ name limits and report what they change: the md5mesh carries bind scale in its
 weight offsets, an md5anim refuses poses that scale a joint differently from its
 bind pose and needs a whole frame rate, and IQM reports influence reduction and
 quantisation. See [what each export keeps](MODEL_FORMATS.md#what-each-export-keeps-changes-or-leaves-out).
+
+## Import and retarget clips
+
+**Skeleton** > **Import Animation…** adds one clip of another file to this rig
+without reopening the model, so curves, edits and other clips stay. The source
+is any skeletal model or animation the studio reads (md5anim with its
+companions, IQM, MDS, MDR, MDX, GLA) or another `.mesh.json`; it is read in a
+cancellable worker under the decoders' usual size limits. Choose the clip, the
+new name and rate, the mode and, in the joint table, which source joint drives
+each joint of this rig. Joints with the same name match by default; a remapped
+joint takes precedence over a same-named one, which then goes unused. The
+review line says how many joints follow the source, the root motion scale and
+which source joints are unused. **Apply** adds the clip as one undoable edit
+(`ImportSkeletalClip`), recorded with its source file.
+
+| Mode | Behaviour |
+| --- | --- |
+| Exact | Each mapped joint takes the source's parent-local pose, recomposed through this rig's hierarchy. Every mapped joint's parent must correspond; otherwise retarget. A same-rig md5anim import reproduces its poses (to the md5anim's precision). |
+| Retarget | Each mapped joint turns by the source's rotation relative to its bind, `R = Rbind_this · Rbind_source⁻¹ · R_source`, in parent-local space. Translations come from this rig's bind, so its bone lengths stay, except the root (the first mapped joint with no mapped ancestor), whose movement from its bind is scaled by the ratio of the rigs' root heights or an explicit factor. Named joints can copy the source translation too. Hierarchies may differ. |
+
+A joint of this rig with no source joint refuses the import unless **Keep
+unmatched joints in their bind pose** is on. A clip that fits the editable
+frame budget joins the working set; a longer one stays in the skeleton for the
+skeletal tools and exports (add it with **Working Set…** to preview it). Events
+and curves of the source clip are not imported: the clip arrives as samples.
+
+```sh
+vibestudio --cli model pose models/imp.mesh.json --operation import --source models/monster/walk.md5anim --name walk --output models/imp-walk.mesh.json --json
+vibestudio --cli model pose models/marine.mesh.json --operation import --source models/zombie.mesh.json --source-clip walk1 --retarget --joint-map map.json --root-scale auto --name walk --output models/marine-walk.mesh.json
+```
+
+`--source` is required; `--source-clip` takes a name or index (default the
+first clip), `--name` defaults to the source clip's name, and `--fps`,
+`--loop yes|no`, `--joint-map map.json`, `--fill-from-bind`, `--retarget`,
+`--root-scale auto|N` and `--copy-translation a,b` match the dialog. The output
+may not replace the input, the source or the joint map, including aliases of
+the same file. JSON reports the new clip, its samples and rate, whether it is
+in the working set, each joint's source, the root scale and unused source
+joints.
 
 ## Copy, paste and mirror poses
 
