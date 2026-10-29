@@ -521,8 +521,14 @@ on the selected faces, or the whole surface when nothing is selected. A group
 of faces with a hole is left alone, and the edit is refused when nothing
 changes.
 
-Both check every pose for collapsed faces, keep skin influences, UVs and seams
-of the vertices that remain, select the new faces and are one undo step.
+Both fill each merged polygon of five or more corners the way the quad view
+will read as the most quads, so edge loops and rings keep running through it:
+for up to ten corners every possible fill is compared, scored by the same
+pairing the quad view uses (best-shaped pairs first, joined across their
+longest edge), with the largest smallest angle breaking ties; larger polygons
+compare strips of quads from every corner and ear clipping. Both check every
+pose for collapsed faces, keep skin influences, UVs and seams of the vertices
+that remain, select the new faces and are one undo step.
 
 ### Connect vertices and edges
 

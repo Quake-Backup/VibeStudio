@@ -5,14 +5,18 @@
 // (https://docs.blender.org/manual/en/latest/modeling/meshes/editing/mesh/delete.html)
 // and 3ds Max's Editable Poly Remove; no code from either is used. Regions
 // merge through indexed edges, so each merged polygon keeps one UV island,
-// and polygons are filled again by ear clipping (G. H. Meisters, "Polygons
-// Have Ears", 1975) in the reference pose and checked in every pose.
+// and polygons are filled again in the reference pose and checked in every
+// pose, preferring the fill the quad view reads as the most quads (see
+// fillPreferringQuads), so loops and rings run through the result; ear
+// clipping (G. H. Meisters, "Polygons Have Ears", 1975) is the fallback.
 #include "core/model_topology_tools.h"
 
 #include "core/model_mesh_tools_p.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <functional>
 #include <numbers>
 #include <numeric>
 
@@ -26,6 +30,208 @@ QVector<int> sortedSet(const QSet<int> &values)
 	auto list = values.values();
 	std::sort(list.begin(), list.end());
 	return QVector<int>(list.cbegin(), list.cend());
+}
+
+// Quad-preferring refill. A merged polygon of five or more corners can be
+// triangulated many ways, and the quad view (buildModelQuadTopology) pairs
+// triangles greedily, best-shaped pair first, across each pair's longest
+// diagonal. Every candidate fill is scored with that same pairing, run on the
+// polygon alone: the fill that the editor will read as the most quads wins,
+// then the one with the largest smallest angle. Candidates are every
+// triangulation for up to ten corners; beyond that, strips of quads cut off
+// from both ends at every starting corner, with either diagonal, and ear
+// clipping. A candidate whose triangles do not all face the polygon's way is
+// not a fill of it.
+using Fill = QVector<std::array<int, 3>>;
+
+struct FillScorer
+{
+	QVector<P2> points;
+	QVector<P3> spatial;
+	double epsilon = 0;
+	bool valid(const Fill &fill) const
+	{
+		for (const auto &t : fill)
+			if (orient(points[t[0]], points[t[1]], points[t[2]]) <= epsilon)
+				return false;
+		return true;
+	}
+	double quality(const Fill &fill) const
+	{
+		double worst = INFINITY;
+		for (const auto &t : fill)
+			worst = std::min(worst, minimumAngle(spatial[t[0]], spatial[t[1]], spatial[t[2]]));
+		return worst;
+	}
+	// The quad view's pairing (core/model_geometric_topology.cpp), on this fill.
+	int quads(const Fill &fill) const
+	{
+		const double maxAngle = 40 * std::numbers::pi / 180;
+		struct Candidate
+		{
+			double score;
+			int first, second;
+		};
+		QVector<Candidate> candidates;
+		for (int x = 0; x < fill.size(); ++x)
+			for (int y = x + 1; y < fill.size(); ++y)
+				for (int k = 0; k < 3; ++k)
+					for (int m = 0; m < 3; ++m)
+					{
+						const int a = fill[x][k], b = fill[x][(k + 1) % 3];
+						if (fill[y][m] != b || fill[y][(m + 1) % 3] != a)
+							continue;
+						const int c = fill[x][(k + 2) % 3], d = fill[y][(m + 2) % 3];
+						const P3 nf = cross(spatial[b] - spatial[a], spatial[c] - spatial[a]), ng = cross(spatial[a] - spatial[b], spatial[d] - spatial[b]);
+						const double normalAngle = std::acos(std::clamp(dot(unit(nf), unit(ng)), -1.0, 1.0));
+						if (normalAngle > maxAngle + 1e-12)
+							continue;
+						const std::array<P3, 4> q{spatial[a], spatial[d], spatial[b], spatial[c]};
+						const P3 axis = unit(unit(nf) + unit(ng));
+						double scale = 0;
+						for (int i = 0; i < 4; ++i)
+							scale = std::max(scale, length(q[(i + 1) % 4] - q[i]));
+						bool convex = scale > 0 && length(axis) > 0;
+						double shapeError = 0;
+						for (int i = 0; i < 4 && convex; ++i)
+						{
+							const P3 previous = q[(i + 3) % 4] - q[i], next = q[(i + 1) % 4] - q[i];
+							if (dot(cross(next, previous), axis) <= 1e-9 * scale * scale)
+								convex = false;
+							shapeError += std::abs(std::acos(std::clamp(dot(unit(previous), unit(next)), -1.0, 1.0)) - std::numbers::pi / 2);
+						}
+						if (!convex)
+							continue;
+						const bool longest = length(q[2] - q[0]) + 1e-9 * scale >=
+											 std::max({length(q[3] - q[0]), length(q[3] - q[2]), length(q[1] - q[0]), length(q[1] - q[2])});
+						candidates.append({normalAngle / maxAngle + shapeError / (2 * std::numbers::pi) + (longest ? 0 : 0.5), x, y});
+					}
+		std::sort(candidates.begin(), candidates.end(), [](const Candidate &l, const Candidate &r)
+				  { return l.score != r.score ? l.score < r.score : std::pair(l.first, l.second) < std::pair(r.first, r.second); });
+		QVector<bool> paired(fill.size(), false);
+		int count = 0;
+		for (const auto &candidate : std::as_const(candidates))
+		{
+			if (paired[candidate.first] || paired[candidate.second])
+				continue;
+			paired[candidate.first] = paired[candidate.second] = true;
+			++count;
+		}
+		return count;
+	}
+};
+
+// Every triangulation of the pending chains (each closed by the chord from its
+// first to its last corner), skipping triangles that face the wrong way.
+void everyFill(const FillScorer &scorer, QVector<QVector<int>> pending, Fill &current, const std::function<void(const Fill &)> &visit)
+{
+	if (pending.isEmpty())
+	{
+		visit(current);
+		return;
+	}
+	const auto chain = pending.takeLast();
+	if (chain.size() < 3)
+	{
+		everyFill(scorer, pending, current, visit);
+		return;
+	}
+	for (int k = 1; k + 1 < chain.size(); ++k)
+	{
+		const std::array<int, 3> t{chain.first(), chain[k], chain.last()};
+		if (orient(scorer.points[t[0]], scorer.points[t[1]], scorer.points[t[2]]) <= scorer.epsilon)
+			continue;
+		current.append(t);
+		auto next = pending;
+		next.append(chain.mid(0, k + 1));
+		next.append(chain.mid(k));
+		everyFill(scorer, next, current, visit);
+		current.removeLast();
+	}
+}
+
+bool fillPreferringQuads(const ModelSurface &surface, int frame, const QVector<int> &corners, P3 normal, QVector<ModelTriangle> *result)
+{
+	const int n = corners.size();
+	normal = unit(normal);
+	QVector<ModelTriangle> ears;
+	if (!triangulatePolygon(surface, frame, corners, normal, &ears))
+		return false;
+	if (n < 5 || n > 4096 || length(normal) <= 0)
+	{
+		*result = ears;
+		return true;
+	}
+	const P3 helper = std::abs(normal.x) < 0.9 ? P3{1, 0, 0} : P3{0, 1, 0};
+	const P3 u = unit(cross(helper, normal)), v = cross(normal, u);
+	FillScorer scorer;
+	scorer.points.resize(n);
+	scorer.spatial.resize(n);
+	double scale = 0;
+	QHash<int, int> local;
+	for (int i = 0; i < n; ++i)
+	{
+		scorer.spatial[i] = position(surface, frame, corners[i]);
+		scorer.points[i] = {dot(scorer.spatial[i], u), dot(scorer.spatial[i], v)};
+		scale = std::max({scale, std::abs(scorer.points[i].x), std::abs(scorer.points[i].y)});
+		local.insert(corners[i], i);
+	}
+	scorer.epsilon = std::max(1e-12, scale * scale * 1e-12);
+	Fill best;
+	for (const auto &t : std::as_const(ears))
+		best.append(std::array<int, 3>{local.value(t.a), local.value(t.b), local.value(t.c)});
+	int bestQuads = scorer.quads(best);
+	double bestQuality = scorer.quality(best);
+	const auto consider = [&](const Fill &fill)
+	{
+		if (int(fill.size()) != n - 2 || !scorer.valid(fill))
+			return;
+		const int quads = scorer.quads(fill);
+		const double quality = scorer.quality(fill);
+		if (quads > bestQuads || (quads == bestQuads && quality > bestQuality + 1e-12))
+		{
+			best = fill;
+			bestQuads = quads;
+			bestQuality = quality;
+		}
+	};
+	if (n <= 10)
+	{
+		QVector<int> all(n);
+		std::iota(all.begin(), all.end(), 0);
+		Fill current;
+		everyFill(scorer, {all}, current, consider);
+	}
+	else
+		for (int start = 0; start < n; ++start)
+			for (bool other : {false, true})
+			{
+				const auto at = [&](int k) { return (start + k) % n; };
+				Fill fill;
+				for (int i = 0, j = n - 1; j - i >= 2; ++i, --j)
+				{
+					if (j - i == 2)
+					{
+						fill.append(std::array<int, 3>{at(i), at(i + 1), at(j)});
+						break;
+					}
+					if (other)
+					{
+						fill.append(std::array<int, 3>{at(i), at(i + 1), at(j)});
+						fill.append(std::array<int, 3>{at(i + 1), at(j - 1), at(j)});
+					}
+					else
+					{
+						fill.append(std::array<int, 3>{at(i), at(i + 1), at(j - 1)});
+						fill.append(std::array<int, 3>{at(i), at(j - 1), at(j)});
+					}
+				}
+				consider(fill);
+			}
+	result->clear();
+	for (const auto &t : std::as_const(best))
+		result->append({corners[t[0]], corners[t[1]], corners[t[2]]});
+	return true;
 }
 
 struct Dissolve
@@ -193,7 +399,7 @@ bool dissolveRegions(ModelMesh *mesh, ModelSelection *selection, const Dissolve 
 		if (corners.size() < 3)
 			return fail(error, Text::tr("Dissolving would leave a face with fewer than three corners."));
 		QVector<ModelTriangle> fill;
-		if (!triangulatePolygon(surface, frame, corners, polygon.normal, &fill))
+		if (!fillPreferringQuads(surface, frame, corners, polygon.normal, &fill))
 			return fail(error, Text::tr("A merged polygon folds over itself in the reference pose and cannot be filled again."));
 		for (const auto &t : std::as_const(fill))
 			if (collapsedInAnyFrame(surface, t))

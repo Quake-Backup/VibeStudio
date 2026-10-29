@@ -1132,6 +1132,81 @@ void weldChecks()
 	}
 }
 
+// ---- Quad-preferring refill ----------------------------------------------------
+
+void quadRefillChecks()
+{
+	QString error;
+	// Dissolve the inner edges of two neighbouring cells, keeping the side
+	// midpoints: the six-cornered polygon is filled again as two squares.
+	auto mesh = gridMesh(3, 3);
+	const auto &s = mesh.surfaces[0];
+	QSet<ModelEdge> inner;
+	QHash<ModelEdge, int> uses;
+	for (int face : {0, 1, 2, 3})
+	{
+		const auto &t = s.triangles[face];
+		for (auto e : {modelEdge(t.a, t.b), modelEdge(t.b, t.c), modelEdge(t.c, t.a)})
+			++uses[e];
+	}
+	for (auto it = uses.cbegin(); it != uses.cend(); ++it)
+		if (it.value() == 2)
+			inner.insert(it.key());
+	auto edit = toolOf(ModelEditKind::DissolveEdges, {0, {}, {}, inner});
+	edit.tool.topology.dissolveVertices = false;
+	ModelSelection selection;
+	expect(inner.size() == 3 && applyModelEdit(&mesh, edit, &selection, &error) && selection.faces.size() == 4, "dissolve two cells into one polygon",
+		   error);
+	const auto &after = mesh.surfaces[0];
+	ModelQuadTopology quads;
+	int squares = 0;
+	if (expect(buildModelQuadTopology(after, 0, 40, &quads, &error), "pair the result into quads", error))
+		for (const auto &element : std::as_const(quads.elements))
+			if (element.quad() && selection.faces.contains(element.faces[0]) && selection.faces.contains(element.faces[1]))
+				++squares;
+	bool shared = false;
+	for (int face : std::as_const(selection.faces))
+	{
+		const auto &t = after.triangles[face];
+		for (const auto &[a, b] : {std::pair{t.a, t.b}, std::pair{t.b, t.c}, std::pair{t.c, t.a}})
+		{
+			const auto p = after.frames[0].positions[a], q = after.frames[0].positions[b];
+			shared |= near(p.x, 8) && near(q.x, 8) && std::abs(p.y - q.y) > 7;
+		}
+	}
+	expect(squares == 2 && shared, "the refill is two quads that share the side between the cells");
+	// A 2x2 block keeping its side midpoints: an eight-cornered square. Ear
+	// clipping leaves a diamond the quad view pairs only once; the refill
+	// the quad view reads as the most quads pairs two of its three.
+	auto block = gridMesh(3, 3);
+	QSet<int> blockFaces;
+	for (int cell : {0, 1, 3, 4})
+		blockFaces << 2 * cell << 2 * cell + 1;
+	QHash<ModelEdge, int> blockUses;
+	for (int face : std::as_const(blockFaces))
+	{
+		const auto &bt = block.surfaces[0].triangles[face];
+		for (auto e : {modelEdge(bt.a, bt.b), modelEdge(bt.b, bt.c), modelEdge(bt.c, bt.a)})
+			++blockUses[e];
+	}
+	QSet<ModelEdge> blockInner;
+	for (auto it = blockUses.cbegin(); it != blockUses.cend(); ++it)
+		if (it.value() == 2)
+			blockInner.insert(it.key());
+	auto blockEdit = toolOf(ModelEditKind::DissolveEdges, {0, {}, {}, blockInner});
+	blockEdit.tool.topology.dissolveVertices = false;
+	ModelSelection refilled;
+	expect(applyModelEdit(&block, blockEdit, &refilled, &error) && refilled.faces.size() == 6, "dissolve a 2x2 block into an eight-cornered polygon",
+		   error);
+	ModelQuadTopology blockQuads;
+	int paired = 0;
+	if (expect(buildModelQuadTopology(block.surfaces[0], 0, 40, &blockQuads, &error), "pair the block's refill", error))
+		for (const auto &element : std::as_const(blockQuads.elements))
+			if (element.quad() && refilled.faces.contains(element.faces[0]) && refilled.faces.contains(element.faces[1]))
+				++paired;
+	expect(paired == 2, "the block's refill pairs into two quads and one pair of triangles");
+}
+
 // ---- Intersection guard -------------------------------------------------------
 
 ModelEdit deepInset(bool refuse)
@@ -1371,6 +1446,7 @@ int main(int argc, char **argv)
 	wholeTransformChecks();
 	connectChecks();
 	dissolveChecks();
+	quadRefillChecks();
 	outsideChecks();
 	sharpChecks();
 	sharpPersistenceChecks();
