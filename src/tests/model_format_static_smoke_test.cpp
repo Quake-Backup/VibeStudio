@@ -2,6 +2,8 @@
 // ASCII Scene Export (decode and export) and Build/ZDoom KVX voxels. Every
 // fixture is built in code; no game data is used.
 #include "core/model_ase.h"
+#include "core/model_decode_issues.h"
+#include "core/model_document.h"
 #include "core/model_mesh.h"
 
 #include <QByteArray>
@@ -987,9 +989,58 @@ void runCancellationSmoke()
 
 } // namespace
 
+const ModelDecodeIssue* issueWithId(const QVector<ModelDecodeIssue>& issues, const char* id)
+{
+	for (const ModelDecodeIssue& issue : issues) {
+		if (issue.id == QLatin1String(id)) {
+			return &issue;
+		}
+	}
+	return nullptr;
+}
+
+// FMT-02: Doom 3 and q3map2 advisories no longer keep these files from being
+// edited; data the decoder leaves out needs acceptance.
+void runDecodeIssueSmoke()
+{
+	QString error;
+	ModelImportReport report;
+	ModelMesh ase;
+	const bool aseImported = importEditableModel(QStringLiteral("models/test/fixture.ase"), QByteArray(kAseFixture), &ase, ModelImportOptions{}, &report, &error);
+	if (!expect(aseImported, "an ASE with a multi-material imports for editing")) {
+		std::cerr << "  " << qPrintable(error) << "\n";
+	}
+	const ModelDecodeIssue* multi = issueWithId(ase.issues, "ase-multi-material");
+	expect(multi && multi->severity == ModelDecodeIssueSeverity::Advisory, "the multi-material note is an advisory kept with the source");
+	expect(ase.warnings.isEmpty() && !report.omissionsPending, "the editable ASE carries no warnings");
+	const ModelMesh spaced = decodeModelMesh(QStringLiteral("models/test/one.ase"), aseWithBitmap("D:\\art\\my crate.tga"));
+	expect(issueWithId(spaced.issues, "ase-bitmap-space") && modelDecodeBlockingIssues(spaced).isEmpty(), "a spaced bitmap path is an advisory");
+
+	const QByteArray layered = buildLwo(true, true);
+	const ModelMesh decoded = decodeModelMesh(QStringLiteral("models/test/room.lwo"), layered);
+	const ModelDecodeIssue* layer = issueWithId(decoded.issues, "lwo-extra-layers");
+	const ModelDecodeIssue* corner = issueWithId(decoded.issues, "lwo-missing-uvs");
+	expect(layer && layer->severity == ModelDecodeIssueSeverity::Omission, "an extra LightWave layer is an omission");
+	expect(corner && corner->severity == ModelDecodeIssueSeverity::Advisory, "a corner without a UV is an advisory");
+	ModelMesh lwo;
+	expect(!importEditableModel(QStringLiteral("models/test/room.lwo"), layered, &lwo, ModelImportOptions{}, &report, &error) && report.omissionsPending,
+		"the layered object needs its omission accepted");
+	ModelImportOptions accept;
+	accept.acceptOmissions = true;
+	if (expect(importEditableModel(QStringLiteral("models/test/room.lwo"), layered, &lwo, accept, &report, &error), "accepting the omission imports it")) {
+		const ModelDecodeIssue* recorded = issueWithId(lwo.issues, "lwo-extra-layers");
+		expect(recorded && recorded->accepted && issueWithId(lwo.issues, "lwo-missing-uvs"), "the source records the accepted omission and the advisories");
+	}
+	const ModelMesh voxels = decodeModelMesh(QStringLiteral("models/test/block.kvx"), buildKvx(true));
+	const ModelDecodeIssue* mip = issueWithId(voxels.issues, "kvx-mip-end");
+	expect(mip && mip->severity == ModelDecodeIssueSeverity::Advisory && modelDecodeBlockingIssues(voxels).isEmpty(),
+		"KVX engine notes are advisories");
+}
+
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
+	runDecodeIssueSmoke();
 	runLightWaveSmoke();
 	runLwobSmoke();
 	runAseSmoke();

@@ -446,7 +446,9 @@ struct ModelExportOptions
 };
 
 // Both parsers and mutations leave outputs untouched on failure. No incomplete
-// native decode (including warnings) is accepted as an editable source.
+// native decode is accepted as an editable source: decode damage and
+// omissions nobody accepted refuse it, advisories do not
+// (core/model_decode_issues.h).
 QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl &control = {});
 void updateEditableModelMetadata(ModelMesh *mesh);
 bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, ModelMesh *mesh, QString *error = nullptr,
@@ -463,6 +465,9 @@ struct ModelImportOptions
 	QStringList workingSet;
 	// Axis, scale, material library and loose-data handling for OBJ files.
 	ModelObjImportOptions obj{};
+	// Import even though the decoder left data out (core/model_decode_issues.h);
+	// the accepted omissions are recorded in the source. Damage still refuses.
+	bool acceptOmissions = false;
 };
 struct ModelImportReport
 {
@@ -479,6 +484,12 @@ struct ModelImportReport
 	// What the decoder converted, ignored or dropped (OBJ axis conversion,
 	// material libraries, loose lines and points), translated.
 	QStringList notes;
+	// Every decode issue of a native model, classified, filled once the model
+	// decoded, whether or not the import went ahead.
+	QVector<ModelDecodeIssue> issues;
+	// True when only omissions nobody accepted kept the model from importing:
+	// importing again with acceptOmissions would succeed as far as they go.
+	bool omissionsPending = false;
 };
 bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, ModelMesh *mesh, const ModelImportOptions &options,
 						 ModelImportReport *report, QString *error = nullptr, const IdTechPalette *palette = nullptr,

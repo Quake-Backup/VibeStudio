@@ -48,6 +48,7 @@ QString filterFor(const QString &format)
 		   : format == QStringLiteral("md5anim") ? Text::tr("Doom 3 MD5 animation (*.md5anim)")
 		   : format == QStringLiteral("iqm")	 ? Text::tr("Inter-Quake Model (*.iqm)")
 		   : format == QStringLiteral("ase")	 ? Text::tr("ASCII scene export (*.ase)")
+		   : format == QStringLiteral("mds")	 ? Text::tr("Return to Castle Wolfenstein model (*.mds)")
 												 : Text::tr("Wavefront OBJ (*.obj)");
 }
 // One report for a batch of md5anim files: the notes every clip shares once,

@@ -1810,6 +1810,9 @@ private:
 	QString packageWatchPath() const;
 	void comparePackageWithFile(bool staged = false);
 	void validateOpenPackage();
+	// Packages > Audit Models (core/model_audit.h): the open package, or a
+	// folder or installation chosen in the dialog.
+	void auditPackageModels();
 	void activateRecentProject(QListWidgetItem* item);
 	// Makes a folder the current project and refreshes everything that reads it.
 	void openProjectPath(const QString& path);

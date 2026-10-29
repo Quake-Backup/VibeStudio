@@ -58,6 +58,11 @@ class QThread;
 
 namespace vibestudio {
 
+struct ModelSkinPaintProjection;
+
+// A skin-paint stroke through the viewport (UVSKIN-09).
+enum class ModelViewportStrokePhase { Begin, Extend, Finish, Cancel };
+
 // One presented GPU frame: the colour image (premultiplied ARGB32) and the
 // triangle drawn at each of its pixels (-1 for none), in physical pixels.
 struct ModelRenderFrame {
@@ -128,6 +133,12 @@ public:
 	void setSkin(const QImage& skin);
 	// Overrides the shared fallback skin for individual surfaces.
 	void setSurfaceSkins(const QHash<int, QImage>& skins);
+	// The Game preview (core/model_game_preview.h): per-surface skins drawn in
+	// place of the material images, MDL skins included, with unlit glow
+	// layers added after shading, and point sampling when the engine samples
+	// that way. Empty skins end the preview.
+	void setGameSkins(const QHash<int, QImage>& skins, const QHash<int, QImage>& glows, bool nearest);
+	[[nodiscard]] bool gameSkinsActive() const { return !m_gameSkins.isEmpty(); }
 	void clearSkin();
 	[[nodiscard]] bool hasSkin() const;
 	[[nodiscard]] QSize skinSize() const;
@@ -546,6 +557,16 @@ public:
 	// the edit will do there. Handles still follow the full drag.
 	void setEditPreviewWeights(QVector<double> weights);
 	[[nodiscard]] double editPreviewWeight() const;
+	// Skin painting in this view (model_viewport_skin_paint.cpp): while a
+	// handler is set, a plain left-button drag goes to it as a stroke instead
+	// of selecting, Escape cancels the stroke, and the other buttons still
+	// turn and move the view. An empty function ends it.
+	void setSkinPaintHandler(std::function<bool(ModelViewportStrokePhase, const QPointF&)> handler);
+	[[nodiscard]] bool skinPaintEnabled() const { return bool(m_skinPaintHandler); }
+	[[nodiscard]] bool skinPainting() const { return m_skinPainting; }
+	// The camera as a paint projection in widget pixels (orthographic or
+	// perspective); false without a mesh.
+	bool skinPaintProjection(ModelSkinPaintProjection* projection);
 	// Shows what `source` shows (mesh, frame, shading, skins, selection and
 	// overlays) through this viewport's own camera: the modeller's mirror
 	// panes (model_viewport_mirror.cpp).
@@ -897,6 +918,9 @@ private:
 	bool m_skinHasAlpha = false;
 	QHash<int, QImage> m_surfaceSkins;
 	QSet<int> m_surfaceSkinAlpha;
+	QHash<int, QImage> m_gameSkins, m_gameGlows;
+	QSet<int> m_gameSkinAlpha;
+	bool m_gameNearest = false;
 
 	QVector<MeshTriangle> m_meshTriangles;
 	// Bumped whenever m_mesh is replaced, so cached GPU uploads never outlive it.
@@ -1082,6 +1106,8 @@ private:
 	// m_editTransform scaled by the displayed frame's preview weight, for
 	// previewed vertices (not tags, joints or collision boxes).
 	[[nodiscard]] ModelTransform previewEditTransform() const;
+	std::function<bool(ModelViewportStrokePhase, const QPointF&)> m_skinPaintHandler;
+	bool m_skinPainting = false;
 	LevelLinkedGroupDisplay m_linkedGroups;
 	LinkedGroupPaint m_linkedGroupPaint;
 };

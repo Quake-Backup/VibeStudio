@@ -1573,7 +1573,16 @@ bool ModelEditorTools::eventFilter(QObject *watched, QEvent *event)
 	case QEvent::MouseButtonRelease:
 	case QEvent::MouseButtonDblClick:
 	case QEvent::MouseMove:
+	{
+		// Paint Skin's Paint in View: a plain left drag is a paint stroke
+		// (model_viewport_skin_paint.cpp), not a selection.
+		const auto *mouse = static_cast<QMouseEvent *>(event);
+		if (!m_modal && m_viewport->skinPaintEnabled() &&
+			(m_viewport->skinPainting() ||
+			 (event->type() == QEvent::MouseButtonPress && mouse->button() == Qt::LeftButton && mouse->modifiers() == Qt::NoModifier)))
+			return false;
 		return handleMouse(static_cast<QMouseEvent *>(event));
+	}
 	case QEvent::Wheel:
 	{
 		const auto *wheel = static_cast<QWheelEvent *>(event);

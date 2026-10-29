@@ -241,6 +241,9 @@ class ModelEditorDialog final : public QDialog
 	// stageModelGameFiles) into the active package as one package step;
 	// Game Declarations offers Stage in Package when it is set.
 	std::function<bool(const QVector<ModelGameFile> &, bool, QString *)> stageGameFiles;
+	// Stages one painted skin image at its package path, replacing the entry
+	// there, as one package step (UV > Paint Skin… > Apply to Model).
+	std::function<bool(const QString &, const QByteArray &, QString *)> stageSkinImage;
 	std::function<void(const QString &)> showMaterial;
 	// Runs after the user picks another controls profile, so other views
 	// (the Models page preview) can follow it.
@@ -383,6 +386,21 @@ class ModelEditorDialog final : public QDialog
 	void configureUvAtlasTools(ModelEdit *edit) const;
 	void rememberUvTransferSource(const ModelMesh &before, const ModelEdit &edit);
 	QLabel *m_healthStatus = nullptr, *m_healthDetail = nullptr;
+	// The decode issues the source was imported with (Health page).
+	QLabel *m_importIssues = nullptr;
+	// Shading > Game (model_editor_game_preview.cpp, core/model_game_preview.h).
+	struct GameShaders;
+	QWidget *m_gameRow = nullptr;
+	QComboBox *m_gameRenderer = nullptr;
+	QSpinBox *m_gameTop = nullptr, *m_gameBottom = nullptr;
+	QCheckBox *m_gameFloodFill = nullptr;
+	QLabel *m_gameStatus = nullptr;
+	QTimer *m_gameTimer = nullptr;
+	QElapsedTimer m_gameClock;
+	std::shared_ptr<GameShaders> m_gameShaders;
+	void addGamePreviewControls(QBoxLayout *row);
+	void resolveGameShaders();
+	void refreshGamePreview();
 	QComboBox *m_healthFinding = nullptr;
 	QPushButton *m_healthInspect = nullptr, *m_healthSelect = nullptr, *m_healthRepair = nullptr;
 	ModelTopologyHealth m_health;

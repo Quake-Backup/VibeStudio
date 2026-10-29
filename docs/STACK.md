@@ -1032,9 +1032,11 @@ format fidelity:
   timing sampling. Selected skin images prepare on a worker; native elapsed-time
   transport shares immutable textures with model/UV raster work. Indexed image import reuses the
   existing decoder; no library, renderer or cloud dependency is added.
-- Assimp for adjacent model import/export (glTF, FBX and the like), while
+- Assimp for adjacent model import/export (FBX, Collada and the like), while
   keeping the native idTech 1-4 model loaders and BSP-related loaders
-  authoritative for game workflows.
+  authoritative for game workflows. glTF 2.0 is read by an in-house decoder
+  (`src/core/model_format_gltf.cpp`) on Qt's JSON parser, so it adds no
+  dependency.
 
 ## AI Automation Stack
 

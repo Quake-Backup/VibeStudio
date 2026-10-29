@@ -55,10 +55,10 @@ files of skeletal models.
 | Quake, Hexen II, Quake II, Heretic II | Quake MDL, Hexen II MDL, MD2, Heretic II FM | MDL, MD2 |
 | Half-Life and its mods | Half-Life MDL, with its texture and sequence files | Read only |
 | Quake III Arena, Team Arena, Elite Force, Darkplaces | MD3, MDR, IQM | MD3, IQM |
-| Return to Castle Wolfenstein, Enemy Territory | MDC, MDS, MDM with its MDX | Export as MD3, which both games load |
+| Return to Castle Wolfenstein, Enemy Territory | MDC, MDS, MDM with its MDX | MDS (Return to Castle Wolfenstein skeletons), or MD3, which both games load |
 | Jedi Outcast, Jedi Academy, Soldier of Fortune II | Ghoul 2 GLM with its GLA | Export as MD3 |
 | Doom 3, Quake 4, Prey, Quake Wars, The Dark Mod | MD5 mesh and animation, LightWave LWO, ASE | MD5 mesh, MD5 animation, ASE |
-| Any modeller | Wavefront OBJ | OBJ (one frame) |
+| Any modeller | Wavefront OBJ, glTF 2.0 (`.gltf`, `.glb`) | OBJ (one frame); glTF is read only |
 
 Some models need other files to be complete. VibeStudio looks for them in the
 same package, or in the folder of a loose file and the folders above it:
@@ -100,6 +100,7 @@ Run `vibestudio --cli model formats` for the same list with its notes. The
 | Half-Life MDL | `.mdl` | Bones, sequences, body parts, embedded textures, attachments |
 | KVX | `.kvx` | The first mip level, as coloured faces |
 | Wavefront OBJ | `.obj` | Polygons, UVs, normals, smoothing groups, `usemtl` paths |
+| glTF 2.0 | `.gltf`, `.glb` | Meshes, node transforms, skins, animations, morph targets, base colour image names |
 
 </details>
 
@@ -160,8 +161,9 @@ alongside:
   independently they work as usual, and the other frames keep their clips.
   Once every surface is unbound they work on every frame.
 - **Save** keeps the skeleton in the `.mesh.json` source.
-- Export as MD5 or IQM to keep the joints, or as MD3, MD2 or MDL to bake the
-  animation into frames.
+- Export as MD5 or IQM to keep the joints, as **RTCW Skeletal Model (MDS)…**
+  for Return to Castle Wolfenstein (its bones must keep their lengths, as the
+  game's do), or as MD3, MD2 or MDL to bake the animation into frames.
 
 The Mesh Editor holds at most 1,024 frames and 1,048,576 frame vertices
 (vertices times frames). A larger skeletal model opens with a **working set**:
@@ -299,6 +301,98 @@ asks you to choose the rest; see [pose clipboard](../MODEL_RIG.md#copy-paste-and
 3. Choose **Model > Save** (<kbd>Ctrl</kbd>+<kbd>S</kbd>) to keep an editable
    `.mesh.json` source. Game files are exported separately (see
    [Export and build game files](#export-and-build-game-files)).
+
+### Bring a model in from Blender
+
+Export **glTF 2.0** from Blender (either **glTF Binary (.glb)** or
+**glTF Separate (.gltf + .bin)**) and open it with **Model > Open / Import…**,
+or run `vibestudio --cli model import model.glb --output model.mesh.json`.
+
+- Armatures come in as a skeleton with every action that moves a bone as a
+  clip; shape key animation comes in as vertex frames.
+- Blender's numbers are kept: one Blender unit (one metre) becomes one game
+  unit, with Z up as in Blender.
+- Each material's **Base Color** image name becomes the surface's material.
+
+From there, export MD5 or IQM to keep the skeleton, or MDL, MD2 or MD3 for
+vertex animation. See [glTF 2.0 import](../MODEL_FORMATS.md#gltf-20-import)
+for what is read and left out.
+
+### See the model as the game draws it
+
+Choose **Shading** > **Game** to see each surface with what the engine puts on
+it, rather than only its image:
+
+- For a Quake model, choose the **Quake renderer**. **Modern port** and
+  **Software** keep fullbright colours (eyes, lights) bright in the dark;
+  **GLQuake** lights them like the rest. **Software** also shows the skin's
+  pixels sharp, as the software renderer draws them.
+- Set **Top** and **Bottom** to see team or player colours.
+- Leave **Flood fill** on to see the skin the way GLQuake loads it.
+- For a Quake III model, open its package first: shader stages such as
+  glowing additive layers, scrolling textures and cut-out alpha are drawn.
+
+The line beside the controls says what the preview cannot show, such as
+environment mapping. See [Game preview](../MODEL_GAME_PREVIEW.md).
+
+### Paint the skin on the model
+
+Choose **UV** > **Paint Skin…** to paint the active surface's skin where you
+see it on the model:
+
+1. Turn the model with **Yaw**, **Pitch** and **Zoom**.
+2. Choose **Colour**, **Radius**, **Opacity** and **Hardness**; **Mirror**
+   paints the other side of a symmetric model at the same time. **Stamp…**
+   paints an image instead of the colour, and the **Smudge** blend drags the
+   skin along the stroke.
+3. Drag across the model. Strokes cross UV seams without a gap and never
+   reach faces hidden behind others. Press <kbd>Esc</kbd> to cancel a stroke.
+   To paint in the Mesh Editor's own view instead, turn on **Paint in View**
+   and drag there; the other mouse buttons still move the view.
+4. Choose **Apply to Model** to put the skin back: a Quake model's skin is
+   replaced as one step you can undo, and an image from the open package is
+   staged at its own path. Or choose **Save Skin…** to keep a copy as a file.
+
+A Quake skin is painted with palette colours only. See
+[Painting Skins](../MODEL_SKIN_PAINT.md).
+
+### Bake occlusion and normal maps
+
+Choose **UV** > **Bake Maps…** to bake a map into the active surface's UV
+layout (or every surface's):
+
+- **Ambient occlusion** darkens creases and corners, a good start for a
+  hand-painted skin.
+- **Tangent-space normals (Doom 3)** make a bump map for Doom 3-era models.
+  Choose a detailed model under **High-poly** to project its detail onto this
+  one, as Doom 3's renderbump does.
+- **Lighting** bakes a simple light and shadow.
+
+Choose **Bake**; the map appears when it is done, and **Cancel Bake** stops a
+long one. **Save Map…** writes a PNG or TGA. **Apply to Model** shades a Quake
+skin with occlusion or lighting (by **Shade strength**, as one step you can
+undo), or, for a skin image from the open package, shades it or stages a
+normal map beside it. See [Baking Texture Maps](../MODEL_BAKE.md).
+
+### Review what the decoder reported
+
+Many game files open with notes from the decoder. What happens depends on how
+much each note matters:
+
+- **Advisory** notes describe how the game treats the file, such as a Doom 3
+  ASE multi-material or an MD3 end offset that does not match the file. The
+  model opens as usual.
+- **Omission** notes mean the decoder left something out, such as a second
+  LightWave layer or a declared animation for another skeleton. **Review
+  Import** lists every note by severity. Choose **Accept Omissions and Import**
+  to edit the model without that data, or **Cancel** (the default, so
+  <kbd>Enter</kbd> and <kbd>Esc</kbd> both keep your current model).
+- **Damage**, such as triangles that point outside the model, cannot be
+  accepted; the import is refused with the reasons.
+
+The saved source keeps the advisories and accepted omissions, and
+**Health** > **Import** lists them. The game file itself never changes. See
+[Decode issues](../MODEL_FORMATS.md#decode-issues) for the full list.
 
 ### Save and review output
 
@@ -1063,7 +1157,7 @@ the level does not move its collision; refresh it afterwards. See
 | From | How |
 | --- | --- |
 | Models page | **Export OBJ** writes the current frame of the selected model. |
-| Mesh Editor | In the **Model** menu, **Export MD3…**, **Export MD2…**, **Export MDL…** or **Export OBJ Frame…**; **Export Other Format** for **MD5 Mesh…**, **MD5 Animation of Clip…**, **MD5 Animations of All Clips…**, **Inter-Quake Model (IQM)…** and **ASE Frame…**; **Stage in Package** or **Stage and Place** for a package and map. |
+| Mesh Editor | In the **Model** menu, **Export MD3…**, **Export MD2…**, **Export MDL…** or **Export OBJ Frame…**; **Export Other Format** for **MD5 Mesh…**, **MD5 Animation of Clip…**, **MD5 Animations of All Clips…**, **Inter-Quake Model (IQM)…**, **RTCW Skeletal Model (MDS)…** and **ASE Frame…**; **Stage in Package** or **Stage and Place** for a package and map. |
 | Command line | `model build` turns a `.mesh.json` or `.model.json` source into any of those formats (`--target` names the game); `model lod` writes Quake III detail levels; `model targets` lists the delivery targets or checks a model against them. |
 
 Each export checks the limits of its delivery target first, and reports what

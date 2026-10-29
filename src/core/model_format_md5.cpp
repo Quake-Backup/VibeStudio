@@ -32,6 +32,7 @@
 // encode exactly that, so joint matrices here equal Doom 3's idJointMat.
 
 #include "core/model_document.h"
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 #include "core/model_md5.h"
 #include "core/model_animation_events.h"
@@ -1051,8 +1052,11 @@ public:
 	}
 
 	// False only when the decode must stop (cancelled); problems with one
-	// file become warnings. *added is the new clip's index, or -1.
-	bool load(const QString& path, const QString& clipName, int* added)
+	// file become warnings. *added is the new clip's index, or -1. An
+	// animation a declaration names belongs to this model, so leaving it out
+	// is an omission; one that merely sits in the same folder may belong to
+	// another model sharing it, so leaving that out is only an advisory.
+	bool load(const QString& path, const QString& clipName, int* added, bool declared = false)
 	{
 		*added = -1;
 		m_attempted.append(path);
@@ -1065,7 +1069,8 @@ public:
 			if (m_companions.exhausted()) {
 				stop(problem);
 			} else {
-				m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 could not be read: %2").arg(path, problem);
+				leftOut(path, declared, QStringLiteral("md5-anim-unreadable"),
+					QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 could not be read: %2").arg(path, problem));
 			}
 			return true;
 		}
@@ -1074,24 +1079,25 @@ public:
 			if (!modelWorkCheckpoint(m_control, ModelWorkPhase::Validating, 0, 0, &m_mesh->error)) {
 				return false;
 			}
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 could not be read: %2").arg(path, problem);
+			leftOut(path, declared, QStringLiteral("md5-anim-unreadable"),
+				QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 could not be read: %2").arg(path, problem));
 			return true;
 		}
 		ModelSkeleton& skeleton = m_mesh->skeleton;
 		if (!animMatchesSkeleton(anim, skeleton.joints)) {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 does not match the mesh's joints and was left out.")
-				.arg(path);
+			leftOut(path, declared, QStringLiteral("md5-anim-joints"),
+				QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 does not match the mesh's joints and was left out.").arg(path));
 			return true;
 		}
 		const qint64 poses = qint64(anim.frames.size()) * qint64(skeleton.joints.size());
 		if (poses > kMaxTotalJointPoses - m_poses) {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 was left out to keep the clips within %2 joint poses.")
-				.arg(path).arg(kMaxTotalJointPoses);
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("md5-anims-capped"), QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 was left out to keep the clips within %2 joint poses.")
+				.arg(path).arg(kMaxTotalJointPoses));
 			return true;
 		}
 		m_poses += poses;
 		for (const QString& warning : std::as_const(anim.warnings)) {
-			m_mesh->warnings << QStringLiteral("%1: %2").arg(path, warning);
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md5-anim-note"), QStringLiteral("%1: %2").arg(path, warning));
 		}
 		ModelSkeletalClip clip;
 		clip.name = uniqueClipName(skeleton, clipName);
@@ -1117,12 +1123,23 @@ public:
 		if (m_companions.exhausted()) {
 			stop(problem);
 		} else {
-			m_mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The declaration file %1 could not be read: %2").arg(path, problem);
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md5-def-unreadable"), QCoreApplication::translate("VibeStudioModelMesh", "The declaration file %1 could not be read: %2").arg(path, problem));
 		}
 		return false;
 	}
 
 	[[nodiscard]] bool stopped() const { return m_stopped || m_companions.exhausted(); }
+
+	// A declaration names `relative`, which was already tried as a folder
+	// sibling and left out: the advisory becomes an omission.
+	void declare(const QString& relative)
+	{
+		for (auto it = m_leftOut.cbegin(); it != m_leftOut.cend(); ++it) {
+			if (gamePathMatches(it.key(), relative)) {
+				reclassifyModelDecodeIssue(m_mesh, it.value(), ModelDecodeIssueSeverity::Omission);
+			}
+		}
+	}
 
 	[[nodiscard]] bool attempted(const QString& relative) const
 	{
@@ -1135,10 +1152,18 @@ public:
 	}
 
 private:
+	void leftOut(const QString& path, bool declared, const QString& id, const QString& text)
+	{
+		noteModelDecodeIssue(m_mesh, declared ? ModelDecodeIssueSeverity::Omission : ModelDecodeIssueSeverity::Advisory, id, text);
+		if (!declared) {
+			m_leftOut.insert(path, text);
+		}
+	}
+
 	void stop(const QString& problem)
 	{
 		if (!m_stopped) {
-			m_mesh->warnings << problem;
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("md5-companion-budget"), problem);
 			m_stopped = true;
 		}
 	}
@@ -1149,6 +1174,8 @@ private:
 	QStringList m_attempted;
 	qint64 m_poses = 0;
 	bool m_stopped = false;
+	// Folder siblings left out, by path, with their issue text.
+	QHash<QString, QString> m_leftOut;
 };
 
 struct LoadedDecl {
@@ -1304,7 +1331,7 @@ bool applyModelDeclarations(const QString& path, ModelMesh* mesh, const ModelWor
 		if (!warnedFiles.contains(loaded.file)) {
 			warnedFiles.insert(loaded.file);
 			for (const QString& warning : fileWarnings.at(loaded.file)) {
-				mesh->warnings << QStringLiteral("%1: %2").arg(file, warning);
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md5-def-syntax"), QStringLiteral("%1: %2").arg(file, warning));
 			}
 		}
 		const QVector<QPair<QString, QString>> anims = effectiveDeclAnims(decls, byName, index, 0);
@@ -1337,11 +1364,15 @@ bool applyModelDeclarations(const QString& path, ModelMesh* mesh, const ModelWor
 				}
 				continue;
 			}
-			if (loader.attempted(animPath) || loader.stopped()) {
+			if (loader.attempted(animPath)) {
+				loader.declare(animPath);
+				continue;
+			}
+			if (loader.stopped()) {
 				continue;
 			}
 			int added = -1;
-			if (!loader.load(animPath, alias, &added)) {
+			if (!loader.load(animPath, alias, &added, true)) {
 				return false;
 			}
 			if (added >= 0) {
@@ -1717,7 +1748,9 @@ void decodeMd5Anim(const QString& path, const QByteArray& bytes, ModelMesh* mesh
 		joint.flags = record.flags;
 		skeleton.joints.append(joint);
 	}
-	mesh->warnings << anim.warnings;
+	for (const QString& warning : std::as_const(anim.warnings)) {
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md5-anim-note"), warning);
+	}
 	if (!anim.commandLine.isEmpty()) {
 		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Command line: %1").arg(anim.commandLine);
 	}

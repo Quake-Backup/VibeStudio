@@ -41,7 +41,7 @@ Doom's own sprites and Quake's sprite files are handled by the
 | Heretic II FM | `.fm` | `header` chunk | No | Frames, skins, mesh nodes as surfaces | No |
 | Quake III MD3 | `.md3` | `IDP3`, version 15 | No | Surfaces, shaders, every frame and tag | Yes, with the [detail levels](MODEL_LOD.md) its delivery target loads (`name_1.md3`, `name_2.md3`) |
 | MDC | `.mdc` | `IDPC`, version 2 | No | Base and compressed frames, tags, shaders | No (export MD3, which both games load) |
-| MDS | `.mds` | `MDSW`, version 4 | Yes | Bones, weights, frames, tags | No |
+| MDS | `.mds` | `MDSW`, version 4 | Yes | Bones, weights, frames, tags | Yes, from a skeleton whose bones keep their lengths ([MDS export](#write-rtcw-mds)) |
 | MDM | `.mdm` | `MDMW`, version 3 | Yes | Surfaces and weights, skinned against the MDX | No |
 | MDX | `.mdx` | `MDXW`, version 2 | Yes, animation only | Bones and frames | No |
 | MDR | `.mdr` | `RDM5`, version 2 | Yes | Per-frame bone matrices, the first level of detail, tags | No |
@@ -55,6 +55,7 @@ Doom's own sprites and Quake's sprite files are handled by the
 | Half-Life MDL | `.mdl` | `IDST` or `IDSQ`, version 10 | Yes | Bones, sequences, body parts, embedded textures, attachments | No |
 | KVX voxels | `.kvx` | Extension, then layout checks | No | The first mip level, meshed into coloured faces | No |
 | Wavefront OBJ | `.obj` | Extension | No | Polygons, UVs, normals, smoothing groups, `usemtl` paths | Yes (one frame) |
+| glTF 2.0 | `.gltf`, `.glb` | `glTF` magic, version 2, or the extension with `asset.version` 2.x | Yes | Meshes, node transforms, skins, animations, morph targets, base colour image names | No |
 
 Detection reads the file's magic first, then a leading text token for the text
 formats, and falls back to the extension. Three formats share `.mdl`; the magic
@@ -74,7 +75,8 @@ private interface in `src/core/model_formats_p.h`, and is reached only through
   each format's convention on the way in and back again on the way out;
 - reads companion files only through the shared budget (below);
 - reports what it left out as warnings or detail lines, translated in the
-  `VibeStudioModelMesh` context;
+  `VibeStudioModelMesh` context, and gives each warning a severity (see
+  [Decode issues](#decode-issues));
 - names, in its header comment, the public source each layout and convention
   comes from. The [credits](CREDITS.md#native-model-formats-and-modeller-profiles-2026-10-08)
   list them with licences and revisions.
@@ -91,6 +93,133 @@ Conversions worth knowing about:
 | KVX | Voxels are placed the way GZDoom's VOXELDEF places them, including its extra quarter turn, one voxel per map unit. The vertical pixel stretch GZDoom applies at draw time is not part of the model and is not applied. |
 | Half-Life | Bone angles compose as yaw (Z) × pitch (Y) × roll (X); texture coordinates have no half-texel offset. |
 
+## Decode Issues
+
+A warning tells you something about the file, but not every warning means the
+model is damaged. Every decoder warning has one of three severities
+(`src/core/model_decode_issues.h`):
+
+| Severity | Meaning | Editable import |
+| --- | --- | --- |
+| Advisory | How a game treats the file, with no model data lost: an ASE multi-material Doom 3 draws with one material, a bitmap path with a space, an MD3 end offset that does not match the file, MD3 and MDC surface flags, repeated bone names given a suffix, an `.md5anim` beside the mesh that belongs to another skeleton, KVX palette notes. | Allowed. |
+| Omission | Data the decoder left out on purpose: a second LightWave layer, an animation a `.def` declares that cannot be read or does not fit the skeleton, frames over the memory cap, Half-Life textures or sequence groups that could not be read, degenerate LightWave polygons. | Needs acceptance. |
+| Damage | Lost or invalid data: triangles with indices outside the model, a surface chain that stops early, invalid normal indices, an MD2 GL command stream that does not match its triangles. | Refused. |
+
+A warning that no decoder has classified counts as damage, so a new message is
+safe until someone gives it a severity.
+
+`model inspect --json` lists `issues` (id, severity, surface, text),
+`issueCounts` and a `decodeVerdict` of `clean`, `advisories`,
+`accept-omissions` or `damaged`. `model import` imports advisories as they are,
+refuses omissions until you pass `--accept-omissions`, and always refuses
+damage; its JSON lists the issues either way. In the Mesh Editor, opening a
+model whose only problems are omissions shows **Review Import**, which lists
+every issue by severity; **Accept Omissions and Import** goes ahead and
+**Cancel** (the default) keeps the current document.
+
+An editable source records the advisories and accepted omissions it was
+imported with in an `importIssues` block (`.mesh.json` version 18) and carries
+no warnings. The Mesh Editor lists them under **Health** > **Import**. A
+source cannot record damage, and an omission it records must be accepted.
+
+The Mesh Editor's **Open / Import…** dialog offers every suffix of every format
+`model formats` lists with geometry; animation-only files (`.md5anim`, `.mdx`,
+`.gla`) open through their mesh.
+
+## Write RTCW MDS
+
+`exportEditableModel(mesh, "mds")` (and **Export** in the Mesh Editor, and
+`model build --format mds`) writes a Return to Castle Wolfenstein skeletal
+model, MDSW version 4, from any skeleton (`src/core/model_format_mds_writer.cpp`,
+`core/model_mds.h`). MDS bones rotate freely every frame, but a child sits at
+a fixed distance from its parent along stored offset angles, and only the root
+moves, so the writer:
+
+- refuses a bone whose distance from its parent changes between frames (beyond
+  0.01 units), a bone that scales or shears, roots that do not share one
+  position, more than 128 bones, and vertices with more than eight weights;
+- writes the clips one after another as the file's frames (the game's
+  animation scripts name the ranges), or the bind pose alone;
+- rounds every angle to 1/65536 of a turn, rebuilding each child's position
+  from its rounded parent so rounding does not pile up down the hierarchy;
+- writes the full level of detail with an identity collapse map, each
+  vertex's normal in its first bone's space, and tags on their bones (a tag's
+  own offset is left out and reported);
+- stores triangles clockwise, as the game culls them.
+
+The writer's test reads the bytes back with VibeStudio's decoder and with an
+independent reader written from `mdsHeader_t` and `R_CalcBone`, and both put
+every vertex within 0.02 units of the source clip. ET MDM+MDX and Ghoul 2
+GLM+GLA writers are still to come.
+
+## Audit Models In Bulk
+
+`model audit PATH` (`src/core/model_audit.*`) measures the decoders, the
+editable gate and the writers on real files. `PATH` is a package (PAK, PK3, PK4,
+WAD, ZIP and the other formats the package browser opens), a folder of loose
+files, or a game installation, whose loose files and every package inside are
+audited. It opens everything read-only and keeps written-back bytes in memory.
+
+For every model entry it records the format, whether it decodes and how long
+it takes (`--timings`), the decode issues by severity and their verdict, the
+counts, and whether `importEditableModel` would accept it (with omissions
+accepted when only they stand in the way). `--round-trip` writes each editable
+MDL, MD2, MD3, MD5 mesh, IQM, ASE or OBJ back in its own format, decodes the
+bytes and compares every triangle corner in every frame: the result is within
+tolerance when the counts match and no corner moved more than the format's
+quantisation (one step of the 8-bit grid for MDL and MD2, 1/64 unit for MD3, a
+thousandth of the model's size for the text and float formats). `--targets`
+(**Check every delivery target** in the dialog) checks each editable model
+against every [delivery target](MODEL_TARGETS.md) of its own format with the
+writer's own checks, and lists each target's verdict and first broken limit;
+the per-format summary counts how many are ready for each.
+
+The JSON (`vibestudio.model-audit` version 1) sorts entries by container and
+path and formats by id, and leaves timings out unless asked, so two runs over
+the same files compare byte for byte. Use `--strict` in a regression run.
+
+## glTF 2.0 Import
+
+`src/core/model_format_gltf.cpp` reads glTF 2.0 from Blender or any other
+modeller, following the [Khronos specification](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html)
+(format facts only; no glTF library is used or linked):
+
+- **Containers.** A `.gltf` with its buffers embedded as base64 `data:` URIs
+  or in `.bin` files beside it (read through the companion budget; a buffer
+  outside the model's folder is refused), or a binary `.glb` with its `BIN`
+  chunk. Required extensions other than `KHR_mesh_quantization` are refused
+  with their name.
+- **Accessors.** Every component type, normalised integers, byte strides and
+  sparse storage, each range-checked against its buffer view.
+- **Geometry.** Triangle lists, strips and fans become triangles; point and
+  line primitives are left out as an omission. `POSITION`, `NORMAL` and
+  `TEXCOORD_0` are read; missing normals are rebuilt from the faces. Each
+  primitive of each drawn node becomes a surface, named after the node (or
+  mesh), with its base colour image (else its material name) as the material.
+- **Axes and units.** glTF is Y-up with metres. Positions become Z-up as
+  Blender's importer maps them, game (x, y, z) = glTF (x, -z, y), one metre to
+  one game unit, so a model authored in Blender keeps its numbers. Faces stay
+  counter-clockwise; a mirrored node reverses them.
+- **Skins.** The joints of every skin a drawn node uses form one skeleton,
+  parents first; the inverse bind matrices give the bind pose; `JOINTS_0/1`
+  and `WEIGHTS_0/1` give up to eight weights per vertex, normalised to one.
+  A static mesh under a joint follows that joint rigidly.
+- **Animations.** `LINEAR`, `STEP` and `CUBICSPLINE` samplers are sampled at
+  24, 25, 30 or 60 frames per second (the first rate every key time lands on,
+  else 30). With a skin, each animation that moves a joint becomes a skeletal
+  clip and is baked like any skeletal model; animations that move only other
+  nodes or morph weights are left out as omissions. Without a skin, node
+  animation and morph target weights become vertex frames: the rest pose,
+  then each animation as a named clip, within 1,024 frames.
+
+From an imported glTF the native writers take over: MD5 and IQM keep the
+skeleton and clips, and MDL, MD2 and MD3 take the baked or morph frames.
+`model import x.glb --output x.mesh.json` and the Mesh Editor's
+**Open / Import…** both read it. Not read: cameras, lights, texture
+transforms, vertex colours, second UV sets, embedded image pixels (their
+names are kept, with an advisory), and Draco or meshopt compression. There is
+no glTF writer.
+
 ## Companion Files
 
 Some formats keep part of a model in other files. The decoder reads them from
@@ -101,6 +230,7 @@ the same package, or from the folders around a loose file:
 | MDM | The MDX it names, for bones and frames. |
 | Ghoul 2 GLM | The GLA it names, for the skeleton and frames. |
 | MD5 mesh | Every `.md5anim` beside it, and the animations named by any Doom 3 `.def` `model` declaration that uses the mesh, under their declared names. |
+| glTF | The `.bin` buffers its `buffers` name, relative to the `.gltf`. |
 | Half-Life MDL | `<name>T.mdl` for textures and `<name>01.mdl` onwards for sequence groups. |
 
 Inside a package, companions are looked up case-insensitively in the same
@@ -318,12 +448,22 @@ current frame.
 
 ## Known Gaps
 
-- No decoder has been run against real game files in bulk; malformed but
-  loadable files may still be refused, and some valid variants may not be
-  recognised.
-- Writers exist for MD5, IQM and ASE only among the new formats. MDC, MDS,
-  MDM/MDX, MDR, Ghoul 2, Half-Life MDL, Hexen II MDL, FM, LWO and KVX are read
-  only.
+- No decoder has been run against real game files in bulk yet; `model audit`
+  is the tool for it, and its results on real installations are still to be
+  recorded. Malformed but loadable files may still be refused, and some valid
+  variants may not be recognised.
+- The glTF importer has been checked against fixtures built from the
+  specification and VibeStudio's own writers, not yet against files exported
+  by Blender or other tools; it has no unit scale option yet (one metre is
+  one game unit), and skinned meshes lose their morph animation.
+- Decode issue severities were assigned by reading each decoder, not from
+  real files; an advisory that hides real loss, or an omission that should be
+  an advisory, needs a report. Import repair allows advisories but cannot
+  accept omissions yet.
+- Writers exist for MD5, IQM, ASE and MDS only among the new formats. MDC,
+  MDM/MDX, MDR, Ghoul 2, Half-Life MDL, Hexen II MDL, FM, LWO, KVX and glTF are
+  read only. The MDS writer is checked by VibeStudio's decoder and an
+  independent reader in its test, not yet in Return to Castle Wolfenstein.
 - The MD5, IQM and ASE writers are checked through VibeStudio's own decoders,
   recorded output and an independent oracle
   (`src/tests/model_skeletal_writer_oracle.py`, see

@@ -9,8 +9,10 @@
 #include "app/studio_sidebar.h"
 #include "core/model_surfaces.h"
 
+#include "app/model_import_review.h"
 #include "app/model_recovery_dialog.h"
 #include "app/model_recovery_writer.h"
+#include "core/model_decode_issues.h"
 #include "app/model_skeletal_working_set_dialog.h"
 #include "app/model_uv_view.h"
 #include "app/model_viewport.h"
@@ -510,6 +512,10 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 				 QStringLiteral("iqm"),
 				 QCoreApplication::translate("VibeStudioModelEditor",
 											 "Joints, weights and every skeletal clip, for ioquake3, Darkplaces and FTEQW."));
+	formatAction(QCoreApplication::translate("VibeStudioModelEditor", "RTCW Skeletal Model (MDS)…"), QStringLiteral("exportMeshMdsFormat"),
+				 QStringLiteral("mds"),
+				 QCoreApplication::translate("VibeStudioModelEditor",
+											 "Return to Castle Wolfenstein: bones, weights, tags and every clip as consecutive frames; bones must keep their lengths."));
 	formatAction(QCoreApplication::translate("VibeStudioModelEditor", "ASE Frame…"), QStringLiteral("exportMeshAse"),
 				 QStringLiteral("ase"),
 				 QCoreApplication::translate("VibeStudioModelEditor",
@@ -602,10 +608,13 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	m_renderMode->addItems({QCoreApplication::translate("VibeStudioModelEditor", "Solid"),
 							QCoreApplication::translate("VibeStudioModelEditor", "Wireframe"),
 							QCoreApplication::translate("VibeStudioModelEditor", "UV Checker"),
-							QCoreApplication::translate("VibeStudioModelEditor", "Material")});
+							QCoreApplication::translate("VibeStudioModelEditor", "Material"),
+							QCoreApplication::translate("VibeStudioModelEditor", "Game")});
 	m_renderMode->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
 														 "Material mode loads each surface's image from the staged package. "
-														 "Missing images use the checker; shader effects are not rendered."));
+														 "Missing images use the checker. Game draws what the engine would: Quake "
+														 "skins with fullbrights, player colours and the renderer's sampling, and "
+														 "Quake III shader stages."));
 	m_viewPreset = new QComboBox;
 	m_viewPreset->setObjectName(QStringLiteral("meshViewPreset"));
 	m_viewPreset->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "View preset"));
@@ -1150,6 +1159,7 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	m_materialCancel->hide();
 	m_materialRow->hide();
 	statusRow->addWidget(m_materialRow, 2);
+	addGamePreviewControls(statusRow);
 	addExportReportButton(statusRow);
 	layout->addLayout(statusRow);
 	m_materialLoader = new ModelMaterialWorker(this);
@@ -2434,7 +2444,8 @@ void ModelEditorDialog::refreshMaterial()
 	{
 		return;
 	}
-	const bool materialMode = m_renderMode->currentIndex() == 3;
+	// Game draws on top of the material images, which it falls back to.
+	const bool materialMode = m_renderMode->currentIndex() == 3 || m_renderMode->currentIndex() == 4;
 	m_materialRow->setVisible(materialMode);
 	if (materialMode)
 	{
@@ -2448,9 +2459,10 @@ void ModelEditorDialog::refreshMaterial()
 }
 void ModelEditorDialog::applyMaterialImages()
 {
-	m_preview->setMdlSkinVisible(m_renderMode->currentIndex() == 3);
-	auto images = m_renderMode->currentIndex() == 3 ? m_surfaceImages : QHash<int, QImage>();
-	if (m_renderMode->currentIndex() == 3 && !m_mdlPreview.isNull())
+	const bool materialMode = m_renderMode->currentIndex() == 3 || m_renderMode->currentIndex() == 4;
+	m_preview->setMdlSkinVisible(materialMode);
+	auto images = materialMode ? m_surfaceImages : QHash<int, QImage>();
+	if (materialMode && !m_mdlPreview.isNull())
 	{
 		for (int s = 0; s < m_document.mesh().surfaces.size(); ++s)
 		{
@@ -2471,6 +2483,7 @@ void ModelEditorDialog::applyMaterialImages()
 	m_preview->setRenderMode(m_renderMode->currentIndex() == 0	 ? ModelViewportRenderMode::FlatShaded
 							 : m_renderMode->currentIndex() == 1 ? ModelViewportRenderMode::Wireframe
 																 : ModelViewportRenderMode::Textured);
+	refreshGamePreview();
 	refreshUv();
 }
 void ModelEditorDialog::showMaterialDetails()
@@ -2655,10 +2668,10 @@ bool ModelEditorDialog::save(bool saveAs)
 }
 void ModelEditorDialog::open()
 {
+	// Every format the decoder reads geometry from (model formats lists them).
 	const auto path = QFileDialog::getOpenFileName(
 		this, QCoreApplication::translate("VibeStudioModelEditor", "Open or Import Model"), {},
-		QCoreApplication::translate("VibeStudioModelEditor", "Editable meshes and models (*.mesh.json *.model.json *.obj *.mdl *.md2 *.md3 *.mdc "
-															 "*.md5mesh *.iqm *.mdr *.mds *.mdm *.glm);;All files (*)"));
+		QCoreApplication::translate("VibeStudioModelEditor", "Editable meshes and models (%1);;All files (*)").arg(modelEditorOpenPatterns()));
 	if (path.isEmpty())
 	{
 		return;
@@ -2682,28 +2695,47 @@ bool ModelEditorDialog::openSource(const QString &path, const ModelObjImportOpti
 	if (!error) { error = &localError; }
 	error->clear();
 	if (m_working || path.isEmpty() || !maybeSave()) { return false; }
-	// The worker fills the receipt of a skeletal import re-baked to fit.
+	// The worker fills the receipt of a skeletal import re-baked to fit, and
+	// the decode issues; acceptOmissions is set after the import review.
 	const auto imported = std::make_shared<ModelImportReport>();
-	if (!performWork(
-			QCoreApplication::translate("VibeStudioModelEditor", "Open or Import Model"),
-			[path, obj, imported](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
-			{
-				if (path.endsWith(QStringLiteral(".mesh.json"), Qt::CaseInsensitive))
-				{
-					return candidate.load(path, failure, control);
-				}
-				QByteArray bytes;
-				ModelMesh mesh;
-				ModelImportOptions options;
-				options.obj = obj;
-				return readModelFile(path, &bytes, failure, control) &&
-					   importEditableModel(path, bytes, &mesh, options, imported.get(), failure, nullptr, control) &&
-					   candidate.setMesh(mesh, failure, control);
-			},
-			error))
+	const auto acceptOmissions = std::make_shared<bool>(false);
+	const auto job = [path, obj, imported, acceptOmissions](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
 	{
-		m_status->setText(*error);
-		return false;
+		if (path.endsWith(QStringLiteral(".mesh.json"), Qt::CaseInsensitive))
+		{
+			return candidate.load(path, failure, control);
+		}
+		QByteArray bytes;
+		ModelMesh mesh;
+		ModelImportOptions options;
+		options.obj = obj;
+		options.acceptOmissions = *acceptOmissions;
+		return readModelFile(path, &bytes, failure, control) &&
+			   importEditableModel(path, bytes, &mesh, options, imported.get(), failure, nullptr, control) &&
+			   candidate.setMesh(mesh, failure, control);
+	};
+	const auto title = QCoreApplication::translate("VibeStudioModelEditor", "Open or Import Model");
+	if (!performWork(title, job, error))
+	{
+		// Only omissions stood in the way: show every issue and let the user
+		// accept them, then import again (core/model_decode_issues.h).
+		if (!imported->omissionsPending)
+		{
+			m_status->setText(*error);
+			return false;
+		}
+		if (!reviewModelImportIssues(this, path, imported->issues))
+		{
+			*error = QCoreApplication::translate("VibeStudioModelEditor", "Import cancelled; the omissions were not accepted.");
+			announceStatus(m_status, *error, LiveStatus::Result);
+			return false;
+		}
+		*acceptOmissions = true;
+		if (!performWork(title, job, error))
+		{
+			m_status->setText(*error);
+			return false;
+		}
 	}
 	retireRecovery();
 	clearExportReport();
@@ -2743,6 +2775,12 @@ void ModelEditorDialog::reportOpenedModel(const ModelImportReport &imported)
 														"The source would be %1, over the 64 MiB limit, so it cannot be saved or "
 														"recovered yet. Delete clips, frames, curve keys or embedded skins until it fits.")
 								.arg(modelMebibytesText(m_document.sourceBytes(), QLocale()));
+		text = text.isEmpty() ? notice : text + QLatin1Char(' ') + notice;
+	}
+	// What the decode reported, by severity; the Health page lists each one.
+	if (const auto issues = modelDecodeIssueSummary(m_document.mesh().issues); !issues.isEmpty())
+	{
+		const auto notice = QCoreApplication::translate("VibeStudioModelEditor", "Imported with %1. Health lists each one.").arg(issues);
 		text = text.isEmpty() ? notice : text + QLatin1Char(' ') + notice;
 	}
 	if (!text.isEmpty())

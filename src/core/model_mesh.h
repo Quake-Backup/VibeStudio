@@ -63,6 +63,7 @@ enum class ModelMeshFormat {
 	Ase,            // *3DSMAX_ASCIIEXPORT: ASCII scene export (Doom 3, q3map2 misc_model)
 	HereticFm,      // Heretic II flexible model (chunked "header" + "frames")
 	Kvx,            // Build-engine voxel model, used by ZDoom-family Doom ports
+	Gltf,           // glTF 2.0 (.gltf JSON or binary .glb): interchange with skins, animation and morph targets
 };
 
 struct ModelVec3 {
@@ -529,6 +530,33 @@ struct ModelSkinVariant {
 	bool operator==(const ModelSkinVariant&) const = default;
 };
 
+// How much a decode problem matters to editing (core/model_decode_issues.h).
+// Advisory: engine behaviour worth knowing that loses no model data.
+// Omission: data the decoder left out on purpose (an extra layer, a clip
+// that does not fit, a texture file it could not read); editing needs the
+// user's acceptance. Damage: lost or invalid data (dropped triangles, a
+// truncated chain); never editable. A warning no decoder classified counts
+// as damage.
+enum class ModelDecodeIssueSeverity {
+	Advisory,
+	Omission,
+	Damage,
+};
+
+struct ModelDecodeIssue {
+	// Stable kebab-case identifier for JSON and tests, such as
+	// "md3-end-offset"; "unclassified" for a warning no decoder classified.
+	QString id;
+	ModelDecodeIssueSeverity severity = ModelDecodeIssueSeverity::Damage;
+	// The surface the issue belongs to, or -1 for the whole model.
+	int surface = -1;
+	// The same translated text the decoder put in `warnings`.
+	QString text;
+	// An omission the user accepted when importing the model for editing.
+	bool accepted = false;
+	bool operator==(const ModelDecodeIssue&) const = default;
+};
+
 struct ModelMesh {
 	QString sourcePath;
 	ModelMeshFormat format = ModelMeshFormat::Unknown;
@@ -573,6 +601,11 @@ struct ModelMesh {
 	// Tags fitted to mesh components, for Refit Anchored Tags; editable
 	// sources only (source version 19).
 	QVector<ModelTagAnchor> tagAnchors{};
+	// A decoded model: every entry of `warnings` and the surfaces' warnings,
+	// classified (core/model_decode_issues.h). An editable source: the
+	// advisories and accepted omissions recorded when it was imported, while
+	// its warnings stay empty.
+	QVector<ModelDecodeIssue> issues{};
 
 	[[nodiscard]] bool isValid() const;
 	// Bounds across every frame, used to frame the model in a viewport.

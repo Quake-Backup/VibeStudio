@@ -30,6 +30,7 @@
 #include "core/model_iqm.h"
 
 #include "core/model_document.h"
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 #include "core/model_skeleton.h"
 #include "core/model_targets.h"
@@ -362,8 +363,8 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		return;
 	}
 	if (qint64(header.fileSize) < qint64(bytes.size())) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The IQM declares %1 bytes; the %2 byte(s) after them are ignored.")
-			.arg(header.fileSize).arg(qint64(bytes.size()) - qint64(header.fileSize));
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-trailing-bytes"), QCoreApplication::translate("VibeStudioModelMesh", "The IQM declares %1 bytes; the %2 byte(s) after them are ignored.")
+			.arg(header.fileSize).arg(qint64(bytes.size()) - qint64(header.fileSize)));
 	}
 	const QByteArray data = qint64(header.fileSize) < qint64(bytes.size()) ? bytes.left(qsizetype(header.fileSize)) : bytes;
 
@@ -499,7 +500,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		ModelJoint joint;
 		const QString unique = iqmUniqueJointName(name, int(index), &usedNames);
 		if (!name.isEmpty() && unique != name) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "IQM joint %1 repeats the name \"%2\" and was renamed \"%3\".").arg(index).arg(name, unique);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-duplicate-joint"), QCoreApplication::translate("VibeStudioModelMesh", "IQM joint %1 repeats the name \"%2\" and was renamed \"%3\".").arg(index).arg(name, unique));
 		}
 		joint.name = unique;
 		joint.parent = parent;
@@ -561,7 +562,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 				return;
 			}
 			if (!parentsMatch) {
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "IQM pose parents differ from the joint parents; the joint parents are used.");
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-pose-parents"), QCoreApplication::translate("VibeStudioModelMesh", "IQM pose parents differ from the joint parents; the joint parents are used."));
 			}
 			qint64 cursor = header.ofsFrames;
 			for (quint32 frame = 0; frame < header.numFrames; ++frame) {
@@ -612,7 +613,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			// ioquake3 never reads animation names, so a bad one only loses the name.
 			QString name;
 			if (!iqmText(data, header, readU32(data, base), &name)) {
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "IQM animation %1 names text outside the text block.").arg(index);
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-animation-name"), QCoreApplication::translate("VibeStudioModelMesh", "IQM animation %1 names text outside the text block.").arg(index));
 				name.clear();
 			}
 			if (name.isEmpty()) {
@@ -626,7 +627,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 				continue;
 			}
 			if (qint64(first) + qint64(count) > qint64(framePoses.size())) {
-				mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "IQM animation \"%1\" runs past the last frame and was left out.").arg(name);
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("iqm-animation-range"), QCoreApplication::translate("VibeStudioModelMesh", "IQM animation \"%1\" runs past the last frame and was left out.").arg(name));
 				continue;
 			}
 			if (clipFrames + qint64(count) > qint64(kMaxFrames)) {
@@ -646,8 +647,8 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			skeleton.clips.append(clip);
 		}
 		if (clipsDropped > 0) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 IQM animation(s) were left out to keep the clips within %2 frames.")
-				.arg(clipsDropped).arg(kMaxFrames);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("iqm-animations-capped"), QCoreApplication::translate("VibeStudioModelMesh", "%1 IQM animation(s) were left out to keep the clips within %2 frames.")
+				.arg(clipsDropped).arg(kMaxFrames));
 		}
 		if (header.numAnims == 0) {
 			ModelSkeletalClip clip;
@@ -662,7 +663,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	// Blend arrays drive skinning only when the model has joints.
 	const bool skinned = header.numJoints > 0 && arrays[IqmBlendIndexes].present && arrays[IqmBlendWeights].present;
 	if (header.numJoints > 0 && header.numMeshes > 0 && !skinned) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The IQM has joints but no blend indexes or weights; its meshes stay in the bind pose.");
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-no-weights"), QCoreApplication::translate("VibeStudioModelMesh", "The IQM has joints but no blend indexes or weights; its meshes stay in the bind pose."));
 	}
 	const int perVertex = skinned ? std::min(arrays[IqmBlendIndexes].size, arrays[IqmBlendWeights].size) : 0;
 
@@ -686,7 +687,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			return;
 		}
 		if (vertexCount == 0) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "IQM mesh %1 holds no vertices and was left out.").arg(meshIndex);
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-empty-mesh"), QCoreApplication::translate("VibeStudioModelMesh", "IQM mesh %1 holds no vertices and was left out.").arg(meshIndex));
 			continue;
 		}
 
@@ -795,8 +796,8 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 						joints[vertex * perVertex] = 0;
 						weights[vertex * perVertex] = 1.0f;
 					}
-					mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 vertex(es) of IQM mesh \"%2\" carry no blend weight; they follow joint %3.")
-						.arg(unweighted.size()).arg(surface.name, skeleton.joints.first().name);
+					noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-unweighted-vertices"), QCoreApplication::translate("VibeStudioModelMesh", "%1 vertex(es) of IQM mesh \"%2\" carry no blend weight; they follow joint %3.")
+						.arg(unweighted.size()).arg(surface.name, skeleton.joints.first().name));
 				}
 				QString problem;
 				if (!modelSkinningFromBindPose(skeleton, geometry.positions, normals, joints, weights, perVertex, &surface.skinning, &problem)) {

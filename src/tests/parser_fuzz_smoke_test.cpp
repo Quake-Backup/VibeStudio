@@ -23,6 +23,7 @@
 #include "core/model_mesh.h"
 #include "core/package_archive.h"
 #include "core/parser_fuzz.h"
+#include "tests/model_legacy_fuzz_seeds.h"
 
 #include <QBuffer>
 #include <QByteArray>
@@ -1408,6 +1409,12 @@ QVector<QByteArray> modelSeeds()
 	seeds.push_back(buildQuakeMdl(12, 8, 3, 32, 32));
 	seeds.push_back(buildQuake2Md2(12, 8, 3));
 	seeds.push_back(buildQuake3Md3(12, 8, 3));
+	// Skin and frame groups, onseam vertices, strip and fan GL commands, and
+	// two MD3 surfaces with tags (FMT-10); model-format-legacy-fuzz-smoke
+	// walks these further, through every writer.
+	for (const auto& seed : tests::richLegacyModelSeeds()) {
+		seeds.push_back(seed.bytes);
+	}
 	return seeds;
 }
 

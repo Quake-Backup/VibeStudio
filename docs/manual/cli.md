@@ -587,6 +587,63 @@ vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --outpu
 vibestudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json
 vibestudio --cli model pose ./out/walk.mesh.json --operation mirror --clip 0 --first 0 --last 11 --output ./out/walk-mirrored.mesh.json
 ```
+
+`model inspect --json` gives every decode warning a severity in `issues`
+(`advisory`, `omission` or `damage`), counts them in `issueCounts`, and sums
+them up as `decodeVerdict`: `clean`, `advisories`, `accept-omissions` or
+`damaged`. `model import` accepts advisories, refuses omissions with exit 4
+until you add `--accept-omissions`, and always refuses damage; its JSON lists
+`issues` and, on refusal, `omissionsPending`. The written source records the
+advisories and accepted omissions. See
+[Decode issues](../MODEL_FORMATS.md#decode-issues).
+
+```sh
+vibestudio --cli model inspect ./models/crate.lwo --json
+vibestudio --cli model import ./models/crate.lwo --accept-omissions --output ./out/crate.mesh.json --json
+```
+
+`model audit PATH` checks every model in a package, a folder or a whole game
+installation (its loose files and every package inside it) and never writes to
+it. Each entry gets a verdict (`clean`, `advisories`, `accept-omissions`,
+`damaged` or `failed`), whether it imports for editing, and with `--round-trip`
+whether the model written back in its own format decodes to the same corners
+within the format's quantisation; `--targets` says whether each editable model
+is ready for every delivery target of its format. A summary per format comes
+first. `--formats
+mdl,md3` limits the formats, `--report FILE` saves the JSON somewhere outside
+the source, and `--strict` exits 4 when anything fails, is damaged or drifts
+past its tolerance, so a run can guard against decoder regressions.
+
+```sh
+vibestudio --cli model audit ./quake/id1 --formats mdl --round-trip --json
+vibestudio --cli model audit ./baseq3/pak0.pk3 --report ./out/pak0-audit.json --strict
+```
+
+`model game-skin MODEL --output FILE` writes what the engine puts on one
+surface, as the Mesh Editor's **Shading > Game** draws it: for Quake MDL skins
+the skin group member at `--time`, player colours `--top` and `--bottom`,
+`--quake-renderer glquake|modern|software` and GLQuake's flood fill
+(`--no-flood-fill` turns it off); for Quake III the surface's shader from
+`--package`, composed stage by stage at `--time`. `--glow-output` writes the
+unlit layer. See [Game preview](../MODEL_GAME_PREVIEW.md).
+
+`model bake MODEL --type ao|object-normal|normal|lighting --output FILE` bakes a
+map into the model's UV layout, optionally from a high-poly `--high` model within
+`--cage`; `--dry-run` bakes and reports without writing, and `--model-output
+FILE.mesh.json` shades the model's MDL skin with an `ao` or `lighting` map.
+`model paint-skin MODEL
+--strokes FILE --output FILE` replays 3D paint strokes onto a surface's skin;
+`--model-output FILE.mesh.json` also writes the model with the painted MDL
+skin.
+Both report a SHA-256 of the image in JSON. See [Bake maps](../MODEL_BAKE.md)
+and [Paint skins in 3D](../MODEL_SKIN_PAINT.md).
+
+```sh
+vibestudio --cli model game-skin ./progs/player.mdl --top 4 --bottom 12 --output ./out/player.png --json
+vibestudio --cli model bake ./models/crate.mesh.json --type ao --size 512x512 --output ./out/crate_ao.png --json
+vibestudio --cli model paint-skin ./progs/ogre.mdl --strokes ./strokes.json --output ./out/ogre_skin.png --json
+```
+
 `model import` and `model edit` report the source they wrote (or would write
 with `--dry-run`) in JSON as `"source": {"bytes", "encoding", "limitBytes"}`.
 The encoding is `readable`, or `packed` when the readable source would pass the

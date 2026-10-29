@@ -1,6 +1,7 @@
 #include "core/model_mesh.h"
 #include "core/model_archive.h"
 #include "core/model_document.h"
+#include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
 #include "core/model_skeleton.h"
 
@@ -1233,7 +1234,7 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Flags: 0x%1").arg(QString::number(static_cast<uint>(flags), 16));
 	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Declared skins: %1").arg(skinCount);
 	if (endOffset > 0 && endOffset != bytes.size()) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The MD3 end offset (%1) does not match the file size (%2).").arg(endOffset).arg(bytes.size());
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md3-end-offset"), QCoreApplication::translate("VibeStudioModelMesh", "The MD3 end offset (%1) does not match the file size (%2).").arg(endOffset).arg(bytes.size()));
 	}
 
 	for (int index = 0; index < frameCount; ++index) {
@@ -1351,7 +1352,7 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		surface.name = name.isEmpty() ? QStringLiteral("surface%1").arg(surface.index) : name;
 		surface.vertexCount = vertexCount;
 		if (surfaceFlags != 0) {
-			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "Surface flags: 0x%1").arg(QString::number(static_cast<uint>(surfaceFlags), 16));
+			noteModelSurfaceIssue(mesh, &surface, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md3-surface-flags"), QCoreApplication::translate("VibeStudioModelMesh", "Surface flags: 0x%1").arg(QString::number(static_cast<uint>(surfaceFlags), 16)));
 		}
 		if (surfaceFrameCount != frameCount) {
 			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "The surface declares %1 frame(s) while the model declares %2.").arg(surfaceFrameCount).arg(frameCount);
@@ -1780,6 +1781,7 @@ constexpr FormatRow kFormats[] = {
 	{ModelMeshFormat::Ase, "ase", "ASCII Scene Export", "ase", false, false},
 	{ModelMeshFormat::HereticFm, "fm", "Heretic II FM", "fm", false, false},
 	{ModelMeshFormat::Kvx, "kvx", "KVX voxels", "kvx", false, false},
+	{ModelMeshFormat::Gltf, "gltf", "glTF 2.0", "gltf|glb", true, false},
 };
 
 const FormatRow* formatRow(ModelMeshFormat format)
@@ -1886,8 +1888,8 @@ constexpr CatalogEntry kCatalog[] = {
 		"", "md3", QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Surfaces, shaders, every frame and tags; detail levels as name_1.md3 and name_2.md3.")},
 	{ModelMeshFormat::Mdc, "idtech3", "Return to Castle Wolfenstein|Wolfenstein: Enemy Territory", "", "",
 		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Compressed MD3: base and compressed frames, tags and shaders; read only (export MD3, which both games load).")},
-	{ModelMeshFormat::Mds, "idtech3", "Return to Castle Wolfenstein", "", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Skeletal characters: bones, weights, frames and tags, baked to frames for viewing and MD3 export; read only.")},
+	{ModelMeshFormat::Mds, "idtech3", "Return to Castle Wolfenstein", "", "mds",
+		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Skeletal characters: bones, weights, frames and tags, baked to frames for viewing; written back from any skeleton whose bones keep their lengths.")},
 	{ModelMeshFormat::Mdm, "idtech3", "Wolfenstein: Enemy Territory", "mdx", "",
 		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Skeletal meshes skinned against the MDX that holds their bones; read only.")},
 	{ModelMeshFormat::Mdx, "idtech3", "Wolfenstein: Enemy Territory", "", "",
@@ -1914,6 +1916,8 @@ constexpr CatalogEntry kCatalog[] = {
 		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Voxel sprites meshed into faces, coloured from the palette in the file; read only.")},
 	{ModelMeshFormat::WavefrontObj, "interchange", "Any modeller", "", "obj",
 		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "One pose of polygon geometry with UVs, normals and material names; no MTL library.")},
+	{ModelMeshFormat::Gltf, "interchange", "Blender|Any modeller", "bin", "",
+		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Meshes, node transforms, skins, animations and morph targets from .gltf (embedded or .bin buffers) or .glb; triangles only; read only.")},
 };
 
 } // namespace
@@ -1968,6 +1972,10 @@ ModelMeshFormat detectModelMeshFormat(const QString& virtualPath, const QByteArr
 	}
 	if (bytes.size() >= 16 && bytes.startsWith(QByteArrayLiteral("INTERQUAKEMODEL"))) {
 		return ModelMeshFormat::Iqm;
+	}
+	// glTF 2.0: the GLB magic, or a .gltf JSON document.
+	if (bytes.startsWith(QByteArrayLiteral("glTF")) || suffix == QStringLiteral("gltf") || suffix == QStringLiteral("glb")) {
+		return ModelMeshFormat::Gltf;
 	}
 	if (bytes.size() >= 4) {
 		const QByteArray magic = bytes.left(4);
@@ -2069,8 +2077,11 @@ ModelMesh decodeModelMesh(const QString& virtualPath, const QByteArray& bytes, c
 	switch (mesh.format) {
 	case ModelMeshFormat::WavefrontObj:
 		// Material libraries are read through the same companions as other
-		// formats' side files (a package entry or the files beside a loose OBJ).
-		return decodeModelObj(virtualPath, bytes, ModelObjImportOptions{}, &companionSource, nullptr, control);
+		// formats' side files (a package entry or the files beside a loose OBJ). {
+		ModelMesh obj = decodeModelObj(virtualPath, bytes, ModelObjImportOptions{}, &companionSource, nullptr, control);
+		classifyModelDecodeIssues(&obj);
+		return obj;
+	}
 	case ModelMeshFormat::QuakeMdl:
 		decodeQuakeMdl(bytes, effectivePalette, &mesh, control);
 		break;
@@ -2128,6 +2139,9 @@ ModelMesh decodeModelMesh(const QString& virtualPath, const QByteArray& bytes, c
 	case ModelMeshFormat::Kvx:
 		model_formats::decodeKvx(bytes, &mesh, control);
 		break;
+	case ModelMeshFormat::Gltf:
+		model_formats::decodeGltf(virtualPath, bytes, &mesh, control, companions);
+		break;
 	case ModelMeshFormat::Unknown:
 		break;
 	}
@@ -2170,6 +2184,8 @@ ModelMesh decodeModelMesh(const QString& virtualPath, const QByteArray& bytes, c
 		failed.error = mesh.error;
 		return failed;
 	}
+	// Every warning gets a severity; unclassified ones count as damage.
+	classifyModelDecodeIssues(&mesh);
 	return mesh;
 }
 
@@ -2209,7 +2225,10 @@ ModelMesh decodeModelMeshFromArchive(const PackageArchiveReader& archive, const 
 	}
 	ModelMesh mesh = decodeModelMesh(virtualPath, bytes, &resolution.palette, control, modelCompanionsFromArchive(archive, control));
 	if (!mesh.embeddedSkins.isEmpty()) {
-		mesh.warnings += resolution.warnings;
+		// The palette only colours the preview; the indices are kept.
+		for (const QString& warning : std::as_const(resolution.warnings)) {
+			noteModelDecodeIssue(&mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdl-palette"), warning);
+		}
 		if (resolution.fromPackage && !resolution.sourceVirtualPath.isEmpty()) {
 			mesh.detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skin palette: %1").arg(resolution.sourceVirtualPath);
 		} else if (resolution.palette.generated) {
@@ -2340,13 +2359,21 @@ QStringList modelMeshSummaryLines(const ModelMesh& mesh)
 		lines << QCoreApplication::translate("VibeStudioModelMesh", "Companion file: %1").arg(companion);
 	}
 	lines += mesh.detailLines;
+	// Warnings by severity (core/model_decode_issues.h): advisories, then
+	// what editing needs accepted, then damage, each in decode order.
+	QStringList names;
 	for (const ModelSurface& surface : mesh.surfaces) {
-		for (const QString& warning : surface.warnings) {
-			lines << QCoreApplication::translate("VibeStudioModelMesh", "Surface %1: %2").arg(surface.index).arg(warning);
-		}
+		names << surface.name;
 	}
-	for (const QString& warning : mesh.warnings) {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "Warning: %1").arg(warning);
+	const QVector<ModelDecodeIssue> issues = modelDecodeIssues(mesh);
+	for (const auto severity : {ModelDecodeIssueSeverity::Advisory, ModelDecodeIssueSeverity::Omission, ModelDecodeIssueSeverity::Damage}) {
+		QVector<ModelDecodeIssue> group;
+		for (const ModelDecodeIssue& issue : issues) {
+			if (issue.severity == severity) {
+				group.append(issue);
+			}
+		}
+		lines += modelDecodeIssueLines(group, names);
 	}
 	return lines;
 }
@@ -2403,19 +2430,34 @@ QString exportModelFrameObj(const ModelMesh& mesh, int frameIndex, const QString
 		if (!materialName.isEmpty()) {
 			lines << QStringLiteral("usemtl %1").arg(sanitizedName(materialName));
 		}
+		// Vertices no face uses are left out (OBJ importers, VibeStudio's
+		// among them, refuse loose vertices); the rest keep their order.
+		QVector<int> written(count, -1);
+		for (const ModelTriangle& triangle : surface.triangles) {
+			if (triangle.a >= 0 && triangle.a < count && triangle.b >= 0 && triangle.b < count && triangle.c >= 0 && triangle.c < count) {
+				written[triangle.a] = written[triangle.b] = written[triangle.c] = 0;
+			}
+		}
+		int used = 0;
+		for (int& slot : written) {
+			slot = slot == 0 ? used++ : -1;
+		}
 		for (int index = 0; index < count; ++index) {
 			if (!work.step()) { return {}; }
+			if (written.at(index) < 0) { continue; }
 			const ModelVec3& position = geometry.positions.at(index);
 			lines << QStringLiteral("v %1 %2 %3").arg(formatNumber(position.x), formatNumber(position.y), formatNumber(position.z));
 		}
 		for (int index = 0; index < count; ++index) {
 			if (!work.step()) { return {}; }
+			if (written.at(index) < 0) { continue; }
 			// OBJ measures V from the bottom of the image, idTech from the top.
 			const ModelTexCoord coord = index < surface.texCoords.size() ? surface.texCoords.at(index) : ModelTexCoord();
 			lines << QStringLiteral("vt %1 %2").arg(formatNumber(coord.u), formatNumber(1.0f - coord.v));
 		}
 		for (int index = 0; index < count; ++index) {
 			if (!work.step()) { return {}; }
+			if (written.at(index) < 0) { continue; }
 			const ModelVec3 normal = index < geometry.normals.size() ? geometry.normals.at(index) : makeVec3(0.0f, 0.0f, 1.0f);
 			lines << QStringLiteral("vn %1 %2 %3").arg(formatNumber(normal.x), formatNumber(normal.y), formatNumber(normal.z));
 		}
@@ -2426,14 +2468,14 @@ QString exportModelFrameObj(const ModelMesh& mesh, int frameIndex, const QString
 				continue;
 			}
 			// OBJ indices are 1-based and run across the whole file.
-			const int a = emitted + triangle.a + 1;
-			const int b = emitted + triangle.b + 1;
-			const int c = emitted + triangle.c + 1;
+			const int a = emitted + written.at(triangle.a) + 1;
+			const int b = emitted + written.at(triangle.b) + 1;
+			const int c = emitted + written.at(triangle.c) + 1;
 			faceLines << QStringLiteral("f %1/%1/%1 %2/%2/%2 %3/%3/%3")
 				.arg(QString::number(a), QString::number(b), QString::number(c));
 		}
 		lines += faceLines;
-		emitted += count;
+		emitted += used;
 	}
 	if (emitted <= 0) {
 		return {};

@@ -249,6 +249,17 @@ mode. Ctrl+**V**, Ctrl+**E** and Ctrl+**F** open them from the keyboard; **X**
 or Delete opens Delete, **M** Merge, Shift+**A** Add, Alt+**N** Normals,
 Shift+**G** Select Similar, **Z** Shading and **U** UV Mapping.
 
+**Shading** > **Game** draws each surface the way its engine would: Quake
+skins with fullbrights, player colours, flood fill and the renderer's
+sampling, and Quake III shader stages. See [Game Preview](MODEL_GAME_PREVIEW.md).
+
+**UV** > **Bake Maps…** bakes ambient occlusion, Doom 3 tangent-space or
+object-space normals (from the model or a high-poly model) and lighting into
+the UV layout. See [Baking Texture Maps](MODEL_BAKE.md). **UV** > **Paint
+Skin…** paints the skin on the model in 3D, across seams and with a mirror
+axis, a stamp or a smudge, in its own view or the Mesh Editor's, and applies
+it back to the model or package. See [Painting Skins](MODEL_SKIN_PAINT.md).
+
 **F3** searches every Mesh Editor command by name and shows its shortcut.
 
 **F9** shows the **Adjust Last Operation** panel. Changing a setting there

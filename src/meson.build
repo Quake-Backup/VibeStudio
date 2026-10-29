@@ -557,6 +557,20 @@ core_sources = files(
   'core/model_format_ase.cpp',
   'core/model_format_fm.cpp',
   'core/model_format_kvx.cpp',
+  'core/model_format_gltf.cpp',
+  # Decode issue severities and the editable gate (FMT-02).
+  'core/model_decode_issues.cpp',
+  # Bulk model audit (FMT-11).
+  'core/model_audit.cpp',
+  # Engine-parity Game preview skins (UVSKIN-08).
+  'core/model_game_preview.cpp',
+  # Texture map baking (UVSKIN-06).
+  'core/model_bvh.cpp',
+  'core/model_bake.cpp',
+  # Painting skins on the model (UVSKIN-09).
+  'core/model_skin_paint.cpp',
+  # RTCW MDS writer (FMT-09).
+  'core/model_format_mds_writer.cpp',
   # Modeller profiles (Blender, 3ds Max, MilkShape 3D) and sidebars, as data.
   'core/model_editor_controls.cpp',
   'core/model_sidebar.cpp',
@@ -693,6 +707,7 @@ install_headers('core/model_targets.h', subdir: 'vibestudio/core')
 install_headers('core/model_target_prepare.h', subdir: 'vibestudio/core')
 install_headers('core/model_delivery.h', subdir: 'vibestudio/core')
 install_headers('core/model_editor_controls.h', 'core/model_sidebar.h', subdir: 'vibestudio/core')
+install_headers('core/model_decode_issues.h', 'core/model_audit.h', 'core/model_game_preview.h', 'core/model_bvh.h', 'core/model_bake.h', 'core/model_skin_paint.h', 'core/model_mds.h', subdir: 'vibestudio/core')
 install_headers('core/model_surface_selection.h', subdir: 'vibestudio/core')
 install_headers('core/model_geometric_topology.h', 'core/model_mesh_tools.h', 'core/model_selection_tools.h', 'core/model_lod.h', subdir: 'vibestudio/core')
 install_headers('core/model_material_slots.h', subdir: 'vibestudio/core')
@@ -1062,6 +1077,13 @@ app_sources = files(
   'app/model_editor_tags.cpp',
   'app/model_editor_collision.cpp',
   'app/model_editor_health.cpp',
+  'app/model_import_review.cpp',
+  'app/model_audit_dialog.cpp',
+  'app/model_editor_game_preview.cpp',
+  'app/model_bake_dialog.cpp',
+  'app/model_skin_paint_dialog.cpp',
+  'app/model_editor_skin_paint.cpp',
+  'app/model_viewport_skin_paint.cpp',
   'app/model_editor_intersections.cpp',
   'app/model_editor_import_repair.cpp',
   'app/model_import_repair_dialog.cpp',
@@ -1253,7 +1275,7 @@ vibestudio = executable(
   files('cli/model_import_repair.cpp'),
   files('cli/model_controls.cpp'),
   files('cli/ai_generation.cpp'),
-  ['main.cpp', 'cli/cli.cpp', 'cli/audio_session.cpp', 'cli/level_scene.cpp', 'cli/level_component_selection.cpp', 'cli/level_grid_round.cpp', 'cli/level_nudge.cpp', 'cli/level_move_repeat.cpp', 'cli/level_view_transform.cpp','cli/level_bookmarks.cpp', 'cli/workspace.cpp', 'cli/release.cpp', 'cli/level_build_workspace.cpp', 'cli/level_build_artifacts.cpp', 'cli/level_build_deployment.cpp', 'cli/level_material_paint.cpp', 'cli/level_surface_clipboard.cpp', 'cli/level_smart_tags.cpp', 'cli/level_face_flags.cpp', 'cli/level_uv_edit.cpp', 'cli/level_clipboard.cpp', 'cli/level_region_selection.cpp', 'cli/level_object_selection.cpp', 'cli/level_face_transform.cpp', 'cli/level_hollow_options.cpp', 'cli/level_visibility.cpp', 'cli/level_view_filters.cpp', 'cli/level_camera_focus.cpp', 'cli/level_entity_create.cpp','cli/model_mdl.cpp', 'cli/model_appearance.cpp', 'cli/model_assembly.cpp', 'cli/model_collision.cpp', 'cli/model_skin_bindings.cpp', 'cli/model_skin_variants.cpp', 'cli/model_surfaces.cpp', 'cli/model_tools.cpp', 'cli/model_rig.cpp', 'cli/model_skeletal_edit.cpp', 'cli/model_skinning.cpp', 'cli/model_weight_paint.cpp', 'cli/model_weight_transfer.cpp', 'cli/model_ik.cpp', 'cli/model_animation_curves.cpp', 'cli/model_curve_keys.cpp', 'cli/model_curve_transfer.cpp', 'cli/model_events.cpp', 'cli/model_constraints.cpp', 'cli/model_uv_density.cpp', 'cli/model_frames.cpp', 'cli/model_uv_health.cpp', 'cli/model_uv_ops.cpp', 'cli/model_uv_layout.cpp', 'cli/materials.cpp', 'cli/render.cpp', 'cli/model_material_slots.cpp', 'cli/model_intersections.cpp', 'cli/package_copy_limits.cpp', 'cli/package_copy_store_limits.cpp', 'cli/package_copy_sessions.cpp'],
+  ['main.cpp', 'cli/cli.cpp', 'cli/audio_session.cpp', 'cli/level_scene.cpp', 'cli/level_component_selection.cpp', 'cli/level_grid_round.cpp', 'cli/level_nudge.cpp', 'cli/level_move_repeat.cpp', 'cli/level_view_transform.cpp','cli/level_bookmarks.cpp', 'cli/workspace.cpp', 'cli/release.cpp', 'cli/level_build_workspace.cpp', 'cli/level_build_artifacts.cpp', 'cli/level_build_deployment.cpp', 'cli/level_material_paint.cpp', 'cli/level_surface_clipboard.cpp', 'cli/level_smart_tags.cpp', 'cli/level_face_flags.cpp', 'cli/level_uv_edit.cpp', 'cli/level_clipboard.cpp', 'cli/level_region_selection.cpp', 'cli/level_object_selection.cpp', 'cli/level_face_transform.cpp', 'cli/level_hollow_options.cpp', 'cli/level_visibility.cpp', 'cli/level_view_filters.cpp', 'cli/level_camera_focus.cpp', 'cli/level_entity_create.cpp','cli/model_mdl.cpp', 'cli/model_appearance.cpp', 'cli/model_assembly.cpp', 'cli/model_collision.cpp', 'cli/model_skin_bindings.cpp', 'cli/model_skin_variants.cpp', 'cli/model_audit.cpp', 'cli/model_game_skin.cpp', 'cli/model_bake.cpp', 'cli/model_skin_paint.cpp', 'cli/model_surfaces.cpp', 'cli/model_tools.cpp', 'cli/model_rig.cpp', 'cli/model_skeletal_edit.cpp', 'cli/model_skinning.cpp', 'cli/model_weight_paint.cpp', 'cli/model_weight_transfer.cpp', 'cli/model_ik.cpp', 'cli/model_animation_curves.cpp', 'cli/model_curve_keys.cpp', 'cli/model_curve_transfer.cpp', 'cli/model_events.cpp', 'cli/model_constraints.cpp', 'cli/model_uv_density.cpp', 'cli/model_frames.cpp', 'cli/model_uv_health.cpp', 'cli/model_uv_ops.cpp', 'cli/model_uv_layout.cpp', 'cli/materials.cpp', 'cli/render.cpp', 'cli/model_material_slots.cpp', 'cli/model_intersections.cpp', 'cli/package_copy_limits.cpp', 'cli/package_copy_store_limits.cpp', 'cli/package_copy_sessions.cpp'],
   include_directories: vibestudio_includes,
   dependencies: [vibestudio_app_dep],
   install: true,
@@ -3887,6 +3909,92 @@ model_format_studio_hexen2_fm_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-format-studio-hexen2-fm-smoke', model_format_studio_hexen2_fm_smoke_test, timeout: 120)
+
+# Decode issue severities and the editable gate (FMT-02).
+model_decode_issues_smoke_test = executable(
+  'model_decode_issues_smoke_test', ['tests/model_decode_issues_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-decode-issues-smoke', model_decode_issues_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+
+model_import_review_ui_smoke_test = executable(
+  'model_import_review_ui_smoke_test', ['tests/model_import_review_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-import-review-ui-smoke', model_import_review_ui_smoke_test, env: model_document_test_env, timeout: 300)
+
+# Malformed-input coverage for MDL, MD2, MD3 and OBJ and the decode, edit and export chain (FMT-10).
+model_format_legacy_fuzz_smoke_test = executable(
+  'model_format_legacy_fuzz_smoke_test', ['tests/model_format_legacy_fuzz_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-format-legacy-fuzz-smoke', model_format_legacy_fuzz_smoke_test, timeout: 240)
+
+# glTF 2.0 import (FMT-05).
+model_format_gltf_smoke_test = executable(
+  'model_format_gltf_smoke_test', ['tests/model_format_gltf_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-format-gltf-smoke', model_format_gltf_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+
+# Bulk model audit (FMT-11).
+model_audit_smoke_test = executable(
+  'model_audit_smoke_test', ['tests/model_audit_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-audit-smoke', model_audit_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 300)
+
+model_audit_ui_smoke_test = executable(
+  'model_audit_ui_smoke_test', ['tests/model_audit_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-audit-ui-smoke', model_audit_ui_smoke_test, env: model_document_test_env, timeout: 300)
+
+# Engine-parity Game preview (UVSKIN-08).
+model_game_preview_smoke_test = executable(
+  'model_game_preview_smoke_test', ['tests/model_game_preview_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-game-preview-smoke', model_game_preview_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+
+model_game_preview_ui_smoke_test = executable(
+  'model_game_preview_ui_smoke_test', ['tests/model_game_preview_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-game-preview-ui-smoke', model_game_preview_ui_smoke_test, env: model_document_test_env, timeout: 300)
+
+# Texture map baking (UVSKIN-06).
+model_bake_smoke_test = executable(
+  'model_bake_smoke_test', ['tests/model_bake_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-bake-smoke', model_bake_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 300)
+
+model_bake_ui_smoke_test = executable(
+  'model_bake_ui_smoke_test', ['tests/model_bake_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-bake-ui-smoke', model_bake_ui_smoke_test, env: model_document_test_env, timeout: 300)
+
+# Painting skins on the model (UVSKIN-09).
+model_skin_paint_smoke_test = executable(
+  'model_skin_paint_smoke_test', ['tests/model_skin_paint_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-skin-paint-smoke', model_skin_paint_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+
+model_skin_paint_ui_smoke_test = executable(
+  'model_skin_paint_ui_smoke_test', ['tests/model_skin_paint_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-skin-paint-ui-smoke', model_skin_paint_ui_smoke_test, env: model_document_test_env, timeout: 300)
+
+# The RTCW MDS writer (FMT-09).
+model_format_mds_writer_smoke_test = executable(
+  'model_format_mds_writer_smoke_test', ['tests/model_format_mds_writer_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-format-mds-writer-smoke', model_format_mds_writer_smoke_test, timeout: 120)
 
 
 model_health_smoke_test = executable(

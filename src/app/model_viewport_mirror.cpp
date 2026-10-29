@@ -39,6 +39,10 @@ void ModelViewport::mirrorDisplayFrom(const ModelViewport& source)
 	m_skinHasAlpha = source.m_skinHasAlpha;
 	m_surfaceSkins = source.m_surfaceSkins;
 	m_surfaceSkinAlpha = source.m_surfaceSkinAlpha;
+	m_gameSkins = source.m_gameSkins;
+	m_gameGlows = source.m_gameGlows;
+	m_gameSkinAlpha = source.m_gameSkinAlpha;
+	m_gameNearest = source.m_gameNearest;
 	m_renderMode = source.m_renderMode;
 	m_backfaceCulling = source.m_backfaceCulling;
 	m_showGrid = source.m_showGrid;

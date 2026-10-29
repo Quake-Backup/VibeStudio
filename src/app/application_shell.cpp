@@ -36,6 +36,8 @@
 #include "app/level_dependency_dialog.h"
 #include "app/release_dialog.h"
 #include "app/package_subset_dialog.h"
+#include "app/model_audit_dialog.h"
+#include "core/model_skin_paint.h"
 #include "app/model_design_dialog.h"
 #include "app/model_editor_dialog.h"
 #include "app/model_assembly_dialog.h"
@@ -3445,6 +3447,12 @@ QWidget* ApplicationShell::buildPackagesPage()
 	m_packageValidate->setToolTip(tr("Read every source package entry and check its size and checksum."));
 	connect(m_packageValidate, &QPushButton::clicked, this, [this]() { validateOpenPackage(); });
 	header->addActionWidget(m_packageValidate);
+	auto* auditModels = createButton(tr("Audit Models"), QStringLiteral("check"));
+	auditModels->setObjectName(QStringLiteral("packageAuditModels"));
+	auditModels->setAccessibleName(tr("Audit the models in the open package"));
+	auditModels->setToolTip(tr("Decode every model and report decode issues, editability and round trips. Nothing is written to the package."));
+	connect(auditModels, &QPushButton::clicked, this, [this]() { auditPackageModels(); });
+	header->addActionWidget(auditModels);
 
 	auto* openFolderPackage = createButton(tr("Open Folder"), QStringLiteral("folder"));
 	openFolderPackage->setAccessibleName(tr("Open folder package"));
@@ -13054,6 +13062,26 @@ void ApplicationShell::validateOpenPackage()
 	});
 }
 
+void ApplicationShell::auditPackageModels()
+{
+	// The open package's file or folder; staged changes are not audited.
+	const QString source = m_packageArchive.isOpen() ? m_packageArchive.sourcePath() : QString();
+	auto* dialog = new ModelAuditDialog(nativePath(source), this);
+	dialog->setAttribute(Qt::WA_DeleteOnClose);
+	dialog->finished = [this](const ModelAuditReport& report, const QString& error) {
+		const QString summary = error.isEmpty() ? modelAuditLines(report).join(QLatin1Char('\n')) : error;
+		const QString taskId = m_activity.createTask(tr("Model Audit"), nativePath(report.source), tr("package"), OperationState::Running, false);
+		m_activity.appendLog(taskId, OperationState::Running, summary);
+		if (!error.isEmpty()) { m_activity.failTask(taskId, error); }
+		else if (report.cancelled) { m_activity.cancelTask(taskId, tr("Model audit cancelled.")); }
+		else { m_activity.completeTask(taskId, tr("Audited %n model(s).", nullptr, int(report.entries.size()))); }
+		persistActivityTask(taskId);
+		refreshActivityCenter(taskId);
+	};
+	dialog->show();
+	if (!source.isEmpty()) { dialog->start(); }
+}
+
 void ApplicationShell::saveStagedPackageAs()
 {
 	if (m_packageSaveRunning || m_packageReadRunning || m_packageExtractionRunning) { return; }
@@ -15531,6 +15559,9 @@ void ApplicationShell::buildCommands()
 	add(QStringLiteral("package.validate"), StudioCommandGroup::Project, tr("&Validate Package…"),
 		tr("Verify every package payload, size, and checksum"), QStringLiteral("check"), false, false, false,
 		[this]() { setMode(StudioMode::Packages); validateOpenPackage(); }, true);
+	add(QStringLiteral("package.auditModels"), StudioCommandGroup::Project, tr("Audit &Models…"),
+		tr("Decode every model in a package, folder or installation and report decode issues, editability and round trips."),
+		QStringLiteral("check"), false, false, false, [this]() { setMode(StudioMode::Packages); auditPackageModels(); }, true);
 	add(QStringLiteral("audio.playPause"), StudioCommandGroup::Project, tr("&Play Sound"),
 		tr("Play the selected sound from the playhead, or pause it."), QStringLiteral("play"), false, false, false,
 		[this]() {
@@ -20895,6 +20926,14 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial)
 		if (place) { refreshLevelMapWorkbench(); frameLevelMapSelection(); }
 		recordActivity(tr("Mesh Handoff"), files.isEmpty() ? QString() : files.first().path, tr("package"), OperationState::Completed,
 		    tr("Edited model and its detail levels staged as one package step."));
+		return true;
+	};
+	// Modeller: a painted skin staged back at the package path it came from.
+	editor->stageSkinImage = [this](const QString& path, const QByteArray& bytes, QString* outputError) {
+		if (m_packageExtractionRunning || m_packageSaveRunning || m_packageReadRunning) { if (outputError) { *outputError = tr("Wait for the package operation to finish before staging a skin."); } return false; }
+		if (!stageModelPaintedSkin(bytes, path, &m_packageStaging, outputError)) { return false; }
+		refreshPackageStagingSummary();
+		recordActivity(tr("Skin Paint"), path, tr("package"), OperationState::Completed, tr("Painted skin staged in the package."));
 		return true;
 	};
 	// Modeller: the detail files already beside a staged MD3, for the editor's review.

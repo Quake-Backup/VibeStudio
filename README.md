@@ -888,6 +888,11 @@ Those reviews record the GPL-compatible licences and original implementations.
 Configured smart-tag authoring follows the same pinned TrenchBroom release;
 see [smart-tag credits](docs/CREDITS.md#smart-tag-authoring) for sources and licence.
 
+glTF 2.0 import is an in-house reader written from the
+[Khronos glTF 2.0 specification](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html)
+(version 2.0.1, read 2026-10-29), with Blender's documented axis mapping; no glTF
+library is used. See [Model Decode Issues, glTF Import And Legacy Fuzzing](docs/CREDITS.md#model-decode-issues-gltf-import-and-legacy-fuzzing-2026-10-29).
+
 ## License
 
 VibeStudio's own code is licensed under the GNU General Public License,

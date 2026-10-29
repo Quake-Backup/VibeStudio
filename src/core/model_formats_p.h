@@ -205,5 +205,8 @@ void decodeAse(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl& control);
 // model_format_kvx.cpp: Build/ZDoom KVX voxels, meshed into faces.
 void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl& control);
+// model_format_gltf.cpp: glTF 2.0 (.gltf with embedded or companion .bin
+// buffers, and .glb): meshes, skins, animations and morph targets.
+void decodeGltf(const QString& path, const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl& control, Companions& companions);
 
 } // namespace vibestudio::model_formats

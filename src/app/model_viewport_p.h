@@ -173,6 +173,9 @@ struct ModelViewport::RasterWork {
 	bool skinHasAlpha = false;
 	QHash<int, QImage> surfaceSkins;
 	QSet<int> surfaceSkinAlpha;
+	// Game preview: unlit layers added after shading, and point sampling.
+	QHash<int, QImage> surfaceGlows;
+	bool nearestSkins = false;
 	Palette palette;
 	int visibleTriangles = 0, culledTriangles = 0;
 	QVector<TagOverlay> tags;

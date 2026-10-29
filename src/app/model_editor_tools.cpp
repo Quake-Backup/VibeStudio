@@ -1,6 +1,8 @@
 #include "app/model_editor_tools.h"
 #include "app/locale_number.h"
 
+#include "app/model_bake_dialog.h"
+#include "app/model_skin_paint_dialog.h"
 #include "app/model_editor_dialog.h"
 #include "app/model_primitive_binding_dialog.h"
 #include "app/model_symmetrize_joints_dialog.h"
@@ -537,6 +539,11 @@ void ModelEditorTools::buildActions()
 			  [this] { m_editor->selectUvProblems(ModelUvHealthStretched); });
 	addAction(QStringLiteral("meshUvSelectOutside"), Text::tr("Select UVs Outside the Tile"), {},
 			  [this] { m_editor->selectUvProblems(ModelUvHealthOutsideTile); });
+	// Read-only towards the model: the map is saved where the user chooses.
+	// Paints the surface's skin: its MDL skin as indices, else its material
+	// image, else a blank skin (model_editor_skin_paint.cpp).
+	addAction(QStringLiteral("meshPaintSkin"), Text::tr("Paint Skin…"), {}, [this] { openSkinPaint(); });
+	addAction(QStringLiteral("meshBakeMaps"), Text::tr("Bake Maps…"), {}, [this] { openBake(); });
 	addAction(QStringLiteral("meshExportLods"), Text::tr("Export Quake III Detail Levels…"), {},
 			  [this]
 			  {
@@ -660,6 +667,7 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshShadingWire"), Text::tr("Wireframe"), {}, [this] { m_editor->m_renderMode->setCurrentIndex(1); });
 	addAction(QStringLiteral("meshShadingSolid"), Text::tr("Solid"), {}, [this] { m_editor->m_renderMode->setCurrentIndex(0); });
 	addAction(QStringLiteral("meshShadingMaterial"), Text::tr("Material Preview"), {}, [this] { m_editor->m_renderMode->setCurrentIndex(3); });
+	addAction(QStringLiteral("meshShadingGame"), Text::tr("Game Preview"), {}, [this] { m_editor->m_renderMode->setCurrentIndex(4); });
 	addAction(QStringLiteral("meshShadingChecker"), Text::tr("UV Checker"), {}, [this] { m_editor->m_renderMode->setCurrentIndex(2); });
 	addAction(QStringLiteral("meshToggleXray"), Text::tr("Toggle X-Ray"), QStringLiteral("Alt+Z"), [this] { m_xray->toggle(); });
 	addAction(QStringLiteral("meshToggleProportional"), Text::tr("Proportional Editing"), QStringLiteral("O"),
@@ -794,7 +802,7 @@ void ModelEditorTools::buildMenus()
 												 QStringLiteral("meshNextView"), QStringLiteral("meshPreviousView")}),
 					   QStringLiteral("meshMenuView"));
 	auto *shading = named(menu(Text::tr("Shading"), {QStringLiteral("meshShadingWire"), QStringLiteral("meshShadingSolid"),
-													 QStringLiteral("meshShadingMaterial"), QStringLiteral("meshShadingChecker")}),
+													 QStringLiteral("meshShadingMaterial"), QStringLiteral("meshShadingGame"), QStringLiteral("meshShadingChecker")}),
 						  QStringLiteral("meshMenuShading"));
 	view->insertMenu(m_actions.value(QStringLiteral("meshToggleXray")), shading);
 	// The document's own menu leads, as Blender's image editor leads with Image.
@@ -899,7 +907,7 @@ void ModelEditorTools::buildMenus()
 													 QStringLiteral("meshUvSnapTexels"), {}, QStringLiteral("meshUvExportLayout"),
 													 QStringLiteral("meshUvTransferSkin"), QStringLiteral("meshUvEditSkin"), {},
 													 QStringLiteral("meshUvCheckHealth"), QStringLiteral("meshUvSelectOverlapping"), QStringLiteral("meshUvSelectFlipped"),
-													 QStringLiteral("meshUvSelectStretched"), QStringLiteral("meshUvSelectOutside")}),
+													 QStringLiteral("meshUvSelectStretched"), QStringLiteral("meshUvSelectOutside"), {}, QStringLiteral("meshBakeMaps"), QStringLiteral("meshPaintSkin")}),
 							 QStringLiteral("meshMenuUv")));
 	buildTopologyMenus();
 	if (auto *layout = qobject_cast<QBoxLayout *>(m_editor->layout()))
