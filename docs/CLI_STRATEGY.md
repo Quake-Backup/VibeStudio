@@ -3362,6 +3362,16 @@ and `mapWritten` on success or failure; failed map saving retains the source.
 See [clipboard limits and examples](LEVEL_PASTE.md#cli). **Status: Partial.**
 
 
+### Animation events and game declarations
+
+`model events` lists and edits clip events (game-side frame commands) through
+the shared `EditAnimationEvents` edit, with guarded `.mesh.json` outputs.
+`model declarations` generates Doom 3 model declarations (and, with `--set`,
+the whole md5mesh, md5anim and `.def` set, every destination checked before
+any write), QuakeC `$frame` macros, Quake II frame headers and GZDoom MODELDEF
+from the same services as **Skeleton > Game Declarations**. See
+[game declarations](MODEL_GAME_DECLARATIONS.md).
+
 ### Inverse kinematics
 
 `model ik` shares the modeller's two-bone and chain (FABRIK, CCD) solvers over

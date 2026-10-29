@@ -326,14 +326,17 @@ current frame.
   recorded output and an independent oracle
   (`src/tests/model_skeletal_writer_oracle.py`, see
   [engine acceptance](MODEL_ENGINE_ACCEPTANCE.md#independent-md5-iqm-and-ase-reader)),
-  not yet in Doom 3, Quake 4 or ioquake3. Doom 3 `.def` declarations for
-  exported animations are not written.
+  not yet in Doom 3, Quake 4 or ioquake3. Doom 3 `.def` declarations, QuakeC
+  frame macros, Quake II frame headers and GZDoom MODELDEF are generated (see
+  [game declarations](MODEL_GAME_DECLARATIONS.md)) but not yet loaded in
+  those engines.
 - Levels of detail beyond the first are not read for MDS, MDM, MDR and
   Ghoul 2; MDS and MDM collapse maps are not applied.
 - Game-side animation set-up is not read: Jedi Outcast and Jedi Academy
   `animation.cfg`, Return to Castle Wolfenstein and Enemy Territory animation
   scripts, and GZDoom MODELDEF and VOXELDEF lumps. Clips take their names from
-  the files themselves.
+  the files themselves; Doom 3 `.def` declarations also name clips and supply
+  their frame commands as [animation events](MODEL_GAME_DECLARATIONS.md#animation-events).
 - Torso blending (MDS, MDM) and Ghoul 2 bone overrides are run-time effects and
   are not previewed.
 - Joint hierarchy, numeric weights, dense skeletal clips and shared viewport

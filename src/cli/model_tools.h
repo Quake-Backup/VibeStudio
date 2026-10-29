@@ -55,4 +55,9 @@ ModelToolsCliResult runModelUvDensity(const QStringList &arguments);
 ModelToolsCliResult runModelSkinning(const QStringList &arguments);
 // `model pose`: skeletal bind, clip and sampled-pose authoring.
 ModelToolsCliResult runModelPose(const QStringList &arguments);
+// `model events`: animation events (game-side frame commands) of clips.
+ModelToolsCliResult runModelEvents(const QStringList &arguments);
+// `model declarations`: Doom 3 .def and model sets, QuakeC $frame macros,
+// Quake II frame headers and GZDoom MODELDEF from an editable source.
+ModelToolsCliResult runModelDeclarations(const QStringList &arguments);
 } // namespace vibestudio::cli

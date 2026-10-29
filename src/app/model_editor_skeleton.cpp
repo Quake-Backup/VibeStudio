@@ -10,6 +10,8 @@
 #include "app/model_skeletal_working_set_dialog.h"
 #include "app/model_ik_dialog.h"
 #include "app/model_clip_import_dialog.h"
+#include "app/model_declarations_dialog.h"
+#include "app/model_events_dialog.h"
 #include "app/model_animation_curves_dialog.h"
 #include "app/model_curve_keys_dialog.h"
 #include "app/model_curve_transfer_dialog.h"
@@ -26,6 +28,7 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFileInfo>
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QLocale>
@@ -359,6 +362,39 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		else m_status->setText(Text::tr("Imported clip %1.").arg(m_document.mesh().skeleton.clips.last().name));
 	});
 	form->addRow(importClip);
+	auto *events = new WrappingActionButton(Text::tr("Animation Events…"), 2);
+	events->setObjectName(QStringLiteral("editMeshAnimationEvents"));
+	events->setAccessibleName(Text::tr("Animation events"));
+	events->setAccessibleDescription(Text::tr("Add sounds, footsteps and other game-side frame commands to frames of a clip. Doom 3 model declarations carry them."));
+	events->setToolTip(events->accessibleDescription());
+	connect(events, &QPushButton::clicked, this, [this] {
+		if (m_working) return;
+		m_preview->finishEditTransform(false); m_preview->pause();
+		const auto revision = m_document.revisionFingerprint();
+		ModelEventsDialog dialog(m_document.mesh(), m_preview->frame(), this);
+		if (dialog.exec() != QDialog::Accepted) return;
+		if (revision != m_document.revisionFingerprint()) {
+			m_status->setText(Text::tr("The model changed while editing events. Reopen Animation Events.")); return;
+		}
+		auto edit = dialog.edit();
+		edit.selection = m_document.selection();
+		QString error;
+		if (!applyEdit(edit, &error)) m_status->setText(error);
+		else m_status->setText(Text::tr("Updated the animation events."));
+	});
+	form->addRow(events);
+	auto *declarations = new WrappingActionButton(Text::tr("Game Declarations…"), 2);
+	declarations->setObjectName(QStringLiteral("exportMeshDeclarations"));
+	declarations->setAccessibleName(Text::tr("Game declarations"));
+	declarations->setAccessibleDescription(Text::tr("Generate a Doom 3 model declaration and model set, QuakeC frame macros, a Quake II frame header or a GZDoom MODELDEF from this model."));
+	declarations->setToolTip(declarations->accessibleDescription());
+	connect(declarations, &QPushButton::clicked, this, [this] {
+		if (m_working) return;
+		m_preview->finishEditTransform(false); m_preview->pause();
+		ModelDeclarationsDialog dialog(m_document.mesh(), QFileInfo(m_document.path()).fileName(), this);
+		dialog.exec();
+	});
+	form->addRow(declarations);
 	// The pose clipboard commands (model_editor_pose.cpp) on the shown sample.
 	for (const auto &item : {qMakePair(QStringLiteral("meshCopyPose"), Text::tr("Copy the shown pose of the selected joint and its children, or of every joint, to the clipboard.")),
 							 qMakePair(QStringLiteral("meshPastePose"), Text::tr("Paste the copied pose or keys at the shown clip sample, replacing keys there.")),

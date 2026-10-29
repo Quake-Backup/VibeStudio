@@ -907,6 +907,19 @@ fewer levels than the source stores, or none, **Stage in Package** stages the
 model with the levels the target loads, and the report says which stay in the
 source.
 
+### Write game declarations
+
+Games need more than the model file. Choose **Skeleton** > **Game
+Declarations…** to generate a Doom 3 model declaration, QuakeC `$frame`
+macros, a Quake II frame header or a GZDoom MODELDEF from the model, then
+**Copy** or **Save As…**. For Doom 3, **Export Model Set…** writes the md5mesh,
+every clip as an md5anim and the `.def` into a game folder in one step.
+
+Footsteps, sounds and attack triggers belong on frames: choose **Skeleton** >
+**Animation Events…**, pick the clip, **Add Event** and type the command, such
+as `sound_body snd_footstep`. Doom 3 declarations write events as frame
+commands. See [animation events and game declarations](../MODEL_GAME_DECLARATIONS.md).
+
 ## Manipulate joints in the viewport
 
 Choose a joint in **Skeleton**, or select **Joints** in the component table.
@@ -1029,7 +1042,9 @@ for boundary behaviour and the `model curve-transfer` CLI.
   shared viewport handles and numeric joint,
   weight and skeletal pose tools are available.
   Game animation scripts (Jedi Academy `animation.cfg`,
-  Wolfenstein scripts, GZDoom MODELDEF) are not read.
+  Wolfenstein scripts, GZDoom MODELDEF) are not read; Doom 3 `.def` frame
+  commands are, and VibeStudio writes Doom 3, QuakeC, Quake II and GZDoom
+  declarations.
 - A skeletal clip too long for the editable frame budget on its own cannot
   join the working set: edit it through the skeletal tools, which preview one
   sample at a time. See [the working set limits](../MODEL_SKELETAL_WORKING_SET.md#limits).
@@ -1074,6 +1089,7 @@ vibestudio --cli model controls --profile 3ds-max --section keys
 | Retime, duplicate, remove or reduce selected skeletal keys | `model curve-keys` |
 | Assemblies, and opening or publishing a Quake III player | `model assembly` |
 | Build game files or detail levels | `model build`, `model lod`, `model targets`, `model prepare` |
+| Animation events and game declarations (Doom 3 `.def`, QuakeC, Quake II, GZDoom) | `model events`, `model declarations` |
 | Controls profiles, and print, check, share or reset controls | `model profiles`, `model controls` |
 | Recovery copies | `model recoveries`, `model recover` |
 | Place an MD3 in a Quake III map | `map place-model` |
@@ -1088,6 +1104,7 @@ See [Command line](cli.md) for options and exit codes.
 - [Skin weights through mesh edits](../MODEL_SKIN_PROVENANCE.md): how edits keep, interpolate and mirror joint weights.
 - [Native formats and skeletons](../MODEL_FORMATS.md) and [modeller profiles](../MODELLER_PROFILES.md).
 - [Delivery targets](../MODEL_TARGETS.md) and [detail levels](../MODEL_LOD.md): each engine's limits, Prepare for Target and linked detail levels.
+- [Animation events and game declarations](../MODEL_GAME_DECLARATIONS.md): frame commands, Doom 3 `.def` and model sets, QuakeC, Quake II and GZDoom output.
 - [Model design](../MODEL_DESIGN.md) and [model assemblies](../MODEL_ASSEMBLY.md): props and linked models.
 - [Model collision](../MODEL_COLLISION.md), [material slots](../MODEL_MATERIAL_SLOTS.md) and [skin variants](../MODEL_SKIN_VARIANTS.md).
 - [Modeller release checklist](../MODELLER_RELEASE.md): what has and has not been verified.

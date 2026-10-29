@@ -245,6 +245,14 @@ specification (MIT) and q3map2 in [q3mapx](https://github.com/themuffinator/q3ma
 reviewed 2026-10-22. They supplied facts and conventions only; no engine code is
 copied. See [Model Delivery Targets And The Skeletal Writer Oracle](docs/CREDITS.md#model-delivery-targets-and-the-skeletal-writer-oracle-2026-10-22).
 
+The modeller's chain inverse kinematics follows the published FABRIK
+(Aristidou and Lasenby, 2011) and cyclic coordinate descent algorithms, and its
+game declarations follow the Doom 3, Quake and Quake II GPL sources (`.def`
+model declarations and frame commands, QuakeC `$frame` macros, `m_*.h` frame
+headers) and the [ZDoom wiki's MODELDEF](https://zdoom.org/wiki/MODELDEF)
+reference, all read 2026-10-28; original code, nothing copied. See
+[Modeller Animation Authoring](docs/CREDITS.md#modeller-animation-authoring-2026-10-28).
+
 Quake III player package team skins, custom sounds, detail levels and the
 `tag_weapon` check, opening an existing player as an assembly, and skin variants'
 `.skin` files and Doom 3 skin declarations,

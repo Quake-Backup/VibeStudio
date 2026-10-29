@@ -106,6 +106,18 @@ pose validation, with guarded `.mesh.json` outputs and `--dry-run`. See
 [animation curves](../MODEL_ANIMATION_CURVES.md#automate-curve-edits) for options
 and examples. Native game exports receive sampled motion.
 
+`model events` lists and edits animation events, the game-side frame commands
+on clip frames (`--operation add --clip N --frame N --command "sound_body
+snd_footstep"`). `model declarations --target doom3|quakec|quake2|gzdoom`
+prints or writes the Doom 3 model declaration, QuakeC `$frame` macros, Quake II
+frame header or GZDoom MODELDEF generated from a source; `--target doom3 --set
+DIR` writes the md5mesh, every clip's md5anim and the `.def`. See
+[game declarations](../MODEL_GAME_DECLARATIONS.md).
+
+```sh
+vibestudio --cli model declarations ./models/imp.mesh.json --target doom3 --name monster_imp --set ./out/base --json
+```
+
 `model ik` solves two-bone inverse kinematics over an inclusive clip sample
 range with an explicit end joint, target and pole. `--root-joint` with
 `--solver fabrik|ccd` solves a longer chain, `--limits` keeps it within the
