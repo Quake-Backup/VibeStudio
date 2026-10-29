@@ -55,6 +55,8 @@ class ModelSessionDraftWriter;
 class ModelWeightPaintDialog;
 class ModelAnimationCurvesDialog;
 struct ModelSessionDraft;
+struct ModelStageReview;
+struct ModelStageSet;
 struct ModelSourceWatchState;
 struct ModelOutputsState;
 struct ModelOutputRecord;
@@ -212,6 +214,12 @@ class ModelEditorDialog final : public QDialog
 	std::function<int(const QString &)> sessionDraftPrompt;
 	// The staged-session sidecar being kept now, or empty.
 	[[nodiscard]] QString sessionDraftPath() const;
+	// Stage in Package's review (app/model_editor_stage_review.cpp): the shell
+	// compares the set with its package plan and the materials with its
+	// package view; without it the editor stages directly. Tests answer the
+	// review without the dialog: 0 cancels, 1 stages, 2 stages replacing files.
+	std::function<ModelStageReview(const ModelStageSet &, const ModelMesh &)> reviewStage;
+	std::function<int(const ModelStageReview &)> stageReviewChoice;
 	[[nodiscard]] bool recoveryBusy() const;
 	[[nodiscard]] QString recoveryPath() const;
 	[[nodiscard]] bool operationBusy() const;
@@ -462,6 +470,8 @@ class ModelEditorDialog final : public QDialog
 	bool m_sessionDraftActive = false;
 	QByteArray m_sessionDraftBase;
 	QString m_sessionDraftOwner;
+	QCheckBox *m_stageClips = nullptr, *m_stageSkins = nullptr;
+	bool confirmStage(const ModelStageSet &set, bool place, bool *replace);
 	void watchSessionDraft(ModelWeightPaintDialog &dialog);
 	void watchSessionDraft(ModelAnimationCurvesDialog &dialog);
 	void beginSessionDraft();

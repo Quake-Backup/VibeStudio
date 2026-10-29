@@ -39,6 +39,10 @@ struct ModelStageRequest
 	QString baseDirectory;
 	// Refuse the set when a material it uses is missing from the package.
 	bool requireMaterials = false;
+	// MD3: Quake III .skin files beside the model, <name>_default.skin for the
+	// primary materials and <name>_<variant>.skin for each skin variant, as
+	// the game loads a player part's skins.
+	bool skins = false;
 };
 
 struct ModelStageEntry
@@ -59,6 +63,34 @@ struct ModelStageSet
 	[[nodiscard]] qint64 totalBytes() const;
 };
 
+// What staging an entry does to the package plan.
+enum class ModelStageEntryState
+{
+	New,
+	ReplacesPackageFile,
+	ReplacesStagedFile
+};
+struct ModelStageReviewEntry
+{
+	QString virtualPath;
+	QString role;
+	qint64 bytes = 0;
+	ModelStageEntryState state = ModelStageEntryState::New;
+};
+// The review before staging: each entry against the package plan, the
+// materials the model uses against the package view, and the export notes.
+struct ModelStageReview
+{
+	QVector<ModelStageReviewEntry> entries;
+	QStringList notes;
+	LevelDependencyReport dependencies;
+	bool dependenciesReviewed = false;
+	QString packagePath;
+	// Entries that would replace a package or staged file.
+	[[nodiscard]] int conflicts() const;
+	[[nodiscard]] qint64 totalBytes() const;
+};
+
 // The package suffixes stageModelSet accepts.
 [[nodiscard]] QStringList modelStageSuffixes();
 // A safe package path for the format, and bytes that start like it.
@@ -68,6 +100,17 @@ bool checkModelStageEntry(const QString &virtualPath, const QByteArray &bytes, Q
 // fails, and missing materials when the request requires them.
 bool prepareModelStageSet(const ModelMesh &mesh, const ModelStageRequest &request, const PackageArchiveReader *view, ModelStageSet *set,
 						  QString *error = nullptr, const ModelWorkControl &control = {});
+// The files a model brings beside its own (and its detail levels): an
+// md5mesh's clips as md5anims, and with `skins` an MD3's .skin files. The
+// Mesh Editor stages them with the model it prepared; prepareModelStageSet
+// calls it too.
+bool prepareModelStageExtras(const ModelMesh &mesh, const ModelStageRequest &request, QVector<ModelStageEntry> *entries,
+							 QStringList *notes = nullptr, QString *error = nullptr, const ModelWorkControl &control = {});
+// Compares each entry with the package plan without case, as the game file
+// systems do. Dependencies are left for the caller (they need a package view).
+[[nodiscard]] ModelStageReview reviewModelStageSet(const ModelStageSet &set, const PackageStagingModel *staging);
+[[nodiscard]] QString modelStageEntryStateText(ModelStageEntryState state);
+[[nodiscard]] QString modelStageEntryStateId(ModelStageEntryState state);
 // Stages every entry as one package operation group; on any failure the plan
 // is unchanged.
 bool stageModelSet(const ModelStageSet &set, PackageStagingModel *staging, bool replaceExisting, QString *error = nullptr);

@@ -907,6 +907,8 @@ app_sources = files(
   'app/model_recovery_writer.cpp',
   'app/model_session_draft_writer.cpp',
   'app/model_session_drafts.cpp',
+  'app/model_stage_review_dialog.cpp',
+  'app/model_editor_stage_review.cpp',
   'app/model_recovery_dialog.cpp',
   'app/package_operation_dialog.cpp',
   'app/package_progress.cpp',
@@ -4189,6 +4191,14 @@ model_session_draft_ui_smoke_test = executable(
   install: false,
 )
 test('model-session-draft-ui-smoke', model_session_draft_ui_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 300)
+model_stage_review_ui_smoke_test = executable(
+  'model_stage_review_ui_smoke_test',
+  ['tests/model_stage_review_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep],
+  install: false,
+)
+test('model-stage-review-ui-smoke', model_stage_review_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_editor_ui_smoke_test = executable(
   'model_editor_ui_smoke_test',

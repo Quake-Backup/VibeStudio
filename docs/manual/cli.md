@@ -479,6 +479,9 @@ MDL or MD2 in a Quake map and an MD3 or ASE in a Quake III map, with optional
 vibestudio --cli model stage ./models/crate.mesh.json --package ./mymod.pk3 --as models/props/crate.md3 --lod 2 --output ./out/mymod.pk3 --dry-run --json
 ```
 
+`model stage --skins` stages an MD3's Quake III skins beside it, as
+`name_default.skin` and one `name_<variant>.skin` per skin variant.
+
 `model recoveries --json` says for each copy whether its source is `unchanged`,
 `changed`, `missing`, `unreadable` or `unsaved` (`sourceState`), and lists the
 weight strokes or curves staged but not applied when the studio stopped

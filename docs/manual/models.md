@@ -888,12 +888,21 @@ Right-click a placed entity with a `model` key in a view or the object list for
 
 **Stage in Package** stages the model the **Package path** names: an MD3
 together with the detail levels the source stores, as one package step that one
-undo removes, or one MDL, MD2, md5mesh, md5anim, IQM or ASE file. Each file is
-checked first (a safe path, shorter than 64 bytes for MDL, MD2 and MD3, and the
-format's own header). `model stage` stages the same sets from the command line,
-adds generated detail levels (`--lod`) and an md5mesh's clips as md5anims beside
-it, and reviews the materials the model uses against the package, reporting any
-that are missing.
+undo removes, or one MDL, MD2, md5mesh, md5anim, IQM or ASE file. With **Stage
+clips beside an MD5 mesh** (on by default) an md5mesh brings each clip as an
+md5anim beside it; with **Stage skins beside an MD3** an MD3 brings
+`name_default.skin` and one `name_variant.skin` per skin variant, as Quake III
+loads a player part's skins. Each file is checked first (a safe path, shorter
+than 64 bytes for MDL, MD2, MD3 and skins, and the format's own header).
+
+Before anything is staged a review lists every file with its role and size and
+whether it is **New**, **Replaces a package file** or **Replaces a staged
+file**, the materials the model uses with their status in the package, and the
+export notes. **Stage** stays unavailable while files would be replaced until
+you choose **Replace existing package files**; **Cancel** leaves the package
+plan as it was. `model stage` stages the same sets from the command line, adds
+generated detail levels (`--lod`), clips (`--md5-clips`) and skins (`--skins`),
+and reviews the materials against the package, reporting any that are missing.
 
 ### Delivery targets
 

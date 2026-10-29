@@ -1203,7 +1203,15 @@ selected faces/islands to create independent UV corners when needed by export.
 primitive designer's package/map service. The package-path extension selects the format: MDL, MD2,
 MD3, md5mesh, md5anim, IQM or ASE, each checked by `checkModelStageEntry`
 (core/model_stage.h). An MD3 stages with its stored detail levels as one package
-step. Placement goes through the shared service (core/level_model_placement.h): a
+step; **Stage clips beside an MD5 mesh** and **Stage skins beside an MD3** add
+`prepareModelStageExtras` (md5anims of every clip; `name_default.skin` and
+`name_<variant>.skin` from `writeModelQ3Skin`) on the same worker. Before
+anything is staged, the shell's `reviewModelStageSet` compares each entry with
+the package plan (new, replaces a package file, replaces a staged file) and
+`inspectModelMaterialDependencies` reviews the materials against the package
+view; app/model_stage_review_dialog.h shows both with the export notes, and
+staging over existing files needs **Replace existing package files** there. An
+editor hosted without a package plan stages directly. Placement goes through the shared service (core/level_model_placement.h): a
 Quake III map bakes MD3, ASE, MDC, MD2, OBJ, LWO and FM as `misc_model`, a Quake
 map places MDL and MD2 (other formats with a source-port warning) as the class the
 loaded definitions use. The shell prepares the package and the map on copies and

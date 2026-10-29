@@ -9,6 +9,7 @@
 #include "core/model_document.h"
 #include "core/model_mesh.h"
 #include "core/model_stage.h"
+#include "core/model_skin_variants.h"
 #include "core/package_archive.h"
 #include "core/package_staging.h"
 #include "tests/package_subset_test_helpers.h"
@@ -194,6 +195,31 @@ int main(int argc, char **argv)
 	ok &= expect(image.save(folder.filePath(QStringLiteral("textures/test/crate.jpg"))) && withImage.load(folder.path(), &error) &&
 					 prepareModelStageSet(prop, request, &withImage, &reviewed, &error) && reviewed.dependencies.missingCount == 0,
 				 "the material is satisfied once the package has its image");
+	// The review before staging: the model replaces a package file, its detail level is new.
+	const auto planReview = reviewModelStageSet(reviewed, &staging);
+	ok &= expect(planReview.entries.size() == 2 && planReview.entries.first().state == ModelStageEntryState::ReplacesPackageFile &&
+					 planReview.entries.last().state == ModelStageEntryState::New && planReview.conflicts() == 1 &&
+					 modelStageEntryStateId(ModelStageEntryState::ReplacesStagedFile) == QStringLiteral("replaces-staged-file"),
+				 "the review says which entries replace package files");
+	// Quake III skins beside an MD3: the default and one per variant.
+	auto skinned = prop;
+	ModelSkinVariant red;
+	red.name = QStringLiteral("red");
+	red.bindings = {{skinned.surfaces.first().name, QStringLiteral("textures/test/red")}};
+	skinned.skinVariants = {red};
+	ModelStageRequest skinRequest;
+	skinRequest.virtualPath = QStringLiteral("models/props/crate.md3");
+	skinRequest.lodLevels = 0;
+	skinRequest.skins = true;
+	ModelStageSet withSkins;
+	ok &= expect(prepareModelStageSet(skinned, skinRequest, nullptr, &withSkins, &error) && withSkins.entries.size() == 3 &&
+					 withSkins.entries.at(1).virtualPath == QStringLiteral("models/props/crate_default.skin") &&
+					 withSkins.entries.at(2).virtualPath == QStringLiteral("models/props/crate_red.skin") &&
+					 withSkins.entries.at(2).role == QStringLiteral("skin") && withSkins.entries.at(2).bytes.contains("textures/test/red"),
+				 "skins stage beside the MD3 as name_default.skin and name_variant.skin");
+	ok &= expect(!checkModelStageEntry(QStringLiteral("models/props/crate_default.skin"), QByteArray("no records")) &&
+					 checkModelStageEntry(QStringLiteral("models/props/crate_default.skin"), QByteArray("body,textures/test/crate\n")),
+				 "a skin entry must hold surface,shader records");
 	const auto operations = staging.operations().size();
 	ok &= expect(!stageModelSet(reviewed, &staging, false, &error) && staging.operations().size() == operations,
 				 "a conflicting entry blocks the whole set without replacing");

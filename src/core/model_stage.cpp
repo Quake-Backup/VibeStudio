@@ -2,6 +2,8 @@
 
 #include "core/model_lod.h"
 #include "core/model_skeletal_export.h"
+#include "core/model_skin_bindings.h"
+#include "core/model_skin_variants.h"
 #include "core/package_archive.h"
 
 #include <QCoreApplication>
@@ -9,6 +11,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QJsonArray>
+#include <QSet>
 
 #include <algorithm>
 
@@ -46,15 +49,24 @@ bool checkModelStageEntry(const QString &virtualPath, const QByteArray &bytes, Q
 {
 	const auto normalized = normalizePackageVirtualPath(virtualPath, false);
 	const QString suffix = QFileInfo(normalized.normalizedPath).suffix().toLower();
-	if (!normalized.isSafe() || normalized.normalizedPath.isEmpty() || !modelStageSuffixes().contains(suffix))
+	const bool skin = suffix == QStringLiteral("skin");
+	if (!normalized.isSafe() || normalized.normalizedPath.isEmpty() || (!modelStageSuffixes().contains(suffix) && !skin))
 		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "Choose a safe MD3, MDL, MD2, MD5, IQM or ASE package path: %1")
 							   .arg(virtualPath));
-	// The Quake engines keep model paths in 64-byte fields (MAX_QPATH).
-	if (quakeFamily(suffix) && normalized.normalizedPath.toUtf8().size() >= 64)
+	// The Quake engines keep model and skin paths in 64-byte fields (MAX_QPATH).
+	if ((quakeFamily(suffix) || skin) && normalized.normalizedPath.toUtf8().size() >= 64)
 		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "%1 is 64 bytes or longer; the game cannot load it.")
 							   .arg(normalized.normalizedPath));
 	if (bytes.size() > modelDocumentMaxSourceBytes)
 		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "%1 is larger than 64 MiB.").arg(normalized.normalizedPath));
+	// A Quake III .skin is text: "surface,shader" records.
+	if (skin)
+	{
+		if (bytes.trimmed().isEmpty() || bytes.contains('\0') || !bytes.contains(','))
+			return fail(error, QCoreApplication::translate("VibeStudioModelStage", "%1 does not hold a Quake III skin.")
+								   .arg(normalized.normalizedPath));
+		return true;
+	}
 	// Each format's own header (IDPO, IDP2, IDP3, MD5Version 10, INTERQUAKEMODEL, *3DSMAX_ASCIIEXPORT).
 	const QByteArray head = bytes.left(64).trimmed();
 	const bool matches = suffix == QStringLiteral("mdl")	   ? bytes.startsWith("IDPO") && bytes.size() >= 68
@@ -114,30 +126,8 @@ bool prepareModelStageSet(const ModelMesh &mesh, const ModelStageRequest &reques
 			return false;
 		result.notes += report.notes;
 	}
-	if (suffix == QStringLiteral("md5mesh") && !mesh.skeleton.clips.isEmpty())
-	{
-		// Each clip's md5anim beside the mesh, as Doom 3 and Quake 4 .def files name them.
-		QVector<int> clips = request.clips;
-		if (request.allClips && clips.isEmpty())
-		{
-			for (int clip = 0; clip < mesh.skeleton.clips.size(); ++clip)
-				clips << clip;
-		}
-		const QString folder = QFileInfo(base).path();
-		for (const int clip : std::as_const(clips))
-		{
-			if (clip < 0 || clip >= mesh.skeleton.clips.size())
-				return fail(error, QCoreApplication::translate("VibeStudioModelStage", "There is no clip %1 to stage.").arg(clip));
-			auto options = request.options;
-			options.clip = clip;
-			ModelExportReport report;
-			const auto bytes = exportEditableModel(mesh, QStringLiteral("md5anim"), options, error, control, &report);
-			const QString name = modelMd5ClipFileName(mesh.skeleton, clip);
-			if (bytes.isEmpty() || !add(folder == QStringLiteral(".") ? name : folder + QLatin1Char('/') + name, bytes, QStringLiteral("animation")))
-				return false;
-			result.notes += report.notes;
-		}
-	}
+	if (!prepareModelStageExtras(mesh, request, &result.entries, &result.notes, error, control))
+		return false;
 	// Two entries at one path would stage over each other.
 	QStringList paths;
 	for (const auto &entry : std::as_const(result.entries))
@@ -161,6 +151,138 @@ bool prepareModelStageSet(const ModelMesh &mesh, const ModelStageRequest &reques
 	result.notes.removeDuplicates();
 	*set = std::move(result);
 	return true;
+}
+
+bool prepareModelStageExtras(const ModelMesh &mesh, const ModelStageRequest &request, QVector<ModelStageEntry> *entries, QStringList *notes,
+							 QString *error, const ModelWorkControl &control)
+{
+	if (!entries)
+		return false;
+	const QString base = normalizePackageVirtualPath(request.virtualPath, false).normalizedPath;
+	const QString suffix = QFileInfo(base).suffix().toLower();
+	const QString folder = QFileInfo(base).path();
+	const QString prefix = folder == QStringLiteral(".") || folder.isEmpty() ? QString() : folder + QLatin1Char('/');
+	QVector<ModelStageEntry> added;
+	const auto add = [&](const QString &path, const QByteArray &bytes, const QString &role)
+	{
+		if (!checkModelStageEntry(path, bytes, error))
+			return false;
+		added.append({normalizePackageVirtualPath(path, false).normalizedPath, bytes, role});
+		return true;
+	};
+	if (suffix == QStringLiteral("md5mesh") && !mesh.skeleton.clips.isEmpty())
+	{
+		// Each clip's md5anim beside the mesh, as Doom 3 and Quake 4 .def files name them.
+		QVector<int> clips = request.clips;
+		if (request.allClips && clips.isEmpty())
+		{
+			for (int clip = 0; clip < mesh.skeleton.clips.size(); ++clip)
+				clips << clip;
+		}
+		for (const int clip : std::as_const(clips))
+		{
+			if (clip < 0 || clip >= mesh.skeleton.clips.size())
+				return fail(error, QCoreApplication::translate("VibeStudioModelStage", "There is no clip %1 to stage.").arg(clip));
+			auto options = request.options;
+			options.clip = clip;
+			ModelExportReport report;
+			const auto bytes = exportEditableModel(mesh, QStringLiteral("md5anim"), options, error, control, &report);
+			if (bytes.isEmpty() || !add(prefix + modelMd5ClipFileName(mesh.skeleton, clip), bytes, QStringLiteral("animation")))
+				return false;
+			if (notes)
+				*notes += report.notes;
+		}
+	}
+	if (suffix == QStringLiteral("md3") && request.skins)
+	{
+		// Quake III loads a player part's skins as <part>_<skin>.skin beside it
+		// (CG_RegisterClientSkin in code/cgame/cg_players.c); "default" is the
+		// primary materials.
+		const QString stem = QFileInfo(base).completeBaseName();
+		const auto skin = [&](const ModelMesh &skinned, const QString &name)
+		{
+			QByteArray bytes;
+			return writeModelQ3Skin(skinned, &bytes, error, control) &&
+				   add(prefix + stem + QLatin1Char('_') + name + QStringLiteral(".skin"), bytes, QStringLiteral("skin"));
+		};
+		if (!skin(mesh, QStringLiteral("default")))
+			return false;
+		for (const auto &variant : mesh.skinVariants)
+		{
+			ModelMesh applied;
+			QStringList inherited;
+			if (!applyModelSkinVariant(mesh, variant, &applied, error, &inherited) || !skin(applied, variant.name))
+				return false;
+		}
+	}
+	*entries += added;
+	return true;
+}
+
+int ModelStageReview::conflicts() const
+{
+	return int(std::count_if(entries.cbegin(), entries.cend(), [](const ModelStageReviewEntry &entry) { return entry.state != ModelStageEntryState::New; }));
+}
+
+qint64 ModelStageReview::totalBytes() const
+{
+	qint64 total = 0;
+	for (const auto &entry : entries)
+		total += entry.bytes;
+	return total;
+}
+
+ModelStageReview reviewModelStageSet(const ModelStageSet &set, const PackageStagingModel *staging)
+{
+	ModelStageReview review;
+	review.notes = set.notes;
+	review.dependencies = set.dependencies;
+	QSet<QString> base, planned;
+	if (staging && staging->isLoaded())
+	{
+		review.packagePath = staging->sourcePath();
+		for (const auto &entry : staging->beforeEntries())
+			base.insert(entry.virtualPath.toLower());
+		for (const auto &entry : staging->plannedEntries())
+			planned.insert(entry.virtualPath.toLower());
+	}
+	for (const auto &entry : set.entries)
+	{
+		const auto key = entry.virtualPath.toLower();
+		const auto state = !planned.contains(key) ? ModelStageEntryState::New
+						   : base.contains(key)	  ? ModelStageEntryState::ReplacesPackageFile
+												  : ModelStageEntryState::ReplacesStagedFile;
+		review.entries.append({entry.virtualPath, entry.role, qint64(entry.bytes.size()), state});
+	}
+	return review;
+}
+
+QString modelStageEntryStateId(ModelStageEntryState state)
+{
+	switch (state)
+	{
+	case ModelStageEntryState::ReplacesPackageFile:
+		return QStringLiteral("replaces-package-file");
+	case ModelStageEntryState::ReplacesStagedFile:
+		return QStringLiteral("replaces-staged-file");
+	case ModelStageEntryState::New:
+		break;
+	}
+	return QStringLiteral("new");
+}
+
+QString modelStageEntryStateText(ModelStageEntryState state)
+{
+	switch (state)
+	{
+	case ModelStageEntryState::ReplacesPackageFile:
+		return QCoreApplication::translate("VibeStudioModelStage", "Replaces a package file");
+	case ModelStageEntryState::ReplacesStagedFile:
+		return QCoreApplication::translate("VibeStudioModelStage", "Replaces a staged file");
+	case ModelStageEntryState::New:
+		break;
+	}
+	return QCoreApplication::translate("VibeStudioModelStage", "New");
 }
 
 bool stageModelSet(const ModelStageSet &set, PackageStagingModel *staging, bool replaceExisting, QString *error)

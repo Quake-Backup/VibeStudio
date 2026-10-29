@@ -2236,6 +2236,9 @@ Each resolved path may be a definition file or a folder of them.
   drops one; `--receipt PACKAGE [--assembly FILE]` checks a player package's
   embedded receipt. `model build` and `model lod` record receipts for sources in a
   project. See [Model Outputs and Receipts](MODEL_OUTPUTS.md).
+- [x] `model stage --skins` also stages an MD3's Quake III skins
+  (`name_default.skin`, `name_<variant>.skin`) in the same package step; entries
+  report `role: "skin"`.
 - [x] Model commands share a cancellation token (core/cli_cancellation.h):
   `model import`, `model edit`, `model build`, `model stage`, `model outputs`,
   `model tool` and `model lod` take it.

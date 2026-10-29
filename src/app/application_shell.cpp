@@ -86,6 +86,8 @@
 #include "core/model_mesh.h"
 #include "core/model_frame_export.h"
 #include "core/level_model_placement.h"
+#include "core/level_dependencies.h"
+#include "core/model_stage.h"
 #include "core/model_outputs.h"
 #include "core/ai_connectors.h"
 #include "core/ai_audio_transport.h"
@@ -20895,6 +20897,12 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial, const QString& 
 		recordActivity(tr("Mesh Handoff"), files.isEmpty() ? QString() : files.first().path, tr("package"), OperationState::Completed,
 		    tr("Edited model and its detail levels staged as one package step."));
 		return true;
+	};
+	// Modeller: Stage in Package's review against the package plan and view (core/model_stage.h).
+	editor->reviewStage = [this](const ModelStageSet& set, const ModelMesh& mesh) {
+		auto review = reviewModelStageSet(set, &m_packageStaging);
+		if (const auto& view = packageViewArchive(); view.isOpen()) { review.dependencies = inspectModelMaterialDependencies(mesh, view); review.dependenciesReviewed = true; }
+		return review;
 	};
 	// Modeller: the detail files already beside a staged MD3, for the editor's review.
 	editor->readPackageFiles = [this](const QStringList& paths) {

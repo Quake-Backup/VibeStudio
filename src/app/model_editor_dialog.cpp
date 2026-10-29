@@ -12,6 +12,7 @@
 #include "app/model_recovery_dialog.h"
 #include "app/model_recovery_writer.h"
 #include "app/model_session_draft_writer.h"
+#include "core/model_stage.h"
 #include "app/model_skeletal_working_set_dialog.h"
 #include "app/model_uv_view.h"
 #include "app/model_viewport.h"
@@ -1005,11 +1006,23 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	m_virtualPath->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Model package path"));
 	m_virtualPath->setToolTip(QCoreApplication::translate(
 		"VibeStudioModelEditor", "Use .mdl for Quake, .md2 for Quake II or .md3 for Quake III. Export limits apply when staging. "
-								 "The editable source retains authoring metadata. Level placement currently requires MD3."));
+								 "The editable source retains authoring metadata. Stage and Place accepts the formats the open map places."));
 	connect(m_virtualPath, &QLineEdit::textChanged, this, [this] { refreshContext(); });
 	handoffPage->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Package path"), m_virtualPath);
 	m_replace = new WrappingCheckBox(QCoreApplication::translate("VibeStudioModelEditor", "Replace existing entry"));
 	handoffPage->addRow(m_replace);
+	// The files a model brings beside it, staged in the same step (core/model_stage.h).
+	m_stageClips = new WrappingCheckBox(QCoreApplication::translate("VibeStudioModelEditor", "Stage clips beside an MD5 mesh"));
+	m_stageClips->setObjectName(QStringLiteral("meshStageClips"));
+	m_stageClips->setChecked(true);
+	m_stageClips->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
+														 "Stage every skeletal clip as an md5anim beside an .md5mesh, in the same package step."));
+	handoffPage->addRow(m_stageClips);
+	m_stageSkins = new WrappingCheckBox(QCoreApplication::translate("VibeStudioModelEditor", "Stage skins beside an MD3"));
+	m_stageSkins->setObjectName(QStringLiteral("meshStageSkins"));
+	m_stageSkins->setToolTip(QCoreApplication::translate(
+		"VibeStudioModelEditor", "Stage name_default.skin and one name_variant.skin per skin variant beside an .md3, as Quake III loads player skins."));
+	handoffPage->addRow(m_stageSkins);
 	addStrictExportControl(handoffPage);
 	values(handoffPage, QCoreApplication::translate("VibeStudioModelEditor", "Level origin"), QStringLiteral("meshPlacement"), m_placement,
 		   3, 0);
@@ -2557,6 +2570,8 @@ void ModelEditorDialog::refreshContext()
 	// A context that names no formats places MD3, as Stage and Place always did.
 	const QStringList placeable = current.placeSuffixes.isEmpty() ? QStringList{QStringLiteral("md3")} : current.placeSuffixes;
 	m_place->setEnabled(bool(handoff) && current.canStage && current.canPlace && placeable.contains(suffix));
+	m_stageClips->setEnabled(suffix == QStringLiteral("md5mesh"));
+	m_stageSkins->setEnabled(suffix == QStringLiteral("md3"));
 	m_place->setToolTip(current.placeSuffixes.isEmpty()
 							? QCoreApplication::translate("VibeStudioModelEditor", "Open a Quake-family map to place the model.")
 							: QCoreApplication::translate("VibeStudioModelEditor", "This map places %1 models.")
@@ -2779,16 +2794,27 @@ void ModelEditorDialog::stage(bool place)
 	const auto baseDirectory = m_document.path().isEmpty() ? QString() : QFileInfo(m_document.path()).absolutePath();
 	ModelLodSet levels;
 	ModelLodSiblingReview siblings;
+	// md5anim clips beside an md5mesh and .skin files beside an MD3, when chosen.
+	ModelStageRequest extrasRequest;
+	extrasRequest.virtualPath = path;
+	extrasRequest.options = options;
+	extrasRequest.allClips = m_stageClips->isChecked() && suffix == QStringLiteral("md5mesh");
+	extrasRequest.skins = m_stageSkins->isChecked() && suffix == QStringLiteral("md3");
+	QVector<ModelStageEntry> extras;
+	QStringList extraNotes;
 	if (!performWork(
 			QCoreApplication::translate("VibeStudioModelEditor", "Prepare Model Handoff"),
-			[suffix, options, recipe, baseDirectory, path, md3, md3Target, packageFiles, &bytes, &report, &levels, &siblings](
-				ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
+			[suffix, options, recipe, baseDirectory, path, md3, md3Target, packageFiles, extrasRequest, &bytes, &report, &levels, &siblings,
+			 &extras, &extraNotes](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
 			{
 				bytes = exportEditableModel(candidate.mesh(), suffix, options, failure, control, &report);
 				if (bytes.isEmpty())
 					return false;
 				if (!recipe.isEmpty() &&
 					!prepareModelLodFiles(candidate.mesh(), recipe, baseDirectory, path, options.target, options.strict, &levels, failure, control))
+					return false;
+				if ((extrasRequest.allClips || extrasRequest.skins) &&
+					!prepareModelStageExtras(candidate.mesh(), extrasRequest, &extras, &extraNotes, failure, control))
 					return false;
 				return !md3 || reviewModelLodSiblings(candidate.mesh(), path, int(recipe.size()), modelLodMemoryReader(packageFiles), md3Target, &siblings,
 													  failure, control);
@@ -2808,7 +2834,7 @@ void ModelEditorDialog::stage(bool place)
 										 .arg(md3Target.label)
 										 .arg(recipe.size()));
 	}
-	report.notes = notes + report.notes;
+	report.notes = notes + report.notes + extraNotes;
 	const auto siblingStatus = siblings.isEmpty() ? QString() : QLatin1Char(' ') + modelLodSiblingSummary(siblings);
 	if (context && context().packagePath != package)
 	{
@@ -2817,12 +2843,55 @@ void ModelEditorDialog::stage(bool place)
 						  LiveStatus::Problem);
 		return;
 	}
+	// Every file of the step, reviewed before anything is staged.
+	ModelStageSet set;
+	if (!recipe.isEmpty())
+	{
+		for (const auto &file : std::as_const(levels.files))
+			set.entries.append({file.path, file.bytes, file.level == 0 ? QStringLiteral("model") : QStringLiteral("detail-level")});
+	}
+	else
+	{
+		set.entries.append({normalizePackageVirtualPath(path, false).normalizedPath, bytes,
+							suffix == QStringLiteral("md5anim") ? QStringLiteral("animation") : QStringLiteral("model")});
+	}
+	set.entries += extras;
+	set.notes = report.notes;
+	if (!extras.isEmpty() && !handoffFiles)
+	{
+		m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "The clips or skins cannot be staged with the model here."),
+						  LiveStatus::Problem);
+		return;
+	}
+	bool replaceChosen = replace;
+	if (!confirmStage(set, place, &replaceChosen))
+	{
+		m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "Staging cancelled; the package plan is unchanged."));
+		return;
+	}
+	if (!extras.isEmpty())
+	{
+		QVector<ModelStagedFile> files;
+		for (const auto &entry : std::as_const(set.entries))
+			files.append({entry.virtualPath, entry.bytes});
+		if (!handoffFiles(files, place, origin, replaceChosen, &error))
+		{
+			m_status->setText(error, LiveStatus::Problem);
+			return;
+		}
+		const int more = int(files.size()) - 1;
+		presentExportReport((place ? QCoreApplication::translate("VibeStudioModelEditor", "Model and %n more file(s) staged and placed. Save the package and level separately.", nullptr, more)
+								   : QCoreApplication::translate("VibeStudioModelEditor", "Model and %n more file(s) staged as one package step. Review and save the package plan.", nullptr, more)) +
+								siblingStatus + nativeUvStatus(),
+							report);
+		return;
+	}
 	if (!recipe.isEmpty())
 	{
 		QVector<ModelStagedFile> files;
 		for (const auto &file : std::as_const(levels.files))
 			files.append({file.path, file.bytes});
-		if (!handoffFiles(files, place, origin, replace, &error))
+		if (!handoffFiles(files, place, origin, replaceChosen, &error))
 		{
 			m_status->setText(error);
 			return;
@@ -2834,7 +2903,7 @@ void ModelEditorDialog::stage(bool place)
 							report);
 		return;
 	}
-	if (!handoff(bytes, path, place, origin, replace, &error))
+	if (!handoff(bytes, path, place, origin, replaceChosen, &error))
 	{
 		m_status->setText(error, LiveStatus::Problem);
 		return;
