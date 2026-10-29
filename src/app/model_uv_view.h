@@ -3,6 +3,7 @@
 #include "app/model_uv_render.h"
 #include "core/model_uv_health.h"
 
+#include <QKeySequence>
 #include <QLabel>
 #include <QThread>
 
@@ -23,6 +24,13 @@ enum class ModelUvHealthOverlay
 };
 // The face bits an overlay shows.
 [[nodiscard]] quint8 modelUvHealthOverlayMask(ModelUvHealthOverlay overlay);
+// The UV view's modal transforms.
+enum class ModelUvModal
+{
+	None,
+	Scale,
+	Rotate
+};
 class ModelUvView final : public QLabel
 {
 	Q_OBJECT
@@ -46,6 +54,9 @@ class ModelUvView final : public QLabel
 	[[nodiscard]] const ModelUvHealthReport *health() const { return m_health.get(); }
 	// The overlay's legend and count, for the status chip and screen readers.
 	[[nodiscard]] QString healthLegend() const;
+	// UV-only copies of other surfaces sharing the material, drawn as dim
+	// dashed wires; empty hides them.
+	void setGhostSurfaces(const QVector<ModelSurface> &surfaces);
 	void frameAll();
 	void frameSelection();
 	void panView(QPointF delta);
@@ -59,6 +70,19 @@ class ModelUvView final : public QLabel
 	bool beginMove(QPointF point);
 	bool updateMove(QPointF point);
 	void finishMove(bool commit);
+	// Modal Scale and Rotate about the selection's centre, started by the
+	// editor profile's keys (setModalKeys) while the view has focus. The
+	// pointer sets the amount, digits type it exactly, X or U and Y or V
+	// limit a scale to one axis, Control snaps (0.1 and 15 degrees), Enter
+	// or a click applies one undo step, and Escape or a right click cancels.
+	void setModalKeys(const QList<QKeySequence> &scale, const QList<QKeySequence> &rotate);
+	bool beginModal(ModelUvModal mode, QPointF pointer);
+	bool updateModal(QPointF pointer, bool snap = false);
+	bool typeModal(const QString &text);
+	void constrainModal(int axis);
+	void finishModal(bool commit);
+	[[nodiscard]] ModelUvModal modal() const { return m_modal; }
+	[[nodiscard]] QString modalSummary() const;
 	[[nodiscard]] bool moving() const;
 	[[nodiscard]] ModelTexCoord moveDelta() const;
   Q_SIGNALS:
@@ -67,6 +91,8 @@ class ModelUvView final : public QLabel
 	void movePreviewChanged(double u, double v);
 	void moveRequested(double u, double v);
 	void moveActiveChanged(bool active);
+	void transformRequested(double scaleU, double scaleV, double rotation, double pivotU, double pivotV);
+	void modalPreviewChanged(const QString &summary);
 
   protected:
 	void paintEvent(QPaintEvent *event) override;
@@ -101,6 +127,16 @@ class ModelUvView final : public QLabel
 	Qt::MouseButton m_button = Qt::NoButton;
 	ModelTexCoord m_delta;
 	QString m_error;
+	ModelUvModal m_modal = ModelUvModal::None;
+	QList<QKeySequence> m_scaleKeys, m_rotateKeys;
+	QPointF m_modalPress;
+	ModelTexCoord m_modalPivot;
+	double m_modalValue = 1;
+	QString m_modalTyped;
+	int m_modalAxis = -1;
+	[[nodiscard]] QTransform modalTransform() const;
+	[[nodiscard]] ModelUvModal modalKey(const QKeyEvent *event) const;
+	QVector<ModelSurface> m_ghosts;
 	ModelUvHealthOverlay m_overlay = ModelUvHealthOverlay::None;
 	QVector<ModelVec3> m_healthPositions;
 	ModelUvHealthOptions m_healthOptions;

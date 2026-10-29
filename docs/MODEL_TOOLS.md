@@ -362,12 +362,24 @@ their mapping and vertex counts stay within MD3, MD2 and MDL budgets.
 | Cylinder Projection | U wraps once around the up axis (Z by default) and V runs down the sides with square texels. Faces across the wrap get their own corners. |
 | Sphere Projection | U wraps around the axis and V runs from pole to pole. Each face at a pole gets its own corner, as in Blender. |
 | Project From View | Projects along the current view, upright on screen. **(Bounds)** scales the result to fill the skin. |
+| Quake Front/Back Skin Layout | Faces facing +X fill the skin's left half and the rest its right half, half the skin width apart, so the MDL stores outline corners as onseam vertices. See [Quake MDL](MODEL_MESH.md#quake-mdl). |
 
 The Adjust Last Operation panel changes the projection, units per texture
 repeat or axis, and **Scale to bounds**, which fits the result into the 0–1
 skin keeping its aspect. **Unwrap and Pack** and **Pack Islands** use the UV
 panel's atlas settings, and **Mark Seam** and **Clear Seam** set the seams that
 unwrapping cuts along. Seam marks on projected faces follow their new corners.
+
+**Unwrap (Seams Only)** flattens one island per seam-bounded region with least
+squares conformal maps, with optional pins; **Weld UVs**, **Stitch UVs**,
+**Align UVs** and **Snap UVs to Texels** tidy islands; **Check UV Health** and
+the **Select … UVs** commands find stretched, overlapping, flipped and
+out-of-tile faces; **Export UV Layout…**, **Transfer Skin to New UVs…** and
+**Edit Skin…** take the skin out to paint and back. In the UV view the profile's
+Scale and Rotate keys transform the selection modally. See
+[UV health](MODEL_MESH.md#uv-health), [UV operators](MODEL_MESH.md#uv-operators),
+[conformal unwrap](MODEL_MESH.md#conformal-unwrap) and
+[UV layouts and skin transfer](MODEL_MESH.md#uv-layouts-and-skin-transfer).
 
 **Texel Density…** measures existing islands using original material dimensions
 and a chosen reference pose. Preview either matching every island to a target

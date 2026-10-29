@@ -195,6 +195,16 @@ or the compiler's WAD search path at the saved WAD2. WAD3 output and Doom
 `PNAMES`/`TEXTURE1` wall definitions are not available, so a staged Doom patch
 still needs a wall definition before a level can use it.
 
+## Paint a model skin
+
+In the **Mesh Editor**, **Export UV Layout…** writes a template of the model's
+UVs (PNG, TGA or PCX, at the skin's size) to open here and paint over, and
+**Edit Skin…** opens a model's skin directly in this editor. Staging the edited
+skin over its package path updates the model's preview. The layout is a
+separate image: the editor does not draw it as a guide over the canvas, so add
+it as a layer and hide or delete that layer before exporting. See
+[Models](models.md#paint-a-skin-over-the-uvs).
+
 ## Work with sprites
 
 - Quake and Half-Life `.spr` sprites, including frame groups, and Quake II

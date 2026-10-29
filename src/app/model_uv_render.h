@@ -26,6 +26,9 @@ struct ModelUvRenderRequest
 	QTransform camera;
 	ModelUvFit fit = ModelUvFit::All;
 	ModelTexCoord moveOffset;
+	// While moving, selected UVs are drawn through this transform (a modal
+	// scale or rotation preview) before moveOffset is added.
+	QTransform moveTransform;
 	bool moving = false, showVertices = false;
 	QColor background, foreground, accent;
 	// UV health overlay (core/model_uv_health.h): faces whose bits match
@@ -36,6 +39,9 @@ struct ModelUvRenderRequest
 	Qt::BrushStyle overlayPattern = Qt::DiagCrossPattern;
 	QColor overlayColour;
 	bool showTile = false;
+	// Other surfaces sharing the displayed material, drawn as dim dashed
+	// wires beneath this surface's so overlaps on the shared skin show.
+	QVector<ModelSurface> ghosts;
 };
 struct ModelUvRenderResult
 {

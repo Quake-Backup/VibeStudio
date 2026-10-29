@@ -4,6 +4,7 @@
 #include "app/form_row_label_lines.h"
 #include "app/model_document_work.h"
 #include "app/model_uv_view.h"
+#include "core/model_uv_atlas.h"
 #include <QAbstractTableModel>
 #include <QComboBox>
 #include <QCoreApplication>
@@ -151,10 +152,11 @@ ModelUvDensityDialog::ModelUvDensityDialog(const ModelMesh &mesh, const ModelSel
 	m_scope = new QComboBox;
 	m_scope->setMinimumContentsLength(16);
 	m_scope->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-	m_scope->addItems({Text::tr("Selected islands"), Text::tr("All surface islands")});
+	m_scope->addItems({Text::tr("Selected islands"), Text::tr("All surface islands"), Text::tr("All islands on surfaces sharing this material")});
 	m_scope->setCurrentIndex(selection.faces.isEmpty() && selection.vertices.isEmpty() && selection.edges.isEmpty() ? 1 : 0);
 	accessible(m_scope, "uvDensityScope", Text::tr("Island scope"),
-			   Text::tr("Selected components expand to whole UV islands, including any hidden faces in those islands."));
+			   Text::tr("Selected components expand to whole UV islands, including any hidden faces in those islands. Surfaces sharing "
+						"the material slot are matched together on the same skin size; the table shows the active surface."));
 	row(form, Text::tr("&Scope"), m_scope);
 	const auto integer = [&](const char *id, const QString &name, const QString &description, int low, int high, int value)
 	{
@@ -366,13 +368,18 @@ void ModelUvDensityDialog::review(bool change)
 	ModelEdit operation;
 	operation.kind = ModelEditKind::SetUvDensity;
 	operation.selection = m_selection;
-	if (m_scope->currentIndex() == 1 && m_selection.surface >= 0 && m_selection.surface < m_source.surfaces.size())
+	if (m_scope->currentIndex() >= 1 && m_selection.surface >= 0 && m_selection.surface < m_source.surfaces.size())
 	{
 		operation.selection = {m_selection.surface, {}, {}};
 		for (int f = 0; f < m_source.surfaces[m_selection.surface].triangles.size(); ++f)
 			operation.selection.faces.insert(f);
 	}
 	operation.uvDensity = {{m_width->value(), m_height->value()}, m_frame->value(), m_target->value(), m_mode->currentIndex() == 0};
+	// Surfaces sharing the material share its skin, so they share its size.
+	if (m_scope->currentIndex() == 2 && m_selection.surface >= 0 && m_selection.surface < m_source.surfaces.size())
+		for (int s = 0; s < m_source.surfaces.size(); ++s)
+			if (s != m_selection.surface && modelUvSurfacesShareMaterial(m_source.surfaces[m_selection.surface], m_source.surfaces[s]))
+				operation.uvDensity.surfaces.insert(s);
 	const auto source = m_source;
 	ModelMesh candidate;
 	ModelUvDensityReport before, after;

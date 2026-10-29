@@ -2,6 +2,7 @@
 #include "app/locale_number.h"
 #include "core/model_mdl.h"
 #include "core/model_targets.h"
+#include "core/model_skin_handoff.h"
 #include "core/model_uv_atlas.h"
 #include "core/level_materials.h"
 
@@ -117,6 +118,23 @@ QWidget *ModelEditorDialog::createUvView()
 					selectUvProblems(mask);
 			});
 	connect(check, &QAction::triggered, this, [this] { checkUvHealth(); });
+	auto *shared = action(QCoreApplication::translate("ModelUvOps", "Show Shared Surfaces"), QStringLiteral("showMeshUvShared"));
+	shared->setCheckable(true);
+	shared->setToolTip(QCoreApplication::translate("ModelUvOps", "Draw the UVs of other surfaces bound to the same material as dim dashed "
+																 "wires, so islands that would overlap on the shared skin show."));
+	connect(shared, &QAction::toggled, this, [this] { refreshUv(); });
+	// Skin round trips: a template to paint over, a repaint after UV edits,
+	// and the skin itself in the texture editor.
+	tools->addSeparator();
+	auto *layoutExport = action(QCoreApplication::translate("ModelUvLayoutDialog", "Export UV Layout…"), QStringLiteral("exportMeshUvLayout"));
+	layoutExport->setToolTip(QCoreApplication::translate("ModelUvLayoutDialog", "Write the UV layout as a skin template image to paint over, or stage it in the package."));
+	connect(layoutExport, &QAction::triggered, this, &ModelEditorDialog::exportUvLayout);
+	auto *transfer = action(QCoreApplication::translate("ModelSkinHandoff", "Transfer Skin…"), QStringLiteral("transferMeshSkin"));
+	transfer->setToolTip(QCoreApplication::translate("ModelSkinHandoff", "After a UV edit, repaint the surface's skin for the new UVs by sampling it through the old ones."));
+	connect(transfer, &QAction::triggered, this, &ModelEditorDialog::transferSkin);
+	auto *edit = action(QCoreApplication::translate("ModelSkinHandoff", "Edit Skin…"), QStringLiteral("editMeshSkin"));
+	edit->setToolTip(QCoreApplication::translate("ModelSkinHandoff", "Open the surface's skin in the texture editor. Staging it there updates the model's preview."));
+	connect(edit, &QAction::triggered, this, [this] { editSurfaceSkin(); });
 	connect(m_uvHealthOverlay, &QComboBox::currentIndexChanged, this, [this] { refreshUv(); });
 	connect(m_uvHealthStretch, &QDoubleSpinBox::valueChanged, this, [this] { refreshUv(); });
 	layout->addWidget(tools);
@@ -208,6 +226,33 @@ QWidget *ModelEditorDialog::createUvView()
 				{
 					refreshSelection();
 				}
+			});
+	// Modal Scale and Rotate in the UV view: one TransformUv about the
+	// selection's centre, as the numeric controls would apply it.
+	connect(m_uv, &ModelUvView::modalPreviewChanged, this, [this](const QString &summary) { m_status->setText(summary); });
+	connect(m_uv, &ModelUvView::transformRequested, this,
+			[this](double scaleU, double scaleV, double rotation, double pivotU, double pivotV)
+			{
+				if (m_working)
+					return;
+				ModelEdit edit;
+				edit.kind = ModelEditKind::TransformUv;
+				edit.selection = m_document.selection();
+				edit.uvScale = {float(scaleU), float(scaleV)};
+				edit.uvRotation = rotation;
+				edit.uvPivotMode = ModelUvPivot::Custom;
+				edit.uvPivot = {float(pivotU), float(pivotV)};
+				QString error;
+				if (!applyEdit(edit, &error))
+					m_status->setText(error, LiveStatus::Problem);
+				else if (rotation != 0)
+					m_status->setText(QCoreApplication::translate("VibeStudioModelUvView", "Rotated the selected UVs by %1 degrees.")
+										  .arg(localeNumber(rotation, 6)),
+									  LiveStatus::Result);
+				else
+					m_status->setText(QCoreApplication::translate("VibeStudioModelUvView", "Scaled the selected UVs by %1 × %2.")
+										  .arg(localeNumber(scaleU, 6), localeNumber(scaleV, 6)),
+									  LiveStatus::Result);
 			});
 	connect(m_uv, &ModelUvView::moveRequested, this,
 			[this](double u, double v)
@@ -680,12 +725,41 @@ void ModelEditorDialog::refreshUv()
 	m_uvPickIslands->setEnabled(m_selectionMode->currentIndex() == 0);
 	m_uv->setPickMode(m_selectionMode->currentIndex() == 0 && m_uvPickIslands->isChecked() ? 3 : m_selectionMode->currentIndex());
 	m_uv->setMoveEnabled(meshMode && m_uvMove->isChecked(), m_uvSnap->isChecked() ? m_uvGrid->value() : 0);
+	// The profile's Scale and Rotate keys start the UV view's modal transforms.
+	const auto keys = [this](const QString &command)
+	{
+		QList<QKeySequence> result;
+		for (const auto &key : modelEditorCommandKeys(m_controls, command))
+			result.append(QKeySequence::fromString(key, QKeySequence::PortableText));
+		return result;
+	};
+	m_uv->setModalKeys(keys(QStringLiteral("meshScale")), keys(QStringLiteral("meshRotate")));
 	const auto overlay = ModelUvHealthOverlay(m_uvHealthOverlay->currentIndex());
 	const int pose = std::clamp(m_preview->frame(), 0, std::max(0, int(surface.frames.size()) - 1));
 	m_uv->setHealthOverlay(overlay, overlay == ModelUvHealthOverlay::None || surface.frames.isEmpty() ? QVector<ModelVec3>{} : surface.frames[pose].positions,
 						   uvSkinSize(selected.surface), m_uvHealthStretch->value());
 	m_uvHealthStretch->setEnabled(overlay == ModelUvHealthOverlay::Stretch);
 	findChild<QAction *>(QStringLiteral("selectMeshUvProblems"))->setEnabled(meshMode && overlay != ModelUvHealthOverlay::None);
+	findChild<QAction *>(QStringLiteral("transferMeshSkin"))->setEnabled(canTransferSkin());
+	// MD2: the resolved skin image against the MD2 skin size.
+	if (m_md2SkinSizeWarning)
+	{
+		QString mismatch;
+		const auto &mesh = m_document.mesh();
+		if (mesh.surfaces.size() == 1 && !mesh.mdl.enabled)
+			for (const auto &material : m_materialAssets.materials)
+				if (material.key == modelPreviewSurfaceMaterialKey(0) && material.imagePath.endsWith(QStringLiteral(".pcx"), Qt::CaseInsensitive))
+					mismatch = modelMd2SkinSizeMismatch(mesh, material.sourceSize, QLocale());
+		m_md2SkinSizeWarning->setText(mismatch);
+		m_md2SkinSizeWarning->setAccessibleDescription(mismatch);
+		m_md2SkinSizeWarning->setVisible(!mismatch.isEmpty());
+	}
+	QVector<ModelSurface> ghosts;
+	if (const auto *shared = findChild<QAction *>(QStringLiteral("showMeshUvShared")); shared && shared->isChecked())
+		for (int s = 0; s < m_document.mesh().surfaces.size(); ++s)
+			if (s != selected.surface && modelUvSurfacesShareMaterial(surface, m_document.mesh().surfaces[s]))
+				ghosts.append(m_document.mesh().surfaces[s]);
+	m_uv->setGhostSurfaces(ghosts);
 	m_uv->setSource(surface, selected, image);
 }
 

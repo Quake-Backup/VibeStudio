@@ -1,5 +1,7 @@
 #include "cli/model_mdl.h"
 #include "core/model_document.h"
+#include "core/model_file_io.h"
+#include "core/model_skin_handoff.h"
 #include "core/model_skin_source.h"
 #include "core/package_draft.h"
 
@@ -70,6 +72,58 @@ ModelMdlCliResult runModelMdl(const QStringList &arguments)
 	}
 	const auto path = values.contains("--input") ? values.value("--input") : positional[2];
 	const auto operation = values.value("--operation");
+	// export-skin writes one member as PCX or indexed PNG with its exact
+	// palette indices (core/model_skin_handoff.h); the source is not changed.
+	if (operation == "export-skin")
+	{
+		for (const auto &key : seen)
+			if (!QSet<QString>{"--input", "--operation", "--skin", "--member", "--output", "--overwrite", "--dry-run", "--cli", "--json", "--quiet",
+							   "--verbose"}
+					 .contains(key) &&
+				!globals.contains(key))
+				return failure(2, QCoreApplication::translate("ModelMdlCli", "Option %1 does not apply to this MDL operation.").arg(key));
+		const auto output = values.value("--output");
+		const auto suffix = QFileInfo(output).suffix().toLower();
+		if (output.isEmpty() || (suffix != "pcx" && suffix != "png"))
+			return failure(2, QCoreApplication::translate("ModelMdlCli", "export-skin writes --output as a .pcx or .png file."));
+		bool skinValid = true, memberValid = true;
+		const int skin = values.value("--skin", "0").toInt(&skinValid), member = values.value("--member", "0").toInt(&memberValid);
+		if (!skinValid || !memberValid || skin < 0 || member < 0)
+			return failure(2, QCoreApplication::translate("ModelMdlCli", "--skin and --member take zero-based indices."));
+		if (modelPathsReferToSameFile(path, output))
+			return failure(2, QCoreApplication::translate("ModelMdlCli", "Choose an output different from the source, including aliases of the same file."));
+		ModelDocument document;
+		QString error;
+		if (!document.load(path, &error))
+			return failure(1, error);
+		QByteArray bytes;
+		if (!exportModelMdlSkinMember(document.mesh(), skin, member, suffix, &bytes, &error))
+			return failure(4, error);
+		const auto target = inspectModelWriteTarget(output);
+		if (!target.isValid())
+			return failure(1, target.error);
+		if (target.existed && !seen.contains("--overwrite"))
+			return failure(1, QCoreApplication::translate("ModelMdlCli", "The output already exists; use --overwrite to replace it."));
+		const bool dry = seen.contains("--dry-run");
+		if (!(dry ? validateModelWriteTarget(target, &error) : writeModelFile(target, bytes, &error)))
+			return failure(1, error);
+		ModelMdlCliResult result;
+		result.payload = {{"source", QFileInfo(path).absoluteFilePath()},
+						  {"outputPath", QFileInfo(output).absoluteFilePath()},
+						  {"skin", skin},
+						  {"member", member},
+						  {"width", document.mesh().mdl.skinSize.width()},
+						  {"height", document.mesh().mdl.skinSize.height()},
+						  {"bytes", qint64(bytes.size())},
+						  {"dryRun", dry},
+						  {"written", !dry}};
+		result.lines << (dry ? QCoreApplication::translate("ModelMdlCli", "Validated skin %1, member %2; would write %3.")
+							 : QCoreApplication::translate("ModelMdlCli", "Wrote skin %1, member %2, to %3."))
+							.arg(skin)
+							.arg(member)
+							.arg(QFileInfo(output).absoluteFilePath());
+		return result;
+	}
 	const QMap<QString, ModelEditKind> kinds{{"add-skin", ModelEditKind::AddMdlSkin},
 											 {"replace-member", ModelEditKind::ReplaceMdlSkinMember},
 											 {"append-member", ModelEditKind::AppendMdlSkinMember},
@@ -83,7 +137,7 @@ ModelMdlCliResult runModelMdl(const QStringList &arguments)
 											 {"pose-duration", ModelEditKind::SetMdlFrameDuration}};
 	if (!operation.isEmpty() && !kinds.contains(operation))
 	{
-		return failure(2, QCoreApplication::translate("ModelMdlCli", "Choose --operation %1.").arg(kinds.keys().join('|')));
+		return failure(2, QCoreApplication::translate("ModelMdlCli", "Choose --operation %1|export-skin.").arg(kinds.keys().join('|')));
 	}
 	QSet<QString> allowed{"--input"}, required;
 	if (operation.isEmpty() && values.contains("--time"))

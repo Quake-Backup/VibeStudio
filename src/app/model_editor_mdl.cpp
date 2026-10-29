@@ -126,6 +126,41 @@ void ModelEditorDialog::addMdlControls(QFormLayout *page)
 							   ModelEditKind::ReplaceMdlSkinMember);
 	m_mdlSkinButtons << import("appendMeshMdlMember", QCoreApplication::translate("VibeStudioModelEditor", "Append Member…"),
 							   ModelEditKind::AppendMdlSkinMember);
+	// Skin round trips (model_editor_skin.cpp): export a member with its exact
+	// indices, or bring any edited image back mapped to the palette.
+	m_mdlSkinButtons << button(
+		skins, "exportMeshMdlMember", QCoreApplication::translate("ModelSkinHandoff", "Export Member…"),
+		QCoreApplication::translate("ModelSkinHandoff", "Write the selected member as PCX or indexed PNG with its exact palette indices, to edit "
+														"in any paint program."),
+		[this]
+		{
+			const auto path = QFileDialog::getSaveFileName(this, QCoreApplication::translate("ModelSkinHandoff", "Export Skin Member"), {},
+														   QCoreApplication::translate("ModelSkinHandoff", "Indexed images (*.pcx *.png)"));
+			QString error;
+			if (!path.isEmpty() && !exportMdlSkinMember(path, &error))
+				m_status->setText(error, LiveStatus::Problem);
+		});
+	m_mdlSkinButtons << button(
+		skins, "replaceMeshMdlMemberFromImage", QCoreApplication::translate("ModelSkinHandoff", "Replace Member From Image…"),
+		QCoreApplication::translate("ModelSkinHandoff", "Replace the selected member with any image of the skin size. Colours map to the "
+														"model's palette, leaving out the fullbright range; an image in the model's own palette "
+														"keeps its indices. One undo step."),
+		[this]
+		{
+			const auto path = QFileDialog::getOpenFileName(this, QCoreApplication::translate("ModelSkinHandoff", "Replace Member From Image"), {},
+														   QCoreApplication::translate("ModelSkinHandoff", "Images (*.png *.tga *.pcx *.bmp *.jpg)"));
+			QString error;
+			if (!path.isEmpty() && !replaceMdlSkinMemberFromImage(path, &error))
+				m_status->setText(error, LiveStatus::Problem);
+		});
+	m_mdlSkinButtons << button(skins, "editMeshMdlMember", QCoreApplication::translate("ModelSkinHandoff", "Edit Member…"),
+							   QCoreApplication::translate("ModelSkinHandoff", "Open the selected member in the texture editor."),
+							   [this] { editSurfaceSkin(); });
+	m_mdlEnabledButtons << button(
+		skins, "layoutMeshMdlFrontBack", QCoreApplication::translate("ModelUvOps", "Front/Back Skin Layout"),
+		QCoreApplication::translate("ModelUvOps", "Lay out the selected faces (or all) as the classic Quake front and back skin halves, facing "
+												  "+X; the status line gives the vertices the MDL would store against its limit."),
+		[this] { layoutQuakeFrontBack(0); });
 	for (const auto &entry :
 		 {std::tuple{"removeMeshMdlSkin", QCoreApplication::translate("VibeStudioModelEditor", "Remove Skin"),
 					 ModelEditKind::RemoveMdlSkin},

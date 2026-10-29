@@ -428,6 +428,9 @@ void ModelEditorTools::buildActions()
 					  m_editor->m_status->setText(error, LiveStatus::Problem);
 			  });
 	addAction(QStringLiteral("meshUvQuakeFrontBack"), Text::tr("Quake Front/Back Skin Layout"), {}, [this] { m_editor->layoutQuakeFrontBack(0); });
+	addAction(QStringLiteral("meshUvExportLayout"), Text::tr("Export UV Layout…"), {}, [this] { m_editor->exportUvLayout(); });
+	addAction(QStringLiteral("meshUvTransferSkin"), Text::tr("Transfer Skin to New UVs…"), {}, [this] { m_editor->transferSkin(); });
+	addAction(QStringLiteral("meshUvEditSkin"), Text::tr("Edit Skin…"), {}, [this] { m_editor->editSurfaceSkin(); });
 	// UV health (core/model_uv_health.h): read-only checks and selections.
 	addAction(QStringLiteral("meshUvCheckHealth"), Text::tr("Check UV Health"), {}, [this] { m_editor->checkUvHealth(); });
 	addAction(QStringLiteral("meshUvSelectOverlapping"), Text::tr("Select Overlapping UVs"), {},
@@ -745,7 +748,8 @@ void ModelEditorTools::buildMenus()
 													 QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSeam"), {}, QStringLiteral("meshUvDensity"), QStringLiteral("meshPackIslands"), {},
 													 QStringLiteral("meshUnwrapConformal"), QStringLiteral("meshUvQuakeFrontBack"), {},
 													 QStringLiteral("meshUvWeld"), QStringLiteral("meshUvStitch"), QStringLiteral("meshUvAlign"),
-													 QStringLiteral("meshUvSnapTexels"), {},
+													 QStringLiteral("meshUvSnapTexels"), {}, QStringLiteral("meshUvExportLayout"),
+													 QStringLiteral("meshUvTransferSkin"), QStringLiteral("meshUvEditSkin"), {},
 													 QStringLiteral("meshUvCheckHealth"), QStringLiteral("meshUvSelectOverlapping"), QStringLiteral("meshUvSelectFlipped"),
 													 QStringLiteral("meshUvSelectStretched"), QStringLiteral("meshUvSelectOutside")}),
 							 QStringLiteral("meshMenuUv")));

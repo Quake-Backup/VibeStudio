@@ -614,10 +614,91 @@ input islands; **Merge** or **Weld** explicitly connects compatible vertices.
 **UV → Texel Density…** (also in the UV toolbar) measures existing islands
 against the original texture dimensions. Choose a reference pose, inspect the
 per-island results, then preview a target density for each island or for the
-combined selection. Apply creates one undo step. Review overlaps and coverage
+combined selection. To match surfaces with different skins, use
+`model uv-density --surfaces` (see [texture density](../MODEL_UV_DENSITY.md)). Apply creates one undo step. Review overlaps and coverage
 before packing or exporting; density adjustments keep island centres fixed and
 affect UVs across every pose. See [texture density](../MODEL_UV_DENSITY.md) for
 material defaults, repair diagnostics, limits and CLI examples.
+
+### Check UVs before export
+
+1. In the UV view's toolbar, choose a problem in **UV problem overlay**:
+   **Stretched faces**, **Overlapping faces**, **Flipped faces** or **Faces
+   outside the tile**. Each has its own hatching, and the view's legend counts
+   the faces. Set **UV stretch limit** for stretched faces (1.5 by default).
+2. Choose **Select Shown Problems** to select those faces, or use **UV → Select
+   Overlapping UVs**, **Select Flipped UVs**, **Select Stretched UVs** or
+   **Select UVs Outside the Tile**. Selecting never changes the model.
+3. Choose **Check UV Health** for a full report in the status line: every count,
+   the largest texel-centre error, the vertices an MDL, MD2 or MD3 export would
+   store against its limit, and, for a Quake MDL, whether GLQuake's skin flood
+   fill reaches painted texels.
+
+Faces on mirrored islands that share skin space with their other half are
+reported as stacked mirror halves, not overlaps. Measurements use the
+displayed pose and the skin's original size. See
+[UV health](../MODEL_MESH.md#uv-health) for how each problem is measured.
+
+### Unwrap along your own seams
+
+1. Mark seams so every island you want can lie flat (a closed shape needs at
+   least one seam).
+2. Choose **UV → Unwrap (Seams Only)**, or set **Unwrap Method** to
+   **Conformal (seams only)** and choose **Unwrap and Pack Faces**.
+
+You get exactly one island per seam-bounded region, flattened with as little
+angle distortion as the shape allows, at one density. To pin corners, switch to
+vertex selection, select two or more corners of an island at the UVs they
+should keep, and unwrap. Turn off **Pack after a conformal unwrap** to keep the
+islands where they land. A closed island or one that folds is refused with its
+faces named; add a seam there.
+
+### Tidy UVs
+
+In the UV controls on the **Surface** page (or the **UV** menu):
+
+- **Weld UVs** joins split corners again, such as those **Detach UV Faces**
+  split; **Weld Distance** joins corners that are slightly apart.
+- **Stitch UVs** joins two islands along the seam edges you select, moving the
+  smaller island without mirroring or scaling it.
+- **Align UVs** lines corners up on U or V, or straightens them.
+- **Snap UVs to Texels** puts corners on texel centres of the MDL or MD2 skin,
+  so the export keeps them exactly.
+- **Turn islands when packing** lets **Pack Selected UVs** turn islands a quarter
+  turn when that fits them larger; **Pack with surfaces sharing this material**
+  packs those surfaces into the same skin.
+
+In the UV view, press <kbd>S</kbd> to scale or <kbd>R</kbd> to rotate the
+selection (or your profile's keys), move the pointer or type a value, then press
+<kbd>Enter</kbd>; <kbd>Esc</kbd> cancels.
+
+### Lay out a classic Quake skin
+
+Choose **UV → Quake Front/Back Skin Layout** with the model facing +X. Faces
+facing forward fill the left half of the skin and the rest the right half,
+mirrored, so the MDL stores the outline's corners once as seam vertices. The
+status line gives the vertices the MDL would store against its limit. Set the
+MDL skin size first; Quake needs a width that is a multiple of 4.
+
+### Paint a skin over the UVs
+
+1. Choose **Export UV Layout…** in the UV toolbar or the **UV** menu.
+2. Check the size (the skin's original size by default), choose the surfaces,
+   background, fill and line style, and a PNG, TGA or PCX file, or stage it in
+   the open package.
+3. Paint over the layout in **Textures** or any paint program.
+
+**Edit Skin…** opens the surface's skin in the texture editor; staging it there
+updates the model. For a Quake MDL, **Export Member…** and **Replace Member From
+Image…** on the MDL page take a skin member out and back, mapped to the
+model's palette.
+
+### Keep a painted skin after changing UVs
+
+After unwrapping, packing, scaling or moving islands, choose **Transfer Skin…**
+in the UV toolbar. It repaints the skin for the new UVs from the old one, face
+by face, then replaces the MDL member as one undo step or stages the image over
+the old one. Use it straight after the UV edits: any other edit ends the chain.
 
 ## Design a prop
 
@@ -1023,7 +1104,7 @@ vibestudio --cli model controls --profile 3ds-max --section keys
 | List the formats the studio reads and writes | `model formats` |
 | Import a model or design as an editable mesh | `model import` |
 | Edit, select or run a mesh tool | `model edit`, `model select`, `model tool` |
-| Check topology, UVs, intersections, or repair an import | `model topology`, `model uv`, `model intersections`, `model repair-import` |
+| Check topology, UVs, intersections, or repair an import | `model topology`, `model uv` (`--health` for UV problems), `model intersections`, `model repair-import` |
 | Surfaces, material slots, skins and appearances | `model surfaces`, `model slots`, `model skin`, `model materials` |
 | Named skin variants and their `.skin` or Doom 3 skin files | `model skin-variants`, `model skin-export` |
 | Tags, clips and collision | `model tags`, `model animations`, `model collision` |

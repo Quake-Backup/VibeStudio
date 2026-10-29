@@ -2299,10 +2299,39 @@ Each resolved path may be a definition file or a folder of them.
   zero-based and default to 0. Text reports summarize islands; JSON includes
   their face/vertex indices, bounds and seam edge pairs. Usage errors return
   `2`, source-read failures `1`, invalid sources/topology `4`, and success `0`.
+- [x] `model uv <source> --health [--texture-size N|WxH] [--reference-frame N]
+  [--stretch-limit N] [--fail-on overlap,flipped,outside,collapsed,stretch>N,flood-fill]`
+  reports UV health through the editor's service (`core/model_uv_health`):
+  stretched, overlapping, flipped, collapsed and out-of-tile faces, stacked
+  mirror halves, the texel-centre error, native MDL/MD2/MD3 vertex costs and the
+  MDL flood-fill hazard. `--fail-on` exits `4` with the report when a listed
+  problem is present. See [UV health](MODEL_MESH.md#uv-health).
+- [x] `model uv-layout <source> --output layout.png|tga|pcx [--size N|WxH]
+  [--surface N] [--surfaces all|material|N,N] [--background transparent|white|black]
+  [--fill 0..1] [--no-tints] [--no-seams] [--line-width N] [--antialias] [--wrap]
+  [--palette ID]` draws a skin template (`core/model_uv_layout`) through the
+  guarded writer; `--dry-run` validates and `--overwrite` replaces. See
+  [UV layouts and skin transfer](MODEL_MESH.md#uv-layouts-and-skin-transfer).
+- [x] `model skin-transfer --from before.mesh.json --to after.mesh.json
+  --texture old.png|pcx --output new.png|tga|pcx [--surface N] [--size N|WxH]
+  [--filter nearest|bilinear] [--padding N] [--no-wrap]` repaints a skin for
+  changed UVs (`core/model_skin_transfer`); inputs are protected.
+- [x] `model edit --operation uv-weld|uv-stitch|uv-align|uv-snap-texels` runs the
+  [UV operators](MODEL_MESH.md#uv-operators) with `--uv-weld-tolerance`,
+  `--uv-align`, `--uv-snap` and `--uv-snap-size`; `uv-unwrap --uv-method
+  conformal [--uv-pins N,N] [--no-pack]` flattens seam-bounded islands
+  (JSON `unwrap`); `uv-pack --uv-allow-rotation --uv-pack-surfaces N,N` turns
+  islands and packs surfaces sharing a material together.
+- [x] `model tool --tool uv-quake-frontback [--axis x|y|z]` lays out Quake MDL
+  front and back skin halves and reports `mdlLayout`.
+- [x] `model mdl --operation export-skin --skin N --member N --output
+  member.pcx|png` writes one embedded member with its exact palette indices.
 - [x] `model uv-density <source> --texture-size WIDTHxHEIGHT` measures complete
   UV islands against the selected reference pose. `--target` with `--output`
   previews or writes a density adjustment; `--mode individual|group` chooses
-  per-island or combined scaling. See [texture density](MODEL_UV_DENSITY.md)
+  per-island or combined scaling. `--surfaces all|N,N` with repeated
+  `--texture-size-for SURFACE=WxH` measures or matches several surfaces and
+  skins together. See [texture density](MODEL_UV_DENSITY.md)
   for face expansion, validation, dry-run and output requirements.
 - [x] `model edit --operation uv-mark-seams|uv-clear-seams --edges a:b` edits
   source seam marks. `uv-detach --faces ...` splits shared face corners without

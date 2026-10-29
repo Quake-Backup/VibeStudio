@@ -207,7 +207,11 @@ bool renderModelUv(const ModelUvRenderRequest &r, ModelUvRenderResult *result, Q
 	const auto point = [&](int face, int vertex) {
 		const auto uv = r.surface.texCoords[vertex];
 		const bool moved = r.moving && (r.selection.faces.contains(face) || explicitPoints.contains(vertex));
-		return candidate.camera.map(QPointF(uv.u + (moved ? r.moveOffset.u : 0), uv.v + (moved ? r.moveOffset.v : 0)));
+		if (!moved || r.moveTransform.isIdentity())
+			// Float sums, exactly as the selection fill offsets its corners.
+			return candidate.camera.map(QPointF(uv.u + (moved ? r.moveOffset.u : 0), uv.v + (moved ? r.moveOffset.v : 0)));
+		const auto shaped = r.moveTransform.map(QPointF(uv.u, uv.v));
+		return candidate.camera.map(QPointF(float(shaped.x()) + r.moveOffset.u, float(shaped.y()) + r.moveOffset.v));
 	};
 	if (r.overlayMask && r.faceOverlay.size() == r.surface.triangles.size())
 	{
@@ -263,12 +267,49 @@ bool renderModelUv(const ModelUvRenderRequest &r, ModelUvRenderResult *result, Q
 	if (!r.selection.faces.isEmpty())
 	{
 		QPainterPath selection;
-		if (!buildModelUvSelectionPath(r.surface, r.selection.faces, candidate.camera, r.moving ? r.moveOffset : ModelTexCoord{}, area,
-									   &selection, error, control))
+		// A modal scale or rotation hatches the faces where they are going.
+		ModelSurface shaped;
+		if (r.moving && !r.moveTransform.isIdentity())
+		{
+			shaped = r.surface;
+			for (int face : r.selection.faces)
+			{
+				if (face < 0 || face >= shaped.triangles.size())
+					continue;
+				const auto t = r.surface.triangles[face];
+				for (int v : {t.a, t.b, t.c})
+				{
+					const auto p = r.moveTransform.map(QPointF(r.surface.texCoords[v].u, r.surface.texCoords[v].v));
+					shaped.texCoords[v] = {float(p.x()), float(p.y())};
+				}
+			}
+		}
+		if (!buildModelUvSelectionPath(shaped.triangles.isEmpty() ? r.surface : shaped, r.selection.faces, candidate.camera,
+									   r.moving ? r.moveOffset : ModelTexCoord{}, area, &selection, error, control))
 		{
 			return false;
 		}
 		painter.drawPath(selection);
+	}
+	if (!r.ghosts.isEmpty())
+	{
+		QColor ghost = r.foreground;
+		ghost.setAlpha(110);
+		painter.setBrush(Qt::NoBrush);
+		painter.setPen(QPen(ghost, 1, Qt::DashLine));
+		for (const auto &other : r.ghosts)
+			for (const auto &t : other.triangles)
+			{
+				if (!work.step())
+					return false;
+				if (t.a < 0 || t.b < 0 || t.c < 0 || t.a >= other.texCoords.size() || t.b >= other.texCoords.size() || t.c >= other.texCoords.size())
+					continue;
+				QPolygonF outline;
+				for (int v : {t.a, t.b, t.c})
+					outline << candidate.camera.map(QPointF(other.texCoords[v].u, other.texCoords[v].v));
+				if (outline.boundingRect().intersects(area))
+					painter.drawPolygon(outline);
+			}
 	}
 	painter.end();
 	// Complete indexed geometry, ordered by meaning rather than vertex index.
