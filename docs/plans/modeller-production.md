@@ -10,36 +10,52 @@ acceptance.
 
 | Area | Existing foundation | Remaining work and acceptance |
 | --- | --- | --- |
-| Documents | Mesh/design/assembly sources, undo/redo, guarded saves, recovery, workers | Lossless edits across retained source features; interruption, maximum-size and competing-writer evidence |
-| Mesh construction | Primitives, component/surface selection, transforms, extrusion, inset, loop cuts, [edge sliding](../MODEL_EDGE_SLIDE.md), [edge bevel](../MODEL_EDGE_BEVEL.md), [knife paths](../MODEL_KNIFE.md), [spin and radial copies](../MODEL_SPIN.md), [rip and fill](../MODEL_RIP.md), [persistent connectivity](model-topology-identity.md), bridge/fill, merge, repair, decimation, [exact skin-weight provenance](../MODEL_SKIN_PROVENANCE.md) through every edit | Richer bevel/rip junctions, symmetry and constraints; complete low-poly modelling loops. |
-| UVs and materials | Projection, seams, islands, transforms, atlas/obstacle packing, [texel density](../MODEL_UV_DENSITY.md), skins and slots | Texture handoff, unwrap quality, multi-material density matching, painting/baking and preview parity |
-| Vertex animation | Frames/clips, interpolation, timeline, MDL groups, MD2/MD3 export | Real model editing and engine playback; target limits and metadata |
-| Rigging | Skeleton retention, MD5/IQM export; [joint, numeric weight, bind/pose and dense clip authoring, bone selection and viewport posing](../MODEL_RIG.md); [influence inspection, explicit binding and repair](../MODEL_SKINNING.md); [staged weight painting](../MODEL_WEIGHT_PAINT.md); [mirrored/spatial transfer](../MODEL_WEIGHT_TRANSFER.md); [two-bone IK](../MODEL_IK.md); [persistent TRS curves, batch key tools and range transfer/reversal](../MODEL_ANIMATION_CURVES.md) | Curve clipboard/layers, persistent constraints, long-chain IK, cross-document retargeting and animation fidelity |
-| Attachments and assemblies | Tags, linked assemblies/skins, Quake III animation configuration/player bundles | Native variants, LOD workflow, sounds and attachment behaviour in engines |
-| Collision and LOD | Static/animated boxes, map/level handoff, MD3 LOD export | Convex collision where supported, linked refresh and target acceptance |
-| Native formats | See [format matrix](../MODEL_FORMATS.md); MD5/IQM/ASE exports write or report every omission, strict exports refuse lossy writes, and [delivery targets](../MODEL_TARGETS.md) preflight vanilla and source-port limits | Independent files/engines, malformed inputs, retained metadata, **Prepare for target** fix-its, saved per-project targets and RTCW/ET, GZDoom and Q2PRO MD3/MD5 targets |
-| Studio integration | Shared paths, previews, materials, dependencies, staging, levels and compilers | Source-to-package-to-game loops, stale derivatives and refresh ownership |
-| CLI | Shared services with text/JSON output; complete dry-run source-save validation and loose/package/draft input hard-link protection | Maintain parity, determinism, cancellation, diagnostics and safe outputs; broader filesystem and concurrent-writer acceptance |
-| Accessibility | Qt controls, translation, scalable/high-contrast themes, profiles; [trap-free keyboard focus](../MODEL_TOOLS.md#keyboard-focus), profile-driven key hints and keyboard routes for loops, rings, Loop Cut, the UV view and view panes | Physical keyboard/screen-reader review, 200% text crowding, gizmo accessible objects, RTL/expansion, reduced motion and high DPI |
+| Documents | Mesh/design/assembly sources, undo/redo, guarded saves, recovery with staged weight strokes and curve drafts, external-change detection, workers, cancellable CLI commands | Interruption, maximum-size and competing-writer evidence on real projects |
+| Mesh construction | Primitives, component/surface selection, transforms with Individual Origins and Normal axes, extrusion variants with UV walls, inset, loop cuts, [edge sliding](../MODEL_EDGE_SLIDE.md), [edge bevel](../MODEL_EDGE_BEVEL.md) with width clamping, [knife paths](../MODEL_KNIFE.md), [spin, screw and radial copies](../MODEL_SPIN.md), arrays, [rip and fill](../MODEL_RIP.md) including branched rips, connect, delete/dissolve and limited dissolve, Recalculate Outside, saved sharp edges and smoothing groups, symmetric topology tools and gizmo drags, Mirror Faces, Poly Build, Intersect with union/difference/shared volume, snapping with auto-merge and target weld, an intersection guard, Transform Model, [persistent connectivity](model-topology-identity.md), bridge/fill of loops, chains and face regions, merge, repair, decimation, [exact skin-weight provenance](../MODEL_SKIN_PROVENANCE.md) through every edit | A non-destructive mirror modifier; booleans on skinned surfaces; per-edge bevel clamping; complete low-poly modelling loops on real models |
+| UVs and materials | Projection, seams, islands, transforms, atlas/obstacle packing, [texel density](../MODEL_UV_DENSITY.md) across surfaces and shared atlases, UV health, weld/stitch/align/texel snapping, conformal unwrap with saved pins, Quake front/back layout, UV layout export, skin transfer, Edit Skin round trip, baking, 3D skin painting, Game shading preview, skins and slots | Per-pixel GPU shader stages and Doom 3 interaction in the modeller viewport; curvature, thickness and cage bakes; unwrap quality and preview parity on real models |
+| Vertex animation | Frames/clips, frame-range edits, clip-safe naming, resampling and loop closing, interpolation, timeline with event markers, onion skin, range sculpting, frame import, tags following geometry with anchors, MDL groups, MD2/MD3 export | Real model editing and engine playback; target limits and metadata |
+| Rigging | Skeleton retention, MD5/IQM export; [joint, numeric weight, bind/pose and dense clip authoring, bone selection and viewport posing](../MODEL_RIG.md); [influence inspection, explicit binding and repair](../MODEL_SKINNING.md); [staged weight painting](../MODEL_WEIGHT_PAINT.md); [mirrored/spatial transfer](../MODEL_WEIGHT_TRANSFER.md); [IK](../MODEL_IK.md) from two-bone to long chains with limits, drag handles and keyed targets; [persistent TRS and quaternion curves, batch key tools and range transfer/reversal](../MODEL_ANIMATION_CURVES.md); pose and key clipboard; clip import and retargeting; [constraints and layers](../MODEL_ANIMATION_CONSTRAINTS.md); animation events and [game declarations](../MODEL_GAME_DECLARATIONS.md) | Quaternion keys in the batch key tools, transfer and layers; animation fidelity on real rigs and in engines |
+| Attachments and assemblies | Tags, linked assemblies/skins, Quake III tag blending, joint attachments, Doom 3 entity import, Quake III animation configuration/player bundles, weapon sets, Quake II player packages | Attachment behaviour, sounds and variants checked in engines |
+| Collision and LOD | Static/animated boxes, convex hulls (per frame when animated), Doom 3 collision ASE, clip models and `.cm` files, collision placed for level instances with stale detection and refresh, part collision in assembly bakes, MD3 LOD export | Convex decomposition and target acceptance |
+| Native formats | See [format matrix](../MODEL_FORMATS.md); glTF 2.0 import; MD5/IQM/ASE/MDS exports write or report every omission, strict exports refuse lossy writes, decode issues carry a severity, [delivery targets](../MODEL_TARGETS.md) preflight vanilla and source-port limits, and `model audit` checks whole packages | ET MDM+MDX and Ghoul 2 GLM+GLA writers; a glTF writer and its extras; independent files and engines |
+| Studio integration | Shared paths, package-entry import, Show in Materials, sources as documents and in workspaces, previews, materials, dependencies, staging with review, unified level placement and reverse navigation, output receipts with stale-output refresh, levels and compilers | Receipts for bakes, collision, animation.cfg and player packages; source-to-package-to-game loops on real projects |
+| CLI | Shared services with text/JSON output; complete dry-run source-save validation and loose/package/draft input hard-link protection; cancellation (exit 130) and `--progress` for model commands | Maintain parity, determinism, cancellation, diagnostics and safe outputs; broader filesystem and concurrent-writer acceptance |
+| Accessibility | Qt controls, translation, scalable/high-contrast themes, profiles; [trap-free keyboard focus](../MODEL_TOOLS.md#keyboard-focus), profile-driven key hints and keyboard routes for loops, rings, Loop Cut, the UV view and view panes | Physical keyboard/screen-reader review, gizmo accessible objects, RTL/expansion, reduced motion and high DPI on real devices |
 | Release | Automated unit/integration/render/performance harnesses | Clean Windows/macOS/Linux packages, real-project evidence and bounded performance |
 
 ## Work order
 
 1. Close skeletal authoring gaps through existing document/worker services.
-   Numeric joint/weight, dense pose/clip editing and shared viewport handles
-   are implemented alongside influence inspection, explicit binding and weight
-   repair, staged weight painting, mirrored/spatial transfer, two-bone IK and
-   persistent curves with batch key tools and range transfer/reversal. Persistent constraints,
-   long-chain IK, retargeting and more complete
-   animation controls remain.
-2. Audit mesh/UV tools against complete low-poly production tasks, adding
-   missing operations with shared GUI/CLI semantics.
+   Numeric joint/weight, dense pose/clip editing, shared viewport handles,
+   influence inspection, binding and repair, staged weight painting,
+   mirrored/spatial transfer, IK up to long chains with limits and keyed
+   targets, persistent and quaternion curves, constraints and layers, clip
+   import and retargeting are implemented. Quaternion keys in the batch key
+   tools and layers, and fidelity on real rigs, remain.
+2. Audit mesh/UV tools against complete low-poly production tasks. The
+   2026-10-21 audit's mesh, UV and skin gaps have implementations; the
+   non-destructive mirror modifier, skinned booleans and GPU shader-stage
+   preview remain, and every tool still needs real-model acceptance.
 3. Validate delivery for Quake MDL, Quake II MD2, Quake III MD3 and supported
    skeletal/source-port targets, including animation, attachments and collision.
 4. Complete accessibility, performance, resilience and clean cross-platform
    packaging acceptance on identified source/build inputs.
 
 ## Evidence discipline
+
+Model editor gap round (2026-10-28 to 10-29). The 68 gaps left open by the
+2026-10-21 audit were split over eight parallel lanes and merged: vertex
+animation, skeletal animation, two mesh-tool lanes, UVs and skins, formats and
+rendering, attachments and collision, and studio integration. Every gap has a
+GUI and CLI implementation with tests; several are first increments with their
+limits recorded in the feature documents (the mirror modifier, GPU shader-stage
+preview, MDM+MDX and GLM+GLA writers, glTF export, curvature/thickness/cage
+bakes, receipts for bakes and packages, quaternion keys in the key tools).
+Editable source versions 15 to 19 hold joint limits, events and clip stacks
+(15), sharp edges (16), UV pins (17), import issues (18) and tag anchors (19).
+The lanes ran their own suites green; the merged tree's full modeller run is
+recorded in the [release audit](../MODELLER_RELEASE.md). Nothing has engine or
+real-project acceptance yet.
 
 Delivery targets, detail levels, skin variants and Quake III player packages
 (2026-10-23; FMT-06, ATT-LOD-02, UVSKIN-10, ATT-PLAYER-01 to 03). **Prepare for
