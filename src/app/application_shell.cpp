@@ -5591,6 +5591,27 @@ QWidget* ApplicationShell::buildModelsPage()
 			showTextureReference(skin);
 		}
 	});
+	m_modelDetails->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(m_modelDetails, &QWidget::customContextMenuRequested, this, [this](const QPoint& position) {
+		QTreeWidgetItem* item = m_modelDetails->itemAt(position);
+		const QString skin = item ? item->data(0, Qt::UserRole + 7).toString() : QString();
+		if (skin.isEmpty()) {
+			return;
+		}
+		QMenu menu(this);
+		menu.setAccessibleName(tr("Skin actions"));
+		QAction* show = menu.addAction(studioIcon(QStringLiteral("textures")), tr("Show in Textures"));
+		QAction* edit = menu.addAction(studioIcon(QStringLiteral("image")), tr("Edit Skin in Texture Editor"));
+		edit->setToolTip(tr("Open the skin image in the Texture Editor, keeping its name and format for export and staging."));
+		const bool available = m_packageArchive.isOpen() && !resolveTextureReference(skin).isEmpty();
+		show->setEnabled(available); edit->setEnabled(available);
+		QAction* chosen = menu.exec(m_modelDetails->viewport()->mapToGlobal(position));
+		if (chosen == show) {
+			showTextureReference(skin);
+		} else if (chosen == edit) {
+			editPackageImageInTextureEditor(skin);
+		}
+	});
 	m_modelSkinPreview = new ImagePreviewView;
 	m_modelSkinPreview->setAccessibleName(tr("Model skin preview"));
 	m_modelSkinPreview->setAccessibleDescription(tr("The selected surface material or embedded skin member, decoded from the package."));
@@ -9296,6 +9317,19 @@ void ApplicationShell::refreshLevelMapTextures(const QVector<LevelMapTextureUse>
 	queueTextureThumbnails();
 }
 
+namespace {
+// A Textures browser row naming the reference exactly, such as a WAD lump that
+// has no file extension for resolveTextureReference to recognise.
+QString textureBrowserEntry(const QListWidget* entries, const QString& reference)
+{
+	for (int row = 0; entries && row < entries->count(); ++row) {
+		const QString path = entries->item(row)->data(Qt::UserRole).toString();
+		if (!path.isEmpty() && path.compare(reference, Qt::CaseInsensitive) == 0) { return path; }
+	}
+	return {};
+}
+}
+
 void ApplicationShell::showLevelMapTextureMenu(const QPoint& position)
 {
 	QListWidgetItem* item = m_levelMapTextures ? m_levelMapTextures->itemAt(position) : nullptr;
@@ -9319,6 +9353,13 @@ void ApplicationShell::showLevelMapTextureMenu(const QPoint& position)
 	show->setEnabled(!sourcePath.isEmpty());
 	QAction* showMaterial = menu.addAction(studioIcon(QStringLiteral("shaders")), tr("Show in Materials"));
 	showMaterial->setToolTip(tr("Preview this texture or shader the way the game draws it, and edit it."));
+	QAction* editImage = menu.addAction(studioIcon(QStringLiteral("image")), tr("Edit in Texture Editor"));
+	// Doom wall textures are compositions; their patches and flats are images.
+	const bool composite = doom && (sourcePath.compare(QStringLiteral("TEXTURE1"), Qt::CaseInsensitive) == 0 || sourcePath.compare(QStringLiteral("TEXTURE2"), Qt::CaseInsensitive) == 0);
+	editImage->setEnabled(m_packageArchive.isOpen() && (doom ? !sourcePath.isEmpty() && !composite :
+		!textureBrowserEntry(m_textureEntries, texture).isEmpty() || !resolveTextureReference(texture).isEmpty()));
+	editImage->setToolTip(composite ? tr("This wall texture is composed from patches in TEXTURE1. Edit one of its patches in Textures.") :
+		tr("Open the texture's image in the Texture Editor, then stage it back with Stage Export or Stage and Apply."));
 	QAction* inputs = doom ? menu.addAction(tr("Show Material Inputs…")) : nullptr;
 	QAction* chosen = menu.exec(m_levelMapTextures->viewport()->mapToGlobal(position));
 	if (chosen == apply) {
@@ -9335,6 +9376,8 @@ void ApplicationShell::showLevelMapTextureMenu(const QPoint& position)
 		else { showTextureReference(texture); }
 	} else if (chosen == showMaterial) {
 		showMaterialNamed(texture);
+	} else if (chosen == editImage) {
+		editPackageImageInTextureEditor(doom ? sourcePath : texture);
 	} else if (inputs && chosen == inputs) {
 		showLevelMaterialDetails();
 	}
@@ -18918,7 +18961,10 @@ void ApplicationShell::showAssetContextMenu(QListWidget* list, StudioMode mode, 
 	QAction* useForPainting = nullptr;
 	QAction* selectInMap = nullptr;
 	QAction* showInMaterials = nullptr;
+	QAction* editInEditor = nullptr;
 	if (mode == StudioMode::Textures) {
+		editInEditor = menu.addAction(studioIcon(QStringLiteral("image")), tr("Edit in Texture Editor"));
+		editInEditor->setToolTip(tr("Open this image in the Texture Editor once decoded; sprites open every frame as a layer."));
 		showInMaterials = menu.addAction(studioIcon(QStringLiteral("shaders")), tr("Show in Materials"));
 		showInMaterials->setToolTip(tr("Show the shaders and materials that read this image, drawn the way the game draws them."));
 		const bool quakeFamilyMap = m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map;
@@ -18955,6 +19001,8 @@ void ApplicationShell::showAssetContextMenu(QListWidget* list, StudioMode mode, 
 	} else if (chosen == copyPath) {
 		QGuiApplication::clipboard()->setText(virtualPath);
 		statusBar()->showMessage(tr("Path copied: %1").arg(virtualPath));
+	} else if (chosen && chosen == editInEditor) {
+		editPackageImageInTextureEditor(virtualPath);
 	} else if (chosen && chosen == showInMaterials) {
 		showMaterialsForImage(virtualPath);
 	} else if (chosen && chosen == selectInMap) {
@@ -20586,6 +20634,28 @@ void ApplicationShell::showTextureEditor(bool editSelected)
 				apply ? tr("Texture staged and applied to the map selection. Package and map saves are pending.") : tr("Texture staged for package save."));
 			return true;
 		};
+		editor->stageFiles = [this](const QVector<TextureExportCompanion>& files, bool replace, QString* error) {
+			if (m_packageExtractionRunning || m_packageSaveRunning || m_packageReadRunning) { if (error) { *error = tr("Wait for the package operation to finish before staging files."); } return false; }
+			// One package undo step for all the companion maps.
+			auto next = m_packageStaging;
+			if (!next.beginOperationGroup(tr("Stage companion maps"), error)) { return false; }
+			for (const auto& file : files) {
+				const auto normalized = normalizePackageVirtualPath(file.path, false);
+				if (!normalized.isSafe() || !next.addBytes(file.bytes, normalized.normalizedPath, error, replace ? PackageStageConflictResolution::ReplaceExisting : PackageStageConflictResolution::Block)) {
+					if (error && error->isEmpty()) { *error = tr("Choose a safe package path for %1.").arg(file.path); }
+					return false;
+				}
+			}
+			if (!next.endOperationGroup(true, error) || !next.summary().canSave) { if (error && error->isEmpty()) { *error = tr("Resolve package conflicts or tick Replace existing entry."); } return false; }
+			m_packageStaging = std::move(next);
+			refreshPackageStagingSummary();
+			recordActivity(tr("Texture Editor Handoff"), files.isEmpty() ? QString() : files.first().path, QStringLiteral("package"), OperationState::Completed,
+				tr("%n companion map(s) staged for package save.", nullptr, int(files.size())));
+			return true;
+		};
+		editor->activity = [this](const QString& title, const QString& path, const QString& summary) {
+			recordActivity(title, path, QStringLiteral("texture"), OperationState::Completed, summary);
+		};
 		const auto preferences = m_settings.accessibilityPreferences();
 		if (auto* canvas = editor->findChild<TextureCanvas*>(QStringLiteral("textureCanvas"))) {
 			canvas->setHighContrast(preferences.theme == StudioTheme::HighContrastDark || preferences.theme == StudioTheme::HighContrastLight);
@@ -20598,8 +20668,35 @@ void ApplicationShell::showTextureEditor(bool editSelected)
 		const QString path = item ? item->data(Qt::UserRole).toString() : QStringLiteral("texture");
 		auto decoded = m_textureDecoded;
 		decoded.image = m_texturePreview->image();
-		m_textureEditorDialog->editDecodedImage(decoded, path, m_textureDecodedPalette);
+		m_textureEditorDialog->editDecodedImage(decoded, path, m_textureDecodedPalette, m_textureFrame ? m_textureFrame->currentIndex() : -1);
 	}
+}
+
+void ApplicationShell::editPackageImageInTextureEditor(const QString& reference)
+{
+	if (!m_packageArchive.isOpen()) {
+		statusBar()->showMessage(tr("Open the package that provides %1 to edit it.").arg(reference));
+		return;
+	}
+	QString resolved = textureBrowserEntry(m_textureEntries, reference);
+	if (resolved.isEmpty()) { resolved = resolveTextureReference(reference); }
+	if (resolved.isEmpty()) {
+		statusBar()->showMessage(tr("%1 is not in %2.").arg(reference, QFileInfo(m_packageArchive.sourcePath()).fileName()));
+		return;
+	}
+	m_pendingTextureEdit.clear();
+	if (!showAssetEntry(StudioMode::Textures, resolved)) {
+		statusBar()->showMessage(tr("%1 is hidden by the Textures filter. Clear the filter to edit it.").arg(resolved));
+		return;
+	}
+	const auto* item = m_textureEntries ? m_textureEntries->currentItem() : nullptr;
+	if (item && item->data(Qt::UserRole).toString() == resolved && !m_texturePreviewPending && m_textureDecoded.decoded) {
+		showTextureEditor(true);
+		return;
+	}
+	// Decoding runs in the background; acceptTexturePreview opens the editor.
+	m_pendingTextureEdit = resolved;
+	statusBar()->showMessage(tr("Decoding %1 for the Texture Editor…").arg(resolved));
 }
 
 void ApplicationShell::showSelectedTexture()
@@ -20611,6 +20708,8 @@ void ApplicationShell::showSelectedTexture()
 	m_textureThumbnailsPaused = false;
 	scheduleTextureThumbnails();
 	const QString virtualPath = item ? item->data(Qt::UserRole).toString() : QString();
+	// Choosing another image abandons a pending Texture Editor request.
+	if (virtualPath != m_pendingTextureEdit) { m_pendingTextureEdit.clear(); }
 	const auto source = texturePreviewSource();
 	const QString key = source.revision + QChar(0) + virtualPath;
 	if (!virtualPath.isEmpty() && key == m_texturePreviewKey && (m_texturePreviewPending || m_textureDecoded.decoded)) { return; }
@@ -20670,6 +20769,18 @@ void ApplicationShell::acceptTexturePreview(const TexturePreviewResult& result)
 	m_paletteResolutionValid = !resolution.palette.id.isEmpty();
 	updateTexturePreviewState();
 	if (virtualPath.isEmpty()) { return; }
+	if (!m_pendingTextureEdit.isEmpty() && m_pendingTextureEdit == virtualPath) {
+		m_pendingTextureEdit.clear();
+		if (decoded.decoded) {
+			// After the mip/frame lists below are filled, so the editor gets them.
+			QTimer::singleShot(0, this, [this, virtualPath]() {
+				const auto* current = m_textureEntries ? m_textureEntries->currentItem() : nullptr;
+				if (current && current->data(Qt::UserRole).toString() == virtualPath && m_textureDecoded.decoded) { showTextureEditor(true); }
+			});
+		} else {
+			statusBar()->showMessage(tr("%1 could not be decoded for editing: %2").arg(virtualPath, decoded.error));
+		}
+	}
 
 	if (m_textureMipLevel) {
 		const QSignalBlocker blocker(m_textureMipLevel);

@@ -183,6 +183,10 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Levels:** View > Camera Display > Animate Materials in Camera plays scrolling, pulsing and animated materials on the camera's faces, drawn as the Materials page draws them; reduce motion keeps them still.
 - **Materials:** Rename, duplicate and delete materials, Save All, problems of the whole package, library sorting and swatch sizes, Preview Settings (tiling, field of view, background, entity colour, Doom 3 shader parms and sound), export to PNG or an animation sheet, find, replace and completion in the text, and a view that is kept between sessions.
 - **Command line:** `material usage` lists the maps that use a material or the unused ones; `--dialect`, several `--base` packages with `--include-base`, and `material edit --rename`, `--duplicate` and `--remove`.
+- **Textures:** The Texture Editor gains Gradient and Clone Stamp tools, mirrored and pen-pressure strokes, a secondary colour with recent colours, single-key tool shortcuts on the canvas, and an Adjust section for brightness, contrast, hue, saturation, lightness, gamma, posterize, invert, grayscale, blur, sharpen, noise, emboss, edges, Make Seamless and colour replacement.
+- **Textures:** Export Quake, Half-Life and Quake II sprites from the visible layers, Half-Life WAD3 textures, SiN SWL and mipmapped DDS; sprites open with every frame as a layer, and the Frames section plays them with an onion skin.
+- **Textures:** Staging a Doom patch can define its TEXTURE1 wall texture and PNAMES entry, or place it in the sprite namespace; companion normal, gloss and glow maps stage beside a texture; palettes load from and save to files, with an Analyze Colors check.
+- **Levels and Models:** Edit in Texture Editor on the Levels texture list and Edit Skin in Texture Editor on model skin rows open the image for editing and staging back.
 
 ### Changed
 

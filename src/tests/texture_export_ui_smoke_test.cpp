@@ -80,7 +80,8 @@ int main(int argc, char** argv)
 		for (const auto& descriptor : textureExportProfiles()) {
 			profile->setCurrentIndex(profile->findData(descriptor.id)); editor->findChild<QLineEdit*>(QStringLiteral("textureExportName"))->setText(QStringLiteral("wall")); editor->previewExport();
 			ok &= expect(settled(editor) && !panel->previewImage().isNull() && editor->document().revision() == revision, "each profile previews through the worker without modifying pixels");
-			ok &= expect(mip->count() == (descriptor.mipmapped ? 4 : 1), "native preview exposes every encoded mip");
+			// A full DDS chain for 64 × 64 has seven levels; sprites show their one frame.
+			ok &= expect(mip->count() == (descriptor.mipmapped ? 4 : (descriptor.format == TextureExportFormat::DdsMipmapped ? 7 : 1)), "native preview exposes every encoded mip");
 		}
 		editor->setExportOptions(options); editor->previewExport(); ok &= expect(settled(editor), "WAL preview settles"); mip->setCurrentIndex(3);
 		ok &= expect(panel->previewImage().size() == QSize(8, 8) && report->text().contains(QStringLiteral("Test fixture")), "mip selection and palette provenance remain inspectable");

@@ -1077,7 +1077,13 @@ Goal: widen the workbench into a real asset studio.
   mip chains, explicit palette/alpha rules, patch offsets and WAL surface flags.
 - [x] Add native WAD staging with namespace and lump-type preservation, grouped
   package undo, draft persistence, and GUI/CLI handoffs.
-- [ ] Add sprite frame authoring/encoding; complete the integration and engine acceptance gates.
+- [x] Add sprite frame authoring/encoding: layers as frames, Quake/Half-Life
+  SPR and Quake II SP2 writers, frame preview and Doom sprite namespace staging.
+- [x] Add Half-Life WAD3 and SiN SWL writers, mipmapped DDS, and single-patch
+  Doom `TEXTURE1` definitions on staging.
+- [x] Add colour adjustments, filters, gradients, clone, mirror and pen-pressure
+  painting, palette files and colour analysis, and editing from Levels and model skins.
+- [ ] Complete engine acceptance for sprites, WAD3 and wall definitions in the target games.
 - [x] Port/adapt image loader workflow concepts from PakFu with attribution.
 - [x] Add palette-aware preview.
 - [x] Add conversion workflow.

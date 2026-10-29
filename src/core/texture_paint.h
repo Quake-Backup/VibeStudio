@@ -12,7 +12,8 @@ namespace vibestudio {
 using TextureProgress = std::function<bool(qint64 completed, qint64 total)>;
 
 enum class TextureBrushShape { Square, Round };
-enum class TexturePaintMode { Replace, SourceOver };
+// Clone copies the gesture-start pixels at cloneOffset instead of a color.
+enum class TexturePaintMode { Replace, SourceOver, Clone };
 enum class TextureShape { Line, Rectangle, Ellipse };
 
 struct TextureBrush {
@@ -20,11 +21,18 @@ struct TextureBrush {
 	TextureBrushShape shape = TextureBrushShape::Square;
 	TexturePaintMode mode = TexturePaintMode::Replace;
 	bool wrap = false;
+	// Mirror strokes and shapes across the canvas centre lines.
+	bool mirrorX = false, mirrorY = false;
+	// Clone samples source(x + dx, y + dy); wrapped brushes also wrap samples.
+	QPoint cloneOffset;
 };
 
 QString textureBrushShapeId(TextureBrushShape shape);
 QString texturePaintModeId(TexturePaintMode mode);
+QString textureMirrorId(const TextureBrush& brush);
+bool textureMirrorFromId(const QString& id, TextureBrush* brush);
 bool textureBrushShapeFromId(const QString& id, TextureBrushShape* shape);
+// Accepts the color modes only; Clone is chosen by the clone tool or recipe.
 bool texturePaintModeFromId(const QString& id, TexturePaintMode* mode);
 bool validTextureBrush(const TextureBrush& brush);
 // Wrapped input may span the three-by-three repeat, preserving seam crossings.

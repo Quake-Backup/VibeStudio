@@ -112,7 +112,7 @@ exact limits.
 | Level editing | The 3D view shows textures, but not Quake III shader effects such as blending, animation and deformation, nor Doom sector lighting and skies. Doom maps need an external node builder after geometry edits. |
 | Editor profiles | Profiles reproduce keys, mouse gestures, camera and layout, not every behaviour of the original editors, and they do not add other engines' formats. |
 | Models | Formats from Doom source ports to the Doom 3 family are read, but only tested against files the tests build, not real game files. Skeletal models are posed into frames; joints and weights cannot be edited yet. MD5, IQM and ASE exports have not been loaded in the original games. |
-| Textures | No sprite animation editing or pressure-sensitive painting. A canvas holds at most 4,194,304 pixels (2048 × 2048). |
+| Textures | Sprites, WAD3 textures and wall definitions have not been loaded in the games. A canvas holds at most 4,194,304 pixels (2048 × 2048) and 32 layers or frames. |
 | Audio | Linux builds cannot play or record audio. |
 | Packages | Renaming or deleting files does not update references to them in scripts, shaders or metadata. |
 | Releases | A release finds what maps, models and shader scripts name, and what QuakeC, Quake III menus and configs, and DECORATE, ZScript, SNDINFO and MAPINFO name in full. Files that compiled game code loads, or whose names a script builds while the game runs, must be added with include patterns. Telling the game's files from yours needs the game indexed first. Not yet tried with real game installations. |
@@ -133,9 +133,9 @@ exact limits.
 - **Models:** collision boxes are not stored in the native model formats.
   Quake III player packages support non-team models only, without custom
   sounds or levels of detail.
-- **Textures:** no sprite or Half-Life WAD3 encoding, and no Doom wall-texture
-  composition. DDS export is uncompressed; DDS cube maps, volumes and arrays
-  are not supported.
+- **Textures:** sprites are exported with single frames, not frame groups;
+  wall definitions hold one patch each. DDS export is uncompressed; DDS cube
+  maps, volumes and arrays are not supported.
 - **Audio:** session meters do not show live LUFS or true-peak readings. Tempo
   ramps, musical anchoring and automation recording are not built. Recording
   has not been tested across a range of audio hardware.

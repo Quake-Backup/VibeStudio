@@ -217,6 +217,16 @@ hosts contain expanded controls at large text scales. Offscreen semantic tests
 cover 100% and 200% text, high contrast and RTL; native screen-reader acceptance
 remains outstanding.
 
+The Texture Editor's single-key tool shortcuts (P, B, E, G, Shift+G, I, M, L,
+R, O, S and X) are scoped to the focused canvas, so letters still type into the
+inspector's fields and combo boxes keep their keyboard search; the **Drawing
+tools** strip offers the same tools as named, focusable buttons. Shift+Space
+applies the secondary colour without a mouse, and Ctrl+Space sets the clone
+source. Recent-colour swatches are named by their colour value, layer
+visibility is a native check box on each row, and the frame preview and canvas
+describe the current frame or clone source in text. Mirror axes and the stamp
+footprint are drawn as two-tone outlines, not colour alone.
+
 **Help** > **Documentation** uses the shared command registry, with a
 translatable menu label and status tip. Standard Qt menu and Command Palette
 accessibility exposes its name and keyboard access. Map-edit status messages

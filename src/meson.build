@@ -55,9 +55,12 @@ subdir('mapgen')
 
 install_headers('core/texture_document.h', subdir: 'vibestudio/core')
 install_headers('core/texture_paint.h', subdir: 'vibestudio/core')
+install_headers('core/texture_adjust.h', subdir: 'vibestudio/core')
 install_headers('core/texture_output.h', subdir: 'vibestudio/core')
 install_headers('core/texture_transform.h', subdir: 'vibestudio/core')
 install_headers('core/texture_export.h', subdir: 'vibestudio/core')
+install_headers('core/texture_formats.h', subdir: 'vibestudio/core')
+install_headers('core/texture_doom_walls.h', subdir: 'vibestudio/core')
 install_headers('core/texture_handoff.h', subdir: 'vibestudio/core')
 install_headers('core/texture_project.h', subdir: 'vibestudio/core')
 install_headers('core/texture_recovery.h', subdir: 'vibestudio/core')
@@ -336,9 +339,12 @@ core_sources = files(
   'core/audio_analysis.cpp',
   'core/texture_document.cpp',
   'core/texture_paint.cpp',
+  'core/texture_adjust.cpp',
   'core/texture_output.cpp',
   'core/texture_transform.cpp',
   'core/texture_export.cpp',
+  'core/texture_formats.cpp',
+  'core/texture_doom_walls.cpp',
   'core/texture_handoff.cpp',
   'core/texture_project.cpp',
   'core/texture_recovery.cpp',
@@ -1345,6 +1351,24 @@ texture_paint_smoke_test = executable(
   install: false,
 )
 test('texture-paint-smoke', texture_paint_smoke_test, timeout: 90)
+
+texture_adjust_smoke_test = executable(
+  'texture_adjust_smoke_test',
+  ['tests/texture_adjust_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep],
+  install: false,
+)
+test('texture-adjust-smoke', texture_adjust_smoke_test, timeout: 90)
+
+texture_formats_smoke_test = executable(
+  'texture_formats_smoke_test',
+  ['tests/texture_formats_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep],
+  install: false,
+)
+test('texture-formats-smoke', texture_formats_smoke_test, args: [vibestudio], timeout: 120)
 
 texture_transform_smoke_test = executable(
   'texture_transform_smoke_test',
