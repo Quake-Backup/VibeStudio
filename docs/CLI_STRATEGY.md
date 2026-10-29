@@ -3277,7 +3277,9 @@ vibestudio --cli ai batch-recipe --prompt 'convert doom sprites to indexed png' 
 
 - `workspace create <file.vibeworkspace>` writes portable references. Options:
   `--project`, `--package`, `--map`, `--map-name`, repeated `--code`,
-  `--current-code`, `--active-module`, `--from-session`, `--overwrite`, `--dry-run`.
+  `--current-code`, repeated `--model` (editable model sources, stored under the
+  `vibestudio.modelSources` extension so older readers keep the file readable),
+  `--active-module`, `--from-session`, `--overwrite`, `--dry-run`.
 - `workspace inspect <file.vibeworkspace>` validates without opening assets and
   reports its revision and missing references.
 - `asset formats [--module <id>]` reports suffixes, owning modules, import/native

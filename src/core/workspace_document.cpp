@@ -51,11 +51,17 @@ QJsonObject workspaceDocumentJson(const WorkspaceDocument& document, const QStri
 {
 	QJsonArray code;
 	for (const auto& file : document.codeFiles) { code.append(portable(file, path)); }
+	auto extensions = document.extensions;
+	if (!document.modelSources.isEmpty()) {
+		QJsonArray models;
+		for (const auto& file : document.modelSources) { models.append(portable(file, path)); }
+		extensions.insert(QStringLiteral("vibestudio.modelSources"), models);
+	}
 	return {{"format", QStringLiteral("vibestudio-workspace")}, {"version", 1},
 		{"project", portable(document.projectPath, path)}, {"package", portable(document.packagePath, path)},
 		{"map", portable(document.mapPath, path)}, {"mapName", document.mapName}, {"codeFiles", code},
 		{"currentCodeFile", portable(document.currentCodeFile, path)}, {"activeModule", document.activeModule},
-		{"assetSelections", document.assetSelections}, {"extensions", document.extensions}};
+		{"assetSelections", document.assetSelections}, {"extensions", extensions}};
 }
 
 bool parseWorkspaceDocument(const QByteArray& bytes, const QString& path, WorkspaceDocument* document, QString* error)
@@ -127,6 +133,21 @@ bool parseWorkspaceDocument(const QByteArray& bytes, const QString& path, Worksp
 	if (object.contains("extensions")) {
 		if (!object.value("extensions").isObject()) { return fail(error, QT_TRANSLATE_NOOP("VibeStudioWorkspace", "Workspace extensions must be an object.")); }
 		parsed.extensions = object.value("extensions").toObject();
+		// The modeller's open sources, kept in extensions for older readers.
+		const auto models = parsed.extensions.take(QStringLiteral("vibestudio.modelSources"));
+		if (!models.isUndefined()) {
+			if (!models.isArray() || models.toArray().size() > 32) { return fail(error, QT_TRANSLATE_NOOP("VibeStudioWorkspace", "A workspace keeps at most 32 model sources.")); }
+			for (const auto& entry : models.toArray()) {
+				const auto text = entry.toString();
+				const bool source = text.endsWith(QStringLiteral(".mesh.json"), Qt::CaseInsensitive) || text.endsWith(QStringLiteral(".model.json"), Qt::CaseInsensitive) ||
+					text.endsWith(QStringLiteral(".assembly.json"), Qt::CaseInsensitive);
+				if (!validText(entry) || text.isEmpty() || !localReference(text) || !source) {
+					return fail(error, QT_TRANSLATE_NOOP("VibeStudioWorkspace", "Invalid workspace model source reference."));
+				}
+				const auto file = QDir::cleanPath(QDir(QFileInfo(path).absolutePath()).absoluteFilePath(QDir::fromNativeSeparators(text)));
+				if (!parsed.modelSources.contains(file)) { parsed.modelSources << file; }
+			}
+		}
 	}
 	*document = std::move(parsed); return true;
 }
@@ -183,7 +204,7 @@ bool writeWorkspaceDocument(const QString& path, const WorkspaceDocument& docume
 
 QStringList workspaceMissingReferences(const WorkspaceDocument& document)
 {
-	QStringList paths = document.codeFiles;
+	QStringList paths = document.codeFiles + document.modelSources;
 	paths << document.projectPath << document.packagePath << document.mapPath;
 	QStringList missing;
 	for (const auto& path : paths) { if (!path.isEmpty() && !QFileInfo::exists(path) && !missing.contains(path)) { missing << path; } }

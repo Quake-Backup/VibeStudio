@@ -283,8 +283,8 @@ int main(int argc, char **argv)
 		const bool cancelledResult = editor.applyEdit(edit, &error);
 		const double cancelMs = sinceCancel.isValid() ? sinceCancel.nsecsElapsed() / 1e6 : -1;
 		heartbeat.stop();
-		ok &= expect(cancelledResult || cancelMs < 0 || editor.document().revisionFingerprint() != revision,
-					 "Cancel stops the worker edit or the edit finished first");
+		ok &= expect(!cancelledResult || cancelMs < 0 || editor.document().revisionFingerprint() != revision,
+					 "Cancel stops the worker edit, or the edit finished first and changed the model");
 		ok &= expect(cancelledResult || editor.document().revisionFingerprint() == revision, "a cancelled worker edit changes nothing");
 		if (gapBudget > 0 && largestGap > gapBudget)
 		{

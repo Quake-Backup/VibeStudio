@@ -79,6 +79,10 @@ class ModelAssemblyDialog final : public QDialog
 	bool redo(QString *error = nullptr);
 	bool setTime(double seconds, QString *error = nullptr);
 	bool reloadInputs(QString *error = nullptr);
+	// External changes (app/model_assembly_source_watch.cpp): a linked part
+	// rewritten on disk reloads the inputs; a changed source is reported.
+	// Polls now; tests pass a monotonic time for pollAt's coalescing.
+	void pollAssemblyWatch(qint64 monotonicMsecs = -1);
 	bool exportPose(const QString &path, bool overwrite, QString *error = nullptr);
 	bool bakeAnimation(const ModelAssemblyAnimationOptions &options, ModelAssemblyAnimation *result, QString *error = nullptr);
 	bool exportAnimation(const ModelAssemblyAnimationOptions &options, const QString &path, bool overwrite, QString *error = nullptr);
@@ -138,6 +142,8 @@ class ModelAssemblyDialog final : public QDialog
 	QElapsedTimer m_clock;
 	double m_seconds = 0, m_playStart = 0;
 	QString m_editingId, m_previewError;
+	void watchAssemblyFiles();
+	std::shared_ptr<struct ModelAssemblyWatchState> m_watch;
 	bool m_refreshing = false, m_working = false, m_reducedMotion = false, m_contextPending = false;
 	bool m_closeAfterWork = false, m_decidingClose = false, m_approvedClose = false;
 	std::function<void()> m_cancelWork, m_afterDeferredClose;

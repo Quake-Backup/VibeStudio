@@ -313,7 +313,9 @@ the views says so, with three choices:
 A source that is deleted or moved shows **Source file removed** with
 **Save As…**. The editor's own saves never raise the notice. **Design Prop**
 likewise refuses to save over a `.model.json` that changed on disk after it was
-opened; save it to another path or reopen it.
+opened; save it to another path or reopen it. **Assemble** reads its linked parts
+again when another program changes them, and says when the `.assembly.json`
+itself changed.
 
 CLI authoring commands use the same checks with `--dry-run`, including complete
 serialisation and the 64 MiB editable-source limit. A dry run leaves files,

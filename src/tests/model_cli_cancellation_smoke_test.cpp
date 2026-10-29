@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 			*code = process.exitCode();
 			return process.exitStatus() == QProcess::NormalExit;
 		};
-		for (const QByteArray cancelAt : {QByteArray("1"), QByteArray("40"), QByteArray("400")})
+		for (const auto &cancelAt : {QByteArray("1"), QByteArray("40"), QByteArray("400")})
 		{
 			const auto out = path(QStringLiteral("out-%1.mesh.json").arg(QString::fromLatin1(cancelAt)));
 			int code = -1;

@@ -60,6 +60,15 @@ int main(int argc, char** argv)
 	const auto absent = temp.filePath(QStringLiteral("dry-run.vibeworkspace"));
 	auto cli = cli::runWorkspaceCommand({"vibestudio", "--cli", "workspace", "create", absent, "--project", moved, "--code", "test.cpp", "--dry-run", "--json"});
 	ok &= expect(cli.exitCode == 0 && !QFileInfo::exists(absent), "CLI dry run has no writes", cli.error);
+	// Editable model sources ride in extensions, so older readers keep the file readable.
+	cli = cli::runWorkspaceCommand({"vibestudio", "workspace", "create", absent, "--model", "prop.mesh.json", "--model", "prop.model.json", "--dry-run", "--json"});
+	const auto modelExtensions = cli.payload.value("workspace").toObject().value("extensions").toObject();
+	ok &= expect(cli.exitCode == 0 && modelExtensions.value("vibestudio.modelSources").toArray().size() == 2, "CLI keeps model sources", cli.error);
+	WorkspaceDocument models;
+	ok &= expect(parseWorkspaceDocument(QJsonDocument(cli.payload.value("workspace").toObject()).toJson(), absent, &models, &error) &&
+		models.modelSources.size() == 2 && models.extensions.isEmpty(), "model sources parse back out of extensions", error);
+	cli = cli::runWorkspaceCommand({"vibestudio", "workspace", "create", absent, "--model", "notes.txt", "--dry-run", "--json"});
+	ok &= expect(cli.exitCode == 2, "only editable model sources are kept");
 	cli = cli::runWorkspaceCommand({"vibestudio", "workspace", "inspect", path, "--overwrite"});
 	ok &= expect(cli.exitCode == 2, "inspection rejects mutation options");
 	cli = cli::runWorkspaceCommand({"vibestudio", "workspace", "inspect", path, "--json"});

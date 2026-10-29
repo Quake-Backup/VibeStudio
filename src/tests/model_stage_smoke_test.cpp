@@ -127,15 +127,25 @@ int main(int argc, char **argv)
 					 set.entries.at(1).virtualPath == QStringLiteral("models/props/crate_1.md3") &&
 					 set.entries.at(1).role == QStringLiteral("detail-level"),
 				 "an MD3 stages with its detail level");
-	for (const auto &suffix : {QStringLiteral("iqm"), QStringLiteral("ase"), QStringLiteral("mdl"), QStringLiteral("md2")})
+	// MD2 slots name PCX skins; an MDL needs an indexed skin, which a design has not.
+	ModelDesign pcxDesign = design;
+	pcxDesign.parts[0].material = QStringLiteral("models/props/crate.pcx");
+	const auto pcxProp = buildModelDesignMesh(pcxDesign);
+	for (const auto &suffix : {QStringLiteral("iqm"), QStringLiteral("ase"), QStringLiteral("md2")})
 	{
 		ModelStageSet single;
 		request.virtualPath = QStringLiteral("models/props/crate.") + suffix;
 		request.lodLevels = 0;
-		ok &= expect(prepareModelStageSet(prop, request, nullptr, &single, &error) && single.entries.size() == 1 &&
-						 checkModelStageEntry(single.entries.first().virtualPath, single.entries.first().bytes, &error),
-					 "IQM, ASE, MDL and MD2 stage as one checked file");
+		const bool staged = prepareModelStageSet(suffix == QStringLiteral("md2") ? pcxProp : prop, request, nullptr, &single, &error) &&
+							single.entries.size() == 1 && checkModelStageEntry(single.entries.first().virtualPath, single.entries.first().bytes, &error);
+		if (!staged)
+			std::cerr << qPrintable(suffix) << ": " << qPrintable(error) << '\n';
+		ok &= expect(staged, "IQM, ASE and MD2 stage as one checked file");
 	}
+	ModelStageSet refused;
+	request.virtualPath = QStringLiteral("progs/crate.mdl");
+	ok &= expect(!prepareModelStageSet(prop, request, nullptr, &refused, &error) && refused.entries.isEmpty() && !error.isEmpty(),
+				 "an MDL its target refuses stages nothing and says why");
 
 	// md5mesh with every clip's md5anim beside it.
 	QDir().mkpath(path(QStringLiteral("md5")));
@@ -181,7 +191,7 @@ int main(int argc, char **argv)
 	QImage image(4, 4, QImage::Format_RGB32);
 	image.fill(Qt::gray);
 	PackageArchive withImage;
-	ok &= expect(image.save(folder.filePath(QStringLiteral("textures/test/crate.tga"))) && withImage.load(folder.path(), &error) &&
+	ok &= expect(image.save(folder.filePath(QStringLiteral("textures/test/crate.jpg"))) && withImage.load(folder.path(), &error) &&
 					 prepareModelStageSet(prop, request, &withImage, &reviewed, &error) && reviewed.dependencies.missingCount == 0,
 				 "the material is satisfied once the package has its image");
 	const auto operations = staging.operations().size();

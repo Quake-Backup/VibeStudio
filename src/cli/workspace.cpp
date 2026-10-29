@@ -18,13 +18,13 @@ WorkspaceCliResult runWorkspaceCommand(const QStringList& arguments)
 	};
 	const QSet<QString> globals {"--settings-file", "--locale", "--catalog-root"};
 	const QSet<QString> flags {"--cli", "--json", "--quiet", "--verbose", "--overwrite", "--dry-run", "--from-session"};
-	const QSet<QString> options {"--project", "--package", "--map", "--map-name", "--code", "--current-code", "--active-module", "--module"};
-	QStringList positional, codeFiles; QHash<QString, QString> values; QSet<QString> seen;
+	const QSet<QString> options {"--project", "--package", "--map", "--map-name", "--code", "--current-code", "--active-module", "--module", "--model"};
+	QStringList positional, codeFiles, modelSources; QHash<QString, QString> values; QSet<QString> seen;
 	for (qsizetype i = 1; i < arguments.size(); ++i) {
 		const auto arg = arguments[i];
 		if (!arg.startsWith('-')) { positional << arg; continue; }
 		const auto equal = arg.indexOf('='); const auto key = equal < 0 ? arg : arg.left(equal);
-		if (seen.contains(key) && key != QStringLiteral("--code")) { return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "Repeated workspace or format option.")); }
+		if (seen.contains(key) && key != QStringLiteral("--code") && key != QStringLiteral("--model")) { return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "Repeated workspace or format option.")); }
 		seen.insert(key);
 		if (flags.contains(key) && equal < 0) { continue; }
 		if (!options.contains(key) && !globals.contains(key)) { return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "Unknown workspace or format option.")); }
@@ -32,7 +32,7 @@ WorkspaceCliResult runWorkspaceCommand(const QStringList& arguments)
 		if (equal >= 0) { value = arg.mid(equal + 1); }
 		else if (i + 1 < arguments.size() && !arguments[i + 1].startsWith('-')) { value = arguments[++i]; }
 		if (value.isEmpty()) { return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "Missing workspace or format option value.")); }
-		if (key == QStringLiteral("--code")) { codeFiles << value; } else { values.insert(key, value); }
+		if (key == QStringLiteral("--code")) { codeFiles << value; } else if (key == QStringLiteral("--model")) { modelSources << value; } else { values.insert(key, value); }
 	}
 	const auto family = positional.value(0), action = positional.value(1);
 	const bool catalog = family == QStringLiteral("asset") && action == QStringLiteral("formats");
@@ -84,6 +84,8 @@ WorkspaceCliResult runWorkspaceCommand(const QStringList& arguments)
 		if (values.contains(QStringLiteral("--map-name"))) { document.mapName = values.value(QStringLiteral("--map-name")); }
 		if (values.contains(QStringLiteral("--active-module"))) { document.activeModule = values.value(QStringLiteral("--active-module")); }
 		for (const auto& code : codeFiles) { const auto file = QFileInfo(code).absoluteFilePath(); if (!document.codeFiles.contains(file)) { document.codeFiles << file; } }
+		// Editable model sources the modeller reopens with the workspace.
+		for (const auto& model : modelSources) { const auto file = QFileInfo(model).absoluteFilePath(); if (!document.modelSources.contains(file)) { document.modelSources << file; } }
 		if (QFileInfo::exists(path)) {
 			if (!seen.contains(QStringLiteral("--overwrite"))) { return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "The workspace exists. Use --overwrite after reviewing it.")); }
 			WorkspaceDocument existing;

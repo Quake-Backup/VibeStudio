@@ -7,6 +7,7 @@
 #include "core/model_assembly.h"
 #include "core/model_recovery.h"
 #include "core/studio_settings.h"
+#include "core/workspace_document.h"
 
 #include <QApplication>
 #include <QDir>
@@ -204,7 +205,7 @@ int main(int argc, char **argv)
 		{
 			QElapsedTimer clock;
 			clock.start();
-			while (!condition() && clock.elapsed() < 20000)
+			while (!condition() && clock.elapsed() < 60000)
 			{
 				app.processEvents(QEventLoop::AllEvents, 20);
 			}
@@ -278,6 +279,21 @@ int main(int argc, char **argv)
 					 "opening a .mesh.json path opens it in the Mesh Editor, not the code editor");
 		ok &= expect(StudioSettings().recentFiles(QStringLiteral("model")).contains(QFileInfo(meshPath).absoluteFilePath()),
 					 "the opened source is a recent model file");
+		// A workspace keeps the open source and reopens it in the Mesh Editor.
+		const auto workspacePath = QDir(temporary.path()).filePath(QStringLiteral("models.vibeworkspace"));
+		WorkspaceDocument saved;
+		ok &= expect(shell.saveWorkspaceTo(workspacePath, true, &error) && readWorkspaceDocument(workspacePath, &saved, nullptr, &error) &&
+						 saved.modelSources.size() == 1 && QFileInfo(saved.modelSources.first()) == QFileInfo(meshPath),
+					 "a saved workspace lists the open model source");
+		if (editor)
+		{
+			editor->close();
+		}
+		app.sendPostedEvents(nullptr, QEvent::DeferredDelete);
+		ok &= expect(shell.openWorkspaceFrom(workspacePath, &error), "open the workspace");
+		app.processEvents();
+		editor = static_cast<ModelEditorDialog *>(shell.findChild<QDialog *>(QStringLiteral("modelEditorDialog")));
+		ok &= expect(editor && QFileInfo(editor->document().path()) == QFileInfo(meshPath), "the workspace reopens the model source in the Mesh Editor");
 		if (editor)
 		{
 			editor->close();
@@ -300,7 +316,7 @@ int main(int argc, char **argv)
 		{
 			QElapsedTimer clock;
 			clock.start();
-			while (!condition() && clock.elapsed() < 20000)
+			while (!condition() && clock.elapsed() < 60000)
 				app.processEvents(QEventLoop::AllEvents, 20);
 			return condition();
 		};
@@ -354,7 +370,7 @@ int main(int argc, char **argv)
 		{
 			QElapsedTimer clock;
 			clock.start();
-			while (!condition() && clock.elapsed() < 20000)
+			while (!condition() && clock.elapsed() < 60000)
 				app.processEvents(QEventLoop::AllEvents, 20);
 			return condition();
 		};

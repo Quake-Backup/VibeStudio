@@ -4,6 +4,7 @@
 // Polling uses DocumentWatcher::pollAt through pollSourceWatch(), so no test
 // waits on the real clock. A design save with a stale expected hash is
 // refused (core/model_design.h).
+#include "app/model_assembly_dialog.h"
 #include "app/model_editor_dialog.h"
 #include "app/studio_layout.h"
 #include "app/studio_theme.h"
@@ -202,6 +203,45 @@ int main(int argc, char **argv)
 		}
 	}
 	QApplication::setLayoutDirection(Qt::LeftToRight);
+
+	// Assemble: a linked part rewritten on disk reloads the inputs.
+	{
+		const auto partPath = QDir(temporary.path()).filePath(QStringLiteral("part.md3"));
+		const auto smaller = exportEditableModel(original, QStringLiteral("md3"), 0, &error);
+		const auto larger = exportEditableModel(later, QStringLiteral("md3"), 0, &error);
+		QFile part(partPath);
+		ok &= expect(!smaller.isEmpty() && !larger.isEmpty() && part.open(QIODevice::WriteOnly) && part.write(smaller) == smaller.size(),
+					 "write a linked part");
+		part.close();
+		ModelAssemblyPart root;
+		root.id = QStringLiteral("root");
+		root.source = QStringLiteral("part.md3");
+		ModelAssembly recipe;
+		recipe.parts << root;
+		const auto assemblyPath = QDir(temporary.path()).filePath(QStringLiteral("watch.assembly.json"));
+		QFile assemblyFile(assemblyPath);
+		ok &= expect(assemblyFile.open(QIODevice::WriteOnly) && assemblyFile.write(QJsonDocument(modelAssemblyJson(recipe)).toJson()) > 0,
+					 "write the assembly");
+		assemblyFile.close();
+		ModelAssemblyDialog assembly;
+		assembly.show();
+		const auto triangles = [&]
+		{
+			int count = 0;
+			for (const auto &surface : assembly.pose().mesh.surfaces)
+				count += int(surface.triangles.size());
+			return count;
+		};
+		ok &= expect(assembly.openSource(assemblyPath, &error) && triangles() == original.triangleCount, "open the assembly");
+		QFile rewrite(partPath);
+		ok &= expect(rewrite.open(QIODevice::WriteOnly) && rewrite.write(larger) == larger.size(), "rewrite the part elsewhere");
+		rewrite.close();
+		assembly.pollAssemblyWatch(100000);
+		assembly.pollAssemblyWatch(101000);
+		app.processEvents();
+		ok &= expect(triangles() == later.triangleCount, "a linked part changed on disk reloads the assembly inputs");
+		assembly.hide();
+	}
 
 	// Design: a save that expects the opened bytes refuses a changed file.
 	const auto designPath = QDir(temporary.path()).filePath(QStringLiteral("prop.model.json"));

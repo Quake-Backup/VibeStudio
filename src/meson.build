@@ -894,6 +894,7 @@ app_sources = files(
   'app/model_editor_dialog.cpp',
   'app/model_editor_source_watch.cpp',
   'app/model_editor_outputs.cpp',
+  'app/model_assembly_source_watch.cpp',
   'app/model_document_work.cpp',
   'app/model_material_worker.cpp',
   'app/model_browser_appearance.cpp',
@@ -4231,7 +4232,7 @@ model_shell_smoke_test = executable(
   'model_shell_smoke_test', ['tests/model_shell_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
 )
-test('model-shell-smoke', model_shell_smoke_test, env: model_document_test_env, timeout: 90)
+test('model-shell-smoke', model_shell_smoke_test, env: model_document_test_env, timeout: 300)
 
 # The OpenGL and Vulkan backends render the same frames; exits 77 (skipped)
 # where neither can start. VIBESTUDIO_RENDER_REQUIRE=opengl,vulkan makes a

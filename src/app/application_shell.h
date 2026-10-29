@@ -1509,6 +1509,8 @@ private:
 	void refreshModelAppearanceControls();
 	// Model sources as documents (app/model_source_actions.cpp).
 	bool openModelSourcePath(const QString& path);
+	// The editable sources open in the Mesh Editor, Design Prop and Assemble.
+	[[nodiscard]] QStringList openModelSourcePaths() const;
 	// Stages a model and, when placing, commits its entity through the guarded
 	// level committer and selects it; nothing changes when either refuses.
 	bool commitModelHandoff(const std::function<bool(PackageStagingModel*, LevelMapDocument*, QString*)>& stage, bool place, QString* error);

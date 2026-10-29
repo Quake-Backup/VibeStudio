@@ -595,6 +595,7 @@ bool ModelAssemblyDialog::adopt(ModelAssemblyDocument candidate, QString *error,
 	refresh();
 	refreshMaterials();
 	checkpointRecovery();
+	watchAssemblyFiles();
 	if (error)
 	{
 		*error = inputError;

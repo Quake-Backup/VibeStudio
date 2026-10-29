@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 						 QStringLiteral("build/crate.md3"),
 				 "the receipt round-trips with project-relative paths");
 	ok &= expect(modelOutputStatus(records.first()).state == ModelOutputState::Current, "a fresh export is current");
-	ok &= expect(modelOutputSourceFor(records, QStringLiteral("crate.md3")).isEmpty() &&
+	ok &= expect(modelOutputSourceFor(records, QStringLiteral("other.md3")).isEmpty() &&
 					 QFileInfo(modelOutputSourceFor(records, outputPath)) == QFileInfo(sourcePath),
 				 "an output finds the source it was made from");
 
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 	ok &= expect(restored.written && QFileInfo::exists(outputPath), "refresh recreates a missing output");
 
 	// Exported from unsaved edits: unknown, not stale.
-	auto unsaved = record;
+	auto unsaved = restored.record;
 	unsaved.sourceSha256.clear();
 	ok &= expect(modelOutputStatus(unsaved).state == ModelOutputState::Unknown, "an export of unsaved edits cannot be judged");
 

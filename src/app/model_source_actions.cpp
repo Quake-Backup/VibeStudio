@@ -248,6 +248,18 @@ bool ApplicationShell::commitModelHandoff(const std::function<bool(PackageStagin
 	return true;
 }
 
+QStringList ApplicationShell::openModelSourcePaths() const
+{
+	QStringList paths;
+	if (m_modelEditorDialog && !m_modelEditorDialog->document().path().isEmpty())
+		paths << m_modelEditorDialog->document().path();
+	if (m_modelDesignDialog && !m_modelDesignDialog->path().isEmpty())
+		paths << m_modelDesignDialog->path();
+	if (m_modelAssemblyDialog && !m_modelAssemblyDialog->document().path().isEmpty())
+		paths << m_modelAssemblyDialog->document().path();
+	return paths;
+}
+
 QString ApplicationShell::selectedLevelEntityModelPath() const
 {
 	if (m_levelMapDocument.selectionKind != LevelMapSelectionKind::Entity)

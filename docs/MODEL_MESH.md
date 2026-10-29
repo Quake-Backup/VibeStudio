@@ -584,8 +584,10 @@ and adopts it as the save baseline through `ModelDocument::adoptSourceOnDisk`;
 a later change is refused again) or **Cancel**. Design Prop records the SHA-256
 of the `.model.json` it opened (`loadModelDesign`) and passes it to
 `saveModelDesignBytes`, which refuses an existing file with other content.
-Assembly sources and linked parts are not watched yet; **Reload Inputs** remains
-manual. **Preview slot** is a transient
+Assemble watches its `.assembly.json` and the loose files its parts and skins link
+(app/model_assembly_source_watch.cpp): a part rewritten on disk reads the inputs
+again, since they are read-only snapshots; a changed assembly file is reported,
+and Save still refuses to replace it. **Preview slot** is a transient
 per-surface choice; **Assign Material** edits that selected binding. **Manage
 Material Slots** reviews additions, replacement, removal, reordering and clearing
 as one undoable all-pose edit. See [Material Slots](MODEL_MATERIAL_SLOTS.md) for

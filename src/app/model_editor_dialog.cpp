@@ -2547,7 +2547,9 @@ void ModelEditorDialog::refreshContext()
 	if (m_collisionPlace) { m_collisionPlace->setEnabled(bool(collisionDestination) && current.canPlaceCollision && !m_document.mesh().collisionBoxes.isEmpty()); }
 	// The map says which formats it places (core/level_model_placement.h).
 	const auto suffix = QFileInfo(m_virtualPath->text()).suffix().toLower();
-	m_place->setEnabled(bool(handoff) && current.canStage && current.canPlace && current.placeSuffixes.contains(suffix));
+	// A context that names no formats places MD3, as Stage and Place always did.
+	const QStringList placeable = current.placeSuffixes.isEmpty() ? QStringList{QStringLiteral("md3")} : current.placeSuffixes;
+	m_place->setEnabled(bool(handoff) && current.canStage && current.canPlace && placeable.contains(suffix));
 	m_place->setToolTip(current.placeSuffixes.isEmpty()
 							? QCoreApplication::translate("VibeStudioModelEditor", "Open a Quake-family map to place the model.")
 							: QCoreApplication::translate("VibeStudioModelEditor", "This map places %1 models.")
