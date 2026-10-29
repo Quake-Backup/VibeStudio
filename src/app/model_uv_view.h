@@ -1,7 +1,9 @@
 #pragma once
 
 #include "app/model_uv_render.h"
+#include "core/model_uv_health.h"
 
+#include <QKeySequence>
 #include <QLabel>
 #include <QThread>
 
@@ -10,6 +12,24 @@ namespace vibestudio
 struct ModelUvHit
 {
 	int kind = -1, a = -1, b = -1;
+};
+// What the UV view's health overlay shows (core/model_uv_health.h).
+enum class ModelUvHealthOverlay
+{
+	None,
+	Stretch,
+	Overlaps,
+	Flipped,
+	OutsideTile
+};
+// The face bits an overlay shows.
+[[nodiscard]] quint8 modelUvHealthOverlayMask(ModelUvHealthOverlay overlay);
+// The UV view's modal transforms.
+enum class ModelUvModal
+{
+	None,
+	Scale,
+	Rotate
 };
 class ModelUvView final : public QLabel
 {
@@ -23,6 +43,20 @@ class ModelUvView final : public QLabel
 	void setPlaybackTexture(const QImage &texture);
 	void setPickMode(int mode);
 	void setMoveEnabled(bool enabled, double grid = 0);
+	// Measures UV health on the render worker against `referencePositions`
+	// (one per surface vertex) and a skin of `textureSize`, and shades the
+	// faces `overlay` names. None clears it.
+	void setHealthOverlay(ModelUvHealthOverlay overlay, const QVector<ModelVec3> &referencePositions, QSize textureSize,
+						  double stretchLimit = 1.5);
+	[[nodiscard]] ModelUvHealthOverlay healthOverlay() const { return m_overlay; }
+	// The last measured health for the shown layout; null without an overlay
+	// or before the worker finished.
+	[[nodiscard]] const ModelUvHealthReport *health() const { return m_health.get(); }
+	// The overlay's legend and count, for the status chip and screen readers.
+	[[nodiscard]] QString healthLegend() const;
+	// UV-only copies of other surfaces sharing the material, drawn as dim
+	// dashed wires; empty hides them.
+	void setGhostSurfaces(const QVector<ModelSurface> &surfaces);
 	void frameAll();
 	void frameSelection();
 	void panView(QPointF delta);
@@ -36,6 +70,19 @@ class ModelUvView final : public QLabel
 	bool beginMove(QPointF point);
 	bool updateMove(QPointF point);
 	void finishMove(bool commit);
+	// Modal Scale and Rotate about the selection's centre, started by the
+	// editor profile's keys (setModalKeys) while the view has focus. The
+	// pointer sets the amount, digits type it exactly, X or U and Y or V
+	// limit a scale to one axis, Control snaps (0.1 and 15 degrees), Enter
+	// or a click applies one undo step, and Escape or a right click cancels.
+	void setModalKeys(const QList<QKeySequence> &scale, const QList<QKeySequence> &rotate);
+	bool beginModal(ModelUvModal mode, QPointF pointer);
+	bool updateModal(QPointF pointer, bool snap = false);
+	bool typeModal(const QString &text);
+	void constrainModal(int axis);
+	void finishModal(bool commit);
+	[[nodiscard]] ModelUvModal modal() const { return m_modal; }
+	[[nodiscard]] QString modalSummary() const;
 	[[nodiscard]] bool moving() const;
 	[[nodiscard]] ModelTexCoord moveDelta() const;
   Q_SIGNALS:
@@ -44,6 +91,8 @@ class ModelUvView final : public QLabel
 	void movePreviewChanged(double u, double v);
 	void moveRequested(double u, double v);
 	void moveActiveChanged(bool active);
+	void transformRequested(double scaleU, double scaleV, double rotation, double pivotU, double pivotV);
+	void modalPreviewChanged(const QString &summary);
 
   protected:
 	void paintEvent(QPaintEvent *event) override;
@@ -78,6 +127,20 @@ class ModelUvView final : public QLabel
 	Qt::MouseButton m_button = Qt::NoButton;
 	ModelTexCoord m_delta;
 	QString m_error;
+	ModelUvModal m_modal = ModelUvModal::None;
+	QList<QKeySequence> m_scaleKeys, m_rotateKeys;
+	QPointF m_modalPress;
+	ModelTexCoord m_modalPivot;
+	double m_modalValue = 1;
+	QString m_modalTyped;
+	int m_modalAxis = -1;
+	[[nodiscard]] QTransform modalTransform() const;
+	[[nodiscard]] ModelUvModal modalKey(const QKeyEvent *event) const;
+	QVector<ModelSurface> m_ghosts;
+	ModelUvHealthOverlay m_overlay = ModelUvHealthOverlay::None;
+	QVector<ModelVec3> m_healthPositions;
+	ModelUvHealthOptions m_healthOptions;
+	std::shared_ptr<const ModelUvHealthReport> m_health;
 	void requestRender(bool retire = false);
 	void startRender();
 	void announce();

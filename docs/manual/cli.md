@@ -8,7 +8,8 @@ by commands that allow it. See [save and review output](models.md#save-and-revie
 for overwrite rules and the limits of a dry run.
 
 `model uv-density` inspects existing UV islands using `--texture-size N` or
-`WIDTHxHEIGHT` and an optional `--reference-frame`. Add `--target`,
+`WIDTHxHEIGHT` and an optional `--reference-frame`; `--surfaces` with
+`--texture-size-for SURFACE=WxH` measures several surfaces and skins together. Add `--target`,
 `--mode individual|group` and a separate `.mesh.json` `--output` to match
 density. `--faces` expands to complete islands; dry-run and output protection
 share the editor's document service. See [texture density](../MODEL_UV_DENSITY.md).
@@ -24,6 +25,22 @@ range; `import --source ...` adds frames from an OBJ sequence or another model;
 `--output`. `model import` takes `--obj-up z|y`, `--obj-scale`,
 `--obj-materials` and `--obj-loose` for OBJ files.
 See [vertex animation frames](../MODEL_VERTEX_ANIMATION.md#command-line).
+
+`model uv --health` reports stretched, overlapping, flipped, collapsed and
+out-of-tile faces, stacked mirror halves, the texel-centre error, native vertex
+costs and the MDL flood-fill hazard without writing. `--fail-on` with a quoted
+list such as `"overlap,flipped,stretch>2"` exits 4 when any listed problem is
+present, for build scripts. See [UV health](../MODEL_MESH.md#uv-health).
+
+`model uv-layout` writes a skin template (PNG, TGA or PCX) to paint over, and
+`model skin-transfer` repaints an old skin for new UVs from the sources before
+and after a UV edit. `model edit --operation uv-weld`, `uv-stitch`, `uv-align`
+and `uv-snap-texels` run the UV operators; `uv-unwrap --uv-method conformal`
+flattens seam-bounded islands; `model tool --tool uv-quake-frontback` lays out
+a Quake front/back skin; `model mdl --operation export-skin` writes an MDL skin
+member with its palette indices. See
+[UV operators](../MODEL_MESH.md#uv-operators) and
+[UV layouts and skin transfer](../MODEL_MESH.md#uv-layouts-and-skin-transfer).
 
 `model curve-transfer` also requires an output different from its input,
 including path aliases, even with `--overwrite` or `--dry-run`.

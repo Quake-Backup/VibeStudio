@@ -656,6 +656,26 @@ the independent width/height packing adaptation reviewed 2026-10-06, and the
 bounded VibeStudio worker wrapper. Original vendored source and header bytes
 remain unchanged; generated copies retain all upstream notices.
 
+Quarter-turn packing (2026-10-28) leaves xatlas's `rotateCharts` off, because
+it transposes charts (a reflection): the studio turns islands itself before
+packing and refuses any result whose UV winding changed. No xatlas change.
+
+The conformal unwrap (`core/model_uv_unwrap.cpp`, 2026-10-28) is an original
+implementation of the published Least Squares Conformal Maps method: Bruno
+Lévy, Sylvain Petitjean, Nicolas Ray and Jérome Maillot, "Least Squares
+Conformal Maps for Automatic Texture Atlas Generation", ACM SIGGRAPH 2002,
+ACM Transactions on Graphics 21(3):362–371,
+[doi:10.1145/566654.566590](https://doi.org/10.1145/566654.566590). The
+per-triangle Cauchy-Riemann rows and two-pin formulation follow the paper; the
+conjugate-gradient least-squares (CGLS) solver with Jacobi column scaling is a
+textbook method (Hestenes and Stiefel, 1952; Björck, *Numerical Methods for
+Least Squares Problems*, SIAM 1996). No code is taken from xatlas's embedded
+OpenNL, Blender or any other implementation. Blender's
+[UV unwrap](https://docs.blender.org/manual/en/4.5/modeling/meshes/uv/unwrapping/mapping_types.html)
+(CC-BY-SA-4.0, reviewed 2026-10-28) is the behavioural reference for unwrapping
+along marked seams with pinned UVs, weld, stitch, align and straighten, and the
+UV editor's modal scale and rotate; behaviour only.
+
 ## Blender-Style Mesh Editing (2026-10-07)
 
 The Mesh Editor's edit-mode workflow follows [Blender](https://www.blender.org/)
@@ -1137,7 +1157,10 @@ The MDL skin-padding guidance and deliberate flood-fill control follow
 `Mod_FloodFillSkin` in Quake's
 [`WinQuake/gl_model.c`](https://github.com/id-Software/Quake/blob/master/WinQuake/gl_model.c)
 (GPL-2.0-or-later) and FTE's `common/com_mesh.c`. No flood-fill implementation is
-copied or added to the studio. Pixel projection/oracles and all generated assets
+copied or added to the studio. UV health's flood-fill check
+(`core/model_uv_health.cpp`, 2026-10-28) follows the same documented behaviour
+(the 4-connected region of the first texel's index, not filled for index 0 or
+255) with original code that only measures the region. Pixel projection/oracles and all generated assets
 are original. Pillow's existing external-test attribution below also covers this
 runner; external [Mesa](https://docs.mesa3d.org/license.html) supplies EGL/llvmpipe
 (primarily MIT; no Mesa code is imported or linked into VibeStudio).

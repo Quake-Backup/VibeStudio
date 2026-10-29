@@ -49,6 +49,20 @@ ModelTexCoord cubeUv(int side, P3 p, double scale)
 		return {float(-p.x * scale), float(-p.y * scale)};
 	}
 }
+// Quake front/back side of a face: by its corners' stored normals, which point
+// out whatever the triangle order, else by its winding. 0 front, 1 back.
+int frontBackSide(const ModelSurface &surface, int frame, const ModelTriangle &t, P3 facing)
+{
+	P3 normal{0, 0, 0};
+	for (int v : {t.a, t.b, t.c})
+	{
+		const auto n = surface.frames[frame].normals[v];
+		normal = normal + P3{n.x, n.y, n.z};
+	}
+	if (length(normal) < 1e-6)
+		normal = faceCross(surface, frame, t);
+	return dot(normal, facing) >= 0 ? 0 : 1;
+}
 } // namespace
 
 bool projectUvs(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work)
@@ -66,6 +80,20 @@ bool projectUvs(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 	const P3 uAxis = unit(arrayPoint(options.uvAxisU)), vAxis = unit(arrayPoint(options.uvAxisV));
 	if (options.uvProjection == ModelUvProjection::View && (length(uAxis) <= 0 || length(vAxis) <= 0 || length(cross(uAxis, vAxis)) < 1e-6))
 		return fail(error, Text::tr("Project From View needs the view's right and up directions."));
+	// Quake front/back skins: faces facing along +axis are the front, seen
+	// from in front with +Z up (+Y up when facing along Z); the back half uses
+	// the same projection, so it reads mirrored as in Quake's own skins.
+	const bool frontBack = options.uvProjection == ModelUvProjection::QuakeFrontBack;
+	const QSize skin = modelUvSnapSize(*mesh);
+	if (frontBack && (options.axis < 0 || options.axis > 2))
+		return fail(error, Text::tr("Choose the X, Y or Z axis the model faces along."));
+	if (frontBack && (skin.width() < 8 || skin.width() % 4 != 0 || skin.height() < 2))
+		return fail(error, Text::tr("Quake loads skins whose width is a multiple of 4. Set the MDL or MD2 skin size to a width such as %1 "
+									"before laying out the front and back halves.")
+							   .arg(std::max(8, (skin.width() + 3) / 4 * 4)));
+	const P3 facing = options.axis == 0 ? P3{1, 0, 0} : options.axis == 1 ? P3{0, 1, 0} : P3{0, 0, 1};
+	const P3 skinUp = options.axis == 2 ? P3{0, 1, 0} : P3{0, 0, 1};
+	const P3 skinRight = cross(facing * -1, skinUp);
 	const QSet<int> chosen(faces.cbegin(), faces.cend());
 	// Mapping group of each selected face; unselected faces form group -1.
 	QHash<int, int> group;
@@ -73,7 +101,9 @@ bool projectUvs(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 	for (int face : faces)
 	{
 		const auto &t = surface.triangles[face];
-		group.insert(face, options.uvProjection == ModelUvProjection::Cube ? cubeSide(faceCross(surface, frame, t)) : 0);
+		group.insert(face, options.uvProjection == ModelUvProjection::Cube ? cubeSide(faceCross(surface, frame, t))
+						   : frontBack												 ? frontBackSide(surface, frame, t, facing)
+																					 : 0);
 		for (int v : {t.a, t.b, t.c})
 		{
 			const P3 p = position(surface, frame, v);
@@ -127,6 +157,9 @@ bool projectUvs(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 			const double polar = l > 0 ? std::acos(std::clamp(dot(r, up) / l, -1.0, 1.0)) : 0;
 			return {float(0.5 + angle / (2 * std::numbers::pi)), float(polar / std::numbers::pi)};
 		}
+		case ModelUvProjection::QuakeFrontBack:
+			// Model units for now; fitted into the halves below.
+			return {float(dot(p, skinRight)), float(-dot(p, skinUp))};
 		}
 		return {};
 	};
@@ -203,6 +236,33 @@ bool projectUvs(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 	}
 	for (auto it = mappingOf.cbegin(); it != mappingOf.cend(); ++it)
 		surface.texCoords[it.key()] = project(it.value(), position(surface, frame, it.key()));
+	if (frontBack)
+	{
+		// Fit both halves' common outline into the left half with a texel of
+		// margin, then snap to texel centres; a back corner sits exactly half
+		// the skin width to the right of the matching front corner, which the
+		// MDL writer stores once as an onseam vertex.
+		double minU = INFINITY, minV = INFINITY, maxU = -INFINITY, maxV = -INFINITY;
+		for (auto it = mappingOf.cbegin(); it != mappingOf.cend(); ++it)
+		{
+			const auto uv = surface.texCoords[it.key()];
+			minU = std::min(minU, double(uv.u));
+			maxU = std::max(maxU, double(uv.u));
+			minV = std::min(minV, double(uv.v));
+			maxV = std::max(maxV, double(uv.v));
+		}
+		const int half = skin.width() / 2, height = skin.height();
+		const double texels = std::min((half - 2) / std::max(maxU - minU, 1e-12), (height - 2) / std::max(maxV - minV, 1e-12));
+		if (!(maxU > minU) || !(maxV > minV) || !std::isfinite(texels))
+			return fail(error, Text::tr("The selected faces have no width or height seen along this axis. Choose another facing axis."));
+		for (auto it = mappingOf.cbegin(); it != mappingOf.cend(); ++it)
+		{
+			const auto uv = surface.texCoords[it.key()];
+			const int s = std::clamp(int(std::lround(1 + (uv.u - minU) * texels - .5)), 0, half - 1);
+			const int t = std::clamp(int(std::lround(1 + (uv.v - minV) * texels - .5)), 0, height - 1);
+			surface.texCoords[it.key()] = {float((s + (it.value() == 1 ? half : 0) + .5) / skin.width()), float((t + .5) / height)};
+		}
+	}
 	if (round)
 	{
 		// Faces across the wrap use copies shifted one repeat to the right.
@@ -262,7 +322,7 @@ bool projectUvs(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 			surface.triangles[face] = t;
 		}
 	}
-	if (options.uvFit)
+	if (options.uvFit && !frontBack)
 	{
 		// Scale to Bounds: the projected faces fill the 0-1 skin, keeping aspect.
 		QSet<int> used;

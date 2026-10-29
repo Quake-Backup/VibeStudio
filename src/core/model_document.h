@@ -26,6 +26,7 @@
 #include "core/model_transform.h"
 #include "core/model_uv.h"
 #include "core/model_uv_density.h"
+#include "core/model_uv_ops.h"
 #include "core/model_vertex_origins.h"
 
 #include <QByteArray>
@@ -263,6 +264,11 @@ enum class ModelEditKind
 	ApplyRelativePose,
 	// Frames from other files (core/model_frame_import.h).
 	ImportFrames,
+	// UV operators (core/model_uv_ops.h); ModelEdit::uvTools.
+	WeldUv,
+	StitchUv,
+	AlignUv,
+	SnapUvTexels,
 };
 
 struct ModelEdit
@@ -348,6 +354,9 @@ struct ModelEdit
 	ModelPoseRangeOptions poseRange{};
 	ModelTagFollowOptions tagFollow{};
 	ModelFrameImportOptions frameImport{};
+	// UV operators, and the unwrap method and packing rotation of UnwrapUv
+	// and PackUv (core/model_uv_ops.h).
+	ModelUvToolOptions uvTools{};
 };
 
 struct ModelExportReport

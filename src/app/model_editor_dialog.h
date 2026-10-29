@@ -14,6 +14,7 @@
 #include "core/model_skin_bindings.h"
 #include "core/model_topology_health.h"
 #include "core/model_intersections.h"
+#include "core/model_uv_health.h"
 
 #include <QDialog>
 #include <QElapsedTimer>
@@ -154,6 +155,45 @@ class ModelEditorDialog final : public QDialog
 	// Skin Variants… (model_skin_variants_dialog.cpp): edits the named skins
 	// the source owns as one undo step and writes their skin files.
 	bool editSkinVariants(QString *error = nullptr);
+	// UV health (model_editor_uv.cpp, core/model_uv_health.h) for the active
+	// surface, against the displayed pose and skin size. Check UV Health
+	// reports every problem, native vertex costs and the MDL flood-fill
+	// hazard in the status line; selecting problems never edits the model.
+	bool checkUvHealth(ModelUvHealthReport *report = nullptr, QString *error = nullptr);
+	bool selectUvProblems(quint8 flags, QString *error = nullptr);
+	// The original skin size UV tools measure against: the displayed
+	// material's source size, else the MDL or MD2 skin size.
+	[[nodiscard]] QSize uvSkinSize(int surface) const;
+	// UV operators (core/model_uv_ops.h) on the selection with the UV panel's
+	// settings: WeldUv, StitchUv, AlignUv or SnapUvTexels, one undo step each.
+	bool runUvTool(ModelEditKind kind, QString *error = nullptr);
+	// Quake Front/Back Skin Layout: the classic MDL front and back halves
+	// for the selected faces (or all), facing along `axis` (0 X, 1 Y, 2 Z).
+	bool layoutQuakeFrontBack(int axis = 0, QString *error = nullptr);
+	// Export UV Layout… (model_uv_layout_dialog.cpp): a skin template image.
+	void exportUvLayout();
+	// Transfer Skin to New UVs… (model_skin_transfer_dialog.cpp): repaints the
+	// active surface's skin for the UVs the last UV edit changed.
+	void transferSkin();
+	[[nodiscard]] bool canTransferSkin() const;
+	// Embedded MDL skin members (model_editor_mdl.cpp): export the current
+	// member with its exact palette indices, or replace it from any image,
+	// mapped to the model's palette, as one undo step.
+	bool exportMdlSkinMember(const QString &path, QString *error = nullptr);
+	bool replaceMdlSkinMemberFromImage(const QString &path, QString *error = nullptr);
+	// Opens a Quake III shader or Doom 3 material by name in the Materials
+	// workbench; Show Material uses it when a surface's material resolves to
+	// a shader rather than an image.
+	std::function<void(const QString &)> showShader;
+	// Opens an image in the Textures workbench's editor at the package path
+	// staging it there replaces (Edit Skin…); set by the shell.
+	std::function<bool(const QImage &, const QString &, QString *)> editSkin;
+	// Stages one file of any type in the open package as one package step
+	// (UV layouts, transferred skins); set by the shell.
+	std::function<bool(const QString &, const QByteArray &, bool, QString *)> stageFile;
+	// Edit Skin…: the active surface's skin (the displayed material image or
+	// the current MDL member) in the texture editor.
+	bool editSurfaceSkin(QString *error = nullptr);
 	// Shows `mesh` in the viewport in place of the document, changing nothing;
 	// nullptr shows the document again.
 	void previewTransientMesh(const ModelMesh *mesh);
@@ -288,6 +328,18 @@ class ModelEditorDialog final : public QDialog
 	QCheckBox *m_uvAtlasSquare = nullptr;
 	QPushButton *m_uvUnwrap = nullptr, *m_uvPack = nullptr, *m_uvPackAround = nullptr;
 	QComboBox *m_uvObstacleScale = nullptr;
+	QComboBox *m_uvHealthOverlay = nullptr;
+	QDoubleSpinBox *m_uvHealthStretch = nullptr;
+	QDoubleSpinBox *m_uvWeldTolerance = nullptr;
+	QComboBox *m_uvAlignMode = nullptr, *m_uvSnapMode = nullptr, *m_uvUnwrapMethod = nullptr;
+	QCheckBox *m_uvPackRotate = nullptr, *m_uvUnwrapPack = nullptr, *m_uvPackShared = nullptr;
+	QLabel *m_md2SkinSizeWarning = nullptr;
+	// The active surface before the last UV edit, for Transfer Skin.
+	ModelSurface m_uvTransferBefore;
+	int m_uvTransferSurface = -1;
+	QByteArray m_uvTransferRevision;
+	void configureUvAtlasTools(ModelEdit *edit) const;
+	void rememberUvTransferSource(const ModelMesh &before, const ModelEdit &edit);
 	QLabel *m_healthStatus = nullptr, *m_healthDetail = nullptr;
 	QComboBox *m_healthFinding = nullptr;
 	QPushButton *m_healthInspect = nullptr, *m_healthSelect = nullptr, *m_healthRepair = nullptr;

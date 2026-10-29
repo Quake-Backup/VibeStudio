@@ -13,6 +13,10 @@ struct ModelUvAtlasOptions
 	qsizetype memoryLimit = 256 * 1024 * 1024;
 	// Width is resolution; zero height preserves the existing square API.
 	int height = 0;
+	// Packing only: also try every island turned a quarter turn so its long
+	// side lies along U, then along V, keeping the densest fit. Islands are
+	// never mirrored; a result that would mirror one is refused.
+	bool allowRotation = false;
 };
 struct ModelUvAtlasReport
 {
@@ -28,4 +32,15 @@ struct ModelUvAtlasReport
 bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame, bool unwrap, const ModelUvAtlasOptions &options,
 				  ModelSurface *result, QString *error = nullptr, const ModelWorkControl &control = {},
 				  ModelUvAtlasReport *report = nullptr);
+// Whether two surfaces share a nonempty material slot path (case-insensitive,
+// slash-normalised), the rule Pack Around Unselected uses for shared skins.
+[[nodiscard]] bool modelUvSurfacesShareMaterial(const ModelSurface &a, const ModelSurface &b);
+// Packs the selected faces of `surface` and every face of `others` (surfaces
+// sharing its material) into one atlas, keeping each island's shape,
+// orientation and relative scale, so no island overlaps another across the
+// union. Corners split per surface as atlasModelUv splits them; every pose
+// and the other surfaces' data survive. Output is atomic on failure.
+bool atlasModelUvSurfaces(const ModelMesh &mesh, int surface, const QSet<int> &faces, const QSet<int> &others, int frame,
+						  const ModelUvAtlasOptions &options, ModelMesh *result, QString *error = nullptr, const ModelWorkControl &control = {},
+						  ModelUvAtlasReport *report = nullptr);
 } // namespace vibestudio

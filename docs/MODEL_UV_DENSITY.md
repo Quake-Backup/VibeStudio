@@ -60,8 +60,30 @@ are unaffected.
 Scaling can introduce overlaps or move islands outside the base tile. Review
 coverage, then pack or reposition as appropriate. Packing or later geometry
 edits may change density; inspect again afterwards. Density does not bake,
-resize or modify a texture, change material paths, or automatically normalise
-different surfaces with different materials.
+resize or modify a texture or change material paths. To repaint a skin after
+density changes, use **Transfer Skin…** ([skin transfer](MODEL_MESH.md#uv-layouts-and-skin-transfer)).
+
+## Match several surfaces and skins
+
+`model uv-density --surfaces all|N,N` measures or matches several surfaces in
+one edit, such as a Quake III player's head, upper and lower parts or a weapon
+with several skins. The first listed surface (or `--surface`) takes `--faces`;
+the others count whole. `--texture-size` is the default original skin size and
+`--texture-size-for SURFACE=WIDTHxHEIGHT`, once per surface, gives a surface its
+own. Every surface's texels are counted on its own skin, so one pixels-per-unit
+target means the same density on every skin. Individual mode scales every
+island to the target; group mode scales all of them by one factor from the
+summed areas, keeping their relative density across surfaces. The edit is one
+undo step and is refused, changing nothing, when any island is collapsed. JSON
+adds `surfaces` (each other surface's `before`), `combinedPixelsPerUnit` and,
+when adjusting, `otherSurfaces` with `after`.
+
+```text
+vibestudio --cli model uv-density player.mesh.json --surfaces all --texture-size 256 --texture-size-for 2=512x512 --json
+vibestudio --cli model uv-density player.mesh.json --surfaces 0,1,2 --texture-size 256 --texture-size-for 2=512x512 --target 4 --mode group --output player-density.mesh.json
+```
+
+The **Texel Density…** dialog still works on one surface at a time.
 
 ## Automate density adjustment
 
@@ -100,9 +122,9 @@ exact density matters. Engine acceptance remains a separate release gate.
   move them nearer the origin or use a larger target.
 - Inspection and adjustment are atomic on failure or cancellation. Source
   metadata, native export budgets and save limits still apply.
-- Texture editing/baking, multi-material batch matching, anisotropic stretch
-  correction, maximum-size performance, real-engine delivery and native
-  accessibility acceptance remain open work.
+- Multi-surface matching is on the command line only; the dialog, texture
+  painting, anisotropic stretch correction, maximum-size performance,
+  real-engine delivery and native accessibility acceptance remain open work.
 
 The original implementation follows the familiar island-scale workflow;
 [credits](CREDITS.md#blender-style-mesh-editing-2026-10-07) identify the behavioural

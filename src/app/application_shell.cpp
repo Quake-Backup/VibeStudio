@@ -20862,6 +20862,35 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial)
 		return true;
 	};
 	editor->showMaterial = [this](const QString& path) { showTextureReference(path); };
+	// Modeller: a surface material that resolves to a Quake III shader or Doom 3 material.
+	editor->showShader = [this](const QString& name) { showMaterialNamed(name); };
+	// Modeller: Edit Skin… paints the skin in the Textures workbench; staging it there updates the model.
+	editor->editSkin = [this](const QImage& image, const QString& path, QString* outputError) {
+		showTextureEditor(false);
+		if (!m_textureEditorDialog) { if (outputError) { *outputError = tr("The texture editor could not be opened."); } return false; }
+		IdTechPaletteResolution palette = m_paletteResolution;
+		if (image.format() == QImage::Format_Indexed8) {
+			palette = {}; palette.requestedPaletteId = QStringLiteral("skin");
+			palette.palette.id = QStringLiteral("skin"); palette.palette.colors = image.colorTable(); palette.palette.colors.resize(256);
+		} else if (!m_paletteResolutionValid) {
+			palette = {}; palette.requestedPaletteId = activePaletteId(); palette.palette = generatedIdTechPalette(palette.requestedPaletteId);
+		}
+		if (!m_textureEditorDialog->editImage(image, path, palette)) { if (outputError) { *outputError = tr("The skin could not be opened for editing."); } return false; }
+		return true;
+	};
+	// Modeller: UV layouts and transferred skins stage as one package step.
+	editor->stageFile = [this](const QString& path, const QByteArray& bytes, bool replace, QString* outputError) {
+		if (m_packageExtractionRunning || m_packageSaveRunning || m_packageReadRunning) { if (outputError) { *outputError = tr("Wait for the package operation to finish before staging a file."); } return false; }
+		if (!m_packageStaging.isLoaded()) { if (outputError) { *outputError = tr("Open a folder, PAK, ZIP or PK3 before staging a file."); } return false; }
+		const auto normalized = normalizePackageVirtualPath(path, false);
+		if (!normalized.isSafe()) { if (outputError) { *outputError = tr("Choose a safe package-relative path."); } return false; }
+		auto staged = m_packageStaging;
+		if (!staged.addBytes(bytes, normalized.normalizedPath, outputError, replace ? PackageStageConflictResolution::ReplaceExisting : PackageStageConflictResolution::Block)) { return false; }
+		m_packageStaging = std::move(staged);
+		refreshPackageStagingSummary();
+		recordActivity(tr("Mesh Handoff"), normalized.normalizedPath, tr("package"), OperationState::Completed, tr("Skin image staged for package save."));
+		return true;
+	};
 	// Modeller: an MD3 with stored detail levels stages them in one package step.
 	editor->handoffFiles = [this](const QVector<ModelStagedFile>& files, bool place, const LevelMapVec3& origin, bool replace, QString* outputError) {
 		if (m_packageExtractionRunning || m_packageSaveRunning || m_packageReadRunning) { if (outputError) { *outputError = tr("Wait for the package operation to finish before staging a model."); } return false; }

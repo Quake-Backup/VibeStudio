@@ -138,8 +138,13 @@ This is ordered binding authoring and static image preview. Named skins such as
 red and blue, which the source keeps and writes as `.skin` files or Doom 3 skin
 declarations, are [skin variants](MODEL_SKIN_VARIANTS.md). Material slots do not
 provide per-face material assignment within one surface, runtime skin switching,
-animated shader simulation, or automatic texture rebaking. Separate faces into surfaces when they require independent
-bindings. [The release gate](MODELLER_RELEASE.md) remains open for full production
+animated shader simulation, or automatic texture rebaking (Transfer Skin to New
+UVs repaints a skin on request; see [UV layouts and skin
+transfer](MODEL_MESH.md#uv-layouts-and-skin-transfer)). Separate faces into
+surfaces when they require independent bindings. **Edit Skin…** opens a slot's
+image in the texture editor, and **Show Material** opens a slot that resolves to
+a Quake III shader or Doom 3 material in the Materials workbench
+([skin edit round trip](MODEL_MESH.md#skin-edit-round-trip)). [The release gate](MODELLER_RELEASE.md) remains open for full production
 interaction, clean packages and cross-platform acceptance.
 
 Level preview and compiler `_skin`/`skin` remapping use the separate shared

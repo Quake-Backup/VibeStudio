@@ -454,7 +454,7 @@ at coincident UV corners. Hatching covers the union of selected faces once,
 including reversed or overlapping UV faces; unselected holes stay clear.
 **Detach UV Faces** splits selected faces from unselected
 neighbours without moving UVs, poses, or normals. Clearing marks does not weld
-already split indices. These operations share document undo, source saves, and
+already split indices; **Weld UVs** does (see [UV operators](#uv-operators)). These operations share document undo, source saves, and
 recovery. Splits, subdivision, duplication, deletion, and welding remap marks.
 
 Middle-drag or the arrow keys pan the UV view (Shift+arrows in 4 px steps),
@@ -501,7 +501,8 @@ move handle still uses the ordinary face/component offset operation.
 **Unwrap and Pack Faces** generates charts from selected faces in the displayed
 animation pose, respecting marked seams and existing indexed splits. It can add
 cuts to flatten curved surfaces; isolated interior seam tips may need adjacent
-cuts. Positions and normals are copied exactly across every animation pose when
+cuts. For islands bounded by your seams alone, use the conformal method
+([Conformal unwrap](#conformal-unwrap)). Positions and normals are copied exactly across every animation pose when
 corners split. **Pack Selected UVs** keeps existing island shapes, orientation and
 relative UV scale while arranging them in one tile. Select Islands first to pack
 whole islands. These actions require a face selection and commit one undo step.
@@ -542,15 +543,19 @@ Selected islands must have noncollapsed, nonoverlapping faces internally.
 
 Packing uses conservative texel masks and a deterministic bounded search, so
 it can leave unused space and may refuse a layout that a different arrangement
-could fit. It does not rotate islands. The raster workspace is preflighted
+could fit. It does not rotate islands (Pack Selected UVs can; see
+[UV operators](#uv-operators)). The raster workspace is preflighted
 against the allocation budget (at most 6 MiB for three 4096-square bitmaps), and
 raster/search work stops at 250 million units. Mesh/topology storage and overlap
 verification retain their existing document limits. Progress and Cancel use the
 normal document worker. Failure leaves the model, selection and history intact;
 success is one undo step, preserving all pose positions/normals and remapping
 seams if shared corners split. Save, recovery, native export and package/level
-handoffs use the resulting ordinary UVs. Images are not repainted. Persistent
-per-corner pins, image rebaking and multi-tile packing remain integration work.
+handoffs use the resulting ordinary UVs. Images are not repainted by packing;
+**Transfer Skin…** repaints them afterwards ([skin transfer](#uv-layouts-and-skin-transfer)).
+Pins are per operation (a conformal unwrap's selected vertices), not stored in
+the source; persistent per-corner pins and multi-tile packing remain integration
+work.
 
 The [xatlas service](DEPENDENCIES.md#xatlas) behind Unwrap and Pack Faces and Pack
 Selected UVs runs offline on the document worker with progress and Cancel.
@@ -561,6 +566,179 @@ corner splits, memory exhaustion and cancelled work leave the source unchanged.
 Overlap verification stops after eight million broad-phase comparisons with a
 message to reduce the selection. Texture-painting and package handoffs continue
 to use the document's material paths and normal export/staging services.
+
+### UV health
+
+UV health finds what a skin layout gets wrong before an export or the game shows
+it. It reads the model and never edits it. For one surface it measures, against
+a reference pose and the skin's original size:
+
+- **Stretch**: for each face, the singular values σ1 ≥ σ2 of the map from its
+  reference-pose triangle to texels, against its island's density ρ (the square
+  root of the island's texel area over its model area). Stretch is
+  `max(σ1/ρ, ρ/σ2)`: 1 is an exact isometry up to the island's own scale, and
+  2 means texels twice as long, or half as long, as the island average. Faces
+  over the stretch limit (default 1.5) are stretched. Each island also reports
+  its largest angle distortion `σ1/σ2` and area ratios `σ1σ2/ρ²`.
+- **Flipped** faces wind against the rest of their island in UV space: a fold,
+  or a face wound backwards in 3D. An island that mostly winds backwards is
+  **mirrored**, often deliberately, and its faces are not counted as flipped.
+- **Overlapping** faces share UV area with another face of the same winding.
+  Faces that share area only with the faces of a mirrored island are reported as
+  **stacked mirror halves** instead: the usual way symmetrical idTech models
+  save skin space. Shared edges and corners never count. The sweep is the one
+  packing refuses with; it stops after 50 million bounding-box tests and says so.
+- **Outside the tile**: faces with a corner outside 0–1, and those corners. MDL
+  and MD2 exports refuse them.
+- **Collapsed** faces have coincident UVs or no area in the reference pose; they
+  are left out of the other measurements.
+- **Texel-centre error**: the largest distance, in texels, from a used corner to
+  the texel centre the MDL and MD2 writers round it to.
+- **Native vertices**: what the MDL writer stores after pairing onseam corners
+  (and draws, with seam copies), the positions and drawn position/texel pairs the
+  MD2 writer stores, and MD3's one vertex per UV corner, beside each format's
+  default delivery-target limit. MDL needs MDL settings, one surface and UVs in
+  the tile; MD2 one surface and UVs in the tile.
+- **Flood fill**: GLQuake-style MDL loading flood-fills the colour connected to
+  the first skin texel (see [Quake MDL](#quake-mdl)). For an MDL source, health
+  measures that 4-connected region in the first skin's indices and counts the
+  texels the UVs use inside it. A first texel of index 0 or 255 is not filled.
+
+In the UV view, **UV problem overlay** shades one kind at a time: dotted faces
+are stretched, cross-hatched faces overlap, horizontally hatched faces are
+flipped and vertically hatched faces leave the dashed 0–1 tile. A legend in the
+view's status chip, and in its accessible description, names the pattern and
+counts the faces, so the overlay never relies on colour. **UV stretch limit**
+applies to the stretch overlay. Health is measured on the view's render worker
+against the displayed pose and the displayed material's original size (else
+the MDL or MD2 skin size), and is replaced when the layout, pose or limit
+changes. **Select Shown Problems**, and **UV → Select Overlapping UVs**,
+**Select Flipped UVs**, **Select Stretched UVs** and **Select UVs Outside the
+Tile**, select the affected faces on the document worker without changing the
+model or its history. **Check UV Health** (UV toolbar and UV menu) reports every
+count, the texel-centre error, the native vertex costs and the flood-fill hazard
+in the status line.
+
+`model uv --health` reports the same measurements; `--fail-on` exits 4 when a
+listed problem is present, for automation. See [CLI](#cli).
+
+### UV operators
+
+Each operator is one undo step through the document service, so the CLI
+(`model edit --operation uv-weld|uv-stitch|uv-align|uv-snap-texels`), recovery
+and saves share it. Settings sit in the Surface panel's UV controls; the
+commands are also in the **UV** menu and can take keys in **Controls**.
+
+- **Weld UVs** joins the selected corners with their split copies: corners whose
+  positions and normals match bit for bit in every pose, with the same topology
+  identity and skin influences, and whose UVs lie within **Weld Distance** (zero
+  by default) of the corner they join. Joined corners take their mean UV and the
+  copies are removed, so Weld exactly undoes **Detach UV Faces**, seam marks
+  included. Faces that would collapse or duplicate are refused.
+- **Stitch UVs** works on boundary edges of a UV seam in edge selection: it
+  finds each edge's split copy on another island, turns and moves the smaller
+  island rigidly (an orthogonal Procrustes fit of the seam corners; never a
+  reflection or a scale) so the edges meet, snaps the seam corners together,
+  welds those that match in every pose and clears the seam marks it joined. One
+  pair of islands is stitched at a time; a mirrored island is refused.
+- **Align UVs** lines the selected corners up at the lowest, middle or highest U
+  or V, or **Straighten** puts them on the line between the two corners farthest
+  apart along their principal direction. Faces sharing those corners follow.
+- **Snap UVs to Texels** moves the selected corners to texel centres (where the
+  MDL and MD2 writers round UVs, so the export's UV error becomes zero) or texel
+  corners, on the MDL skin size for an MDL source, else the MD2 skin size.
+  `--uv-snap-size` chooses another grid on the command line.
+- **Turn islands when packing** lets **Pack Selected UVs** (and a packed
+  conformal unwrap) also try every island a quarter turn round, with its long
+  side along U and then along V, keeping whichever fits densest. xatlas's own
+  chart rotation transposes charts, which mirrors them, so it stays off: the
+  studio turns islands itself before packing and refuses any result whose UV
+  winding changed.
+- **Pack with surfaces sharing this material** packs every face of the other
+  surfaces bound to the same material slot (case-insensitive, slash-normalised
+  paths, the rule Pack Around Unselected uses) into the same atlas as the
+  selected faces, so no island overlaps another across the shared skin. Each
+  surface's corners split as a single-surface pack splits them.
+
+In the UV view, the profile's **Scale** and **Rotate** keys (S and R in the
+studio and Blender profiles) start a modal transform of the selection about its
+centre: move the pointer, or type a value, then Enter or a click applies one
+undo step and Escape or a right click cancels. X or U and Y or V limit a scale
+to one axis; Control snaps scale to 0.1 and rotation to 15 degrees. The live
+value is in the status line and the view's accessible description.
+
+### Conformal unwrap
+
+**Unwrap Method → Conformal (seams only)** in the UV controls, or **UV → Unwrap
+(Seams Only)**, flattens each island the selected faces form with least squares
+conformal maps (Lévy, Petitjean, Ray and Maillot, SIGGRAPH 2002): one chart per
+region bounded by marked seams, split UV corners and mesh boundaries, and no
+other cut. Each triangle contributes its two Cauchy-Riemann residuals in its
+own reference-pose frame, weighted by the inverse square root of its area, and a
+Jacobi-scaled conjugate-gradient least-squares solve in double precision finds
+the map, at most 20,000 iterations per island, checking for Cancel throughout.
+
+Unpinned islands are pinned at their two boundary corners farthest apart and
+scaled to their model area, so density is uniform. In vertex selection the
+selected vertices are pins: their islands unwrap and every island with two or
+more pins keeps them at their current UVs exactly (one pin alone is ignored).
+**Pack after a conformal unwrap** (on by default) packs the islands with the
+atlas settings, keeping their shapes, orientation and relative density;
+otherwise they lie in a row at one density inside the tile. A closed island
+(no boundary) is refused with its faces named so a seam can be added, as is an
+island that folds over or overlaps itself when flattened. Every pose, normal,
+seam mark and skin influence survives corner splits, and failure or Cancel
+changes nothing.
+
+`model edit --operation uv-unwrap --uv-method conformal` runs the same unwrap;
+`--uv-pins` lists pinned vertices, `--no-pack` keeps the row, and JSON adds an
+`unwrap` object with each island's faces, iterations, mean and largest angle
+distortion (σ1/σ2) and area-ratio range.
+
+### UV layouts and skin transfer
+
+**Export UV Layout…** (UV toolbar and UV menu) draws a skin template to paint
+over: the active surface, the surfaces sharing its material, or all surfaces, at
+the displayed material's original size or the MDL or MD2 skin size (1 to 4096
+pixels per side). Lines are crisp single texels unless **Smooth lines** is on;
+island boundaries (marked seams and split edges) draw in magenta above the other
+edges; islands can be filled with a tint each; faces beyond the tile can be
+drawn inside it. The layout renders and encodes as PNG, TGA or PCX (palette
+indices, Quake palette or the MDL's) on the document worker with progress and
+Cancel, then is saved through the guarded writer or staged in the open package.
+`model uv-layout` does the same from the command line.
+
+**Transfer Skin…** repaints a skin after UV edits. Faces keep their indices
+through every UV edit, so each new UV triangle is rasterised at texel centres
+and sampled from the old skin at the same barycentric point of the face's old
+UVs: nearest copies texels and palette indices exactly (islands moved by whole
+texels, turned a quarter turn, scaled or mirrored reproduce their pixels),
+bilinear blends and maps indexed skins to the nearest palette entry. Islands
+are padded outward by up to 64 texels. The "before" layout is the surface as it
+was before the first of the UV edits made in a row; any other edit ends the
+chain. An MDL member is replaced as one undo step; an external skin is staged
+over its package path or saved to a new file. The original image is read from
+the package, not the downsampled preview. `model skin-transfer` takes the two
+sources and the old skin directly. Faces missing from one side, or collapsed in
+either, are reported and left unpainted; a surface whose topology changed has no
+transfer yet.
+
+### Skin edit round trip
+
+**Edit Skin…** opens the active surface's skin in the Textures workbench's
+editor: the displayed material's original image, or the current MDL member as an
+indexed image. Staging it there replaces the package file, which refreshes the
+model's preview. For an MDL, **Export Member…** writes the member as PCX or
+indexed PNG with its exact palette indices (`model mdl --operation export-skin`)
+and **Replace Member From Image…** brings any image of the skin size back as one
+undo step: an image in the model's own palette keeps its indices; other colours
+map to the nearest palette entry outside the fullbright range. **Show Material**
+opens a surface whose material resolves to a Quake III shader or Doom 3 material
+in the Materials workbench, and image materials in Textures. For MD2, the Export
+page warns when the resolved PCX skin's size differs from the MD2 skin size.
+The texture editor does not yet draw the UV layout as a guide over the canvas,
+and an MDL member edited in Textures comes back through Replace Member From
+Image, not automatically.
 
 UV chart analysis and drawing run on a cancellable worker with one active job
 and a replaceable pending request. The view reports when it is updating and
@@ -1032,8 +1210,24 @@ settings. Add Skin accepts opaque 8-bit indexed PNG with all 256 palette entries
 single-plane PCX, Quake LMP/miptextures, WAL or M8. Native mip images contribute
 their base level; the complete stored mip chain must validate. The first skin
 prepares an ordinary mesh for MDL export. Later skins must match its dimensions and palette exactly; there
-is no implicit RGB quantization or palette remapping. Prepare colour conversion
-explicitly in the texture workflow. Equal RGB colours still retain distinct pixel
+is no implicit RGB quantization or palette remapping on import. **Replace Member
+From Image…** is the explicit colour route: it maps any image of the skin size
+to the model's palette (see [skin edit round trip](#skin-edit-round-trip)).
+
+**Quake Front/Back Skin Layout** (UV menu; `model tool --tool
+uv-quake-frontback`) builds the classic Quake skin: the selected faces (all
+faces when none are selected) whose corners' stored normals point along the
+facing axis (+X, Quake's forward axis, by default) fill the left half of the
+skin, seen from in front with +Z up; the others fill the right half with the
+same projection, so the back reads mirrored as in id Software's skins. Both
+halves share one outline fitted inside a one-texel margin and every corner sits
+on a texel centre, so a back corner lies exactly half the skin width to the
+right of its front copy and the MDL writer stores the pair once as an onseam
+vertex. The skin size is the MDL skin size (else the MD2 skin size), and Quake
+needs its width to be a multiple of 4. The status line, and `mdlLayout` in the
+CLI's JSON, give the vertices the MDL would store, how many sit on the seam, and
+the target's limit. Faces seen edge-on from the axis project to slivers; mark
+seams and use a conformal unwrap for those parts instead. Equal RGB colours still retain distinct pixel
 indices, including player-colour and fullbright ranges. Index 255 remains opaque.
 
 **Import Package Texture…** reads the current package snapshot, including texture
@@ -1291,6 +1485,17 @@ vibestudio --cli model tags ./out/tagged.mesh.json --frame all --json
 vibestudio --cli model edit ./out/tagged.mesh.json --operation transform-tag --tag tag_weapon --frame 1 --rotate 0,0,31 --snap-angle 15 --pivot-mode selection --output ./out/posed.mesh.json --dry-run --json
 vibestudio --cli model edit ./out/panel.mesh.json --operation transform --faces all --rotate 0,0,31 --snap-angle 15 --scale 1.27,1,1 --snap-scale 0.25 --pivot-mode selection --output ./out/turned.mesh.json --dry-run --json
 vibestudio --cli model uv ./out/panel.mesh.json --surface 0 --json
+vibestudio --cli model uv ./out/panel.mesh.json --health --texture-size 256x256 --fail-on "overlap,flipped,outside,stretch>2" --json
+vibestudio --cli model edit ./out/panel.mesh.json --operation uv-unwrap --faces all --uv-method conformal --uv-allow-rotation --output ./out/conformal.mesh.json --dry-run --json
+vibestudio --cli model edit ./out/seamed.mesh.json --operation uv-weld --faces 0,1 --uv-weld-tolerance 0.001 --output ./out/welded.mesh.json
+vibestudio --cli model edit ./out/seamed.mesh.json --operation uv-stitch --edges 6:7 --output ./out/stitched.mesh.json
+vibestudio --cli model edit ./out/panel.mesh.json --operation uv-align --vertices 0,1,2 --uv-align v-min --output ./out/aligned.mesh.json
+vibestudio --cli model edit ./out/panel.mesh.json --operation uv-snap-texels --faces all --uv-snap-size 256x128 --output ./out/snapped.mesh.json
+vibestudio --cli model edit ./out/panel.mesh.json --operation uv-pack --faces all --uv-allow-rotation --uv-pack-surfaces 1,2 --output ./out/shared.mesh.json
+vibestudio --cli model tool ./out/player.mesh.json --tool uv-quake-frontback --axis x --faces all --output ./out/frontback.mesh.json --json
+vibestudio --cli model uv-layout ./out/panel.mesh.json --size 256x256 --surfaces material --fill 0.2 --output ./out/panel_uv.png
+vibestudio --cli model skin-transfer --from ./out/panel.mesh.json --to ./out/packed.mesh.json --texture ./skins/panel.png --output ./skins/panel_packed.png --json
+vibestudio --cli model mdl ./out/player.mesh.json --operation export-skin --skin 0 --member 0 --output ./skins/player_0.pcx
 vibestudio --cli model edit ./out/panel.mesh.json --operation uv-unwrap --faces all --uv-atlas-size 512 --uv-padding 4 --output ./out/atlas.mesh.json --dry-run --json
 vibestudio --cli model edit ./out/atlas.mesh.json --operation uv-pack --faces all --uv-atlas-size 512x128 --uv-padding 4 --output ./out/packed.mesh.json
 vibestudio --cli model edit ./out/atlas.mesh.json --operation uv-pack-around --faces 0,1 --uv-islands --uv-atlas-size 512x128 --uv-padding 4 --uv-pack-scale preserve --output ./out/around-painted.mesh.json --dry-run --json
@@ -1447,6 +1652,48 @@ for `model edit --edges`; table row numbers are display order, not edge identifi
 their face/vertex indices, UV bounds, and marked seam pairs. It has the same
 source formats and exit codes as `model topology`, supports text/JSON, and
 writes nothing. Disconnected but coincident indexed corners stay separate.
+
+`model uv <source> --health` reports [UV health](#uv-health) instead:
+stretched, overlapping, flipped, collapsed and out-of-tile faces (with their
+indices), stacked mirror halves, overlapping pairs (the first 1,000), mirrored
+islands, per-island stretch, angle distortion and area ratios, the largest
+texel-centre error, the native MDL, MD2 and MD3 vertex counts with their limits,
+and for an MDL source the flood-fill region. `--texture-size N|WIDTHxHEIGHT`
+defaults to the MDL skin size for an MDL source, else the MD2 skin size;
+`--reference-frame N` defaults to 0 and `--stretch-limit N` to 1.5.
+`--fail-on` takes a comma-separated list of `overlap`, `flipped`, `outside`,
+`collapsed`, `stretch>N` (or `stretch=N`, which also sets the limit) and
+`flood-fill`, and exits 4 when any is present, still printing the report with
+`failOn` and `failed` lists. Quote the list in shells, where `>` redirects.
+Usage errors return 2 and an unreadable source 1.
+
+`model edit` runs the [UV operators](#uv-operators) as `uv-weld`
+(`--uv-weld-tolerance` 0 to 1, default 0), `uv-stitch` (`--edges`),
+`uv-align` (`--uv-align u-min|u-centre|u-max|v-min|v-centre|v-max|straighten`)
+and `uv-snap-texels` (`--uv-snap centres|corners`, `--uv-snap-size N|WxH`).
+`uv-unwrap` takes `--uv-method automatic|conformal`; a conformal unwrap also
+takes `--uv-pins` (vertex indices) and `--no-pack`, and JSON adds `unwrap`.
+`uv-pack` (and a packed conformal unwrap) takes `--uv-allow-rotation`;
+`uv-pack` also takes `--uv-pack-surfaces N,N` for surfaces sharing the active
+surface's material. Options of another operation are usage errors (2).
+
+`model tool --tool uv-quake-frontback [--axis x|y|z]` lays out the
+[Quake front/back skin](#quake-mdl) and reports `mdlLayout` (skin size,
+stored and onseam vertices, UV corners and limit).
+
+`model uv-layout <source> --output layout.png|.tga|.pcx` draws a
+[UV layout](#uv-layouts-and-skin-transfer): `--size` (default the MDL or MD2
+skin size), `--surface N`, `--surfaces all|material|N,N`, `--background
+transparent|white|black`, `--fill 0..1`, `--no-tints`, `--no-seams`,
+`--line-width`, `--antialias`, `--wrap` and, for PCX, `--palette`.
+`model skin-transfer --from before.mesh.json --to after.mesh.json --texture
+old.png|.pcx --output new.png|.tga|.pcx` repaints a skin for changed UVs with
+`--surface`, `--size`, `--filter nearest|bilinear`, `--padding 0..64` and
+`--no-wrap`. Both write through the guarded model writer: `--dry-run`
+validates, existing outputs need `--overwrite`, and inputs and their aliases are
+protected. `model mdl --operation export-skin --skin N --member N --output
+member.pcx|png` writes a member with its exact palette indices under the same
+rules.
 
 `model tags <source> [--frame all|N] [--tag name]` reports each named origin and
 its nine orientation components (three local basis vectors in model coordinates).

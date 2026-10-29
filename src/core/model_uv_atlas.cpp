@@ -2,6 +2,7 @@
 #include "core/model_uv_mapping.h"
 #include "core/model_uv.h"
 #include "core/model_uv_atlas_memory.h"
+#include "core/package_archive.h"
 
 #include <QCoreApplication>
 #include <QMap>
@@ -233,6 +234,7 @@ struct UvTriangle
 {
 	std::array<ModelTexCoord, 3> p;
 	double minX, maxX, minY, maxY;
+	int index = 0;
 };
 bool overlaps(const UvTriangle &a, const UvTriangle &b)
 {
@@ -262,19 +264,13 @@ bool overlaps(const UvTriangle &a, const UvTriangle &b)
 bool validateAtlas(const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &indices, QString *error, const ModelWorkControl &control)
 {
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, error);
-	QVector<UvTriangle> triangles;
 	for (int i = 0; i < indices.size(); i += 3)
 	{
 		if (!work.step())
 		{
 			return false;
 		}
-		UvTriangle t;
-		for (int j = 0; j < 3; ++j)
-		{
-			t.p[j] = uv[indices[i + j]];
-		}
-		const auto a = t.p[0], b = t.p[1], c = t.p[2];
+		const auto a = uv[indices[i]], b = uv[indices[i + 1]], c = uv[indices[i + 2]];
 		const double area = (double(b.u) - a.u) * (double(c.v) - a.v) - (double(b.v) - a.v) * (double(c.u) - a.u);
 		if (std::abs(area) < 1e-14)
 		{
@@ -282,14 +278,57 @@ bool validateAtlas(const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &in
 								   "VibeStudioModelUvAtlas",
 								   "A selected face has collapsed UVs. Repair geometry, unwrap again, or increase atlas resolution."));
 		}
+	}
+	ModelUvOverlapScan scan;
+	if (!findModelUvOverlaps(uv, indices, {}, 1, 8000000, &scan, error, control))
+	{
+		return false;
+	}
+	if (scan.limitReached)
+	{
+		return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+													   "UV overlap validation reached its work limit. Process fewer faces at a time."));
+	}
+	if (!scan.pairs.isEmpty())
+	{
+		return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+													   "Selected UV faces overlap inside an island. Add seams and unwrap before packing."));
+	}
+	return work.check();
+}
+} // namespace
+
+bool findModelUvOverlaps(const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &indices, const QVector<bool> &skip, int maxPairs,
+						 quint64 maxComparisons, ModelUvOverlapScan *scan, QString *error, const ModelWorkControl &control)
+{
+	ModelWorkProgress work(control, ModelWorkPhase::Validating, error);
+	QVector<UvTriangle> triangles;
+	triangles.reserve(indices.size() / 3);
+	for (int i = 0; i + 2 < indices.size(); i += 3)
+	{
+		if (!work.step())
+		{
+			return false;
+		}
+		if (i / 3 < skip.size() && skip[i / 3])
+		{
+			continue;
+		}
+		UvTriangle t;
+		for (int j = 0; j < 3; ++j)
+		{
+			t.p[j] = uv[indices[i + j]];
+		}
+		const auto a = t.p[0], b = t.p[1], c = t.p[2];
 		t.minX = std::min({a.u, b.u, c.u});
 		t.maxX = std::max({a.u, b.u, c.u});
 		t.minY = std::min({a.v, b.v, c.v});
 		t.maxY = std::max({a.v, b.v, c.v});
+		t.index = i / 3;
 		triangles.append(t);
 	}
 	std::stable_sort(triangles.begin(), triangles.end(), [](const auto &a, const auto &b) { return a.minX < b.minX; });
-	qint64 comparisons = 0;
+	ModelUvOverlapScan result;
 	for (int i = 0; i < triangles.size(); ++i)
 	{
 		const auto &a = triangles[i];
@@ -299,11 +338,11 @@ bool validateAtlas(const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &in
 			{
 				return false;
 			}
-			if (++comparisons > 8000000)
+			if (++result.comparisons > maxComparisons)
 			{
-				return fail(error,
-							QCoreApplication::translate("VibeStudioModelUvAtlas",
-														"UV overlap validation reached its work limit. Process fewer faces at a time."));
+				result.limitReached = true;
+				*scan = std::move(result);
+				return work.check();
 			}
 			const auto &b = triangles[j];
 			if (a.maxY <= b.minY || b.maxY <= a.minY)
@@ -312,15 +351,23 @@ bool validateAtlas(const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &in
 			}
 			if (overlaps(a, b))
 			{
-				return fail(
-					error, QCoreApplication::translate("VibeStudioModelUvAtlas",
-													   "Selected UV faces overlap inside an island. Add seams and unwrap before packing."));
+				result.pairs.append({std::min(a.index, b.index), std::max(a.index, b.index)});
+				if (maxPairs > 0 && result.pairs.size() >= maxPairs)
+				{
+					*scan = std::move(result);
+					return work.check();
+				}
 			}
 		}
 	}
-	return work.check();
+	std::sort(result.pairs.begin(), result.pairs.end());
+	if (!work.check())
+	{
+		return false;
+	}
+	*scan = std::move(result);
+	return true;
 }
-} // namespace
 
 bool validateModelUvMapping(const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &indices, QString *error,
 							const ModelWorkControl &control)
@@ -328,41 +375,33 @@ bool validateModelUvMapping(const QVector<ModelTexCoord> &uv, const QVector<uint
 	return validateAtlas(uv, indices, error, control);
 }
 
-bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame, bool unwrap, const ModelUvAtlasOptions &options,
-				  ModelSurface *result, QString *error, const ModelWorkControl &control, ModelUvAtlasReport *report)
+namespace
 {
-	if (error)
-	{
-		error->clear();
-	}
+struct Layout
+{
+	QVector<int> faces, sourceVertices;
+	QVector<ModelTexCoord> uv;
+	QVector<uint32_t> indices;
+	int charts = 0;
+	qsizetype peakBytes = 0;
+	float density = 0;
+};
+QString materialKey(const QString &path)
+{
+	const auto normalized = normalizePackageVirtualPath(path, false);
+	return normalized.isSafe() ? normalized.normalizedPath.toCaseFolded() : QString{};
+}
+double signedArea(const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &indices, int face)
+{
+	const auto a = uv[indices[face * 3]], b = uv[indices[face * 3 + 1]], c = uv[indices[face * 3 + 2]];
+	return (double(b.u) - a.u) * (double(c.v) - a.v) - (double(b.v) - a.v) * (double(c.u) - a.u);
+}
+// One xatlas charting and packing run. `uvInput` holds the pixel-space UVs
+// packing keeps (ignored when unwrapping).
+bool runAtlas(const Input &input, const QVector<ModelTexCoord> &uvInput, bool unwrap, const ModelUvAtlasOptions &options, int height,
+			  Layout *layout, QString *error, const ModelWorkControl &control)
+{
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
-	if (!work.check())
-	{
-		return false;
-	}
-	const int height = options.height == 0 ? options.resolution : options.height;
-	if (!result || faces.isEmpty() || frame < 0 || frame >= source.frames.size() || options.resolution < 32 || options.resolution > 4096 ||
-		height < 32 || height > 4096 || options.padding < 0 || options.padding > 64 ||
-		options.padding * 8 >= std::min(options.resolution, height) || options.memoryLimit < 65536 ||
-		options.memoryLimit > 256 * 1024 * 1024 || options.vertexLimit < 1 || options.vertexLimit > 65536)
-	{
-		return fail(error,
-					QCoreApplication::translate("VibeStudioModelUvAtlas",
-												"Select faces and a valid reference frame. Atlas width and height must be 32–4096 pixels; "
-												"padding must be 0–64 and less than one eighth of the smaller dimension."));
-	}
-	for (int face : faces)
-	{
-		if (face < 0 || face >= source.triangles.size())
-		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas", "A selected atlas face no longer exists."));
-		}
-	}
-	Input input;
-	if (!prepare(source, faces, frame, unwrap, options.resolution, height, &input, error, control))
-	{
-		return false;
-	}
 	model_atlas_internal::AllocationRegion region(size_t(options.memoryLimit), control);
 	try
 	{
@@ -388,9 +427,9 @@ bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame,
 		else
 		{
 			xatlas::UvMeshDecl decl;
-			decl.vertexUvData = input.uv.constData();
+			decl.vertexUvData = uvInput.constData();
 			decl.vertexStride = sizeof(ModelTexCoord);
-			decl.vertexCount = input.uv.size();
+			decl.vertexCount = uvInput.size();
 			decl.indexData = input.indices.constData();
 			decl.indexCount = input.indices.size();
 			decl.indexFormat = xatlas::IndexFormat::UInt32;
@@ -418,7 +457,9 @@ bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame,
 		pack.resolutionHeight = height - 2 * options.padding;
 		pack.padding = options.padding;
 		// Existing islands retain orientation, shape and relative scale. No
-		// lightmap-style per-axis rounding or reflected quarter-turn placement.
+		// lightmap-style per-axis rounding or reflected quarter-turn placement:
+		// xatlas's rotateCharts transposes charts, which mirrors them, so
+		// quarter turns are made before packing instead (atlasLayout).
 		pack.rotateCharts = false;
 		pack.rotateChartsToAxis = unwrap;
 		xatlas::PackCharts(atlas.value, pack);
@@ -494,7 +535,7 @@ bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame,
 			failedDensity = pack.texelsPerUnit;
 			pack.texelsPerUnit *= 0.7f;
 		}
-		if (rectangular && atlas.value->atlasCount == 1 && failedDensity > pack.texelsPerUnit)
+		if ((rectangular || options.allowRotation) && atlas.value->atlasCount == 1 && failedDensity > pack.texelsPerUnit)
 		{
 			float fitted = pack.texelsPerUnit;
 			// Four bounded refinements recover useful texel density after finding
@@ -534,8 +575,7 @@ bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame,
 			return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
 														   "Atlas generation changed the face count. No changes were applied."));
 		}
-		QVector<ModelTexCoord> uv;
-		QVector<uint32_t> indices;
+		Layout result;
 		for (uint32_t v = 0; v < output.vertexCount; ++v)
 		{
 			if (!work.step())
@@ -551,7 +591,8 @@ bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame,
 									   "VibeStudioModelUvAtlas",
 									   "A selected face could not be mapped into the atlas. Repair degenerate geometry or UVs first."));
 			}
-			uv.append(point);
+			result.uv.append(point);
+			result.sourceVertices.append(input.sourceVertices[vertex.xref]);
 		}
 		for (uint32_t i = 0; i < output.indexCount; ++i)
 		{
@@ -560,31 +601,19 @@ bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame,
 				return false;
 			}
 			const auto index = output.indexArray[i];
-			if (index >= uint32_t(uv.size()) ||
+			if (index >= uint32_t(result.uv.size()) ||
 				input.sourceVertices[output.vertexArray[index].xref] != input.sourceVertices[input.indices[i]])
 			{
 				return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
 															   "Atlas generation changed a face corner. No changes were applied."));
 			}
-			indices.append(index);
+			result.indices.append(index);
 		}
-		if (!validateAtlas(uv, indices, error, control))
-		{
-			return false;
-		}
-		QVector<int> sourceVertices;
-		for (uint32_t v = 0; v < output.vertexCount; ++v)
-		{
-			if (!work.step())
-				return false;
-			sourceVertices.append(input.sourceVertices[output.vertexArray[v].xref]);
-		}
-		if (!applyModelUvMapping(source, input.faces, sourceVertices, uv, indices, options.vertexLimit, result, error, control))
-			return false;
-		if (report)
-		{
-			*report = {int(atlas.value->chartCount), qsizetype(region.peakBytes())};
-		}
+		result.faces = input.faces;
+		result.charts = int(atlas.value->chartCount);
+		result.peakBytes = qsizetype(region.peakBytes());
+		result.density = pack.texelsPerUnit;
+		*layout = std::move(result);
 		return true;
 	}
 	catch (const model_atlas_internal::Cancelled &)
@@ -597,5 +626,258 @@ bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame,
 			error, QCoreApplication::translate("VibeStudioModelUvAtlas",
 											   "UV atlas generation exceeded its memory budget. Reduce the face selection or atlas size."));
 	}
+}
+// The pixel-space input with every chart whose bounds are taller than wide
+// (alongU) or wider than tall turned a quarter turn about its own centre.
+// A rotation, never a reflection: (u, v) -> (cu - (v - cv), cv + (u - cu)).
+QVector<ModelTexCoord> turnedCharts(const Input &input, bool alongU, bool *changed)
+{
+	QMap<uint32_t, std::array<double, 4>> bounds;
+	for (int i = 0; i < input.indices.size(); ++i)
+	{
+		const auto chart = input.materials[i / 3];
+		const auto uv = input.uv[input.indices[i]];
+		if (!bounds.contains(chart))
+			bounds.insert(chart, {uv.u, uv.u, uv.v, uv.v});
+		auto &box = bounds[chart];
+		box = {std::min(box[0], double(uv.u)), std::max(box[1], double(uv.u)), std::min(box[2], double(uv.v)), std::max(box[3], double(uv.v))};
+	}
+	auto result = input.uv;
+	QVector<bool> done(result.size());
+	*changed = false;
+	for (int i = 0; i < input.indices.size(); ++i)
+	{
+		const auto vertex = input.indices[i];
+		if (done[vertex])
+			continue;
+		done[vertex] = true;
+		const auto &box = bounds[input.materials[i / 3]];
+		const double width = box[1] - box[0], height = box[3] - box[2];
+		if (alongU ? height <= width : width <= height)
+			continue;
+		const double cu = (box[0] + box[1]) / 2, cv = (box[2] + box[3]) / 2;
+		const auto uv = input.uv[vertex];
+		// Keep the turned chart's lower bound where it was, so coordinates stay
+		// positive for the packer.
+		result[vertex] = {float(box[0] + height / 2 - (uv.v - cv)), float(box[2] + width / 2 + (uv.u - cu))};
+		*changed = true;
+	}
+	return result;
+}
+bool atlasLayout(const ModelSurface &source, const QSet<int> &faces, int frame, bool unwrap, const ModelUvAtlasOptions &options, Layout *layout,
+				 QString *error, const ModelWorkControl &control)
+{
+	if (error)
+	{
+		error->clear();
+	}
+	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
+	if (!work.check())
+	{
+		return false;
+	}
+	const int height = options.height == 0 ? options.resolution : options.height;
+	if (faces.isEmpty() || frame < 0 || frame >= source.frames.size() || options.resolution < 32 || options.resolution > 4096 || height < 32 ||
+		height > 4096 || options.padding < 0 || options.padding > 64 || options.padding * 8 >= std::min(options.resolution, height) ||
+		options.memoryLimit < 65536 || options.memoryLimit > 256 * 1024 * 1024 || options.vertexLimit < 1 || options.vertexLimit > 65536)
+	{
+		return fail(error,
+					QCoreApplication::translate("VibeStudioModelUvAtlas",
+												"Select faces and a valid reference frame. Atlas width and height must be 32–4096 pixels; "
+												"padding must be 0–64 and less than one eighth of the smaller dimension."));
+	}
+	for (int face : faces)
+	{
+		if (face < 0 || face >= source.triangles.size())
+		{
+			return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas", "A selected atlas face no longer exists."));
+		}
+	}
+	Input input;
+	if (!prepare(source, faces, frame, unwrap, options.resolution, height, &input, error, control))
+	{
+		return false;
+	}
+	// Quarter turns (packing only): also try every chart turned so its long
+	// side lies along U, then along V, and keep the densest fit.
+	QVector<QVector<ModelTexCoord>> candidates{input.uv};
+	if (!unwrap && options.allowRotation)
+	{
+		for (bool alongU : {true, false})
+		{
+			bool changed = false;
+			auto turned = turnedCharts(input, alongU, &changed);
+			if (changed)
+				candidates.append(std::move(turned));
+		}
+	}
+	Layout best;
+	bool found = false;
+	QString firstError;
+	for (int candidate = 0; candidate < candidates.size(); ++candidate)
+	{
+		Layout attempt;
+		QString problem;
+		if (!runAtlas(input, candidates[candidate], unwrap, options, height, &attempt, &problem, control))
+		{
+			if (!work.check())
+				return false;
+			if (candidate == 0)
+				firstError = problem;
+			continue;
+		}
+		if (!found || attempt.density > best.density)
+		{
+			best = std::move(attempt);
+			found = true;
+		}
+	}
+	if (!found)
+		return fail(error, firstError);
+	if (!validateAtlas(best.uv, best.indices, error, control))
+	{
+		return false;
+	}
+	if (!unwrap)
+	{
+		// Packing keeps every chart's winding: a mirrored chart would flip
+		// the painted skin, so a reflected result is refused.
+		for (int face = 0; face < best.faces.size(); ++face)
+		{
+			if (!work.step())
+				return false;
+			if ((signedArea(input.uv, input.indices, face) < 0) != (signedArea(best.uv, best.indices, face) < 0))
+				return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+															   "Packing would mirror a UV island. No changes were applied."));
+		}
+	}
+	*layout = std::move(best);
+	return true;
+}
+} // namespace
+
+bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame, bool unwrap, const ModelUvAtlasOptions &options,
+				  ModelSurface *result, QString *error, const ModelWorkControl &control, ModelUvAtlasReport *report)
+{
+	if (!result)
+	{
+		return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas", "A selected atlas face no longer exists."));
+	}
+	Layout layout;
+	if (!atlasLayout(source, faces, frame, unwrap, options, &layout, error, control))
+		return false;
+	if (!applyModelUvMapping(source, layout.faces, layout.sourceVertices, layout.uv, layout.indices, options.vertexLimit, result, error, control))
+		return false;
+	if (report)
+	{
+		*report = {layout.charts, layout.peakBytes};
+	}
+	return true;
+}
+
+bool modelUvSurfacesShareMaterial(const ModelSurface &a, const ModelSurface &b)
+{
+	QSet<QString> materials;
+	for (const auto &path : a.skinPaths)
+		if (!path.isEmpty())
+			materials.insert(materialKey(path));
+	return std::any_of(b.skinPaths.cbegin(), b.skinPaths.cend(),
+					   [&](const QString &path) { return !path.isEmpty() && materials.contains(materialKey(path)); });
+}
+
+bool atlasModelUvSurfaces(const ModelMesh &mesh, int surface, const QSet<int> &faces, const QSet<int> &others, int frame,
+						  const ModelUvAtlasOptions &options, ModelMesh *result, QString *error, const ModelWorkControl &control,
+						  ModelUvAtlasReport *report)
+{
+	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
+	if (!result || surface < 0 || surface >= mesh.surfaces.size() || frame < 0 || frame >= mesh.frames.size())
+		return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas", "Choose an existing surface and reference frame."));
+	auto sorted = others.values();
+	std::sort(sorted.begin(), sorted.end());
+	for (int s : sorted)
+		if (s < 0 || s >= mesh.surfaces.size() || s == surface || !modelUvSurfacesShareMaterial(mesh.surfaces[surface], mesh.surfaces[s]))
+			return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+														   "Pack only other surfaces that share a material slot with the active surface."));
+	// One combined surface: the active surface's selected faces and every
+	// face of the others, each part keeping its own vertex range.
+	QVector<int> parts{surface};
+	parts += sorted;
+	ModelSurface combined;
+	combined.frames.resize(1);
+	QVector<int> vertexOffset, faceOffset;
+	QSet<int> combinedFaces;
+	for (int part : parts)
+	{
+		const auto &s = mesh.surfaces[part];
+		vertexOffset.append(combined.vertexCount);
+		faceOffset.append(int(combined.triangles.size()));
+		if (s.frames.size() <= frame)
+			return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas", "Choose an existing surface and reference frame."));
+		combined.texCoords += s.texCoords;
+		combined.frames[0].positions += s.frames[frame].positions;
+		combined.frames[0].normals += s.frames[frame].normals;
+		for (const auto &seam : s.uvSeams)
+			combined.uvSeams.insert(modelEdge(seam.first + combined.vertexCount, seam.second + combined.vertexCount));
+		for (int f = 0; f < s.triangles.size(); ++f)
+		{
+			if (!work.step())
+				return false;
+			const auto t = s.triangles[f];
+			if (part != surface || faces.contains(f))
+				combinedFaces.insert(int(combined.triangles.size()));
+			combined.triangles.append({t.a + combined.vertexCount, t.b + combined.vertexCount, t.c + combined.vertexCount});
+		}
+		combined.vertexCount += s.vertexCount;
+	}
+	Layout layout;
+	if (!atlasLayout(combined, combinedFaces, 0, false, options, &layout, error, control))
+		return false;
+	const auto partOfVertex = [&](int vertex)
+	{
+		return int(std::upper_bound(vertexOffset.cbegin(), vertexOffset.cend(), vertex) - vertexOffset.cbegin()) - 1;
+	};
+	auto candidate = mesh;
+	for (int p = 0; p < parts.size(); ++p)
+	{
+		QVector<int> localFaces, localSources, outputIndex(layout.uv.size(), -1);
+		QVector<ModelTexCoord> localUv;
+		QVector<uint32_t> localIndices;
+		for (int i = 0; i < layout.faces.size(); ++i)
+		{
+			if (!work.step())
+				return false;
+			const int face = layout.faces[i];
+			const int next = p + 1 < parts.size() ? faceOffset[p + 1] : int(combined.triangles.size());
+			if (face < faceOffset[p] || face >= next)
+				continue;
+			localFaces.append(face - faceOffset[p]);
+			for (int corner = 0; corner < 3; ++corner)
+			{
+				const auto out = layout.indices[i * 3 + corner];
+				const int source = layout.sourceVertices[out];
+				if (partOfVertex(source) != p)
+					return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+																   "Atlas generation changed a face corner. No changes were applied."));
+				if (outputIndex[out] < 0)
+				{
+					outputIndex[out] = int(localUv.size());
+					localUv.append(layout.uv[out]);
+					localSources.append(source - vertexOffset[p]);
+				}
+				localIndices.append(uint32_t(outputIndex[out]));
+			}
+		}
+		ModelSurface mapped;
+		if (!applyModelUvMapping(mesh.surfaces[parts[p]], localFaces, localSources, localUv, localIndices, options.vertexLimit, &mapped, error,
+								 control))
+			return false;
+		candidate.surfaces[parts[p]] = std::move(mapped);
+	}
+	if (!work.check())
+		return false;
+	if (report)
+		*report = {layout.charts, layout.peakBytes};
+	*result = std::move(candidate);
+	return true;
 }
 } // namespace vibestudio

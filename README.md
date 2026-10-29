@@ -484,7 +484,10 @@ thekla_atlas/NVIDIA and Fast-BVH ancestry and BSD-3-Clause OpenNL code. These
 terms were reviewed for GPLv3 compatibility on 2026-10-04. Original notices and
 the reviewed indexed-seam, shape-preserving and rectangular-packing build
 adaptations (the latter reviewed 2026-10-06) are documented in the
-[integration record](external/modelling/xatlas/VIBESTUDIO.md).
+[integration record](external/modelling/xatlas/VIBESTUDIO.md). The conformal
+unwrap is an original implementation of Lévy et al.'s
+[Least Squares Conformal Maps](https://doi.org/10.1145/566654.566590)
+(SIGGRAPH 2002); see [Mesh UV Atlas Generation](docs/CREDITS.md#mesh-uv-atlas-generation).
 
 - Project search preserves the public [Qt non-path glob contract](https://doc.qt.io/qt-6/qregularexpression.html#WildcardConversionOption-enum)
   on Qt 6.0–6.5 through an original compatibility adapter. Qt 6.4.2/6.10.1,

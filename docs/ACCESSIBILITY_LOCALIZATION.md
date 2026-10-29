@@ -3215,7 +3215,24 @@ language and RTL settings. The complete recipe and editor context can also be
 recovered through `model assembly` without graphical input.
 
 The UV view exposes a named Graphic accessibility role, keyboard focus, island
-and seam counts, rendering state, and move deltas. Dotted seam lines, dashed
+and seam counts, rendering state, and move deltas. Its **UV problem overlay**
+(a named, described combo with a named stretch-limit spin box beside it) shades
+one kind of [UV health](MODEL_MESH.md#uv-health) problem with its own pattern:
+dots for stretch, cross-hatching for overlaps, horizontal lines for flipped
+faces and vertical lines with a dashed tile outline for faces outside the tile.
+The legend in the status chip and the view's accessible description name the
+pattern and count the faces (`ModelUvHealth`, `VibeStudioModelUvView`), so no
+problem is shown by colour alone. Select Shown Problems and Check UV Health are
+standard toolbar and UV-menu actions; their results go to the editor's live
+status line. The view's modal Scale and Rotate take the profile's keys, accept
+typed values and announce the live amount in the status line and the view's
+accessible description; Enter applies and Escape cancels, so they need no
+pointer. The UV operator controls (weld distance, alignment, texel snapping,
+unwrap method and packing choices) are named, described standard widgets in
+the Surface panel (`ModelUvOps`). Export UV Layout and Transfer Skin dialogs
+(`ModelUvLayoutDialog`, `ModelSkinHandoff`) use labelled form rows, keep sizes
+left-to-right in right-to-left layouts, and report results and refusals in
+the status line. Dotted seam lines, dashed
 selected edges, hatched faces, and square vertices supplement color. Seams draw
 above ordinary UV wires, selected edges above seams, and selected markers last,
 so later unselected components cannot obscure them. Overlapping selected faces

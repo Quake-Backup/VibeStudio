@@ -25,6 +25,7 @@
 #include "core/model_uv_atlas.h"
 #include "core/model_uv_obstacles.h"
 #include "core/model_whole_transform.h"
+#include "core/model_uv_unwrap.h"
 
 #include "core/model_design.h"
 #include "core/package_staging.h"
@@ -1803,6 +1804,8 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		return fail(error, QCoreApplication::translate("ModelMeshTools", "Mesh tool settings apply only to mesh tools."));
 	if (edit.kind != ModelEditKind::SetUvDensity && !(edit.uvDensity == ModelUvDensityOptions{}))
 		return fail(error, QCoreApplication::translate("ModelUvDensity", "Density settings apply only to UV density operations."));
+	if (!validModelUvToolSettings(edit, error))
+		return false;
 	if (!isModelRigEdit(edit.kind) && (!edit.rig.joint.isEmpty() || !edit.rig.name.isEmpty() || !edit.rig.parent.isEmpty() ||
 		edit.rig.origin.x != 0 || edit.rig.origin.y != 0 || edit.rig.origin.z != 0 || edit.rig.weight != 1))
 		return fail(error, QCoreApplication::translate("ModelRig", "Joint options apply only to skeleton authoring operations."));
@@ -1972,11 +1975,12 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	auto candidate = *mesh;
 	auto selection = edit.selection;
 	const bool surfaceTransform = edit.kind == ModelEditKind::Transform && !selection.surfaces.isEmpty();
-	if (edit.kind == ModelEditKind::SetUvDensity || edit.kind == ModelEditKind::TransformModel || surfaceTransform || isModelSurfaceEdit(edit.kind) || isModelTagEdit(edit.kind) || isModelAnimationEdit(edit.kind) || isModelMdlEdit(edit.kind) || isModelCollisionEdit(edit.kind) ||
+	if (edit.kind == ModelEditKind::SetUvDensity || edit.kind == ModelEditKind::TransformModel || isModelUvToolEdit(edit.kind) || surfaceTransform || isModelSurfaceEdit(edit.kind) || isModelTagEdit(edit.kind) || isModelAnimationEdit(edit.kind) || isModelMdlEdit(edit.kind) || isModelCollisionEdit(edit.kind) ||
 		isModelMeshToolEdit(edit.kind) || isModelRigEdit(edit.kind) || isModelSkeletalEdit(edit.kind) || isModelSkinEdit(edit.kind) || edit.kind == ModelEditKind::PaintSkinWeights || edit.kind == ModelEditKind::TransferSkinWeights)
 	{
 		if (!(edit.kind == ModelEditKind::SetUvDensity ? applyModelUvDensity(&candidate, edit, &selection, error, control)
 			  : edit.kind == ModelEditKind::TransformModel ? applyModelWholeTransform(&candidate, edit, error, control)
+			  : isModelUvToolEdit(edit.kind) ? applyModelUvToolEdit(&candidate, edit, &selection, error, control)
 			  : surfaceTransform ? applyModelSurfaceTransform(&candidate, edit, error, control)
 			  : edit.kind == ModelEditKind::TransferSkinWeights ? applyModelWeightTransfer(&candidate, edit, error, control)
 			  : edit.kind == ModelEditKind::PaintSkinWeights ? applyModelWeightPaint(&candidate, edit, error, control)
@@ -2864,7 +2868,9 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	case ModelEditKind::PackUv:
 	case ModelEditKind::PackUvAround:
 	{
-		if (!requireFaces() || !selection.vertices.isEmpty() || !selection.edges.isEmpty())
+		// A conformal unwrap reads selected vertices as pinned UV corners.
+		const bool conformal = edit.kind == ModelEditKind::UnwrapUv && edit.uvTools.unwrapMethod == ModelUvUnwrapMethod::Conformal;
+		if (!requireFaces() || (!selection.vertices.isEmpty() && !conformal) || !selection.edges.isEmpty())
 		{
 			return fail(error,
 						QCoreApplication::translate("VibeStudioModelDocument",
@@ -2877,9 +2883,36 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		options.vertexLimit = int(std::min(qint64(modelDocumentMaxVertices), modelDocumentMaxFrameVertices / candidate.frames.size()) -
 								  (originalVertices - source.vertexCount));
 		ModelSurface mapped;
-		const bool packed = edit.kind == ModelEditKind::PackUvAround
+		options.allowRotation = edit.uvTools.packRotate;
+		if (edit.kind == ModelEditKind::PackUv && !edit.uvTools.packSurfaces.isEmpty())
+		{
+			// One atlas shared with other surfaces bound to the same material.
+			ModelMesh packed;
+			if (!atlasModelUvSurfaces(candidate, selection.surface, selection.faces, edit.uvTools.packSurfaces, std::max(0, edit.frame), options,
+									  &packed, error, control))
+				return false;
+			for (int s : edit.uvTools.packSurfaces)
+				candidate.surfaces[s] = packed.surfaces[s];
+			mapped = packed.surfaces[selection.surface];
+		}
+		else if (edit.kind == ModelEditKind::UnwrapUv && edit.uvTools.unwrapMethod == ModelUvUnwrapMethod::Conformal)
+		{
+			ModelUvUnwrapOptions unwrap;
+			unwrap.frame = std::max(0, edit.frame);
+			unwrap.pack = edit.uvTools.unwrapPack;
+			unwrap.atlas = options;
+			QHash<int, ModelTexCoord> pins;
+			for (int vertex : selection.vertices)
+				pins.insert(vertex, surface.texCoords[vertex]);
+			if (!unwrapModelUvConformal(surface, selection.faces, pins, unwrap, &mapped, nullptr, error, control))
+				return false;
+			// Pinned corners may have split; the selection keeps the faces.
+			selection.vertices.clear();
+		}
+		const bool packed = !mapped.triangles.isEmpty() ||
+			(edit.kind == ModelEditKind::PackUvAround
 			? packModelUvAround(candidate, selection.surface, selection.faces, {options, edit.uvPreserveScale}, &mapped, error, control)
-			: atlasModelUv(surface, selection.faces, std::max(0, edit.frame), edit.kind == ModelEditKind::UnwrapUv, options, &mapped, error, control);
+			: atlasModelUv(surface, selection.faces, std::max(0, edit.frame), edit.kind == ModelEditKind::UnwrapUv, options, &mapped, error, control));
 		if (!packed || !vertexCapacity(mapped.vertexCount))
 		{
 			return false;

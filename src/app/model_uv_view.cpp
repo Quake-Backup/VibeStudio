@@ -6,6 +6,7 @@
 #include <QAccessibleWidget>
 #include <QApplication>
 #include <QCoreApplication>
+#include <QCursor>
 #include <QFocusEvent>
 #include <QKeyEvent>
 #include <QMouseEvent>
@@ -17,6 +18,7 @@
 #include <atomic>
 #include <cmath>
 #include <limits>
+#include <numbers>
 
 namespace vibestudio
 {
@@ -59,6 +61,23 @@ CameraKey cameraKey(const QKeyEvent *event)
 	}
 }
 } // namespace
+quint8 modelUvHealthOverlayMask(ModelUvHealthOverlay overlay)
+{
+	switch (overlay)
+	{
+	case ModelUvHealthOverlay::Stretch:
+		return ModelUvHealthStretched;
+	case ModelUvHealthOverlay::Overlaps:
+		return ModelUvHealthOverlapping;
+	case ModelUvHealthOverlay::Flipped:
+		return ModelUvHealthFlipped;
+	case ModelUvHealthOverlay::OutsideTile:
+		return ModelUvHealthOutsideTile;
+	case ModelUvHealthOverlay::None:
+		break;
+	}
+	return 0;
+}
 struct ModelUvView::Work
 {
 	ModelUvRenderRequest request;
@@ -67,6 +86,10 @@ struct ModelUvView::Work
 	quint64 revision = 0, generation = 0;
 	QString error;
 	bool success = false;
+	ModelUvHealthOverlay overlay = ModelUvHealthOverlay::None;
+	QVector<ModelVec3> positions;
+	ModelUvHealthOptions healthOptions;
+	std::shared_ptr<ModelUvHealthReport> health;
 };
 ModelUvView::ModelUvView(QWidget *parent) : QLabel(parent)
 {
@@ -184,6 +207,74 @@ void ModelUvView::setMoveEnabled(bool enabled, double grid)
 		update();
 	}
 }
+void ModelUvView::setHealthOverlay(ModelUvHealthOverlay overlay, const QVector<ModelVec3> &referencePositions, QSize textureSize,
+								   double stretchLimit)
+{
+	ModelUvHealthOptions options;
+	if (textureSize.isValid() && !textureSize.isEmpty())
+		options.textureSize = textureSize;
+	if (std::isfinite(stretchLimit) && stretchLimit >= 1)
+		options.stretchLimit = stretchLimit;
+	if (overlay == ModelUvHealthOverlay::None)
+	{
+		if (m_overlay == overlay)
+			return;
+		m_overlay = overlay;
+		m_healthPositions.clear();
+		m_health.reset();
+		requestRender();
+		return;
+	}
+	if (overlay == m_overlay && options == m_healthOptions && referencePositions.constData() == m_healthPositions.constData() &&
+		referencePositions.size() == m_healthPositions.size())
+		return;
+	if (overlay != m_overlay)
+		m_health.reset();
+	m_overlay = overlay;
+	m_healthPositions = referencePositions;
+	m_healthOptions = options;
+	requestRender();
+}
+void ModelUvView::setGhostSurfaces(const QVector<ModelSurface> &surfaces)
+{
+	const auto same = [](const ModelSurface &a, const ModelSurface &b)
+	{ return a.texCoords.constData() == b.texCoords.constData() && a.triangles.constData() == b.triangles.constData(); };
+	if (surfaces.size() == m_ghosts.size() && std::equal(surfaces.cbegin(), surfaces.cend(), m_ghosts.cbegin(), same))
+		return;
+	m_ghosts = surfaces;
+	for (auto &ghost : m_ghosts)
+	{
+		ghost.frames.clear();
+		ghost.skinning = {};
+	}
+	requestRender();
+}
+QString ModelUvView::healthLegend() const
+{
+	if (m_overlay == ModelUvHealthOverlay::None)
+		return {};
+	if (!m_health)
+		return QCoreApplication::translate("VibeStudioModelUvView", "Measuring UV health…");
+	const int count = int(m_health->faces(modelUvHealthOverlayMask(m_overlay)).size());
+	switch (m_overlay)
+	{
+	case ModelUvHealthOverlay::Stretch:
+		return QCoreApplication::translate("VibeStudioModelUvView", "Dotted faces stretch texels more than %1 times: %Ln faces.", nullptr, count)
+			.arg(localeNumber(m_health->stretchLimit, 3));
+	case ModelUvHealthOverlay::Overlaps:
+		return QCoreApplication::translate("VibeStudioModelUvView", "Cross-hatched faces overlap other faces: %Ln faces.", nullptr, count);
+	case ModelUvHealthOverlay::Flipped:
+		return QCoreApplication::translate("VibeStudioModelUvView", "Horizontally hatched faces are flipped against their island: %Ln faces.",
+										   nullptr, count);
+	case ModelUvHealthOverlay::OutsideTile:
+		return QCoreApplication::translate("VibeStudioModelUvView",
+										   "Vertically hatched faces leave the dashed 0–1 tile that MDL and MD2 require: %Ln faces.", nullptr,
+										   count);
+	case ModelUvHealthOverlay::None:
+		break;
+	}
+	return {};
+}
 void ModelUvView::requestRender(bool retire)
 {
 	if (!m_hasSource)
@@ -226,10 +317,27 @@ void ModelUvView::startRender()
 	request.fit = m_fit;
 	request.moving = m_moving;
 	request.moveOffset = m_delta;
+	request.moveTransform = m_modal == ModelUvModal::None ? QTransform() : modalTransform();
 	request.showVertices = m_mode == 1;
 	request.background = palette().color(QPalette::Base);
 	request.foreground = palette().color(QPalette::Text);
 	request.accent = palette().color(QPalette::Highlight);
+	request.ghosts = m_ghosts;
+	work->overlay = m_overlay;
+	if (m_overlay != ModelUvHealthOverlay::None && m_healthPositions.size() == m_surface.vertexCount)
+	{
+		work->positions = m_healthPositions;
+		work->healthOptions = m_healthOptions;
+		request.overlayMask = modelUvHealthOverlayMask(m_overlay);
+		request.overlayPattern = m_overlay == ModelUvHealthOverlay::Stretch		? Qt::Dense6Pattern
+								 : m_overlay == ModelUvHealthOverlay::Overlaps	? Qt::DiagCrossPattern
+								 : m_overlay == ModelUvHealthOverlay::Flipped	? Qt::HorPattern
+																				: Qt::VerPattern;
+		// A fixed warning orange keeps contrast on dark, light and textured
+		// backgrounds; the pattern and the legend carry the meaning.
+		request.overlayColour = QColor(255, 128, 0);
+		request.showTile = m_overlay == ModelUvHealthOverlay::OutsideTile;
+	}
 	m_dirty = false;
 	m_work = work;
 	auto *thread = QThread::create(
@@ -239,6 +347,32 @@ void ModelUvView::startRender()
 			{
 				ModelWorkControl control;
 				control.cancelled = [work] { return work->cancelled.load(); };
+				if (work->request.overlayMask)
+				{
+					// Health runs beside the raster on this worker, measured
+					// against the reference pose the editor supplied.
+					auto surface = work->request.surface;
+					ModelFrameGeometry pose;
+					pose.positions = work->positions;
+					surface.frames = {pose};
+					auto options = work->healthOptions;
+					options.referenceFrame = 0;
+					auto health = std::make_shared<ModelUvHealthReport>();
+					QString problem;
+					if (inspectModelUvSurfaceHealth(surface, options, health.get(), &problem, control))
+					{
+						work->request.faceOverlay = health->faceFlags;
+						work->health = std::move(health);
+					}
+					else if (work->cancelled.load())
+					{
+						return;
+					}
+					else
+					{
+						work->request.overlayMask = 0;
+					}
+				}
 				work->success = renderModelUv(work->request, &work->result, &work->error, control);
 			}
 			catch (const std::bad_alloc &)
@@ -258,6 +392,7 @@ void ModelUvView::startRender()
 					if (work->success)
 					{
 						m_topology = work->result.topology;
+						m_health = work->overlay == m_overlay ? std::shared_ptr<const ModelUvHealthReport>(work->health) : nullptr;
 						setPixmap(QPixmap::fromImage(work->result.image));
 						if (work->revision == m_revision)
 						{
@@ -309,11 +444,19 @@ QString ModelUvView::summary() const
 			.arg(m_surface.name)
 			.arg(m_topology ? m_topology->islands.size() : 0)
 			.arg(m_surface.uvSeams.size());
+	if (m_overlay != ModelUvHealthOverlay::None)
+	{
+		text += QLatin1Char(' ') + healthLegend();
+	}
 	if (isRendering())
 	{
 		text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelUvView", "Updating UV layout…");
 	}
-	if (m_moving)
+	if (m_modal != ModelUvModal::None)
+	{
+		text += QLatin1Char(' ') + modalSummary();
+	}
+	else if (m_moving)
 	{
 		text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelUvView", "UV move preview: U %1, V %2.")
 									   .arg(localeNumber(m_delta.u, 7))
@@ -479,6 +622,11 @@ bool ModelUvView::updateMove(QPointF point)
 }
 void ModelUvView::finishMove(bool commit)
 {
+	if (m_modal != ModelUvModal::None)
+	{
+		finishModal(commit);
+		return;
+	}
 	if (!m_moving)
 	{
 		return;
@@ -495,6 +643,162 @@ void ModelUvView::finishMove(bool commit)
 	{
 		Q_EMIT moveRequested(delta.u, delta.v);
 	}
+}
+void ModelUvView::setModalKeys(const QList<QKeySequence> &scale, const QList<QKeySequence> &rotate)
+{
+	m_scaleKeys = scale;
+	m_rotateKeys = rotate;
+}
+ModelUvModal ModelUvView::modalKey(const QKeyEvent *event) const
+{
+	const QKeySequence pressed(QKeyCombination(event->modifiers() & ~Qt::KeypadModifier, Qt::Key(event->key())));
+	for (const auto &key : m_scaleKeys)
+		if (key.count() == 1 && key == pressed)
+			return ModelUvModal::Scale;
+	for (const auto &key : m_rotateKeys)
+		if (key.count() == 1 && key == pressed)
+			return ModelUvModal::Rotate;
+	return ModelUvModal::None;
+}
+bool ModelUvView::beginModal(ModelUvModal mode, QPointF pointer)
+{
+	if (mode == ModelUvModal::None || m_moving || !m_moveEnabled || !m_topology || !m_hasSelection || isRendering() || !finite(pointer))
+		return false;
+	m_modal = mode;
+	m_modalPivot = {float(m_selectionBounds.center().x()), float(m_selectionBounds.center().y())};
+	const auto pivot = uvToScreen(m_modalPivot);
+	// A press on the pivot itself has no direction; start a step to the side.
+	m_modalPress = squared(pointer - pivot) < 64 ? pivot + QPointF(64, 0) : pointer;
+	m_modalValue = mode == ModelUvModal::Scale ? 1 : 0;
+	m_modalTyped.clear();
+	m_modalAxis = -1;
+	m_moving = true;
+	m_travelled = false;
+	m_delta = {};
+	requestRender();
+	Q_EMIT moveActiveChanged(true);
+	Q_EMIT modalPreviewChanged(modalSummary());
+	announce();
+	return true;
+}
+bool ModelUvView::updateModal(QPointF pointer, bool snap)
+{
+	if (m_modal == ModelUvModal::None || !finite(pointer) || !m_modalTyped.isEmpty())
+		return false;
+	const auto pivot = uvToScreen(m_modalPivot);
+	const auto from = m_modalPress - pivot, to = pointer - pivot;
+	double value = 0;
+	if (m_modal == ModelUvModal::Scale)
+	{
+		value = std::sqrt(squared(to) / std::max(1e-9, squared(from)));
+		if (snap)
+			value = std::round(value * 10) / 10;
+	}
+	else
+	{
+		value = (std::atan2(to.y(), to.x()) - std::atan2(from.y(), from.x())) * 180 / std::numbers::pi;
+		while (value > 180)
+			value -= 360;
+		while (value <= -180)
+			value += 360;
+		if (snap)
+			value = std::round(value / 15) * 15;
+	}
+	if (!std::isfinite(value) || value == m_modalValue)
+		return true;
+	m_modalValue = value;
+	requestRender();
+	Q_EMIT modalPreviewChanged(modalSummary());
+	return true;
+}
+bool ModelUvView::typeModal(const QString &text)
+{
+	if (m_modal == ModelUvModal::None)
+		return false;
+	auto typed = m_modalTyped;
+	for (const auto c : text)
+	{
+		if (c == QLatin1Char('\b'))
+			typed.chop(1);
+		else if (c.isDigit() || c == QLatin1Char('.') || (c == QLatin1Char('-') && typed.isEmpty()))
+			typed.append(c);
+		else
+			return false;
+	}
+	m_modalTyped = typed;
+	bool ok = false;
+	const double value = typed.toDouble(&ok);
+	if (ok && std::isfinite(value) && (m_modal == ModelUvModal::Rotate || std::abs(value) >= 1e-6))
+		m_modalValue = value;
+	else if (typed.isEmpty())
+		m_modalValue = m_modal == ModelUvModal::Scale ? 1 : 0;
+	requestRender();
+	Q_EMIT modalPreviewChanged(modalSummary());
+	announce();
+	return true;
+}
+void ModelUvView::constrainModal(int axis)
+{
+	if (m_modal != ModelUvModal::Scale || axis < -1 || axis > 1)
+		return;
+	m_modalAxis = m_modalAxis == axis ? -1 : axis;
+	requestRender();
+	Q_EMIT modalPreviewChanged(modalSummary());
+	announce();
+}
+QTransform ModelUvView::modalTransform() const
+{
+	const double su = m_modal == ModelUvModal::Scale && m_modalAxis != 1 ? m_modalValue : 1;
+	const double sv = m_modal == ModelUvModal::Scale && m_modalAxis != 0 ? m_modalValue : 1;
+	const double rotation = m_modal == ModelUvModal::Rotate ? m_modalValue : 0;
+	// p + R(S(x - p)), the document's own UV transform order.
+	return QTransform().translate(m_modalPivot.u, m_modalPivot.v).rotate(rotation).scale(su, sv).translate(-m_modalPivot.u, -m_modalPivot.v);
+}
+QString ModelUvView::modalSummary() const
+{
+	if (m_modal == ModelUvModal::None)
+		return {};
+	if (m_modal == ModelUvModal::Rotate)
+		return QCoreApplication::translate("VibeStudioModelUvView",
+										   "UV rotate preview: %1 degrees. Type a value or move the pointer; Enter applies, Escape cancels.")
+			.arg(localeNumber(m_modalValue, 6));
+	const auto value = localeNumber(m_modalValue, 6);
+	if (m_modalAxis == 0)
+		return QCoreApplication::translate("VibeStudioModelUvView", "UV scale preview: U × %1. Type a value or move the pointer; Y frees V; "
+																	"Enter applies, Escape cancels.")
+			.arg(value);
+	if (m_modalAxis == 1)
+		return QCoreApplication::translate("VibeStudioModelUvView", "UV scale preview: V × %1. Type a value or move the pointer; X frees U; "
+																	"Enter applies, Escape cancels.")
+			.arg(value);
+	return QCoreApplication::translate("VibeStudioModelUvView", "UV scale preview: × %1. Type a value or move the pointer; X or Y limits it "
+																"to one axis; Enter applies, Escape cancels.")
+		.arg(value);
+}
+void ModelUvView::finishModal(bool commit)
+{
+	if (m_modal == ModelUvModal::None)
+		return;
+	const auto mode = m_modal;
+	const double value = m_modalValue;
+	const int axis = m_modalAxis;
+	const auto pivot = m_modalPivot;
+	m_modal = ModelUvModal::None;
+	m_modalTyped.clear();
+	m_moving = false;
+	m_travelled = false;
+	m_delta = {};
+	m_button = Qt::NoButton;
+	unsetCursor();
+	requestRender(true);
+	Q_EMIT moveActiveChanged(false);
+	announce();
+	if (!commit)
+		return;
+	if (mode == ModelUvModal::Rotate && value != 0)
+		Q_EMIT transformRequested(1, 1, value, pivot.u, pivot.v);
+	if (mode == ModelUvModal::Scale && value != 1 && std::abs(value) >= 1e-6)
+		Q_EMIT transformRequested(axis == 1 ? 1 : value, axis == 0 ? 1 : value, 0, pivot.u, pivot.v);
 }
 bool ModelUvView::moving() const { return m_moving; }
 ModelTexCoord ModelUvView::moveDelta() const { return m_delta; }
@@ -518,13 +822,15 @@ void ModelUvView::paintEvent(QPaintEvent *event)
 											  .arg(m_topology->islands.size())
 											  .arg(m_surface.uvSeams.size())
 										: QString();
-	if (!status.isEmpty())
+	const QString legend = m_error.isEmpty() && !isRendering() ? healthLegend() : QString();
+	if (!status.isEmpty() || !legend.isEmpty())
 	{
+		const QString chip = legend.isEmpty() ? status : status.isEmpty() ? legend : status + QLatin1Char('\n') + legend;
 		const QRectF box = QRectF(rect()).adjusted(8, 8, -8, -8);
-		const auto textBox = painter.boundingRect(box, Qt::AlignTop | Qt::AlignLeft | Qt::TextWordWrap, status).adjusted(-3, -2, 3, 2);
+		const auto textBox = painter.boundingRect(box, Qt::AlignTop | Qt::AlignLeft | Qt::TextWordWrap, chip).adjusted(-3, -2, 3, 2);
 		painter.fillRect(textBox, palette().base());
 		painter.setPen(palette().text().color());
-		painter.drawText(box, Qt::AlignTop | Qt::AlignLeft | Qt::TextWordWrap, status);
+		painter.drawText(box, Qt::AlignTop | Qt::AlignLeft | Qt::TextWordWrap, chip);
 	}
 	if (hasFocus())
 	{
@@ -558,6 +864,12 @@ void ModelUvView::changeEvent(QEvent *event)
 }
 void ModelUvView::mousePressEvent(QMouseEvent *event)
 {
+	if (m_modal != ModelUvModal::None)
+	{
+		finishModal(event->button() == Qt::LeftButton);
+		event->accept();
+		return;
+	}
 	m_press = m_last = event->position();
 	m_button = event->button();
 	if (m_button == Qt::LeftButton && event->modifiers() == Qt::NoModifier && beginMove(m_press))
@@ -576,6 +888,12 @@ void ModelUvView::mousePressEvent(QMouseEvent *event)
 }
 void ModelUvView::mouseMoveEvent(QMouseEvent *event)
 {
+	if (m_modal != ModelUvModal::None)
+	{
+		updateModal(event->position(), event->modifiers().testFlag(Qt::ControlModifier));
+		event->accept();
+		return;
+	}
 	if (m_moving)
 	{
 		updateMove(event->position());
@@ -623,6 +941,37 @@ void ModelUvView::wheelEvent(QWheelEvent *event)
 }
 void ModelUvView::keyPressEvent(QKeyEvent *event)
 {
+	if (m_modal != ModelUvModal::None)
+	{
+		const int key = event->key();
+		if (key == Qt::Key_Escape)
+			finishModal(false);
+		else if (key == Qt::Key_Return || key == Qt::Key_Enter)
+			finishModal(true);
+		else if (key == Qt::Key_Backspace)
+			typeModal(QStringLiteral("\b"));
+		else if (key == Qt::Key_X || key == Qt::Key_U)
+			constrainModal(0);
+		else if (key == Qt::Key_Y || key == Qt::Key_V)
+			constrainModal(1);
+		else if (!event->text().isEmpty())
+			typeModal(event->text());
+		event->accept();
+		return;
+	}
+	if (!m_moving)
+	{
+		const auto mode = modalKey(event);
+		if (mode != ModelUvModal::None)
+		{
+			auto pointer = mapFromGlobal(QCursor::pos()).toPointF();
+			if (!rect().contains(pointer.toPoint()))
+				pointer = QPointF(width() / 2.0, height() / 2.0);
+			beginModal(mode, pointer);
+			event->accept();
+			return;
+		}
+	}
 	if (m_moving)
 	{
 		if (event->key() == Qt::Key_Escape)
@@ -677,7 +1026,7 @@ bool ModelUvView::event(QEvent *event)
 	if (event->type() == QEvent::ShortcutOverride)
 	{
 		const auto *key = static_cast<QKeyEvent *>(event);
-		if ((m_moving && key->key() == Qt::Key_Escape) ||
+		if (m_modal != ModelUvModal::None || (!m_moving && modalKey(key) != ModelUvModal::None) || (m_moving && key->key() == Qt::Key_Escape) ||
 			(key->modifiers() == Qt::NoModifier && (key->key() == Qt::Key_F || key->key() == Qt::Key_Home)) || cameraKey(key) != CameraKey::None)
 		{
 			event->accept();

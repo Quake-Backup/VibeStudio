@@ -411,6 +411,35 @@ void ModelEditorTools::buildActions()
 	addAction(QStringLiteral("meshUnwrap"), Text::tr("Unwrap and Pack"), {}, [this] { m_editor->execute(ModelEditKind::UnwrapUv); });
 	addAction(QStringLiteral("meshUvDensity"), Text::tr("Texel Density…"), {}, [this] { m_editor->editUvDensity(); });
 	addAction(QStringLiteral("meshPackIslands"), Text::tr("Pack Islands"), {}, [this] { m_editor->execute(ModelEditKind::PackUv); });
+	// UV operators (core/model_uv_ops.h), with the UV panel's settings.
+	addAction(QStringLiteral("meshUvWeld"), Text::tr("Weld UVs"), {}, [this] { m_editor->runUvTool(ModelEditKind::WeldUv); });
+	addAction(QStringLiteral("meshUvStitch"), Text::tr("Stitch UVs"), {}, [this] { m_editor->runUvTool(ModelEditKind::StitchUv); });
+	addAction(QStringLiteral("meshUvAlign"), Text::tr("Align UVs"), {}, [this] { m_editor->runUvTool(ModelEditKind::AlignUv); });
+	addAction(QStringLiteral("meshUvSnapTexels"), Text::tr("Snap UVs to Texels"), {}, [this] { m_editor->runUvTool(ModelEditKind::SnapUvTexels); });
+	addAction(QStringLiteral("meshUnwrapConformal"), Text::tr("Unwrap (Seams Only)"), {},
+			  [this]
+			  {
+				  auto edit = m_editor->operation(ModelEditKind::UnwrapUv);
+				  edit.uvTools.unwrapMethod = ModelUvUnwrapMethod::Conformal;
+				  edit.uvTools.unwrapPack = m_editor->m_uvUnwrapPack->isChecked();
+				  edit.uvTools.packRotate = edit.uvTools.unwrapPack && m_editor->m_uvPackRotate->isChecked();
+				  QString error;
+				  if (!m_editor->applyEdit(edit, &error))
+					  m_editor->m_status->setText(error, LiveStatus::Problem);
+			  });
+	addAction(QStringLiteral("meshUvQuakeFrontBack"), Text::tr("Quake Front/Back Skin Layout"), {}, [this] { m_editor->layoutQuakeFrontBack(0); });
+	addAction(QStringLiteral("meshUvExportLayout"), Text::tr("Export UV Layout…"), {}, [this] { m_editor->exportUvLayout(); });
+	addAction(QStringLiteral("meshUvTransferSkin"), Text::tr("Transfer Skin to New UVs…"), {}, [this] { m_editor->transferSkin(); });
+	addAction(QStringLiteral("meshUvEditSkin"), Text::tr("Edit Skin…"), {}, [this] { m_editor->editSurfaceSkin(); });
+	// UV health (core/model_uv_health.h): read-only checks and selections.
+	addAction(QStringLiteral("meshUvCheckHealth"), Text::tr("Check UV Health"), {}, [this] { m_editor->checkUvHealth(); });
+	addAction(QStringLiteral("meshUvSelectOverlapping"), Text::tr("Select Overlapping UVs"), {},
+			  [this] { m_editor->selectUvProblems(ModelUvHealthOverlapping); });
+	addAction(QStringLiteral("meshUvSelectFlipped"), Text::tr("Select Flipped UVs"), {}, [this] { m_editor->selectUvProblems(ModelUvHealthFlipped); });
+	addAction(QStringLiteral("meshUvSelectStretched"), Text::tr("Select Stretched UVs"), {},
+			  [this] { m_editor->selectUvProblems(ModelUvHealthStretched); });
+	addAction(QStringLiteral("meshUvSelectOutside"), Text::tr("Select UVs Outside the Tile"), {},
+			  [this] { m_editor->selectUvProblems(ModelUvHealthOutsideTile); });
 	addAction(QStringLiteral("meshExportLods"), Text::tr("Export Quake III Detail Levels…"), {},
 			  [this]
 			  {
@@ -724,7 +753,13 @@ void ModelEditorTools::buildMenus()
 							 QStringLiteral("meshMenuFace")));
 	m_menuBar->addMenu(named(menu(Text::tr("&UV"), {QStringLiteral("meshUnwrap"), {}, QStringLiteral("meshUvCube"), QStringLiteral("meshUvCylinder"),
 													 QStringLiteral("meshUvSphere"), {}, QStringLiteral("meshUvView"), QStringLiteral("meshUvViewBounds"), {},
-													 QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSeam"), {}, QStringLiteral("meshUvDensity"), QStringLiteral("meshPackIslands")}),
+													 QStringLiteral("meshMarkSeam"), QStringLiteral("meshClearSeam"), {}, QStringLiteral("meshUvDensity"), QStringLiteral("meshPackIslands"), {},
+													 QStringLiteral("meshUnwrapConformal"), QStringLiteral("meshUvQuakeFrontBack"), {},
+													 QStringLiteral("meshUvWeld"), QStringLiteral("meshUvStitch"), QStringLiteral("meshUvAlign"),
+													 QStringLiteral("meshUvSnapTexels"), {}, QStringLiteral("meshUvExportLayout"),
+													 QStringLiteral("meshUvTransferSkin"), QStringLiteral("meshUvEditSkin"), {},
+													 QStringLiteral("meshUvCheckHealth"), QStringLiteral("meshUvSelectOverlapping"), QStringLiteral("meshUvSelectFlipped"),
+													 QStringLiteral("meshUvSelectStretched"), QStringLiteral("meshUvSelectOutside")}),
 							 QStringLiteral("meshMenuUv")));
 	buildTopologyMenus();
 	if (auto *layout = qobject_cast<QBoxLayout *>(m_editor->layout()))

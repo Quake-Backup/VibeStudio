@@ -807,6 +807,10 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::MarkSharp:
 	case ModelEditKind::ClearSharp:
 	case ModelEditKind::SetVertexPositions:
+	case ModelEditKind::WeldUv:
+	case ModelEditKind::StitchUv:
+	case ModelEditKind::AlignUv:
+	case ModelEditKind::SnapUvTexels:
 		return ModelEditSkinHandling::Provenance;
 	}
 	return ModelEditSkinHandling::Provenance;

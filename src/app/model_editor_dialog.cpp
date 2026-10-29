@@ -922,6 +922,14 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	connect(show, &QPushButton::clicked, this,
 			[this]()
 			{
+				// A material resolved to a shader opens in Materials; images in Textures.
+				const auto key = modelPreviewSurfaceMaterialKey(m_document.selection().surface);
+				for (const auto &material : m_materialAssets.materials)
+					if (material.key == key && !material.shaderPath.isEmpty() && showShader)
+					{
+						showShader(m_material->text());
+						return;
+					}
 				if (showMaterial)
 				{
 					showMaterial(m_material->text());
@@ -984,6 +992,14 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	handoffPage->addRow(QCoreApplication::translate("VibeStudioModelEditor", "MD2 skin height"), m_md2Height);
 	button(handoffPage, QCoreApplication::translate("VibeStudioModelEditor", "Apply Skin Size"), QStringLiteral("applyMeshMd2Size"),
 		   ModelEditKind::SetMd2SkinSize);
+	// The resolved PCX skin's size against the MD2 size (refreshed with the UVs).
+	m_md2SkinSizeWarning = new QLabel;
+	m_md2SkinSizeWarning->setObjectName(QStringLiteral("meshMd2SkinSizeWarning"));
+	m_md2SkinSizeWarning->setWordWrap(true);
+	m_md2SkinSizeWarning->setTextFormat(Qt::PlainText);
+	m_md2SkinSizeWarning->setAccessibleName(QCoreApplication::translate("ModelSkinHandoff", "MD2 skin size check"));
+	m_md2SkinSizeWarning->setVisible(false);
+	handoffPage->addRow(m_md2SkinSizeWarning);
 	m_virtualPath = new QLineEdit(QStringLiteral("models/props/edited.md3"));
 	m_virtualPath->setObjectName(QStringLiteral("meshVirtualPath"));
 	m_virtualPath->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Model package path"));
@@ -1789,6 +1805,8 @@ bool ModelEditorDialog::applyEdit(const ModelEdit &edit, QString *error, ModelEd
 	ModelEditReport pending;
 	m_preview->finishEditMove(false);
 	m_uv->finishMove(false);
+	// The source of Transfer Skin to New UVs (shared, not copied).
+	const auto unedited = m_document.mesh();
 	const auto title = edit.kind == ModelEditKind::UnwrapUv ? QCoreApplication::translate("VibeStudioModelEditor", "Unwrap and Pack UVs")
 					   : edit.kind == ModelEditKind::PackUv ? QCoreApplication::translate("VibeStudioModelEditor", "Pack UVs")
 					   : edit.kind == ModelEditKind::PackUvAround ? QCoreApplication::translate("ModelUvObstacles", "Pack Around Unselected")
@@ -1807,6 +1825,10 @@ bool ModelEditorDialog::applyEdit(const ModelEdit &edit, QString *error, ModelEd
 		m_lastSkinBindings.clear();
 		m_skinBindingsDetails->setEnabled(false);
 	}
+	// A UV edit continues the transfer source only straight after the last.
+	if (before != m_uvTransferRevision)
+		m_uvTransferSurface = -1;
+	rememberUvTransferSource(unedited, edit);
 	refresh();
 	// Say how skin weights followed the edit; surface edits also confirm
 	// the weights they kept.
@@ -2500,6 +2522,9 @@ ModelEdit ModelEditorDialog::operation(ModelEditKind kind) const
 		edit.frame = m_frame->currentIndex();
 		edit.text = m_frameName->text();
 	}
+	// Unwrap method and quarter-turn packing (UV controls, model_editor_uv.cpp).
+	if (kind == ModelEditKind::PackUv || kind == ModelEditKind::UnwrapUv)
+		configureUvAtlasTools(&edit);
 	return edit;
 }
 void ModelEditorDialog::execute(ModelEditKind kind)
