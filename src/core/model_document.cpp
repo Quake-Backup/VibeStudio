@@ -28,6 +28,7 @@
 #include "core/model_uv_obstacles.h"
 #include "core/model_whole_transform.h"
 #include "core/model_uv_unwrap.h"
+#include "core/model_uv_pins.h"
 
 #include "core/model_design.h"
 #include "core/package_staging.h"
@@ -309,6 +310,11 @@ bool compact(ModelSurface *surface, ModelSelection *selection, ModelWorkProgress
 		}
 	}
 	surface->uvSeams = std::move(seams);
+	QSet<int> pins;
+	for (int pin : surface->uvPins)
+		if (pin >= 0 && pin < mapping.size() && mapping[pin] >= 0)
+			pins.insert(mapping[pin]);
+	surface->uvPins = std::move(pins);
 	surface->texCoords = std::move(coords);
 	surface->topologyVertices = std::move(identities);
 	compactModelVertexIdentities(surface);
@@ -841,8 +847,9 @@ int readableSourceVersion(const ModelMesh &mesh)
 	const bool timed = std::any_of(mesh.animations.cbegin(), mesh.animations.cend(), [](const auto &clip) { return clip.framesPerSecond > 0; });
 	const bool collisionAnimation = std::any_of(mesh.collisionBoxes.cbegin(), mesh.collisionBoxes.cend(), [](const auto &box) { return !box.framePoses.isEmpty(); });
 	const bool explicitTopology = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return !s.topologyVertices.isEmpty(); });
-	const bool sharp = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return std::max(modelAnimationAuthoringSourceVersion(mesh), !mesh.tagAnchors.isEmpty() ? modelSourceTagAnchorVersion : !s.sharpEdges.isEmpty(); });
-	return sharp ? 16 : !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3);
+	const bool sharp = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { const bool pinned = std::any_of(mesh.surfaces.cbegin(), mesh.surfaces.cend(), [](const auto &s) { return std::max(modelAnimationAuthoringSourceVersion(mesh), !mesh.tagAnchors.isEmpty() ? modelSourceTagAnchorVersion : !s.sharpEdges.isEmpty(); });
+	return sharp ? 16 : !s.uvPins.isEmpty(); });
+	return pinned ? 17 : !mesh.skinVariants.isEmpty() ? 14 : !mesh.detailLevels.isEmpty() ? 13 : explicitTopology ? 11 : hasModelAnimationCurves(mesh) ? modelAnimationCurveVersion(mesh) : !mesh.skeleton.isEmpty() ? 8 : collisionAnimation ? 7 : timed ? 6 : !mesh.collisionBoxes.isEmpty() ? 5 : mesh.mdl.enabled ? 4 : 3);
 }
 // Packed sources (version 12) store the bulk arrays as base64 strings of
 // little-endian 32-bit words; the rest of the source is the same JSON.
@@ -894,6 +901,8 @@ QJsonObject sourceJson(const ModelMesh &mesh, QString *error, const ModelWorkCon
 				std::sort(sharp.begin(), sharp.end());
 				surfaceObject.insert(QStringLiteral("sharpEdges"), packModelSourceEdges(sharp));
 			}
+			if (!surface.uvPins.isEmpty())
+				surfaceObject.insert(QStringLiteral("uvPins"), modelUvPinsJson(surface.uvPins));
 			surfaces.append(surfaceObject);
 			continue;
 		}
@@ -970,6 +979,8 @@ QJsonObject sourceJson(const ModelMesh &mesh, QString *error, const ModelWorkCon
 				pairs.append(QJsonArray{edge.first, edge.second});
 			surfaceObject.insert(QStringLiteral("sharpEdges"), pairs);
 		}
+		if (!surface.uvPins.isEmpty())
+			surfaceObject.insert(QStringLiteral("uvPins"), modelUvPinsJson(surface.uvPins));
 		surfaces.append(surfaceObject);
 	}
 	for (const auto &frame : mesh.frames)
@@ -1246,7 +1257,8 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 		 root.value(QStringLiteral("version")) != QJsonValue(7) && root.value(QStringLiteral("version")) != QJsonValue(8) && root.value(QStringLiteral("version")) != QJsonValue(9) && root.value(QStringLiteral("version")) != QJsonValue(10) && root.value(QStringLiteral("version")) != QJsonValue(11) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(modelSourcePackedVersion) && root.value(QStringLiteral("version")) != QJsonValue(13) && root.value(QStringLiteral("version")) != QJsonValue(14) && root.value(QStringLiteral("version")) != QJsonValue(15) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(modelSourceTagAnchorVersion) &&
-		 root.value(QStringLiteral("version")) != QJsonValue(16)) ||
+		 root.value(QStringLiteral("version")) != QJsonValue(16) &&
+		 root.value(QStringLiteral("version")) != QJsonValue(17)) ||
 		!root.value(QStringLiteral("source")).isString())
 	{
 		return malformed();
@@ -1428,6 +1440,10 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 				return malformed();
 			surface.topologyVertices = std::move(labels);
 		}
+		// Pinned UV corners (version 17).
+		const auto pinsValue = object.value(QStringLiteral("uvPins"));
+		if (!pinsValue.isUndefined() && (result.version < 17 || !parseModelUvPins(pinsValue, surface.vertexCount, &surface.uvPins)))
+			return malformed();
 		const auto seamsValue = object.value(QStringLiteral("uvSeams"));
 		const qint64 triangles = trianglesValue.isString() ? surface.triangles.size() : trianglesValue.toArray().size();
 		if ((result.version >= 2 && !bulk(seamsValue)) || (!seamsValue.isUndefined() && !bulk(seamsValue)) ||
@@ -1780,6 +1796,8 @@ bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resu
 	// Skeleton, skin and weight edits write influences directly. Every other
 	// edit carries per-vertex provenance (core/model_vertex_origins.h) and
 	// derives the resulting influences from what the tool actually did.
+	// Pinned UV corners follow the edit (core/model_uv_pins.h).
+	const auto pins = mesh ? captureModelUvPins(*mesh) : ModelUvPinState{};
 	if (!mesh || mesh->skeleton.isEmpty() || isModelRigEdit(edit.kind) || isModelSkeletalEdit(edit.kind) || isModelSkinEdit(edit.kind) || edit.kind == ModelEditKind::PaintSkinWeights || edit.kind == ModelEditKind::TransferSkinWeights ||
 		edit.kind == ModelEditKind::TransformModel)
 	{
@@ -1798,6 +1816,7 @@ bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resu
 			return true;
 		}
 		const bool ok = applyModelEditUnreconciled(mesh, edit, resultingSelection, error, control, report ? &pending : nullptr);
+		if (ok && !pins.isEmpty()) carryModelUvPins(pins, mesh);
 		if (ok && report) *report = std::move(pending);
 		return ok;
 	}
@@ -1847,6 +1866,7 @@ bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resu
 		}
 		updateEditableModelMetadata(mesh);
 	}
+	if (!pins.isEmpty()) carryModelUvPins(pins, mesh);
 	if (resultingSelection) *resultingSelection = std::move(pendingSelection);
 	if (report) *report = std::move(pending);
 	return true;
@@ -3011,7 +3031,8 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 			unwrap.frame = std::max(0, edit.frame);
 			unwrap.pack = edit.uvTools.unwrapPack;
 			unwrap.atlas = options;
-			QHash<int, ModelTexCoord> pins;
+			// Stored pins in these islands, and selected vertices for this unwrap.
+			auto pins = modelUvPinnedCorners(surface, selection.faces);
 			for (int vertex : selection.vertices)
 				pins.insert(vertex, surface.texCoords[vertex]);
 			if (!unwrapModelUvConformal(surface, selection.faces, pins, unwrap, &mapped, nullptr, error, control))

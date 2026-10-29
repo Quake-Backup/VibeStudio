@@ -291,6 +291,10 @@ enum class ModelEditKind
 	FitAnimatedCollisionHull,
 	// Fits every anchored tag again (ModelMesh::tagAnchors).
 	RefitAnchoredTags,
+	// Pins or unpins the selected UV corners (ModelSurface::uvPins,
+	// core/model_uv_pins.h).
+	PinUv,
+	UnpinUv,
 };
 
 struct ModelEdit

@@ -83,7 +83,14 @@ vibestudio --cli model uv-density player.mesh.json --surfaces all --texture-size
 vibestudio --cli model uv-density player.mesh.json --surfaces 0,1,2 --texture-size 256 --texture-size-for 2=512x512 --target 4 --mode group --output player-density.mesh.json
 ```
 
-The **Texel Density…** dialog still works on one surface at a time.
+In the **Texel Density…** dialog, the **Scope** **All islands on surfaces
+sharing this material** matches surfaces bound to one skin at its size, and
+**All islands on chosen surfaces, each with its own skin size** shows a table
+of every surface: tick the surfaces to match with the active one and enter
+each one's original skin size (the editor fills in each surface's material,
+MDL or MD2 skin size). The active surface uses **Texture width** and **Texture
+height**. The results table shows the active surface; the edit, its preview and
+its undo step cover them all.
 
 ## Automate density adjustment
 

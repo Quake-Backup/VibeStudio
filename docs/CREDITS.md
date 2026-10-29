@@ -694,6 +694,13 @@ OpenNL, Blender or any other implementation. Blender's
 along marked seams with pinned UVs, weld, stitch, align and straighten, and the
 UV editor's modal scale and rotate; behaviour only.
 
+Skin transfer's projection fallback (`core/model_skin_transfer.cpp`,
+2026-10-29) finds the nearest point of the old surface with an original bounding
+volume hierarchy and the closest-point-on-triangle test by Voronoi regions from
+Christer Ericson, *Real-Time Collision Detection* (Morgan Kaufmann, 2005),
+section 5.1.5; the algorithm is followed from the book's description, no code is
+copied.
+
 ## Blender-Style Mesh Editing (2026-10-07)
 
 The Mesh Editor's edit-mode workflow follows [Blender](https://www.blender.org/)

@@ -811,9 +811,13 @@ displayed pose and the skin's original size. See
    **Conformal (seams only)** and choose **Unwrap and Pack Faces**.
 
 You get exactly one island per seam-bounded region, flattened with as little
-angle distortion as the shape allows, at one density. To pin corners, switch to
-vertex selection, select two or more corners of an island at the UVs they
-should keep, and unwrap. Turn off **Pack after a conformal unwrap** to keep the
+angle distortion as the shape allows, at one density. To hold corners in
+place, select them, place them where they should stay and choose **Pin UVs**;
+an island with two or more pins keeps them exactly and flattens around them.
+Pins are drawn as red diamonds and are saved with the model; **Unpin UVs**
+removes them. Pinned islands stay where their pins hold them when the other
+islands are packed. In vertex selection, the selected corners are also pinned for
+that one unwrap. Turn off **Pack after a conformal unwrap** to keep the
 islands where they land. A closed island or one that folds is refused with its
 faces named; add a seam there.
 
@@ -823,14 +827,19 @@ In the UV controls on the **Surface** page (or the **UV** menu):
 
 - **Weld UVs** joins split corners again, such as those **Detach UV Faces**
   split; **Weld Distance** joins corners that are slightly apart.
-- **Stitch UVs** joins two islands along the seam edges you select, moving the
-  smaller island without mirroring or scaling it.
+- **Stitch UVs** joins islands along the seam edges you select, as many pairs
+  as you select at once. The largest island of each group stays where it is;
+  the others turn and move into place without mirroring or scaling.
 - **Align UVs** lines corners up on U or V, or straightens them.
 - **Snap UVs to Texels** puts corners on texel centres of the MDL or MD2 skin,
   so the export keeps them exactly.
 - **Turn islands when packing** lets **Pack Selected UVs** turn islands a quarter
   turn when that fits them larger; **Pack with surfaces sharing this material**
   packs those surfaces into the same skin.
+
+After Weld, Align, Snap or the Quake front/back layout, **Adjust Last
+Operation** (<kbd>F9</kbd> in the Blender profile, or the **View** menu) changes
+its settings and replays it in place.
 
 In the UV view, press <kbd>S</kbd> to scale or <kbd>R</kbd> to rotate the
 selection (or your profile's keys), move the pointer or type a value, then press
@@ -852,17 +861,33 @@ MDL skin size first; Quake needs a width that is a multiple of 4.
    the open package.
 3. Paint over the layout in **Textures** or any paint program.
 
-**Edit Skin…** opens the surface's skin in the texture editor; staging it there
-updates the model. For a Quake MDL, **Export Member…** and **Replace Member From
-Image…** on the MDL page take a skin member out and back, mapped to the
-model's palette.
+For a Quake MDL, **Export Member…** and **Replace Member From Image…** on the
+MDL page take a skin member out and back, mapped to the model's palette.
+
+### Paint the skin in Textures and bring it back
+
+1. Select the surface and choose **Edit Skin…** in the UV toolbar or the **UV**
+   menu. Textures opens the skin with a locked **UV guide** layer showing the
+   UVs; hide it in the Layers panel when you want to see the skin alone.
+2. Paint on the skin layer, then choose **Save Project**.
+3. Back in **Models**, choose **Apply Skin** in the status strip. A Quake MDL
+   member is replaced as one undo step; any other skin is staged over its
+   package path. **Dismiss** keeps the model's skin.
+
+Turn on **Apply Saved Skins Automatically** in the UV toolbar to apply every
+save at once. The project is kept in the project's `.vibestudio/model-skins`
+folder. If you export or stage from Textures yourself, hide the UV guide first.
 
 ### Keep a painted skin after changing UVs
 
-After unwrapping, packing, scaling or moving islands, choose **Transfer Skin…**
-in the UV toolbar. It repaints the skin for the new UVs from the old one, face
-by face, then replaces the MDL member as one undo step or stages the image over
-the old one. Use it straight after the UV edits: any other edit ends the chain.
+After unwrapping, packing, scaling or moving islands, or after subdividing,
+cutting or rebuilding faces, choose **Transfer Skin…** in the UV toolbar. It
+repaints the skin for the new UVs from the old one, then replaces the MDL
+member as one undo step or stages the image over the old one. With **Match
+faces** set to **Automatic**, faces that kept their corners are matched
+directly and reshaped or new faces take the paint of the nearest part of the
+old surface. Use it straight after those edits: moving vertices or other edits
+end the chain.
 
 ## Design a prop
 

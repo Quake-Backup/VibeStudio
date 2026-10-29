@@ -2368,14 +2368,18 @@ Each resolved path may be a definition file or a folder of them.
   guarded writer; `--dry-run` validates and `--overwrite` replaces. See
   [UV layouts and skin transfer](MODEL_MESH.md#uv-layouts-and-skin-transfer).
 - [x] `model skin-transfer --from before.mesh.json --to after.mesh.json
-  --texture old.png|pcx --output new.png|tga|pcx [--surface N] [--size N|WxH]
-  [--filter nearest|bilinear] [--padding N] [--no-wrap]` repaints a skin for
-  changed UVs (`core/model_skin_transfer`); inputs are protected.
-- [x] `model edit --operation uv-weld|uv-stitch|uv-align|uv-snap-texels` runs the
-  [UV operators](MODEL_MESH.md#uv-operators) with `--uv-weld-tolerance`,
-  `--uv-align`, `--uv-snap` and `--uv-snap-size`; `uv-unwrap --uv-method
-  conformal [--uv-pins N,N] [--no-pack]` flattens seam-bounded islands
-  (JSON `unwrap`); `uv-pack --uv-allow-rotation --uv-pack-surfaces N,N` turns
+  --texture old.png|pcx --output new.png|tga|pcx [--mapping auto|faces|projection]
+  [--reference-frame N] [--surface N] [--size N|WxH] [--filter nearest|bilinear]
+  [--padding N] [--no-wrap]` repaints a skin for changed UVs or faces
+  (`core/model_skin_transfer`), finding reshaped faces by projection onto the
+  old surface; inputs are protected.
+- [x] `model edit --operation uv-weld|uv-stitch|uv-align|uv-snap-texels|uv-pin|uv-unpin`
+  runs the [UV operators](MODEL_MESH.md#uv-operators) with `--uv-weld-tolerance`,
+  `--uv-align`, `--uv-snap` and `--uv-snap-size`; `uv-stitch` joins every island
+  pair the selected seam edges connect; pins are saved in editable source
+  version 17 and `model uv --json` lists them; `uv-unwrap --uv-method
+  conformal [--uv-pins N,N] [--no-pack]` flattens seam-bounded islands holding
+  stored pins (JSON `unwrap`); `uv-pack --uv-allow-rotation --uv-pack-surfaces N,N` turns
   islands and packs surfaces sharing a material together.
 - [x] `model tool --tool uv-quake-frontback [--axis x|y|z]` lays out Quake MDL
   front and back skin halves and reports `mdlLayout`.

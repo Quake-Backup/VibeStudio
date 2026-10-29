@@ -5,6 +5,7 @@
 #include "core/model_skin_handoff.h"
 #include "core/model_uv_atlas.h"
 #include "core/level_materials.h"
+#include "core/studio_settings.h"
 
 #include "app/model_uv_view.h"
 #include "app/model_uv_density_dialog.h"
@@ -133,8 +134,21 @@ QWidget *ModelEditorDialog::createUvView()
 	transfer->setToolTip(QCoreApplication::translate("ModelSkinHandoff", "After a UV edit, repaint the surface's skin for the new UVs by sampling it through the old ones."));
 	connect(transfer, &QAction::triggered, this, &ModelEditorDialog::transferSkin);
 	auto *edit = action(QCoreApplication::translate("ModelSkinHandoff", "Edit Skin…"), QStringLiteral("editMeshSkin"));
-	edit->setToolTip(QCoreApplication::translate("ModelSkinHandoff", "Open the surface's skin in the texture editor. Staging it there updates the model's preview."));
+	edit->setToolTip(QCoreApplication::translate("ModelSkinHandoff", "Open the surface's skin in Textures with a UV guide layer. Saving the "
+																	 "texture project there offers the skin back to the model."));
 	connect(edit, &QAction::triggered, this, [this] { editSurfaceSkin(); });
+	m_skinAutoApply = action(QCoreApplication::translate("ModelSkinHandoff", "Apply Saved Skins Automatically"), QStringLiteral("meshSkinAutoApply"));
+	m_skinAutoApply->setCheckable(true);
+	m_skinAutoApply->setChecked(StudioSettings(StudioSettings::AccessMode::ReadOnly).modelSkinAutoApply());
+	m_skinAutoApply->setToolTip(QCoreApplication::translate("ModelSkinHandoff", "When Textures saves a skin opened with Edit Skin, apply it to "
+																				"the model at once instead of offering it."));
+	connect(m_skinAutoApply, &QAction::toggled, this,
+			[](bool enabled)
+			{
+				StudioSettings settings;
+				settings.setModelSkinAutoApply(enabled);
+				settings.sync();
+			});
 	connect(m_uvHealthOverlay, &QComboBox::currentIndexChanged, this, [this] { refreshUv(); });
 	connect(m_uvHealthStretch, &QDoubleSpinBox::valueChanged, this, [this] { refreshUv(); });
 	layout->addWidget(tools);
@@ -475,8 +489,9 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 			   QCoreApplication::translate("ModelUvOps", "Join the selected corners with their split copies where position and normal match in "
 														 "every pose, at their mean UV. Seam marks stay; clear them to merge the islands."));
 	toolButton(QCoreApplication::translate("ModelUvOps", "Stitch UVs"), QStringLiteral("stitchMeshUvs"), ModelEditKind::StitchUv,
-			   QCoreApplication::translate("ModelUvOps", "In edge selection, choose boundary edges of a UV seam. The smaller island turns and "
-														 "moves, never mirrored or scaled, so the edges meet; the corners then weld."));
+			   QCoreApplication::translate("ModelUvOps", "In edge selection, choose boundary edges of UV seams, between as many islands as you "
+														 "like. In each group of joined islands the largest stays put; the others turn and move, "
+														 "never mirrored or scaled, so the edges meet; the corners then weld."));
 	m_uvAlignMode = new QComboBox;
 	m_uvAlignMode->setObjectName(QStringLiteral("meshUvAlignMode"));
 	m_uvAlignMode->addItems({QCoreApplication::translate("ModelUvOps", "U to minimum"), QCoreApplication::translate("ModelUvOps", "U to centre"),
@@ -504,6 +519,13 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 	surface->addRow(QCoreApplication::translate("ModelUvOps", "Snap To"), m_uvSnapMode);
 	toolButton(QCoreApplication::translate("ModelUvOps", "Snap UVs to Texels"), QStringLiteral("snapMeshUvTexels"), ModelEditKind::SnapUvTexels,
 			   m_uvSnapMode->toolTip());
+	// Pins (core/model_uv_pins.h), saved with the model, hold UV corners in
+	// place during a conformal unwrap.
+	toolButton(QCoreApplication::translate("ModelUvOps", "Pin UVs"), QStringLiteral("pinMeshUvs"), ModelEditKind::PinUv,
+			   QCoreApplication::translate("ModelUvOps", "Pin the selected UV corners: a conformal unwrap keeps them where they are and flattens "
+														 "the rest of their island around them. Pins are saved with the model."));
+	toolButton(QCoreApplication::translate("ModelUvOps", "Unpin UVs"), QStringLiteral("unpinMeshUvs"), ModelEditKind::UnpinUv,
+			   QCoreApplication::translate("ModelUvOps", "Remove the pins from the selected UV corners."));
 	// Unwrap method and packing choices, read by Unwrap and Pack.
 	m_uvUnwrapMethod = new QComboBox;
 	m_uvUnwrapMethod->setObjectName(QStringLiteral("meshUvUnwrapMethod"));
@@ -512,8 +534,8 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 	m_uvUnwrapMethod->setAccessibleName(QCoreApplication::translate("ModelUvOps", "UV unwrap method"));
 	m_uvUnwrapMethod->setToolTip(QCoreApplication::translate(
 		"ModelUvOps", "Automatic charts may add cuts of their own. Conformal makes exactly one island per seam-bounded region with "
-					  "least squares conformal maps; a closed region needs a seam first. In vertex selection, the selected vertices pin "
-					  "their UVs and their islands unwrap."));
+					  "least squares conformal maps; a closed region needs a seam first. Pinned UV corners keep their place; in "
+					  "vertex selection, the selected vertices are pinned for that unwrap too and their islands unwrap."));
 	m_uvUnwrapMethod->setAccessibleDescription(m_uvUnwrapMethod->toolTip());
 	surface->addRow(QCoreApplication::translate("ModelUvOps", "Unwrap Method"), m_uvUnwrapMethod);
 	m_uvUnwrapPack = new WrappingCheckBox(QCoreApplication::translate("ModelUvOps", "Pack after a conformal unwrap"));
@@ -577,7 +599,16 @@ void ModelEditorDialog::rememberUvTransferSource(const ModelMesh &before, const 
 										ModelEditKind::SetUvDensity, ModelEditKind::ProjectUvMapping, ModelEditKind::WeldUv,
 										ModelEditKind::StitchUv,	ModelEditKind::AlignUv,		   ModelEditKind::SnapUvTexels};
 	const int surface = edit.selection.surface;
-	if (std::find(uvKinds.cbegin(), uvKinds.cend(), edit.kind) == uvKinds.cend() || surface < 0 || surface >= before.surfaces.size())
+	const auto &now = m_document.mesh();
+	// Edits that rebuilt the surface's faces (topology edits) keep the skin
+	// transferable too, by projection onto the surface before them.
+	const bool reshaped = surface >= 0 && surface < before.surfaces.size() && before.surfaces.size() == now.surfaces.size() &&
+						  (before.surfaces[surface].vertexCount != now.surfaces[surface].vertexCount ||
+						   before.surfaces[surface].triangles.size() != now.surfaces[surface].triangles.size() ||
+						   !std::equal(before.surfaces[surface].triangles.cbegin(), before.surfaces[surface].triangles.cend(),
+									   now.surfaces[surface].triangles.cbegin(),
+									   [](const ModelTriangle &a, const ModelTriangle &b) { return a.a == b.a && a.b == b.b && a.c == b.c; }));
+	if ((std::find(uvKinds.cbegin(), uvKinds.cend(), edit.kind) == uvKinds.cend() && !reshaped) || surface < 0 || surface >= before.surfaces.size())
 	{
 		m_uvTransferSurface = -1;
 		m_uvTransferBefore = {};
@@ -597,7 +628,7 @@ bool ModelEditorDialog::canTransferSkin() const
 {
 	const auto &mesh = m_document.mesh();
 	return m_uvTransferSurface >= 0 && m_uvTransferSurface < mesh.surfaces.size() && m_uvTransferRevision == m_document.revisionFingerprint() &&
-		   m_uvTransferBefore.triangles.size() == mesh.surfaces[m_uvTransferSurface].triangles.size();
+		   !m_uvTransferBefore.triangles.isEmpty();
 }
 
 bool ModelEditorDialog::runUvTool(ModelEditKind kind, QString *error)
@@ -622,7 +653,12 @@ bool ModelEditorDialog::runUvTool(ModelEditKind kind, QString *error)
 	if (kind == ModelEditKind::SnapUvTexels)
 		tools.snapMode = m_uvSnapMode->currentIndex() == 1 ? ModelUvSnapMode::Corners : ModelUvSnapMode::Centres;
 	QString failure;
-	if (!applyEdit(edit, &failure))
+	// Islands before a stitch, to say how many joined.
+	ModelUvTopology islandsBefore;
+	if (kind == ModelEditKind::StitchUv)
+		buildModelUvTopology(m_document.mesh().surfaces[edit.selection.surface], &islandsBefore);
+	// Through the tools, so Adjust Last Operation can change the settings.
+	if (!(m_tools ? m_tools->runTool(edit, &failure) : applyEdit(edit, &failure)))
 	{
 		if (error)
 			*error = failure;
@@ -638,9 +674,23 @@ bool ModelEditorDialog::runUvTool(ModelEditKind kind, QString *error)
 						  LiveStatus::Result);
 		break;
 	case ModelEditKind::StitchUv:
-		m_status->setText(QCoreApplication::translate("ModelUvOps", "Stitched the seam; the surface now has %Ln vertices.", nullptr, vertices),
+	{
+		ModelUvTopology islandsAfter;
+		buildModelUvTopology(m_document.mesh().surfaces[m_document.selection().surface], &islandsAfter);
+		const int joined = std::max(0, int(islandsBefore.islands.size() - islandsAfter.islands.size()));
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "Stitched %Ln islands onto their neighbours.", nullptr, joined) + QLatin1Char(' ') +
+							  QCoreApplication::translate("ModelUvOps", "The surface now has %Ln vertices.", nullptr, vertices),
 						  LiveStatus::Result);
 		break;
+	}
+	case ModelEditKind::PinUv:
+	case ModelEditKind::UnpinUv:
+	{
+		const int pinned = int(m_document.mesh().surfaces[m_document.selection().surface].uvPins.size());
+		m_status->setText(QCoreApplication::translate("ModelUvOps", "%Ln UV corners on this surface are pinned for a conformal unwrap.", nullptr, pinned),
+						  LiveStatus::Result);
+		break;
+	}
 	case ModelEditKind::AlignUv:
 		m_status->setText(QCoreApplication::translate("ModelUvOps", "Aligned the selected UVs."), LiveStatus::Result);
 		break;
@@ -671,7 +721,7 @@ bool ModelEditorDialog::layoutQuakeFrontBack(int axis, QString *error)
 	edit.tool.axis = std::clamp(axis, 0, 2);
 	edit.tool.referenceFrame = std::clamp(m_preview->frame(), 0, std::max(0, int(m_document.mesh().frames.size()) - 1));
 	QString failure;
-	if (!applyEdit(edit, &failure))
+	if (!(m_tools ? m_tools->runTool(edit, &failure) : applyEdit(edit, &failure)))
 	{
 		if (error)
 			*error = failure;
@@ -912,6 +962,11 @@ void ModelEditorDialog::editUvDensity()
 	}
 	if (texture.isNull()) texture = m_checker;
 	ModelUvDensityDialog dialog(m_document.mesh(), selected, m_preview->frame(), texture, size, name, this);
+	// Each surface's own skin size, for matching surfaces with different skins.
+	QVector<QSize> sizes;
+	for (int s = 0; s < m_document.mesh().surfaces.size(); ++s)
+		sizes.append(uvSkinSize(s));
+	dialog.setSurfaceSkinSizes(sizes);
 	if (dialog.exec() != QDialog::Accepted) return;
 	if (revision != m_document.revisionFingerprint())
 	{

@@ -680,9 +680,13 @@ listed problem is present, for automation. See [CLI](#cli).
 ### UV operators
 
 Each operator is one undo step through the document service, so the CLI
-(`model edit --operation uv-weld|uv-stitch|uv-align|uv-snap-texels`), recovery
-and saves share it. Settings sit in the Surface panel's UV controls; the
-commands are also in the **UV** menu and can take keys in **Controls**.
+(`model edit --operation uv-weld|uv-stitch|uv-align|uv-snap-texels|uv-pin|uv-unpin`),
+recovery and saves share it. Settings sit in the Surface panel's UV controls;
+the commands are also in the **UV** menu and can take keys in **Controls**.
+**Adjust Last Operation** (F9 in the Blender profile) changes the last one's
+settings and replays it in place: the weld distance, the alignment, the snap
+grid (texel centres or corners, and a grid size where 0 keeps the skin's), and
+for **Quake Front/Back Skin Layout** the facing axis.
 
 - **Weld UVs** joins the selected corners with their split copies: corners whose
   positions and normals match bit for bit in every pose, with the same topology
@@ -690,12 +694,21 @@ commands are also in the **UV** menu and can take keys in **Controls**.
   by default) of the corner they join. Joined corners take their mean UV and the
   copies are removed, so Weld exactly undoes **Detach UV Faces**, seam marks
   included. Faces that would collapse or duplicate are refused.
-- **Stitch UVs** works on boundary edges of a UV seam in edge selection: it
-  finds each edge's split copy on another island, turns and moves the smaller
-  island rigidly (an orthogonal Procrustes fit of the seam corners; never a
-  reflection or a scale) so the edges meet, snaps the seam corners together,
-  welds those that match in every pose and clears the seam marks it joined. One
-  pair of islands is stitched at a time; a mirrored island is refused.
+- **Stitch UVs** works on boundary edges of UV seams in edge selection: it
+  finds each edge's split copy on another island and joins every pair of
+  islands the selected edges connect in one run. In each group of connected
+  islands the largest stays put (the lowest-numbered on a tie); the others are
+  placed breadth first, each turned and moved rigidly (an orthogonal Procrustes
+  fit of its seam corners onto every island already placed that it shares a
+  seam with; never a reflection or a scale). The seam corners then snap
+  together, those that match in every pose weld, and the seam marks it joined
+  are cleared. Islands joined in a loop meet at the corners of the last seam
+  as well, which may bend those faces slightly. A mirrored island anywhere in a
+  group refuses the stitch; the status line says how many islands joined.
+- **Pin UVs** and **Unpin UVs** mark the selected corners (vertices, edge ends or
+  face corners) for a conformal unwrap. Pins are drawn in the UV view as a red
+  diamond with a white cross, distinct from selection by shape, and are saved
+  with the model (editable source version 17); see Conformal unwrap.
 - **Align UVs** lines the selected corners up at the lowest, middle or highest U
   or V, or **Straighten** puts them on the line between the two corners farthest
   apart along their principal direction. Faces sharing those corners follow.
@@ -734,21 +747,37 @@ Jacobi-scaled conjugate-gradient least-squares solve in double precision finds
 the map, at most 20,000 iterations per island, checking for Cancel throughout.
 
 Unpinned islands are pinned at their two boundary corners farthest apart and
-scaled to their model area, so density is uniform. In vertex selection the
-selected vertices are pins: their islands unwrap and every island with two or
-more pins keeps them at their current UVs exactly (one pin alone is ignored).
+scaled to their model area, so density is uniform. Corners pinned with **Pin
+UVs**, and in vertex selection the selected vertices too, are pins: every
+island with two or more pins keeps them at their current UVs exactly (one pin
+alone is ignored), as Blender's pins do.
+
+Pins (`ModelSurface::uvPins`, core/model_uv_pins.h) are saved in the editable
+source as each surface's ascending `uvPins` corner indices; a source with pins
+is version 17, and one without stays at the version its other content needs.
+They follow their corners through edits: UV moves, packing and unwraps keep
+corner indices, and a corner an unwrap or packer splits passes its pin to the
+copy; compaction, Weld UVs and Stitch UVs remap pins with the corners; any
+other edit that renumbers corners keeps a pin on each corner whose
+reference-pose position and UV are unchanged, so a corner the edit removed or
+rebuilt loses its pin.
 **Pack after a conformal unwrap** (on by default) packs the islands with the
 atlas settings, keeping their shapes, orientation and relative density;
-otherwise they lie in a row at one density inside the tile. A closed island
+otherwise they lie in a row at one density inside the tile. Islands held by two
+or more pins are never packed (as in Blender): they stay where their pins put
+them, and the packed islands may overlap them, so follow with **Pack Around
+Unselected** when they share the tile. A closed island
 (no boundary) is refused with its faces named so a seam can be added, as is an
 island that folds over or overlaps itself when flattened. Every pose, normal,
 seam mark and skin influence survives corner splits, and failure or Cancel
 changes nothing.
 
 `model edit --operation uv-unwrap --uv-method conformal` runs the same unwrap;
-`--uv-pins` lists pinned vertices, `--no-pack` keeps the row, and JSON adds an
-`unwrap` object with each island's faces, iterations, mean and largest angle
-distortion (σ1/σ2) and area-ratio range.
+`--uv-pins` lists extra pinned vertices for that run, `--no-pack` keeps the
+row, and JSON adds an `unwrap` object with each island's faces, iterations,
+mean and largest angle distortion (σ1/σ2) and area-ratio range.
+`model edit --operation uv-pin|uv-unpin` stores or removes pins, and `model uv
+--json` lists a surface's pins.
 
 ### UV layouts and skin transfer
 
@@ -763,27 +792,61 @@ indices, Quake palette or the MDL's) on the document worker with progress and
 Cancel, then is saved through the guarded writer or staged in the open package.
 `model uv-layout` does the same from the command line.
 
-**Transfer Skin…** repaints a skin after UV edits. Faces keep their indices
-through every UV edit, so each new UV triangle is rasterised at texel centres
-and sampled from the old skin at the same barycentric point of the face's old
-UVs: nearest copies texels and palette indices exactly (islands moved by whole
-texels, turned a quarter turn, scaled or mirrored reproduce their pixels),
-bilinear blends and maps indexed skins to the nearest palette entry. Islands
-are padded outward by up to 64 texels. The "before" layout is the surface as it
-was before the first of the UV edits made in a row; any other edit ends the
-chain. An MDL member is replaced as one undo step; an external skin is staged
-over its package path or saved to a new file. The original image is read from
-the package, not the downsampled preview. `model skin-transfer` takes the two
-sources and the old skin directly. Faces missing from one side, or collapsed in
-either, are reported and left unpainted; a surface whose topology changed has no
-transfer yet.
+**Transfer Skin…** repaints a skin after UV or face edits. Each new UV triangle
+is rasterised at texel centres and sampled from the old skin. **Match faces**
+chooses how a new face finds where it was painted:
+
+- **Automatic** (the default) matches a face by index when it still has the
+  same corners in the reference pose, which every UV edit keeps, and finds the
+  others by projection.
+- **By face** matches by index only; faces only one side has are reported and
+  left unpainted.
+- **By projection** finds every texel's point on the new surface (in the
+  reference pose) and samples the old skin at the nearest point of the old
+  surface, through a bounding volume hierarchy of the old faces and the
+  closest-point-on-triangle test (Ericson, *Real-Time Collision Detection*,
+  2005). Subdivided, poked, decimated, cut or rebuilt faces keep the paint of
+  the surface they replaced.
+
+Nearest sampling copies texels and palette indices exactly (islands moved by
+whole texels, turned a quarter turn, scaled or mirrored reproduce their
+pixels); bilinear blends and maps indexed skins to the nearest palette entry.
+Islands are padded outward by up to 64 texels. The "before" surface is the
+surface as it was before the first of the UV or face edits made in a row on it;
+any other edit (such as moving vertices) ends the chain. An MDL member is
+replaced as one undo step; an external skin is staged over its package path or
+saved to a new file. The original image is read from the package, not the
+downsampled preview. `model skin-transfer` takes the two sources and the old
+skin directly, with `--mapping auto|faces|projection` and `--reference-frame`.
+The report lists faces found by projection and the farthest any of their
+texels lay from the old surface; faces collapsed in either layout are reported
+and left unpainted. Geometry the old surface never had takes the paint of its
+nearest old face.
 
 ### Skin edit round trip
 
-**Edit Skin…** opens the active surface's skin in the Textures workbench's
-editor: the displayed material's original image, or the current MDL member as an
-indexed image. Staging it there replaces the package file, which refreshes the
-model's preview. For an MDL, **Export Member…** writes the member as PCX or
+**Edit Skin…** writes the active surface's skin (the displayed material's
+original image, or the current MDL member as an indexed image in the model's
+palette) as a texture project (`.vtexture`, core/model_skin_roundtrip.h) in the
+open project's `.vibestudio/model-skins` folder, or the studio's local data
+folder with no project open, and opens it in the Textures workbench. The skin is
+the active, editable layer; above it a locked **UV guide** layer at half opacity
+holds the surface's UV layout (yellow edges, magenta island boundaries), which
+the Layers panel can hide. The Mesh Editor watches the file
+(core/document_watch.h): when Textures saves the project, the skin is read back
+on the document worker without the guide layer, and the status strip offers
+**Apply Skin** and **Dismiss** (also **UV → Apply Skin from Textures**). Apply
+replaces an MDL member as one undo step, texels whose colour still matches
+their palette entry keeping their index and changed texels mapping to the
+nearest palette colour (fullbright entries only for exact matches), or stages an
+external skin over its package path (PNG, TGA, JPEG or PCX by the path's
+extension) and refreshes the preview. With **Apply Saved Skins Automatically**
+(UV toolbar, saved as `model/skinRoundTripAutoApply`) each save is applied at
+once. Edit Skin starts from the model's current skin each time; the project
+writer keeps the previous file as its backup, and a save not yet applied must be
+applied or dismissed first. Exporting or staging from Textures with the guide
+layer shown would include it; the round trip never does. For an MDL, **Export
+Member…** writes the member as PCX or
 indexed PNG with its exact palette indices (`model mdl --operation export-skin`)
 and **Replace Member From Image…** brings any image of the skin size back as one
 undo step: an image in the model's own palette keeps its indices; other colours
@@ -791,9 +854,6 @@ map to the nearest palette entry outside the fullbright range. **Show Material**
 opens a surface whose material resolves to a Quake III shader or Doom 3 material
 in the Materials workbench, and image materials in Textures. For MD2, the Export
 page warns when the resolved PCX skin's size differs from the MD2 skin size.
-The texture editor does not yet draw the UV layout as a guide over the canvas,
-and an MDL member edited in Textures comes back through Replace Member From
-Image, not automatically.
 
 UV chart analysis and drawing run on a cancellable worker with one active job
 and a replaceable pending request. The view reports when it is updating and
@@ -1549,10 +1609,12 @@ vibestudio --cli model edit ./out/seamed.mesh.json --operation uv-weld --faces 0
 vibestudio --cli model edit ./out/seamed.mesh.json --operation uv-stitch --edges 6:7 --output ./out/stitched.mesh.json
 vibestudio --cli model edit ./out/panel.mesh.json --operation uv-align --vertices 0,1,2 --uv-align v-min --output ./out/aligned.mesh.json
 vibestudio --cli model edit ./out/panel.mesh.json --operation uv-snap-texels --faces all --uv-snap-size 256x128 --output ./out/snapped.mesh.json
+vibestudio --cli model edit ./out/panel.mesh.json --operation uv-pin --vertices 0,3 --output ./out/pinned.mesh.json
 vibestudio --cli model edit ./out/panel.mesh.json --operation uv-pack --faces all --uv-allow-rotation --uv-pack-surfaces 1,2 --output ./out/shared.mesh.json
 vibestudio --cli model tool ./out/player.mesh.json --tool uv-quake-frontback --axis x --faces all --output ./out/frontback.mesh.json --json
 vibestudio --cli model uv-layout ./out/panel.mesh.json --size 256x256 --surfaces material --fill 0.2 --output ./out/panel_uv.png
 vibestudio --cli model skin-transfer --from ./out/panel.mesh.json --to ./out/packed.mesh.json --texture ./skins/panel.png --output ./skins/panel_packed.png --json
+vibestudio --cli model skin-transfer --from ./out/panel.mesh.json --to ./out/subdivided.mesh.json --texture ./skins/panel.png --output ./skins/panel_subdivided.png --mapping auto --json
 vibestudio --cli model mdl ./out/player.mesh.json --operation export-skin --skin 0 --member 0 --output ./skins/player_0.pcx
 vibestudio --cli model edit ./out/panel.mesh.json --operation uv-unwrap --faces all --uv-atlas-size 512 --uv-padding 4 --output ./out/atlas.mesh.json --dry-run --json
 vibestudio --cli model edit ./out/atlas.mesh.json --operation uv-pack --faces all --uv-atlas-size 512x128 --uv-padding 4 --output ./out/packed.mesh.json
@@ -1728,9 +1790,12 @@ Usage errors return 2 and an unreadable source 1.
 `model edit` runs the [UV operators](#uv-operators) as `uv-weld`
 (`--uv-weld-tolerance` 0 to 1, default 0), `uv-stitch` (`--edges`),
 `uv-align` (`--uv-align u-min|u-centre|u-max|v-min|v-centre|v-max|straighten`)
-and `uv-snap-texels` (`--uv-snap centres|corners`, `--uv-snap-size N|WxH`).
-`uv-unwrap` takes `--uv-method automatic|conformal`; a conformal unwrap also
-takes `--uv-pins` (vertex indices) and `--no-pack`, and JSON adds `unwrap`.
+and `uv-snap-texels` (`--uv-snap centres|corners`, `--uv-snap-size N|WxH`);
+`uv-pin` and `uv-unpin` store or remove pins on the selected corners and take
+no UV settings. `uv-unwrap` takes `--uv-method automatic|conformal`; a
+conformal unwrap holds the stored pins, also takes `--uv-pins` (vertex indices
+pinned for that run) and `--no-pack`, and JSON adds `unwrap`. `model uv --json`
+lists each surface's `pins`, and `model inspect --json` counts `uvPins`.
 `uv-pack` (and a packed conformal unwrap) takes `--uv-allow-rotation`;
 `uv-pack` also takes `--uv-pack-surfaces N,N` for surfaces sharing the active
 surface's material. Options of another operation are usage errors (2).
@@ -1745,9 +1810,11 @@ skin size), `--surface N`, `--surfaces all|material|N,N`, `--background
 transparent|white|black`, `--fill 0..1`, `--no-tints`, `--no-seams`,
 `--line-width`, `--antialias`, `--wrap` and, for PCX, `--palette`.
 `model skin-transfer --from before.mesh.json --to after.mesh.json --texture
-old.png|.pcx --output new.png|.tga|.pcx` repaints a skin for changed UVs with
-`--surface`, `--size`, `--filter nearest|bilinear`, `--padding 0..64` and
-`--no-wrap`. Both write through the guarded model writer: `--dry-run`
+old.png|.pcx --output new.png|.tga|.pcx` repaints a skin for changed UVs or
+faces with `--mapping auto|faces|projection` (default auto),
+`--reference-frame N`, `--surface`, `--size`, `--filter nearest|bilinear`,
+`--padding 0..64` and `--no-wrap`; JSON adds `mapping`, and the `transfer`
+report lists `projectedFaces` and `maxProjectionDistance`. Both write through the guarded model writer: `--dry-run`
 validates, existing outputs need `--overwrite`, and inputs and their aliases are
 protected. `model mdl --operation export-skin --skin N --member N --output
 member.pcx|png` writes a member with its exact palette indices under the same

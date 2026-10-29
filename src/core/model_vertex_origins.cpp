@@ -819,6 +819,8 @@ ModelEditSkinHandling modelEditSkinHandling(ModelEditKind kind)
 	case ModelEditKind::ExtrudeFaces:
 	case ModelEditKind::BridgeFaces:
 	case ModelEditKind::MirrorFaces:
+	case ModelEditKind::PinUv:
+	case ModelEditKind::UnpinUv:
 		return ModelEditSkinHandling::Provenance;
 	}
 	return ModelEditSkinHandling::Provenance;

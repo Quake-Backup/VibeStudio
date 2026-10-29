@@ -275,8 +275,8 @@ ModelToolsCliResult runModelUvLayout(const QStringList &args)
 ModelToolsCliResult runModelSkinTransfer(const QStringList &args)
 {
 	const auto parsed = parse(args, {"--cli", "--json", "--quiet", "--verbose", "--dry-run", "--overwrite", "--no-wrap"},
-							  {"--from", "--to", "--surface", "--texture", "--size", "--output", "--filter", "--padding", "--settings-file",
-							   "--locale", "--catalog-root"});
+							  {"--from", "--to", "--surface", "--texture", "--size", "--output", "--filter", "--padding", "--mapping",
+							   "--reference-frame", "--settings-file", "--locale", "--catalog-root"});
 	if (!parsed.problem.isEmpty())
 		return fail(2, parsed.problem);
 	const auto &seen = parsed.seen;
@@ -291,7 +291,19 @@ ModelToolsCliResult runModelSkinTransfer(const QStringList &args)
 	if (filter != QStringLiteral("nearest") && filter != QStringLiteral("bilinear"))
 		return fail(2, Text::tr("--filter takes nearest or bilinear."));
 	options.filter = filter == QStringLiteral("bilinear") ? ModelSkinTransferFilter::Bilinear : ModelSkinTransferFilter::Nearest;
+	const auto mapping = values.value("--mapping", QStringLiteral("auto"));
+	if (mapping != QStringLiteral("auto") && mapping != QStringLiteral("faces") && mapping != QStringLiteral("projection"))
+		return fail(2, Text::tr("--mapping takes auto, faces or projection."));
+	options.mapping = mapping == QStringLiteral("faces")		 ? ModelSkinTransferMapping::Faces
+					  : mapping == QStringLiteral("projection") ? ModelSkinTransferMapping::Projection
+																 : ModelSkinTransferMapping::Automatic;
 	bool ok = true;
+	if (values.contains("--reference-frame"))
+	{
+		options.referenceFrame = values["--reference-frame"].toInt(&ok);
+		if (!ok || options.referenceFrame < 0)
+			return fail(2, Text::tr("--reference-frame takes a zero-based pose both models have."));
+	}
 	if (values.contains("--padding"))
 	{
 		options.padding = values["--padding"].toInt(&ok);
@@ -359,6 +371,7 @@ ModelToolsCliResult runModelSkinTransfer(const QStringList &args)
 	output.payload = {{"from", QFileInfo(values["--from"]).absoluteFilePath()},
 					  {"to", QFileInfo(values["--to"]).absoluteFilePath()},
 					  {"surface", surface},
+					  {"mapping", mapping},
 					  {"output", QFileInfo(values["--output"]).absoluteFilePath()},
 					  {"transfer", modelSkinTransferJson(report)},
 					  {"encoding", encoded},
@@ -376,6 +389,10 @@ ModelToolsCliResult runModelSkinTransfer(const QStringList &args)
 		output.lines << Text::tr("Faces without a match: %1; faces with collapsed UVs: %2.")
 							.arg(report.missingFaces.size())
 							.arg(report.collapsedFaces.size());
+	if (!report.projectedFaces.isEmpty())
+		output.lines << Text::tr("Faces found by projection onto the old surface: %1; farthest texel %2 units from it.")
+							.arg(report.projectedFaces.size())
+							.arg(report.maxProjectionDistance, 0, 'g', 6);
 	return output;
 }
 } // namespace vibestudio::cli

@@ -18,9 +18,11 @@
 #include <QResizeEvent>
 #include <QScreen>
 #include <QScrollArea>
+#include <QSignalBlocker>
 #include <QSpinBox>
 #include <QTabWidget>
 #include <QTableView>
+#include <QTableWidget>
 #include <QVBoxLayout>
 #include <algorithm>
 
@@ -152,12 +154,43 @@ ModelUvDensityDialog::ModelUvDensityDialog(const ModelMesh &mesh, const ModelSel
 	m_scope = new QComboBox;
 	m_scope->setMinimumContentsLength(16);
 	m_scope->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-	m_scope->addItems({Text::tr("Selected islands"), Text::tr("All surface islands"), Text::tr("All islands on surfaces sharing this material")});
+	m_scope->addItems({Text::tr("Selected islands"), Text::tr("All surface islands"), Text::tr("All islands on surfaces sharing this material"),
+					   Text::tr("All islands on chosen surfaces, each with its own skin size")});
 	m_scope->setCurrentIndex(selection.faces.isEmpty() && selection.vertices.isEmpty() && selection.edges.isEmpty() ? 1 : 0);
 	accessible(m_scope, "uvDensityScope", Text::tr("Island scope"),
 			   Text::tr("Selected components expand to whole UV islands, including any hidden faces in those islands. Surfaces sharing "
-						"the material slot are matched together on the same skin size; the table shows the active surface."));
+						"the material slot are matched together on the same skin size; chosen surfaces are matched on their own skin "
+						"sizes. The results show the active surface."));
 	row(form, Text::tr("&Scope"), m_scope);
+	// Chosen surfaces: which to match with the active one, and the original
+	// size of each one's skin.
+	m_surfaces = new QTableWidget(int(mesh.surfaces.size()), 3);
+	m_surfaces->setHorizontalHeaderLabels({Text::tr("Surface"), Text::tr("Skin width"), Text::tr("Skin height")});
+	m_surfaces->verticalHeader()->hide();
+	m_surfaces->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+	m_surfaces->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_surfaces->setTabKeyNavigation(false);
+	accessible(m_surfaces, "uvDensitySurfaces", Text::tr("Chosen surfaces and skin sizes"),
+			   Text::tr("Tick the surfaces to match with the active one and enter the original size of each surface's skin in "
+						"pixels. The active surface uses the texture width and height above."));
+	for (int s = 0; s < mesh.surfaces.size(); ++s)
+	{
+		const bool active = s == selection.surface;
+		auto *name = new QTableWidgetItem(mesh.surfaces[s].name.isEmpty() ? Text::tr("Surface %L1").arg(s) : mesh.surfaces[s].name);
+		name->setFlags(active ? Qt::ItemIsEnabled : Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
+		name->setCheckState(active ? Qt::Checked : Qt::Unchecked);
+		m_surfaces->setItem(s, 0, name);
+		for (int column : {1, 2})
+		{
+			auto *size = new QTableWidgetItem;
+			size->setData(Qt::EditRole, materialSize.isValid() ? (column == 1 ? materialSize.width() : materialSize.height()) : 512);
+			size->setFlags(active ? Qt::ItemIsEnabled : Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsSelectable);
+			m_surfaces->setItem(s, column, size);
+		}
+	}
+	m_surfaces->setMinimumHeight(m_surfaces->horizontalHeader()->sizeHint().height() * 4);
+	form->addRow(m_surfaces);
+	m_surfaces->hide();
 	const auto integer = [&](const char *id, const QString &name, const QString &description, int low, int high, int value)
 	{
 		auto *w = new QSpinBox;
@@ -293,11 +326,40 @@ ModelUvDensityDialog::ModelUvDensityDialog(const ModelMesh &mesh, const ModelSel
 	layout->addWidget(buttons);
 	for (auto *w : {m_width, m_height, m_frame})
 		connect(w, &QSpinBox::valueChanged, this, [this] { invalidate(true); });
-	connect(m_scope, &QComboBox::currentIndexChanged, this, [this] { invalidate(true); });
+	const auto activeSize = [this]
+	{
+		if (m_selection.surface < 0 || m_selection.surface >= m_surfaces->rowCount())
+			return;
+		const QSignalBlocker block(m_surfaces);
+		m_surfaces->item(m_selection.surface, 1)->setData(Qt::EditRole, m_width->value());
+		m_surfaces->item(m_selection.surface, 2)->setData(Qt::EditRole, m_height->value());
+	};
+	connect(m_width, &QSpinBox::valueChanged, this, activeSize);
+	connect(m_height, &QSpinBox::valueChanged, this, activeSize);
+	activeSize();
+	connect(m_surfaces, &QTableWidget::itemChanged, this, [this] { invalidate(true); });
+	connect(m_scope, &QComboBox::currentIndexChanged, this,
+			[this](int scope)
+			{
+				m_surfaces->setVisible(scope == 3);
+				invalidate(true);
+			});
 	connect(m_target, &QDoubleSpinBox::valueChanged, this, [this] { invalidate(false); });
 	connect(m_mode, &QComboBox::currentIndexChanged, this, [this] { invalidate(false); });
 	invalidate(true);
 	fitDialogToScreen(this, QSize(960, 800));
+}
+void ModelUvDensityDialog::setSurfaceSkinSizes(const QVector<QSize> &sizes)
+{
+	const QSignalBlocker block(m_surfaces);
+	for (int s = 0; s < m_surfaces->rowCount() && s < sizes.size(); ++s)
+	{
+		if (s == m_selection.surface || !sizes[s].isValid() || sizes[s].isEmpty())
+			continue;
+		m_surfaces->item(s, 1)->setData(Qt::EditRole, std::clamp(sizes[s].width(), 1, 65536));
+		m_surfaces->item(s, 2)->setData(Qt::EditRole, std::clamp(sizes[s].height(), 1, 65536));
+	}
+	invalidate(true);
 }
 void ModelUvDensityDialog::status(const QString &text)
 {
@@ -380,6 +442,18 @@ void ModelUvDensityDialog::review(bool change)
 		for (int s = 0; s < m_source.surfaces.size(); ++s)
 			if (s != m_selection.surface && modelUvSurfacesShareMaterial(m_source.surfaces[m_selection.surface], m_source.surfaces[s]))
 				operation.uvDensity.surfaces.insert(s);
+	// Chosen surfaces, each measured on its own skin size.
+	if (m_scope->currentIndex() == 3)
+		for (int s = 0; s < m_surfaces->rowCount() && s < m_source.surfaces.size(); ++s)
+		{
+			if (s == m_selection.surface || m_surfaces->item(s, 0)->checkState() != Qt::Checked)
+				continue;
+			operation.uvDensity.surfaces.insert(s);
+			const QSize size(std::clamp(m_surfaces->item(s, 1)->data(Qt::EditRole).toInt(), 1, 65536),
+							 std::clamp(m_surfaces->item(s, 2)->data(Qt::EditRole).toInt(), 1, 65536));
+			if (size != operation.uvDensity.textureSize)
+				operation.uvDensity.surfaceSizes.insert(s, size);
+		}
 	const auto source = m_source;
 	ModelMesh candidate;
 	ModelUvDensityReport before, after;

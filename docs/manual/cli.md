@@ -34,9 +34,11 @@ present, for build scripts. See [UV health](../MODEL_MESH.md#uv-health).
 
 `model uv-layout` writes a skin template (PNG, TGA or PCX) to paint over, and
 `model skin-transfer` repaints an old skin for new UVs from the sources before
-and after a UV edit. `model edit --operation uv-weld`, `uv-stitch`, `uv-align`
-and `uv-snap-texels` run the UV operators; `uv-unwrap --uv-method conformal`
-flattens seam-bounded islands; `model tool --tool uv-quake-frontback` lays out
+and after a UV or face edit (`--mapping auto|faces|projection`; faces whose
+topology changed are found by projection onto the old surface).
+`model edit --operation uv-weld`, `uv-stitch`, `uv-align` and
+`uv-snap-texels` run the UV operators; `uv-pin` and `uv-unpin` store pins that
+`uv-unwrap --uv-method conformal` holds while it flattens seam-bounded islands; `model tool --tool uv-quake-frontback` lays out
 a Quake front/back skin; `model mdl --operation export-skin` writes an MDL skin
 member with its palette indices. See
 [UV operators](../MODEL_MESH.md#uv-operators) and

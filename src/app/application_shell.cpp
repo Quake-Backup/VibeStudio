@@ -20864,18 +20864,12 @@ void ApplicationShell::showModelEditor(const ModelMesh* initial)
 	editor->showMaterial = [this](const QString& path) { showTextureReference(path); };
 	// Modeller: a surface material that resolves to a Quake III shader or Doom 3 material.
 	editor->showShader = [this](const QString& name) { showMaterialNamed(name); };
-	// Modeller: Edit Skin… paints the skin in the Textures workbench; staging it there updates the model.
-	editor->editSkin = [this](const QImage& image, const QString& path, QString* outputError) {
+	// Modeller: Edit Skin… opens the skin's texture project in the Textures
+	// workbench; the Mesh Editor watches the file and offers saves back.
+	editor->editSkinFile = [this](const QString& path, QString* outputError) {
 		showTextureEditor(false);
 		if (!m_textureEditorDialog) { if (outputError) { *outputError = tr("The texture editor could not be opened."); } return false; }
-		IdTechPaletteResolution palette = m_paletteResolution;
-		if (image.format() == QImage::Format_Indexed8) {
-			palette = {}; palette.requestedPaletteId = QStringLiteral("skin");
-			palette.palette.id = QStringLiteral("skin"); palette.palette.colors = image.colorTable(); palette.palette.colors.resize(256);
-		} else if (!m_paletteResolutionValid) {
-			palette = {}; palette.requestedPaletteId = activePaletteId(); palette.palette = generatedIdTechPalette(palette.requestedPaletteId);
-		}
-		if (!m_textureEditorDialog->editImage(image, path, palette)) { if (outputError) { *outputError = tr("The skin could not be opened for editing."); } return false; }
+		m_textureEditorDialog->openFromPath(path);
 		return true;
 	};
 	// Modeller: UV layouts and transferred skins stage as one package step.

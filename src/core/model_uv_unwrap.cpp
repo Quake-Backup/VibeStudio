@@ -518,10 +518,21 @@ bool unwrapModelUvConformal(const ModelSurface &source, const QSet<int> &faces, 
 	if (options.pack)
 	{
 		// Packing keeps each island's shape, orientation and relative density.
-		ModelSurface packed;
-		if (!atlasModelUv(mapped, faces, options.frame, false, options.atlas, &packed, error, control))
-			return false;
-		mapped = std::move(packed);
+		// Islands held by two or more pins stay where their pins put them, as
+		// Blender's unwrap leaves pinned islands out of its packing; only the
+		// others are packed.
+		QSet<int> loose;
+		for (const auto &island : summary.islands)
+			if (!island.pinned)
+				for (int face : island.faces)
+					loose.insert(face);
+		if (!loose.isEmpty())
+		{
+			ModelSurface packed;
+			if (!atlasModelUv(mapped, loose, options.frame, false, options.atlas, &packed, error, control))
+				return false;
+			mapped = std::move(packed);
+		}
 	}
 	if (!work.check())
 		return false;

@@ -1699,6 +1699,16 @@ void StudioSettings::setModelHistoryBudgetMiB(int mib)
 	writeValue(QStringLiteral("model/historyBudgetMiB"), std::clamp(mib, 16, 4096));
 }
 
+bool StudioSettings::modelSkinAutoApply() const
+{
+	return m_settings->value(QStringLiteral("model/skinRoundTripAutoApply"), false).toBool();
+}
+
+void StudioSettings::setModelSkinAutoApply(bool enabled)
+{
+	writeValue(QStringLiteral("model/skinRoundTripAutoApply"), enabled);
+}
+
 QStringList StudioSettings::packagePublicationDirectories() const
 {
 	QStringList paths;

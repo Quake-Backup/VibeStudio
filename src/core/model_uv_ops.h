@@ -64,15 +64,19 @@ struct ModelUvToolOptions
 	bool operator==(const ModelUvToolOptions &) const = default;
 };
 
-// WeldUv, StitchUv, AlignUv and SnapUvTexels.
+// WeldUv, StitchUv, AlignUv, SnapUvTexels, PinUv and UnpinUv.
 [[nodiscard]] bool isModelUvToolEdit(ModelEditKind kind);
 // Applies one UV operator to the selected surface of `mesh`, updating
 // `selection`. Weld joins split corners whose positions and normals match in
 // every pose, with the same topology identity and skin influences, and whose
 // UVs lie within the tolerance: the exact inverse of Detach UV Faces. Stitch
-// moves the smaller of two islands rigidly (rotation and translation, never a
-// reflection or scale) so the selected seam edges meet, then welds them.
-// Align and Snap move the selected UV corners; faces sharing them follow.
+// joins every pair of islands the selected seam edges connect in one run:
+// in each group of connected islands the largest stays put and the others
+// move rigidly (rotation and translation, never a reflection or scale), each
+// onto the islands already placed, so the seam edges meet; then the corners
+// weld. Align and Snap move the selected UV corners; faces sharing them
+// follow. Pin and Unpin mark corners for a conformal unwrap
+// (core/model_uv_pins.h).
 // The mesh is unchanged on failure.
 bool applyModelUvToolEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error,
 						  const ModelWorkControl &control = {});

@@ -344,6 +344,11 @@ struct ModelSurface {
 	// identities; Recalculate Normals and Shade Smooth split normals along them.
 	// Stored in editable mesh version 16 (core/model_topology_tools.h).
 	QSet<QPair<int, int>> sharpEdges{};
+	// UV corners (indexed vertices) pinned for a conformal unwrap: they keep
+	// their UVs while the rest of their island flattens around them. Stored
+	// in editable mesh version 17; applyModelEdit carries them through other
+	// edits (core/model_uv_pins.h).
+	QSet<int> uvPins{};
 	// Transient: filled only while applyModelEdit reconciles a skeletal model.
 	ModelSurfaceOrigins editOrigins{};
 };

@@ -440,6 +440,34 @@ bool renderModelUv(const ModelUvRenderRequest &r, ModelUvRenderResult *result, Q
 		}
 		painter.end();
 	}
+	// Pinned corners (core/model_uv_pins.h) in every mode: a diamond with a
+	// cross, distinct by shape as well as colour from selected vertices.
+	if (!r.surface.uvPins.isEmpty())
+	{
+		painter.begin(&candidate.image);
+		painter.setRenderHint(QPainter::Antialiasing, true);
+		auto pins = r.surface.uvPins.values();
+		std::sort(pins.begin(), pins.end());
+		for (int vertex : pins)
+		{
+			if (!work.step())
+				return false;
+			if (vertex < 0 || vertex >= r.surface.vertexCount)
+				continue;
+			const auto p = point(-1, vertex);
+			if (!area.contains(p))
+				continue;
+			const double radius = 5;
+			const QPolygonF diamond{{p.x(), p.y() - radius}, {p.x() + radius, p.y()}, {p.x(), p.y() + radius}, {p.x() - radius, p.y()}};
+			painter.setPen(QPen(Qt::black, 2));
+			painter.setBrush(QColor(255, 64, 64));
+			painter.drawPolygon(diamond);
+			painter.setPen(QPen(Qt::white, 1.5));
+			painter.drawLine(QPointF(p.x() - radius / 2, p.y()), QPointF(p.x() + radius / 2, p.y()));
+			painter.drawLine(QPointF(p.x(), p.y() - radius / 2), QPointF(p.x(), p.y() + radius / 2));
+		}
+		painter.end();
+	}
 	if (!work.check())
 	{
 		return false;
