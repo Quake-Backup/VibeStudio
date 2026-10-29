@@ -38,7 +38,16 @@ axis, or the centre to move in the view plane, and the point fields follow
 when the handle is dropped. A ring marks the target and a diamond the pole,
 each labelled. A followed joint's target is dragged where that joint is at the
 preview sample and stored as an offset in its space. Moving a point needs
-another review; the fields remain the keyboard route. The pole
+another review; the fields remain the keyboard route.
+
+**Key the dragged point at the preview sample** keys the target or pole where
+the handle is dropped, at the preview sample, so a solve over a range follows
+an animated target: samples between keys move in a straight line from one key
+to the next, and samples outside the keys hold the nearest one. Once a point
+has keys, dropping its handle always keys it. The line under the checkbox lists
+the keyed samples, and **Clear Keys** removes them (as does choosing another
+clip). Keyed targets are model-space points, so they need **Target source**
+**Fixed point**. The pole
 stays constant across the selected range. The target does too unless
 **Target source** is **Follow a joint**: each sample then aims at that joint's
 pose applied to the target fields, read as an offset in its space, so a hand
@@ -96,6 +105,10 @@ rebuilt, and its subtree follows. Every turned joint therefore ends inside its
 limits; a target that cannot be reached within them is refused unless
 **Nearest reachable** is chosen. The end joint keeps its orientation (or follows
 the last bone) and is not clamped. The two-bone solve does not apply limits.
+
+`model ik ... --target-keys "0:3,4,0; 12:4,3,0"` keys the target and
+`--pole-keys` the pole from the command line (sample:x,y,z entries; JSON
+reports them as `targetKeys` and `poleKeys`); both solvers accept them.
 
 `model rig --operation limits --joint knee.L --min -150,0,0 --max 0,0,0`
 sets limits from the command line (`--clear` removes them; `--swing-twist
@@ -181,10 +194,10 @@ The CLI and GUI apply the same `SolveTwoBoneIk` or `SolveChainIk` document edit.
 ## Remaining animation work
 
 [Persistent IK, aim, follow and foot-lock constraints](MODEL_ANIMATION_CONSTRAINTS.md)
-keep a solve live as the clip changes, with joint limits if asked. The drag
-handles move one target and one pole for the whole range; per-sample targets
-come from a followed joint or `--targets`. The two-bone solve does not apply
-joint limits. Physical
+keep a solve live as the clip changes, with joint limits if asked. Keyed
+targets and poles interpolate linearly; there is no curve shaping between IK
+keys, and they are part of one solve rather than stored with the clip. The
+two-bone solve does not apply joint limits. Physical
 keyboard/screen-reader acceptance, real-project animation quality, maximum-size
 performance, engine playback and cross-platform release checks remain open.
 The numeric controls, native results table and full detail field provide

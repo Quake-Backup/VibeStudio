@@ -52,7 +52,7 @@ ModelToolsCliResult runModelIk(const QStringList &args)
 							  "--limits"};
 	const QSet<QString> options{"--input",	"--output", "--clip",		   "--first",  "--last",		"--end-joint",
 								"--target", "--pole",	"--settings-file", "--locale", "--catalog-root", "--root-joint", "--solver",
-								"--iterations", "--tolerance", "--target-joint", "--target-offset", "--targets"};
+								"--iterations", "--tolerance", "--target-joint", "--target-offset", "--targets", "--target-keys", "--pole-keys"};
 	QSet<QString> seen;
 	QHash<QString, QString> values;
 	QStringList positional;
@@ -102,17 +102,25 @@ ModelToolsCliResult runModelIk(const QStringList &args)
 	o.endJoint = values["--end-joint"];
 	o.rootJoint = values.value("--root-joint");
 	o.solver = solver == "ccd" ? ModelIkSolver::Ccd : ModelIkSolver::Fabrik;
-	const int sources = int(seen.contains("--target")) + int(seen.contains("--target-joint")) + int(seen.contains("--targets"));
+	const int sources = int(seen.contains("--target")) + int(seen.contains("--target-joint")) + int(seen.contains("--targets")) +
+						int(seen.contains("--target-keys"));
 	if (sources != 1)
-		return fail(2, Text::tr("Give exactly one target: --target x,y,z, --target-joint name (with optional --target-offset x,y,z) or --targets file.json."));
+		return fail(2, Text::tr("Give exactly one target: --target x,y,z, --target-joint name (with optional --target-offset x,y,z), --targets "
+								"file.json or --target-keys \"sample:x,y,z; ...\"."));
+	if (seen.contains("--pole") && seen.contains("--pole-keys"))
+		return fail(2, Text::tr("Give either --pole or --pole-keys."));
+	QString keyProblem;
+	if ((seen.contains("--target-keys") && !parseModelIkKeys(values.value("--target-keys"), &o.targetKeys, &keyProblem)) ||
+		(seen.contains("--pole-keys") && !parseModelIkKeys(values.value("--pole-keys"), &o.poleKeys, &keyProblem)))
+		return fail(2, keyProblem);
 	if ((seen.contains("--target") && !vector(values.value("--target"), &o.target)) ||
 		(seen.contains("--target-offset") && !vector(values.value("--target-offset"), &o.targetOffset)) ||
 		(seen.contains("--pole") && !vector(values.value("--pole"), &o.pole)))
 		return fail(2, Text::tr("Provide --target, --target-offset and --pole as x,y,z: finite model-space coordinates within one million units."));
 	if (seen.contains("--target-offset") && !seen.contains("--target-joint"))
 		return fail(2, Text::tr("A target offset needs --target-joint."));
-	if (!chained && !seen.contains("--pole"))
-		return fail(2, Text::tr("The two-bone solve needs --pole x,y,z."));
+	if (!chained && !seen.contains("--pole") && !seen.contains("--pole-keys"))
+		return fail(2, Text::tr("The two-bone solve needs --pole x,y,z or --pole-keys."));
 	o.targetJoint = values.value("--target-joint");
 	if (seen.contains("--targets"))
 	{
@@ -135,7 +143,7 @@ ModelToolsCliResult runModelIk(const QStringList &args)
 	}
 	if (chained)
 	{
-		o.usePole = seen.contains("--pole");
+		o.usePole = seen.contains("--pole") || seen.contains("--pole-keys");
 		o.limits = seen.contains("--limits");
 		if (seen.contains("--iterations") && (!integer(values["--iterations"], &o.iterations) || o.iterations < 1 || o.iterations > 1000))
 			return fail(2, Text::tr("Iterations must be a whole number from 1 to 1000."));
@@ -193,6 +201,8 @@ ModelToolsCliResult runModelIk(const QStringList &args)
 					  {"solver", solver},
 					  {"rootJoint", o.rootJoint},
 					  {"targetJoint", o.targetJoint},
+					  {"targetKeys", modelIkKeysText(o.targetKeys)},
+					  {"poleKeys", modelIkKeysText(o.poleKeys)},
 					  {"limits", o.limits},
 					  {"withinLimits", withinLimits},
 					  {"samples", samples},

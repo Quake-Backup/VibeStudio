@@ -101,7 +101,10 @@ reports and validate outputs with `--dry-run`. See
 [key-group automation](../MODEL_ANIMATION_CURVES.md#automate-key-groups).
 
 `model curves` inspects, captures, edits and bakes persistent skeletal animation
-curves. Key actions share the GUI's channel, interpolation, tangent and sampled
+curves, and converts a joint between Euler channels and quaternion rotation
+keys (`--operation convert-rotation --to quaternion|euler`,
+`set-rotation-key`, `remove-rotation-key`). `model ik --target-keys` and
+`--pole-keys` key the IK target and pole at clip samples. Key actions share the GUI's channel, interpolation, tangent and sampled
 pose validation, with guarded `.mesh.json` outputs and `--dry-run`. See
 [animation curves](../MODEL_ANIMATION_CURVES.md#automate-curve-edits) for options
 and examples. Native game exports receive sampled motion.

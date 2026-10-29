@@ -236,6 +236,55 @@ int main(int argc, char **argv)
 			   "swing-twist limits survive save and reload");
 	}
 
+	// Keyed targets and poles: samples between keys follow a straight line.
+	{
+		QVector<ModelIkKey> parsed;
+		expect(parseModelIkKeys("2:4,3,0; 0:3,4,0", &parsed, &error) && parsed.size() == 2 && parsed[0].sample == 0 &&
+				   modelIkKeysText(parsed) == "0:3,4,0; 2:4,3,0",
+			   "keys read as sample:x,y,z entries, in sample order");
+		expect(!parseModelIkKeys("0:1,2", &parsed, &error) && !parseModelIkKeys("0:1,2,3; 0:4,5,6", &parsed, &error),
+			   "malformed and repeated keys are refused");
+		const auto middle = modelIkKeyedPoint(parsed, 1);
+		expect(distance(middle, {3.5f, 3.5f, 0}) < 1e-6 && distance(modelIkKeyedPoint(parsed, 9), {4, 3, 0}) < 1e-6,
+			   "keys interpolate linearly and hold outside");
+		auto keyed = chainIkEdit(joints, {0, 0, 0}, {2, 8, 0});
+		keyed.ik.targetKeys = parsed;
+		keyed.ik.iterations = 200;
+		ModelDocument keyedDocument;
+		expect(keyedDocument.setMesh(mesh, &error) && keyedDocument.edit(keyed, &error), "chain IK solves keyed targets");
+		const auto solvedKeyed = keyedDocument.mesh();
+		expect(distance(at(solvedKeyed, 0, joints - 1), {3, 4, 0}) < 1e-3 && distance(at(solvedKeyed, 1, joints - 1), {3.5f, 3.5f, 0}) < 1e-3 &&
+				   distance(at(solvedKeyed, 2, joints - 1), {4, 3, 0}) < 1e-3,
+			   "each sample reaches its keyed target");
+		const auto keyedSamples = modelIkSamples(solvedKeyed, keyed.ik, true);
+		expect(keyedSamples.size() == 3 && distance(keyedSamples[1].target, {3.5f, 3.5f, 0}) < 1e-6, "diagnostics report the keyed targets");
+		auto poles = keyed;
+		poles.ik.poleKeys = {{0, {2, 8, 0}}, {2, {2, -8, 0}}};
+		ModelDocument poleDocument;
+		expect(poleDocument.setMesh(mesh, &error) && poleDocument.edit(poles, &error), "chain IK solves keyed poles");
+		const auto bentFirst = at(poleDocument.mesh(), 0, joints / 2), bentLast = at(poleDocument.mesh(), 2, joints / 2);
+		const auto sideOf = [](ModelVec3 point, ModelVec3 target) { return double(target.x) * point.y - double(target.y) * point.x; };
+		expect(sideOf(bentFirst, {3, 4, 0}) > 0 && sideOf(bentLast, {4, 3, 0}) < 0, "keyed poles bend each sample their own way");
+		auto followed = keyed;
+		followed.ik.targetJoint = "prop";
+		ModelDocument refusedDocument;
+		expect(refusedDocument.setMesh(mesh, &error) && !refusedDocument.edit(followed, &error), "keyed targets cannot follow a joint too");
+		auto outside = keyed;
+		outside.ik.targetKeys = {{0, {3, 4, 0}}, {5, {4, 3, 0}}};
+		expect(!refusedDocument.edit(outside, &error), "keys past the clip are refused");
+		auto twoBone = chainIkEdit(3, {0, 0, 0}, {2, 4, 0});
+		twoBone.kind = ModelEditKind::SolveTwoBoneIk;
+		twoBone.ik.rootJoint.clear();
+		twoBone.ik.endJoint = "j2";
+		twoBone.ik.iterations = 32;
+		twoBone.ik.targetKeys = {{0, {2, 2, 0}}, {2, {3, 1, 0}}};
+		ModelDocument twoBoneDocument;
+		const auto three = ikChainFixture(3);
+		expect(twoBoneDocument.setMesh(three, &error) && twoBoneDocument.edit(twoBone, &error) &&
+				   distance(at(twoBoneDocument.mesh(), 1, 2), {2.5f, 1.5f, 0}) < 1e-3,
+			   "the two-bone solve follows keyed targets too");
+	}
+
 	// Curve protection still applies.
 	ModelEdit capture;
 	capture.kind = ModelEditKind::EditAnimationCurves;
@@ -333,6 +382,20 @@ int main(int argc, char **argv)
 							  "--end-joint", "j4", "--target", "3,4,0", "--pole", "2,8,0", "--limits", "--nearest-reachable", "--output", out,
 							  "--overwrite", "--json"});
 	expect(result.exitCode == 0 && result.payload["withinLimits"].toBool() && result.payload["limits"].toBool(), "CLI honours joint limits");
+	result = cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+							  "--end-joint", "j4", "--target-keys", "0:3,4,0; 2:4,3,0", "--pole-keys", "0:2,8,0", "--iterations", "200", "--output",
+							  out, "--overwrite", "--json"});
+	expect(result.exitCode == 0 && result.payload["targetKeys"].toString() == "0:3,4,0; 2:4,3,0" &&
+			   std::abs(result.payload["samples"].toArray()[1].toObject()["target"].toArray()[0].toDouble() - 3.5) < 1e-6,
+		   "CLI solves keyed targets");
+	expect(cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+							"--end-joint", "j4", "--target-keys", "0:3,4,0", "--target", "3,4,0", "--output", out, "--overwrite"})
+				   .exitCode == 2,
+		   "CLI takes one target source");
+	expect(cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+							"--end-joint", "j4", "--target-keys", "0:3,4", "--output", out, "--overwrite"})
+				   .exitCode == 2,
+		   "CLI refuses malformed keys");
 	if (argc > 1)
 	{
 		QProcess process;

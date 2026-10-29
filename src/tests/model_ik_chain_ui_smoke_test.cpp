@@ -133,6 +133,31 @@ int main(int argc, char **argv)
 		expect(dialog.findChild<QDoubleSpinBox *>("ikPole0")->value() > pole + .01 &&
 				   std::abs(dialog.findChild<QDoubleSpinBox *>("ikTarget0")->value() - after) < 1e-9,
 			   "dropping the pole handle moves only the pole");
+		// Keying the target at two preview samples.
+		auto *previewSample = dialog.findChild<QSpinBox *>("ikPreviewSample");
+		auto *autoKey = dialog.findChild<QCheckBox *>("ikAutoKey");
+		auto *keysLabel = dialog.findChild<QLabel *>("ikKeys");
+		expect(autoKey && keysLabel && !autoKey->accessibleDescription().isEmpty() && !keysLabel->text().isEmpty(), "the preview offers keying");
+		dialog.setHandle(1);
+		dialog.setAutoKey(true);
+		previewSample->setValue(0);
+		expect(settleModelViewport(*preview), "the preview settles on sample 0");
+		dragAlongX("the target handle drags at sample 0");
+		previewSample->setValue(2);
+		expect(settleModelViewport(*preview), "the preview settles on sample 2");
+		dragAlongX("the target handle drags at sample 2");
+		expect(dialog.targetKeys().size() == 2 && dialog.targetKeys()[0].sample == 0 && dialog.targetKeys()[1].sample == 2 &&
+				   keysLabel->text().contains("0, 2"),
+			   "dropping the handle keys the target at each preview sample");
+		dialog.findChild<QSpinBox *>("ikFirst")->setValue(0);
+		// The dragged keys can lie past the chain's reach.
+		dialog.findChild<QComboBox *>("ikReach")->setCurrentIndex(1);
+		dialog.review();
+		if (!expect(dialog.ready() && dialog.edit().ik.targetKeys.size() == 2, "the reviewed solve carries the target keys"))
+			std::cerr << qPrintable(dialog.findChild<QLabel *>("ikStatus")->text()) << '\n';
+		dialog.clearKeys();
+		expect(dialog.targetKeys().isEmpty() && !dialog.ready(), "Clear Keys removes the keys");
+		dialog.setAutoKey(false);
 		dialog.setHandle(0);
 		expect(preview->transformGizmoAt(preview->transformGizmoPoints()[3]) < 0, "no handle hides the gizmo");
 		tabs->setCurrentIndex(0);

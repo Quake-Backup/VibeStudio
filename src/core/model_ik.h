@@ -14,6 +14,14 @@ enum class ModelIkSolver
 	Fabrik,
 	Ccd
 };
+// A keyed target or pole point at one clip sample (ModelIkOptions::targetKeys,
+// poleKeys): samples between keys move linearly from one key to the next, and
+// samples outside the keys hold the nearest key.
+struct ModelIkKey
+{
+	int sample = 0;
+	ModelVec3 point;
+};
 struct ModelIkOptions
 {
 	int clip = -1, first = 0, last = 0;
@@ -42,8 +50,17 @@ struct ModelIkOptions
 	QString targetJoint;
 	ModelVec3 targetOffset;
 	QVector<ModelVec3> targets;
+	// Keyed model-space targets and poles, in clip samples and strictly
+	// increasing. Target keys replace `target` (they cannot be combined with a
+	// followed joint or per-sample targets); pole keys replace `pole`.
+	QVector<ModelIkKey> targetKeys, poleKeys;
 	bool operator==(const ModelIkOptions &other) const;
 };
+// The point keys give at `sample` (keys strictly increasing, nonempty).
+[[nodiscard]] ModelVec3 modelIkKeyedPoint(const QVector<ModelIkKey> &keys, int sample);
+// "sample:x,y,z" entries separated by ';' or spaces, such as "0:1,2,3; 12:4,5,6".
+bool parseModelIkKeys(const QString &text, QVector<ModelIkKey> *keys, QString *error = nullptr);
+[[nodiscard]] QString modelIkKeysText(const QVector<ModelIkKey> &keys);
 struct ModelIkSample
 {
 	int frame = 0;

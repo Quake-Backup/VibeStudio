@@ -1001,7 +1001,9 @@ or **Chain (CCD)** and a **Root joint** further up.
 Set the target in model units and a pole point on the desired elbow/knee side,
 or put the 3D cursor on the spot in the viewport and choose **Target at 3D
 Cursor**, or drag the target or pole with the move handle in **Preview**
-(**Drag handle**). To keep a hand on a moving prop, set **Target source** to
+(**Drag handle**); with **Key the dragged point at the preview sample**, each
+drop keys the point at the shown sample so the solve follows an animated
+target. To keep a hand on a moving prop, set **Target source** to
 **Follow a joint**. **Apply joint limits** keeps the chain inside the limits
 set with **Edit Skeleton > Set joint limits**, as Euler angles or, for
 shoulders and hips, as **Swing and twist** limits.

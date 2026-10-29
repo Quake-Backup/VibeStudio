@@ -279,6 +279,23 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 			   Text::tr("Show the move handle on the target or the pole in the preview. Drag an arrow to move along that axis, or the "
 						"centre to move in the view plane; the point fields follow. The fields stay the keyboard route."));
 	row(previewForm, Text::tr("Drag &handle"), m_handle);
+	m_autoKey = new QCheckBox(Text::tr("Key the dragged point at the preview sample"));
+	m_autoKey->setObjectName("ikAutoKey");
+	accessible(m_autoKey, m_autoKey->text(),
+			   Text::tr("Dropping the handle keys the target or pole at the preview sample, so a solve over a range follows the keys: samples "
+						"between keys move in a straight line from one key to the next, samples outside them hold the nearest key."));
+	previewForm->addRow(m_autoKey);
+	m_keys = new QLabel;
+	m_keys->setObjectName("ikKeys");
+	m_keys->setWordWrap(true);
+	m_keys->setTextFormat(Qt::PlainText);
+	accessible(m_keys, Text::tr("Target and pole keys"), Text::tr("The samples where the target and the pole are keyed."));
+	previewForm->addRow(m_keys);
+	m_clearKeys = new QPushButton(Text::tr("Clear &Keys"));
+	m_clearKeys->setObjectName("ikClearKeys");
+	accessible(m_clearKeys, Text::tr("Clear target and pole keys"), Text::tr("Remove every target and pole key; the point fields apply again."));
+	previewForm->addRow(m_clearKeys);
+	connect(m_clearKeys, &QPushButton::clicked, this, &ModelIkDialog::clearKeys);
 	m_preview = new ModelViewport;
 	m_preview->setObjectName("ikPreview");
 	m_preview->setMinimumSize(240, 220);
@@ -365,6 +382,7 @@ ModelIkDialog::ModelIkDialog(const ModelMesh &mesh, const QString &joint, int fr
 	m_last->setValue(current.local);
 	m_sample->setValue(current.local);
 	usePose();
+	showKeys();
 	connect(m_clip, &QComboBox::currentIndexChanged, this,
 			[this]
 			{
@@ -446,8 +464,12 @@ ModelEdit ModelIkDialog::request() const
 		o.targetOffset = point;
 	}
 	else
+	{
 		o.target = point;
+		o.targetKeys = m_targetKeys;
+	}
 	o.pole = {float(m_pole[0]->value()), float(m_pole[1]->value()), float(m_pole[2]->value())};
+	o.poleKeys = m_poleKeys;
 	o.nearestReachable = m_reach->currentIndex() == 1;
 	o.keepEndOrientation = m_orientation->currentIndex() == 0;
 	if (chain)
@@ -462,6 +484,11 @@ ModelEdit ModelIkDialog::request() const
 }
 void ModelIkDialog::clipChanged()
 {
+	// Keys belong to one clip's samples.
+	m_targetKeys.clear();
+	m_poleKeys.clear();
+	if (m_keys)
+		showKeys();
 	const int clip = m_clip->currentIndex() < 0 ? -1 : m_clip->currentData().toInt();
 	const int count = clip < 0 ? 1 : int(m_source.skeleton.clips[clip].frames.size());
 	for (auto *w : {m_first, m_last, m_sample})
@@ -473,6 +500,8 @@ void ModelIkDialog::clipChanged()
 }
 ModelVec3 ModelIkDialog::targetPoint() const
 {
+	if (!m_targetKeys.isEmpty() && m_targetSource->currentIndex() == 0)
+		return modelIkKeyedPoint(m_targetKeys, m_sample->value());
 	const ModelVec3 point{float(m_target[0]->value()), float(m_target[1]->value()), float(m_target[2]->value())};
 	ModelJointMatrix pose;
 	if (m_targetSource->currentIndex() == 1 && m_preview->jointPose(m_targetJoint->currentData().toString(), &pose))
@@ -481,7 +510,37 @@ ModelVec3 ModelIkDialog::targetPoint() const
 }
 ModelVec3 ModelIkDialog::polePoint() const
 {
+	if (!m_poleKeys.isEmpty())
+		return modelIkKeyedPoint(m_poleKeys, m_sample->value());
 	return {float(m_pole[0]->value()), float(m_pole[1]->value()), float(m_pole[2]->value())};
+}
+void ModelIkDialog::setAutoKey(bool enabled)
+{
+	m_autoKey->setChecked(enabled);
+}
+void ModelIkDialog::clearKeys()
+{
+	m_targetKeys.clear();
+	m_poleKeys.clear();
+	showKeys();
+	changed();
+}
+void ModelIkDialog::showKeys()
+{
+	const auto samples = [](const QVector<ModelIkKey> &keys)
+	{
+		QStringList list;
+		for (const auto &key : keys)
+			list << QString::number(key.sample);
+		return list.join(QStringLiteral(", "));
+	};
+	QStringList lines;
+	if (!m_targetKeys.isEmpty())
+		lines << Text::tr("Target keyed at samples %1.").arg(samples(m_targetKeys));
+	if (!m_poleKeys.isEmpty())
+		lines << Text::tr("Pole keyed at samples %1.").arg(samples(m_poleKeys));
+	m_keys->setText(lines.isEmpty() ? Text::tr("No keys: one target and one pole hold for the whole range.") : lines.join(QLatin1Char(' ')));
+	m_clearKeys->setEnabled(!lines.isEmpty() && !m_busy);
 }
 void ModelIkDialog::setHandle(int handle)
 {
@@ -500,6 +559,28 @@ void ModelIkDialog::dropHandle(const ModelVec3 &point)
 	const int handle = m_handle->currentIndex();
 	if (handle == 0 || m_busy)
 		return;
+	auto &keys = handle == 1 ? m_targetKeys : m_poleKeys;
+	if (m_autoKey->isChecked() || !keys.isEmpty())
+	{
+		if (handle == 1 && m_targetSource->currentIndex() == 1)
+		{
+			m_status->setText(Text::tr("Keyed targets are model-space points. Set Target source to Fixed point to key the target."),
+							  LiveStatus::Problem);
+			showPreview();
+			return;
+		}
+		const int sample = m_sample->value();
+		const auto at = std::lower_bound(keys.begin(), keys.end(), sample, [](const ModelIkKey &k, int s) { return k.sample < s; });
+		if (at != keys.end() && at->sample == sample)
+			at->point = point;
+		else
+			keys.insert(at, ModelIkKey{sample, point});
+		showKeys();
+		changed();
+		m_status->setText((handle == 1 ? Text::tr("Target keyed at sample %1. Choose Review to solve.") : Text::tr("Pole keyed at sample %1. Choose Review to solve."))
+							  .arg(sample));
+		return;
+	}
 	auto value = point;
 	ModelJointMatrix pose;
 	if (handle == 1 && m_targetSource->currentIndex() == 1)

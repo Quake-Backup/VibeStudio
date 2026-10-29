@@ -112,6 +112,12 @@ Animation**'s two previews have accessible names and a shared **Sample** spin
 box; **Constraints and Layers** keys layers with the same accessible curve graph
 as **Animation Curves** plus numeric **Key**, **Set Key** and **Remove Key**
 controls; **Game Declarations** adds VOXELDEF fields and **Stage in Package**.
+**Rotation keys** in **Animation Curves** is a labelled combo box with a
+**Convert with a key at every sample** check box, and the angle view uses the
+existing key table and graph; the IK preview's **Key the dragged point at the
+preview sample** check box, keyed-samples line and **Clear Keys** button are
+native, labelled controls. Strings use `ModelRotationTracks` and the dialogs'
+contexts.
 
 **Transfer Skin Weights** uses native focusable controls, wrapped labels and a
 scrollable form; joint mapping, locks and before/after weights use native tables.

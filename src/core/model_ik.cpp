@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QRegularExpression>
 #include <algorithm>
 #include <cmath>
 #include <numbers>
@@ -642,11 +643,29 @@ bool resolve(const ModelMesh &mesh, const ModelIkOptions &o, bool chained, Resol
 	}
 	else if (o.targetOffset.x != 0 || o.targetOffset.y != 0 || o.targetOffset.z != 0)
 		return fail(error, Text::tr("A target offset needs a followed target joint."));
+	if (!o.targetKeys.isEmpty() && (!o.targetJoint.isEmpty() || !o.targets.isEmpty()))
+		return fail(error, Text::tr("Keyed targets cannot be combined with a followed joint or per-sample targets."));
+	const int frames = int(skeleton.clips[o.clip].frames.size());
+	for (const auto *keys : {&o.targetKeys, &o.poleKeys})
+	{
+		int previous = -1;
+		if (keys->size() > frames)
+			return fail(error, Text::tr("Keyed targets and poles hold at most one key per clip sample."));
+		for (const auto &key : *keys)
+		{
+			if (key.sample <= previous || key.sample >= frames || !finite(key.point))
+				return fail(error, Text::tr("Target and pole keys need increasing samples inside the clip and finite points within one million "
+											"model units."));
+			previous = key.sample;
+		}
+	}
 	*result = std::move(r);
 	return true;
 }
 V sampleTarget(const ModelIkOptions &o, const Resolved &r, int sample, const QVector<ModelJointMatrix> &pose)
 {
+	if (!o.targetKeys.isEmpty())
+		return v(modelIkKeyedPoint(o.targetKeys, sample));
 	if (!o.targets.isEmpty())
 		return v(o.targets[sample - o.first]);
 	if (r.follow >= 0)
@@ -662,10 +681,16 @@ bool defaultChainSettings(const ModelIkOptions &o)
 bool ModelIkOptions::operator==(const ModelIkOptions &o) const
 {
 	const auto same = [](ModelVec3 a, ModelVec3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; };
-	if (targets.size() != o.targets.size())
+	if (targets.size() != o.targets.size() || targetKeys.size() != o.targetKeys.size() || poleKeys.size() != o.poleKeys.size())
 		return false;
 	for (int i = 0; i < targets.size(); ++i)
 		if (!same(targets[i], o.targets[i]))
+			return false;
+	for (int i = 0; i < targetKeys.size(); ++i)
+		if (targetKeys[i].sample != o.targetKeys[i].sample || !same(targetKeys[i].point, o.targetKeys[i].point))
+			return false;
+	for (int i = 0; i < poleKeys.size(); ++i)
+		if (poleKeys[i].sample != o.poleKeys[i].sample || !same(poleKeys[i].point, o.poleKeys[i].point))
 			return false;
 	return clip == o.clip && first == o.first && last == o.last && endJoint == o.endJoint && same(target, o.target) && same(pole, o.pole) &&
 		   nearestReachable == o.nearestReachable && keepEndOrientation == o.keepEndOrientation && rootJoint == o.rootJoint &&
@@ -721,6 +746,10 @@ bool applyModelIk(ModelMesh *mesh, const ModelEdit &edit, QString *error, const 
 		const auto &editable = modelClipEditableSamples(mesh->skeleton.clips[o.clip]);
 		auto pose = editable[frame];
 		const V target = sampleTarget(o, r, frame, pose);
+		// Keyed poles give each sample its own bend direction.
+		auto sampled = o;
+		if (!o.poleKeys.isEmpty())
+			sampled.pole = modelIkKeyedPoint(o.poleKeys, frame);
 		if (chained)
 		{
 			r.chain.lengths.clear();
@@ -740,8 +769,8 @@ bool applyModelIk(ModelMesh *mesh, const ModelEdit &edit, QString *error, const 
 				r.chain.total += length;
 			}
 		}
-		if (!(chained ? solveChain(mesh->skeleton, &pose, r.chain, o, target, error, work)
-					  : solve(mesh->skeleton, &pose, r.end, o, target, error, work)))
+		if (!(chained ? solveChain(mesh->skeleton, &pose, r.chain, sampled, target, error, work)
+					  : solve(mesh->skeleton, &pose, r.end, sampled, target, error, work)))
 		{
 			if (error && !error->isEmpty())
 				*error = Text::tr("Sample %1: %2").arg(frame).arg(*error);
@@ -790,6 +819,58 @@ bool solveModelConstraintIk(const ModelSkeleton &skeleton, QVector<ModelJointMat
 	return solveChain(skeleton, pose, chain, options, v(target), error, work);
 }
 
+ModelVec3 modelIkKeyedPoint(const QVector<ModelIkKey> &keys, int sample)
+{
+	if (keys.isEmpty())
+		return {};
+	if (sample <= keys.first().sample)
+		return keys.first().point;
+	if (sample >= keys.last().sample)
+		return keys.last().point;
+	const auto next = std::upper_bound(keys.cbegin(), keys.cend(), sample, [](int s, const ModelIkKey &key) { return s < key.sample; });
+	const auto &b = *next, &a = *(next - 1);
+	const double t = double(sample - a.sample) / double(b.sample - a.sample);
+	return {float(a.point.x + (double(b.point.x) - a.point.x) * t), float(a.point.y + (double(b.point.y) - a.point.y) * t),
+			float(a.point.z + (double(b.point.z) - a.point.z) * t)};
+}
+bool parseModelIkKeys(const QString &text, QVector<ModelIkKey> *keys, QString *error)
+{
+	if (!keys)
+		return false;
+	QVector<ModelIkKey> result;
+	for (const auto &entry : text.split(QRegularExpression(QStringLiteral("[;\\s]+")), Qt::SkipEmptyParts))
+	{
+		const auto parts = entry.split(QLatin1Char(':'));
+		const auto point = parts.value(1).split(QLatin1Char(','));
+		bool ok = false;
+		ModelIkKey key;
+		key.sample = parts.value(0).toInt(&ok);
+		ok = ok && parts.size() == 2 && point.size() == 3 && key.sample >= 0;
+		double xyz[3]{};
+		for (int i = 0; ok && i < 3; ++i)
+		{
+			xyz[i] = point[i].toDouble(&ok);
+			ok = ok && std::isfinite(xyz[i]) && std::abs(xyz[i]) <= 1000000;
+		}
+		if (!ok)
+			return fail(error, Text::tr("Write keys as sample:x,y,z entries separated by semicolons, such as 0:1,2,3; 12:4,5,6."));
+		key.point = {float(xyz[0]), float(xyz[1]), float(xyz[2])};
+		result.append(key);
+	}
+	std::sort(result.begin(), result.end(), [](const auto &a, const auto &b) { return a.sample < b.sample; });
+	for (int i = 1; i < result.size(); ++i)
+		if (result[i].sample == result[i - 1].sample)
+			return fail(error, Text::tr("Each sample holds at most one key."));
+	*keys = std::move(result);
+	return true;
+}
+QString modelIkKeysText(const QVector<ModelIkKey> &keys)
+{
+	QStringList parts;
+	for (const auto &key : keys)
+		parts << QStringLiteral("%1:%2,%3,%4").arg(key.sample).arg(key.point.x, 0, 'g', 9).arg(key.point.y, 0, 'g', 9).arg(key.point.z, 0, 'g', 9);
+	return parts.join(QStringLiteral("; "));
+}
 std::array<double, 3> modelJointLimitAngles(const ModelSkeleton &skeleton, const QVector<ModelJointMatrix> &pose, int joint)
 {
 	if (joint < 0 || joint >= skeleton.joints.size() || pose.size() != skeleton.joints.size())

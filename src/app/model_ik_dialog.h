@@ -50,6 +50,19 @@ class ModelIkDialog final : public QDialog
 	{
 		return m_preview;
 	}
+	// Keyed targets and poles (ModelIkOptions::targetKeys, poleKeys): with
+	// Key the dragged point (or once a point has keys), dropping the handle keys
+	// it at the preview sample instead of moving the one point.
+	[[nodiscard]] const QVector<ModelIkKey> &targetKeys() const
+	{
+		return m_targetKeys;
+	}
+	[[nodiscard]] const QVector<ModelIkKey> &poleKeys() const
+	{
+		return m_poleKeys;
+	}
+	void setAutoKey(bool enabled);
+	void clearKeys();
 
   private:
 	ModelMesh m_source, m_result;
@@ -60,7 +73,11 @@ class ModelIkDialog final : public QDialog
 	// Chain solves and target sources.
 	QComboBox *m_solver = nullptr, *m_root = nullptr, *m_targetSource = nullptr, *m_targetJoint = nullptr;
 	QSpinBox *m_iterations = nullptr;
-	QCheckBox *m_limits = nullptr, *m_usePole = nullptr;
+	QCheckBox *m_limits = nullptr, *m_usePole = nullptr, *m_autoKey = nullptr;
+	QVector<ModelIkKey> m_targetKeys, m_poleKeys;
+	QLabel *m_keys = nullptr;
+	QPushButton *m_clearKeys = nullptr;
+	void showKeys();
 	QPushButton *m_targetCursor = nullptr, *m_poleCursor = nullptr;
 	QFormLayout *m_form = nullptr;
 	ModelVec3 m_cursor;
