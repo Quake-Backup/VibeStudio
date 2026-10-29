@@ -948,6 +948,11 @@ void ModelEditorDialog::editUvDensity()
 	}
 	if (texture.isNull()) texture = m_checker;
 	ModelUvDensityDialog dialog(m_document.mesh(), selected, m_preview->frame(), texture, size, name, this);
+	// Each surface's own skin size, for matching surfaces with different skins.
+	QVector<QSize> sizes;
+	for (int s = 0; s < m_document.mesh().surfaces.size(); ++s)
+		sizes.append(uvSkinSize(s));
+	dialog.setSurfaceSkinSizes(sizes);
 	if (dialog.exec() != QDialog::Accepted) return;
 	if (revision != m_document.revisionFingerprint())
 	{

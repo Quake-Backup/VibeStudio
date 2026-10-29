@@ -10,6 +10,7 @@ class QTabWidget;
 class QLabel;
 class QPushButton;
 class QTableView;
+class QTableWidget;
 class QLineEdit;
 class QDialogButtonBox;
 namespace vibestudio
@@ -21,6 +22,10 @@ class ModelUvDensityDialog final : public QDialog
   public:
 	ModelUvDensityDialog(const ModelMesh &mesh, const ModelSelection &selection, int frame, const QImage &texture, QSize materialSize,
 						 const QString &materialName, QWidget *parent = nullptr);
+	// Each surface's own skin size for the Chosen surfaces scope, which
+	// matches surfaces with different skins together; invalid sizes default
+	// to the texture size fields.
+	void setSurfaceSkinSizes(const QVector<QSize> &sizes);
 	void inspect();
 	void preview();
 	void accept() override;
@@ -51,6 +56,7 @@ class ModelUvDensityDialog final : public QDialog
 	QLineEdit *m_detail = nullptr;
 	QPushButton *m_inspect = nullptr, *m_previewButton = nullptr, *m_apply = nullptr, *m_useMeasured = nullptr;
 	QTableView *m_table = nullptr;
+	QTableWidget *m_surfaces = nullptr;
 	ModelUvDensityTable *m_report = nullptr;
 	ModelUvView *m_preview = nullptr;
 	QDialogButtonBox *m_buttons = nullptr;
