@@ -26,7 +26,7 @@ ModelAuditCliResult fail(int code, const QString &message)
 
 ModelAuditCliResult runModelAudit(const QStringList &arguments)
 {
-	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--round-trip", "--timings", "--strict", "--overwrite"};
+	const QSet<QString> flags{"--cli", "--json", "--quiet", "--verbose", "--round-trip", "--targets", "--timings", "--strict", "--overwrite"};
 	const QSet<QString> valued{"--formats", "--max-entries", "--max-mib", "--report", "--settings-file", "--locale", "--catalog-root"};
 	QStringList positional;
 	QHash<QString, QString> values;
@@ -60,6 +60,7 @@ ModelAuditCliResult runModelAudit(const QStringList &arguments)
 		return fail(3, Text::tr("%1 does not exist.").arg(QDir::toNativeSeparators(path)));
 	ModelAuditOptions options;
 	options.roundTrip = seen.contains("--round-trip");
+	options.targets = seen.contains("--targets");
 	if (values.contains("--formats"))
 	{
 		const QStringList known = [] {

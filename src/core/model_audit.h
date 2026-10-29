@@ -28,6 +28,9 @@ struct ModelAuditOptions {
 	// Write each editable model back in its own format (MDL, MD2, MD3, MD5,
 	// IQM, ASE, OBJ) and compare the decoded geometry.
 	bool roundTrip = false;
+	// Check each editable model against every delivery target of its own
+	// format (core/model_targets.h), with every check the writer makes.
+	bool targets = false;
 	// Packages found inside a folder are audited too, up to this many.
 	int maxPackages = 256;
 	// Entries past this many are counted as skipped.
@@ -57,6 +60,22 @@ struct ModelAuditRoundTrip {
 	[[nodiscard]] bool withinTolerance() const { return decoded && triangleDelta == 0 && frameDelta == 0 && maxPositionError >= 0 && maxPositionError <= tolerance; }
 };
 
+// One delivery target's verdict for an entry.
+struct ModelAuditTarget {
+	QString id;
+	QString label;
+	bool ready = false;
+	int issues = 0;
+	// The first limit it breaks, as the Mesh Editor says it.
+	QString firstIssue;
+};
+
+struct ModelAuditTargetSummary {
+	QString id;
+	int checked = 0;
+	int ready = 0;
+};
+
 struct ModelAuditEntry {
 	// The package (or folder) and the entry's path inside it.
 	QString container;
@@ -83,6 +102,7 @@ struct ModelAuditEntry {
 	bool needsAcceptance = false;
 	QString editableError;
 	ModelAuditRoundTrip roundTrip;
+	QVector<ModelAuditTarget> targets;
 };
 
 struct ModelAuditFormatSummary {
@@ -100,6 +120,7 @@ struct ModelAuditFormatSummary {
 	int roundTripsWithin = 0;
 	double maxPositionError = 0;
 	double decodeMilliseconds = 0;
+	QVector<ModelAuditTargetSummary> targets;
 };
 
 struct ModelAuditReport {

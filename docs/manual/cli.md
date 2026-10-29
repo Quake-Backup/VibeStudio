@@ -464,7 +464,9 @@ installation (its loose files and every package inside it) and never writes to
 it. Each entry gets a verdict (`clean`, `advisories`, `accept-omissions`,
 `damaged` or `failed`), whether it imports for editing, and with `--round-trip`
 whether the model written back in its own format decodes to the same corners
-within the format's quantisation. A summary per format comes first. `--formats
+within the format's quantisation; `--targets` says whether each editable model
+is ready for every delivery target of its format. A summary per format comes
+first. `--formats
 mdl,md3` limits the formats, `--report FILE` saves the JSON somewhere outside
 the source, and `--strict` exits 4 when anything fails, is damaged or drifts
 past its tolerance, so a run can guard against decoder regressions.

@@ -62,6 +62,11 @@ ModelAuditDialog::ModelAuditDialog(const QString &path, QWidget *parent) : QDial
 	m_roundTrip->setAccessibleDescription(QCoreApplication::translate("VibeStudioModelAudit",
 		"In memory only: MDL, MD2, MD3, MD5, IQM, ASE and OBJ models are written and decoded again, and every corner is compared within the format's quantisation."));
 	form->addRow(QString(), m_roundTrip);
+	m_targets = new QCheckBox(QCoreApplication::translate("VibeStudioModelAudit", "Check every delivery target of each model's format"));
+	m_targets->setObjectName(QStringLiteral("modelAuditTargets"));
+	m_targets->setAccessibleDescription(QCoreApplication::translate("VibeStudioModelAudit",
+		"Every editable model is checked against each game and source port its format is written for, with the limits the writer enforces."));
+	form->addRow(QString(), m_targets);
 	layout->addLayout(form);
 
 	// The task strip: what is happening, how far, and Cancel.
@@ -186,6 +191,7 @@ void ModelAuditDialog::setRunning(bool running)
 	m_path->setEnabled(!running);
 	m_formats->setEnabled(!running);
 	m_roundTrip->setEnabled(!running);
+	m_targets->setEnabled(!running);
 	m_browsePackage->setEnabled(!running);
 	m_browseFolder->setEnabled(!running);
 	setProperty("operationRunning", running);
@@ -203,6 +209,7 @@ bool ModelAuditDialog::start()
 	}
 	ModelAuditOptions options;
 	options.roundTrip = m_roundTrip->isChecked();
+	options.targets = m_targets->isChecked();
 	for (const QString &format : m_formats->text().split(QLatin1Char(','), Qt::SkipEmptyParts))
 		options.formats << format.trimmed().toLower();
 	m_cancelled = std::make_shared<std::atomic_bool>(false);
@@ -382,6 +389,9 @@ void ModelAuditDialog::showEntry()
 												 .arg(trip.format, QLocale().toString(trip.maxPositionError, 'g', 4), QLocale().toString(trip.tolerance, 'g', 4),
 													  QLocale().toString(trip.triangleDelta), QLocale().toString(trip.frameDelta)));
 	}
+	for (const auto &target : entry.targets)
+		lines << (target.ready ? QCoreApplication::translate("VibeStudioModelAudit", "Ready for %1.").arg(target.label)
+							   : QCoreApplication::translate("VibeStudioModelAudit", "Not ready for %1: %2").arg(target.label, target.firstIssue));
 	m_details->setPlainText(lines.join(QLatin1Char('\n')));
 }
 

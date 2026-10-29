@@ -58,7 +58,7 @@ class ModelAuditDialog final : public QDialog
 
 	QLineEdit *m_path = nullptr;
 	QLineEdit *m_formats = nullptr;
-	QCheckBox *m_roundTrip = nullptr;
+	QCheckBox *m_targets = nullptr, *m_roundTrip = nullptr;
 	QPushButton *m_start = nullptr, *m_cancel = nullptr, *m_save = nullptr, *m_close = nullptr;
 	QPushButton *m_browsePackage = nullptr, *m_browseFolder = nullptr;
 	QLabel *m_status = nullptr;

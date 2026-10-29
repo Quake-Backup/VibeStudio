@@ -5,6 +5,7 @@
 #include "core/model_audit.h"
 #include "core/model_decode_issues.h"
 #include "core/model_document.h"
+#include "core/model_targets.h"
 #include "tests/model_decode_issue_fixtures.h"
 #include "tests/model_q3_animation_test_helpers.h"
 
@@ -20,6 +21,7 @@
 #include <QTemporaryDir>
 #include <QtEndian>
 
+#include <algorithm>
 #include <iostream>
 
 using namespace vibestudio;
@@ -43,6 +45,77 @@ bool writeFile(const QString &path, const QByteArray &bytes)
 	QDir().mkpath(QFileInfo(path).absolutePath());
 	QFile file(path);
 	return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
+}
+// A stored (uncompressed) ZIP, as a PK3: local headers, the central
+// directory and its end record, with CRC-32s (PKWARE APPNOTE 4.3).
+quint32 crc32(const QByteArray &bytes)
+{
+	quint32 crc = 0xffffffffu;
+	for (const char byte : bytes)
+	{
+		crc ^= quint8(byte);
+		for (int bit = 0; bit < 8; ++bit)
+			crc = (crc >> 1) ^ (0xedb88320u & (0u - (crc & 1u)));
+	}
+	return ~crc;
+}
+QByteArray storedZip(const QVector<QPair<QByteArray, QByteArray>> &files)
+{
+	QByteArray data, central;
+	const auto u16 = [](QByteArray *out, quint16 value) {
+		char bytes[2];
+		qToLittleEndian<quint16>(value, bytes);
+		out->append(bytes, 2);
+	};
+	const auto u32 = [](QByteArray *out, quint32 value) {
+		char bytes[4];
+		qToLittleEndian<quint32>(value, bytes);
+		out->append(bytes, 4);
+	};
+	for (const auto &[name, bytes] : files)
+	{
+		const quint32 offset = quint32(data.size()), crc = crc32(bytes);
+		u32(&data, 0x04034b50u);
+		u16(&data, 20);
+		u16(&data, 0);
+		u16(&data, 0);
+		u16(&data, 0);
+		u16(&data, 0x21);
+		u32(&data, crc);
+		u32(&data, quint32(bytes.size()));
+		u32(&data, quint32(bytes.size()));
+		u16(&data, quint16(name.size()));
+		u16(&data, 0);
+		data += name + bytes;
+		u32(&central, 0x02014b50u);
+		u16(&central, 20);
+		u16(&central, 20);
+		u16(&central, 0);
+		u16(&central, 0);
+		u16(&central, 0);
+		u16(&central, 0x21);
+		u32(&central, crc);
+		u32(&central, quint32(bytes.size()));
+		u32(&central, quint32(bytes.size()));
+		u16(&central, quint16(name.size()));
+		u16(&central, 0);
+		u16(&central, 0);
+		u16(&central, 0);
+		u16(&central, 0);
+		u32(&central, 0);
+		u32(&central, offset);
+		central += name;
+	}
+	QByteArray end;
+	u32(&end, 0x06054b50u);
+	u16(&end, 0);
+	u16(&end, 0);
+	u16(&end, quint16(files.size()));
+	u16(&end, quint16(files.size()));
+	u32(&end, quint32(central.size()));
+	u32(&end, quint32(data.size()));
+	u16(&end, 0);
+	return data + central + end;
 }
 // Quake PAK: "PACK", directory offset and length, then 64-byte records.
 QByteArray pak(const QVector<QPair<QByteArray, QByteArray>> &files)
@@ -179,6 +252,31 @@ int main(int argc, char **argv)
 		   "two runs give the same JSON");
 	expect(modelAuditJson(report).value("entries").toArray().first().toObject().value("path").toString() == "models/broken.md3",
 		   "entries are sorted by container and path");
+
+	// A PK3 (a stored ZIP) audits like a PAK, and --targets checks every
+	// delivery target of the model's format.
+	const QString pk3 = temporary.filePath("zipped/pak9.pk3");
+	ModelAuditOptions withTargets;
+	withTargets.targets = true;
+	ModelAuditReport zipped;
+	if (expect(writeFile(pk3, storedZip({{"models/zipped.md3", md3}, {"scripts/readme.txt", "not a model"}})) &&
+				   auditModels(pk3, withTargets, &zipped, &error) && zipped.entries.size() == 1,
+			   "a PK3's models are audited"))
+	{
+		const ModelAuditEntry &entry = zipped.entries[0];
+		expect(entry.path == "models/zipped.md3" && entry.verdict == "clean" && entry.editable, "the zipped MD3 decodes cleanly and is editable");
+		expect(entry.targets.size() == modelTargetProfiles("md3").size() && !entry.targets.isEmpty() &&
+				   std::all_of(entry.targets.begin(), entry.targets.end(), [](const ModelAuditTarget &target) { return target.ready && target.issues == 0; }),
+			   "the small MD3 is ready for every Quake III target");
+		const QJsonObject json = modelAuditJson(zipped);
+		expect(json.value("entries").toArray().first().toObject().value("targets").toArray().size() == entry.targets.size() &&
+				   json.value("formats").toArray().first().toObject().value("targets").toArray().first().toObject().value("ready").toInt() == 1,
+			   "the JSON lists each target's verdict and the summary counts them");
+		expect(modelAuditLines(zipped).join('\n').contains("Target "), "the text report gives the target summary");
+	}
+	ModelAuditReport withoutTargets;
+	expect(auditModels(pk3, {}, &withoutTargets, &error) && withoutTargets.entries.size() == 1 && withoutTargets.entries[0].targets.isEmpty(),
+		   "targets are only checked when asked");
 
 	// A format filter, and a single package.
 	ModelAuditOptions only;

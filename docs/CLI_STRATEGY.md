@@ -2499,7 +2499,9 @@ Each resolved path may be a definition file or a folder of them.
   and reports, per entry, the format, decode success and time (`--timings`),
   decode issues by severity, the editable verdict and, with `--round-trip`,
   whether the same format written back decodes to the same geometry within its
-  quantisation. `--formats`, `--max-entries` and `--max-mib` bound the run;
+  quantisation, and with `--targets` whether each editable model is ready for
+  every delivery target of its format. `--formats`, `--max-entries` and
+  `--max-mib` bound the run;
   `--report FILE` writes the sorted JSON outside the source; `--strict` exits 4
   on decode failures, damage or round trips outside tolerance. See
   [bulk audit](MODEL_FORMATS.md#audit-models-in-bulk).

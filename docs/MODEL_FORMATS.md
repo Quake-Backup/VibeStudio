@@ -168,7 +168,11 @@ MDL, MD2, MD3, MD5 mesh, IQM, ASE or OBJ back in its own format, decodes the
 bytes and compares every triangle corner in every frame: the result is within
 tolerance when the counts match and no corner moved more than the format's
 quantisation (one step of the 8-bit grid for MDL and MD2, 1/64 unit for MD3, a
-thousandth of the model's size for the text and float formats).
+thousandth of the model's size for the text and float formats). `--targets`
+(**Check every delivery target** in the dialog) checks each editable model
+against every [delivery target](MODEL_TARGETS.md) of its own format with the
+writer's own checks, and lists each target's verdict and first broken limit;
+the per-format summary counts how many are ready for each.
 
 The JSON (`vibestudio.model-audit` version 1) sorts entries by container and
 path and formats by id, and leaves timings out unless asked, so two runs over

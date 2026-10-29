@@ -3,6 +3,7 @@
 #include "core/model_decode_issues.h"
 #include "core/model_document.h"
 #include "core/model_skeleton.h"
+#include "core/model_targets.h"
 #include "core/package_archive.h"
 
 #include <QCoreApplication>
@@ -211,6 +212,18 @@ void auditEntry(const PackageArchive& archive, const ModelAuditOptions& options,
 	entry->editable = true;
 	updateEditableModelMetadata(&editable);
 	const QString format = roundTripFormat(mesh.formatId);
+	// Readiness for every delivery target of the model's own format.
+	if (options.targets && !format.isEmpty()) {
+		for (const ModelTargetProfile& profile : modelTargetProfiles(format)) {
+			ModelTargetReport assessed;
+			QString targetError;
+			if (!assessModelTarget(editable, profile, &assessed, &targetError, control)) {
+				break;
+			}
+			entry->targets.append({profile.id, profile.label, assessed.ready(), int(assessed.issues.size()),
+				assessed.issues.isEmpty() ? QString() : assessed.issues.first().message});
+		}
+	}
 	if (!options.roundTrip || format.isEmpty()) {
 		return;
 	}
@@ -426,6 +439,15 @@ bool auditModels(const QString& path, const ModelAuditOptions& options, ModelAud
 			summary.roundTripsWithin += entry.roundTrip.withinTolerance() ? 1 : 0;
 			summary.maxPositionError = std::max(summary.maxPositionError, entry.roundTrip.maxPositionError);
 		}
+		for (const ModelAuditTarget& target : entry.targets) {
+			auto found = std::find_if(summary.targets.begin(), summary.targets.end(), [&](const ModelAuditTargetSummary& known) { return known.id == target.id; });
+			if (found == summary.targets.end()) {
+				summary.targets.append({target.id, 0, 0});
+				found = summary.targets.end() - 1;
+			}
+			++found->checked;
+			found->ready += target.ready ? 1 : 0;
+		}
 	}
 	QStringList keys = summaries.keys();
 	std::sort(keys.begin(), keys.end());
@@ -490,6 +512,17 @@ QJsonObject modelAuditJson(const ModelAuditReport& report, bool timings)
 			}
 			object.insert(QStringLiteral("roundTrip"), roundTrip);
 		}
+		if (!entry.targets.isEmpty()) {
+			QJsonArray targets;
+			for (const ModelAuditTarget& target : entry.targets) {
+				QJsonObject item{{QStringLiteral("id"), target.id}, {QStringLiteral("ready"), target.ready}, {QStringLiteral("issues"), target.issues}};
+				if (!target.firstIssue.isEmpty()) {
+					item.insert(QStringLiteral("firstIssue"), target.firstIssue);
+				}
+				targets.append(item);
+			}
+			object.insert(QStringLiteral("targets"), targets);
+		}
 		entryArray.append(object);
 	}
 	QJsonArray formatArray;
@@ -503,6 +536,13 @@ QJsonObject modelAuditJson(const ModelAuditReport& report, bool timings)
 			{QStringLiteral("maxPositionError"), rounded(summary.maxPositionError)}};
 		if (timings) {
 			object.insert(QStringLiteral("decodeMilliseconds"), rounded(summary.decodeMilliseconds));
+		}
+		if (!summary.targets.isEmpty()) {
+			QJsonArray targets;
+			for (const ModelAuditTargetSummary& target : summary.targets) {
+				targets.append(QJsonObject{{QStringLiteral("id"), target.id}, {QStringLiteral("checked"), target.checked}, {QStringLiteral("ready"), target.ready}});
+			}
+			object.insert(QStringLiteral("targets"), targets);
 		}
 		formatArray.append(object);
 	}
@@ -526,6 +566,9 @@ QStringList modelAuditLines(const ModelAuditReport& report)
 		if (summary.roundTrips > 0) {
 			lines << QCoreApplication::translate("VibeStudioModelAudit", "  Round trips: %1 of %2 within tolerance; largest corner error %3.")
 				.arg(summary.roundTripsWithin).arg(summary.roundTrips).arg(summary.maxPositionError, 0, 'g', 4);
+		}
+		for (const ModelAuditTargetSummary& target : summary.targets) {
+			lines << QCoreApplication::translate("VibeStudioModelAudit", "  Target %1: %2 of %3 ready.").arg(target.id).arg(target.ready).arg(target.checked);
 		}
 	}
 	for (const ModelAuditEntry& entry : report.entries) {
