@@ -2418,19 +2418,34 @@ QString exportModelFrameObj(const ModelMesh& mesh, int frameIndex, const QString
 		if (!materialName.isEmpty()) {
 			lines << QStringLiteral("usemtl %1").arg(sanitizedName(materialName));
 		}
+		// Vertices no face uses are left out (OBJ importers, VibeStudio's
+		// among them, refuse loose vertices); the rest keep their order.
+		QVector<int> written(count, -1);
+		for (const ModelTriangle& triangle : surface.triangles) {
+			if (triangle.a >= 0 && triangle.a < count && triangle.b >= 0 && triangle.b < count && triangle.c >= 0 && triangle.c < count) {
+				written[triangle.a] = written[triangle.b] = written[triangle.c] = 0;
+			}
+		}
+		int used = 0;
+		for (int& slot : written) {
+			slot = slot == 0 ? used++ : -1;
+		}
 		for (int index = 0; index < count; ++index) {
 			if (!work.step()) { return {}; }
+			if (written.at(index) < 0) { continue; }
 			const ModelVec3& position = geometry.positions.at(index);
 			lines << QStringLiteral("v %1 %2 %3").arg(formatNumber(position.x), formatNumber(position.y), formatNumber(position.z));
 		}
 		for (int index = 0; index < count; ++index) {
 			if (!work.step()) { return {}; }
+			if (written.at(index) < 0) { continue; }
 			// OBJ measures V from the bottom of the image, idTech from the top.
 			const ModelTexCoord coord = index < surface.texCoords.size() ? surface.texCoords.at(index) : ModelTexCoord();
 			lines << QStringLiteral("vt %1 %2").arg(formatNumber(coord.u), formatNumber(1.0f - coord.v));
 		}
 		for (int index = 0; index < count; ++index) {
 			if (!work.step()) { return {}; }
+			if (written.at(index) < 0) { continue; }
 			const ModelVec3 normal = index < geometry.normals.size() ? geometry.normals.at(index) : makeVec3(0.0f, 0.0f, 1.0f);
 			lines << QStringLiteral("vn %1 %2 %3").arg(formatNumber(normal.x), formatNumber(normal.y), formatNumber(normal.z));
 		}
@@ -2441,14 +2456,14 @@ QString exportModelFrameObj(const ModelMesh& mesh, int frameIndex, const QString
 				continue;
 			}
 			// OBJ indices are 1-based and run across the whole file.
-			const int a = emitted + triangle.a + 1;
-			const int b = emitted + triangle.b + 1;
-			const int c = emitted + triangle.c + 1;
+			const int a = emitted + written.at(triangle.a) + 1;
+			const int b = emitted + written.at(triangle.b) + 1;
+			const int c = emitted + written.at(triangle.c) + 1;
 			faceLines << QStringLiteral("f %1/%1/%1 %2/%2/%2 %3/%3/%3")
 				.arg(QString::number(a), QString::number(b), QString::number(c));
 		}
 		lines += faceLines;
-		emitted += count;
+		emitted += used;
 	}
 	if (emitted <= 0) {
 		return {};

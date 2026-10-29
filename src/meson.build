@@ -3810,6 +3810,13 @@ model_import_review_ui_smoke_test = executable(
 )
 test('model-import-review-ui-smoke', model_import_review_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
+# Malformed-input coverage for MDL, MD2, MD3 and OBJ and the decode, edit and export chain (FMT-10).
+model_format_legacy_fuzz_smoke_test = executable(
+  'model_format_legacy_fuzz_smoke_test', ['tests/model_format_legacy_fuzz_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-format-legacy-fuzz-smoke', model_format_legacy_fuzz_smoke_test, timeout: 240)
+
 
 model_health_smoke_test = executable(
   'model_health_smoke_test', ['tests/model_health_smoke_test.cpp'],
