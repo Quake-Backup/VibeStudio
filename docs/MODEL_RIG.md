@@ -8,9 +8,9 @@ explicit binding and weight repair](MODEL_SKINNING.md) and [two-bone IK](MODEL_I
 [Animation curves](MODEL_ANIMATION_CURVES.md) and [mirrored and spatial weight
 transfer](MODEL_WEIGHT_TRANSFER.md) are available, as are a [pose and key
 clipboard with mirrored paste](#copy-paste-and-mirror-poses) and
-[clip import and retargeting](#import-and-retarget-clips). Persistent constraints
-remain planned. [Long-chain IK and joint limits](MODEL_IK.md#solve-longer-chains)
-are available.
+[clip import and retargeting](#import-and-retarget-clips).
+[Long-chain IK and joint limits](MODEL_IK.md#solve-longer-chains) and
+[persistent constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md) are available.
 [Staged weight painting](MODEL_WEIGHT_PAINT.md) is available.
 These operations do not establish production readiness for the modeller.
 

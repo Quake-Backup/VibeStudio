@@ -1,4 +1,5 @@
 #include "core/model_animation_curves.h"
+#include "core/model_animation_constraints.h"
 #include "core/model_document.h"
 #include "core/model_skeleton.h"
 #include <QCoreApplication>
@@ -144,7 +145,8 @@ bool validateModelAnimationCurves(const ModelMesh &mesh, QString *error, const M
 				if (!work.step())
 					return false;
 				ModelJointMatrix local;
-				if (!localPose(mesh.skeleton, clip.frames[frame], joint, &local, error))
+				// With a clip stack, curves describe the base samples.
+				if (!localPose(mesh.skeleton, modelClipEditableSamples(clip)[frame], joint, &local, error))
 					return false;
 				if (!near(local, evaluateModelPoseCurves(group, frame)))
 					return fail(error, Text::tr("Stored curves no longer match joint %1 in clip %2, sample %3. Bake that joint's curves "
@@ -162,7 +164,7 @@ bool captureModelPoseCurves(const ModelMesh &mesh, int clip, const QString &name
 	int joint = -1;
 	if (!result || !clipJoint(mesh, clip, name, &joint, error))
 		return false;
-	const auto &frames = mesh.skeleton.clips[clip].frames;
+	const auto &frames = modelClipEditableSamples(mesh.skeleton.clips[clip]);
 	if (qint64(frames.size()) * 9 > modelCurveMaxKeys)
 		return fail(error, Text::tr("Capturing this joint would exceed the animation key budget."));
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
@@ -328,7 +330,7 @@ bool applyModelAnimationCurves(ModelMesh *mesh, const ModelEdit &edit, QString *
 		groups[index] = next;
 	else
 		groups.append(next);
-	auto samples = mesh->skeleton.clips[o.clip].frames;
+	auto samples = modelClipEditableSamples(mesh->skeleton.clips[o.clip]);
 	QVector<bool> descendants(mesh->skeleton.joints.size(), false);
 	for (int j = 0; j < descendants.size(); ++j)
 		descendants[j] = j == joint || (mesh->skeleton.joints[j].parent >= 0 && descendants[mesh->skeleton.joints[j].parent]);

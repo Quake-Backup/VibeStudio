@@ -244,9 +244,9 @@ that would overwrite independent geometry or attachment changes are refused.
 
 Save preserves all joint samples. MD5 animation and IQM exports use those samples;
 MDL, MD2 and MD3 use the baked preview frames. Native format limits still apply.
-Viewport bone manipulation, [two-bone IK](../MODEL_IK.md) and
-[animation curves](../MODEL_ANIMATION_CURVES.md) are available; persistent
-constraints remain planned. The
+Viewport bone manipulation, [inverse kinematics](../MODEL_IK.md),
+[animation curves](../MODEL_ANIMATION_CURVES.md) and
+[persistent constraints and layers](../MODEL_ANIMATION_CONSTRAINTS.md) are available. The
 [skeletal authoring reference](../MODEL_RIG.md#author-skeletal-animation) includes
 `model pose` automation and exact limits.
 
@@ -907,6 +907,16 @@ fewer levels than the source stores, or none, **Stage in Package** stages the
 model with the levels the target loads, and the report says which stay in the
 source.
 
+### Keep constraints on a clip
+
+To keep a hand on a prop, a head looking at a target or a foot planted while
+you go on editing the motion, choose **Skeleton** > **Constraints and Layers…**,
+pick the clip, set the **Kind**, **Joint** and **Target joint** or **Point**, the
+sample range and **Weight**, then **Add Constraint**. The clip re-evaluates its
+constraints whenever you change its keys, solve IK or paste a pose; **Bake
+Stack** turns the result into plain samples again. See
+[constraints and layers](../MODEL_ANIMATION_CONSTRAINTS.md).
+
 ### Write game declarations
 
 Games need more than the model file. Choose **Skeleton** > **Game
@@ -1036,9 +1046,9 @@ for boundary behaviour and the `model curve-transfer` CLI.
   MD5, IQM or ASE export has been loaded in the original games yet.
 - MDC, MDS, MDM, MDR, Ghoul 2, Half-Life, Hexen II, Heretic II, LightWave and
   KVX models are read only; export them as MD3 or another written format.
-- Persistent constraints, animation layers, IK drag handles and
-  joint modal pointer-following remain planned. Two-bone and chain IK, clip
-  import and retargeting, bone overlays,
+- IK drag handles, layer weight curves and joint modal pointer-following
+  remain planned. Two-bone and chain IK, persistent constraints and layers,
+  clip import and retargeting, bone overlays,
   shared viewport handles and numeric joint,
   weight and skeletal pose tools are available.
   Game animation scripts (Jedi Academy `animation.cfg`,
@@ -1090,6 +1100,7 @@ vibestudio --cli model controls --profile 3ds-max --section keys
 | Assemblies, and opening or publishing a Quake III player | `model assembly` |
 | Build game files or detail levels | `model build`, `model lod`, `model targets`, `model prepare` |
 | Animation events and game declarations (Doom 3 `.def`, QuakeC, Quake II, GZDoom) | `model events`, `model declarations` |
+| Persistent clip constraints and layers | `model constraints` |
 | Controls profiles, and print, check, share or reset controls | `model profiles`, `model controls` |
 | Recovery copies | `model recoveries`, `model recover` |
 | Place an MD3 in a Quake III map | `map place-model` |

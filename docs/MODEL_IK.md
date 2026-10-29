@@ -161,7 +161,8 @@ The CLI and GUI apply the same `SolveTwoBoneIk` or `SolveChainIk` document edit.
 
 ## Remaining animation work
 
-Persistent constraints, retargeting and dedicated target and pole drag
+[Persistent IK, aim, follow and foot-lock constraints](MODEL_ANIMATION_CONSTRAINTS.md)
+keep a solve live as the clip changes. Dedicated target and pole drag
 handles in the viewport remain planned (the 3D cursor places them today); joint
 limits apply to chain solves only, as Euler bounds rather than swing-twist
 cones. Physical

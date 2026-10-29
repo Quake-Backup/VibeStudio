@@ -42,12 +42,20 @@ bool evaluateModelClipStack(const ModelSkeleton &skeleton, const ModelSkeletalCl
 bool validateModelClipStacks(const ModelMesh &mesh, QString *error = nullptr, const ModelWorkControl &control = {});
 // Candidate-only EditClipStack.
 bool applyModelClipStack(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
-// Called by replaceModelSkeletalSamples: `samples` (the clip's new frames as
-// an edit computed them from its current frames) become the new base through
-// the inverse of the stack's change per joint, then evaluate. False refuses
-// the edit (a constraint result the edit would have to overwrite).
+// Called by replaceModelSkeletalSamples: `samples` (every sample, computed by
+// the edit from modelClipEditableSamples) become the clip's base, and its
+// frames their evaluation.
 bool rebaseModelClipStack(const ModelSkeleton &skeleton, ModelSkeletalClip *clip, const QVector<QVector<ModelJointMatrix>> &samples,
 						  QString *error, const ModelWorkControl &control = {});
+// The samples edits of a clip work on: its base when it has a stack, else its
+// frames.
+[[nodiscard]] const QVector<QVector<ModelJointMatrix>> &modelClipEditableSamples(const ModelSkeletalClip &clip);
+// The IK solve an Ik or FootLock constraint runs on one pose (defined in
+// core/model_ik.cpp): FABRIK from rootJoint (or the end's grandparent) to
+// endJoint, steered by `pole` when usePole, clamping unreachable targets and
+// keeping the end's orientation.
+bool solveModelConstraintIk(const ModelSkeleton &skeleton, QVector<ModelJointMatrix> *pose, const QString &rootJoint, const QString &endJoint,
+							const ModelVec3 &target, const ModelVec3 &pole, bool usePole, QString *error);
 // Source JSON (mesh version 15), inside a clip's entry.
 void writeModelClipStackJson(const ModelSkeletalClip &clip, bool packed, QJsonObject *entry);
 bool readModelClipStackJson(const QJsonObject &entry, int jointCount, bool packedArrays, ModelSkeletalClip *clip);

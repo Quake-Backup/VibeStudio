@@ -286,7 +286,9 @@ models, copy them with `model pose --operation copy-out --keys` (or **Copy Pose*
 on a keyed joint) and paste them; see
 [the pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses).
 To bring motion from another rig, [import and retarget](MODEL_RIG.md#import-and-retarget-clips)
-its clip. Animation layers and blending remain separate planned workflows.
+its clip. [Constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md) keep IK, aim,
+follow and foot-lock results and additive or override layers over a clip's
+curves; with a stack, curves describe the clip's base samples.
 
 ### Automate range transfers
 
@@ -317,8 +319,9 @@ Export fixtures do not prove acceptance in the original engines.
 
 Key copy and paste between clips and models goes through the
 [pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses). Quaternion tracks, cyclic
-extrapolation, layers/blending and persistent constraints remain planned
-([long-chain IK](MODEL_IK.md#solve-longer-chains) and
+extrapolation and layer weight curves remain planned
+([persistent constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md),
+[long-chain IK](MODEL_IK.md#solve-longer-chains) and
 [retargeting](MODEL_RIG.md#import-and-retarget-clips) are available). Physical keyboard/screen-reader acceptance,
 maximum-size performance, real projects and clean cross-platform release
 checks remain open. This workflow works offline and adds no dependency.

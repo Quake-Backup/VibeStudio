@@ -11,6 +11,7 @@
 #include "app/model_ik_dialog.h"
 #include "app/model_clip_import_dialog.h"
 #include "app/model_declarations_dialog.h"
+#include "app/model_constraints_dialog.h"
 #include "app/model_events_dialog.h"
 #include "app/model_animation_curves_dialog.h"
 #include "app/model_curve_keys_dialog.h"
@@ -383,6 +384,27 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 		else m_status->setText(Text::tr("Updated the animation events."));
 	});
 	form->addRow(events);
+	auto *constraints = new WrappingActionButton(Text::tr("Constraints and Layers…"), 2);
+	constraints->setObjectName(QStringLiteral("editMeshConstraints"));
+	constraints->setAccessibleName(Text::tr("Constraints and layers"));
+	constraints->setAccessibleDescription(Text::tr("Keep IK, aim, child-of, copy-transform and foot-lock constraints and animation layers on a clip, evaluated again whenever its motion changes."));
+	constraints->setToolTip(constraints->accessibleDescription());
+	connect(constraints, &QPushButton::clicked, this, [this] {
+		if (m_working) return;
+		m_preview->finishEditTransform(false); m_preview->pause();
+		const auto revision = m_document.revisionFingerprint();
+		ModelConstraintsDialog dialog(m_document.mesh(), m_preview->frame(), this);
+		if (dialog.exec() != QDialog::Accepted) return;
+		if (revision != m_document.revisionFingerprint()) {
+			m_status->setText(Text::tr("The model changed while editing constraints. Reopen Constraints and Layers.")); return;
+		}
+		auto edit = dialog.edit();
+		edit.selection = m_document.selection();
+		QString error;
+		if (!applyEdit(edit, &error)) m_status->setText(error);
+		else m_status->setText(Text::tr("Updated the clip's constraints and layers."));
+	});
+	form->addRow(constraints);
 	auto *declarations = new WrappingActionButton(Text::tr("Game Declarations…"), 2);
 	declarations->setObjectName(QStringLiteral("exportMeshDeclarations"));
 	declarations->setAccessibleName(Text::tr("Game declarations"));

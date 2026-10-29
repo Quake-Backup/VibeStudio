@@ -60,4 +60,6 @@ ModelToolsCliResult runModelEvents(const QStringList &arguments);
 // `model declarations`: Doom 3 .def and model sets, QuakeC $frame macros,
 // Quake II frame headers and GZDoom MODELDEF from an editable source.
 ModelToolsCliResult runModelDeclarations(const QStringList &arguments);
+// `model constraints`: a skeletal clip's persistent constraints and layers.
+ModelToolsCliResult runModelConstraints(const QStringList &arguments);
 } // namespace vibestudio::cli

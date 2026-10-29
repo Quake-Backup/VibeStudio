@@ -1,4 +1,5 @@
 #include "core/model_ik.h"
+#include "core/model_animation_constraints.h"
 #include "core/model_document.h"
 #include "core/model_skeleton.h"
 #include <QCoreApplication>
@@ -618,7 +619,9 @@ bool applyModelIk(ModelMesh *mesh, const ModelEdit &edit, QString *error, const 
 	{
 		if (!work.check())
 			return false;
-		auto pose = mesh->skeleton.clips[o.clip].frames[frame];
+		// A clip with constraints or layers is solved on its base samples.
+		const auto &editable = modelClipEditableSamples(mesh->skeleton.clips[o.clip]);
+		auto pose = editable[frame];
 		const V target = sampleTarget(o, r, frame, pose);
 		if (chained)
 		{
@@ -647,12 +650,45 @@ bool applyModelIk(ModelMesh *mesh, const ModelEdit &edit, QString *error, const 
 			return false;
 		}
 		for (int j = 0; j < pose.size(); ++j)
-			changed = changed || modelJointMatrixDistance(pose[j], mesh->skeleton.clips[o.clip].frames[frame][j]) != 0;
+			changed = changed || modelJointMatrixDistance(pose[j], editable[frame][j]) != 0;
 		samples.append(std::move(pose));
 	}
 	if (!changed)
 		return work.check();
 	return replaceModelSkeletalSamples(mesh, o.clip, o.first, samples, error, control);
+}
+
+bool solveModelConstraintIk(const ModelSkeleton &skeleton, QVector<ModelJointMatrix> *pose, const QString &rootJoint, const QString &endJoint,
+							const ModelVec3 &target, const ModelVec3 &pole, bool usePole, QString *error)
+{
+	const int end = modelJointIndex(skeleton, endJoint, Qt::CaseSensitive);
+	if (!pose || end < 0 || pose->size() != skeleton.joints.size())
+		return fail(error, Text::tr("Choose an existing end joint."));
+	int root = rootJoint.isEmpty() ? -1 : modelJointIndex(skeleton, rootJoint, Qt::CaseSensitive);
+	if (rootJoint.isEmpty() && skeleton.joints[end].parent >= 0)
+		root = skeleton.joints[skeleton.joints[end].parent].parent;
+	Chain chain;
+	chain.joints = root < 0 ? QVector<int>{} : chainJoints(skeleton, root, end);
+	if (chain.joints.isEmpty())
+		return fail(error, Text::tr("The chain's root must be an ancestor of %1 at least two bones up.").arg(endJoint));
+	for (int j : chain.joints)
+		chain.inside.append(subtree(skeleton, j));
+	for (int k = 0; k + 1 < chain.joints.size(); ++k)
+	{
+		const double length = (origin((*pose)[chain.joints[k + 1]]) - origin((*pose)[chain.joints[k]])).length();
+		if (!std::isfinite(length) || length <= 1e-6)
+			return fail(error, Text::tr("Inverse kinematics needs nonzero bone lengths along the whole chain."));
+		chain.lengths.append(length);
+		chain.total += length;
+	}
+	ModelIkOptions options;
+	options.nearestReachable = true;
+	options.keepEndOrientation = true;
+	options.iterations = 64;
+	options.usePole = usePole;
+	options.pole = pole;
+	ModelWorkProgress work({}, ModelWorkPhase::Editing, error);
+	return solveChain(skeleton, pose, chain, options, v(target), error, work);
 }
 
 std::array<double, 3> modelJointLimitAngles(const ModelSkeleton &skeleton, const QVector<ModelJointMatrix> &pose, int joint)

@@ -1,5 +1,6 @@
 #include "core/model_pose_clipboard.h"
 #include "core/model_curve_key_tools.h"
+#include "core/model_animation_constraints.h"
 #include "core/model_document.h"
 #include "core/model_skeleton.h"
 #include "core/model_vertex_origins.h"
@@ -658,7 +659,7 @@ bool applyModelPosePaste(ModelMesh *mesh, const ModelEdit &edit, QString *error,
 	}
 	// Joints without curves take the pasted samples; their descendants follow.
 	bool changed = false;
-	auto samples = skeleton.clips[o.clip].frames;
+	auto samples = modelClipEditableSamples(skeleton.clips[o.clip]);
 	for (int i = 0; i < clipboard.samples; ++i)
 	{
 		if (overrides[i].isEmpty())

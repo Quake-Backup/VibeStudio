@@ -3362,6 +3362,13 @@ and `mapWritten` on success or failure; failed map saving retains the source.
 See [clipboard limits and examples](LEVEL_PASTE.md#cli). **Status: Partial.**
 
 
+### Clip constraints and layers
+
+`model constraints` lists and edits a clip's persistent constraints and layers
+through the shared `EditClipStack` edit, with list, add, update, remove,
+add-layer, update-layer, remove-layer and bake operations, guarded `.mesh.json`
+outputs and JSON reports. See [constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md).
+
 ### Animation events and game declarations
 
 `model events` lists and edits clip events (game-side frame commands) through

@@ -564,7 +564,9 @@ error, 4 an edit or selection the mesh refuses.
 - Non-destructive modifiers remain planned. [Spin](MODEL_SPIN.md), [Rip](MODEL_RIP.md), vertex and
   [edge bevel](MODEL_EDGE_BEVEL.md), extrusion, inset, loop cuts and [edge sliding](MODEL_EDGE_SLIDE.md) are
   available. Hiding geometry uses the existing selection controls;
-  [skeletal authoring](MODEL_RIG.md), [animation curves](MODEL_ANIMATION_CURVES.md)
+  [skeletal authoring](MODEL_RIG.md), [animation curves](MODEL_ANIMATION_CURVES.md),
+  [clip constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md),
+  [animation events and game declarations](MODEL_GAME_DECLARATIONS.md)
   and the [skeletal working set](MODEL_SKELETAL_WORKING_SET.md) have their own
   documented workflows and limits.
 - Loops and loop cuts need the quad view; meshes triangulated without quad

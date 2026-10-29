@@ -106,6 +106,11 @@ pose validation, with guarded `.mesh.json` outputs and `--dry-run`. See
 [animation curves](../MODEL_ANIMATION_CURVES.md#automate-curve-edits) for options
 and examples. Native game exports receive sampled motion.
 
+`model constraints` lists and edits a skeletal clip's persistent constraints
+(IK, aim, child of, copy transform, foot lock) and layers, and `--operation
+bake` turns them into plain samples. See
+[constraints and layers](../MODEL_ANIMATION_CONSTRAINTS.md).
+
 `model events` lists and edits animation events, the game-side frame commands
 on clip frames (`--operation add --clip N --frame N --command "sound_body
 snd_footstep"`). `model declarations --target doom3|quakec|quake2|gzdoom`
