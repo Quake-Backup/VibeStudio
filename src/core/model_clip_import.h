@@ -41,6 +41,10 @@ struct ModelClipImportPlan
 	double rootScale = 1;
 	int samples = 0;
 	QStringList unusedSourceJoints;
+	// Curve groups the new clip receives (exact: the source's keys; retarget:
+	// captured, one key per sample) and the events it keeps.
+	int curves = 0, events = 0;
+	bool capturedCurves = false;
 };
 // What an import would do, without changing anything; false with the reason
 // the import would be refused.

@@ -1,10 +1,14 @@
 #include "core/model_clip_import.h"
+#include "core/model_animation_constraints.h"
+#include "core/model_animation_curves.h"
+#include "core/model_animation_events.h"
 #include "core/model_document.h"
 #include "core/model_pose_clipboard.h"
 #include "core/model_skeleton.h"
 
 #include <QCoreApplication>
 #include <QHash>
+#include <QSet>
 #include <QRegularExpression>
 #include <algorithm>
 #include <cmath>
@@ -145,6 +149,19 @@ bool prepare(const ModelMesh &mesh, const ModelClipImportOptions &o, Prepared *r
 				p.root = d;
 		}
 	}
+	// The source's events and curves travel with its samples.
+	QString problem;
+	if (!validModelAnimationEvents(o.events, p.clip.samples, &problem))
+		return fail(error, Text::tr("The imported clip's events do not fit its samples. %1").arg(problem));
+	QSet<QString> curveJoints;
+	int curves = 0;
+	for (const auto &group : o.curves)
+	{
+		if (!p.sourceIndex.contains(group.joint) || curveJoints.contains(group.joint) || !validateModelCurveGroup(group, p.clip.samples, &problem))
+			return fail(error, Text::tr("The imported clip's curves must key distinct joints of its rig within its samples. %1").arg(problem));
+		curveJoints.insert(group.joint);
+		curves += assigned[p.sourceIndex.value(group.joint)] >= 0;
+	}
 	if (o.retarget && p.root >= 0)
 	{
 		const double sourceHeight = height(p.clip.rig[p.source[p.root]].bind), destinationHeight = height(skeleton.joints[p.root].bind);
@@ -161,6 +178,9 @@ bool prepare(const ModelMesh &mesh, const ModelClipImportOptions &o, Prepared *r
 		for (int s = 0; s < p.clip.rig.size(); ++s)
 			if (assigned[s] < 0)
 				result.unusedSourceJoints.append(p.clip.rig[s].name);
+		result.curves = curves;
+		result.events = int(o.events.size());
+		result.capturedCurves = o.retarget && curves > 0;
 		*plan = std::move(result);
 	}
 	if (result)
@@ -215,6 +235,32 @@ bool samples(const ModelSkeleton &skeleton, const ModelClipImportOptions &o, con
 	}
 	return true;
 }
+// The new clip's events and curves: exact imports keep the source's keys on
+// the mapped joints; retargeting captures the joints the source keyed from
+// the retargeted samples, since the keys themselves do not transfer.
+bool finishClip(ModelMesh *mesh, int clip, const ModelClipImportOptions &o, const Prepared &p, QString *error, const ModelWorkControl &control)
+{
+	auto &skeleton = mesh->skeleton;
+	skeleton.clips[clip].events = sortedModelAnimationEvents(o.events);
+	QVector<QPair<int, ModelPoseCurves>> groups;
+	for (const auto &group : o.curves)
+	{
+		const int s = p.sourceIndex.value(group.joint, -1);
+		const int d = int(p.source.indexOf(s));
+		if (s < 0 || d < 0)
+			continue;
+		ModelPoseCurves result = group;
+		result.joint = skeleton.joints[d].name;
+		if (o.retarget && !captureModelPoseCurves(*mesh, clip, result.joint, &result, error, control))
+			return false;
+		groups.append({d, result});
+	}
+	std::sort(groups.begin(), groups.end(), [](const auto &a, const auto &b) { return a.first < b.first; });
+	skeleton.clips[clip].curves.clear();
+	for (const auto &group : groups)
+		skeleton.clips[clip].curves.append(group.second);
+	return true;
+}
 } // namespace
 
 bool modelClipImportFromSource(const ModelMesh &source, int clip, const QString &sourcePath, ModelClipImportOptions *options, QString *error)
@@ -248,6 +294,10 @@ bool modelClipImportFromSource(const ModelMesh &source, int clip, const QString 
 	options->loops = from.loops;
 	if (options->sourcePath.isEmpty())
 		options->sourcePath = !from.sourcePath.isEmpty() ? from.sourcePath : sourcePath;
+	// A stacked clip's curves describe its base, not the evaluated samples
+	// copied here, so only an unstacked clip's curves come along.
+	options->curves = modelClipHasStack(from) ? QVector<ModelPoseCurves>{} : from.curves;
+	options->events = from.events;
 	return true;
 }
 
@@ -294,7 +344,7 @@ bool applyModelClipImport(ModelMesh *mesh, const ModelEdit &edit, QString *error
 		if (!replaceModelSkeletalSamples(mesh, clip, 0, frames, error, control))
 			return false;
 		mesh->skeleton.clips[clip].sourcePath = o.sourcePath;
-		return work.check();
+		return finishClip(mesh, clip, o, p, error, control) && work.check();
 	}
 	if (mesh->skeleton.clips.size() >= modelDocumentMaxAnimations)
 		return fail(error, Text::tr("A skeleton supports at most 1024 authored clips."));
@@ -310,6 +360,7 @@ bool applyModelClipImport(ModelMesh *mesh, const ModelEdit &edit, QString *error
 	clip.loops = o.loops;
 	clip.frames = std::move(frames);
 	mesh->skeleton.clips.append(std::move(clip));
-	return validateModelSkeleton(*mesh, error, control) && work.check();
+	return finishClip(mesh, int(mesh->skeleton.clips.size()) - 1, o, p, error, control) && validateModelSkeleton(*mesh, error, control) &&
+		   work.check();
 }
 } // namespace vibestudio

@@ -51,6 +51,12 @@ struct ModelClipImportOptions
 	bool fillFromBind = false;
 	// Retargeting: destination joints that copy their source's translation too.
 	QStringList copyTranslation;
+	// The source clip's animation curves and events, filled by
+	// modelClipImportFromSource; clear them to import the samples alone. Exact
+	// imports keep the curves key for key (joints renamed through the map);
+	// retargeting captures one key per sample for the joints they keyed.
+	QVector<ModelPoseCurves> curves;
+	QVector<ModelAnimationEvent> events;
 	bool operator==(const ModelClipImportOptions &) const = default;
 };
 

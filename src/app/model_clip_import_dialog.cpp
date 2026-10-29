@@ -2,6 +2,8 @@
 #include "app/dialog_screen_fit.h"
 #include "app/locale_number.h"
 #include "app/model_document_work.h"
+#include "app/model_skeletal_working_set_dialog.h"
+#include "app/model_viewport.h"
 #include "core/model_clip_import.h"
 #include "core/model_skeleton.h"
 
@@ -21,6 +23,7 @@
 #include <QLocale>
 #include <QPushButton>
 #include <QSignalBlocker>
+#include <QSpinBox>
 #include <QTableWidget>
 #include <QVBoxLayout>
 
@@ -104,6 +107,18 @@ ModelClipImportDialog::ModelClipImportDialog(const ModelMesh &mesh, QWidget *par
 	m_fill->setObjectName("clipImportFill");
 	accessible(m_fill, m_fill->text(), Text::tr("Without this, a joint of this rig with no joint in the source refuses the import."));
 	form->addRow(m_fill);
+	m_curves = new QCheckBox(Text::tr("Import the clip's animation curves"));
+	m_curves->setObjectName("clipImportCurves");
+	m_curves->setChecked(true);
+	accessible(m_curves, m_curves->text(),
+			   Text::tr("Exact imports keep the source's keys on the mapped joints. Retargeting cannot keep them, so it captures one key per "
+						"sample for the joints the source keyed."));
+	form->addRow(m_curves);
+	m_events = new QCheckBox(Text::tr("Import the clip's events"));
+	m_events->setObjectName("clipImportEvents");
+	m_events->setChecked(true);
+	accessible(m_events, m_events->text(), Text::tr("Keep the source clip's frame commands, such as footstep sounds, on the same samples."));
+	form->addRow(m_events);
 	m_mapping = new QTableWidget(0, 2);
 	m_mapping->setObjectName("clipImportMapping");
 	m_mapping->setHorizontalHeaderLabels({Text::tr("This rig's joint"), Text::tr("Source joint")});
@@ -112,6 +127,40 @@ ModelClipImportDialog::ModelClipImportDialog(const ModelMesh &mesh, QWidget *par
 	accessible(m_mapping, Text::tr("Joint mapping"),
 			   Text::tr("Choose which source joint drives each joint of this rig. Joints with the same name match automatically."));
 	layout->addWidget(m_mapping, 1);
+	// Side-by-side preview: the source clip and this model with the import,
+	// at the same sample, each through its own camera.
+	auto *previewBar = new QHBoxLayout;
+	m_preview = new QPushButton(Text::tr("Update &Preview"));
+	m_preview->setObjectName("clipImportPreview");
+	accessible(m_preview, Text::tr("Update preview"),
+			   Text::tr("Import into a copy of this model on the worker and show the source and the result side by side. Nothing changes "
+						"until Apply."));
+	m_sample = new QSpinBox;
+	m_sample->setObjectName("clipImportSample");
+	m_sample->setLayoutDirection(Qt::LeftToRight);
+	accessible(m_sample, Text::tr("Preview sample"), Text::tr("The sample both previews show, numbered from zero."));
+	auto *sampleLabel = new QLabel(Text::tr("Sa&mple"));
+	sampleLabel->setBuddy(m_sample);
+	previewBar->addWidget(m_preview);
+	previewBar->addWidget(sampleLabel);
+	previewBar->addWidget(m_sample);
+	previewBar->addStretch(1);
+	layout->addLayout(previewBar);
+	auto *views = new QHBoxLayout;
+	m_sourceView = new ModelViewport;
+	m_sourceView->setObjectName("clipImportSourceView");
+	m_resultView = new ModelViewport;
+	m_resultView->setObjectName("clipImportResultView");
+	for (auto *view : {m_sourceView, m_resultView})
+	{
+		view->setMinimumSize(200, 180);
+		view->setShowJoints(true);
+		view->setXrayJoints(true);
+		views->addWidget(view, 1);
+	}
+	m_sourceView->setAccessibleName(Text::tr("Source clip preview"));
+	m_resultView->setAccessibleName(Text::tr("Imported result preview"));
+	layout->addLayout(views, 1);
 	m_status = new LiveStatusLabel;
 	m_status->setObjectName("clipImportStatus");
 	m_status->setWordWrap(true);
@@ -160,7 +209,11 @@ ModelClipImportDialog::ModelClipImportDialog(const ModelMesh &mesh, QWidget *par
 	connect(m_fps, &QDoubleSpinBox::valueChanged, this, [this] { changed(); });
 	connect(m_rootScale, &QDoubleSpinBox::valueChanged, this, [this] { changed(); });
 	connect(m_fill, &QCheckBox::toggled, this, [this] { changed(); });
-	fitDialogToScreen(this, QSize(std::max(680, fontMetrics().averageCharWidth() * 80), 720));
+	connect(m_curves, &QCheckBox::toggled, this, [this] { changed(); });
+	connect(m_events, &QCheckBox::toggled, this, [this] { changed(); });
+	connect(m_preview, &QPushButton::clicked, this, [this] { updatePreview(); });
+	connect(m_sample, &QSpinBox::valueChanged, this, [this] { showSamples(); });
+	fitDialogToScreen(this, QSize(std::max(760, fontMetrics().averageCharWidth() * 90), 860));
 	changed();
 }
 
@@ -259,13 +312,80 @@ ModelClipImportOptions ModelClipImportDialog::options() const
 		if (!source.isEmpty() && source != destination)
 			o.joints.insert(source, destination);
 	}
+	if (!m_curves->isChecked())
+		o.curves.clear();
+	if (!m_events->isChecked())
+		o.events.clear();
 	return o;
+}
+bool ModelClipImportDialog::updatePreview()
+{
+	if (m_busy || !m_ready)
+		return false;
+	ModelEdit operation = edit();
+	const auto mesh = m_mesh;
+	ModelMesh candidate;
+	QString error;
+	m_busy = true;
+	m_preview->setEnabled(false);
+	m_status->setText(Text::tr("Importing into a preview copy…"));
+	const bool ok = runModelTask(
+		this, Text::tr("Preview Animation Import"),
+		[mesh, operation, &candidate](QString *failure, const ModelWorkControl &control)
+		{
+			candidate = mesh;
+			return applyModelEdit(&candidate, operation, nullptr, failure, control);
+		},
+		&error, false, &m_cancel);
+	m_busy = false;
+	m_preview->setEnabled(true);
+	if (!ok)
+	{
+		m_previewed = false;
+		m_status->setText(error, LiveStatus::Problem);
+		return false;
+	}
+	m_result = std::move(candidate);
+	m_previewed = true;
+	m_sample->setRange(0, std::max(0, int(m_result.skeleton.clips.last().frames.size()) - 1));
+	showSamples();
+	m_status->setText(Text::tr("Preview updated: the source on the left, this model with the imported clip on the right."), LiveStatus::Result);
+	return true;
+}
+void ModelClipImportDialog::showSamples()
+{
+	const int sourceClip = m_clip->currentData().toInt();
+	if (sourceClip >= 0 && sourceClip < m_source.skeleton.clips.size())
+	{
+		int frame = -1;
+		m_sourceView->setMesh(modelSkeletalSamplePreview(m_source, sourceClip, m_sample->value(), &frame), true);
+		m_sourceView->setFrame(std::max(0, frame));
+	}
+	if (m_previewed && !m_result.skeleton.clips.isEmpty())
+	{
+		int frame = -1;
+		m_resultView->setMesh(modelSkeletalSamplePreview(m_result, int(m_result.skeleton.clips.size()) - 1, m_sample->value(), &frame), true);
+		m_resultView->setFrame(std::max(0, frame));
+	}
 }
 
 void ModelClipImportDialog::changed()
 {
 	m_ready = false;
+	// A changed setting makes the result preview stale until it is updated.
+	if (m_previewed)
+	{
+		m_previewed = false;
+		m_resultView->setMesh(m_mesh, true);
+	}
+	const int sourceClip = m_clip->currentData().toInt();
+	if (sourceClip >= 0 && sourceClip < m_source.skeleton.clips.size())
+	{
+		m_sample->setRange(0, std::max(0, int(m_source.skeleton.clips[sourceClip].frames.size()) - 1));
+		showSamples();
+	}
 	m_rootScale->setEnabled(m_mode->currentIndex() == 1);
+	m_preview->setEnabled(false);
 	if (m_source.skeleton.isEmpty())
 	{
 		m_status->setText(Text::tr("Choose a file with skeletal animation to import."));
@@ -291,9 +411,15 @@ void ModelClipImportDialog::changed()
 		text += QLatin1Char(' ') + Text::tr("Root motion is scaled by %1.").arg(localeNumber(plan.rootScale, 4));
 	if (!plan.unusedSourceJoints.isEmpty())
 		text += QLatin1Char(' ') + Text::tr("Unused source joints: %1.").arg(plan.unusedSourceJoints.join(QStringLiteral(", ")));
+	if (plan.curves > 0)
+		text += QLatin1Char(' ') + (plan.capturedCurves ? Text::tr("Joints with curves captured from the retargeted samples: %1.").arg(QLocale().toString(plan.curves))
+														: Text::tr("Joints keeping the source's curves: %1.").arg(QLocale().toString(plan.curves)));
+	if (plan.events > 0)
+		text += QLatin1Char(' ') + Text::tr("Events kept: %1.").arg(QLocale().toString(plan.events));
 	m_status->setText(text, LiveStatus::Result);
 	m_ready = !o.name.isEmpty();
 	m_apply->setEnabled(m_ready);
+	m_preview->setEnabled(m_ready);
 }
 
 ModelEdit ModelClipImportDialog::edit() const

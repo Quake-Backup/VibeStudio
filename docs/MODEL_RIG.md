@@ -147,8 +147,18 @@ which source joints are unused. **Apply** adds the clip as one undoable edit
 A joint of this rig with no source joint refuses the import unless **Keep
 unmatched joints in their bind pose** is on. A clip that fits the editable
 frame budget joins the working set; a longer one stays in the skeleton for the
-skeletal tools and exports (add it with **Working Set…** to preview it). Events
-and curves of the source clip are not imported: the clip arrives as samples.
+skeletal tools and exports (add it with **Working Set…** to preview it).
+
+With **Import the clip's events** the source clip's frame commands (such as
+footstep sounds) keep their samples. With **Import the clip's animation
+curves** an exact import keeps the source's keys on the mapped joints, renamed
+through the map; retargeting cannot keep keys (the rotations change), so it
+captures one key per sample for the joints the source keyed. A stacked source
+clip's curves describe its base, not its evaluated samples, so they are left
+out. **Update Preview** imports into a copy of the model on the worker and
+shows the source clip and this model with the result side by side at the same
+**Sample**, each in its own viewport; any changed setting marks the result
+stale until it is updated again. Nothing changes until **Apply**.
 
 ```sh
 vibestudio --cli model pose models/imp.mesh.json --operation import --source models/monster/walk.md5anim --name walk --output models/imp-walk.mesh.json --json
@@ -158,11 +168,12 @@ vibestudio --cli model pose models/marine.mesh.json --operation import --source 
 `--source` is required; `--source-clip` takes a name or index (default the
 first clip), `--name` defaults to the source clip's name, and `--fps`,
 `--loop yes|no`, `--joint-map map.json`, `--fill-from-bind`, `--retarget`,
-`--root-scale auto|N` and `--copy-translation a,b` match the dialog. The output
+`--root-scale auto|N` and `--copy-translation a,b` match the dialog;
+`--no-curves` and `--no-events` import the samples alone. The output
 may not replace the input, the source or the joint map, including aliases of
 the same file. JSON reports the new clip, its samples and rate, whether it is
-in the working set, each joint's source, the root scale and unused source
-joints.
+in the working set, each joint's source, the root scale, unused source
+joints, `curveJoints`, `curvesCaptured` and `events`.
 
 ## Copy, paste and mirror poses
 

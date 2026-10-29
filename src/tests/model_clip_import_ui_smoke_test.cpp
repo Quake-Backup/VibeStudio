@@ -1,4 +1,5 @@
 #include "app/model_clip_import_dialog.h"
+#include "app/model_viewport.h"
 #include "app/studio_theme.h"
 #include "core/studio_settings.h"
 #include "tests/model_pose_clipboard_test_helpers.h"
@@ -12,8 +13,10 @@
 #include <QDoubleSpinBox>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QTableWidget>
 #include <QTemporaryDir>
+#include <cmath>
 #include <iostream>
 
 using namespace vibestudio;
@@ -47,7 +50,19 @@ int main(int argc, char **argv)
 	if (const int unavailable = test_support::exitCodeWithoutRenderer("clip import UI"); unavailable >= 0)
 		return unavailable;
 	QString error;
-	const auto source = symmetricRigFixture(), tall = symmetricRigFixture(4, 1.5f);
+	auto source = symmetricRigFixture();
+	const auto tall = symmetricRigFixture(4, 1.5f);
+	// The source keys its arm and carries a footstep event.
+	ModelEdit capture;
+	capture.kind = ModelEditKind::EditAnimationCurves;
+	capture.curves.clip = 0;
+	capture.curves.joint = "l_arm";
+	ModelEdit step;
+	step.kind = ModelEditKind::EditAnimationEvents;
+	step.animation.events.clip = 0;
+	step.animation.events.event = {2, "sound_body", {"snd_step"}};
+	if (!expect(applyModelEdit(&source, capture, nullptr, &error) && applyModelEdit(&source, step, nullptr, &error), "key the source"))
+		return 1;
 	const auto sourcePath = QDir(tmp.path()).filePath("walk.mesh.json");
 	ModelDocument saved;
 	if (!expect(saved.setMesh(source, &error) && saved.save(sourcePath, false, &error), "save the animation source"))
@@ -85,6 +100,36 @@ int main(int argc, char **argv)
 		expect(edit.kind == ModelEditKind::ImportSkeletalClip && edit.animation.import.retarget && applyModelEdit(&candidate, edit, nullptr, &error) &&
 				   candidate.skeleton.clips.last().name == "walk_tall",
 			   "the dialog's edit imports the clip");
+		// The source's curves and events, and the side-by-side preview.
+		auto *curves = dialog.findChild<QCheckBox *>("clipImportCurves");
+		auto *events = dialog.findChild<QCheckBox *>("clipImportEvents");
+		auto *preview = dialog.findChild<QPushButton *>("clipImportPreview");
+		expect(curves && events && preview && curves->isChecked() && events->isChecked() && preview->isEnabled() &&
+				   !curves->accessibleDescription().isEmpty() && !preview->accessibleDescription().isEmpty(),
+			   "curves, events and the preview are offered");
+		expect(edit.animation.import.events.size() == 1 && edit.animation.import.curves.size() == 1, "the edit carries the source's events and curves");
+		events->setChecked(false);
+		expect(dialog.edit().animation.import.events.isEmpty() && dialog.ready(), "clearing events leaves them out");
+		events->setChecked(true);
+		expect(dialog.updatePreview() && dialog.previewed(), "the preview imports into a copy");
+		auto *sourceView = dialog.findChild<ModelViewport *>("clipImportSourceView");
+		auto *resultView = dialog.findChild<ModelViewport *>("clipImportResultView");
+		auto *sample = dialog.findChild<QSpinBox *>("clipImportSample");
+		expect(sourceView && resultView && sample && sample->maximum() == 3 && !sourceView->accessibleName().isEmpty() &&
+				   !resultView->accessibleName().isEmpty() && resultView->frameCount() > 0,
+			   "the source and the result show side by side");
+		sample->setValue(2);
+		QCoreApplication::processEvents();
+		ModelJointMatrix sourceHand, resultHand;
+		expect(sourceView->jointPose("l_arm", &sourceHand) && resultView->jointPose("l_arm", &resultHand) &&
+				   [&]
+				   {
+					   const auto a = modelJointRotation(sourceHand), b = modelJointRotation(resultHand);
+					   return std::abs(std::abs(double(a.x) * b.x + double(a.y) * b.y + double(a.z) * b.z + double(a.w) * b.w) - 1) < 1e-4;
+				   }(),
+			   "both previews show the same sample of the arm's swing");
+		dialog.findChild<QDoubleSpinBox *>("clipImportFps")->setValue(30);
+		expect(!dialog.previewed(), "a changed setting marks the result preview stale");
 		auto *handRow = qobject_cast<QComboBox *>(mapping->cellWidget(3, 1));
 		expect(handRow && !handRow->accessibleName().isEmpty() && handRow->currentText() == "l_hand", "joints with the same name match by default");
 		handRow->setCurrentIndex(handRow->findText("r_hand"));
