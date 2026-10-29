@@ -687,8 +687,11 @@ spinning barrel and its muzzle flash. Build the weapon as an assembly with the
 barrel on the weapon's `tag_barrel` and the flash on its `tag_flash`, choose the
 part for each role, then **Review Package** and **Export PK3…**. The review
 refuses a weapon without `tag_flash` and other missing tags, so the flash and
-barrel cannot end up in the wrong place. Set **Spin about X (rpm)** on the barrel
-to see it roll in the preview. See [Weapon packages](../MODEL_ASSEMBLY.md#weapon-packages).
+barrel cannot end up in the wrong place. **Detail levels** adds lower-detail
+models beside each one, and **Weapon sounds** adds named sounds under
+`sound/weapons/<id>/` for the weapon's game code to use. Set **Spin about X
+(rpm)** on the barrel to see it roll in the preview, and clear **Show muzzle
+flash** to see the weapon between shots. See [Weapon packages](../MODEL_ASSEMBLY.md#weapon-packages).
 
 ### Publish a Quake II player
 

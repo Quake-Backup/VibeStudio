@@ -157,6 +157,10 @@ follow `CG_RegisterWeapon` (the `<w>.md3`, `_flash`, `_barrel` and `_hand` model
 names), `CG_AddPlayerWeapon` (`tag_weapon`, `tag_barrel`, `tag_flash` and the
 barrel roll) and `CG_MapTorsoToWeaponFrame` in
 [`cg_weapons.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_weapons.c).
+Their detail levels follow `RE_RegisterModel`, which loads `<name>_1.md3` and
+`<name>_2.md3` beside any model
+([`tr_model.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/renderer/tr_model.c)),
+and their sounds the player packages' delivery (`snd_mem.c`), reviewed 2026-10-29.
 Behaviour only; the implementation is original.
 
 The native animation roster, lower-body frame adjustment, legacy gesture

@@ -341,6 +341,12 @@ const QStringList &modelPlayerSoundNames()
 	return names;
 }
 
+bool modelBundleSoundBytes(const ModelAssemblyContext &context, const ModelPlayerSound &sound, ModelPlayerBundle *bundle, QByteArray *output,
+						   QJsonObject *receipt, QString *note, QString *error, const ModelWorkControl &control)
+{
+	return soundBytes(context, sound, bundle, output, receipt, note, error, control);
+}
+
 ModelPlayerReference modelPlayerReference(const QString &text)
 {
 	if (text.startsWith(QStringLiteral("package:")))

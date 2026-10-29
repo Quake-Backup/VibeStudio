@@ -16,7 +16,21 @@ struct ModelWeaponBundleOptions
 	QString weaponName;
 	// Assembly part IDs. The weapon is required; the others are optional.
 	QString weaponPart, handPart, barrelPart, flashPart;
+	// Detail levels for every role model, made as player packages make them.
+	// The renderer's RE_RegisterModel (code/renderer/tr_model.c) loads
+	// <name>_1.md3 and <name>_2.md3 beside any MD3 it registers.
+	ModelPlayerDetailLevels detailLevels = ModelPlayerDetailLevels::None;
+	int lodLevels = 2;
+	double lodRatio = 0.5;
+	// Weapon sounds, published at sound/weapons/<w>/<name>.wav and delivered as
+	// player sounds are (modelBundleSoundBytes). Names are 1-32 ASCII letters,
+	// digits, underscores or hyphens, at most 16. CG_RegisterWeapon assigns a
+	// weapon's flash, firing, ready and missile sounds in game code, so the
+	// game code that registers the weapon names these files.
+	QVector<ModelPlayerSound> sounds{};
 };
+// Most sounds one weapon package carries.
+inline constexpr int modelWeaponSoundLimit = 16;
 struct ModelWeaponBundle
 {
 	ModelWeaponBundleOptions options;
@@ -27,7 +41,8 @@ struct ModelWeaponBundle
 // The weapon must be a root or sit on a tag_weapon (the hand's, or a player
 // torso's for preview); the barrel and flash sit on the weapon's tag_barrel and
 // tag_flash. The weapon needs tag_flash, and tag_barrel with a barrel; the hand
-// needs tag_weapon; the flash has one pose. Each role's local transform and
+// needs tag_weapon; the flash has one pose. Detail levels keep each model's
+// surfaces and tags and are checked against Quake III's loader. Each role's local transform and
 // inherited scale are baked into its MD3, as for player packages. Publishes
 // the role models, the material dependency closure and a receipt,
 // vibestudio/weapon-<w>.json. Preview spin is not stored in MD3.

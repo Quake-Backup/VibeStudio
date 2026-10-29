@@ -1,6 +1,8 @@
 #include "core/model_weapon_bundle.h"
 
+#include "core/model_lod.h"
 #include "core/model_tags.h"
+#include "core/model_targets.h"
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -78,10 +80,34 @@ bool prepareModelWeaponBundle(const ModelAssembly &assembly, const ModelAssembly
 		return fail(error, Text::tr("Open the project asset package or folder before preparing a weapon package."));
 	static const QRegularExpression id(QStringLiteral("^[A-Za-z][A-Za-z0-9_-]{0,23}$"));
 	const auto directory = QStringLiteral("models/weapons2/%1/").arg(options.weaponName);
-	if (!id.match(options.weaponName).hasMatch() || (directory + options.weaponName + QStringLiteral("_barrel.md3")).size() > 63 ||
+	// The longest name: the barrel, or its last detail level (_barrel_N.md3).
+	const auto longest = directory + options.weaponName +
+						 (options.detailLevels == ModelPlayerDetailLevels::None ? QStringLiteral("_barrel.md3") : QStringLiteral("_barrel_2.md3"));
+	if (!id.match(options.weaponName).hasMatch() || longest.size() > 63 ||
 		!isSafePackageVirtualPath(directory + options.weaponName + QStringLiteral(".md3")))
 		return fail(error, Text::tr("Use a weapon ID of 1–24 ASCII letters, digits, underscores or hyphens, starting with a letter; its "
 									"paths must fit 63 characters."));
+	ModelTargetProfile quake3;
+	findModelTargetProfile(QStringLiteral("md3"), QStringLiteral("quake3"), &quake3);
+	if (options.detailLevels == ModelPlayerDetailLevels::Generated &&
+		(options.lodLevels < 1 || options.lodLevels > std::max(1, quake3.limits.detailLevels) || !(options.lodRatio >= .05 && options.lodRatio <= .95)))
+		return fail(error, Text::tr("Quake III loads up to %n detail level(s) per model; choose that many or fewer, each keeping 0.05 to 0.95 of "
+									"the level above.",
+									nullptr, quake3.limits.detailLevels));
+	static const QRegularExpression soundName(QStringLiteral("^[A-Za-z0-9][A-Za-z0-9_-]{0,31}$"));
+	if (options.sounds.size() > modelWeaponSoundLimit)
+		return fail(error, Text::tr("A weapon package carries at most %1 sounds.").arg(modelWeaponSoundLimit));
+	QSet<QString> soundNames;
+	for (const auto &sound : options.sounds)
+	{
+		const auto path = QStringLiteral("sound/weapons/%1/%2.wav").arg(options.weaponName, sound.name);
+		if (!soundName.match(sound.name).hasMatch() || path.size() > 63 || !isSafePackageVirtualPath(path))
+			return fail(error, Text::tr("Name weapon sounds with 1–32 ASCII letters, digits, underscores or hyphens; %1 does not fit.")
+								   .arg(sound.name));
+		if (soundNames.contains(sound.name.toLower()))
+			return fail(error, Text::tr("Weapon sound %1 is listed twice.").arg(sound.name));
+		soundNames.insert(sound.name.toLower());
+	}
 	struct Role
 	{
 		QString role, part, suffix;
@@ -136,7 +162,7 @@ bool prepareModelWeaponBundle(const ModelAssembly &assembly, const ModelAssembly
 	protectModelBundleInput(&package, sourcePath);
 	ModelMesh materials;
 	materials.sourcePath = directory;
-	QJsonArray parts;
+	QJsonArray parts, levelReceipts;
 	QStringList notes;
 	for (const auto &role : roles)
 	{
@@ -165,6 +191,63 @@ bool prepareModelWeaponBundle(const ModelAssembly &assembly, const ModelAssembly
 		if (!addModelBundleFile(&package, directory + options.weaponName + role.suffix + QStringLiteral(".md3"), role.role + "-model", md3, error))
 			return false;
 		materials.surfaces += mesh.surfaces;
+		// Detail levels are made in the part's own space and then placed like
+		// the part, so they keep the baked transform and the base model's tags.
+		QVector<ModelLodLevel> levels;
+		if (options.detailLevels == ModelPlayerDetailLevels::Generated)
+		{
+			if (!buildModelLods(input->mesh, options.lodLevels, options.lodRatio, &levels, error, control))
+				return fail(error, Text::tr("Detail levels of the %1 model: %2").arg(role.role, error ? *error : QString()));
+		}
+		else if (options.detailLevels == ModelPlayerDetailLevels::Stored && !input->mesh.detailLevels.isEmpty())
+		{
+			const bool handMade =
+				std::any_of(input->mesh.detailLevels.cbegin(), input->mesh.detailLevels.cend(), [](const auto &level) { return !level.generated; });
+			if (handMade && input->sourceKind != ModelAssemblySource::File)
+				return fail(error, Text::tr("Part %1 is read from the package, so its hand-made detail levels cannot be found. Use a source file "
+											"or generated levels.")
+									   .arg(part->id));
+			QString recipeError;
+			if (!validateModelLodRecipe(input->mesh.detailLevels, quake3.limits.detailLevels, &recipeError))
+				return fail(error, Text::tr("Detail levels of the %1 model: %2").arg(role.role, recipeError));
+			const auto baseDirectory = input->sourceKind == ModelAssemblySource::File ? QFileInfo(input->source).absolutePath() : QString();
+			for (const auto &level : input->mesh.detailLevels)
+				if (!level.generated)
+					protectModelBundleInput(&package, modelLodRecipeSourcePath(level, baseDirectory));
+			if (!buildModelLodsFromRecipe(input->mesh, input->mesh.detailLevels, baseDirectory, &levels, error, control))
+				return fail(error, Text::tr("Detail levels of the %1 model: %2").arg(role.role, error ? *error : QString()));
+		}
+		else if (options.detailLevels == ModelPlayerDetailLevels::Stored)
+			notes << Text::tr("No detail levels are stored for the %1 model, so it is drawn at full detail at every distance.").arg(role.role);
+		QVector<ModelMesh> levelMeshes;
+		for (auto &level : levels)
+		{
+			if (!transformModelBundlePart(&level.mesh, *part, scale, error, control))
+				return false;
+			levelMeshes << level.mesh;
+		}
+		if (!levels.isEmpty())
+		{
+			ModelLodValidation validation;
+			if (!validateModelLodSet(mesh, levelMeshes, quake3, &validation, error, control))
+				return false;
+			if (!validation.ok())
+				return fail(error, Text::tr("The detail levels of the %1 model would not load correctly:\n%2")
+									   .arg(role.role, modelLodValidationLines(validation).join(QLatin1Char('\n'))));
+			for (int level = 1; level <= levels.size(); ++level)
+			{
+				ModelExportReport levelReport;
+				const auto bytes = exportEditableModel(levelMeshes[level - 1], QStringLiteral("md3"), 0, error, control, &levelReport);
+				if (bytes.isEmpty() || !addModelBundleFile(&package, directory + options.weaponName + role.suffix + QStringLiteral("_%1.md3").arg(level),
+														   role.role + "-detail", bytes, error))
+					return false;
+				levelReceipts.append(QJsonObject{{"role", role.role},
+												 {"level", level},
+												 {"triangles", levels[level - 1].triangles},
+												 {"handMade", !levels[level - 1].source.isEmpty()}});
+				notes += levels[level - 1].notes;
+			}
+		}
 		if (part->spinRpm != 0)
 			notes << Text::tr("Part %1 spins in the preview only; the game rolls a barrel itself while firing.").arg(part->id);
 		if (role.role == QStringLiteral("hand") && mesh.frames.size() > 1)
@@ -188,6 +271,26 @@ bool prepareModelWeaponBundle(const ModelAssembly &assembly, const ModelAssembly
 	}
 	if (!captureModelBundleDependencies(materials, context, &package, error, control))
 		return false;
+	QJsonArray soundReceipts;
+	for (const auto &sound : options.sounds)
+	{
+		QByteArray bytes;
+		QJsonObject receipt;
+		QString note;
+		if (!modelBundleSoundBytes(context, sound, &package, &bytes, &receipt, &note, error, control) ||
+			!addModelBundleFile(&package, QStringLiteral("sound/weapons/%1/%2.wav").arg(options.weaponName, sound.name), "sound", bytes, error))
+			return false;
+		if (!note.isEmpty())
+			notes << note;
+		soundReceipts.append(receipt);
+	}
+	if (!options.sounds.isEmpty())
+		notes << Text::tr("%n weapon sound(s) at sound/weapons/%1/. The game code that registers the weapon assigns its flash, firing, "
+						  "ready and missile sounds (CG_RegisterWeapon); point it at these files.",
+						  nullptr, int(options.sounds.size()))
+					 .arg(options.weaponName);
+	if (!levelReceipts.isEmpty())
+		notes << Text::tr("Detail levels beside each model load with it; the renderer switches by distance, r_lodscale and r_lodbias.");
 	if (options.flashPart.isEmpty())
 		notes << Text::tr("No flash model: the game shows the muzzle flash light only.");
 	if (options.handPart.isEmpty())
@@ -211,6 +314,13 @@ bool prepareModelWeaponBundle(const ModelAssembly &assembly, const ModelAssembly
 					   {"weapon", options.weaponName},
 					   {"parts", parts},
 					   {"files", files}};
+	// Schema 2 adds detail levels and sounds; a package without them stays 1.
+	if (!levelReceipts.isEmpty() || !soundReceipts.isEmpty())
+	{
+		package.receipt.insert("schemaVersion", 2);
+		package.receipt.insert("detailLevels", levelReceipts);
+		package.receipt.insert("sounds", soundReceipts);
+	}
 	if (!addModelBundleFile(&package, QStringLiteral("vibestudio/weapon-%1.json").arg(options.weaponName), "receipt",
 							QJsonDocument(package.receipt).toJson(), error) ||
 		!modelWorkCheckpoint(control, ModelWorkPhase::Validating, package.totalBytes, package.totalBytes, error))
@@ -226,7 +336,15 @@ QJsonObject modelWeaponBundleJson(const ModelWeaponBundle &bundle)
 	QJsonArray files;
 	for (const auto &file : package.files)
 		files.append(QJsonObject{{"path", file.path}, {"role", file.role}, {"bytes", file.bytes.size()}, {"sha256", hex(file.sha256)}});
+	QJsonArray sounds;
+	for (const auto &sound : bundle.options.sounds)
+		sounds.append(QJsonObject{{"name", sound.name}, {"source", modelPlayerReferenceText(sound.source)}});
+	const auto detail = bundle.options.detailLevels == ModelPlayerDetailLevels::Generated ? QStringLiteral("generated")
+						: bundle.options.detailLevels == ModelPlayerDetailLevels::Stored  ? QStringLiteral("stored")
+																						  : QStringLiteral("none");
 	return {{"weapon", bundle.options.weaponName},
+			{"detailLevels", detail},
+			{"sounds", sounds},
 			{"weaponPart", bundle.options.weaponPart},
 			{"handPart", bundle.options.handPart},
 			{"barrelPart", bundle.options.barrelPart},

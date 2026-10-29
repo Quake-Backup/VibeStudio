@@ -4,15 +4,20 @@
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
+#include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFormLayout>
+#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QLocale>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QScrollArea>
+#include <QSpinBox>
+#include <QTableWidget>
 #include <QTreeWidget>
 #include <QVBoxLayout>
 
@@ -94,10 +99,18 @@ void ModelAssemblyDialog::chooseWeaponBundle()
 	dialog.setWindowTitle(Text::tr("Quake III Weapon Package"));
 	dialog.setAccessibleName(dialog.windowTitle());
 	auto *layout = new QVBoxLayout(&dialog);
-	auto *form = new QFormLayout;
+	// The choices scroll, so detail levels and sounds stay reachable at large text sizes.
+	auto *scroll = new QScrollArea;
+	scroll->setObjectName(QStringLiteral("weaponBundleOptions"));
+	scroll->setWidgetResizable(true);
+	scroll->setFrameShape(QFrame::NoFrame);
+	scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	auto *body = new QWidget;
+	auto *form = new QFormLayout(body);
 	form->setRowWrapPolicy(QFormLayout::WrapAllRows);
 	form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-	layout->addLayout(form);
+	scroll->setWidget(body);
+	layout->addWidget(scroll, 2);
 	const auto field = [&](QWidget *control, const char *id, const QString &label, const QString &description) {
 		control->setObjectName(QString::fromLatin1(id));
 		control->setAccessibleName(label);
@@ -139,6 +152,72 @@ void ModelAssemblyDialog::chooseWeaponBundle()
 							  QStringLiteral("tag_barrel"), true);
 	auto *flash = partChoice("weaponBundleFlash", Text::tr("Flash part"),
 							 Text::tr("Optional single-pose muzzle flash on the weapon's tag_flash."), QStringLiteral("tag_flash"), true);
+	auto *detail = new QComboBox;
+	detail->addItems({Text::tr("None"), Text::tr("Generate"), Text::tr("Each part's stored detail levels")});
+	field(detail, "weaponBundleDetail", Text::tr("Detail levels"),
+		  Text::tr("Quake III loads a model's _1.md3 and _2.md3 files beside it as lower-detail versions by distance. Generate "
+				   "reduces each role model; stored detail levels use each part's own recipe."));
+	auto *levels = new QSpinBox;
+	levels->setRange(1, 2);
+	levels->setValue(2);
+	levels->setLayoutDirection(Qt::LeftToRight);
+	field(levels, "weaponBundleLodLevels", Text::tr("Generated levels"),
+		  Text::tr("How many detail levels to generate per model, up to the 2 Quake III loads."));
+	auto *ratio = new QDoubleSpinBox;
+	ratio->setRange(0.05, 0.95);
+	ratio->setSingleStep(0.05);
+	ratio->setDecimals(2);
+	ratio->setValue(0.5);
+	ratio->setLayoutDirection(Qt::LeftToRight);
+	field(ratio, "weaponBundleLodRatio", Text::tr("Share kept per level"),
+		  Text::tr("The share of the level above's triangles each generated level keeps."));
+	const auto syncDetail = [=] {
+		levels->setEnabled(detail->currentIndex() == 1);
+		ratio->setEnabled(detail->currentIndex() == 1);
+	};
+	syncDetail();
+	auto *sounds = new QTableWidget(0, 2);
+	sounds->setObjectName(QStringLiteral("weaponBundleSounds"));
+	sounds->setHorizontalHeaderLabels({Text::tr("Sound"), Text::tr("Source")});
+	sounds->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed | QAbstractItemView::AnyKeyPressed);
+	sounds->setSelectionBehavior(QAbstractItemView::SelectItems);
+	sounds->setSelectionMode(QAbstractItemView::SingleSelection);
+	sounds->setTabKeyNavigation(false);
+	sounds->setTextElideMode(Qt::ElideMiddle);
+	sounds->verticalHeader()->setVisible(false);
+	sounds->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	sounds->setLayoutDirection(Qt::LeftToRight);
+	sounds->setMinimumHeight(sounds->fontMetrics().lineSpacing() * 5);
+	{
+		const auto label = Text::tr("Weapon sounds");
+		sounds->setAccessibleName(label);
+		sounds->setAccessibleDescription(Text::tr("One row per sound: its name, published under sound/weapons/ in a folder named after the weapon ID, and a sound "
+												  "file or package:PATH. Mono PCM WAV is kept; other audio is converted to 22,050 Hz mono "
+												  "16-bit PCM. The weapon's game code chooses which sound plays when. Press F2 to edit a cell."));
+		sounds->setToolTip(sounds->accessibleDescription());
+		auto *text = new QLabel(label);
+		text->setTextFormat(Qt::PlainText);
+		text->setWordWrap(true);
+		text->setBuddy(sounds);
+		form->addRow(text);
+		form->addRow(sounds);
+	}
+	auto *soundButtons = new QHBoxLayout;
+	auto *addSound = new QPushButton(Text::tr("Add Sound"));
+	auto *removeSound = new QPushButton(Text::tr("Remove Sound"));
+	addSound->setObjectName(QStringLiteral("weaponBundleAddSound"));
+	removeSound->setObjectName(QStringLiteral("weaponBundleRemoveSound"));
+	addSound->setAccessibleDescription(Text::tr("Add a row for another weapon sound; type its name and source."));
+	removeSound->setAccessibleDescription(Text::tr("Remove the selected sound row."));
+	for (auto *control : {addSound, removeSound})
+	{
+		control->setAutoDefault(false);
+		control->setAccessibleName(control->text());
+		control->setToolTip(control->accessibleDescription());
+		soundButtons->addWidget(control);
+	}
+	soundButtons->addStretch();
+	form->addRow(soundButtons);
 	auto *files = new QTreeWidget;
 	files->setObjectName(QStringLiteral("weaponBundleFiles"));
 	files->setAccessibleName(Text::tr("Reviewed weapon package files"));
@@ -182,8 +261,26 @@ void ModelAssemblyDialog::chooseWeaponBundle()
 		publish->setEnabled(false);
 	};
 	connect(name, &QLineEdit::textChanged, &dialog, invalidate);
-	for (auto *combo : {weapon, hand, barrel, flash})
+	for (auto *combo : {weapon, hand, barrel, flash, detail})
 		connect(combo, &QComboBox::currentIndexChanged, &dialog, invalidate);
+	connect(detail, &QComboBox::currentIndexChanged, &dialog, syncDetail);
+	connect(levels, &QSpinBox::valueChanged, &dialog, invalidate);
+	connect(ratio, &QDoubleSpinBox::valueChanged, &dialog, invalidate);
+	connect(sounds, &QTableWidget::itemChanged, &dialog, invalidate);
+	connect(addSound, &QPushButton::clicked, &dialog, [&] {
+		const int row = sounds->rowCount();
+		sounds->insertRow(row);
+		sounds->setItem(row, 0, new QTableWidgetItem);
+		sounds->setItem(row, 1, new QTableWidgetItem);
+		sounds->setCurrentCell(row, 0);
+		sounds->setFocus();
+		invalidate();
+	});
+	connect(removeSound, &QPushButton::clicked, &dialog, [&] {
+		if (sounds->currentRow() >= 0)
+			sounds->removeRow(sounds->currentRow());
+		invalidate();
+	});
 	connect(files, &QTreeWidget::itemSelectionChanged, &dialog, [&] {
 		if (!prepared)
 			return;
@@ -196,6 +293,16 @@ void ModelAssemblyDialog::chooseWeaponBundle()
 		invalidate();
 		ModelWeaponBundleOptions options{name->text().trimmed(), weapon->currentData().toString(), hand->currentData().toString(),
 										 barrel->currentData().toString(), flash->currentData().toString()};
+		options.detailLevels = ModelPlayerDetailLevels(detail->currentIndex());
+		options.lodLevels = levels->value();
+		options.lodRatio = ratio->value();
+		const auto cell = [&](int row, int column) {
+			const auto *item = sounds->item(row, column);
+			return item ? item->text().trimmed() : QString();
+		};
+		for (int row = 0; row < sounds->rowCount(); ++row)
+			if (!cell(row, 0).isEmpty() || !cell(row, 1).isEmpty())
+				options.sounds.append({cell(row, 0), modelPlayerReference(cell(row, 1))});
 		ModelWeaponBundle candidate;
 		QString error;
 		if (!prepareWeaponBundle(options, &candidate, &error))

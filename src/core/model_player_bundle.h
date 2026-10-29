@@ -130,6 +130,11 @@ bool addModelBundleFile(ModelPlayerBundle *bundle, const QString &path, const QS
 bool transformModelBundlePart(ModelMesh *mesh, const ModelAssemblyPart &part, double parentScale, QString *error = nullptr,
 							  const ModelWorkControl &control = {});
 void protectModelBundleInput(ModelPlayerBundle *bundle, const QString &path);
+// A packaged sound as player packages deliver it: mono Microsoft PCM WAV kept
+// as it is, any other audio the studio reads converted to 22,050 Hz mono
+// 16-bit PCM. `sound.name` only labels messages and the receipt.
+bool modelBundleSoundBytes(const ModelAssemblyContext &context, const ModelPlayerSound &sound, ModelPlayerBundle *bundle, QByteArray *output,
+						   QJsonObject *receipt, QString *note, QString *error = nullptr, const ModelWorkControl &control = {});
 bool captureModelBundleDependencies(const ModelMesh &materials, const ModelAssemblyContext &context, ModelPlayerBundle *bundle,
 									QString *error = nullptr, const ModelWorkControl &control = {});
 } // namespace vibestudio

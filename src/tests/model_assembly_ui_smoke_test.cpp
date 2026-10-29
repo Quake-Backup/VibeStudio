@@ -186,6 +186,41 @@ int main(int argc, char **argv)
 						 error.contains("colormap.pcx"),
 					 "Quake II Player is on the toolbar and asks for the palette package");
 	}
+	{
+		// Muzzle flash visibility: preview only, for parts on a tag_flash.
+		auto flashModel = tests::assemblyModel();
+		for (auto &tag : flashModel.tags)
+			tag.name = QStringLiteral("tag_flash");
+		ok &= expect(write(path("flashgun.mesh.json"), QJsonDocument(editableModelJson(flashModel)).toJson()), "flash fixture");
+		auto flashRecipe = tests::assemblyRecipe(path("flashgun.mesh.json"));
+		flashRecipe.parts[1].tag = QStringLiteral("tag_flash");
+		ModelAssemblyDialog gun;
+		gun.setAttribute(Qt::WA_DeleteOnClose, false);
+		gun.show();
+		auto *showFlash = gun.findChild<QCheckBox *>("assemblyShowFlash");
+		auto *gunView = gun.findChild<ModelViewport *>("assemblyPreview");
+		ok &= expect(gun.setAssembly(flashRecipe, temporary.path(), &error) && showFlash && gunView && showFlash->isChecked() &&
+						 !showFlash->accessibleDescription().isEmpty() && gunView->mesh().surfaces.size() == 2,
+					 "the flash toggle is described and on by default");
+		if (showFlash && gunView)
+		{
+			const auto recipeBefore = modelAssemblyFingerprint(gun.document().assembly());
+			showFlash->setChecked(false);
+			ok &= expect(gunView->mesh().surfaces.size() == 1 && gun.pose().mesh.surfaces.size() == 2 &&
+							 modelAssemblyFingerprint(gun.document().assembly()) == recipeBefore,
+						 "hiding the flash leaves it out of the preview only");
+			gun.selectPart(QStringLiteral("child"));
+			const int hiddenHighlight = gunView->highlightedTriangleCount();
+			gun.selectPart(QStringLiteral("root"));
+			ok &= expect(hiddenHighlight == 0 && gunView->highlightedTriangleCount() == 1,
+						 "selection highlights only drawn surfaces while the flash is hidden");
+			showFlash->setChecked(true);
+			ok &= expect(gunView->mesh().surfaces.size() == 2, "showing the flash draws it again");
+		}
+		// A saved, unmodified recipe closes without asking.
+		ok &= expect(gun.saveSource(path("flashgun.assembly.json"), false, &error) && !gun.document().isModified(), "flash recipe saved");
+		gun.close();
+	}
 	const auto beforePlayback = modelAssemblyFingerprint(editor.document().assembly());
 	const double startTime = editor.timeSeconds();
 	// Playback holds its next sample while a frame renders, and this test's

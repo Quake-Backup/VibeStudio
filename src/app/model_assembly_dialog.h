@@ -144,6 +144,12 @@ class ModelAssemblyDialog final : public QDialog
 	QComboBox *m_tagInterpolation = nullptr;
 	// Session choice: carry part collision into pose and animation bakes.
 	QCheckBox *m_includeCollision = nullptr;
+	// Preview only: parts on a tag_flash (muzzle flashes) can be hidden, as the
+	// game shows them only for a moment after each shot. The preview's surface
+	// i is the pose's surface m_displaySurfaces[i].
+	QCheckBox *m_showFlash = nullptr;
+	QVector<int> m_displaySurfaces;
+	ModelMesh displayMesh();
 	QDoubleSpinBox *m_translation[3]{}, *m_rotation[3]{};
 	QDoubleSpinBox *m_scale = nullptr, *m_fps = nullptr, *m_phase = nullptr, *m_time = nullptr, *m_spin = nullptr;
 	QSpinBox *m_first = nullptr, *m_last = nullptr;

@@ -570,13 +570,31 @@ Weapon IDs follow the player ID rules and every path fits 63 characters. The
 receipt `vibestudio/weapon-<w>.json` records source identities and file hashes.
 **Export PK3…** uses the same atomic, deterministic package writer as players;
 inputs are never replaced. Register the weapon in the game code that loads its
-path; detail levels, sounds and effects are not part of the package.
+path; effects are not part of the package.
+
+**Detail levels** works as for players: **Generate** reduces every role model
+(one or two levels, each keeping **Share kept per level** of the one above), and
+**Each part's stored detail levels** uses each part's own recipe. The renderer's
+`RE_RegisterModel` loads `<name>_1.md3` and `<name>_2.md3` beside any model it
+registers, so each role gets `<w>_1.md3`, `<w>_hand_1.md3` and so on, placed like
+the role model and keeping its surfaces and tags; a level that would not load
+correctly is refused.
+
+**Weapon sounds** lists named sounds, each a file or `package:PATH`, published at
+`sound/weapons/<w>/<name>.wav` and delivered as player sounds are: mono PCM WAV is
+kept, other audio is converted to 22,050 Hz mono 16-bit PCM. Names use 1–32 ASCII
+letters, digits, underscores or hyphens; a package carries at most 16. Quake III
+assigns a weapon's flash, firing, ready and missile sounds in
+`CG_RegisterWeapon`, so point the game code that registers the weapon at these
+files. With detail levels or sounds the receipt uses schema 2 and adds
+`detailLevels` and `sounds`.
 
 **Spin about X (rpm)** on a part rolls it about its own X axis in the preview and
 the bakes, as the game rolls a barrel while firing (about 150 rpm for the
 machine gun). It is stored in assembly schema 4 as `spinRpm` and is not written
-to MD3. A flash visibility toggle is not yet available; remove the flash part to
-preview without it.
+to MD3. **Show muzzle flash**, under the preview, hides parts attached to a
+`tag_flash` from the preview, as the game shows a flash only for a moment after
+each shot; it lasts for the session and does not change bakes or packages.
 
 ```sh
 vibestudio --cli model assembly ./rail.assembly.json --operation weapon-review \
@@ -587,8 +605,11 @@ vibestudio --cli model assembly ./rail.assembly.json --operation weapon-export \
 ```
 
 `weapon-review` takes no output options; `weapon-export` requires an `--output`
-ending in `.pk3` and accepts `--dry-run` and `--overwrite`. `--spin-rpm` sets a
-part's preview spin on `add` and `update`.
+ending in `.pk3` and accepts `--dry-run` and `--overwrite`. Both accept
+`--lod-levels N` with an optional `--lod-ratio R`, or `--lod-recipes`, for detail
+levels, and repeatable `--sound NAME=PATH` (a file or `package:PATH`); JSON adds
+`detailLevels` and `sounds`. `--spin-rpm` sets a part's preview spin on `add` and
+`update`.
 
 ## Quake II Player Packages
 

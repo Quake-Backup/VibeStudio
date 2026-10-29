@@ -357,7 +357,8 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 					   "--upper-animation", "--tag-interpolation"});
 	}
 	if (weapon)
-		allowed.unite({"--weapon-name", "--weapon-part", "--hand-part", "--barrel-part", "--flash-part"});
+		allowed.unite({"--weapon-name", "--weapon-part", "--hand-part", "--barrel-part", "--flash-part", "--sound", "--lod-levels", "--lod-ratio",
+					   "--lod-recipes"});
 	if (operation != "inspect" && operation != "player-review" && operation != "weapon-review")
 	{
 		allowed << "--output" << "--overwrite" << "--dry-run";
@@ -780,6 +781,31 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 		weaponOptions.handPart = values.value("--hand-part");
 		weaponOptions.barrelPart = values.value("--barrel-part");
 		weaponOptions.flashPart = values.value("--flash-part");
+		// Sounds as NAME=PATH, PATH a file or package:PATH; detail levels as for players.
+		for (const auto &item : repeated.value("--sound"))
+		{
+			const int equal = item.indexOf('=');
+			if (equal <= 0 || equal + 1 >= item.size())
+				return fail(2, QCoreApplication::translate("ModelAssemblyCli", "Use --sound NAME=PATH; PATH is a file or package:PATH."));
+			auto source = modelPlayerReference(item.mid(equal + 1));
+			if (source.sourceKind == ModelAssemblySource::File)
+				source.source = QFileInfo(source.source).absoluteFilePath();
+			weaponOptions.sounds.append({item.left(equal), source});
+		}
+		if ((values.contains("--lod-levels") && seen.contains("--lod-recipes")) || (values.contains("--lod-ratio") && !values.contains("--lod-levels")))
+			return fail(2, QCoreApplication::translate("ModelAssemblyCli", "Use --lod-levels N (with an optional --lod-ratio) or --lod-recipes, not both."));
+		if (seen.contains("--lod-recipes"))
+			weaponOptions.detailLevels = ModelPlayerDetailLevels::Stored;
+		if (values.contains("--lod-levels"))
+		{
+			bool levelsValid = false, ratioValid = true;
+			weaponOptions.detailLevels = ModelPlayerDetailLevels::Generated;
+			weaponOptions.lodLevels = values.value("--lod-levels").toInt(&levelsValid);
+			if (values.contains("--lod-ratio"))
+				weaponOptions.lodRatio = values.value("--lod-ratio").toDouble(&ratioValid);
+			if (!levelsValid || !ratioValid)
+				return fail(2, QCoreApplication::translate("ModelAssemblyCli", "--lod-levels takes 1 or 2 and --lod-ratio 0.05 to 0.95."));
+		}
 		ModelWeaponBundle bundle;
 		if (!prepareModelWeaponBundle(document.assembly(), resolved, context, weaponOptions, source, &bundle, &error))
 			return fail(4, error);

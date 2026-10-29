@@ -2218,7 +2218,8 @@ Each resolved path may be a definition file or a folder of them.
   `bake` and `bake-animation` accept `--collision include|omit` to carry part
   collision into the bake; JSON reports `collisionVolumes`. `--tag joint:NAME`
   attaches a part to a skeletal parent's joint. `--operation weapon-review|weapon-export`
-  reviews and publishes a Quake III weapon set (see
+  reviews and publishes a Quake III weapon set, with detail levels (`--lod-levels`,
+  `--lod-ratio`, `--lod-recipes`) and repeatable `--sound NAME=PATH` (see
   [Weapon packages](MODEL_ASSEMBLY.md#weapon-packages)), and
   `--operation q2-player-review|q2-player-export` a Quake II player (see
   [Quake II player packages](MODEL_ASSEMBLY.md#quake-ii-player-packages)).
