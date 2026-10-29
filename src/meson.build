@@ -441,6 +441,14 @@ core_sources = files(
   'core/model_surface_selection.cpp',
   'core/model_geometric_topology.cpp',
   'core/model_mesh_tools.cpp',
+  'core/model_align.cpp',
+  'core/model_whole_transform.cpp',
+  'core/model_topology_tools.cpp',
+  'core/model_connect.cpp',
+  'core/model_dissolve.cpp',
+  'core/model_sharp_edges.cpp',
+  'core/model_weld.cpp',
+  'core/model_intersection_guard.cpp',
   'core/model_edge_slide.cpp',
   'core/model_edge_bevel.cpp',
   'core/model_spin.cpp',
@@ -652,6 +660,8 @@ install_headers('core/model_animation_constraints.h', 'core/model_clip_import.h'
 install_headers('core/model_edge_slide.h', subdir: 'vibestudio/core')
 install_headers('core/model_rip.h', subdir: 'vibestudio/core')
 install_headers('core/model_vertex_identity.h', subdir: 'vibestudio/core')
+install_headers('core/model_align.h', subdir: 'vibestudio/core')
+install_headers('core/model_whole_transform.h', 'core/model_topology_tools.h', subdir: 'vibestudio/core')
 install_headers('core/model_skinning_tools.h', subdir: 'vibestudio/core')
 install_headers('core/model_skeleton.h', 'core/model_md5.h', 'core/model_ase.h', 'core/model_iqm.h', subdir: 'vibestudio/core')
 install_headers('core/model_skeletal_export.h', subdir: 'vibestudio/core')
@@ -971,6 +981,8 @@ app_sources = files(
   'app/model_editor_modal.cpp',
   'app/model_editor_knife.cpp',
   'app/model_editor_rip.cpp',
+  # Align Vertices and topology tool commands, menus and the Item page row.
+  'app/model_editor_topology.cpp',
   # Keyboard focus between panels, Tab keys scoped to the view, key hints.
   'app/model_editor_keyboard.cpp',
   # Modeller profiles, sidebars, four-view panes and the skeleton panel.
@@ -3605,6 +3617,19 @@ model_mesh_tools_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-mesh-tools-smoke', model_mesh_tools_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+
+# Align Vertices and the polygon modelling round's topology tools (core and CLI).
+model_topology_tools_smoke_test = executable(
+  'model_topology_tools_smoke_test', ['tests/model_topology_tools_smoke_test.cpp', 'cli/model_tools.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-topology-tools-smoke', model_topology_tools_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+
+model_topology_tools_ui_smoke_test = executable(
+  'model_topology_tools_ui_smoke_test', ['tests/model_topology_tools_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+)
+test('model-topology-tools-ui-smoke', model_topology_tools_ui_smoke_test, env: model_document_test_env, timeout: 240)
 
 model_edge_slide_smoke_test = executable(
   'model_edge_slide_smoke_test', ['tests/model_edge_slide_smoke_test.cpp', 'cli/model_tools.cpp'],

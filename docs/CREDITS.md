@@ -718,6 +718,25 @@ integration are original implementations. No upstream source, prose, icons or
 assets were incorporated. [Rip](MODEL_RIP.md) documents VibeStudio's explicit
 side-face, nonzero movement, all-pose behaviour and whole-operation cancellation.
 
+The polygon modelling round of 2026-10-28 follows documented behaviour only,
+reviewed on 2026-10-28: Blender's
+[Connect Vertex Path](https://docs.blender.org/manual/en/latest/modeling/meshes/editing/vertex/connect_vertex_path.html),
+[Delete, Dissolve Edges and Limited Dissolve](https://docs.blender.org/manual/en/latest/modeling/meshes/editing/mesh/delete.html),
+[Recalculate Outside](https://docs.blender.org/manual/en/latest/modeling/meshes/editing/mesh/normals.html),
+[Mark Sharp](https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/edge_data.html)
+and [Auto Merge and snapping](https://docs.blender.org/manual/en/latest/modeling/meshes/tools/tool_settings.html)
+(manual CC-BY-SA-4.0; application GPL-2.0-or-later); Autodesk 3ds Max's
+Editable Poly Connect, Remove and Target Weld (3ds Max 2024 help); and
+MilkShape 3D 1.8's Flatten and Snap Together. `src/core/model_align.cpp`,
+`model_whole_transform.cpp`, `model_connect.cpp`, `model_dissolve.cpp`,
+`model_topology_tools.cpp`, `model_sharp_edges.cpp`, `model_weld.cpp`,
+`model_intersection_guard.cpp` and `src/app/model_editor_topology.cpp` are
+original implementations; no upstream source, prose, icons or assets were
+incorporated. Face snapping uses the ray–triangle intersection published by
+Tomas Möller and Ben Trumbore, ["Fast, Minimum Storage Ray/Triangle
+Intersection"](https://doi.org/10.1080/10867651.1997.10487468) (Journal of
+Graphics Tools, 1997).
+
 Decimation implements the quadric error metric published by Michael Garland and
 Paul S. Heckbert, ["Surface Simplification Using Quadric Error Metrics"](https://doi.org/10.1145/258734.258849)
 (SIGGRAPH 1997), as half-edge collapses with quadrics summed over sampled

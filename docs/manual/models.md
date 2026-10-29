@@ -353,6 +353,65 @@ linked destination needs a large folder scan, validation reports progress and
 can be cancelled. If source protection cannot be completed, choose a new output
 outside the input package, folder or draft.
 
+### Shape and clean up geometry
+
+**Tune a selection.** After **Select > Select Similar**, **Sharp Edges**,
+**Random** or **Checker Deselect**, press <kbd>F9</kbd> to change its
+threshold, ratio, seed or spacing; the selection updates without an undo step.
+
+**Put vertices on an exact coordinate.** Select the vertices, then choose
+**Mesh > Snap > Align > Flatten X** (or **Y**, **Z**) to line them up on their
+centroid, or type a value in **Selection position** on the **Item** page, for
+example X = 0 for a model's centre line before **Symmetrize**. **Snap
+Selection to Grid** rounds every selected vertex to the Move snap step. Press
+<kbd>F9</kbd> to switch between a value, the centroid, the minimum, the
+maximum and the grid. Seam copies move together, **Apply to** chooses every
+frame or the current one, and an alignment that would collapse a face is
+refused. See [Align vertices](../MODEL_TOOLS.md#align-vertices).
+
+**Add an edge where you need it.** Select two vertices and press <kbd>J</kbd>
+(**Vertex > Connect Vertex Path**) to join them with a straight cut, or select
+opposite sides of quads and choose **Edge > Connect Edges** to add edges
+across them without cutting a whole loop; <kbd>F9</kbd> sets the number of
+cuts and their slide. See
+[Connect vertices and edges](../MODEL_TOOLS.md#connect-vertices-and-edges).
+
+**Weld and conform.** Point at a vertex and choose **Merge > Merge at Target
+Under Pointer** to weld the selection onto it, or turn on **Snap > Auto Merge
+Vertices** so moves weld what they bring together. Set **Snap to** to
+**Face** to slide armour or attachments over a body, or **Edge Midpoint** to
+centre them on an edge. See
+[Snapping and welding](../MODEL_TOOLS.md#snapping-and-welding).
+
+**Catch faces pushed through the model.** When a bevel, inset, spin or similar
+tool makes faces cross other faces, the banner says so and **Mesh > Clean Up >
+Select New Intersections** selects them; turn on **Refuse New Intersections**
+to refuse such edits instead. See [New intersections](../MODEL_TOOLS.md#new-intersections).
+
+**Fix faces that vanish in game.** Choose **Mesh > Normals > Recalculate
+Outside** (<kbd>Shift</kbd>+<kbd>N</kbd> in the Blender profile) to turn every
+face of the selection, or the whole surface, to face outward, across UV
+seams. See [Recalculate outside](../MODEL_TOOLS.md#recalculate-outside).
+
+**Make an edge hard or soft.** Select the edges and choose **Normals > Mark
+Sharp** for a crisp edge in game lighting, or **Clear Sharp** to smooth it.
+See [Hard edges](../MODEL_TOOLS.md#hard-edges).
+
+**Remove geometry without leaving holes.** <kbd>X</kbd> opens **Delete**:
+**Delete Vertices** and **Delete Edges** remove the faces around them, while
+**Dissolve Edges** merges the faces on both sides of the selected edges, for
+example to take out a loop. **Mesh > Clean Up > Limited Dissolve** merges
+nearly flat faces of an import to meet the MD3, MD2 or MDL budget. See
+[Delete and dissolve](../MODEL_TOOLS.md#delete-and-dissolve).
+
+**Re-orient, rescale or re-origin the whole model.** Use **Mesh > Transform
+Model**: **Origin to Bounds Bottom (Feet)** puts a standing model's feet on the
+origin, **Turn Model 90° Left** or **Right** makes an import face +X, **Scale
+Model to Height…** scales it to Quake units, and **Transform Model…** takes
+exact values. Attachment tags, collision boxes, the skeleton and the MDL eye
+position move with the geometry in every frame, as one undo step. See
+[Transform Model](../MODEL_MESH.md#transform-model).
+
 ### Find your way around
 
 The editor is laid out like the Levels page:

@@ -1,7 +1,7 @@
 // Modeller profiles in the Mesh Editor: keys, gestures and transform rules
 // from core/model_editor_controls.h, lasting tools and axis locks for 3ds Max
 // and MilkShape 3D users, hiding and isolating, and the commands profiles add
-// (Border and Element levels, flatten, snap to grid, frame stepping).
+// (Border and Element levels, frame stepping).
 #include "app/model_editor_tools.h"
 #include "app/locale_number.h"
 
@@ -479,91 +479,8 @@ void ModelEditorTools::buildProfileActions()
 					  setAxisLock(-1, false);
 			  });
 	addAction(QStringLiteral("meshToggleSnap"), Text::tr("Toggle Snapping"), {}, [this] { m_editor->m_snapTranslation->toggle(); });
-	for (int axis = 0; axis < 3; ++axis)
-	{
-		const QString names[3]{QStringLiteral("X"), QStringLiteral("Y"), QStringLiteral("Z")};
-		addAction(QStringLiteral("meshFlatten%1").arg(names[axis]), Text::tr("Flatten %1").arg(names[axis]), {},
-				  [this, axis]
-				  {
-					  // MilkShape's Flatten gives the selection one coordinate:
-					  // a zero scale along the axis about the selection's centre.
-					  ModelVec3 centre{};
-					  if (!selectionCentre(&centre))
-					  {
-						  showBanner(Text::tr("Select the vertices to flatten first."), {}, LiveStatus::Problem);
-						  return;
-					  }
-					  auto edit = toolEdit(ModelEditKind::Transform);
-					  edit.pivotMode = ModelTransformPivot::Custom;
-					  edit.pivot = centre;
-					  edit.transformSpace = ModelTransformSpace::World;
-					  edit.scale = {axis == 0 ? 0.0f : 1.0f, axis == 1 ? 0.0f : 1.0f, axis == 2 ? 0.0f : 1.0f};
-					  QString error;
-					  if (!runTool(edit, &error))
-						  showBanner(error, {}, LiveStatus::Problem);
-				  });
-	}
-	addAction(QStringLiteral("meshSnapSelectionToGrid"), Text::tr("Snap Selection to Grid"), {},
-			  [this]
-			  {
-				  // Each selected vertex moves to its nearest grid point.
-				  const auto &mesh = m_editor->m_document.mesh();
-				  const auto selection = m_editor->m_document.selection();
-				  const double grid = std::max(0.000001, m_editor->m_translationGrid->value());
-				  if (selection.surface < 0 || selection.surface >= mesh.surfaces.size())
-					  return;
-				  const auto &surface = mesh.surfaces[selection.surface];
-				  QSet<int> vertices = selection.vertices;
-				  for (auto edge : selection.edges)
-					  vertices << edge.first << edge.second;
-				  for (int face : selection.faces)
-				  {
-					  if (face >= 0 && face < surface.triangles.size())
-						  vertices << surface.triangles[face].a << surface.triangles[face].b << surface.triangles[face].c;
-				  }
-				  const int frame = std::clamp(m_editor->m_frame->currentIndex(), 0, std::max(0, int(surface.frames.size()) - 1));
-				  if (vertices.isEmpty() || surface.frames.isEmpty())
-				  {
-					  showBanner(Text::tr("Select the vertices to snap first."), {}, LiveStatus::Problem);
-					  return;
-				  }
-				  // One undoable edit per vertex would flood history; snap through
-				  // a single weighted transform per distinct offset instead.
-				  QHash<QString, QSet<int>> groups;
-				  QHash<QString, ModelVec3> offsets;
-				  for (int vertex : vertices)
-				  {
-					  if (vertex < 0 || vertex >= surface.frames[frame].positions.size())
-						  continue;
-					  const auto p = surface.frames[frame].positions[vertex];
-					  const ModelVec3 snapped{float(std::round(p.x / grid) * grid), float(std::round(p.y / grid) * grid),
-											  float(std::round(p.z / grid) * grid)};
-					  const ModelVec3 offset{snapped.x - p.x, snapped.y - p.y, snapped.z - p.z};
-					  const QString key = QStringLiteral("%1 %2 %3").arg(offset.x, 0, 'g', 9).arg(offset.y, 0, 'g', 9).arg(offset.z, 0, 'g', 9);
-					  groups[key].insert(vertex);
-					  offsets.insert(key, offset);
-				  }
-				  int moved = 0;
-				  for (auto it = groups.cbegin(); it != groups.cend(); ++it)
-				  {
-					  const auto offset = offsets.value(it.key());
-					  if (std::abs(offset.x) + std::abs(offset.y) + std::abs(offset.z) < 1e-9)
-						  continue;
-					  auto edit = toolEdit(ModelEditKind::Transform);
-					  edit.selection = {selection.surface, it.value(), {}};
-					  edit.transformSpace = ModelTransformSpace::World;
-					  edit.translation = offset;
-					  QString error;
-					  if (!runTool(edit, &error))
-					  {
-						  showBanner(error, {}, LiveStatus::Problem);
-						  break;
-					  }
-					  moved += it.value().size();
-				  }
-				  applySelection(selection);
-				  showBanner(Text::tr("%Ln vert(ex)(ices) snapped to the %1-unit grid.", nullptr, int(moved)).arg(localeNumber(grid)));
-			  });
+	// Flatten X/Y/Z and Snap Selection to Grid are Align Vertices commands
+	// (model_editor_topology.cpp).
 	addAction(QStringLiteral("meshShowUvEditor"), Text::tr("Texture Coordinate Editor"), {},
 			  [this]
 			  {

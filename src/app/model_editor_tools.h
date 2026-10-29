@@ -267,6 +267,8 @@ class ModelEditorTools final : public QObject
 		// Vertex snapping: other vertices on screen and the moving selection's points.
 		QVector<QPointF> snapScreen;
 		QVector<ModelVec3> snapWorld, selectedPoints;
+		// Face snapping: the faces that do not move, in the displayed pose.
+		QVector<std::array<ModelVec3, 3>> snapTriangles;
 		bool snapped = false;
 		QPointF snapPoint;
 		ModelKnifeOptions knife;
@@ -375,6 +377,47 @@ class ModelEditorTools final : public QObject
 	void buildProfileActions();
 	// Copy Pose, Paste Pose, Paste Pose Mirrored, Mirror Pose (model_editor_pose.cpp).
 	void buildPoseActions();
+	// Align Vertices and the topology tools' commands, menus and the Item
+	// page's selection position row (model_editor_topology.cpp).
+	void buildTopologyActions();
+	void buildTopologyMenus();
+	void buildAlignRow();
+	void refreshAlignRow();
+	bool runAlign(int axes, ModelAlignTarget target, const std::array<double, 3> &value, double grid, QString *error = nullptr);
+	QPointer<QDoubleSpinBox> m_alignFields[3];
+	// Transform Model (model_editor_topology.cpp): the edit with the current
+	// selection kept, and the origin presets (0 bounds centre, 1 bounds bottom,
+	// 2 3D cursor, 3 selection centre).
+	void buildModelTransformActions();
+	[[nodiscard]] ModelEdit wholeModelEdit() const;
+	bool runOrigin(int target);
+	// The selection operator run last, the selection it started from and the
+	// one it produced, so Adjust Last Operation can re-run it with other
+	// settings without touching the document or its history. Another
+	// selection change or an edit makes it stale.
+	struct LastSelect
+	{
+		ModelSelectRequest request;
+		ModelSelection start, result;
+		QByteArray revision;
+		bool active = false;
+	};
+	LastSelect m_lastSelect;
+	// Intersection guard: the face pairs the last tool made cross, and whether
+	// tools refuse such edits instead (model_editor_topology.cpp).
+	QVector<QPair<int, int>> m_lastIntersections;
+	int m_lastIntersectionSurface = -1;
+	bool m_refuseIntersections = false;
+	void noteIntersections(const ModelEdit &edit, const ModelEditReport &report);
+	// Auto Merge: a modal move, rotate or scale welds what it brings within the
+	// weld distance (model_editor_topology.cpp).
+	bool m_autoMerge = false;
+	// The vertex of the active surface nearest the point (within 16 px), or -1.
+	[[nodiscard]] int vertexAt(const QPointF &point);
+	void rememberSelect(const ModelSelectRequest &request, const ModelSelection &start);
+	// Shows the selection operator's settings in Adjust Last Operation while
+	// it is current; false leaves the panel to the last edit.
+	bool refreshSelectPanel();
 	void buildMenus();
 	void buildHeader();
 	void buildShelf();

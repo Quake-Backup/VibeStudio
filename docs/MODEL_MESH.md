@@ -212,7 +212,8 @@ step: Move accepts 0.000001–1,000,000 model units, Rotate 0.000001–180 degre
 Scale 0.000001–10,000. Translation rounds the delta in the chosen axes rather than final positions.
 Scale rounds the distance from 1, preserving neutral axes; a step of 0.25 gives
 factors such as 0.75, 1, 1.25, and 1.5. Half-step ties round away from zero (away
-from 1 for scale). Zero-scale results fail. Numeric Apply Transform uses all three
+from 1 for scale). Zero-scale results fail; to flatten a selection onto one
+coordinate use [Align Vertices](MODEL_TOOLS.md#align-vertices). Numeric Apply Transform uses all three
 configured steps when Snap is enabled. Extrusion and duplication do not use Snap.
 Free rotation preserves its screen-space rotation axis and snaps the total
 shortest-arc angle to the nearest step multiple within 0–180 degrees. The XYZ
@@ -359,7 +360,9 @@ selection, source seam marks and recovery data:
 - **Orient Faces** makes shared-edge winding consistent, keeping each connected
   component's lowest-index face as the orientation seed. It does not infer
   outside direction or change authored normals. Use Flip Faces for the opposite
-  orientation and Recalculate Normals when desired. Duplicate faces, branching
+  orientation and Recalculate Normals when desired, or
+  [Recalculate Outside](MODEL_TOOLS.md#recalculate-outside), which works across UV
+  seams and decides which side is out. Duplicate faces, branching
   edges and nonorientable components must be resolved before orientation succeeds.
 
 Repairs preserve materials, tags and all animated attributes. Storage limits,
@@ -660,6 +663,39 @@ or later shift forward. Generated names use a prefix (default `blend`, at most
 123 characters) followed by `_001`, `_002`, and so on. Native export still
 enforces its shorter name limits. Linked parts use the separate
 [assembly editor](MODEL_ASSEMBLY.md); game timing configuration remains release work.
+
+### Transform Model
+
+**Mesh > Transform Model** re-orients, rescales or re-origins the whole model,
+as idTech delivery expects: models face +X, use Quake units (a player is 56
+units tall) and keep their origin at the feet or centre. One edit moves every
+part together, so nothing is left behind:
+
+| Part | What happens |
+| --- | --- |
+| Surfaces | Every position and normal in every pose. A mirror (negative scale) reverses winding on every surface, so faces keep facing out. |
+| Attachment tags | Origins move and axes turn in every frame. Axes stay orthonormal: a non-uniform scale keeps the forward and up directions, and a mirror recomputes the left axis so tags stay right-handed. |
+| Collision boxes | Centre, size and rotation of the box and of every collision pose. A rotated box under a non-uniform scale would shear and is refused. |
+| Skeleton | Bind joints, every clip frame and its bounds, skeletal tag offsets and the influences' bind offsets, so baking the skeleton again gives the transformed frames. Skeletal models take rotation, a positive uniform scale and translation only; rotating a model whose root joints have animation curves is refused. |
+| Quake MDL | The eye position. |
+
+Bounds and radii are recomputed. The edit always covers every frame, keeps
+the selection, and is one undo step; **Adjust Last Operation** changes the
+move, rotation, scale and pivot. The commands:
+
+- **Transform Model…**: offset, rotation (degrees, X then Y then Z), scale and
+  pivot (the 3D cursor by default) in one dialog.
+- **Origin to Bounds Centre**, **Origin to Bounds Bottom (Feet)**, **Origin to
+  3D Cursor** and **Origin to Selection** (also in the **Snap** menu) move the
+  model so that point lands on the origin; the bounds are measured in the
+  displayed pose.
+- **Turn Model 90° Left** and **Turn Model 90° Right** turn it about Z, to
+  face an import along +X.
+- **Scale Model to Height…** scales it uniformly about the origin to a height
+  along Z in the displayed pose (56 units by default).
+
+The CLI equivalent is `model edit --operation transform-model` (see
+[CLI](#cli)).
 
 ### Quake III skin assignments
 
@@ -1413,6 +1449,17 @@ accepts an optional `--tag-origin x,y,z` (default zero) and initial `--rotate x,
 `set-tag-origin` requires the absolute origin. `copy-tag-pose` requires
 `--source-frame N` and copies that pose into the selected all/current-frame scope.
 `reset-tag-orientation` explicitly writes identity axes in that scope.
+`transform-model` moves the whole model, as [Transform Model](#transform-model)
+does: `--offset`, `--rotate` and `--scale` about `--pivot x,y,z` (default
+0,0,0), or `--origin bounds-centre|bounds-bottom|point` (with `--at x,y,z`,
+and without `--offset`) measured in `--source-frame N` (default 0). It covers
+every frame and refuses component selectors and `--frame N` with exit code 2.
+
+```sh
+vibestudio --cli model edit ./models/import.mesh.json --operation transform-model --rotate 0,0,90 --scale 2,2,2 --output ./models/facing-x.mesh.json --json
+vibestudio --cli model edit ./models/import.mesh.json --operation transform-model --origin bounds-bottom --output ./models/feet.mesh.json --dry-run --json
+```
+
 `transform-tag` shares `--offset`, `--rotate`, `--snap-grid`, `--snap-angle`,
 `--pivot`, `--pivot-mode` and `--pivot-frame` semantics with mesh transforms;
 selection-centred pivots use the tag origin in the reference pose. Dry runs,

@@ -121,6 +121,7 @@ right-click to start another path; **Enter/Space** confirms and **Esc** cancels.
 | Alt+**S** | Shrink/Fatten along vertex normals |
 | Shift+**D** | Duplicate faces and move them |
 | Ctrl+**R** | Loop cut: across the one selected edge between quads, or the edge under the pointer |
+| **J** | Connect Vertex Path between the selected vertices (not modal) |
 | Ctrl+Shift+**B** | Bevel vertices: move away from the selection to widen |
 | Ctrl+**B** | Bevel edges: type a width; wheel or Page Up/Down changes segments |
 | **K** | Knife: add path points, then confirm the complete preview |
@@ -186,7 +187,8 @@ Shift+right-click places the 3D cursor on the surface under the pointer (or in
 the view plane at the cursor's depth). **Add** places new primitives there, and
 **Merge at Cursor**, **Bisect Through 3D Cursor** and **Pivot at 3D Cursor** use
 it. **Shift+S** opens the snap menu: Cursor to Selected, Cursor to World Origin
-(also Shift+**C**), Cursor to Grid and Selection to Cursor.
+(also Shift+**C**), Cursor to Grid, Selection to Cursor, **Snap Selection to
+Grid** and the **Align** submenu (see [Align vertices](#align-vertices)).
 
 ## Menus And Panels
 
@@ -210,6 +212,18 @@ redoes the last tool with the new value in place of the old result, still as one
 undo step. The panel only edits a result that is still current; after another
 edit it shows the earlier settings without applying them. Shift+**R** repeats
 the last tool on the current selection.
+
+Selection operators are adjustable the same way, without touching the model or
+its history: after **Select Similar**, **Sharp Edges**, **Random**, **Checker
+Deselect**, **Side of Axis**, **Mirror Selection** or **Select Linked**, the
+panel shows the operator's threshold (degrees, or percent for area and
+length), ratio and seed, every nth and offset, axis and side, or **Stop at UV
+seams**, with **Extend** where the operator can add to the selection. Each
+change selects again from the selection the operator started with, so the
+result is the same as running it with those settings, as `model select` does
+with `--threshold`, `--ratio`, `--seed`, `--nth`, `--offset`, `--axis`,
+`--negative`, `--extend` and `--delimit-seams`. Changing the selection any
+other way, or editing the model, returns the panel to the last edit.
 
 ## Keyboard Focus
 
@@ -319,8 +333,12 @@ weights. See [skin weights through mesh edits](MODEL_SKIN_PROVENANCE.md) and the
 | Edge Slide | Moves selected chains or loops along their surrounding quad rails by a signed fraction or reference-pose distance. UVs remain attached; invalid branches, collapsed faces and ambiguous rails refuse the edit. See [edge sliding](MODEL_EDGE_SLIDE.md). |
 | Merge at Center / Cursor | Joins the selection into one point. Vertices connected by an edge share one index and an averaged UV; unconnected seam copies stay separate, as per-corner UVs would. At Cursor places the displayed pose at the cursor and keeps other poses' motion. |
 | Collapse | Merges each connected group of selected components to its own centre. |
+| Merge at Target | Welds the selection onto the vertex under the pointer, keeping that vertex's position in every pose, its UVs and its normal (3ds Max's Target Weld). See [Snapping and welding](#snapping-and-welding). |
 | Dissolve Vertices | Removes vertices and refills each fan with ear clipping. Seam copies are dissolved per side. |
 | Dissolve Faces | Replaces each selected region (one UV island, one border, no holes) with a triangulated polygon. |
+| Delete Vertices / Edges / Faces | Removes every face touching a selected vertex, every face using a selected edge, or the selected faces, then the vertices nothing uses. A delete that would empty the surface is refused. **X** opens **Delete** with the current select mode's entry first. |
+| Dissolve Edges | Merges the faces on each side of the selected edges into one polygon and fills it again; vertices left between two edges along the dissolved chains go too (**Dissolve vertices** in Adjust Last Operation). Ctrl+Backspace in the 3ds Max profile. See [Delete and dissolve](#delete-and-dissolve). |
+| Limited Dissolve | Merges neighbouring faces within an angle (5° by default) and removes border vertices on a straight line. See [Delete and dissolve](#delete-and-dissolve). |
 | Make Face (**F**) | Builds a triangle or quad from three or four vertices (or two edges), wound to match its neighbours. |
 | Poke Faces | Adds a centre vertex to each face, optionally lifted along the face normal. |
 | Beautify Faces | Flips diagonals inside the selection to make triangles more even. |
@@ -329,15 +347,196 @@ weights. See [skin weights through mesh edits](MODEL_SKIN_PROVENANCE.md) and the
 | Inset Faces | Insets a region (or each face) by a thickness with optional depth. Even thickness keeps a constant border at corners; a thickness that would fold the border over is refused. |
 | Shrink/Fatten | Moves vertices along their normals; even thickness keeps faces parallel. |
 | Smooth Vertices | Averages selected vertices toward their neighbours (factor, repeat, keep borders). |
+| Recalculate Outside / Inside | Makes winding consistent across UV seams and turns each connected piece to face outward (or inward). Shift+N and Ctrl+Shift+N in the Blender profile. See [Recalculate outside](#recalculate-outside). |
+| Mark Sharp / Clear Sharp | Makes the selected edges hard or smooth for vertex normals, splitting or welding vertices only where the edges separate faces. See [Hard edges](#hard-edges). |
 | Shade Flat / Smooth / Auto Smooth | Sets MD3/MD2 vertex normals: flat gives each face its own corners, smooth welds same-position same-UV copies, Auto Smooth keeps edges sharper than its angle (30° by default) hard. |
 | Bisect | Cuts the selected faces with a plane and can delete either side. |
 | Symmetrize | Replaces one half of the selection with a mirror of the other, joining vertices within the merge distance of the plane. Mirrored halves share their UV layout, the usual way to save texture space. On a skinned surface, **Symmetrize Skin Weights** first confirms each off-centre joint's mirror partner on the other side of the plane (**Detect Pairs** reads left and right names), or keeps the joint names; joints on the plane always keep theirs. **Adjust Last Operation** asks again for a new axis, and **Repeat Last** for its target surface. |
 | Loop Cut | Adds 1–64 edge loops across a ring of quads; one cut can slide between the sides. Triangles at the ends of an open ring are split too, so no T-junctions remain. |
 | Bevel Vertices | Replaces each selected vertex with a cap whose corners sit the bevel width along every edge it had. Bevelling both ends of an edge keeps a point on that edge where it folds. A width that reaches past a neighbouring vertex is refused. |
 | Bevel Edges | Builds chamfer/rounded bands and joined corner caps with width, 1–32 segments and roundness. Retains face-side UVs, interpolates skin influences and checks every stored pose. See [edge bevel](MODEL_EDGE_BEVEL.md). |
+| Connect Vertex Path (**J**) | Joins two selected vertices, a CLI path, or the selected opposite corners of quads with new edges. See [Connect vertices and edges](#connect-vertices-and-edges). |
+| Connect Edges | Adds 1–64 evenly spaced edges between the selected opposite sides of quads, as 3ds Max's Connect does, with a slide along the ring. See [Connect vertices and edges](#connect-vertices-and-edges). |
 | Knife | Cuts finite, crossing, closed or disconnected paths, with visible/through and selected-face scope. Interpolates every pose, UVs and skinning, preserves hidden child faces and selects path edges. See [knife controls and CLI](MODEL_KNIFE.md). |
 | Solidify | Gives selected faces a thickness: flipped back faces sit behind along the angle-weighted normals (even thickness by default) and a rim with its own hard-edged corners closes open borders. Single-sided sheets such as capes and banners render from both sides in every idTech renderer. |
+| Transform Model | Moves, turns or scales the whole model with its tags, collision boxes, skeleton and MDL eye position; origin presets put the bounds centre, the feet, the cursor or the selection on the origin. See [Transform Model](MODEL_MESH.md#transform-model). |
+| Align Vertices | Gives the selection one coordinate on chosen axes, or rounds it to the grid, as one undo step. See [Align vertices](#align-vertices). |
 | Decimate | Quadric error simplification to a ratio or a triangle budget, measured over up to eight sampled poses. UV seams, borders (unless allowed) and every pose's shape are protected. **Decimate to MD3 Budget** targets Quake III's working limit of 1,999 triangles per surface. |
+
+### Snapping and welding
+
+The header's **Snap to** choice decides what a snapped move (the **Snap**
+toggle, or Ctrl held during **G**) lands on:
+
+| Choice | The moving point nearest the target lands on |
+| --- | --- |
+| Increment | Grid steps of the Move snap step |
+| Vertex | The vertex under the pointer |
+| Edge Midpoint | The middle of the edge under the pointer |
+| Face | The point of the face under the pointer, so armour and attachments conform to a body |
+
+The banner says what the move snapped to, and only geometry that is not
+moving is a target.
+
+**Merge > Merge at Target Under Pointer** welds the selected vertices onto the
+vertex under the pointer. The target keeps its position in every pose, its UVs
+and its normal; a UV seam copy of the target takes the side of the seam
+nearest its own UVs, so seams survive. Faces that collapse go, and a weld that
+would join three faces at one edge is refused. **Adjust Last Operation**
+changes the target vertex by index.
+
+**Snap > Auto Merge Vertices** welds what a Move, Rotate or Scale brings
+within the **Weld Distance** (Item page) of another vertex, in the same undo
+step, as Blender's Auto Merge and MilkShape 3D's Snap Together do. It works
+with the **All frames** scope only, since a weld changes every pose.
+
+`model tool --tool place --vertices a,b --positions x,y,z;x,y,z` gives
+vertices explicit positions: the reference pose takes each position and other
+poses keep their offsets from it, or with `--frame N` that pose alone changes.
+
+### New intersections
+
+Bevel, rip, spin, inset, extrude edges, solidify, knife, loop cut,
+shrink/fatten, connect and dissolve check their own faces for collapse and
+folding, but a face they make can still pass through a distant part of the
+model. After each of these edits the editor compares the surface with how it
+was and, when faces now cross that did not before, keeps the edit and warns:
+the banner counts the crossing pairs and names one, and **Mesh > Clean Up >
+Select New Intersections** selects them. Crossings that were there before the
+edit are not reported again. Intentional interpenetration (a belt through a
+torso, overlapping armour plates) is common, so this is a warning by default;
+**Mesh > Clean Up > Refuse New Intersections** turns it into a refusal that
+leaves the model unchanged, for this session.
+
+The check scans the edited surface in every stored pose with the same
+inspection as **Health**; on a model too large for its work limits the edit
+goes ahead and the CLI reports `intersectionCheckLimited`. Crossings with other
+surfaces are left to **Health**. On a dense surface the check adds a scan of
+the surface before and after each of these edits.
+
+### Recalculate outside
+
+Quake, Quake II and Quake III cull back faces, so a face wound the wrong way
+vanishes in game. **Normals > Recalculate Outside** fixes winding on the
+selected faces (every face when nothing is selected), as Blender's Shift+N
+does:
+
+1. Winding is made consistent across shared edges, including UV and normal
+   seams, so islands split by seams are oriented together.
+2. Each connected piece then faces outward: a closed piece by the sign of its
+   volume, an open one (a cup, a cape) by an area-weighted vote of its faces
+   against its centre, in the displayed pose.
+3. The faces that turn get fresh normals in every pose.
+
+**Recalculate Inside** (and **Inside** in Adjust Last Operation) turns the
+pieces inward instead, for skyboxes and interiors. A one-sided piece, such as a
+Möbius strip, is refused with the two faces that disagree, and the edit is
+refused when every face already points the requested way. In the Blender
+profile Shift+N and Ctrl+Shift+N run these, and **Recalculate Normals** (vertex
+normals only) stays in the **Normals** menu; the VibeStudio profile keeps
+Shift+N on **Recalculate Normals**.
+
+### Hard edges
+
+MD3, MD2 and MDL store one normal per vertex and light it with Gouraud
+shading, so a hard edge is two vertices with different normals. **Normals >
+Mark Sharp** (also in **Edge**) makes the selected edges hard, as Blender's
+Mark Sharp or a change of smoothing group in MilkShape 3D and 3ds Max does: the
+faces around each end of a selected edge fall into fans separated by sharp
+edges (existing hard edges stay hard), each fan gets its own vertex, and each
+vertex takes its fan's angle-weighted normal in every pose. A single sharp
+edge whose ends are surrounded by smooth faces splits nothing; mark the edges
+that enclose an area, such as the rim of a bevel. **Clear Sharp** joins the
+fans across the selected edges again, welds copies that share a UV and gives
+them one normal; UV seam copies stay separate. In vertex or face mode both use
+the edges between the selected vertices.
+
+Each new vertex counts against the MD3 (999 per surface), MD2 and MDL vertex
+budgets, which the **Delivery targets** button shows. The marks are not stored:
+**Recalculate Normals**, **Shade Smooth** and **Shade Auto Smooth** compute
+normals again and can soften them, so mark sharp edges as a finishing step.
+Border edges are always hard and are refused, as is an edit that changes
+nothing.
+
+### Delete and dissolve
+
+**Delete** (**X** or Delete) lists **Delete Vertices**, **Delete Edges** and
+**Delete Faces**, with the one for the current select mode first, then the
+dissolve commands. Deleting removes faces and the vertices no other face uses,
+and a seam copy of a selected vertex goes with it.
+
+**Dissolve Edges** removes edges but keeps the surface closed: the faces on
+each side of every selected edge merge into one polygon, which is filled
+again with triangles in the displayed pose. With **Dissolve vertices** on (the
+default), a vertex left between exactly two edges along a dissolved chain is
+removed too, so dissolving a loop cut's edges gives back the faces it cut.
+Each merged polygon must keep one border and one UV island: an edge on a
+border, on a UV seam or shared by more than two faces is refused.
+
+**Limited Dissolve** (**Mesh > Clean Up**) simplifies imported or decimated
+geometry for the MD3, MD2 and MDL budgets: neighbouring faces on one UV island
+whose normals differ by less than **Max angle** merge, and a border vertex
+whose two edges are within that angle of a straight line is removed. It works
+on the selected faces, or the whole surface when nothing is selected. A group
+of faces with a hole is left alone, and the edit is refused when nothing
+changes.
+
+Both check every pose for collapsed faces, keep skin influences, UVs and seams
+of the vertices that remain, select the new faces and are one undo step.
+
+### Connect vertices and edges
+
+**Vertex > Connect Vertex Path** (**J** in the VibeStudio and Blender
+profiles) adds edges between vertices without cutting a whole loop:
+
+- Two selected vertices on opposite corners of a quad turn the quad's
+  diagonal, so the quad keeps its two triangles and gains no vertex.
+- Farther apart, the cut runs straight across the faces between them,
+  unfolded into a plane in the displayed pose, with a new vertex where it
+  crosses each edge. A path that would leave those faces or pass within a
+  hair of another vertex is refused; connect through that vertex instead.
+- With more than two vertices selected, every pair on opposite corners of a
+  quad is connected. The CLI takes a whole path in order
+  (`--vertices a,b,c`).
+
+**Edge > Connect Edges** (Ctrl+Shift+E in the 3ds Max profile) adds edges
+across each quad whose two opposite sides are selected, as 3ds Max's Connect
+does: **Adjust Last Operation** sets 1–64 evenly spaced cuts and a slide that
+moves them all the same way along the ring of quads. Each cut quad is
+triangulated again strip by strip, so no vertex is added on its diagonal, and
+a face beside a cut edge that is not cut itself takes the new points, so no
+T-junction remains. A quad with all four sides selected is refused.
+
+Both work like a knife cut: every pose follows (each new point keeps its
+place along its edge), each side of a UV seam gets its own vertex with its
+own UVs, seam marks follow the split edges, skin weights are interpolated, and
+the new edges are selected. A cut that would collapse or fold a face in any
+pose is refused, and the edit is one undo step.
+
+### Align vertices
+
+**Snap > Align** and the profile commands give selected vertices an exact
+coordinate, as MilkShape 3D's Flatten and Blender's scale-to-zero do:
+
+- **Flatten X**, **Flatten Y** and **Flatten Z** (Ctrl+Shift+X/Y/Z in the
+  MilkShape 3D profile) move the selection onto the plane through its
+  centroid on that axis.
+- **Align X/Y/Z to 3D Cursor** use the cursor's coordinate instead.
+- **Snap Selection to Grid** (Ctrl+G in the MilkShape 3D profile) rounds every
+  selected vertex to the Move snap step on its own.
+- On the **Item** page, **Selection position** shows the selection's centroid
+  in the displayed pose; typing a value gives every selected vertex that
+  coordinate, which puts a centre line exactly on X = 0 before **Symmetrize**.
+
+**Adjust Last Operation** changes the target (**Value**, **Centroid**,
+**Minimum**, **Maximum** or **Grid**), the axes, the value and the grid step.
+Every UV and hard-normal seam copy of a vertex moves with it, so seams stay
+closed. The edit follows the **Apply to** scope: with **All frames** each pose
+aligns to its own centroid, minimum or maximum (a value or the grid applies
+as given in every pose); **Current frame** changes the displayed pose only.
+Normals around the moved vertices are recomputed. An alignment that would
+collapse a face to a line or point in any pose is refused, and one that moves
+nothing says so; either way the model is unchanged.
 
 ### Adding primitives
 
@@ -475,7 +674,8 @@ its `binding`.
 | Tool | Options |
 | --- | --- |
 | `rotate-edges` | `--edges` |
-| `merge` | selection, `--merge centre\|point\|collapse`, `--point x,y,z` |
+| `merge` | selection, `--merge centre\|point\|collapse\|target`, `--point x,y,z`, `--target-vertex N` (with `target`) |
+| `place` | `--vertices a,b`, `--positions x,y,z;x,y,z`, `--frame all\|N` |
 | `dissolve-vertices`, `dissolve-faces` | selection |
 | `poke` | `--faces`, `--distance` |
 | `beautify` | `--faces`, `--angle` |
@@ -484,7 +684,7 @@ its `binding`.
 | `inset` | `--faces`, `--thickness`, `--depth`, `--individual`, `--no-even` |
 | `shrink-fatten` | selection, `--distance`, `--no-even`, `--frame all\|N` |
 | `smooth` | selection, `--factor`, `--iterations`, `--pin-boundary`, `--frame` |
-| `transform` | selection, `--offset`/`--rotate`/`--scale`, `--pivot-mode`, `--pivot`, `--proportional-radius`, `--falloff`, `--connected`, `--mirror x\|y\|z\|xy…`, `--threshold`, `--frame` |
+| `transform` | selection, `--offset`/`--rotate`/`--scale`, `--pivot-mode`, `--pivot`, `--proportional-radius`, `--falloff`, `--connected`, `--mirror x\|y\|z\|xy…`, `--threshold`, `--frame`, `--auto-merge D` (weld moved vertices within D; all frames) |
 | `shade-flat`, `shade-smooth` | `--faces` |
 | `auto-smooth` | `--faces`, `--angle` (default 30) |
 | `bisect` | `--faces`, `--plane-point`, `--plane-normal`, `--keep both\|front\|back` |
@@ -500,9 +700,23 @@ its `binding`.
 | `uv-cube` | `--faces`, `--tile-size` (units per repeat, default 64), `--fit` |
 | `uv-view` | `--faces`, `--u-axis` and `--v-axis` (default 1,0,0 and 0,0,1, the front view), `--tile-size`, `--fit` |
 | `uv-cylinder`, `uv-sphere` | `--faces`, `--axis` (default z), `--fit` |
+| `recalculate-outside` | `--faces` (default all), `--inside` |
+| `mark-sharp`, `clear-sharp` | `--edges` |
+| `delete` | selection, `--mode vertices\|edges\|faces` (default faces) |
+| `dissolve-edges` | `--edges`, `--keep-vertices`, `--angle` (quad pairing) |
+| `limited-dissolve` | `--faces` (default all), `--angle` (default 5) |
+| `connect` | `--vertices a,b[,c…]` (the path in order), `--angle` |
+| `connect-edges` | `--edges`, `--cuts` (1–64), `--slide` (-1 to 1), `--angle` |
+| `align` | selection, `--axis x\|y\|z\|xz…`, exactly one of `--value N` (or `x,y,z`) or `--to centroid\|min\|max`, `--frame all\|N`; JSON adds `align` |
+| `snap-grid` | selection, `--grid STEP`, `--axis` (default xyz), `--frame all\|N`; JSON adds `align` |
 
 All tools accept `--surface N` (default 0) and `--reference-frame N` (the pose
 used for geometric choices, default 0), and require `--output <new.mesh.json>`.
+Bevel, rip, spin, inset, extrude-edges, solidify, knife, loop-cut,
+shrink-fatten, connect, connect-edges, dissolve-edges and limited-dissolve add
+`introducedIntersections` (pairs of resulting face indices) to JSON when they
+make faces cross, and `--refuse-intersections` refuses such an edit with exit
+code 4 (see [New intersections](#new-intersections)).
 `--dry-run` validates without writing; an existing output needs
 `--overwrite`. Outputs must be separate from the input source, including aliases
 and dry runs. A tool refuses options it does not take. JSON reports the

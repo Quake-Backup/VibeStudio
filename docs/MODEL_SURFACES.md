@@ -74,7 +74,9 @@ the document nor history; each accepted gesture is one atomic, cancellable edit.
 
 UVs, seams, material slots, animation clips, attachment tags and collision boxes
 are not transformed with mesh positions. Review tag and collision placement after
-moving geometry. Unselected surfaces retain their exact attributes. Component
+moving geometry, or use **Mesh > Transform Model** to move the whole model with
+its tags, collision boxes, skeleton and MDL eye position (see
+[Transform Model](MODEL_MESH.md#transform-model)). Unselected surfaces retain their exact attributes. Component
 geometry and UV actions require switching to Faces, Vertices or Edges; they cannot
 silently operate on one member of a whole-surface selection. Material controls
 explicitly inspect/edit the active surface. Manage Surfaces seeds its Join

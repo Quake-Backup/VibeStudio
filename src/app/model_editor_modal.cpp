@@ -360,20 +360,43 @@ bool ModelEditorTools::beginModal(ModelModalOperator op, const QPointF &pointer,
 			}
 			for (int v : std::as_const(expanded))
 				modal->selectedPoints.append(active.frames[frame].positions[v]);
+			// What the selection snaps to: vertices, edge midpoints or faces that do not move.
+			const int element = m_snapElement ? m_snapElement->currentIndex() : 1;
 			for (int s = 0; s < mesh.surfaces.size(); ++s)
 			{
 				const auto &positions = mesh.surfaces[s].frames[frame].positions;
-				for (int v = 0; v < positions.size(); ++v)
+				const auto still = [&](int v) { return !(s == surfaceIndex && expanded.contains(v)); };
+				const auto offer = [&](const ModelVec3 &point)
 				{
-					if (s == surfaceIndex && expanded.contains(v))
-						continue;
 					QPointF screen;
-					if (m_viewport->projectToView(positions[v], &screen))
+					if (m_viewport->projectToView(point, &screen))
 					{
 						modal->snapScreen.append(screen);
-						modal->snapWorld.append(positions[v]);
+						modal->snapWorld.append(point);
 					}
+				};
+				if (element == 2)
+				{
+					QSet<ModelEdge> edges;
+					for (const auto &t : mesh.surfaces[s].triangles)
+						for (const auto &[a, b] : {std::pair{t.a, t.b}, std::pair{t.b, t.c}, std::pair{t.c, t.a}})
+							if (still(a) && still(b) && !edges.contains(modelEdge(a, b)))
+							{
+								edges.insert(modelEdge(a, b));
+								offer({(positions[a].x + positions[b].x) / 2, (positions[a].y + positions[b].y) / 2, (positions[a].z + positions[b].z) / 2});
+							}
+					continue;
 				}
+				if (element == 3)
+				{
+					for (const auto &t : mesh.surfaces[s].triangles)
+						if (still(t.a) && still(t.b) && still(t.c))
+							modal->snapTriangles.append({positions[t.a], positions[t.b], positions[t.c]});
+					continue;
+				}
+				for (int v = 0; v < positions.size(); ++v)
+					if (still(v))
+						offer(positions[v]);
 			}
 		}
 	}
@@ -521,7 +544,11 @@ QString ModelEditorTools::modalText() const
 		parts << constraint;
 	if (!m.typed.isEmpty())
 		parts << Text::tr("typed %1").arg(QString(m.typed).replace(QLatin1Char('.'), QLocale().decimalPoint()));
-	if (m.snapped)
+	if (m.snapped && m_snapElement && m_snapElement->currentIndex() == 2)
+		parts << Text::tr("snapped to an edge midpoint");
+	else if (m.snapped && m_snapElement && m_snapElement->currentIndex() == 3)
+		parts << Text::tr("snapped to a face");
+	else if (m.snapped)
 		parts << Text::tr("snapped to a vertex");
 	if (isRip(m.op))
 		parts << (m.ripOpposite ? Text::tr("opposite side of face %1") : Text::tr("side of face %1")).arg(m.ripFace);
@@ -765,7 +792,7 @@ void ModelEditorTools::updateModalPreview()
 	m.snapped = false;
 	const auto snapToVertex = [&](V *delta)
 	{
-		if (!snapping || !m_snapElement || m_snapElement->currentIndex() != 1 || hasTyped || m.snapWorld.isEmpty() ||
+		if (!snapping || !m_snapElement || m_snapElement->currentIndex() == 0 || hasTyped || (m.snapWorld.isEmpty() && m.snapTriangles.isEmpty()) ||
 			m.selectedPoints.isEmpty())
 			return false;
 		int best = -1;
@@ -779,9 +806,38 @@ void ModelEditorTools::updateModalPreview()
 				best = i;
 			}
 		}
-		if (best < 0)
+		// Face snapping: the nearest still face under the pointer.
+		V hit{};
+		bool onFace = false;
+		if (m_snapElement->currentIndex() == 3)
+		{
+			const auto ray = m_viewport->viewRay(m.lastActual);
+			const V origin = ray.origin, direction = ray.direction;
+			double nearest = INFINITY;
+			for (const auto &triangle : std::as_const(m.snapTriangles))
+			{
+				// Moller-Trumbore ray and triangle intersection.
+				const V e1 = sub(triangle[1], triangle[0]), e2 = sub(triangle[2], triangle[0]);
+				const V p = cross(direction, e2);
+				const double det = dot(e1, p);
+				if (std::abs(det) < 1e-12)
+					continue;
+				const V s = sub(origin, triangle[0]);
+				const double u = dot(s, p) / det;
+				const V q = cross(s, e1);
+				const double v = dot(direction, q) / det, t = dot(e2, q) / det;
+				if (u < 0 || v < 0 || u + v > 1 || t < 0 || t >= nearest)
+					continue;
+				nearest = t;
+				hit = add(origin, scale(direction, t));
+				onFace = true;
+			}
+			if (!onFace)
+				return false;
+		}
+		else if (best < 0)
 			return false;
-		const V target = m.snapWorld[best];
+		const V target = onFace ? hit : m.snapWorld[best];
 		V base = m.selectedPoints.first();
 		double closest = INFINITY;
 		for (const auto &p : std::as_const(m.selectedPoints))
@@ -801,7 +857,10 @@ void ModelEditorTools::updateModalPreview()
 		}
 		*delta = move;
 		m.snapped = true;
-		m.snapPoint = m.snapScreen[best];
+		if (onFace)
+			m_viewport->projectToView(hit, &m.snapPoint);
+		else
+			m.snapPoint = m.snapScreen[best];
 		return true;
 	};
 	ModelEdit edit;
@@ -810,7 +869,9 @@ void ModelEditorTools::updateModalPreview()
 	const double wpp = worldPerPixel(m.pivot);
 	const double grid = m_editor->m_translationGrid->value();
 	const bool components = !m.selection.faces.isEmpty() || !m.selection.vertices.isEmpty() || !m.selection.edges.isEmpty();
-	const bool weighted = components && (m_proportional->isChecked() || m_mirror[0]->isChecked() || m_mirror[1]->isChecked() || m_mirror[2]->isChecked());
+	// Auto Merge welds through the proportional transform, in every pose only.
+	const bool autoMerge = m_autoMerge && m_editor->m_frameScope->currentIndex() == 0;
+	const bool weighted = components && (m_proportional->isChecked() || m_mirror[0]->isChecked() || m_mirror[1]->isChecked() || m_mirror[2]->isChecked() || autoMerge);
 	switch (m.op)
 	{
 	case ModelModalOperator::Move:
@@ -845,6 +906,8 @@ void ModelEditorTools::updateModalPreview()
 				edit.tool.connectedOnly = m_connected->isChecked();
 			}
 			edit.tool.mirrorAxes = (m_mirror[0]->isChecked() ? 1 : 0) | (m_mirror[1]->isChecked() ? 2 : 0) | (m_mirror[2]->isChecked() ? 4 : 0);
+			if (autoMerge)
+				edit.tool.topology.autoMergeDistance = std::max(0.000001, m_editor->m_weldDistance->value());
 		}
 		if (m.local && m.axis >= 0)
 		{

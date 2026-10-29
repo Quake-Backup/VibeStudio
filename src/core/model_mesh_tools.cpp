@@ -1590,6 +1590,16 @@ bool isModelMeshToolEdit(ModelEditKind kind)
 	case ModelEditKind::Solidify:
 	case ModelEditKind::Rip:
 	case ModelEditKind::ProjectUvMapping:
+	case ModelEditKind::AlignVertices:
+	case ModelEditKind::ConnectVertices:
+	case ModelEditKind::ConnectEdges:
+	case ModelEditKind::DeleteGeometry:
+	case ModelEditKind::DissolveEdges:
+	case ModelEditKind::LimitedDissolve:
+	case ModelEditKind::RecalculateOutside:
+	case ModelEditKind::MarkSharp:
+	case ModelEditKind::ClearSharp:
+	case ModelEditKind::SetVertexPositions:
 		return true;
 	default:
 		return false;
@@ -1598,11 +1608,55 @@ bool isModelMeshToolEdit(ModelEditKind kind)
 
 bool isModelMeshShapeEdit(ModelEditKind kind)
 {
-	return kind == ModelEditKind::ShrinkFatten || kind == ModelEditKind::SmoothVertices || kind == ModelEditKind::WeightedTransform || kind == ModelEditKind::SlideEdges;
+	return kind == ModelEditKind::ShrinkFatten || kind == ModelEditKind::SmoothVertices || kind == ModelEditKind::WeightedTransform || kind == ModelEditKind::SlideEdges ||
+		kind == ModelEditKind::AlignVertices || kind == ModelEditKind::SetVertexPositions;
+}
+
+namespace
+{
+bool applyModelMeshToolEditUnguarded(ModelMesh *candidate, const ModelEdit &edit, ModelSelection *selection, QString *error,
+									 const ModelWorkControl &control, ModelEditReport *report);
 }
 
 bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSelection *selection, QString *error,
 							const ModelWorkControl &control, ModelEditReport *report)
+{
+	using namespace model_tools;
+	// Tools that only check local collapse report, or with
+	// refuseIntersections refuse, faces that newly cross other faces.
+	const bool guarded = isModelIntersectionGuardedEdit(edit.kind) && (report || edit.tool.topology.refuseIntersections) && candidate && selection &&
+						 selection->surface >= 0 && selection->surface < candidate->surfaces.size();
+	if (!guarded)
+		return applyModelMeshToolEditUnguarded(candidate, edit, selection, error, control, report);
+	const ModelMesh before = *candidate;
+	const int surface = selection->surface;
+	if (!applyModelMeshToolEditUnguarded(candidate, edit, selection, error, control, report))
+		return false;
+	QVector<QPair<int, int>> introduced;
+	bool limited = false;
+	if (!introducedModelIntersections(before, *candidate, surface, &introduced, &limited, error, control))
+		return false;
+	if (edit.tool.topology.refuseIntersections && !introduced.isEmpty())
+	{
+		const int count = introduced.size();
+		return fail(error, Text::tr("The edit would make %n pair(s) of faces cross each other, starting with faces %1 and %2. Turn off Refuse New "
+									"Intersections to keep it anyway.",
+									nullptr, count)
+							   .arg(introduced.first().first)
+							   .arg(introduced.first().second));
+	}
+	if (report)
+	{
+		report->introducedIntersections = introduced;
+		report->intersectionCheckLimited = limited;
+	}
+	return true;
+}
+
+namespace
+{
+bool applyModelMeshToolEditUnguarded(ModelMesh *candidate, const ModelEdit &edit, ModelSelection *selection, QString *error,
+									 const ModelWorkControl &control, ModelEditReport *report)
 {
 	using namespace model_tools;
 	if (error)
@@ -1623,6 +1677,29 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 		return fail(error, Text::tr("Slide distance mode applies only to edge sliding."));
 	if (edit.kind != ModelEditKind::Symmetrize && (!options.mirrorJoints.isEmpty() || options.keepJointNames))
 		return fail(error, Text::tr("Joint mirror maps apply only to Symmetrize."));
+	if (edit.kind != ModelEditKind::AlignVertices && !(options.align == ModelAlignOptions{}))
+		return fail(error, Text::tr("Alignment settings apply only to Align Vertices."));
+	{
+		// Each topology tool setting belongs to one tool (core/model_topology_tools.h).
+		const auto &topology = options.topology;
+		const ModelTopologyToolOptions neutral;
+		const auto only = [&](bool set, std::initializer_list<ModelEditKind> kinds)
+		{ return !set || std::find(kinds.begin(), kinds.end(), edit.kind) != kinds.end(); };
+		if (!only(topology.deleteMode != neutral.deleteMode, {ModelEditKind::DeleteGeometry}) ||
+			!only(topology.dissolveVertices != neutral.dissolveVertices, {ModelEditKind::DissolveEdges}) ||
+			!only(topology.dissolveAngle != neutral.dissolveAngle, {ModelEditKind::LimitedDissolve}) ||
+			!only(topology.inside, {ModelEditKind::RecalculateOutside}) ||
+			!only(!topology.vertices.isEmpty(), {ModelEditKind::ConnectVertices, ModelEditKind::SetVertexPositions}) ||
+			!only(!topology.positions.isEmpty(), {ModelEditKind::SetVertexPositions}) ||
+			!only(topology.targetVertex != -1, {ModelEditKind::MergeVertices}) ||
+			!only(topology.autoMergeDistance != 0, {ModelEditKind::WeightedTransform}) ||
+			(topology.targetVertex != -1) != (edit.kind == ModelEditKind::MergeVertices && options.merge == ModelMergeMode::Target))
+			return fail(error, Text::tr("A tool setting was given to a tool that does not use it, or Merge at Target has no target vertex."));
+		if (int(topology.deleteMode) < 0 || int(topology.deleteMode) > int(ModelDeleteMode::Faces) || !std::isfinite(topology.dissolveAngle) ||
+			topology.dissolveAngle < 0 || topology.dissolveAngle > 180 || !std::isfinite(topology.autoMergeDistance) || topology.autoMergeDistance < 0 ||
+			topology.autoMergeDistance > 1000)
+			return fail(error, Text::tr("A tool setting is outside its supported range."));
+	}
 	if (edit.kind != ModelEditKind::AddPrimitive &&
 		(options.newGeometryBinding != ModelNewGeometryBinding::None || !options.bindJoint.isEmpty() || !options.newSurface.isEmpty()))
 		return fail(error, Text::tr("New geometry bindings and new surfaces apply only to Add Primitive."));
@@ -1674,7 +1751,8 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 	case ModelEditKind::RotateEdges:
 		return rotateEdges(candidate, edit, selection, error, work);
 	case ModelEditKind::MergeVertices:
-		return mergeVertices(candidate, edit, selection, error, work);
+		return options.merge == ModelMergeMode::Target ? weldModelToTarget(candidate, edit, selection, error, control)
+													   : mergeVertices(candidate, edit, selection, error, work);
 	case ModelEditKind::DissolveVertices:
 		return dissolveVertices(candidate, edit, selection, error, work);
 	case ModelEditKind::DissolveFaces:
@@ -1694,7 +1772,14 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 	case ModelEditKind::SmoothVertices:
 		return smoothVertices(candidate, edit, selection, error, work);
 	case ModelEditKind::WeightedTransform:
-		return weightedTransform(candidate, edit, selection, error, work, control);
+	{
+		// Auto Merge welds what the transform brought together, in the same edit.
+		if (options.topology.autoMergeDistance <= 0)
+			return weightedTransform(candidate, edit, selection, error, work, control);
+		const auto before = candidate->surfaces[selection->surface];
+		return weightedTransform(candidate, edit, selection, error, work, control) &&
+			   autoMergeModelVertices(candidate, before, edit, selection, error, control);
+	}
 	case ModelEditKind::ShadeFlat:
 	case ModelEditKind::ShadeSmooth:
 	case ModelEditKind::ShadeAutoSmooth:
@@ -1726,8 +1811,28 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 		return solidify(candidate, edit, selection, error, work);
 	case ModelEditKind::ProjectUvMapping:
 		return projectUvs(candidate, edit, selection, error, work);
+	case ModelEditKind::AlignVertices:
+		return alignModelVertices(candidate, edit, selection, error, control);
+	case ModelEditKind::ConnectVertices:
+		return authored(connectModelVertices(candidate, edit, selection, error, control, report));
+	case ModelEditKind::ConnectEdges:
+		return connectModelEdges(candidate, edit, selection, error, control, report);
+	case ModelEditKind::DeleteGeometry:
+		return deleteModelGeometry(candidate, edit, selection, error, control, report);
+	case ModelEditKind::DissolveEdges:
+		return dissolveModelEdges(candidate, edit, selection, error, control, report);
+	case ModelEditKind::LimitedDissolve:
+		return limitedDissolveModel(candidate, edit, selection, error, control, report);
+	case ModelEditKind::RecalculateOutside:
+		return recalculateModelOutside(candidate, edit, selection, error, control);
+	case ModelEditKind::MarkSharp:
+	case ModelEditKind::ClearSharp:
+		return markModelSharpEdges(candidate, edit, selection, error, control);
+	case ModelEditKind::SetVertexPositions:
+		return setModelVertexPositions(candidate, edit, selection, error, control);
 	default:
 		return fail(error, Text::tr("Unknown mesh tool."));
 	}
 }
+} // namespace
 } // namespace vibestudio

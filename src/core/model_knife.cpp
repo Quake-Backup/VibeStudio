@@ -250,8 +250,14 @@ class KnifeBuilder
 	bool run(ModelEditReport *report)
 	{
 		QVector<ModelKnifeCut> plan;
-		if (!planModelKnife(mesh, selection.surface, edit.tool.referenceFrame, selection.faces, edit.tool.knife, &plan, error, control) ||
-			!buildModelGeometricTopology(before, &topology, error, control))
+		return planModelKnife(mesh, selection.surface, edit.tool.referenceFrame, selection.faces, edit.tool.knife, &plan, error, control) &&
+			   apply(plan, report);
+	}
+	// The apply stage on its own, for planners other than the projected knife
+	// path (Connect, model_connect.cpp).
+	bool apply(const QVector<ModelKnifeCut> &plan, ModelEditReport *report)
+	{
+		if (!buildModelGeometricTopology(before, &topology, error, control))
 			return false;
 		QMap<int, QVector<Segment>> faceCuts;
 		for (const auto &cut : plan)
@@ -480,5 +486,11 @@ bool knifeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 				ModelEditReport *report)
 {
 	return KnifeBuilder(*mesh, edit, *selection, error, control).run(report);
+}
+
+bool applyKnifeCuts(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, const QVector<ModelKnifeCut> &cuts, QString *error,
+					const ModelWorkControl &control, ModelEditReport *report)
+{
+	return KnifeBuilder(*mesh, edit, *selection, error, control).apply(cuts, report);
 }
 } // namespace vibestudio::model_tools

@@ -131,6 +131,24 @@ bool decimate(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection,
 bool bevelVertices(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
 bool bevelEdges(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control);
 bool knifeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
+// The knife's apply stage for precomputed cuts on the selection's surface:
+// straight segments across faces in barycentric coordinates, meeting on
+// shared edges at matching fractions. Interpolates every pose, UVs, normals
+// and skin influences, keeps seams and identities, refuses collapsed or
+// flipped faces, and selects the new edges.
+bool applyKnifeCuts(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, const QVector<ModelKnifeCut> &cuts, QString *error,
+					const ModelWorkControl &control, ModelEditReport *report);
+// Merge at Target and Auto Merge (model_weld.cpp): welds keep the target's
+// position, UVs and normal; a weld that joins three faces at an edge is refused.
+bool weldModelToTarget(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control);
+bool autoMergeModelVertices(ModelMesh *mesh, const ModelSurface &before, const ModelEdit &edit, ModelSelection *selection, QString *error,
+							const ModelWorkControl &control);
+// Intersection guard (model_intersection_guard.cpp): tools that only check
+// local collapse, and the face pairs of the edited surface that cross after
+// the edit but did not before. `limited` is set when the scan hit its limits.
+bool isModelIntersectionGuardedEdit(ModelEditKind kind);
+bool introducedModelIntersections(const ModelMesh &before, const ModelMesh &after, int surface, QVector<QPair<int, int>> *introduced, bool *limited,
+								  QString *error, const ModelWorkControl &control);
 bool spinGeometry(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
 bool ripGeometry(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control, ModelEditReport *report);
 bool solidify(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);

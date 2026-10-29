@@ -68,6 +68,13 @@ struct ModelEditReport
 	// (core/model_vertex_origins.h). Empty for models without a skeleton and
 	// for skeleton, skin and weight edits, which write influences directly.
 	QMap<int, ModelSkinProvenance> skin;
+	// Topology tools that only check local collapse report faces they made or
+	// moved that now cross another face of the same surface, as pairs of
+	// resulting face indices on the edited surface (lower index first).
+	// Intersections that were there before the edit are not listed.
+	QVector<QPair<int, int>> introducedIntersections;
+	// The intersection check stopped at its work limits; the list may be short.
+	bool intersectionCheckLimited = false;
 };
 
 enum class ModelEditKind
@@ -212,6 +219,25 @@ enum class ModelEditKind
 	ImportSkeletalClip,
 	EditAnimationEvents,
 	EditClipStack,
+	// Shape edit: selected vertices take one coordinate or snap to the grid
+	// (core/model_align.h); ModelMeshToolOptions::align.
+	AlignVertices,
+	// Moves the whole model: every surface and pose, tags, collision boxes,
+	// the skeleton and its clips, and the MDL eye position
+	// (core/model_whole_transform.h).
+	TransformModel,
+	// Topology tools of core/model_topology_tools.h; their settings are in
+	// ModelMeshToolOptions::topology (and cuts/slide for Connect Edges).
+	ConnectVertices,
+	ConnectEdges,
+	DeleteGeometry,
+	DissolveEdges,
+	LimitedDissolve,
+	RecalculateOutside,
+	MarkSharp,
+	ClearSharp,
+	// Shape edit: explicit positions for listed vertices.
+	SetVertexPositions,
 };
 
 struct ModelEdit

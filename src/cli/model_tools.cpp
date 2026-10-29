@@ -281,7 +281,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 							  QStringLiteral("--connected"),   QStringLiteral("--allow-boundary"), QStringLiteral("--fit"),
 							  QStringLiteral("--through"), QStringLiteral("--perspective"), QStringLiteral("--opposite"),
 							  QStringLiteral("--duplicate"), QStringLiteral("--no-close"), QStringLiteral("--fill"),
-							  QStringLiteral("--keep-joint-names")};
+							  QStringLiteral("--keep-joint-names"), QStringLiteral("--keep-vertices"), QStringLiteral("--inside"),
+								  QStringLiteral("--refuse-intersections")};
 	const QSet<QString> options{
 		QStringLiteral("--side-face"),
 		QStringLiteral("--input"),			 QStringLiteral("--output"),		 QStringLiteral("--tool"),		   QStringLiteral("--surface"),
@@ -299,7 +300,9 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		QStringLiteral("--path"), QStringLiteral("--path-file"), QStringLiteral("--view"), QStringLiteral("--camera-origin"),
 		QStringLiteral("--camera-right"), QStringLiteral("--camera-up"), QStringLiteral("--camera-forward"),
 		QStringLiteral("--steps"), QStringLiteral("--centre"), QStringLiteral("--axis-vector"), QStringLiteral("--joint-map"),
-		QStringLiteral("--bind"), QStringLiteral("--bind-joint"), QStringLiteral("--new-surface")};
+		QStringLiteral("--bind"), QStringLiteral("--bind-joint"), QStringLiteral("--new-surface"),
+		QStringLiteral("--value"), QStringLiteral("--to"), QStringLiteral("--grid"), QStringLiteral("--mode"), QStringLiteral("--target-vertex"),
+		QStringLiteral("--auto-merge"), QStringLiteral("--positions")};
 	Arguments args;
 	QString error;
 	if (!parse(arguments, flags, options, &args, &error))
@@ -325,7 +328,13 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("add"), ModelEditKind::AddPrimitive},				{QStringLiteral("decimate"), ModelEditKind::Decimate},
 		{QStringLiteral("bevel-vertices"), ModelEditKind::BevelVertices},	{QStringLiteral("solidify"), ModelEditKind::Solidify},
 		{QStringLiteral("uv-cube"), ModelEditKind::ProjectUvMapping},		{QStringLiteral("uv-view"), ModelEditKind::ProjectUvMapping},
-		{QStringLiteral("uv-cylinder"), ModelEditKind::ProjectUvMapping},	{QStringLiteral("uv-sphere"), ModelEditKind::ProjectUvMapping}};
+		{QStringLiteral("uv-cylinder"), ModelEditKind::ProjectUvMapping},	{QStringLiteral("uv-sphere"), ModelEditKind::ProjectUvMapping},
+		{QStringLiteral("align"), ModelEditKind::AlignVertices}, {QStringLiteral("snap-grid"), ModelEditKind::AlignVertices},
+		{QStringLiteral("connect"), ModelEditKind::ConnectVertices}, {QStringLiteral("connect-edges"), ModelEditKind::ConnectEdges},
+		{QStringLiteral("delete"), ModelEditKind::DeleteGeometry}, {QStringLiteral("dissolve-edges"), ModelEditKind::DissolveEdges},
+		{QStringLiteral("limited-dissolve"), ModelEditKind::LimitedDissolve}, {QStringLiteral("recalculate-outside"), ModelEditKind::RecalculateOutside},
+		{QStringLiteral("mark-sharp"), ModelEditKind::MarkSharp}, {QStringLiteral("clear-sharp"), ModelEditKind::ClearSharp},
+		{QStringLiteral("place"), ModelEditKind::SetVertexPositions}};
 	const auto toolName = args.values.value(QStringLiteral("--tool"));
 	if (!tools.contains(toolName))
 	{
@@ -344,7 +353,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("bevel-edges"), {QStringLiteral("--edges"), QStringLiteral("--width"), QStringLiteral("--segments"), QStringLiteral("--roundness"), QStringLiteral("--tile-size"), QStringLiteral("--angle")}},
 		{QStringLiteral("edge-slide"), {QStringLiteral("--edges"), QStringLiteral("--slide"), QStringLiteral("--distance"), QStringLiteral("--angle"), QStringLiteral("--frame")}},
 		{QStringLiteral("rotate-edges"), {QStringLiteral("--edges")}},
-		{QStringLiteral("merge"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--merge"), QStringLiteral("--point")}},
+		{QStringLiteral("merge"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--merge"), QStringLiteral("--point"),
+			QStringLiteral("--target-vertex")}},
 		{QStringLiteral("dissolve-vertices"), {QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--faces")}},
 		{QStringLiteral("dissolve-faces"), {QStringLiteral("--faces")}},
 		{QStringLiteral("poke"), {QStringLiteral("--faces"), QStringLiteral("--distance")}},
@@ -359,7 +369,7 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("smooth"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--factor"), QStringLiteral("--iterations"), QStringLiteral("--pin-boundary"), QStringLiteral("--frame")}},
 		{QStringLiteral("transform"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--offset"), QStringLiteral("--rotate"), QStringLiteral("--scale"),
 									   QStringLiteral("--pivot-mode"), QStringLiteral("--pivot"), QStringLiteral("--proportional-radius"), QStringLiteral("--falloff"), QStringLiteral("--connected"),
-									   QStringLiteral("--mirror"), QStringLiteral("--threshold"), QStringLiteral("--frame")}},
+									   QStringLiteral("--mirror"), QStringLiteral("--threshold"), QStringLiteral("--frame"), QStringLiteral("--auto-merge")}},
 		{QStringLiteral("shade-flat"), {QStringLiteral("--faces")}},
 		{QStringLiteral("shade-smooth"), {QStringLiteral("--faces")}},
 		{QStringLiteral("auto-smooth"), {QStringLiteral("--faces"), QStringLiteral("--angle")}},
@@ -375,12 +385,25 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		{QStringLiteral("uv-cube"), {QStringLiteral("--faces"), QStringLiteral("--tile-size"), QStringLiteral("--fit")}},
 		{QStringLiteral("uv-view"), {QStringLiteral("--faces"), QStringLiteral("--tile-size"), QStringLiteral("--fit"), QStringLiteral("--u-axis"), QStringLiteral("--v-axis")}},
 		{QStringLiteral("uv-cylinder"), {QStringLiteral("--faces"), QStringLiteral("--fit"), QStringLiteral("--axis")}},
-		{QStringLiteral("uv-sphere"), {QStringLiteral("--faces"), QStringLiteral("--fit"), QStringLiteral("--axis")}}};
+		{QStringLiteral("uv-sphere"), {QStringLiteral("--faces"), QStringLiteral("--fit"), QStringLiteral("--axis")}},
+		{QStringLiteral("align"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--axis"),
+			QStringLiteral("--value"), QStringLiteral("--to"), QStringLiteral("--frame")}},
+		{QStringLiteral("snap-grid"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--axis"),
+			QStringLiteral("--grid"), QStringLiteral("--frame")}},
+		{QStringLiteral("connect"), {QStringLiteral("--vertices"), QStringLiteral("--angle")}},
+		{QStringLiteral("connect-edges"), {QStringLiteral("--edges"), QStringLiteral("--cuts"), QStringLiteral("--slide"), QStringLiteral("--angle")}},
+		{QStringLiteral("delete"), {QStringLiteral("--faces"), QStringLiteral("--vertices"), QStringLiteral("--edges"), QStringLiteral("--mode")}},
+		{QStringLiteral("dissolve-edges"), {QStringLiteral("--edges"), QStringLiteral("--keep-vertices"), QStringLiteral("--angle")}},
+		{QStringLiteral("limited-dissolve"), {QStringLiteral("--faces"), QStringLiteral("--angle")}},
+		{QStringLiteral("recalculate-outside"), {QStringLiteral("--faces"), QStringLiteral("--inside")}},
+		{QStringLiteral("mark-sharp"), {QStringLiteral("--edges")}},
+		{QStringLiteral("clear-sharp"), {QStringLiteral("--edges")}},
+		{QStringLiteral("place"), {QStringLiteral("--vertices"), QStringLiteral("--positions"), QStringLiteral("--frame")}}};
 	const QSet<QString> shared{QStringLiteral("--cli"),	  QStringLiteral("--json"),			  QStringLiteral("--quiet"),
 							   QStringLiteral("--verbose"), QStringLiteral("--dry-run"),		  QStringLiteral("--overwrite"),
 							   QStringLiteral("--input"),   QStringLiteral("--output"),		  QStringLiteral("--tool"),
 							   QStringLiteral("--surface"), QStringLiteral("--reference-frame"), QStringLiteral("--settings-file"),
-							   QStringLiteral("--locale"),  QStringLiteral("--catalog-root")};
+							   QStringLiteral("--locale"),  QStringLiteral("--catalog-root"), QStringLiteral("--refuse-intersections")};
 	const auto allowed = accepted.value(toolName);
 	for (const auto &key : std::as_const(args.seen))
 	{
@@ -525,7 +548,8 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 		!readNumber(QStringLiteral("--distance"), &tool.offset, -1000000, 1000000) ||
 		!readNumber(QStringLiteral("--factor"), &tool.smoothFactor, 0, 1) || !readInt(QStringLiteral("--iterations"), &tool.iterations, 1, 100) ||
 		!readNumber(QStringLiteral("--proportional-radius"), &tool.proportionalRadius, 0, 1000000) ||
-		!readNumber(QStringLiteral("--angle"), kind == ModelEditKind::Spin ? &tool.spinAngle : toolName == QStringLiteral("auto-smooth") ? &tool.smoothAngle : &tool.maxAngle,
+		!readNumber(QStringLiteral("--angle"), kind == ModelEditKind::Spin ? &tool.spinAngle : toolName == QStringLiteral("auto-smooth") ? &tool.smoothAngle
+			: kind == ModelEditKind::LimitedDissolve ? &tool.topology.dissolveAngle : &tool.maxAngle,
 			kind == ModelEditKind::Spin ? -360 : 0, kind == ModelEditKind::Spin ? 360 : 180) ||
 		!readInt(QStringLiteral("--steps"), &tool.spinSteps, 1, 256) ||
 		!readInt(QStringLiteral("--side-face"), &tool.ripFace, 0, 131071) ||
@@ -555,6 +579,103 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 						: toolName == QStringLiteral("uv-cylinder") ? ModelUvProjection::Cylinder
 						: toolName == QStringLiteral("uv-sphere")	 ? ModelUvProjection::Sphere
 																	 : ModelUvProjection::Cube;
+	if (kind == ModelEditKind::DeleteGeometry)
+	{
+		// delete: --mode vertices|edges|faces (default faces).
+		const auto mode = args.values.value(QStringLiteral("--mode"), QStringLiteral("faces"));
+		if (mode == QStringLiteral("vertices"))
+			tool.topology.deleteMode = ModelDeleteMode::Vertices;
+		else if (mode == QStringLiteral("edges"))
+			tool.topology.deleteMode = ModelDeleteMode::Edges;
+		else if (mode != QStringLiteral("faces"))
+			return fail(2, Text::tr("Use --mode vertices, edges or faces."));
+	}
+	tool.topology.dissolveVertices = !args.seen.contains(QStringLiteral("--keep-vertices"));
+	tool.topology.inside = args.seen.contains(QStringLiteral("--inside"));
+	tool.topology.refuseIntersections = args.seen.contains(QStringLiteral("--refuse-intersections"));
+	if (args.values.contains(QStringLiteral("--auto-merge")) &&
+		(!number(args.values.value(QStringLiteral("--auto-merge")), &tool.topology.autoMergeDistance) || tool.topology.autoMergeDistance <= 0 ||
+		 tool.topology.autoMergeDistance > 1000))
+		return fail(2, Text::tr("--auto-merge takes a weld distance above zero, up to 1,000 units."));
+	if (kind == ModelEditKind::SetVertexPositions)
+	{
+		// place: --vertices a,b with --positions x,y,z;x,y,z in the same order.
+		const auto vertices = args.values.value(QStringLiteral("--vertices")).split(QLatin1Char(','));
+		const auto positions = args.values.value(QStringLiteral("--positions")).split(QLatin1Char(';'));
+		if (vertices.size() != positions.size())
+			return fail(2, Text::tr("--tool place needs --vertices a,b and --positions x,y,z;x,y,z with one position per vertex."));
+		for (int i = 0; i < vertices.size(); ++i)
+		{
+			int vertex = -1;
+			std::array<double, 3> position{};
+			if (!index(vertices[i], &vertex) || !triple(positions[i], &position))
+				return fail(2, Text::tr("--tool place needs --vertices a,b and --positions x,y,z;x,y,z with one position per vertex."));
+			tool.topology.vertices.append(vertex);
+			tool.topology.positions.append(position);
+		}
+	}
+	if (kind == ModelEditKind::ConnectVertices)
+	{
+		// connect: --vertices a,b,c is a path in that order.
+		const auto text = args.values.value(QStringLiteral("--vertices"));
+		if (text.isEmpty() || text == QStringLiteral("all"))
+			return fail(2, Text::tr("--tool connect requires --vertices a,b[,c...], the path in order."));
+		for (const auto &token : text.split(QLatin1Char(',')))
+		{
+			int vertex = -1;
+			if (!index(token, &vertex))
+				return fail(2, Text::tr("--tool connect requires --vertices a,b[,c...], the path in order."));
+			tool.topology.vertices.append(vertex);
+		}
+		if (tool.topology.vertices.size() < 2)
+			return fail(2, Text::tr("--tool connect requires --vertices a,b[,c...], the path in order."));
+	}
+	if (kind == ModelEditKind::AlignVertices)
+	{
+		// align: --axis x|y|z|xy|xyz with --value N (or x,y,z) or --to centroid|min|max;
+		// snap-grid: --grid STEP on --axis (default xyz).
+		auto &align = tool.align;
+		const auto axes = args.values.value(QStringLiteral("--axis"), toolName == QStringLiteral("snap-grid") ? QStringLiteral("xyz") : QString());
+		for (const QChar letter : axes.toLower())
+		{
+			const int axis = axisFrom(QString(letter));
+			if (axis < 0 || (align.axes & (1 << axis)))
+				return fail(2, Text::tr("Use --axis with x, y and/or z, such as x or xz."));
+			align.axes |= 1 << axis;
+		}
+		if (align.axes == 0)
+			return fail(2, Text::tr("--tool align requires --axis x, y, z or a combination such as xz."));
+		args.values.remove(QStringLiteral("--axis"));
+		if (toolName == QStringLiteral("snap-grid"))
+		{
+			align.target = ModelAlignTarget::Grid;
+			if (!args.values.contains(QStringLiteral("--grid")) || !number(args.values.value(QStringLiteral("--grid")), &align.grid) || align.grid < 0.000001)
+				return fail(2, Text::tr("--tool snap-grid requires --grid STEP, from 0.000001 to 1,000,000 units."));
+		}
+		else
+		{
+			if (args.values.contains(QStringLiteral("--value")) == args.values.contains(QStringLiteral("--to")))
+				return fail(2, Text::tr("--tool align requires exactly one of --value N (or x,y,z) or --to centroid|min|max."));
+			const auto to = args.values.value(QStringLiteral("--to"));
+			if (args.values.contains(QStringLiteral("--value")))
+			{
+				const auto text = args.values.value(QStringLiteral("--value"));
+				double single = 0;
+				if (number(text, &single))
+					align.value = {single, single, single};
+				else if (!triple(text, &align.value))
+					return fail(2, Text::tr("Use --value N, or --value x,y,z with one number per axis."));
+			}
+			else if (to == QStringLiteral("centroid"))
+				align.target = ModelAlignTarget::Centroid;
+			else if (to == QStringLiteral("min"))
+				align.target = ModelAlignTarget::Minimum;
+			else if (to == QStringLiteral("max"))
+				align.target = ModelAlignTarget::Maximum;
+			else
+				return fail(2, Text::tr("Use --to centroid, min or max."));
+		}
+	}
 	if (args.values.contains(QStringLiteral("--merge")))
 	{
 		const auto text = args.values.value(QStringLiteral("--merge"));
@@ -564,9 +685,15 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			tool.merge = ModelMergeMode::Point;
 		else if (text == QStringLiteral("collapse"))
 			tool.merge = ModelMergeMode::Collapse;
+		else if (text == QStringLiteral("target"))
+			tool.merge = ModelMergeMode::Target;
 		else
-			return fail(2, Text::tr("Use --merge centre|point|collapse."));
+			return fail(2, Text::tr("Use --merge centre|point|collapse|target."));
 	}
+	// merge --merge target: the vertex the selection welds onto.
+	if ((tool.merge == ModelMergeMode::Target) != args.values.contains(QStringLiteral("--target-vertex")) ||
+		(args.values.contains(QStringLiteral("--target-vertex")) && !index(args.values.value(QStringLiteral("--target-vertex")), &tool.topology.targetVertex)))
+		return fail(2, Text::tr("--merge target and --target-vertex N go together."));
 	if ((args.values.contains(QStringLiteral("--centre")) && !triple(args.values.value(QStringLiteral("--centre")), &tool.point)) ||
 		(args.values.contains(QStringLiteral("--axis-vector")) && !triple(args.values.value(QStringLiteral("--axis-vector")), &tool.normal)) ||
 		(args.values.contains(QStringLiteral("--point")) && !triple(args.values.value(QStringLiteral("--point")), &tool.point)) ||
@@ -769,6 +896,26 @@ ModelToolsCliResult runModelTool(const QStringList &arguments)
 			pairs.insert(i.key(), i.value());
 		result.payload.insert(QStringLiteral("jointMap"), pairs);
 		result.payload.insert(QStringLiteral("keepJointNames"), tool.keepJointNames);
+	}
+	if (!report.introducedIntersections.isEmpty() || report.intersectionCheckLimited)
+	{
+		QJsonArray pairs;
+		for (const auto &[first, second] : std::as_const(report.introducedIntersections))
+			pairs.append(QJsonArray{first, second});
+		result.payload.insert(QStringLiteral("introducedIntersections"), pairs);
+		result.payload.insert(QStringLiteral("intersectionCheckLimited"), report.intersectionCheckLimited);
+		result.lines << Text::tr("Warning: %1 pairs of faces now cross each other.").arg(report.introducedIntersections.size());
+	}
+	if (kind == ModelEditKind::AlignVertices)
+	{
+		const QStringList targets{QStringLiteral("value"), QStringLiteral("centroid"), QStringLiteral("min"), QStringLiteral("max"), QStringLiteral("grid")};
+		QJsonObject align{{QStringLiteral("axes"), modelAlignAxesText(tool.align.axes)}, {QStringLiteral("target"), targets.value(int(tool.align.target))},
+						  {QStringLiteral("frame"), edit.frame < 0 ? QJsonValue(QStringLiteral("all")) : QJsonValue(edit.frame)}};
+		if (tool.align.target == ModelAlignTarget::Value)
+			align.insert(QStringLiteral("value"), QJsonArray{tool.align.value[0], tool.align.value[1], tool.align.value[2]});
+		if (tool.align.target == ModelAlignTarget::Grid)
+			align.insert(QStringLiteral("grid"), tool.align.grid);
+		result.payload.insert(QStringLiteral("align"), align);
 	}
 	result.lines << (dry ? Text::tr("%1 validated; no files written.").arg(toolName) : Text::tr("Saved %1 result to %2.").arg(toolName, output));
 	result.lines << Text::tr("Surface %1 (%2): %3 vertices, %4 triangles.").arg(resultSurface).arg(surface.name).arg(surface.vertexCount).arg(surface.triangles.size());

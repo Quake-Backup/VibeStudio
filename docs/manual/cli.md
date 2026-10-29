@@ -44,6 +44,47 @@ fraction (`--slide`) or reference-pose distance (`--distance`). Current/all-fram
 scope, validation and guarded output match the Mesh Editor. See
 [edge-slide options](../MODEL_EDGE_SLIDE.md#automate-an-edge-slide).
 
+`model tool --tool align` gives the selected vertices one coordinate:
+`--axis x` (or several axes, such as `xz`) with `--value N` or
+`--to centroid|min|max`. `model tool --tool snap-grid --grid STEP` rounds them
+to the grid. Both move seam copies together, take `--frame all|N` and refuse
+an edit that would collapse a face. See
+[Align vertices](../MODEL_TOOLS.md#align-vertices).
+
+`model tool --tool connect --vertices a,b,c` joins a path of vertices with
+straight cuts, and `--tool connect-edges --edges a:b,c:d --cuts N --slide F`
+adds edges between selected opposite sides of quads. See
+[Connect vertices and edges](../MODEL_TOOLS.md#connect-vertices-and-edges).
+
+`model tool --tool recalculate-outside --faces all` turns each connected piece
+to face outward (`--inside` for inward); a one-sided piece, or nothing to
+change, exits 4. See [Recalculate outside](../MODEL_TOOLS.md#recalculate-outside).
+
+`model tool --tool merge --merge target --target-vertex N` welds the selection
+onto one vertex, `--tool transform ... --auto-merge D` welds what a move brings
+together, and `--tool place --vertices a,b --positions x,y,z;x,y,z` sets exact
+positions. See [Snapping and welding](../MODEL_TOOLS.md#snapping-and-welding).
+
+`model tool` reports faces a bevel, inset, spin or similar tool made cross as
+`introducedIntersections` in JSON; `--refuse-intersections` refuses such an
+edit with exit code 4. See [New intersections](../MODEL_TOOLS.md#new-intersections).
+
+`model tool --tool mark-sharp --edges a:b,c:d` makes edges hard for vertex
+normals and `--tool clear-sharp` smooths them. See
+[Hard edges](../MODEL_TOOLS.md#hard-edges).
+
+`model tool --tool delete --mode vertices|edges|faces` deletes faces around
+the selection, `--tool dissolve-edges --edges a:b` merges the faces across
+edges (`--keep-vertices` keeps the chain's vertices), and
+`--tool limited-dissolve --angle 5` merges nearly flat faces. A delete that
+would empty the surface, or an edge on a seam or border, exits 4. See
+[Delete and dissolve](../MODEL_TOOLS.md#delete-and-dissolve).
+
+`model edit --operation transform-model` moves the whole model, with its tags,
+collision boxes, skeleton and MDL eye position: `--offset`, `--rotate` and
+`--scale` about `--pivot`, or `--origin bounds-centre|bounds-bottom|point`
+(`--at x,y,z`). See [Transform Model](../MODEL_MESH.md#transform-model).
+
 `model tool --tool symmetrize` on a skinned surface needs a mirror partner for
 each off-centre joint the mirrored half uses: `--joint-map detect` reads them
 from left and right joint names, keeping only pairs on opposite sides of the

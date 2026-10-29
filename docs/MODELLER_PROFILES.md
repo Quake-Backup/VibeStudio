@@ -187,6 +187,8 @@ reads a profile and never branches on its name.
 | Component modes | 1, 2, 3 | 1, 2, 3 | 1 vertex, 2 edge, 3 border, 4 face, 5 element, 6 object | F5 vertex, F6 face, F8 tags and joints |
 | Undo, redo | Ctrl+Z, Ctrl+Shift+Z or Ctrl+Y | Ctrl+Z, Ctrl+Shift+Z | Ctrl+Z, Ctrl+Y | Ctrl+Z, Ctrl+R |
 | Knife | K | K | Named command | Named command |
+| Connect Vertex Path, Connect Edges | J, named command | J, named command | Named command, Ctrl+Shift+E | Named commands |
+| Recalculate Outside, Inside | Named commands (Shift+N recalculates vertex normals) | Shift+N, Ctrl+Shift+N | Named commands | Named commands |
 | Texel Density | Named command | Named command | Named command | Named command |
 
 `vibestudio --cli model controls --profile <id>` prints the full reference for
@@ -280,14 +282,17 @@ Each profile lists its own gaps in `model profiles`. In summary:
 - **3ds Max**: Border (3) selects the open boundary loops of the selection and
   Element (5) whole connected pieces, on the studio's edge and vertex modes.
   Shift+drag with Move duplicates the selection rather than cloning an object.
-  Chamfer bevels vertices, Connect runs a loop cut, MeshSmooth subdivides. Cut,
+  Chamfer bevels vertices, Connect (Ctrl+Shift+E) runs
+  [Connect Edges](MODEL_TOOLS.md#connect-vertices-and-edges), MeshSmooth subdivides. Cut,
   Quickslice, Swift Loop, soft selection, the modifier stack and quad menus are
   not emulated; right-click opens the context menu.
 - **MilkShape 3D**: Groups are surfaces; Joints are tags and skeleton joints.
   F5 and F6 switch to vertex and face selection instead of MilkShape's
   creation tools, and F8 picks tags and joints. Snap Together merges at the
   centre, Divide Edge splits edges, and Set Keyframe copies the pose to the
-  current frame. Click-to-create primitives, Delete All and the Comments tab
+  current frame. Flatten X/Y/Z (Ctrl+Shift+X/Y/Z) and Snap to Grid (Ctrl+G)
+  are [Align Vertices](MODEL_TOOLS.md#align-vertices) edits, one undo step
+  each. Click-to-create primitives, Delete All and the Comments tab
   are not emulated.
 - **Keyboard additions**: **Next View** and **Previous View** (Ctrl+Alt+Page
   Down and Page Up) are VibeStudio keys in every profile. Alt+L and Alt+R for
