@@ -124,8 +124,10 @@ neighbouring faces, folded fills and document capacity overflow are refused
 without changing the source. These checks do not detect every distant
 self-intersection.
 
-Branch junctions are not capped: an unmoved branch stays a zero-width split,
-and junction patches across several moved sectors remain planned. Maximum-size
+Branch junctions need no cap: one movement applies to the whole rip, so
+sectors that move together (or stay together) meet along a zero-width split
+that stays open until moved or merged. Moving different sectors by different
+amounts in one rip is not offered. Maximum-size
 latency, original-engine and real-project checks, physical accessibility
 review and clean macOS/Linux acceptance also remain open.
 

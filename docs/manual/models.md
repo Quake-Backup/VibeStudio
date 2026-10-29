@@ -1056,8 +1056,8 @@ for boundary behaviour and the `model curve-transfer` CLI.
   distance, position tools make the frames they edit independent of the
   skeleton, and an unskinned surface must be bound before it can join a skinned
   one. See [Skin weights through mesh edits](../MODEL_SKIN_PROVENANCE.md#limits).
-- Modifier stacks and capped rip junctions across several moved sectors
-  remain planned. [Spin](../MODEL_SPIN.md) and [Rip](../MODEL_RIP.md)
+- Modifier stacks, including a live mirror modifier, remain planned.
+  [Spin](../MODEL_SPIN.md) and [Rip](../MODEL_RIP.md)
   provide bounded shared GUI/CLI workflows. [Knife](../MODEL_KNIFE.md)
   cuts projected paths; [Bevel Edges](../MODEL_EDGE_BEVEL.md) provides chamfers
   and rounded bands with joined corners. Both share GUI/CLI validation.
