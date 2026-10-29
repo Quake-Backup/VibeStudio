@@ -792,7 +792,10 @@ your project's files and the entries of the open package; **File** >
 Windows and Linux).
 
 You can also drop a map, package, project folder, shader script or text file
-onto the window to open it where it belongs.
+onto the window to open it where it belongs. Editable model sources open in
+their editors: a `.mesh.json` in the Mesh Editor, a `.model.json` in
+**Design Prop** and an `.assembly.json` in **Assemble**; **Open Recent** lists
+them under **Models**.
 
 ### The left rail
 
@@ -1150,7 +1153,8 @@ and `external`. See [Code and scripts](manual/code.md) for the editor itself.
 ### Save and restore a workspace
 
 A workspace file remembers what you were working on: the project, the open package or package draft,
-the map, the saved Code tabs, the selected texture, model and sound, and the page you were on.
+the map, the saved Code tabs, the editable model sources open in the Mesh Editor, **Design Prop** and
+**Assemble**, the selected texture, model and sound, and the page you were on.
 
 - Choose **File** > **Save Workspace As…** to write a `.vibeworkspace` file.
 - Choose **File** > **Open Workspace…**, drop the file on the window, or start VibeStudio with
@@ -1617,7 +1621,7 @@ Most actions are in the **Edit** menu, the right-click menu of the views and the
 | Create an entity by class | Every point and brush class of your entity definitions has its own **Create** command, such as **Create light** or **Create func_door**, as in TrenchBroom: type the class in command search, or give it keys in **Help** > **Keyboard Shortcuts** (no profile gives them keys, as TrenchBroom does not). A point class goes in at the pointer in the view you used last, or in the middle of that view, its definition box standing on the brush surface or plane there and lined up with the grid, as **Paste at Cursor** places objects. A brush class makes the selected brushes and patches, with those of selected brush entities, into one, so it waits until brushes are selected; the **Brush Entity** menu uses the same commands and shows their keys. **Create Entity…** (**Edit** > **Brush Entities**, the **Create** menu above the views, or the **Tools** tab) lets you type a class instead. The commands follow the loaded definitions, and keys you give a class are kept while a map without it is open. Each is one undo step; a locked or hidden brush, one outside the open group, or a locked current layer refuses it with the reason. |
 | Move brushes between entities | Select the brushes and patches, then an item of the entity that should take them, and choose **Move Primitives to Entity** (<kbd>Ctrl</kbd>+<kbd>M</kbd> in the NetRadiant Custom profile): the entity of the item you picked last takes the others and keeps its keys, as NetRadiant Custom does. **Move Primitives to First Entity** uses the item you picked first. **Move Selected to World** gives only the selected brushes and patches back to the world, while their entities keep the rest and their keys. An entity left empty goes, hidden brushes of a selected entity stay where they are, and locked or linked objects refuse the move. Brushes keep their numbers, groups and visibility; one leaving an entity for the world joins its entity's group, or else the open group or current layer. |
 | Explode an entity | **Explode Entity** gives every brush and patch of the selected brush entities an entity of its own with the same keys, as bobToolz does. The entity keeps its first brush, and the new pieces are selected with it. **Explode Entity, Unique Names** gives each new piece its own `targetname`, so triggers still fire only the original. Worldspawn, locked and linked entities are refused. |
-| Place models and sounds | The **Models** and **Sounds** tabs list the open package's models and sounds, with a preview of the chosen model and a waveform you can play. Drag one onto a view, or choose **Place in View**, for a `misc_model` or a speaker entity; **Give to Selection** sets the selected entities' `model` or `noise` key instead. The **Place** section names the class it makes in the open map, and says so when your definitions do not declare it: Quake itself has no model or speaker entity, so a Quake mod must provide them. |
+| Place models and sounds | The **Models** and **Sounds** tabs list the open package's models and sounds, with a preview of the chosen model and a waveform you can play. Drag one onto a view, or choose **Place in View**, for a model entity (the same placement **Stage and Place** and `map place-model` use: MDL and MD2 in Quake maps, MD3, ASE and the other formats VibeMap3 bakes in Quake III maps) or a speaker entity; **Give to Selection** sets the selected entities' `model` or `noise` key instead. Right-click a placed model entity for **Show in Models** and **Edit Source** (its editable source, when one is known). The **Place** section names the class it makes in the open map, and says so when your definitions do not declare it: Quake itself has no model or speaker entity, so a Quake mod must provide them. |
 | Duplicate or delete | **Duplicate Selection** copies objects using your profile's placement; **Duplicate with Offset…** previews an exact offset and a **Copies** count for a linear array. <kbd>Delete</kbd> removes the selection; an entity takes its brushes with it. |
 | Move | Drag the selection, nudge it one grid step with the keys your profile gives the **Nudge** commands (see [Nudge the selection](manual/levels.md#nudge-the-selection)), or use **Move Selection…**. |
 | Rotate or flip | **Rotate 90° Left**, **Rotate 90° Right**, **Flip Horizontal** and **Flip Vertical** work as the active view shows the map, the camera included, and **Roll** and **Pitch** turn about the view's other axes; see [Turn and flip from the view](manual/levels.md#turn-and-flip-from-the-view). **Flip X**, **Flip Y**, **Flip Z**, **Rotate X**, **Rotate Y** and **Rotate Z** (**Edit** > **Transform**, the **Transform** menu above the views, or the **Tools** tab) use the world axis whatever view is active, as NetRadiant Custom's commands do: Rotate X and Rotate Z turn -90° and Rotate Y +90°, each clockwise as the side, top or front view shows it. Doom maps flip along X or Y and turn about Z only. No profile gives them keys, as NetRadiant Custom does not; add your own in **Help** > **Keyboard Shortcuts**. In the NetRadiant Custom and TrenchBroom profiles, every quick turn pivots on the grid point nearest the selection's centre while **Snap** is on, so a brush whose sides differ by an odd number of grid steps stays on the grid; it may move by up to half a step. Other profiles turn about the exact centre; **Customize Editor Gestures** changes this for any profile, and a custom component pivot always wins. Flips mirror about the exact centre, except in the TrenchBroom profile, which rounds it to half the grid while **Snap** is on. **Rotate Selection…** turns by any X, Y and Z angles about the selection centre, the world origin or your own pivot; see [Rotate and scale by exact values](manual/levels.md#rotate-and-scale-by-exact-values). |
@@ -3218,7 +3222,8 @@ added to worldspawn still shifts the numbers of brushes in later entities.
   every texture the map uses. Press <kbd>Enter</kbd> on an entity problem to select that entity.
 - **Map tab.** **Worldspawn** edits the map's own keys; **Add Key…** suggests the ones its definition knows.
   **Checklist** shows what a build needs and what is missing, such as a player start, lights, a title, a `wad` key
-  for Quake or deathmatch starts for Doom; press <kbd>Enter</kbd> on a row to go to what it is about.
+  for Quake or deathmatch starts for Doom, and placed model collision that is out of date with its model; press
+  <kbd>Enter</kbd> on a row to go to what it is about.
   **View** > **Level Sidebars** > **Show Map Statistics** and **Show Worldspawn Keys** open the tab with that section
   expanded and the keyboard in its list; both are in command search and can be given keys.
 - **Entity definitions.** On the **Map** tab, give a Radiant `.def`, Valve `.fgd` or Quake III `.ent` file, or a
@@ -5675,7 +5680,9 @@ The review beside the options updates as you change them:
 - **From the Game** lists the references the game provides and which of its packages holds each.
 - **Problems** lists what blocks publishing first, such as a missing texture or a map that has not
   been built, then advisories, such as a sound that a script names but neither the project nor the
-  game has. Activate an unbuilt or out-of-date map to open it on the Build page.
+  game has. Activate an unbuilt or out-of-date map to open it on the Build page. A model exported
+  or staged from a source that has changed since is listed too; refresh it from the Mesh Editor's
+  **Outputs** or with `model outputs --refresh stale`.
 - **Details** is the whole plan as text.
 
 ### Files that game code and scripts load
@@ -6084,6 +6091,18 @@ or the compiler's WAD search path at the saved WAD2. WAD3 output and Doom
 `PNAMES`/`TEXTURE1` wall definitions are not available, so a staged Doom patch
 still needs a wall definition before a level can use it.
 
+### Paint a model skin
+
+In the **Mesh Editor**, **Edit Skin…** opens a model's skin here as a texture
+project: the skin is the active layer and a locked **UV guide** layer above it
+shows the model's UVs; hide it in the Layers panel to see the skin alone. Choose
+**Save Project** when you are done, and the Mesh Editor offers the skin back to
+the model ([Paint the skin in Textures and bring it
+back](manual/models.md#paint-the-skin-in-textures-and-bring-it-back)). Hide the guide
+before you export or stage from here yourself. **Export UV Layout…** writes the
+same template as a separate image (PNG, TGA or PCX, at the skin's size) for any
+paint program. See [Models](manual/models.md#paint-a-skin-over-the-uvs).
+
 ### Work with sprites
 
 - Quake and Half-Life `.spr` sprites, including frame groups, and Quake II
@@ -6374,10 +6393,10 @@ files of skeletal models.
 | Quake, Hexen II, Quake II, Heretic II | Quake MDL, Hexen II MDL, MD2, Heretic II FM | MDL, MD2 |
 | Half-Life and its mods | Half-Life MDL, with its texture and sequence files | Read only |
 | Quake III Arena, Team Arena, Elite Force, Darkplaces | MD3, MDR, IQM | MD3, IQM |
-| Return to Castle Wolfenstein, Enemy Territory | MDC, MDS, MDM with its MDX | Export as MD3, which both games load |
+| Return to Castle Wolfenstein, Enemy Territory | MDC, MDS, MDM with its MDX | MDS (Return to Castle Wolfenstein skeletons), or MD3, which both games load |
 | Jedi Outcast, Jedi Academy, Soldier of Fortune II | Ghoul 2 GLM with its GLA | Export as MD3 |
 | Doom 3, Quake 4, Prey, Quake Wars, The Dark Mod | MD5 mesh and animation, LightWave LWO, ASE | MD5 mesh, MD5 animation, ASE |
-| Any modeller | Wavefront OBJ | OBJ (one frame) |
+| Any modeller | Wavefront OBJ, glTF 2.0 (`.gltf`, `.glb`) | OBJ (one frame); glTF is read only |
 
 Some models need other files to be complete. VibeStudio looks for them in the
 same package, or in the folder of a loose file and the folders above it:
@@ -6419,6 +6438,7 @@ Run `vibestudio --cli model formats` for the same list with its notes. The
 | Half-Life MDL | `.mdl` | Bones, sequences, body parts, embedded textures, attachments |
 | KVX | `.kvx` | The first mip level, as coloured faces |
 | Wavefront OBJ | `.obj` | Polygons, UVs, normals, smoothing groups, `usemtl` paths |
+| glTF 2.0 | `.gltf`, `.glb` | Meshes, node transforms, skins, animations, morph targets, base colour image names |
 
 </details>
 
@@ -6434,6 +6454,18 @@ The **Skin** page changes the preview only: choose a **Preview surface**,
 **Material slot**, **MDL skin** or **Skin member**, apply a package `.skin`
 file with **Skin File…**, or **Reset**. To change what a model really uses,
 edit its materials in the Mesh Editor.
+
+#### Follow a surface to its material
+
+Quake III surfaces name shaders and Doom 3 surfaces name materials, which are
+often not the name of any image. **Show in Materials** (on the **Skin** page,
+in the Mesh Editor's **Surface** page and in **Design Prop**'s **Surface** tab)
+opens the surface's shader or material on the **Materials** page, where you can
+edit its stages, blend modes and maps; the image extension a model stores is
+ignored, as the game ignores it. When no script declares the name, the studio
+shows the image of that name on the **Textures** page instead and says so.
+**Show Image** always opens the image. Both need the package that holds the
+material to be open.
 
 ### Skeletal models
 
@@ -6479,8 +6511,9 @@ alongside:
   independently they work as usual, and the other frames keep their clips.
   Once every surface is unbound they work on every frame.
 - **Save** keeps the skeleton in the `.mesh.json` source.
-- Export as MD5 or IQM to keep the joints, or as MD3, MD2 or MDL to bake the
-  animation into frames.
+- Export as MD5 or IQM to keep the joints, as **RTCW Skeletal Model (MDS)…**
+  for Return to Castle Wolfenstein (its bones must keep their lengths, as the
+  game's do), or as MD3, MD2 or MDL to bake the animation into frames.
 
 The Mesh Editor holds at most 1,024 frames and 1,048,576 frame vertices
 (vertices times frames). A larger skeletal model opens with a **working set**:
@@ -6496,7 +6529,7 @@ watch the meter, then choose **Apply** or press Enter; **Fit Automatically**
 and **Bind Pose Only** set the checklist for you, and **Show Details** lists the
 full report. A clip too long to bake cannot be checked.
 It is one undoable edit, and a clip whose frames you edited on their own stays
-until those edits are undone. **Two-Bone Inverse Kinematics**, **Animation
+until those edits are undone. **Inverse Kinematics**, **Animation
 Curves**, **Edit Animation Keys** and **Transfer Animation Range** list clips
 outside the working set too and preview them one sample at a time. See
 [the skeletal working set](MODEL_SKELETAL_WORKING_SET.md).
@@ -6563,29 +6596,199 @@ that would overwrite independent geometry or attachment changes are refused.
 
 Save preserves all joint samples. MD5 animation and IQM exports use those samples;
 MDL, MD2 and MD3 use the baked preview frames. Native format limits still apply.
-Viewport bone manipulation, [two-bone IK](MODEL_IK.md) and
-[animation curves](MODEL_ANIMATION_CURVES.md) are available; persistent
-constraints remain planned. The
+Viewport bone manipulation, [inverse kinematics](MODEL_IK.md),
+[animation curves](MODEL_ANIMATION_CURVES.md) and
+[persistent constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md) are available. The
 [skeletal authoring reference](MODEL_RIG.md#author-skeletal-animation) includes
 `model pose` automation and exact limits.
+
+#### Import an animation from another file
+
+Choose **Skeleton** > **Import Animation…**, then **Choose File…** and pick an
+md5anim, IQM, MDS, MDR, MDX or GLA file, or another `.mesh.json`. Pick the
+**Clip**, give it a **Name** this model does not use yet, and choose the
+**Mode**: **Exact (same skeleton)** for animation made for this rig, or
+**Retarget (different proportions)** to move motion between characters. The
+table lists each joint of this model with the source joint that drives it;
+same names match automatically. The clip's events and animation curves come
+along unless you clear **Import the clip's events** or **Import the clip's
+animation curves** (retargeting captures fresh keys instead of copying them).
+The line under it says what the import will do, or why it cannot. **Update
+Preview** shows the source and the imported result side by side at the same
+**Sample** before anything changes. **Apply** adds the clip as one undo step.
+See [clip import and retargeting](MODEL_RIG.md#import-and-retarget-clips).
+
+#### Copy, paste and mirror poses
+
+Show a frame of a skeletal clip, select a joint (or none for the whole rig) and
+choose **Skeleton** > **Copy Pose**. **Paste Pose** writes the copy at the
+frame you show; it works across clips and across models with the same
+skeleton. **Paste Pose Mirrored** puts a copied left-side pose on the right
+side, reflected, and **Mirror Pose** swaps the shown pose between left and
+right in one step, which turns half of a walk cycle into the other half. The
+mirror axis and the left/right joint pairs come from joint names such as
+`l_arm`/`r_arm`, `Lhand`/`Rhand` or `Bip01 L Thigh`; a joint that sits off the
+centre without a partner is refused rather than mirrored onto itself.
+
+For a range, open **Edit Skeletal Animation**, choose the clip and the first and
+last poses, and press **Copy Pose Range** (<kbd>Ctrl</kbd>+<kbd>C</kbd>). Then
+choose **Paste pose or keys** (<kbd>Ctrl</kbd>+<kbd>V</kbd>), the destination
+clip and first pose, and optionally **Mirror left and right**. Joints with
+animation curves receive keys instead of samples: the dialog refuses to paste
+over existing keys unless **Replace keys already there** is on, while the
+viewport commands replace the keys at the frame you show. Each paste is one
+undo step. A copy from a differently named rig lands through the **Joint map**
+table, which matches names regardless of case or a `prefix:` namespace and
+asks you to choose the rest; see [pose clipboard](MODEL_RIG.md#copy-paste-and-mirror-poses).
 
 ### Edit a mesh
 
 1. Select a model and choose **Mesh Editor** on the page header. With no model
    selected it starts a new mesh; **Model > Open / Import…** in the editor
-   opens any format above, or a `.mesh.json` source.
+   opens any format above, a `.model.json` design or a `.mesh.json` source.
 2. Select faces, vertices or edges in the view or the outliner, and edit them
    with the tools below.
 3. Choose **Model > Save** (<kbd>Ctrl</kbd>+<kbd>S</kbd>) to keep an editable
    `.mesh.json` source. Game files are exported separately (see
    [Export and build game files](manual/models.md#export-and-build-game-files)).
 
+#### Bring a model in from Blender
+
+Export **glTF 2.0** from Blender (either **glTF Binary (.glb)** or
+**glTF Separate (.gltf + .bin)**) and open it with **Model > Open / Import…**,
+or run `vibestudio --cli model import model.glb --output model.mesh.json`.
+
+- Armatures come in as a skeleton with every action that moves a bone as a
+  clip; shape key animation comes in as vertex frames.
+- Blender's numbers are kept: one Blender unit (one metre) becomes one game
+  unit, with Z up as in Blender.
+- Each material's **Base Color** image name becomes the surface's material.
+
+From there, export MD5 or IQM to keep the skeleton, or MDL, MD2 or MD3 for
+vertex animation. See [glTF 2.0 import](MODEL_FORMATS.md#gltf-20-import)
+for what is read and left out.
+
+#### See the model as the game draws it
+
+Choose **Shading** > **Game** to see each surface with what the engine puts on
+it, rather than only its image:
+
+- For a Quake model, choose the **Quake renderer**. **Modern port** and
+  **Software** keep fullbright colours (eyes, lights) bright in the dark;
+  **GLQuake** lights them like the rest. **Software** also shows the skin's
+  pixels sharp, as the software renderer draws them.
+- Set **Top** and **Bottom** to see team or player colours.
+- Leave **Flood fill** on to see the skin the way GLQuake loads it.
+- For a Quake III model, open its package first: shader stages such as
+  glowing additive layers, scrolling textures and cut-out alpha are drawn.
+
+The line beside the controls says what the preview cannot show, such as
+environment mapping. See [Game preview](MODEL_GAME_PREVIEW.md).
+
+#### Paint the skin on the model
+
+Choose **UV** > **Paint Skin…** to paint the active surface's skin where you
+see it on the model:
+
+1. Turn the model with **Yaw**, **Pitch** and **Zoom**.
+2. Choose **Colour**, **Radius**, **Opacity** and **Hardness**; **Mirror**
+   paints the other side of a symmetric model at the same time. **Stamp…**
+   paints an image instead of the colour, and the **Smudge** blend drags the
+   skin along the stroke.
+3. Drag across the model. Strokes cross UV seams without a gap and never
+   reach faces hidden behind others. Press <kbd>Esc</kbd> to cancel a stroke.
+   To paint in the Mesh Editor's own view instead, turn on **Paint in View**
+   and drag there; the other mouse buttons still move the view.
+4. Choose **Apply to Model** to put the skin back: a Quake model's skin is
+   replaced as one step you can undo, and an image from the open package is
+   staged at its own path. Or choose **Save Skin…** to keep a copy as a file.
+
+A Quake skin is painted with palette colours only. See
+[Painting Skins](MODEL_SKIN_PAINT.md).
+
+#### Bake occlusion and normal maps
+
+Choose **UV** > **Bake Maps…** to bake a map into the active surface's UV
+layout (or every surface's):
+
+- **Ambient occlusion** darkens creases and corners, a good start for a
+  hand-painted skin.
+- **Tangent-space normals (Doom 3)** make a bump map for Doom 3-era models.
+  Choose a detailed model under **High-poly** to project its detail onto this
+  one, as Doom 3's renderbump does.
+- **Lighting** bakes a simple light and shadow.
+
+Choose **Bake**; the map appears when it is done, and **Cancel Bake** stops a
+long one. **Save Map…** writes a PNG or TGA. **Apply to Model** shades a Quake
+skin with occlusion or lighting (by **Shade strength**, as one step you can
+undo), or, for a skin image from the open package, shades it or stages a
+normal map beside it. See [Baking Texture Maps](MODEL_BAKE.md).
+
+#### Review what the decoder reported
+
+Many game files open with notes from the decoder. What happens depends on how
+much each note matters:
+
+- **Advisory** notes describe how the game treats the file, such as a Doom 3
+  ASE multi-material or an MD3 end offset that does not match the file. The
+  model opens as usual.
+- **Omission** notes mean the decoder left something out, such as a second
+  LightWave layer or a declared animation for another skeleton. **Review
+  Import** lists every note by severity. Choose **Accept Omissions and Import**
+  to edit the model without that data, or **Cancel** (the default, so
+  <kbd>Enter</kbd> and <kbd>Esc</kbd> both keep your current model).
+- **Damage**, such as triangles that point outside the model, cannot be
+  accepted; the import is refused with the reasons.
+
+The saved source keeps the advisories and accepted omissions, and
+**Health** > **Import** lists them. The game file itself never changes. See
+[Decode issues](MODEL_FORMATS.md#decode-issues) for the full list.
+
+#### Open your sources
+
+Open an editable source the way you open any other file: drop it on the window,
+pick it in **Go to File** or **File** > **Open Recent** (under **Models**), or
+use **Model > Open / Import…** in the editor. A `.mesh.json` opens in the Mesh
+Editor, a `.model.json` in **Design Prop** and an `.assembly.json` in
+**Assemble**, never as raw JSON text.
+
+The **Models** list ends with **Editable sources**: the sources in a folder
+package and in the project's source folders. Press <kbd>Enter</kbd> or
+double-click one to open it. A source saved after its last export or staging
+reads **(outputs out of date)**; open it and use **Refresh Stale** under
+**Outputs**.
+
+When you choose **Mesh Editor** on a game model and its editable source is
+known (a `.mesh.json` of the same name at the same game path, beside the file in
+a folder package or in the project's source folders), the studio asks whether
+to **Open Editable Source** or **Import This File**. Prefer the source: a game
+file cannot store connectivity, curves, collision, clips or seam marks, so an
+import starts again from what was exported.
+
 #### Save and review output
 
 The mesh editor checks that a loaded source still has its original contents and
-resolved path before saving over it. If another application changes or removes
-the file, reload it or save to another path. Saving through a hard-link alias of
-the loaded source is also refused; use its original path.
+resolved path before saving over it. Saving through a hard-link alias of the
+loaded source is also refused; use its original path.
+
+While a source is open the editor watches its file. When another program
+(Blender, a script, a second studio, version control) changes it, a notice above
+the views says so, with three choices:
+
+- **Reload from Disk** replaces the document with the file. With unsaved edits
+  it first asks: **Save Edits As…**, **Discard Edits and Reload** or **Cancel**.
+- **Compare** summarises both: surfaces, vertices, triangles and frames in the
+  document and on disk, and when the file was saved.
+- **Keep Editing** hides the notice until the file changes again. **Save** then
+  asks before replacing the changed file: **Save As…**, **Replace Changed File**
+  or **Cancel**.
+
+A source that is deleted or moved shows **Source file removed** with
+**Save As…**. The editor's own saves never raise the notice. **Design Prop**
+likewise refuses to save over a `.model.json` that changed on disk after it was
+opened; save it to another path or reopen it. **Assemble** reads its linked parts
+again when another program changes them, and says when the `.assembly.json`
+itself changed.
 
 CLI authoring commands use the same checks with `--dry-run`, including complete
 serialisation and the 64 MiB editable-source limit. A dry run leaves files,
@@ -6637,6 +6840,76 @@ exports, player packages and skin imports use the shared package checks. If a
 linked destination needs a large folder scan, validation reports progress and
 can be cancelled. If source protection cannot be completed, choose a new output
 outside the input package, folder or draft.
+
+#### Shape and clean up geometry
+
+**Tune a selection.** After **Select > Select Similar**, **Sharp Edges**,
+**Random** or **Checker Deselect**, press <kbd>F9</kbd> to change its
+threshold, ratio, seed or spacing; the selection updates without an undo step.
+
+**Put vertices on an exact coordinate.** Select the vertices, then choose
+**Mesh > Snap > Align > Flatten X** (or **Y**, **Z**) to line them up on their
+centroid, or **Align X to 3D Cursor** with the cursor at X = 0 for a model's
+centre line before **Symmetrize**. Typing a value in **Selection position** on
+the **Item** page moves the whole selection until its median takes it. **Snap
+Selection to Grid** rounds every selected vertex to the Move snap step. Press
+<kbd>F9</kbd> to switch between a value, the centroid, the minimum, the
+maximum, the grid and the median. With **Symmetry** on, mirror counterparts
+follow and centre-line vertices stay on the mirror plane. Seam copies move together, **Apply to** chooses every
+frame or the current one, and an alignment that would collapse a face is
+refused. See [Align vertices](MODEL_TOOLS.md#align-vertices).
+
+**Add an edge where you need it.** Select two vertices and press <kbd>J</kbd>
+(**Vertex > Connect Vertex Path**) to join them with a straight cut (pick three
+or more one at a time to cut a path through them in that order), or select
+opposite sides of quads and choose **Edge > Connect Edges** to add edges
+across them without cutting a whole loop; <kbd>F9</kbd> sets the number of
+cuts and their slide. See
+[Connect vertices and edges](MODEL_TOOLS.md#connect-vertices-and-edges).
+
+**Weld and conform.** Point at a vertex and choose **Merge > Merge at Target
+Under Pointer** to weld the selection onto it, or turn on **Snap > Auto Merge
+Vertices** so moves weld what they bring together. Set **Snap to** to
+**Face** to slide armour or attachments over a body, **Face Project** to drop
+every moving vertex onto the surface behind it, or **Edge Midpoint** to centre
+them on an edge; Rotate, Scale and Extrude snap to the same targets, and
+**Snap > Pivot at Target Under Pointer** puts the pivot there. **Snap > Place
+Vertex…** types exact coordinates for one vertex. See
+[Snapping and welding](MODEL_TOOLS.md#snapping-and-welding).
+
+**Catch faces pushed through the model.** When a bevel, inset, spin or similar
+tool makes faces cross other faces, the banner says so and **Mesh > Clean Up >
+Select New Intersections** selects them; turn on **Refuse New Intersections**
+(kept between sessions) to refuse such edits instead. Crossings with other
+surfaces count too. See [New intersections](MODEL_TOOLS.md#new-intersections).
+
+**Fix faces that vanish in game.** Choose **Mesh > Normals > Recalculate
+Outside** (<kbd>Shift</kbd>+<kbd>N</kbd> in the Blender profile) to turn every
+face of the selection, or the whole surface, to face outward, across UV
+seams. See [Recalculate outside](MODEL_TOOLS.md#recalculate-outside).
+
+**Make an edge hard or soft.** Select the edges and choose **Normals > Mark
+Sharp** for a crisp edge in game lighting, or **Clear Sharp** to smooth it;
+**Make Smoothing Group** makes the selected faces one smooth region with a hard
+border. The marks are saved with the source and survive **Recalculate
+Normals**, and the banner shows the vertices they cost against the MD3, MD2 and
+MDL budgets.
+See [Hard edges](MODEL_TOOLS.md#hard-edges).
+
+**Remove geometry without leaving holes.** <kbd>X</kbd> opens **Delete**:
+**Delete Vertices** and **Delete Edges** remove the faces around them, while
+**Dissolve Edges** merges the faces on both sides of the selected edges, for
+example to take out a loop. **Mesh > Clean Up > Limited Dissolve** merges
+nearly flat faces of an import to meet the MD3, MD2 or MDL budget. See
+[Delete and dissolve](MODEL_TOOLS.md#delete-and-dissolve).
+
+**Re-orient, rescale or re-origin the whole model.** Use **Mesh > Transform
+Model**: **Origin to Bounds Bottom (Feet)** puts a standing model's feet on the
+origin, **Turn Model 90° Left** or **Right** makes an import face +X, **Scale
+Model to Height…** scales it to Quake units, and **Transform Model…** takes
+exact values, previewing them in the view as you type. Attachment tags, collision boxes, the skeleton and the MDL eye
+position move with the geometry in every frame, as one undo step. See
+[Transform Model](MODEL_MESH.md#transform-model).
 
 #### Find your way around
 
@@ -6852,6 +7125,34 @@ selection instead. Every change is one undo step. Changes to the mesh's
 structure, such as extrusions and cuts, apply to every animation frame; moves
 can apply to **All frames** or the **Current frame**.
 
+To scale or turn several separate pieces in place, such as a row of teeth or
+bolts, choose **Mesh > Snap > Pivot at Individual Origins** (or **Pivot >
+Individual origins** on the **Item** page): each connected piece then rotates
+and scales about its own centre, in the view, with the gizmo and in the numeric
+fields. **Mesh > Snap > Normal Transform Axes** (**Transform axes > Normal**)
+lines the axes up with the selection's surface; press an axis key twice while a
+transform runs to use them, so <kbd>G</kbd> <kbd>Z</kbd> <kbd>Z</kbd> moves along
+the normal. With both, each piece uses its own normal. See
+[Editable Meshes](MODEL_MESH.md) for the exact rules.
+
+To build half a model and mirror it as you go, turn on **Symmetry X** (or Y or
+Z) in the editing header. Extrusions, insets, loop cuts, bevels, dissolves and
+the other topology tools then change the other side too, from the side you
+selected, in one undo step; moving vertices with <kbd>G</kbd>, <kbd>R</kbd> and
+<kbd>S</kbd> or with the gizmo moves their mirror counterparts, and with
+proportional editing on, nearby vertices follow with the falloff. **Mesh > Symmetrize > Mirror Faces
+Across X** flips a separate piece, such as an ear or a pauldron, to the other
+side. See [modelling tools](MODEL_TOOLS.md#proportional-editing-and-symmetry).
+
+To build a low-poly model vertex by vertex over a reference image, as in
+MilkShape 3D, choose **Vertex > Poly Build** in a front, side or top view.
+Click to place each corner, or click near an existing vertex to reuse it; every
+third corner makes a face, and clicking on keeps building a strip. Press
+<kbd>N</kbd> for a new face, <kbd>Backspace</kbd> to take back a corner and
+<kbd>Enter</kbd> when you are done. Each face is one undo step. With the
+MilkShape 3D controls you can put **Poly Build** on <kbd>F6</kbd> in
+**Customise Controls…**.
+
 The mesh menus (**View**, **Select**, **Add**, **Mesh**, **Vertex**, **Edge**,
 **Face** and **UV**) hold the rest: primitives, merging, dissolving, bisecting,
 symmetrising, smoothing, solidify, decimation, normals, UV projections, seams
@@ -6859,16 +7160,18 @@ and packing. The property pages cover the details:
 
 - **Item** and **Tool**: exact transforms, pivots and transform axes, and the
   settings of the active tool.
-- **Surface**: UVs, seams, materials, **Manage Surfaces…**,
-  **Manage Material Slots…**, **Skin Variants…** (see
+- **Surface**: UVs, seams, materials, **Show Image**, **Show in Materials**
+  (see [Follow a surface to its material](manual/models.md#follow-a-surface-to-its-material)),
+  **Manage Surfaces…**, **Manage Material Slots…**, **Skin Variants…** (see
   [Skin variants](manual/models.md#skin-variants)) and **Apply .skin File…**.
 - **Animation**: frames, named clips, attachment tags and generated in-between
   frames.
 - **Skeleton**: joints and skeletal clips (see [Skeletal models](manual/models.md#skeletal-models)).
 - **Collision**: static collision boxes (see [Add collision](manual/models.md#add-collision)).
 - **Quake MDL**: indexed skins, frame groups, timing and header flags.
-- **Export**: the package path, MD2 skin size and level origin used for export
-  and staging, with **Stage in Package** and **Stage and Place** beside them.
+- **Export**: the package path used for staging (exports ask for a file name),
+  the MD2 skin size, and the level origin used when placing, with
+  **Stage in Package** and **Stage and Place** beside them.
 - **Health**: reports duplicate faces, unused vertices, inconsistent winding,
   open boundaries and intersecting faces, with one-step repairs for several of
   them.
@@ -6881,6 +7184,31 @@ Levels…**. **Model > Keep Local Recovery Copies** checkpoints unsaved work (th
 status strip shows the last copy), and **Model > Recover…** restores a copy as
 an unsaved draft.
 
+#### Recover after a crash
+
+When the studio starts after a session that did not close, a notice says how
+many mesh and assembly recovery copies are waiting and how many of their
+sources changed since. **Review Models** opens the recovery chooser, where each
+copy says whether its source is **Source unchanged**, **Source changed since
+the copy**, **Source missing** or has **No saved source**. **Restore as Draft**
+opens it unsaved. **Save** then offers the original source: when that file still
+holds what the copy started from, it is replaced; when it changed since, you
+choose **Save As…**, **Replace Changed File** or **Cancel**.
+
+Weight strokes staged in **Paint Skin Weights** and curves staged in
+**Animation Curves** are kept too, beside the copy of the model they were
+staged on. The chooser lists them as **Staged but not applied**; after
+**Restore as Draft** the editor asks whether to **Review Staged Work** (the
+dialog opens with the strokes or curves staged again, for you to apply or
+cancel) or **Discard Staged Work**. Work staged on another version of the model
+is not offered, as its strokes or keys would no longer match.
+
+The oldest mesh copies beyond 32, or beyond 2 GiB in all, are removed at
+startup, never one a running studio is still writing. Turn the notice off with
+**Offer mesh and assembly copies at startup** under **Settings → Getting
+Started → Model Recovery**; the copies stay, and **Model > Recover…** still lists
+them.
+
 **Edge → Edge Slide** moves selected chains or loops along surrounding quad
 faces. Follow the preview rails or type a signed fraction, then confirm or
 cancel. **Adjust Last Operation** also offers a distance in the reference pose.
@@ -6891,7 +7219,8 @@ for rail direction, selection requirements and limits.
 **Edge → Bevel Edges** (**Ctrl+B** in VibeStudio/Blender) creates chamfers or
 rounded edge bands. Type a width and change segments with the wheel or
 **Page Up/Down**, then confirm or cancel. **Adjust Last Operation** adds
-roundness and UV tile size. Closed corners receive caps; new skin weights
+roundness, UV tile size and **Clamp width to fit**, which narrows a bevel that
+would run into its neighbours instead of refusing it. Closed corners receive caps; new skin weights
 follow the cut geometry across all retained poses. Original face UVs stay
 separate, while new bands/caps need atlas packing where appropriate. See
 [edge bevel](MODEL_EDGE_BEVEL.md) for width semantics and refusal conditions.
@@ -6907,6 +7236,14 @@ their visibility when subdivided. Every pose, UV seam and skin influence uses
 the same cut interpolation. F9 adjusts visibility/selection scope. See
 [knife cutting](MODEL_KNIFE.md) for projection, snapping and refusal limits.
 
+When two parts pass through each other, select one of them and choose **Face →
+Intersect (Knife)** to cut both where they meet, or **Intersect (Union)** to
+remove the hidden faces as well and save triangles. **Intersect (Difference)**
+carves the other part out of the selection, and **Intersect (Shared Volume)**
+keeps only what both parts enclose. When the parts are separate surfaces,
+choose the other surface in **F9 > Cut with**. Union, difference and shared
+volume need closed parts.
+
 **Face → Spin** and **Edge → Spin** make curved extrusions around the **3D
 Cursor**. Type degrees, choose an axis with **X/Y/Z**, and set steps with the
 wheel or **Page Up/Down**. **Face → Spin Duplicates** makes radial face copies.
@@ -6915,14 +7252,37 @@ steps, closure, duplication and UV scale. Detached face profiles can close a
 full turn. Review every pose, face orientation and UV packing before exporting;
 see [Spin](MODEL_SPIN.md) for skinning behaviour, limits and CLI examples.
 
+**Edge → Screw** and **Face → Screw** turn the selection once around the **3D
+Cursor**'s Z axis while climbing, for springs, threads and spiral horns; **F9**
+sets the **Axial offset (screw)**, steps and axis. **Face → Array** copies the
+selected faces in a row in one step, for chains, railings, ammunition belts and
+teeth: **F9** sets the **Count**, the **Offset** and **Relative offset**, a
+per-copy **Rotation** and **Scale** about the **Centre**, and a **Merge
+distance** that joins neighbouring copies into one piece. Each is one undo step.
+
+<kbd>Alt</kbd>+<kbd>E</kbd> opens the extrude variants. **Extrude Faces Along
+Normals** pushes panels and armour plates out along their own normals, keeping
+an even thickness at corners; **Extrude Individual Faces** turns each face into
+its own spike or block. Move the pointer or type a distance, then press
+<kbd>Enter</kbd>. Their side walls get their own UV strips, so they do not smear
+the skin; **F9** changes the mode and the wall UV scale (0 keeps the old copied
+UVs).
+
+**Edge → Bridge Edge Loops** joins two open loops, **Edge → Bridge Edge Chains**
+joins exactly the selected edges of two open borders, and **Face → Bridge Faces**
+removes two selected face regions and joins the holes, for joining limbs to a
+torso or closing gaps between parts. **F9** adds **Segments** (rings that bend
+with the animation) and a **Strip UV** scale that gives the bridge its own UVs.
+
 **Vertex → Rip** and **Edge → Rip** open a selected vertex or connected edge
-chain; **Rip and Fill** bridges the gap. **V/Alt+V** start these in the studio
+chain, which may branch into a T, a Y or a loop with a branch; **Rip and Fill**
+bridges the gap. **V/Alt+V** start these in the studio
 and Blender profiles. The starting pointer chooses the side; **B** swaps it
 and **F** toggles filling. Type a distance, constrain with **X/Y/Z**, confirm
 with **Enter**, or cancel the whole preview with **Esc**. **F9** adjusts the
 offset, side face, fill and UV scale. Every retained pose is updated through
-the shared service. See [Rip](MODEL_RIP.md) for rig behaviour, CLI examples
-and the current unbranched-selection limits. Confirm **Rip** immediately or
+the shared service. See [Rip](MODEL_RIP.md) for rig behaviour, branched
+junctions, CLI examples and the current limits. Confirm **Rip** immediately or
 enter a zero offset to split without moving; the split survives coincident
 positions, other mesh/UV tools and source reopening. **Rip and Fill** requires
 movement to create gap faces. **Esc** restores the original connectivity.
@@ -6933,10 +7293,116 @@ input islands; **Merge** or **Weld** explicitly connects compatible vertices.
 **UV → Texel Density…** (also in the UV toolbar) measures existing islands
 against the original texture dimensions. Choose a reference pose, inspect the
 per-island results, then preview a target density for each island or for the
-combined selection. Apply creates one undo step. Review overlaps and coverage
+combined selection. To match surfaces with different skins, use
+`model uv-density --surfaces` (see [texture density](MODEL_UV_DENSITY.md)). Apply creates one undo step. Review overlaps and coverage
 before packing or exporting; density adjustments keep island centres fixed and
 affect UVs across every pose. See [texture density](MODEL_UV_DENSITY.md) for
 material defaults, repair diagnostics, limits and CLI examples.
+
+#### Check UVs before export
+
+1. In the UV view's toolbar, choose a problem in **UV problem overlay**:
+   **Stretched faces**, **Overlapping faces**, **Flipped faces** or **Faces
+   outside the tile**. Each has its own hatching, and the view's legend counts
+   the faces. Set **UV stretch limit** for stretched faces (1.5 by default).
+2. Choose **Select Shown Problems** to select those faces, or use **UV → Select
+   Overlapping UVs**, **Select Flipped UVs**, **Select Stretched UVs** or
+   **Select UVs Outside the Tile**. Selecting never changes the model.
+3. Choose **Check UV Health** for a full report in the status line: every count,
+   the largest texel-centre error, the vertices an MDL, MD2 or MD3 export would
+   store against its limit, and, for a Quake MDL, whether GLQuake's skin flood
+   fill reaches painted texels.
+
+Faces on mirrored islands that share skin space with their other half are
+reported as stacked mirror halves, not overlaps. Measurements use the
+displayed pose and the skin's original size. See
+[UV health](MODEL_MESH.md#uv-health) for how each problem is measured.
+
+#### Unwrap along your own seams
+
+1. Mark seams so every island you want can lie flat (a closed shape needs at
+   least one seam).
+2. Choose **UV → Unwrap (Seams Only)**, or set **Unwrap Method** to
+   **Conformal (seams only)** and choose **Unwrap and Pack Faces**.
+
+You get exactly one island per seam-bounded region, flattened with as little
+angle distortion as the shape allows, at one density. To hold corners in
+place, select them, place them where they should stay and choose **Pin UVs**;
+an island with two or more pins keeps them exactly and flattens around them.
+Pins are drawn as red diamonds and are saved with the model; **Unpin UVs**
+removes them. Pinned islands stay where their pins hold them when the other
+islands are packed. In vertex selection, the selected corners are also pinned for
+that one unwrap. Turn off **Pack after a conformal unwrap** to keep the
+islands where they land. A closed island or one that folds is refused with its
+faces named; add a seam there.
+
+#### Tidy UVs
+
+In the UV controls on the **Surface** page (or the **UV** menu):
+
+- **Weld UVs** joins split corners again, such as those **Detach UV Faces**
+  split; **Weld Distance** joins corners that are slightly apart.
+- **Stitch UVs** joins islands along the seam edges you select, as many pairs
+  as you select at once. The largest island of each group stays where it is;
+  the others turn and move into place without mirroring or scaling.
+- **Align UVs** lines corners up on U or V, or straightens them.
+- **Snap UVs to Texels** puts corners on texel centres of the MDL or MD2 skin,
+  so the export keeps them exactly.
+- **Turn islands when packing** lets **Pack Selected UVs** turn islands a quarter
+  turn when that fits them larger; **Pack with surfaces sharing this material**
+  packs those surfaces into the same skin.
+
+After Weld, Align, Snap or the Quake front/back layout, **Adjust Last
+Operation** (<kbd>F9</kbd> in the Blender profile, or the **View** menu) changes
+its settings and replays it in place.
+
+In the UV view, press <kbd>S</kbd> to scale or <kbd>R</kbd> to rotate the
+selection (or your profile's keys), move the pointer or type a value, then press
+<kbd>Enter</kbd>; <kbd>Esc</kbd> cancels.
+
+#### Lay out a classic Quake skin
+
+Choose **UV → Quake Front/Back Skin Layout** with the model facing +X. Faces
+facing forward fill the left half of the skin and the rest the right half,
+mirrored, so the MDL stores the outline's corners once as seam vertices. The
+status line gives the vertices the MDL would store against its limit. Set the
+MDL skin size first; Quake needs a width that is a multiple of 4.
+
+#### Paint a skin over the UVs
+
+1. Choose **Export UV Layout…** in the UV toolbar or the **UV** menu.
+2. Check the size (the skin's original size by default), choose the surfaces,
+   background, fill and line style, and a PNG, TGA or PCX file, or stage it in
+   the open package.
+3. Paint over the layout in **Textures** or any paint program.
+
+For a Quake MDL, **Export Member…** and **Replace Member From Image…** on the
+MDL page take a skin member out and back, mapped to the model's palette.
+
+#### Paint the skin in Textures and bring it back
+
+1. Select the surface and choose **Edit Skin…** in the UV toolbar or the **UV**
+   menu. Textures opens the skin with a locked **UV guide** layer showing the
+   UVs; hide it in the Layers panel when you want to see the skin alone.
+2. Paint on the skin layer, then choose **Save Project**.
+3. Back in **Models**, choose **Apply Skin** in the status strip. A Quake MDL
+   member is replaced as one undo step; any other skin is staged over its
+   package path. **Dismiss** keeps the model's skin.
+
+Turn on **Apply Saved Skins Automatically** in the UV toolbar to apply every
+save at once. The project is kept in the project's `.vibestudio/model-skins`
+folder. If you export or stage from Textures yourself, hide the UV guide first.
+
+#### Keep a painted skin after changing UVs
+
+After unwrapping, packing, scaling or moving islands, or after subdividing,
+cutting or rebuilding faces, choose **Transfer Skin…** in the UV toolbar. It
+repaints the skin for the new UVs from the old one, then replaces the MDL
+member as one undo step or stages the image over the old one. With **Match
+faces** set to **Automatic**, faces that kept their corners are matched
+directly and reshaped or new faces take the paint of the nearest part of the
+old surface. Use it straight after those edits: moving vertices or other edits
+end the chain.
 
 ### Design a prop
 
@@ -6945,6 +7411,7 @@ material defaults, repair diagnostics, limits and CLI examples.
 1. Add parts, then set their size, position and rotation in the **Part** tab.
 2. In the **Surface** tab, set each part's material path and UV scale, offset
    and rotation. **UV checker** previews tiling without project textures.
+   **Show Image** and **Show in Materials** open the material in the package.
 3. Choose **Save Design…** to keep the editable `.model.json` source.
 4. Choose **Export MD3…** or **Export OBJ…**, **Stage in Package**, or, with a
    Quake III map open, **Stage and Place** to also add an undoable `misc_model`
@@ -6966,6 +7433,24 @@ Quake III player PK3 (**Player Package…**). Assemblies link separate models;
 they are not skeletal animation, and game-side animation set-up is still up to
 you.
 
+**Attachment blend**, below the preview, sets how parent tags move between
+stored frames, in the preview and in every bake. **Quake III renderer** blends
+each tag axis the way the game does, so a fast swing or head turn looks as it will
+in game, slight skew included. **Shortest arc** keeps the attached part rigid.
+Binding native animation or opening a player selects **Quake III renderer**;
+older assemblies keep **Shortest arc**. See
+[Attachment blend](MODEL_ASSEMBLY.md#attachment-blend).
+
+A part can also hang from a joint of a skeletal parent (MD5, IQM): choose
+`joint:<name>` as its **Parent tag**, such as `joint:hand` for a weapon. For a
+Doom 3 character, **Open Doom 3 Entity…** builds the recipe from the package's
+`def/` files: the body, its `def_head` on the head joint and each `def_attach`
+on its joint. See [Joint attachments](MODEL_ASSEMBLY.md#joint-attachments).
+
+To keep the parts' collision in a bake, tick **Include part collision in bakes**:
+each part's boxes and hulls are placed as the part is and named after it. See
+[Part collision in bakes](MODEL_ASSEMBLY.md#part-collision-in-bakes).
+
 #### Open an existing Quake III player
 
 **Open Player…** turns a player of the current package or folder into a new
@@ -6981,6 +7466,30 @@ Nothing in the package changes. The new assembly is unsaved: save it beside the
 package, not inside it. To bring in only an `animation.cfg`, use **Native
 Animation… > Import from Package…**. See
 [Opening a Quake III player](MODEL_ASSEMBLY.md#opening-a-quake-iii-player).
+
+#### Publish a Quake III weapon
+
+**Weapon Package…** writes a weapon's models into one PK3 at
+`models/weapons2/<id>/`: the weapon, and optionally its first-person hand, its
+spinning barrel and its muzzle flash. Build the weapon as an assembly with the
+barrel on the weapon's `tag_barrel` and the flash on its `tag_flash`, choose the
+part for each role, then **Review Package** and **Export PK3…**. The review
+refuses a weapon without `tag_flash` and other missing tags, so the flash and
+barrel cannot end up in the wrong place. **Detail levels** adds lower-detail
+models beside each one, and **Weapon sounds** adds named sounds under
+`sound/weapons/<id>/` for the weapon's game code to use. Set **Spin about X
+(rpm)** on the barrel to see it roll in the preview, and clear **Show muzzle
+flash** to see the weapon between shots. See [Weapon packages](MODEL_ASSEMBLY.md#weapon-packages).
+
+#### Publish a Quake II player
+
+**Quake II Player…** writes `players/<id>/` into a PAK: the body as `tris.md2`
+with the 198 standard player frames, `weapon.md2` playing in step with it, each
+skin and icon as a PCX in the game's palette, and optional sounds and view
+weapons. Open the game's `pak0.pak` (or a package with `pics/colormap.pcx`) first
+for the palette. A wrong frame count names the standard ranges so you can see
+what is missing. Type `package:PATH` in any path to use a model, image or sound
+already in the open package. See [Quake II player packages](MODEL_ASSEMBLY.md#quake-ii-player-packages).
 
 #### Publish a Quake III player
 
@@ -7033,18 +7542,39 @@ way. Player packages use a part's variants for skins of the same name. See
 ### Add collision
 
 The Mesh Editor's **Collision** page creates static, oriented collision boxes:
-add or fit a box to the selection, then move, rotate and size it.
+add or fit a box to the selection, then move, rotate and size it. For round or
+sloped props, **Fit New Hull** fits a convex hull instead, kept within the
+**Hull budget** you choose (a map brush, or a Doom 3 trace model's 16 faces); it
+moves, scales and animates like a box. **Fit New Animated Hull** fits a separate
+hull in every frame, for props that bend or stretch.
+
+For Doom 3, **Export ASE with Collision…** writes the model with one
+collision surface per box or hull, so the game collides with those instead of the
+render triangles, and warns when the open package's material scripts do not give
+the collision material the `collision` keyword. **Export Doom 3 Clip Model…**
+writes the selected volume for an entity's `clipmodel` key, and **Export Doom 3
+.cm File…** writes a collision model file that Doom 3 reads beside a static model
+instead of converting its surfaces. See [Doom 3 collision](MODEL_COLLISION.md#doom-3-collision).
 **Export Collision Map…** writes the boxes as brushes in a separate `.map`
 file, and **Place Collision in Level** adds them to the open Quake, Quake II or
-Quake III map as one undoable edit. Placed brushes do not follow later edits to
-the prop.
+Quake III map as one undoable edit. To fit a prop placed in the level, select its
+model entity there and choose **Place for Selected Model Instance**: the boxes
+follow the instance's position, angles and scale.
+
+Placed collision remembers which model it came from. When you change the boxes,
+choose **Refresh Placed Collision…**: it lists this model's collision in the open
+level as **Current** or **Stale**, and replaces the set you choose in one undoable
+edit, instead of adding a second set. The Levels **Checklist** warns when a placed
+set is out of date with its model, even with the model closed. Moving the prop in
+the level does not move its collision; refresh it afterwards. See
+[Recorded placement and refresh](MODEL_COLLISION.md#recorded-placement-and-refresh).
 
 ### Export and build game files
 
 | From | How |
 | --- | --- |
 | Models page | **Export OBJ** writes the current frame of the selected model. |
-| Mesh Editor | In the **Model** menu, **Export MD3…**, **Export MD2…**, **Export MDL…** or **Export OBJ Frame…**; **Export Other Format** for **MD5 Mesh…**, **MD5 Animation of Clip…**, **MD5 Animations of All Clips…**, **Inter-Quake Model (IQM)…** and **ASE Frame…**; **Stage in Package** or **Stage and Place** for a package and map. |
+| Mesh Editor | In the **Model** menu, **Export MD3…**, **Export MD2…**, **Export MDL…** or **Export OBJ Frame…**; **Export Other Format** for **MD5 Mesh…**, **MD5 Animation of Clip…**, **MD5 Animations of All Clips…**, **Inter-Quake Model (IQM)…**, **RTCW Skeletal Model (MDS)…** and **ASE Frame…**; **Stage in Package** or **Stage and Place** for a package and map. |
 | Command line | `model build` turns a `.mesh.json` or `.model.json` source into any of those formats (`--target` names the game); `model lod` writes Quake III detail levels; `model targets` lists the delivery targets or checks a model against them. |
 
 Each export checks the limits of its delivery target first, and reports what
@@ -7087,8 +7617,64 @@ open. See
 [what each export keeps](MODEL_FORMATS.md#what-each-export-keeps-changes-or-leaves-out)
 for the details per format.
 
-MD3 models can be placed in Quake III maps as `misc_model` entities; placing
-other models in a level is game-specific and not automated.
+#### Keep game files in step with the source
+
+With a project open, every export and **Stage in Package** leaves a receipt in
+the project: the source and its contents, the settings used, and the file
+written. The **Outputs** list on the **Export** page shows what this source has
+delivered and whether each is **Current**, **Source changed**, **Changed
+elsewhere**, **Missing** or **Unknown** (exported from unsaved edits).
+**Check Outputs** compares them again; **Refresh Stale** exports the stale ones
+again from the saved source with the settings they were made with, and never
+replaces a file someone else changed. `model outputs` does the same from the
+command line (see [Model outputs and receipts](MODEL_OUTPUTS.md)).
+
+The **Package path** starts as the game path the source was imported from, such
+as `progs/player.mdl`, so staging puts the model back where it came from.
+
+#### Place models in a level
+
+The Levels page **Models** tab, the Mesh Editor's and **Design Prop**'s
+**Stage and Place**, and `map place-model` all place models the same way:
+
+- A Quake III map bakes MD3, ASE, MDC, MD2, OBJ, LWO and FM models into the map
+  as `misc_model` (VibeMap3 reads them as q3map2 does), unless the entity
+  definitions loaded in the Levels workbench declare only `misc_gamemodel`.
+- A Quake or Quake II map places MDL and MD2 models as the class your loaded
+  definitions use for models (`misc_model`, else `misc_gamemodel`). Other
+  formats place with a warning that only source ports read them, and the studio
+  says so when no loaded definition declares the class.
+- Doom maps have no model entities.
+
+**Stage and Place** uses the entity definitions loaded in the Levels workbench,
+commits the new entity as one undoable map edit, selects it and frames it; if
+the map was edited, undone or reopened while the model was being prepared,
+nothing is staged or placed and you are asked to try again. The **Stage and Place** tooltip
+names the formats the open map places.
+
+Right-click a placed entity with a `model` key in a view or the object list for
+**Show in Models**, which selects its model on the Models page, and
+**Edit Source**, which opens its editable source when one is known.
+
+#### Stage a model with everything it needs
+
+**Stage in Package** stages the model the **Package path** names: an MD3
+together with the detail levels the source stores, as one package step that one
+undo removes, or one MDL, MD2, md5mesh, md5anim, IQM or ASE file. With **Stage
+clips beside an MD5 mesh** (on by default) an md5mesh brings each clip as an
+md5anim beside it; with **Stage skins beside an MD3** an MD3 brings
+`name_default.skin` and one `name_variant.skin` per skin variant, as Quake III
+loads a player part's skins. Each file is checked first (a safe path, shorter
+than 64 bytes for MDL, MD2, MD3 and skins, and the format's own header).
+
+Before anything is staged a review lists every file with its role and size and
+whether it is **New**, **Replaces a package file** or **Replaces a staged
+file**, the materials the model uses with their status in the package, and the
+export notes. **Stage** stays unavailable while files would be replaced until
+you choose **Replace existing package files**; **Cancel** leaves the package
+plan as it was. `model stage` stages the same sets from the command line, adds
+generated detail levels (`--lod`), clips (`--md5-clips`) and skins (`--skins`),
+and reviews the materials against the package, reporting any that are missing.
 
 #### Delivery targets
 
@@ -7192,6 +7778,36 @@ fewer levels than the source stores, or none, **Stage in Package** stages the
 model with the levels the target loads, and the report says which stay in the
 source.
 
+#### Keep constraints on a clip
+
+To keep a hand on a prop, a head looking at a target or a foot planted while
+you go on editing the motion, choose **Skeleton** > **Constraints and Layers…**,
+pick the clip, set the **Kind**, **Joint** and **Target joint** or **Point**, the
+sample range and **Weight**, then **Add Constraint**. **Weight keys** such as
+`0:0, 12:1` blend a constraint in over the clip, and **Keep joints within their
+limits** makes an IK constraint respect joint limits. To add motion on top of a
+clip without touching its keys, key a layer in the same dialog: pick a
+**Keyed joint** and **Layer channel**, set keys in the graph or with **Set
+Key**, then **Add Layer**; the **Layer weight** channel fades the layer over
+the clip. The clip re-evaluates its constraints and layers whenever you change
+its keys, solve IK or paste a pose; **Bake Stack** turns the result into plain
+samples again. See [constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md).
+
+#### Write game declarations
+
+Games need more than the model file. Choose **Skeleton** > **Game
+Declarations…** to generate a Doom 3 model declaration, QuakeC `$frame`
+macros, a Quake II frame header, a GZDoom MODELDEF or, for a voxel opened
+from a `.kvx`, a GZDoom VOXELDEF from the model, then **Copy** or **Save
+As…**. For Doom 3, **Export Model Set…** writes the md5mesh, every clip as an
+md5anim and the `.def` into a game folder in one step, and **Stage in
+Package** stages the same files into the open package as one package step.
+
+Footsteps, sounds and attack triggers belong on frames: choose **Skeleton** >
+**Animation Events…**, pick the clip, **Add Event** and type the command, such
+as `sound_body snd_footstep`. Doom 3 declarations write events as frame
+commands. See [animation events and game declarations](MODEL_GAME_DECLARATIONS.md).
+
 ### Manipulate joints in the viewport
 
 Choose a joint in **Skeleton**, or select **Joints** in the component table.
@@ -7244,9 +7860,19 @@ mirroring, joint maps, export handoff and CLI options.
 
 ### Place a hand or foot
 
-Open **Skeleton → Two-Bone Inverse Kinematics**. Choose a clip, an end joint
-and an inclusive sample range. Its parent and grandparent form the chain.
-Set the target in model units and a pole point on the desired elbow/knee side.
+Open **Skeleton → Inverse Kinematics**. Choose a clip, an end joint
+and an inclusive sample range. With **Two bones (exact)** its parent and
+grandparent form the chain; for a spine, neck or tail choose **Chain (FABRIK)**
+or **Chain (CCD)** and a **Root joint** further up.
+Set the target in model units and a pole point on the desired elbow/knee side,
+or put the 3D cursor on the spot in the viewport and choose **Target at 3D
+Cursor**, or drag the target or pole with the move handle in **Preview**
+(**Drag handle**); with **Key the dragged point at the preview sample**, each
+drop keys the point at the shown sample so the solve follows an animated
+target. To keep a hand on a moving prop, set **Target source** to
+**Follow a joint**. **Apply joint limits** keeps the chain inside the limits
+set with **Edit Skeleton > Set joint limits**, as Euler angles or, for
+shoulders and hips, as **Swing and twist** limits.
 **Require target** refuses unreachable poses; **Nearest reachable** clamps
 without stretching and reports the remaining distance. Choose whether the
 end keeps its orientation or follows the lower bone.
@@ -7272,6 +7898,12 @@ samples the curves and validates the resulting skin and attachments. Compare
 original/result motion in **Preview**, then **Apply** one document undo step.
 Save uses source schema 10 for hold-next curves, or schema 9 for other curves;
 native game exports use dense samples.
+**Rotation keys** switches a joint between Euler angles and quaternion keys,
+which turn along the shortest arc without gimbal lock; the rotation channels
+then show an angle view whose keys set quaternion keys.
+**Copy Keys** (<kbd>Ctrl</kbd>+<kbd>C</kbd>) copies the shown channel and
+**Paste Keys** (<kbd>Ctrl</kbd>+<kbd>V</kbd>) pastes copied keys or a copied
+pose into the draft from the **Sample** field on.
 To return to pose or IK tools, explicitly **Stage Bake Joint Curves**, review
 and apply: motion remains, and undo restores the editable keys. See
 [animation curves](MODEL_ANIMATION_CURVES.md) for controls, limits and CLI use.
@@ -7281,7 +7913,9 @@ channels, select rows or an inclusive sample range, then choose retime, duplicat
 remove or reduce. Retiming changes sample times around a pivot and refuses key
 collisions; reduction checks continuous channel error, including between samples.
 **Review** reports key counts and changes, and previews the resulting motion.
-**Apply** commits the whole selection as one undo step. See
+**Apply** commits the whole selection as one undo step. **Copy Keys**
+(<kbd>Ctrl</kbd>+<kbd>C</kbd>) copies the selected keys for **Paste Pose** in another
+clip or model. See
 [key groups](MODEL_ANIMATION_CURVES.md#edit-groups-of-keys) for tangent,
 rounding, selection and tolerance rules, and the `model curve-keys` CLI.
 
@@ -7296,18 +7930,72 @@ Every mapped key must land on an integer sample. See
 [range transfers](MODEL_ANIMATION_CURVES.md#transfer-or-reverse-a-range)
 for boundary behaviour and the `model curve-transfer` CLI.
 
+### Edit vertex animation frames
+
+On the Mesh Editor's **Animation** page, **Frame range** works on whole
+ranges of frames across every surface. Set **Range first frame** and **Range
+last frame**, then choose **Move Frames** (with **Move to frame**),
+**Duplicate Range**, **Delete Range**, **Reverse Range** or **Add Ping-Pong
+Return**. Attachment tags, collision poses, MDL native groups and clip ranges
+follow the frames, and each operation is one undo step. A disabled button's
+tooltip says why it cannot run, for example on frames a skinned skeleton
+drives.
+
+MDL, MD2 and MD3 files have no clip table, so readers rebuild clips from frame
+names such as `stand1`, `stand2`. The **Native clip check** line says which
+clips will come back. **Name Frames From Clips** names the chosen clip's
+frames, or every clip's, after the clip within 15 characters, starting at
+**First frame number**.
+
+The **Frame timeline** beside the frame list shows clips, MDL groups, the frame
+range and the current frame. Click or drag to scrub, Shift-drag to select the
+range; with the timeline focused, the arrow keys step, **Page Up** and **Page
+Down** jump ten frames, and **Shift** extends the range. Turn on **Onion skin**
+to see earlier frames dashed and later frames dotted in the 3D view.
+
+To deliver a 30 FPS clip at Quake's 10 Hz, choose the clip, set **New FPS** under
+**Resample and loop** and choose **Resample Clip**. **Close Clip Loop** removes
+the jump from a cycle's last pose to its first. Skeletal clips have their own
+**Resample Skeletal Clip** and **Close Skeletal Loop**.
+
+To fix a few frames at once, select the vertices, set the frame range and use
+**Range sculpt**: **Transform Selection Over Range** (with the **Geometry**
+page's move, rotate and scale), **Blend Selection From Frame** or **Add Pose
+Difference**, with a falloff over the range.
+
+To bring in animation from Blender, export one OBJ per frame, then choose
+**Import Frames…** under **Import and export frames** (set **OBJ up axis** to
+**Y up** for Blender's default). An MD2, MD3 or MDL of the same mesh imports
+all its frames. **Export Range as OBJ…** writes the range back out.
+
+To make a tag follow a hand or muzzle, select its vertices, type the tag name
+in **Attachment tags → Name** and choose **Follow Selection**. The tag
+remembers its components, even through subdividing and other topology edits,
+so after later edits **Refit Anchored Tags** fits it again; only deleting one
+of its vertices or faces asks you to fit it afresh. **Geometry → Over the
+frame range** makes the 3D view's move, rotate and scale cover the frame range
+too, and the live preview shows each frame's share of the falloff. Opening an OBJ asks for its up axis,
+scale, material library and loose-data handling. **Toggle Onion Skin** can be
+bound to a key in your controls.
+
+See [vertex animation frames](MODEL_VERTEX_ANIMATION.md) for the rules,
+limits and the `model frames` command.
+
 ### Known limits
 
 - No model format has been tested against real game files in bulk, and no
   MD5, IQM or ASE export has been loaded in the original games yet.
 - MDC, MDS, MDM, MDR, Ghoul 2, Half-Life, Hexen II, Heretic II, LightWave and
   KVX models are read only; export them as MD3 or another written format.
-- Long-chain IK, persistent constraints, animation layers, retargeting and
-  joint modal pointer-following remain planned. Two-bone IK, bone overlays,
+- IK drag handles, layer weight curves and joint modal pointer-following
+  remain planned. Two-bone and chain IK, persistent constraints and layers,
+  clip import and retargeting, bone overlays,
   shared viewport handles and numeric joint,
   weight and skeletal pose tools are available.
   Game animation scripts (Jedi Academy `animation.cfg`,
-  Wolfenstein scripts, GZDoom MODELDEF) are not read.
+  Wolfenstein scripts, GZDoom MODELDEF) are not read; Doom 3 `.def` frame
+  commands are, and VibeStudio writes Doom 3, QuakeC, Quake II and GZDoom
+  declarations.
 - A skeletal clip too long for the editable frame budget on its own cannot
   join the working set: edit it through the skeletal tools, which preview one
   sample at a time. See [the working set limits](MODEL_SKELETAL_WORKING_SET.md#limits).
@@ -7315,8 +8003,8 @@ for boundary behaviour and the `model curve-transfer` CLI.
   distance, position tools make the frames they edit independent of the
   skeleton, and an unskinned surface must be bound before it can join a skinned
   one. See [Skin weights through mesh edits](MODEL_SKIN_PROVENANCE.md#limits).
-- Modifier stacks and branched rip
-  junctions remain planned. [Spin](MODEL_SPIN.md) and [Rip](MODEL_RIP.md)
+- Modifier stacks, including a live mirror modifier, remain planned.
+  [Spin](MODEL_SPIN.md) and [Rip](MODEL_RIP.md)
   provide bounded shared GUI/CLI workflows. [Knife](MODEL_KNIFE.md)
   cuts projected paths; [Bevel Edges](MODEL_EDGE_BEVEL.md) provides chamfers
   and rounded bands with joined corners. Both share GUI/CLI validation.
@@ -7328,6 +8016,7 @@ for boundary behaviour and the `model curve-transfer` CLI.
 ```sh
 vibestudio --cli model inspect ./id1/pak0.pak progs/player.mdl --json
 vibestudio --cli model import ./prop.obj --output ./prop.mesh.json --dry-run --json
+vibestudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./player.mesh.json --dry-run --json
 vibestudio --cli model build ./prop.mesh.json --output ./build/prop.md5mesh --dry-run --json
 vibestudio --cli model build ./monster.mesh.json --all-clips --output-dir ./build/anims --strict --json
 vibestudio --cli model controls --profile 3ds-max --section keys
@@ -7342,19 +8031,26 @@ vibestudio --cli model controls --profile 3ds-max --section keys
 | List the formats the studio reads and writes | `model formats` |
 | Import a model or design as an editable mesh | `model import` |
 | Edit, select or run a mesh tool | `model edit`, `model select`, `model tool` |
-| Check topology, UVs, intersections, or repair an import | `model topology`, `model uv`, `model intersections`, `model repair-import` |
+| Check topology, UVs, intersections, or repair an import | `model topology`, `model uv` (`--health` for UV problems), `model intersections`, `model repair-import` |
 | Surfaces, material slots, skins and appearances | `model surfaces`, `model slots`, `model skin`, `model materials` |
 | Named skin variants and their `.skin` or Doom 3 skin files | `model skin-variants`, `model skin-export` |
 | Tags, clips and collision | `model tags`, `model animations`, `model collision` |
+| Edit, name, resample, import or export vertex animation frames; fit tags to the mesh | `model frames` |
 | Joints, weights, bind poses, skeletal clips and the working set | `model rig`, `model pose`, `model skinning`, `model weight-paint`, `model weight-transfer`, `model ik` |
 | Quake MDL skins and timing | `model mdl` |
 | Editable skeletal keys, tangents and baking | `model curves` |
 | Retime, duplicate, remove or reduce selected skeletal keys | `model curve-keys` |
+| Copy or reverse a joint-motion range between clips | `model curve-transfer` |
+| Inspect or even out texture pixels per model unit across UV islands | `model uv-density` |
 | Assemblies, and opening or publishing a Quake III player | `model assembly` |
 | Build game files or detail levels | `model build`, `model lod`, `model targets`, `model prepare` |
+| Animation events and game declarations (Doom 3 `.def`, QuakeC, Quake II, GZDoom MODELDEF and VOXELDEF) | `model events`, `model declarations` |
+| Persistent clip constraints and layers | `model constraints` |
 | Controls profiles, and print, check, share or reset controls | `model profiles`, `model controls` |
 | Recovery copies | `model recoveries`, `model recover` |
-| Place an MD3 in a Quake III map | `map place-model` |
+| Receipts of exports and staged models, and refreshing stale ones | `model outputs` |
+| Stage a model with its detail levels or clips in a new package | `model stage` |
+| Place a model in a Quake-family or Quake III map | `map place-model` |
 
 </details>
 
@@ -7363,9 +8059,11 @@ See [Command line](manual/cli.md) for options and exit codes.
 ### Learn more
 
 - [Mesh tools](MODEL_TOOLS.md) and [editable meshes](MODEL_MESH.md): every tool, limit and CLI option.
+- [Vertex animation frames](MODEL_VERTEX_ANIMATION.md): frame ranges and names, resampling, the timeline and onion skin, range sculpting, frame import and tags that follow the mesh.
 - [Skin weights through mesh edits](MODEL_SKIN_PROVENANCE.md): how edits keep, interpolate and mirror joint weights.
 - [Native formats and skeletons](MODEL_FORMATS.md) and [modeller profiles](MODELLER_PROFILES.md).
 - [Delivery targets](MODEL_TARGETS.md) and [detail levels](MODEL_LOD.md): each engine's limits, Prepare for Target and linked detail levels.
+- [Animation events and game declarations](MODEL_GAME_DECLARATIONS.md): frame commands, Doom 3 `.def` and model sets (written or staged), QuakeC, Quake II and GZDoom MODELDEF and VOXELDEF output.
 - [Model design](MODEL_DESIGN.md) and [model assemblies](MODEL_ASSEMBLY.md): props and linked models.
 - [Model collision](MODEL_COLLISION.md), [material slots](MODEL_MATERIAL_SLOTS.md) and [skin variants](MODEL_SKIN_VARIANTS.md).
 - [Modeller release checklist](MODELLER_RELEASE.md): what has and has not been verified.
@@ -8737,10 +9435,41 @@ by commands that allow it. See [save and review output](manual/models.md#save-an
 for overwrite rules and the limits of a dry run.
 
 `model uv-density` inspects existing UV islands using `--texture-size N` or
-`WIDTHxHEIGHT` and an optional `--reference-frame`. Add `--target`,
+`WIDTHxHEIGHT` and an optional `--reference-frame`; `--surfaces` with
+`--texture-size-for SURFACE=WxH` measures several surfaces and skins together. Add `--target`,
 `--mode individual|group` and a separate `.mesh.json` `--output` to match
 density. `--faces` expands to complete islands; dry-run and output protection
 share the editor's document service. See [texture density](MODEL_UV_DENSITY.md).
+
+`model frames` lists which clips come back from MDL, MD2 and MD3 frame names.
+With `--operation move|duplicate|delete|reverse|ping-pong` and `--first`,
+`--last` (and `--to` for a move) it edits a frame range; `name-from-clips`
+names frames after their clips; `resample` and `close-loop` (and their
+`-skeletal` forms) resample clips and close loops; `follow-tag` fits a tag to
+components and `refit-tags` fits anchored tags again; `transform-range`, `blend-pose` and `relative-pose` sculpt over a
+range; `import --source ...` adds frames from an OBJ sequence or another model;
+`export-obj` writes one OBJ per frame. Edits need a separate `.mesh.json`
+`--output`. `model import` takes `--obj-up z|y`, `--obj-scale`,
+`--obj-materials` and `--obj-loose` for OBJ files.
+See [vertex animation frames](MODEL_VERTEX_ANIMATION.md#command-line).
+
+`model uv --health` reports stretched, overlapping, flipped, collapsed and
+out-of-tile faces, stacked mirror halves, the texel-centre error, native vertex
+costs and the MDL flood-fill hazard without writing. `--fail-on` with a quoted
+list such as `"overlap,flipped,stretch>2"` exits 4 when any listed problem is
+present, for build scripts. See [UV health](MODEL_MESH.md#uv-health).
+
+`model uv-layout` writes a skin template (PNG, TGA or PCX) to paint over, and
+`model skin-transfer` repaints an old skin for new UVs from the sources before
+and after a UV or face edit (`--mapping auto|faces|projection`; faces whose
+topology changed are found by projection onto the old surface).
+`model edit --operation uv-weld`, `uv-stitch`, `uv-align` and
+`uv-snap-texels` run the UV operators; `uv-pin` and `uv-unpin` store pins that
+`uv-unwrap --uv-method conformal` holds while it flattens seam-bounded islands; `model tool --tool uv-quake-frontback` lays out
+a Quake front/back skin; `model mdl --operation export-skin` writes an MDL skin
+member with its palette indices. See
+[UV operators](MODEL_MESH.md#uv-operators) and
+[UV layouts and skin transfer](MODEL_MESH.md#uv-layouts-and-skin-transfer).
 
 `model curve-transfer` also requires an output different from its input,
 including path aliases, even with `--overwrite` or `--dry-run`.
@@ -8772,6 +9501,50 @@ the topology; see [spin options](MODEL_SPIN.md#automate-a-spin).
 fraction (`--slide`) or reference-pose distance (`--distance`). Current/all-frame
 scope, validation and guarded output match the Mesh Editor. See
 [edge-slide options](MODEL_EDGE_SLIDE.md#automate-an-edge-slide).
+
+`model tool --tool align` gives the selected vertices one coordinate:
+`--axis x` (or several axes, such as `xz`) with `--value N` or
+`--to centroid|min|max`; `--to median --value N` instead moves the selection
+until its median takes the value. `model tool --tool snap-grid --grid STEP`
+rounds them to the grid. Both move seam copies together, take `--frame all|N`
+and `--mirror x|y|z` (mirror counterparts follow) and refuse an edit that would
+collapse a face. See
+[Align vertices](MODEL_TOOLS.md#align-vertices).
+
+`model tool --tool connect --vertices a,b,c` joins a path of vertices with
+straight cuts, and `--tool connect-edges --edges a:b,c:d --cuts N --slide F`
+adds edges between selected opposite sides of quads. See
+[Connect vertices and edges](MODEL_TOOLS.md#connect-vertices-and-edges).
+
+`model tool --tool recalculate-outside --faces all` turns each connected piece
+to face outward (`--inside` for inward); a one-sided piece, or nothing to
+change, exits 4. See [Recalculate outside](MODEL_TOOLS.md#recalculate-outside).
+
+`model tool --tool merge --merge target --target-vertex N` welds the selection
+onto one vertex, `--tool transform ... --auto-merge D` welds what a move brings
+together, and `--tool place --vertices a,b --positions x,y,z;x,y,z` sets exact
+positions. See [Snapping and welding](MODEL_TOOLS.md#snapping-and-welding).
+
+`model tool` reports faces a bevel, inset, spin or similar tool made cross as
+`introducedIntersections` in JSON (and crossings with other surfaces as
+`introducedCrossings`); `--refuse-intersections` refuses such an edit with
+exit code 4. See [New intersections](MODEL_TOOLS.md#new-intersections).
+
+`model tool --tool mark-sharp --edges a:b,c:d` makes edges hard for vertex
+normals and `--tool clear-sharp` smooths them. See
+[Hard edges](MODEL_TOOLS.md#hard-edges).
+
+`model tool --tool delete --mode vertices|edges|faces` deletes faces around
+the selection, `--tool dissolve-edges --edges a:b` merges the faces across
+edges (`--keep-vertices` keeps the chain's vertices), and
+`--tool limited-dissolve --angle 5` merges nearly flat faces. A delete that
+would empty the surface, or an edge on a seam or border, exits 4. See
+[Delete and dissolve](MODEL_TOOLS.md#delete-and-dissolve).
+
+`model edit --operation transform-model` moves the whole model, with its tags,
+collision boxes, skeleton and MDL eye position: `--offset`, `--rotate` and
+`--scale` about `--pivot`, or `--origin bounds-centre|bounds-bottom|point`
+(`--at x,y,z`). See [Transform Model](MODEL_MESH.md#transform-model).
 
 `model tool --tool symmetrize` on a skinned surface needs a mirror partner for
 each off-centre joint the mirrored half uses: `--joint-map detect` reads them
@@ -8830,16 +9603,45 @@ reports and validate outputs with `--dry-run`. See
 [key-group automation](MODEL_ANIMATION_CURVES.md#automate-key-groups).
 
 `model curves` inspects, captures, edits and bakes persistent skeletal animation
-curves. Key actions share the GUI's channel, interpolation, tangent and sampled
+curves, and converts a joint between Euler channels and quaternion rotation
+keys (`--operation convert-rotation --to quaternion|euler`,
+`set-rotation-key`, `remove-rotation-key`). `model ik --target-keys` and
+`--pole-keys` key the IK target and pole at clip samples. Key actions share the GUI's channel, interpolation, tangent and sampled
 pose validation, with guarded `.mesh.json` outputs and `--dry-run`. See
 [animation curves](MODEL_ANIMATION_CURVES.md#automate-curve-edits) for options
 and examples. Native game exports receive sampled motion.
 
+`model constraints` lists and edits a skeletal clip's persistent constraints
+(IK, aim, child of, copy transform, foot lock) and layers, with weight keys
+(`--weight-keys "0:0,12:1"`) and joint limits inside IK (`--limits yes`), and
+`--operation bake` turns them into plain samples. See
+[constraints and layers](MODEL_ANIMATION_CONSTRAINTS.md).
+
+`model events` lists and edits animation events, the game-side frame commands
+on clip frames (`--operation add --clip N --frame N --command "sound_body
+snd_footstep"`). `model declarations --target
+doom3|quakec|quake2|gzdoom|gzdoom-voxeldef` prints or writes the Doom 3 model
+declaration, QuakeC `$frame` macros, Quake II frame header, GZDoom MODELDEF or
+GZDoom VOXELDEF generated from a source; `--target doom3 --set
+DIR` writes the md5mesh, every clip's md5anim and the `.def`. See
+[game declarations](MODEL_GAME_DECLARATIONS.md).
+
+```sh
+vibestudio --cli model declarations ./models/imp.mesh.json --target doom3 --name monster_imp --set ./out/base --json
+```
+
 `model ik` solves two-bone inverse kinematics over an inclusive clip sample
-range with an explicit end joint, target and pole. `--nearest-reachable` clamps
+range with an explicit end joint, target and pole. `--root-joint` with
+`--solver fabrik|ccd` solves a longer chain, `--limits` keeps it within the
+joint limits that `model rig --operation limits` sets, and `--target-joint` or
+`--targets file.json` replace the fixed target. `--nearest-reachable` clamps
 unreachable targets without stretching; JSON reports reach and residual distance
 per sample. It shares the GUI pose service, source writer and dry-run validation.
 See [inverse kinematics](MODEL_IK.md) for required options and examples.
+
+```sh
+vibestudio --cli model ik ./models/monster.mesh.json --clip 0 --first 0 --last 20 --root-joint tail1 --end-joint tail6 --solver fabrik --target 0,-40,8 --pole 0,-20,30 --output ./out/tail.mesh.json --json
+```
 
 `model build` first checks the model against a delivery target, the game the
 file is for: `--target ID` names one (such as `quakespasm` for MDL, `q2pro` for
@@ -8926,11 +9728,45 @@ from opening. `model assembly --new --from-player NAME --package PATH --output
 FILE.assembly.json` opens one as a new assembly: three package parts on
 `tag_torso` and `tag_head`, the `--skin-name` skin (by default `default`) linked
 to each part, and native animation from the player's `animation.cfg`. The package
-is never written. JSON `player.publication.arguments` holds the `player-review`
+is never written. `--operation doom3-entities --package PATH` lists the Doom 3
+entityDefs with a head or attachments, and `--new --from-def NAME --package PATH
+--output FILE.assembly.json` opens one with its head and attachments on their
+joints (see [opening a Doom 3 entity](MODEL_ASSEMBLY.md#opening-a-doom-3-entity)).
+JSON `player.publication.arguments` holds the `player-review`
 options that publish the player again. `animation-set --config-entry PATH` reads
 an `animation.cfg` entry from `--package`; add `--config-entry-index N` when the
 path is repeated. A missing player, model, `animation.cfg` or complete skin exits
 4. See [opening a Quake III player](MODEL_ASSEMBLY.md#opening-a-quake-iii-player).
+
+`model assembly --tag-interpolation quake3|shortest-arc` (on `add`, `update` or
+`animation-set`; `update` needs no `--part` for it) sets how attachment tags blend
+between frames in previews and bakes. See
+[attachment blend](MODEL_ASSEMBLY.md#attachment-blend).
+
+`model collision --operation place --instance entity:N` places collision through
+a placed model entity's origin, angles and modelscale. Placement records the mesh
+source in one `func_group`; `--operation placed --map MAP` lists those records as
+`current`, `stale`, `other-source` or `invalid`, and `--operation refresh --map MAP
+--output NEW.map` replaces every stale record from this mesh (or `--group entity:N`)
+as one undo step each. See
+[recorded placement and refresh](MODEL_COLLISION.md#recorded-placement-and-refresh).
+
+`model collision --operation fit-hull --name N [--profile quake3|doom3-trace]
+[--max-faces K]` fits a convex hull within a face budget (`fit-animated-hull`
+fits one in every frame); `--operation export-ase
+--target doom3` writes an ASE with collision surfaces (`--package PATH` checks the
+material's `collision` keyword), `--operation export-clipmodel --target doom3
+--box N` a Doom 3 clip model and `--operation export-cm --target doom3
+--model-path models/X.ase` a Doom 3 `.cm` collision model file. See
+[convex hulls](MODEL_COLLISION.md#convex-hulls) and
+[Doom 3 collision](MODEL_COLLISION.md#doom-3-collision).
+
+`model assembly --operation weapon-review|weapon-export --weapon-name W
+--weapon-part P` publishes a Quake III weapon set, with optional `--lod-levels N`
+or `--lod-recipes` and repeatable `--sound NAME=PATH`, and `--operation
+q2-player-review|q2-player-export --player-name N --body B --weapon W --q2-skin
+NAME=IMAGE` a Quake II player, whose inputs may also be `package:PATH` entries. See [weapon packages](MODEL_ASSEMBLY.md#weapon-packages)
+and [Quake II player packages](MODEL_ASSEMBLY.md#quake-ii-player-packages).
 
 VibeStudio includes a full command line that runs the same services as the studio. Use it to script
 package checks, builds and conversions, to run VibeStudio in CI, or to inspect files without opening
@@ -9156,7 +9992,11 @@ See [skeleton authoring](MODEL_RIG.md#automate-the-workflow) for options and
 examples shared with **Edit Skeleton** in the Mesh Editor.
 
 `model pose` manages skeletal clips, transforms bind joints and pose ranges,
-copies joint poses and interpolates hierarchical motion. Both commands share
+copies joint poses and interpolates hierarchical motion. `--operation copy-out`
+writes a pose or key copy to a file, `paste --clipboard` applies one (a copy
+from another rig needs `--joint-map`), and `mirror` mirrors a range onto the
+left/right partner joints, and `import --source FILE` adds a clip from another
+file, exactly or with `--retarget`. Both commands share
 the modeller's document service, guarded outputs and dry-run validation. See
 [skeletal animation authoring](MODEL_RIG.md#author-skeletal-animation).
 `model pose --operation working-set --clips a,b` chooses the clips baked into
@@ -9169,10 +10009,115 @@ a choice over the budget exits 4. A model named relative to the working folder
 still finds its companion files (md5anim, GLA, `.def`) beside it. See
 [the skeletal working set](MODEL_SKELETAL_WORKING_SET.md#use-the-command-line).
 
+`model import` also reads a model straight out of a package, folder or
+portable draft: give the package and the entry (`model import ./id1/pak0.pak
+progs/player.mdl`, or `--package` and `--entry`). It reads the companions inside
+the package (md5anim, MDX, GLA) and the package's palette, as the Mesh Editor
+does, and the source remembers the entry it came from. The output cannot be
+written inside that package. `--palette quake|quake2|doom|heretic|hexen|generic`
+chooses the palette family for MDL skins when the package has none.
+
 ```sh
+vibestudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./out/player.mesh.json --dry-run --json
 vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --json
 vibestudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json
+vibestudio --cli model pose ./out/walk.mesh.json --operation mirror --clip 0 --first 0 --last 11 --output ./out/walk-mirrored.mesh.json
 ```
+
+`model inspect --json` gives every decode warning a severity in `issues`
+(`advisory`, `omission` or `damage`), counts them in `issueCounts`, and sums
+them up as `decodeVerdict`: `clean`, `advisories`, `accept-omissions` or
+`damaged`. `model import` accepts advisories, refuses omissions with exit 4
+until you add `--accept-omissions`, and always refuses damage; its JSON lists
+`issues` and, on refusal, `omissionsPending`. The written source records the
+advisories and accepted omissions. See
+[Decode issues](MODEL_FORMATS.md#decode-issues).
+
+```sh
+vibestudio --cli model inspect ./models/crate.lwo --json
+vibestudio --cli model import ./models/crate.lwo --accept-omissions --output ./out/crate.mesh.json --json
+```
+
+`model audit PATH` checks every model in a package, a folder or a whole game
+installation (its loose files and every package inside it) and never writes to
+it. Each entry gets a verdict (`clean`, `advisories`, `accept-omissions`,
+`damaged` or `failed`), whether it imports for editing, and with `--round-trip`
+whether the model written back in its own format decodes to the same corners
+within the format's quantisation; `--targets` says whether each editable model
+is ready for every delivery target of its format. A summary per format comes
+first. `--formats
+mdl,md3` limits the formats, `--report FILE` saves the JSON somewhere outside
+the source, and `--strict` exits 4 when anything fails, is damaged or drifts
+past its tolerance, so a run can guard against decoder regressions.
+
+```sh
+vibestudio --cli model audit ./quake/id1 --formats mdl --round-trip --json
+vibestudio --cli model audit ./baseq3/pak0.pk3 --report ./out/pak0-audit.json --strict
+```
+
+`model game-skin MODEL --output FILE` writes what the engine puts on one
+surface, as the Mesh Editor's **Shading > Game** draws it: for Quake MDL skins
+the skin group member at `--time`, player colours `--top` and `--bottom`,
+`--quake-renderer glquake|modern|software` and GLQuake's flood fill
+(`--no-flood-fill` turns it off); for Quake III the surface's shader from
+`--package`, composed stage by stage at `--time`. `--glow-output` writes the
+unlit layer. See [Game preview](MODEL_GAME_PREVIEW.md).
+
+`model bake MODEL --type ao|object-normal|normal|lighting --output FILE` bakes a
+map into the model's UV layout, optionally from a high-poly `--high` model within
+`--cage`; `--dry-run` bakes and reports without writing, and `--model-output
+FILE.mesh.json` shades the model's MDL skin with an `ao` or `lighting` map.
+`model paint-skin MODEL
+--strokes FILE --output FILE` replays 3D paint strokes onto a surface's skin;
+`--model-output FILE.mesh.json` also writes the model with the painted MDL
+skin.
+Both report a SHA-256 of the image in JSON. See [Bake maps](MODEL_BAKE.md)
+and [Paint skins in 3D](MODEL_SKIN_PAINT.md).
+
+```sh
+vibestudio --cli model game-skin ./progs/player.mdl --top 4 --bottom 12 --output ./out/player.png --json
+vibestudio --cli model bake ./models/crate.mesh.json --type ao --size 512x512 --output ./out/crate_ao.png --json
+vibestudio --cli model paint-skin ./progs/ogre.mdl --strokes ./strokes.json --output ./out/ogre_skin.png --json
+```
+
+`model outputs` lists the receipts a project keeps of the game files made from
+its model sources (exports, staged models, detail levels), each with whether it
+is `current`, `source-changed`, `output-changed`, `missing` or `unknown`, and
+exits 4 when any is stale or was changed elsewhere. `--refresh stale` (or an
+output path) exports them again with their recorded settings, never over a file
+someone else changed; `--dry-run` writes nothing. `--forget OUTPUT` drops a
+receipt, and `--receipt PACKAGE` checks a player package's embedded receipt (with
+`--assembly` against its parts' sources). See
+[Model outputs and receipts](MODEL_OUTPUTS.md).
+
+```sh
+vibestudio --cli model outputs ./models/crate.mesh.json --json
+vibestudio --cli model outputs --project ./mymod --refresh stale --dry-run --json
+```
+
+`model stage` stages an editable source in a package as the files the game
+loads with it (an MD3 with its detail levels, an md5mesh with its clips'
+md5anims), reviews the materials it uses against the package, and writes a new
+package or draft; `--dry-run` only reports the set. `map place-model` places an
+MDL or MD2 in a Quake map and an MD3 or ASE in a Quake III map, with optional
+`--angles`, `--modelscale`, `--class` and `--definitions`.
+
+```sh
+vibestudio --cli model stage ./models/crate.mesh.json --package ./mymod.pk3 --as models/props/crate.md3 --lod 2 --output ./out/mymod.pk3 --dry-run --json
+```
+
+`model stage --skins` stages an MD3's Quake III skins beside it, as
+`name_default.skin` and one `name_<variant>.skin` per skin variant.
+
+`model recoveries --json` says for each copy whether its source is `unchanged`,
+`changed`, `missing`, `unreadable` or `unsaved` (`sourceState`), and lists the
+weight strokes or curves staged but not applied when the studio stopped
+(`sessions`). `model recover <copy> --output new.mesh.json --strokes-output
+strokes.json` also writes those strokes for `model weight-paint --stroke-file`;
+`--curves-output` writes the staged curves for `model curves --operation replace`. `--prune`
+removes the oldest copies beyond 32 or 2 GiB, never one a running studio is
+writing; with `--dry-run` it only reports them (`pruned`).
+
 `model import` and `model edit` report the source they wrote (or would write
 with `--dry-run`) in JSON as `"source": {"bytes", "encoding", "limitBytes"}`.
 The encoding is `readable`, or `packed` when the readable source would pass the
@@ -9405,6 +10350,14 @@ Without `--json`, results go to standard output and errors to standard error.
 | 3 | `not-found` | A requested project, package, entry, installation or tool was not found. |
 | 4 | `validation-failed` | Validation completed and found blocking problems. |
 | 5 | `unavailable` | The workflow is recognised but no capable implementation or tool is available yet. |
+
+Model commands also stop cleanly when interrupted. <kbd>Ctrl</kbd>+<kbd>C</kbd> or
+<kbd>Ctrl</kbd>+<kbd>Break</kbd> (SIGINT or SIGTERM on macOS and Linux) asks a running
+`model` command (an import, edit, build, stage, tool, detail-level set, skinning
+update, assembly bake and the rest) to stop at its next checkpoint: it publishes nothing, removes its own temporary files and
+exits with 130, with `"cancelled": true` in JSON. A second request ends the process at once.
+`--progress` prints each phase of a long model command as a JSON line on stderr, such as
+`{"progress": {"phase": "serializing", "completed": 1048576, "total": 4194304}}`.
 
 A check that finds a problem exits with 4, not 1, so a script can tell "the check failed" from "the
 command failed". For example, `package validate`, `package compare` and `entity validate` exit with 4
