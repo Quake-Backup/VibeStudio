@@ -8,6 +8,7 @@
 
 #include "app/asset_views.h"
 #include "app/level_material_animator.h"
+#include "app/material_tasks.h"
 #include "app/material_workbench.h"
 #include "app/model_viewport.h"
 #include "app/studio_actions.h"
@@ -96,8 +97,11 @@ QWidget* ApplicationShell::buildMaterialWorkbench()
 	m_materialWorkbench->setHost(host);
 	connect(m_materialWorkbench, &MaterialWorkbench::statusMessage, this, [this](const QString& message) { statusBar()->showMessage(message); });
 	connect(m_materialWorkbench, &MaterialWorkbench::contentChanged, this, [this]() { refreshSurfaceStates(); });
-	// Levels reads shaders for the same game: its faces follow the choice.
+	// Levels reads shaders for the same game, its dialogs and tools included:
+	// its faces follow the choice.
+	setLevelPreviewDefaultDialect(m_materialWorkbench->dialectChoice());
 	connect(m_materialWorkbench, &MaterialWorkbench::dialectChanged, this, [this]() {
+		setLevelPreviewDefaultDialect(m_materialWorkbench->dialectChoice());
 		++m_levelPreviewReload;
 		if (m_levelMapDocument.format != LevelMapFormat::Unknown) {
 			refreshLevelMap3D();
@@ -117,6 +121,80 @@ MaterialDialect ApplicationShell::materialDialectChoice() const
 	MaterialDialect dialect = MaterialDialect::Automatic;
 	materialDialectFromId(state.value(QStringLiteral("dialect")).toString(), &dialect);
 	return dialect;
+}
+
+QString ApplicationShell::levelBaseReadersKey() const
+{
+	QStringList parts;
+	for (const QString& path : materialBasePackagePaths()) {
+		parts << path + QLatin1Char('@') + QString::number(QFileInfo(path).lastModified().toMSecsSinceEpoch());
+	}
+	return parts.join(QLatin1Char('|'));
+}
+
+void ApplicationShell::refreshLevelBaseReaders()
+{
+	const QStringList paths = materialBasePackagePaths();
+	const QString key = levelBaseReadersKey();
+	if (key == m_levelBaseReadersKey || key == m_levelBaseLoadingKey) {
+		return;
+	}
+	if (!m_levelBaseLane) {
+		m_levelBaseLane = new MaterialTaskLane(this);
+	}
+	if (paths.isEmpty()) {
+		m_levelBaseLane->cancel();
+		m_levelBaseLoadingKey.clear();
+		m_levelBaseReaders.clear();
+		m_levelBaseReadersKey = key;
+		return;
+	}
+	m_levelBaseLoadingKey = key;
+	QPointer<ApplicationShell> self(this);
+	m_levelBaseLane->submit([paths, key, self](const MaterialTaskLane::Cancelled& cancelled) -> std::function<void()> {
+		QVector<std::shared_ptr<const PackageArchiveReader>> readers;
+		PackageReadControl control;
+		control.isCancelled = cancelled;
+		for (const QString& path : paths) {
+			auto archive = std::make_shared<PackageArchive>();
+			QString error;
+			// One that does not open is left out, as on the Materials page.
+			if (archive->load(path, &error, control)) {
+				readers.push_back(std::move(archive));
+			}
+			if (cancelled()) {
+				return {};
+			}
+		}
+		return [self, key, readers]() {
+			if (!self || self->m_levelBaseLoadingKey != key) {
+				return;
+			}
+			self->m_levelBaseLoadingKey.clear();
+			self->m_levelBaseReaders = readers;
+			self->m_levelBaseReadersKey = key;
+			// Faces and filters read without them read again.
+			++self->m_levelPreviewReload;
+			self->refreshLevelViewFilterMaterials();
+			if (self->m_levelMapDocument.format != LevelMapFormat::Unknown) {
+				self->refreshLevelMap3D();
+			}
+		};
+	});
+}
+
+QVector<std::shared_ptr<const PackageArchiveReader>> ApplicationShell::levelBaseReaders() const
+{
+	return m_levelBaseReadersKey == levelBaseReadersKey() ? m_levelBaseReaders : QVector<std::shared_ptr<const PackageArchiveReader>>();
+}
+
+std::shared_ptr<const PackageArchiveReader> ApplicationShell::levelMaterialReader(std::shared_ptr<const PackageArchiveReader> package) const
+{
+	const QVector<std::shared_ptr<const PackageArchiveReader>> bases = levelBaseReaders();
+	if (!package || bases.isEmpty()) {
+		return package;
+	}
+	return std::make_shared<MaterialLayeredReader>(std::move(package), bases);
 }
 
 void ApplicationShell::syncMaterialWorkbench()
@@ -241,12 +319,14 @@ void ApplicationShell::refreshLevelMaterialAnimation(const ModelMesh& mesh, cons
 		m_levelMaterialAnimator->stop();
 		return;
 	}
-	const QStringList basePaths = materialBasePackagePaths();
+	// The base packages the camera's still images were read over.
+	const QVector<std::shared_ptr<const PackageArchiveReader>> bases = levelBaseReaders();
 	const MaterialDialect dialect = materialDialectChoice();
-	const QString key = packageViewKey() + QLatin1Char('|') + basePaths.join(QLatin1Char('|')) + QLatin1Char('|') + materialDialectId(dialect);
+	const QString key = packageViewKey() + QLatin1Char('|') + (bases.isEmpty() ? QString() : m_levelBaseReadersKey) + QLatin1Char('|')
+		+ materialDialectId(dialect);
 	if (key != m_levelMaterialAnimatorKey) {
 		m_levelMaterialAnimatorKey = key;
-		m_levelMaterialAnimator->setPackage(std::make_shared<PackageArchive>(packageViewArchive()), basePaths, dialect);
+		m_levelMaterialAnimator->setPackage(std::make_shared<PackageArchive>(packageViewArchive()), bases, dialect);
 	}
 	const MaterialEngine engine = m_levelMapDocument.format == LevelMapFormat::Quake3Map ? MaterialEngine::Quake3 : MaterialEngine::Unknown;
 	m_levelMaterialAnimator->setSurfaces(mesh, engine, stillImages);

@@ -1,5 +1,6 @@
 #include "core/level_materials.h"
 #include "core/level_texture_mapping.h"
+#include "core/level_view_filters.h"
 #include "core/map_geometry.h"
 #include "core/material_library.h"
 #include "core/package_staging.h"
@@ -271,7 +272,7 @@ int main(int argc, char **argv)
 		ok &= tests::putMaterialFile(QDir(baseRoot).filePath(QStringLiteral("scripts/a.shader")),
 									 "textures/studio/grid\n{\nqer_editorimage textures/base/gone.png\n{ map textures/base/look.png }\n}\n");
 		ok &= tests::putMaterialFile(QDir(baseRoot).filePath(QStringLiteral("scripts/b.shader")),
-									 "textures/studio/grid\n{\nqer_editorimage textures/base/look.png\n}\n"
+									 "textures/studio/grid\n{\nqer_editorimage textures/base/look.png\nsurfaceparm nodraw\n}\n"
 									 "textures/studio/shader\n{\nqer_editorimage textures/base/look.png\n}\n");
 		auto base = std::make_shared<PackageArchive>();
 		auto package = std::make_shared<PackageArchive>();
@@ -292,6 +293,31 @@ int main(int argc, char **argv)
 		const auto *firstGrid = tests::materialNamed(first, QStringLiteral("studio/grid"));
 		ok &= expect(firstGrid && firstGrid->shaderPath == QStringLiteral("scripts/a.shader") && firstGrid->status == QStringLiteral("missing"),
 					 "Quake III 1.32 takes the game's first script, whose editor image is missing", levelPreviewAssetsText(first));
+		// The view filters read the same way: the game's nodraw shader hides
+		// the floor only when the base package is read beneath the package.
+		const auto layeredFilters = scanLevelViewFilterMaterials(layered);
+		const auto packageFilters = scanLevelViewFilterMaterials(*package);
+		const auto *filteredGrid = layeredFilters.find(QStringLiteral("studio/grid"));
+		const auto *packageGrid = packageFilters.find(QStringLiteral("studio/grid"));
+		ok &= expect(filteredGrid && filteredGrid->nodraw && !(packageGrid && packageGrid->nodraw),
+					 "the view filters read the game's shaders beneath the package");
+	}
+	{
+		// Callers that do not name a game read for the studio's choice (the
+		// Materials page's); the CLI and tests leave it Automatic.
+		PackageStagingModel jedi;
+		ok &= jedi.loadBaseArchive(archive, &error);
+		ok &= jedi.addBytes("textures/studio/grid\n{\n{\nmap textures/studio/grid.png\nglow\n}\n}\n", QStringLiteral("scripts/jedi.shader"), &error);
+		const PackageStagingArchive jediArchive(jedi);
+		const auto warned = [&jediArchive, &document]() {
+			const auto report = resolveLevelPreviewAssets(document, jediArchive);
+			const auto *grid = tests::materialNamed(report, QStringLiteral("studio/grid"));
+			return grid && !grid->warnings.isEmpty();
+		};
+		ok &= expect(levelPreviewDefaultDialect() == MaterialDialect::Automatic && !warned(), "Automatic is the default game");
+		setLevelPreviewDefaultDialect(MaterialDialect::Quake3);
+		ok &= expect(warned(), "a chosen game becomes the default for every Levels preview");
+		setLevelPreviewDefaultDialect(MaterialDialect::Automatic);
 	}
 	{
 		PackageStagingModel missingImage;

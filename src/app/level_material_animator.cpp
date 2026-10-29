@@ -66,10 +66,11 @@ void LevelMaterialAnimator::setReducedMotion(bool reduced)
 	}
 }
 
-void LevelMaterialAnimator::setPackage(std::shared_ptr<const PackageArchiveReader> reader, const QStringList& basePaths, MaterialDialect dialect)
+void LevelMaterialAnimator::setPackage(std::shared_ptr<const PackageArchiveReader> reader, const QVector<std::shared_ptr<const PackageArchiveReader>>& bases,
+	MaterialDialect dialect)
 {
 	m_reader = std::move(reader);
-	m_basePaths = basePaths;
+	m_bases = bases;
 	m_dialect = dialect;
 	m_lookupStale = true;
 	prepare();
@@ -105,25 +106,19 @@ void LevelMaterialAnimator::prepare()
 	}
 	const std::shared_ptr<MaterialLookup> lookup = m_lookup;
 	const std::shared_ptr<const PackageArchiveReader> reader = m_reader;
-	const QStringList basePaths = m_basePaths;
+	const QVector<std::shared_ptr<const PackageArchiveReader>> bases = m_bases;
 	const MaterialDialect dialect = m_dialect;
 	const bool reload = m_lookupStale || !lookup->isLoaded();
 	const QStringList names = m_surfaces.keys();
 	const MaterialEngine engine = m_engine;
 	const quint64 generation = m_generation;
 	QPointer<LevelMaterialAnimator> self(this);
-	m_prepareLane->submit([lookup, reader, basePaths, dialect, reload, names, engine, generation, self](
+	m_prepareLane->submit([lookup, reader, bases, dialect, reload, names, engine, generation, self](
 							  const MaterialTaskLane::Cancelled& cancelled) -> std::function<void()> {
 		if (reload) {
 			MaterialLibraryOptions options;
 			options.dialect = dialect;
-			for (const QString& path : basePaths) {
-				auto base = std::make_shared<PackageArchive>();
-				QString error;
-				if (base->load(path, &error)) {
-					options.baseReaders.push_back(base);
-				}
-			}
+			options.baseReaders = bases;
 			lookup->setOptions(options);
 			lookup->setPackage(reader);
 			lookup->reload([cancelled](int, int, const QString&) { return !cancelled(); });

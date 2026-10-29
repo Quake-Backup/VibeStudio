@@ -125,6 +125,8 @@ void ApplicationShell::openLevelUvEditorFromUi()
 	if (!archive && m_packageArchive.isOpen()) {
 		archive = std::make_shared<const PackageArchive>(m_packageArchive);
 	}
+	// Material previews read the game's base packages beneath it.
+	archive = levelMaterialReader(std::move(archive));
 	LevelUvEditorDialog dialog(m_levelMapDocument, target, archive, activePaletteId(), cached, this);
 	const auto controls = m_levelControlsApplied ? m_levelControls : levelEditorControlsForProfile(m_settings.selectedEditorProfileId());
 	dialog.setTurnStep(controls.surfaceRotationStep);

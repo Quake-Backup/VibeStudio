@@ -22,6 +22,8 @@ void ApplicationShell::mergeLevelMapBrushesFromUi()
 	if (!archive && m_packageArchive.isOpen()) {
 		archive = std::make_shared<const PackageArchive>(m_packageArchive);
 	}
+	// Material previews read the game's base packages beneath it.
+	archive = levelMaterialReader(std::move(archive));
 	LevelMergeDialog dialog(m_levelMapDocument, archive, activePaletteId(), this);
 	const auto load = m_levelMapLoadSerial, revision = m_levelMapDocument.revision;
 	const auto selection = m_levelMapDocument.selection;

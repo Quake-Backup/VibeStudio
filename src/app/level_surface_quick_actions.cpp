@@ -426,7 +426,7 @@ void ApplicationShell::startLevelSurfaceBatch()
 	LevelSurfaceWork work;
 	work.document = m_levelMapDocument; work.faces = m_levelSurfaceFaces; work.patches = m_levelSurfacePatches;
 	work.adjustments = std::move(m_levelSurfacePending);
-	work.archive = std::move(archive); work.palette = activePaletteId(); work.textureSizes = m_levelSurfaceSizes;
+	work.archive = std::move(archive); work.baseReaders = levelBaseReaders(); work.palette = activePaletteId(); work.textureSizes = m_levelSurfaceSizes;
 	if (m_packageStaging.isLoaded()) { work.staging = std::make_shared<const PackageStagingModel>(m_packageStaging); }
 	work.token = m_levelSurfaceToken;
 	m_levelSurfacePending.clear();
@@ -488,7 +488,7 @@ bool ApplicationShell::startLevelSurfacePaste(const QVector<LevelMaterialTarget>
 	auto archive = m_packageArchive.snapshotReader();
 	if (!archive && m_packageArchive.isOpen()) { archive = std::make_shared<const PackageArchive>(m_packageArchive); }
 	LevelSurfaceWork work; work.document = m_levelMapDocument; work.pasteTargets = targets;
-	work.clipboard = m_levelSurfaceClipboard; work.paste = options; work.archive = std::move(archive); work.palette = activePaletteId();
+	work.clipboard = m_levelSurfaceClipboard; work.paste = options; work.archive = std::move(archive); work.baseReaders = levelBaseReaders(); work.palette = activePaletteId();
 	if (options.includeSelection) { work.paste.selectionTargets = levelSurfaceSelectionTargets(); }
 	work.clipboardArchive = m_levelSurfaceClipboardArchive; work.clipboardPalette = m_levelSurfaceClipboardPalette; work.clipboardContextCaptured = true;
 	work.clipboardStaging = m_levelSurfaceClipboardStaging;
@@ -539,7 +539,7 @@ bool ApplicationShell::startLevelTextureReset(LevelTextureResetRequest request, 
 	if (!archive && m_packageArchive.isOpen()) { archive = std::make_shared<const PackageArchive>(m_packageArchive); }
 	LevelSurfaceWork work;
 	work.document = m_levelMapDocument; work.resetTextures = true; work.reset = std::move(request);
-	work.archive = std::move(archive); work.palette = activePaletteId();
+	work.archive = std::move(archive); work.baseReaders = levelBaseReaders(); work.palette = activePaletteId();
 	if (m_packageStaging.isLoaded()) { work.staging = std::make_shared<const PackageStagingModel>(m_packageStaging); }
 	work.token = ++m_levelSurfaceToken; m_levelSurfaceCurrent = levelSurfaceContextGuard(); m_levelSurfaceResetting = true;
 	if (!m_levelSurfaceWorker->start(std::move(work))) { cancelLevelSurfaceEdits(); return fail(tr("The surface worker is still finishing a previous operation.")); }

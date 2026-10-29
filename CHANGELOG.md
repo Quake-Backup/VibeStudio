@@ -203,6 +203,7 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Levels:** **Extract Linked Groups** now takes closed groups nested in the open linked group, moving each whole into the new linked groups with its links, and works inside a linked group nested in another, whose set takes the same new structure and stays in sync.
 - **Models:** OBJ import accepts typical Blender exports: Y-up conversion, scale, material libraries and dropped lines, points and unused vertices, each reported, with strict options that refuse them as before.
 - **Levels:** The camera and its texture list read the selected game installation's base packages beneath the open package, and take each Quake III shader's image as the Materials page does, for the game chosen there; a shader that game throws away keeps its editor image, with a warning in Details.
+- **Levels:** The camera, its texture list, the editing dialogs' previews, the material view filters and the surface tools read the selected game installation's base packages beneath the open package (loaded once in the background), and take each Quake III shader's image as the Materials page does, for the game chosen there; a shader that game throws away keeps its editor image, with a warning in Details. `map materials` takes the same `--base` and `--dialect` options as `material`.
 
 ### Removed
 

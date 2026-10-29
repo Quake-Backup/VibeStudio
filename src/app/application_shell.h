@@ -113,6 +113,7 @@ struct LevelBuildWorkspace;
 class MaterialWorkbench;
 class LevelMaterialAnimator;
 struct MaterialMapUse;
+class MaterialTaskLane;
 class PackageEntryView;
 class PackageStagingView;
 class PackageFolderView;
@@ -1494,6 +1495,18 @@ private:
 	// The Quake III game the Materials page reads scripts for; Levels reads
 	// shaders for the same one.
 	[[nodiscard]] MaterialDialect materialDialectChoice() const;
+	// The game's base packages beneath the package, read once in the
+	// background (keyed by path and modification time, since reading hashes
+	// each file) and shared by the Levels camera, animator, editing dialogs,
+	// view filters and surface tools. When they arrive Levels reads again.
+	void refreshLevelBaseReaders();
+	[[nodiscard]] QString levelBaseReadersKey() const;
+	// The loaded base packages for the current installation, or none while
+	// they load.
+	[[nodiscard]] QVector<std::shared_ptr<const PackageArchiveReader>> levelBaseReaders() const;
+	// `package` over levelBaseReaders(), for Levels' material previews; build
+	// and dependency review read the package alone.
+	[[nodiscard]] std::shared_ptr<const PackageArchiveReader> levelMaterialReader(std::shared_ptr<const PackageArchiveReader> package) const;
 	void createAdvancedSpritePlan();
 	void indexAdvancedCodeWorkspace();
 	void createAdvancedAiProposal();
@@ -2341,6 +2354,11 @@ private:
 	MaterialWorkbench* m_materialWorkbench = nullptr;
 	LevelMaterialAnimator* m_levelMaterialAnimator = nullptr;
 	QString m_levelMaterialAnimatorKey;
+	// refreshLevelBaseReaders(): the loaded set, its key and the key loading.
+	MaterialTaskLane* m_levelBaseLane = nullptr;
+	QVector<std::shared_ptr<const PackageArchiveReader>> m_levelBaseReaders;
+	QString m_levelBaseReadersKey;
+	QString m_levelBaseLoadingKey;
 	QTabWidget* m_shaderPageTabs = nullptr;
 	QListWidget* m_advancedSpriteSequence = nullptr;
 	QListWidget* m_advancedCodeTree = nullptr;

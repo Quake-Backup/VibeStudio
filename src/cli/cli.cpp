@@ -117,6 +117,7 @@
 #include "core/level_document.h"
 #include "core/level_dependencies.h"
 #include "core/level_materials.h"
+#include "core/material_library.h"
 #include "core/level_surface.h"
 #include "core/level_nudge.h"
 #include "core/level_primitive.h"
@@ -554,7 +555,7 @@ QVector<CliCommandDescriptor> cliCommandDescriptors()
 		{QStringLiteral("map"), QStringLiteral("render"), QStringLiteral("Render a deterministic SVG picture of a Doom or Quake-family map, optionally with a compiler leak trail or block grid."), {QStringLiteral("vibestudio --cli map render ./maps/start.map --output ./docs/start.svg --projection top --overwrite"), QStringLiteral("vibestudio --cli map render ./maps/start.map --leak ./maps/start.pts --output ./start-leak.svg"), QStringLiteral("vibestudio --cli map render ./maps/start.map --links --labels --output ./start-logic.svg"), QStringLiteral("vibestudio --cli map render ./maps/arena.map --block-grid --projection front --output ./arena-blocks.svg")}, true, true, true},
 		{QStringLiteral("map"), QStringLiteral("textures"), QStringLiteral("Check map textures against an archive, saved package draft, or up to 64 asset roots with shared indexing limits; missing references or incomplete audits return exit 4. Or list the objects that use one texture."), {QStringLiteral("vibestudio --cli map textures ./maps/start.map --package ./id1/pak0.pak --json"), QStringLiteral("vibestudio --cli map textures ./maps/start.map --uses base/wall")}},
 		{QStringLiteral("map"), QStringLiteral("dependencies"), QStringLiteral("Resolve explicit level textures, shader images, models, and sounds from an archive, folder or .vibepackage draft, with map object attribution; --installation <id> marks what the game already provides."), {QStringLiteral("vibestudio --cli map dependencies ./maps/arena.map --package ./assets --engine idTech3 --json"), QStringLiteral("vibestudio --cli map dependencies ./maps/arena.map --package ./mymod --installation quake3-games-quake3")}},
-		{QStringLiteral("map"), QStringLiteral("materials"), QStringLiteral("Resolve camera materials and placed models, including MD3 misc_model compiler skins, remaps, frame diagnostics, omitted surfaces and exact skin hashes; accepts staged .vibepackage inputs. Doom composites retain exact source inputs; --geometry also checks the camera mesh."), {QStringLiteral("vibestudio --cli map materials ./maps/arena.map --package ./assets --engine idTech3 --json"), QStringLiteral("vibestudio --cli map materials ./room.wad --map-name MAP01 --package ./resources.wad --geometry --json")}},
+		{QStringLiteral("map"), QStringLiteral("materials"), QStringLiteral("Resolve camera materials and placed models, including MD3 misc_model compiler skins, remaps, frame diagnostics, omitted surfaces and exact skin hashes; accepts staged .vibepackage inputs. Doom composites retain exact source inputs; --geometry also checks the camera mesh. --base reads the game's packages beneath the package and --dialect the Quake III game, as the Levels camera does."), {QStringLiteral("vibestudio --cli map materials ./maps/arena.map --package ./assets --engine idTech3 --json"), QStringLiteral("vibestudio --cli map materials ./maps/mod.map --package ./mymod --base ./baseq3/pak0.pk3 --dialect quake3 --json"), QStringLiteral("vibestudio --cli map materials ./room.wad --map-name MAP01 --package ./resources.wad --geometry --json")}},
 		{QStringLiteral("map"), QStringLiteral("find"), QStringLiteral("List the map objects a query matches, as the Levels Objects filter reads it: key=value, key:text, key!=value, key<n, key>n, and plain words, all of which must hold. --number entity[,brush] instead finds the object a compiler names as \"Entity 0, Brush 12\", counted from 0."), {QStringLiteral("vibestudio --cli map find ./maps/start.map --where \"class=light light>200\""), QStringLiteral("vibestudio --cli map find ./maps/doom.wad --map MAP01 --where tag=3 --json")}},
 		{QStringLiteral("entity"), QStringLiteral("definitions"), QStringLiteral("Load Radiant .def, Valve .fgd, and Quake III .ent catalogues and list the entity classes they declare."), {QStringLiteral("vibestudio --cli entity definitions ./defs --json")}},
 		{QStringLiteral("entity"), QStringLiteral("validate"), QStringLiteral("Check a map's entities against an entity definition catalogue, including target and targetname references."), {QStringLiteral("vibestudio --cli entity validate ./maps/start.map --definitions ./defs/quake.def --json")}},
@@ -14669,7 +14670,23 @@ int runMapMaterialsCommand(const QString& path, const QStringList& args, CliOutp
 	if (!loadPackageForCliQuiet(packagePath, &archive, &error)) { return printCliError(commandName, CliExitCode::NotFound, error, format); }
 	LevelPreviewAssetOptions options;
 	options.paletteId = optionValue(args, QStringLiteral("--palette"));
-	const auto report = resolveLevelPreviewAssets(document, archive, options);
+	// As the Levels camera and `material`: the game's packages beneath the
+	// package (--base, separated as in PATH, the first lowest) and the Quake III
+	// game its shaders are read for.
+	if (hasOption(args, QStringLiteral("--dialect")) && !materialDialectFromId(optionValue(args, QStringLiteral("--dialect")), &options.materialDialect)) {
+		return printCliError(commandName, CliExitCode::Usage,
+			QStringLiteral("Unknown dialect %1; use auto, quake3, quake3-1.32, rtcw, et or jediknight.").arg(optionValue(args, QStringLiteral("--dialect"))), format);
+	}
+	QVector<std::shared_ptr<const PackageArchiveReader>> bases;
+	for (const QString& basePath : optionValue(args, QStringLiteral("--base")).split(QDir::listSeparator(), Qt::SkipEmptyParts)) {
+		auto base = std::make_shared<PackageArchive>();
+		if (!base->load(basePath, &error)) {
+			return printCliError(commandName, CliExitCode::NotFound, QStringLiteral("Could not open the base package %1: %2").arg(QDir::toNativeSeparators(basePath), error), format);
+		}
+		bases.push_back(std::move(base));
+	}
+	const MaterialLayeredReader layered(std::shared_ptr<const PackageArchiveReader>(std::shared_ptr<void>(), &archive), bases);
+	const auto report = resolveLevelPreviewAssets(document, bases.isEmpty() ? static_cast<const PackageArchiveReader&>(archive) : layered, options);
 	const bool inspectGeometry = hasOption(args, QStringLiteral("--geometry"));
 	LevelMapPreviewMesh preview;
 	if (inspectGeometry) {

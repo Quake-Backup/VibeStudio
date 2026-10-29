@@ -1249,7 +1249,10 @@ vibestudio --cli package subset ./assets ./textures.pk3 --prefix textures/arena 
 `map materials` uses the camera's bounded resolver to report decoded images,
 shader editor/stage previews, static model skins, original/preview dimensions,
 source paths and limitations under the JSON `materials` key. It requires
-`--package <archive-or-folder>` and accepts `--palette`. Incomplete or unavailable
+`--package <archive-or-folder>` and accepts `--palette`, `--base <packages>`
+(the game's packages beneath it, separated as in `PATH`, the first lowest, as
+the Levels camera reads the selected installation's) and `--dialect` (the
+Quake III game shaders are read for, as for `material`). Incomplete or unavailable
 previews return validation failure; it writes no images. See
 [Level Editor](LEVEL_EDITOR.md#material-camera-and-package-assets).
 
