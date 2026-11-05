@@ -170,6 +170,15 @@ revisions.
 Public Qt stylesheet APIs also inform the startup and theme lifecycle;
 see the [Qt source review](docs/CREDITS.md#core-technology).
 
+The Hingeworks sample's external test harness references id Software's
+[Quake II rerelease interfaces](https://github.com/id-Software/quake2-rerelease-dll),
+and its lightmap auditors reference Quake II and VibeMap2;
+see its [validation credits](docs/CREDITS.md#hingeworks-map-validation-2026-10-28).
+
+The [Panic Protocol campaign sample](samples/projects/quake2-panic-protocol/README.md)
+also documents its rerelease entity references, native movement and surface
+validation, and private stock-map layout study in its [credits](samples/projects/quake2-panic-protocol/CREDITS.md).
+
 | Upstream | Used for | Licence | Pinned revision |
 | --- | --- | --- | --- |
 | [PakFu](https://github.com/themuffinator/PakFu) | Package, archive, format and installation reference; DDS/FTX/SWL codecs | GPL-3.0 | `13111e4c` |

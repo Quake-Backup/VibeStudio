@@ -24,6 +24,17 @@ path.
 
 ## Dependency Status
 
+The optional Panic Protocol campaign sample uses Python 3.11 with NumPy 2.3.0,
+SciPy 1.17.1 and Shapely 2.1.2 for offline map authoring, and ReportLab 5.1.0,
+svglib 2.3.2 and Poppler for design-document rendering and inspection. These
+tools are not linked into VibeStudio or bundled with the playable campaign.
+Build, package and runtime-review scripts otherwise use Python's standard
+library, the existing VibeStudio/VibeMap2 CLI and separately owned game files.
+The sample's [requirements](../samples/projects/quake2-panic-protocol/requirements-authoring.txt)
+and [credits](../samples/projects/quake2-panic-protocol/CREDITS.md) record roles,
+versions and licences. Python authoring is portable; the supplied convenience
+launcher and recorded native review environment are Windows-specific.
+
 The optional [model engine acceptance workflow](MODEL_ENGINE_ACCEPTANCE.md)
 accepts supplied FTE dedicated-server and FTEQCC executables, alongside the
 existing VibeMap2/VibeMap3 compilers. FTE remains an external GPL tool; none of

@@ -79,6 +79,12 @@ credits list.
 - Never hardcode a single storefront, OS path, source port, or install layout as the only supported route.
 - Prefer fixture-backed tests for parser behavior and smoke tests for installation detection heuristics.
 
+## Campaign Level Design
+- Plan campaigns before mapping. Produce detailed spatial floor plans and sections, objective and gate logic, encounter and supply schedules, secrets, and traversal/co-op contracts before constructing geometry. Review and record the design baseline first.
+- Default to fairly linear campaign progression through a varied sequence of spaces. Use optional branches, short loops, shortcuts and revisits deliberately; the route need not be entirely linear.
+- Use arenas sparingly, primarily for a boss fight or a substantial battle. Do not make each campaign level a large central arena with perimeter circulation or disguise that structure with differently themed landmarks.
+- Study the original target game's campaign layouts when useful for pacing and spatial progression. Apply the lessons to original layouts; do not copy commercial map geometry or assets into authored content.
+
 ## UI Principles
 - Keep the interface sleek, dense, and production-focused.
 - Use a modern dark studio shell, but prioritize legibility, predictable navigation, and fast repeated workflows over decoration.

@@ -1056,6 +1056,53 @@ Keys VibeStudio does not know, for example from a newer version, are kept when i
 **File** > **Copy Project Manifest** (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd>) copies the resolved
 manifest, for example to attach to a bug report.
 
+### Hingeworks map experiment
+
+The source checkout includes `samples/projects/quake2-hingeworks`, an original
+Quake II rerelease (Q2RE) deathmatch map project. Open that folder to continue
+editing its current **Alpha 5 review candidate**, `game/baseq2/maps/hingeworks_a5.map`.
+Its headless checks pass; the new engine-image review and archive are pending.
+Alpha 4 remains the latest approved release.
+Link your own rerelease installation for the stock textures, sounds and music;
+no game assets ship with the sample. Alpha 4 corrects brush joins and a texture
+coordinate precision issue that caused broken baked shadows. It retains the
+texture alignment, trim, clipping, restrained Q2RE shadow lights and fog from
+Alpha 3. The final build was reviewed in 24 native engine views with four
+feature comparisons, and passed 60 rerelease movement checks.
+The project's readme records its design, engine captures and verification limits;
+human multiplayer balance testing remains outstanding.
+
+Map versions are independent of VibeStudio's application version. The project
+uses `0.1.0-alpha.5` in release settings, **Alpha 5** in player-facing text, and
+`hingeworks_a5` as its engine map name. Future revisions increment the alpha
+number and keep earlier released packages unchanged. See [Package and
+release](manual/releases.md) for the release controls.
+
+### Panic Protocol campaign experiment
+
+The source checkout also includes `samples/projects/quake2-panic-protocol`, a
+three-level Quake II rerelease campaign, **Alpha 2** (`0.1.0-alpha.2`). Open its
+folder as a project and link your own rerelease installation. The maps follow a
+mostly linear mission through a Strogg datacenter, with optional objectives,
+six secrets and return travel between levels. Co-op spawn banks and shared
+objective state support up to eight players.
+
+The project's readme links the 81-page design PDF, editable floor plans,
+visual refinement plans, a native before/after gallery, review history,
+authoring tools and validation evidence. Alpha 2 refines the architecture,
+machinery, materials, lighting and landmarks while preserving the campaign
+route, and gives every control and sign solid yellow-on-black lettering. Its
+released archive is `releases/panic-protocol-alpha2/`. Its Alpha status includes
+known testing limits: automated movement and objective checks
+do not establish combat balance, and the available MMREX build rejected local
+split-screen clients sharing one Steam identity. Human single-player and
+independent multiplayer playtesting remain necessary.
+
+Campaign versions are independent of VibeStudio's version. The project keeps
+each released archive and checksum immutable; `next_alpha.py` starts the next
+revision and reopens its planning checkpoint. No commercial game assets or
+engine binaries are included.
+
 ### Check project health
 
 Choose **Project** > **Validate Project** to run the health checks. VibeStudio switches to the

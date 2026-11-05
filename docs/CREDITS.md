@@ -1,5 +1,32 @@
 # VibeStudio Credits
 
+## Panic Protocol campaign (2026-10-28)
+
+The original three-map campaign, design drawings and authoring generator in
+`samples/projects/quake2-panic-protocol` were developed by explicitly delegated
+GPT-6 Astra agents at Ultra effort. Its [credits](../samples/projects/quake2-panic-protocol/CREDITS.md)
+record the inspected source modules, versions and licences. The GPL-2.0-only
+[rerelease game source](https://github.com/id-Software/quake2-rerelease-dll)
+was a read-only behavioural reference; no code was incorporated into the
+campaign's GPL-3.0 sources. Native validation uses the existing separately
+compiled Hingeworks/Quake-MapGen harness and compatible Quake II 3.19 collision
+sources. No native validation binary or game DLL is distributed. NumPy, SciPy,
+Shapely, ReportLab, svglib and Poppler are external authoring tools with their
+versions and licences recorded in the campaign. A private study of original
+Quake II layouts informed pacing; no stock geometry or extracted game assets
+are included.
+
+The Alpha 2 round was finished on 29 October 2026 by Claude (Opus 5.5) after
+the GPT-6 Astra Codex thread stopped at its usage limit; the campaign's
+development record lists that work separately.
+
+Alpha 2 also reuses the repository's GPL-3.0 Hingeworks brushwork, lightmap
+extent and seam diagnostics, inspected on 28 October 2026. The campaign adds
+an isolated adapter to cover every BSP model, source UV and construction
+checks, and a native comparison gallery. Exact tool hashes and the original
+Quake-MapGen BSP-reader attribution are retained in the campaign's
+[validation documentation](../samples/projects/quake2-panic-protocol/tests/README.md).
+
 ## Audio reverb reference
 
 The stereo reverberator in `src/core/audio_reverb.cpp` derives its parallel-comb /
@@ -1995,6 +2022,36 @@ VibeStudio's existing PAK, WAD and ZIP/PK3 code, credited under
   [Quake II](https://github.com/id-Software/Quake-2) and
   [Quake III Arena](https://github.com/id-Software/Quake-III-Arena) source
   releases (GPL-2.0, referenced, not copied), as its `THIRD_PARTY.md` records.
+
+## Hingeworks Map Validation (2026-10-28)
+
+The original Hingeworks map and authoring scripts live in
+`samples/projects/quake2-hingeworks`. Its Alpha 3–5 checks use the existing
+[Quake-MapGen](https://github.com/themuffinator/Quake-MapGen) MIT native movement
+harness and [Quake II 3.19 collision code](https://github.com/id-Software/Quake-2/tree/master/qcommon)
+(GPL-2.0-or-later) as separate, local test dependencies. The new adapter calls
+the installed rerelease game DLL's `Pmove` export through the public
+[`game.h` interface](https://github.com/id-Software/quake2-rerelease-dll/blob/main/game.h)
+and associated headers (GPL-2.0, reviewed 2026-10-28). Its build record pins
+the local input hashes. These external test binaries, upstream headers and
+game DLL are neither linked into VibeStudio nor shipped with the map.
+
+Rerelease entity keys, shadow-light configstrings and fog behaviour were
+checked against [id Software's rerelease game source](https://github.com/id-Software/quake2-rerelease-dll)
+(GPL-2.0, reviewed 2026-10-28). The map references stock material, sound, sky
+and music names; it includes no commercial game assets. Validation distinguishes
+the actual rerelease movement export from the classic collision backend and
+does not claim a complete engine or multiplayer simulation.
+
+The original Alpha 4 lightmap extent and seam auditors reference the classic
+[Quake II BSP surface extents](https://github.com/id-Software/Quake-2/blob/master/ref_gl/gl_model.c)
+(GPL-2.0-or-later) and
+[VibeyMapTools](https://github.com/themuffinator/VibeyMapTools) `src/common/bsputils.cc`
+and `src/light/write.cc` at `4495049a` (repository GPL-3.0, inherited files
+GPL-2.0-or-later), reviewed 2026-10-28.
+They compare texture-coordinate arithmetic and lightmap boundaries; no upstream
+production code was copied into these auditors. The map applies a small shared
+texture-origin offset; the compiler and engine remain unchanged.
 
 ## Generative Level, Texture, And Sound Design (2026-10-06)
 

@@ -66,3 +66,4 @@ src/mapgen/out/
 # Local llama.cpp/ggml builds for -Dggml=enabled (scripts/build_ggml.py).
 /external/ai/ggml/
 /external/ai/ggml-work/
+/samples
