@@ -194,7 +194,8 @@ void ApplicationShell::refreshLevelViewFilterMaterials()
 		refreshLevelViewFilterMaterialStatus();
 		return;
 	}
-	const QString key = packageViewKey();
+	refreshLevelBaseReaders();
+	const QString key = packageViewKey() + QLatin1Char('|') + (levelBaseReaders().isEmpty() ? QString() : m_levelBaseReadersKey);
 	if (key == m_levelFilterMaterialsKey || key == m_levelFilterMaterialsPendingKey) {
 		return;
 	}
@@ -207,6 +208,8 @@ void ApplicationShell::refreshLevelViewFilterMaterials()
 	if (!archive && m_packageArchive.isOpen()) {
 		archive = std::make_shared<const PackageArchive>(m_packageArchive);
 	}
+	// The filters read the game's base packages' shaders beneath it too.
+	archive = levelMaterialReader(std::move(archive));
 	if (!archive) {
 		// No package: the material kinds go by texture names.
 		const bool had = m_levelFilterMaterials != nullptr;

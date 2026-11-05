@@ -1,4 +1,5 @@
 #include "app/level_surface_tools.h"
+#include "app/level_uv_view.h"
 #include "app/studio_actions.h"
 #include "app/studio_sidebar.h"
 #include <QComboBox>
@@ -12,6 +13,8 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QProgressBar>
+#include <QScopedValueRollback>
+#include <QSignalBlocker>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <algorithm>
@@ -20,6 +23,27 @@
 #include <utility>
 
 namespace vibestudio {
+namespace {
+// A Face section field. "Mixed" sits below every value as a marker, not a
+// number: the arrows, Up, Down and the wheel do nothing from it, and a typed
+// value replaces it.
+class FaceValueSpinBox final : public QDoubleSpinBox {
+  public:
+	using QDoubleSpinBox::QDoubleSpinBox;
+	void stepBy(int steps) override
+	{
+		if (!showsMixed()) {
+			QDoubleSpinBox::stepBy(steps);
+		}
+	}
+
+  protected:
+	StepEnabled stepEnabled() const override { return showsMixed() ? StepNone : QDoubleSpinBox::stepEnabled(); }
+
+  private:
+	[[nodiscard]] bool showsMixed() const { return value() == minimum() && !specialValueText().isEmpty(); }
+};
+} // namespace
 QStringList LevelSurfaceTools::commandIds()
 {
 	return {QStringLiteral("map.surfaceShiftLeft"), QStringLiteral("map.surfaceShiftRight"),
@@ -248,15 +272,82 @@ LevelSurfaceTools::LevelSurfaceTools(QWidget* parent) : QScrollArea(parent)
 	}
 	flags->addWidget(m_flagsBody);
 	setFaceFlags(LevelFaceFlagGame::None, {}, false);
+	// Face: TrenchBroom's Face inspector. The picked face over its image with
+	// move, turn and stretch handles (app/level_uv_view.h), and the targeted
+	// faces' offset, scale and rotation (core/level_face_attributes.h).
+	// Workflow reference: TB FaceAttribsEditor and UVView at 4c756be1
+	// (GPL-3.0-or-later). Original Qt implementation; see docs/CREDITS.md.
+	QVBoxLayout* const face = sectionLayout();
+	m_faceSummary = new QLabel;
+	m_faceSummary->setObjectName(QStringLiteral("surfaceFaceSummary"));
+	m_faceSummary->setWordWrap(true); m_faceSummary->setTextFormat(Qt::PlainText);
+	m_faceSummary->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+	m_faceSummary->setAccessibleName(tr("Faces the Face section shows"));
+	face->addWidget(m_faceSummary);
+	m_faceView = new LevelUvView;
+	m_faceView->setObjectName(QStringLiteral("surfaceFaceView"));
+	m_faceView->setAccessibleName(tr("Face texture space"));
+	m_faceView->setHandlesEnabled(true);
+	m_faceView->setSnapStep(1);
+	m_faceView->setAngleStep(m_rotation->value());
+	m_faceView->setMinimumSize(120, 160);
+	m_faceView->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+	m_faceView->handleEdited = [this](const LevelFaceAttributesEdit& edit) {
+		if (faceAttributesEdited) { faceAttributesEdited(edit, true); }
+	};
+	connect(m_rotation, &QDoubleSpinBox::valueChanged, m_faceView, &LevelUvView::setAngleStep);
+	face->addWidget(m_faceView);
+	{
+		auto* grid = new QGridLayout;
+		grid->setContentsMargins(0, 0, 0, 0); grid->setHorizontalSpacing(8); grid->setVerticalSpacing(2);
+		const QString names[5] = {tr("Offset U"), tr("Offset V"), tr("Scale U"), tr("Scale V"), tr("Rotation")};
+		const QString accessible[5] = {tr("Texture offset U in texels"), tr("Texture offset V in texels"), tr("Texture scale U in map units per texel"),
+			tr("Texture scale V in map units per texel"), tr("Texture rotation in degrees")};
+		const QString tips[5] = {tr("The texture's shift along U, in texels. A new value goes to every targeted face, each in its own format."),
+			tr("The texture's shift along V, in texels. A new value goes to every targeted face, each in its own format."),
+			tr("Map units per texel along U; negative mirrors the texture. A new value goes to every targeted face; it cannot be 0."),
+			tr("Map units per texel along V; negative mirrors the texture. A new value goes to every targeted face; it cannot be 0."),
+			tr("The texture's rotation in degrees. A new value goes to every targeted face; Valve 220 faces turn their axes with it.")};
+		const char* const ids[5] = {"surfaceFaceOffsetU", "surfaceFaceOffsetV", "surfaceFaceScaleU", "surfaceFaceScaleV", "surfaceFaceRotation"};
+		// The lowest value is the "Mixed" marker, below every value a face takes.
+		const double limits[5] = {1e6, 1e6, 1e6, 1e6, 360000};
+		const double steps[5] = {1, 1, 0.05, 0.05, 15};
+		for (int i = 0; i < 5; ++i) {
+			auto* label = new QLabel(names[i]); label->setWordWrap(true);
+			label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+			auto* field = new FaceValueSpinBox;
+			field->setObjectName(QString::fromLatin1(ids[i]));
+			field->setAccessibleName(accessible[i]);
+			field->setToolTip(tips[i]); field->setAccessibleDescription(tips[i]);
+			// Numbers read left to right in every layout.
+			field->setLayoutDirection(Qt::LeftToRight);
+			field->setDecimals(4); field->setRange(-limits[i] - 1, limits[i]); field->setSingleStep(steps[i]);
+			field->setKeyboardTracking(false); field->setSpecialValueText(tr("Mixed"));
+			field->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+			label->setBuddy(field);
+			grid->addWidget(label, (i / 2) * 2, i % 2); grid->addWidget(field, (i / 2) * 2 + 1, i % 2);
+			m_faceFields[i] = field;
+			connect(field, &QDoubleSpinBox::valueChanged, this, [this, i] { applyFaceField(i); });
+		}
+		grid->setColumnStretch(0, 1); grid->setColumnStretch(1, 1);
+		face->addLayout(grid);
+	}
+	m_faceNote = new QLabel; m_faceNote->setObjectName(QStringLiteral("surfaceFaceNote"));
+	m_faceNote->setWordWrap(true); m_faceNote->setTextFormat(Qt::PlainText);
+	m_faceNote->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+	m_faceNote->setAccessibleName(tr("About the texture values")); m_faceNote->hide();
+	face->addWidget(m_faceNote);
+	setFaceAttributes({}, 0, false);
+	setFaceLayout(nullptr, {}, tr("Pick one brush face to see it over its texture."));
 	// Bordered like the sidebar's other buttons, so they read as buttons
 	// rather than as the flat tool buttons of a tool bar.
 	for (QToolButton* button : std::as_const(m_buttons)) { button->setProperty("sidebarButton", true); }
 	m_cancel->setProperty("sidebarButton", true);
-	const std::pair<QString, QString> titles[] = {{QStringLiteral("surfaces.target"), tr("Target")},
+	const std::pair<QString, QString> titles[] = {{QStringLiteral("surfaces.face"), tr("Face")}, {QStringLiteral("surfaces.target"), tr("Target")},
 		{QStringLiteral("surfaces.adjust"), tr("Adjust")}, {QStringLiteral("surfaces.clipboard"), tr("Copy and Paste")},
 		{QStringLiteral("surfaces.flags"), tr("Flags")}};
-	const QVBoxLayout* contents[] = {target, adjust, clipboard, flags};
-	for (int index = 0; index < 4; ++index) {
+	const QVBoxLayout* contents[] = {face, target, adjust, clipboard, flags};
+	for (int index = 0; index < 5; ++index) {
 		auto* section = new SidebarSection(titles[index].first, titles[index].second, contents[index]->parentWidget());
 		section->setStretch(0); m_sections << section; sections->addWidget(section);
 	}
@@ -272,6 +363,8 @@ bool LevelSurfaceTools::eventFilter(QObject* watched, QEvent* event)
 }
 void LevelSurfaceTools::updateRows()
 {
+	// The Face section's view keeps room for a face at any text size.
+	if (m_faceView) { m_faceView->setFixedHeight(std::max(180, m_faceView->fontMetrics().height() * 12)); }
 	// The rows sit in sections, inset by each section's frame and margins.
 	const int width = viewport()->width() - 18;
 	// What a button needs for its whole label, whatever it shows now.
@@ -536,6 +629,90 @@ LevelSurfaceRequest LevelSurfaceTools::request(const QString& command) const
 		result.x = result.y = m_defaultScale;
 	}
 	return result;
+}
+void LevelSurfaceTools::setFaceAttributes(const LevelFaceAttributesSummary& summary, int patches, bool editable)
+{
+	const QScopedValueRollback<bool> refreshing(m_faceRefreshing, true);
+	const bool any = summary.readable > 0;
+	const double values[5] = {summary.values.shiftU, summary.values.shiftV, summary.values.scaleU, summary.values.scaleV, summary.values.rotation};
+	const bool mixed[5] = {summary.shiftUMixed, summary.shiftVMixed, summary.scaleUMixed, summary.scaleVMixed, summary.rotationMixed};
+	for (int i = 0; i < 5; ++i) {
+		QDoubleSpinBox* field = m_faceFields[i];
+		field->setEnabled(editable && any);
+		// A value being typed stays until it is entered.
+		const QString shown = m_faceMixed[i] ? field->specialValueText() : field->textFromValue(m_faceShown[i]);
+		if (!field->hasFocus() || field->cleanText() == shown || field->text() == shown || !field->isEnabled()) {
+			const QSignalBlocker block(field);
+			field->setSpecialValueText(any ? tr("Mixed") : QString(QChar(0x2014)));
+			field->setValue(!any || mixed[i] ? field->minimum() : values[i]);
+		}
+		m_faceShown[i] = values[i];
+		m_faceMixed[i] = !any || mixed[i];
+	}
+	QString text;
+	if (summary.faces == 0) {
+		text = tr("Select brushes or pick faces to see their texture values.");
+	} else if (summary.materialMixed) {
+		text = tr("%n brush face(s) with different materials", nullptr, summary.faces);
+	} else {
+		text = tr("%n brush face(s) with %1", nullptr, summary.faces).arg(summary.material);
+	}
+	if (m_faceSummary->text() != text) {
+		m_faceSummary->setText(text); m_faceSummary->setAccessibleDescription(text);
+		QAccessibleEvent changed(m_faceSummary, QAccessible::DescriptionChanged); QAccessible::updateAccessibility(&changed);
+	}
+	QStringList notes;
+	if (summary.unreadable > 0) {
+		notes << tr("%n brush-primitive face(s) need their material's image size to show values; open its package.", nullptr, summary.unreadable);
+	}
+	if (patches > 0) {
+		notes << tr("%n patch(es) keep their own texture coordinates; use the UV Editor for them.", nullptr, patches);
+	}
+	const QString note = notes.join(QLatin1Char(' '));
+	m_faceNote->setVisible(!note.isEmpty());
+	if (m_faceNote->text() != note) {
+		m_faceNote->setText(note); m_faceNote->setAccessibleDescription(note);
+	}
+}
+void LevelSurfaceTools::setFaceLayout(const LevelUvLayout* layout, const QImage& image, const QString& message)
+{
+	if (m_faceView->dragging()) { return; }
+	if (!layout) {
+		if (m_faceView->hasSource() || m_faceView->summary() != message) { m_faceView->clearSource(message); }
+		m_faceLayoutKey.clear();
+		return;
+	}
+	// Only a changed face, image or image size goes to the view again, so
+	// its pivot, zoom and pan stay between refreshes.
+	QString key = QStringLiteral("%1:%2:%3:%4x%5:%6").arg(layout->target.objectId).arg(layout->target.faceIndex).arg(image.cacheKey())
+		.arg(layout->imageSize.width()).arg(layout->imageSize.height()).arg(layout->material);
+	for (const QPointF& point : layout->uv) { key += QStringLiteral(";%1,%2").arg(point.x(), 0, 'g', 17).arg(point.y(), 0, 'g', 17); }
+	for (const LevelMapVec3& point : layout->points) { key += QStringLiteral(";%1,%2,%3").arg(point.x, 0, 'g', 17).arg(point.y, 0, 'g', 17).arg(point.z, 0, 'g', 17); }
+	if (key == m_faceLayoutKey && m_faceView->hasSource()) { return; }
+	const bool same = m_faceView->hasSource() && m_faceView->layout().target == layout->target;
+	m_faceView->setSource(*layout, image, same);
+	m_faceLayoutKey = key;
+}
+void LevelSurfaceTools::applyFaceField(int field)
+{
+	if (m_faceRefreshing || field < 0 || field >= 5 || !m_faceFields[field]->isEnabled()) { return; }
+	QDoubleSpinBox* spin = m_faceFields[field];
+	const double value = spin->value();
+	// "Mixed" left as it is, or the value already shown, changes nothing.
+	if (value == spin->minimum() || (!m_faceMixed[field] && value == m_faceShown[field])) { return; }
+	LevelFaceAttributesEdit edit;
+	switch (field) {
+	case 0: edit.setShiftU = true; edit.shiftU = value; break;
+	case 1: edit.setShiftV = true; edit.shiftV = value; break;
+	case 2: edit.setScaleU = true; edit.scaleU = value; break;
+	case 3: edit.setScaleV = true; edit.scaleV = value; break;
+	default: edit.setRotation = true; edit.rotation = value; break;
+	}
+	// Shown now, so focus leaving the field does not apply it twice; a
+	// refused value goes back with the next refresh.
+	m_faceShown[field] = value;
+	m_faceMixed[field] = false;
+	if (faceAttributesEdited) { faceAttributesEdited(edit, false); }
 }
 bool LevelSurfaceTools::rotatesAboutOrigin() const { return m_rotationAnchor->currentIndex() == 1; }
 void LevelSurfaceTools::setProfileSteps(double rotationDegrees, bool aboutOrigin)

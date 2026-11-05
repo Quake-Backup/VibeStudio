@@ -42,7 +42,7 @@ const std::array<GpuProgramInfo, static_cast<std::size_t>(GpuProgram::Count)>& p
 		surface.bindings[1] = binding(4, false, {{5, GpuVertexFormat::UInt1, 0}});
 		// tex3: the modeller's Game preview glow layer (core/model_game_preview.h).
 		surface.samplerCount = 4;
-		surface.uniformBytes = 208;
+		surface.uniformBytes = 256;
 		surface.vertexGlsl = model_surface_vert_glsl;
 		surface.fragmentGlsl = model_surface_frag_glsl;
 		surface.vertexSpirv = model_surface_vert_spirv;

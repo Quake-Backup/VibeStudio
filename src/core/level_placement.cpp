@@ -77,6 +77,14 @@ LevelPlacementResult prepareLevelPlacement(const LevelMapDocument& source, const
 		case LevelPlacementOperation::SmartTag:
 			applied = applyLevelSmartTag(&candidate, request.smartTag, &result.error);
 			break;
+		case LevelPlacementOperation::ImportMap:
+			detail::placementCheckpoint(LevelPlacementPhase::Inserting);
+			if (!request.importSource) {
+				result.error = QCoreApplication::translate("VibeStudioLevelPlacement", "Choose a map to import.");
+				break;
+			}
+			applied = importLevelMap(&candidate, *request.importSource, request.importOptions, &result.importReport, &result.error);
+			break;
 		case LevelPlacementOperation::DeleteObjects:
 			detail::placementCheckpoint(LevelPlacementPhase::Deleting);
 			applied = deleteLevelMapSelection(&candidate, &result.error);
@@ -200,7 +208,7 @@ LevelPlacementResult prepareLevelPlacement(const LevelMapDocument& source, const
 	} catch (const std::exception&) {
 		result.error = QCoreApplication::translate("VibeStudioLevelPlacement", "Placement could not be prepared. The map was not changed.");
 	}
-	if (!result.succeeded) { result.clipboardText.clear(); result.regionReport = {}; result.objectSelectionReport = {}; result.texturedSelectionReport = {}; result.visibilityReport = {}; result.connectionReport = {}; result.componentReport = {}; result.gridRoundReport = {}; result.surfaceFaceReport = {}; result.entityCreateReport = {}; }
+	if (!result.succeeded) { result.importReport = {}; result.clipboardText.clear(); result.regionReport = {}; result.objectSelectionReport = {}; result.texturedSelectionReport = {}; result.visibilityReport = {}; result.connectionReport = {}; result.componentReport = {}; result.gridRoundReport = {}; result.surfaceFaceReport = {}; result.entityCreateReport = {}; }
 	return result;
 }
 } // namespace vibestudio

@@ -870,6 +870,51 @@ the GtkRadiant contributors), compatible with this GPL-3.0 repository:
   `Patch::createThickenedOpposite` and `Patch::createThickenedWall`.
 - [`radiant/patchmanip.cpp`](https://github.com/Garux/netradiant-custom/blob/8216133984031afaa9a857b56ea66dd9c3d54b26/radiant/patchmanip.cpp): `Patch_thicken`
   and the names and order of the Patch menu's matrix commands.
+- Patch prefabs (2026-10-29), read at
+  [`449778b3`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/patch.cpp):
+  `Patch::ConstructPrefab`'s control layouts (the fixed Cylinder, Sphere and
+  Cone prefabs' ring starting half a turn round while the Exact Cylinder, Cone
+  and Sphere start at angle 0, the classic cone's full-width middle row
+  closing to its tip, the 9x5 sphere) and its mapping on creation, Cap Texture
+  on a plane and
+  `Patch::NaturalTexture` on the rest by the texture's size at the default
+  scale; and in
+  [`radiant/patchmanip.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/patchmanip.cpp)
+  `Scene_PatchConstructPrefab` (the patch replaces the selection, in the
+  container of the last selected primitive), `PatchCreator_getBounds` (the
+  work zone, thin sides widened by the grid), the prefab densities and the
+  Simple Patch Mesh dialog on Shift+P; and `Patch_XactCylinder`,
+  `Patch_XactCone`, `Patch_XactSphere` and `DoNewPatchDlg` (the Patch density
+  dialog's odd widths from 7, heights from 3 or a sphere's 5, the 13x3 and 13x7
+  defaults, and its Square box, which re-disperses columns and rows after the
+  prefab is mapped). The 64 by 64 size assumed for a missing
+  image is that of NetRadiant Custom's `notex.png`. Behaviour only; original
+  code in `src/core/level_patch.cpp`, `src/core/level_shapes.cpp` and
+  `src/app/level_patch_prefab_actions.cpp`. Unlike upstream, selected point
+  entities are kept rather than deleted.
+- Patch caps and Deform (2026-10-29), read at `449778b3`: in
+  [`radiant/patch.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/patch.cpp)
+  `Patch::MakeCap` (the first row taken forwards, the last backwards) and
+  `Patch::ConstructSeam`'s Bevel, Inverted Bevel, Endcap, Inverted Endcap and
+  Cylinder control layouts, mapped with Cap Texture; and in
+  [`radiant/patchmanip.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/patchmanip.cpp)
+  `Patch_makeCaps`'s width checks (3 or 5, 5 and 9), `Scene_PatchDoCap_Selected`
+  (every visible selected patch, caps selected), the Cap dialog's five types,
+  Cap Selection on Shift+C, and `Patch_deform` with `DoPatchDeformDlg` (a whole
+  random offset from 0 to the Max deform, 64 to start, along X, Y or Z, Z to
+  start, for each control point). Behaviour only; original code in
+  `src/core/level_patch_cap.cpp`, `src/core/level_patch_tools.cpp`,
+  `src/app/patch_cap_dialog.cpp` and
+  `src/app/level_patch_convert_deform_actions.cpp`. VibeStudio's Deform draws
+  from a seeded 32-bit Mersenne Twister rather than `rand()`, so a run can be
+  repeated.
+- TrenchBroom's Convert Selection to Patches (2026-10-29), read at
+  [`4c756be1`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1/lib/TbUiLib/src/MapWindow.cpp)
+  (GPL-3.0-or-later): `MapWindow::convertSelectionToPatches` (3 by 3 patches,
+  then the Control Point Tool) and its Ctrl+P in `ActionManager.cpp`.
+  Behaviour only; the face-to-patch construction in
+  `src/core/level_patch_convert.cpp` is VibeStudio's own, as TrenchBroom's
+  model library was not in the reviewed checkout.
 - [`radiant/csg.cpp`](https://github.com/Garux/netradiant-custom/blob/8216133984031afaa9a857b56ea66dd9c3d54b26/radiant/csg.cpp): `CSG_Hollow`'s wrapped walls
   (`eWrap`), which meet without overlapping, and `CSG_MakeRoom`, which builds
   the walls outside the brush.
@@ -1484,6 +1529,41 @@ compatible with VibeStudio's GPL-3.0 license.
   relative top-delta interpretation and patch recognition limits, BSD-3-Clause,
   master reviewed on the date above. VibeStudio's encoder and bounded decoder
   apply these format rules with independent implementations.
+
+The sprite, WAD3, SWL and mipmapped DDS writers in `src/core/texture_formats.*`
+and the Doom wall-texture definitions in `src/core/texture_doom_walls.*` were
+added on 2026-10-28, independently implemented from these references. No
+engine or tool source code and no game content was copied:
+
+- [Quake `WinQuake/spritegn.h`](https://github.com/id-Software/Quake/blob/master/WinQuake/spritegn.h)
+  and the Quake Specifications sprite chapter: IDSP version 1 header, frame
+  records, origins and bounding radius; GPL-2.0-or-later, master reviewed
+  2026-10-28.
+- [Valve `halflife` `utils/sprgen/sprgen.c`](https://github.com/ValveSoftware/halflife/blob/master/utils/sprgen/sprgen.c):
+  IDSP version 2's texture formats, palette count and grey index-alpha ramp;
+  Half-Life SDK licence, layout only, master reviewed 2026-10-28.
+- [Quake II `qcommon/qfiles.h`](https://github.com/id-Software/Quake-2/blob/master/qcommon/qfiles.h)
+  `dsprite_t`/`dsprframe_t`, [`ref_gl/gl_rmain.c`](https://github.com/id-Software/Quake-2/blob/master/ref_gl/gl_rmain.c)
+  `R_DrawSpriteModel` (origins from the left and bottom edges) and
+  [`gl_model.c`](https://github.com/id-Software/Quake-2/blob/master/ref_gl/gl_model.c)
+  (the 32-frame limit); GPL-2.0-or-later, master reviewed 2026-10-28.
+- The [Valve Developer Community WAD3 page](https://developer.valvesoftware.com/wiki/WAD):
+  lump type `0x43`, the palette tail and the `{` transparency convention;
+  living page, read 2026-10-28.
+- SiN's `sinmiptex_t`, as read by [PakFu `src/formats/swl_image.cpp`](https://github.com/themuffinator/PakFu/tree/13111e4c07513548a29fd7eb74fc9d004c44aa59/src/formats)
+  (revision `13111e4c07513548a29fd7eb74fc9d004c44aa59`, GPL-3.0): field
+  offsets for the writer, which is VibeStudio code.
+- Microsoft's [DDS_HEADER](https://learn.microsoft.com/windows/win32/direct3ddds/dds-header)
+  and [DDS_PIXELFORMAT](https://learn.microsoft.com/windows/win32/direct3ddds/dds-pixelformat)
+  documentation: mip count and capability flags; read 2026-10-28.
+- [Chocolate Doom `src/doom/r_data.c`](https://github.com/chocolate-doom/chocolate-doom/blob/chocolate-doom-3.1.0/src/doom/r_data.c)
+  and the [Doom Wiki TEXTURE1 and TEXTURE2 page](https://doomwiki.org/wiki/TEXTURE1_and_TEXTURE2):
+  `PNAMES`, `maptexture_t`/`mappatch_t` and Strife's shorter records;
+  GPL-2.0-or-later tag `chocolate-doom-3.1.0`, living wiki page read 2026-10-28.
+- The colour adjustments, filters, gradients, median-cut palette and seamless
+  cross-fade in `src/core/texture_adjust.*` and `src/core/texture_formats.*`
+  are standard image-processing techniques implemented by VibeStudio; no
+  third-party code was used.
 
 ### idTech Map Formats
 | Specification | Reference | VibeStudio modules | Revision / date |
@@ -2519,6 +2599,148 @@ component behaviours reference the same upstream sources and licences above;
 no upstream implementation was copied. Full native profile parity remains
 separate work.
 
+The object **Translate** tool (`map.translateTool`, <kbd>W</kbd> in the
+NetRadiant Custom profile) follows the behaviour of NetRadiant Custom's
+`MouseTranslate` toggle in
+[`radiant/tools.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/tools.cpp),
+its translate manipulator in
+[`radiant/selection_mtor_translate.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtor_translate.cpp)
+(X, Y and Z arrows hidden when nearly along the view, and a screen square),
+`TranslateAxis`, `TranslateFree` and `aabb_snap_translation` in
+[`radiant/selection_mtable_translate.h`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtable_translate.h)
+(grid-snapped moves, Shift's main axis and Ctrl's bounds snap), and the
+`TransformOriginManipulator`, `TransformOriginTranslate` and
+`setCustomTransformOrigin` pivot in
+[`radiant/selection.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection.cpp)
+(a draggable pivot snapped per axis to the bounds or the grid, and a click
+that switches between a placed and an automatic pivot), revision
+`449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later), reviewed
+2026-10-28. Behaviour only: `core/level_object_manipulator.*`, the Translate
+handles in `app/level_component_gizmo.*`, `app/map_viewport_object_gizmo.cpp`,
+`app/model_viewport_object_gizmo.cpp`, `app/level_object_gizmo_actions.cpp`,
+the `map move` route and the tests are original. Known differences: a placed
+pivot survives a change of tool, and the bounds snap compares plain distances.
+
+The object **Rotate** tool (`map.rotateTool`, <kbd>R</kbd> in the NetRadiant
+Custom and TrenchBroom profiles) follows the behaviour of NetRadiant Custom's
+`MouseRotate` toggle in
+[`radiant/tools.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/tools.cpp),
+its rotate manipulator in
+[`radiant/selection_mtor_rotate.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtor_rotate.cpp)
+(X, Y and Z rings with a face-on ring left out, a screen ring 15% outside them
+and a free turn elsewhere) and `RotateAxis` and `RotateFree` in
+[`radiant/selection_mtable_rotate.h`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtable_rotate.h)
+(a turn about an axis or the line of sight, a trackball turn between two points
+on a sphere, and Shift's 15° snap), revision
+`449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later), reviewed
+2026-10-29; and of TrenchBroom's "Menu/Edit/Tools/Rotate Tool" (<kbd>R</kbd>) in
+[`lib/TbUiLib/src/ActionManager.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1/lib/TbUiLib/src/ActionManager.cpp)
+and its angle-step snapping in `RotateTool` and `HandleDragTracker`, v2026.2
+`4c756be1` (GPL-3.0-or-later), reviewed 2026-10-29. Behaviour only: the
+rotation, Euler, sphere and arcball functions in `core/level_object_manipulator.*`,
+the Rotate handles in `app/level_component_gizmo.*`, the shell wiring, the
+`map rotate --around` route and the tests are original. Known differences: a
+free turn starts only inside the rings (NetRadiant Custom takes a drag anywhere
+off the handles), all three rings are full circles, and the turn is committed
+through the numeric rotation service as one plain or Euler X, Y, Z turn. The
+TrenchBroom profile has no free turn (`objectRotateFreeTurn`), as TrenchBroom's
+`RotateToolController` takes only drags on its handle, v2026.2 `4c756be1`
+(GPL-3.0-or-later), reviewed 2026-10-29.
+
+The object **Scale** tool (`map.scaleTool`, <kbd>T</kbd> in the TrenchBroom
+profile) and **Rotate or Scale Tool** (`map.rotateOrScaleTool`) follow the
+behaviour of NetRadiant Custom's `MouseScale` toggle and `MouseRotateOrScale`
+command (`ToggleRotateScaleModes`) in
+[`radiant/tools.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/tools.cpp),
+its scale manipulator in
+[`radiant/selection_mtor_scale.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtor_scale.cpp)
+(X, Y and Z handles and a screen square) and `ScaleAxis` and `ScaleFree` in
+[`radiant/selection_mtable_scale.h`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtable_scale.h)
+(the farther side of the bounds following the grid-snapped travel, Shift's
+equal axes and Ctrl's grid-snapped size), revision
+`449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later), reviewed
+2026-10-29; and of TrenchBroom's "Menu/Edit/Tools/Scale Tool" (<kbd>T</kbd>) in
+[`lib/TbUiLib/src/ActionManager.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1/lib/TbUiLib/src/ActionManager.cpp),
+`moveBBoxSide`, `moveBBoxEdge`, `moveBBoxCorner` and `handleLineForHit` in
+`lib/TbUiLib/src/ScaleTool.cpp` and `modifierSettingsForInputState` in
+`lib/TbUiLib/src/ScaleToolController.cpp` (face, edge and corner handles,
+edges and corners sliding along the line from the opposite edge or corner,
+Shift's proportional axes and Alt's centre anchor), v2026.2 `4c756be1`
+(GPL-3.0-or-later), reviewed 2026-10-29. Behaviour only: the scale functions
+in `core/level_object_manipulator.*`, the edge, corner and modifier code in
+`core/box_resize.*`, the Scale handles in `app/level_component_gizmo.*`, the
+box handles in `app/map_viewport.cpp` and `app/model_viewport_resize.cpp`, the
+shell wiring, the `map resize --drag` route and the tests are original. Known
+differences: Shift on the square follows the larger change rather than NetRadiant
+Custom's smaller one, the factors stay above zero (Flip mirrors), plan views
+show only faces and corners of the box (the corners being the box's edges seen
+end-on), and the NetRadiant Custom manipulator and TrenchBroom's box handles
+show together while the tool is on.
+
+The object **Transform** tool (`map.transformTool`) and **Select or Transform
+Tool** (`map.selectOrTransformTool`, <kbd>Q</kbd> in the NetRadiant Custom
+profile) follow the behaviour of NetRadiant Custom's `MouseTransform` toggle
+and `MouseDragOrTransform` command (`ToggleDragSkewModes`) in
+[`radiant/tools.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/tools.cpp),
+its skew manipulator `SkewManipulatorImpl` in
+[`radiant/selection_mtor_skew.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtor_skew.cpp)
+(side lines through the middle of the box that skew about the opposite side,
+corner points that turn about the opposite corner, a free move inside the box
+and the planes outside it that scale about the opposite sides) and
+`TranslateFreeXY_Z` in
+[`radiant/selection_mtable_translate.h`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtable_translate.h)
+(a level move in the camera, Alt lifting it), revision
+`449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later), reviewed
+2026-10-29. The camera's **Shear Tool** handles and <kbd>G</kbd> in the
+TrenchBroom profile follow TrenchBroom's "Menu/Edit/Tools/Shear Tool" in
+[`lib/TbUiLib/src/ActionManager.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1/lib/TbUiLib/src/ActionManager.cpp)
+and `makeHandlePositionProposer` and `ShearDragDelegate` in
+`lib/TbUiLib/src/ShearToolController.cpp` (a side face sliding sideways, or
+up and down with Alt, the top and bottom within their plane, the slide so far
+kept when Alt changes, relative grid snapping) with `ShearTool::shearByDelta`
+and vm's `shear_bbox_matrix`, v2026.2 `4c756be1` (GPL-3.0-or-later), reviewed
+2026-10-29. Behaviour only: the side shear, Transform pivots and side scale
+in `core/level_object_manipulator.*`, the Transform handles in
+`app/level_component_gizmo.*`, the camera shear in
+`app/model_viewport_resize.cpp`, the shell wiring, the `map shear --side`
+route and the tests are original. Known differences: plan views offer only
+the turns about their line of sight, the scale from outside reaches a band
+round the box rather than the whole view, a Transform move in the camera
+starts from the point under the pointer on the box, and the camera's shear
+previews a dashed wire rather than the sheared surfaces.
+
+The plane drags of the Levels **Select** tool (the `drag-planes` empty drag,
+the Alt vertex and plane drags and the Ctrl+Alt extrusion), the **Build Tool**
+(`map.buildTool`, <kbd>B</kbd> in the NetRadiant Custom profile) and
+`map drag-planes` follow the behaviour of NetRadiant Custom's `MouseDrag` and
+`MouseBuild` toggles in
+[`radiant/tools.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/tools.cpp),
+`DragManipulatorImpl::testSelect`, `Scene_forEachPlaneSelectable_selectPlanes`,
+`Scene_forEachPlaneSelectable_bestPlane`, `selection_selectVerticesOrFaceVertices`
+and `Scene_forEachBrush_setupExtrude` in
+[`radiant/selection_mtor_drag.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtor_drag.cpp),
+`BrushInstance::selectPlanes`, `FaceInstance::trySelectPlane`,
+`EdgeInstance::bestPlaneIndirect` and the grid search of
+`BrushInstance::transformComponents` in
+[`radiant/brush.h`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/brush.h)
+and [`radiant/brush.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/brush.cpp),
+and `DragExtrudeFaces` in
+[`radiant/selection_mtable_extrude.h`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtable_extrude.h)
+(the planes facing the press point and seen most nearly edge-on, one per
+brush in the camera, with the planes back to back on other selected brushes;
+the plane hit or the one behind the nearest edge; texture lock off while
+resizing; an extrusion out into new brushes or in to split a slab), revision
+`449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later), reviewed
+2026-10-29. GtkRadiant 1.6.0's QE4 drag in `radiant/selection.cpp` is the
+same plane drag. Behaviour only: the picks, plane moves and chain record in
+`core/level_plane_drag.*`, the controller in
+`app/level_plane_drag_controller.*`, the view and shell wiring, the CLI route
+and the tests are original. At the pinned revision NetRadiant Custom's
+Build manipulator is a placeholder, so the Build tool follows its stated
+purpose ("extrude, build chains, clone"); a drag that would make a face vanish
+stops rather than keeping the face as a redundant plane, and patches and
+light radii are not dragged.
+
 The fitted UV lock (**Fit UVs When Lock Fails**, `--uv-lock fit`) follows the
 behaviour of NetRadiant Custom's texture vertex lock: `TogTexVertexLock` in
 [`radiant/brushmanip.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/brushmanip.cpp)
@@ -3279,6 +3501,156 @@ facts were used; no source was copied. `levelDuplicateMoveCommands()` in
 `map nudge --duplicate`, `map move --camera`, `map repeat-transforms` and the
 `level-duplicate-move` tests are original VibeStudio work.
 
+### Import Map, Export Selection as Map and Export Map
+
+Reviewed on 2026-10-28. **Import Map…** (merging another map's entities,
+brushes and patches at their own coordinates as one undo step, its worldspawn
+primitives joining the open worldspawn, clashing names given the next free
+number, and a `.bsp` or unreadable map converted with `q3map2 -convert -format
+map|map_bp` first) follows `ImportMap`, `Map_ImportFile`, `MergeMap` and
+`Map_mergeClonedNames`, and **Export Selection as Map…** (the selected world
+brushes inside worldspawn with its keys, then the selected entities) follows
+`ExportMap` and `Map_SaveSelected`, in
+[`radiant/map.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/map.cpp)
+of NetRadiant Custom revision `449778b3840f8f2062daab15c87cb012f2ac945c`
+(William Joseph and other contributors, GPL-2.0-or-later). **Export Map…**
+(a copy written without changing the document's path, the open file refused,
+and layers marked Omit From Export left out, with the mark kept as
+`_tb_layer_omit_from_export`) follows `MapWindow::exportDocumentAsMap` in
+[`lib/TbUiLib/src/MapWindow.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapWindow.cpp),
+the `"Menu/File/Export/Map..."` action in
+[`lib/TbUiLib/src/ActionManager.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ActionManager.cpp)
+and the layer editor's Omit From Export toggle in
+[`lib/TbUiLib/src/LayerEditor.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/LayerEditor.cpp)
+of TrenchBroom v2026.2 (`4c756be1a54a28d921d18c77716a5f170bdc31d0`, Kristian
+Duske and contributors, GPL-3.0-or-later). Both licences are compatible with
+VibeStudio's GPL-3.0-or-later licence. Only behavioural facts were used; no
+source was copied. `src/core/level_map_transfer.*`, `pasteLevelMapDocumentAt()`,
+`writeLevelMapBytes()`, the worldspawn wrapper of `levelMapSelectionText()`,
+`setLevelSceneOmitFromExport()`, `src/app/level_map_transfer_actions.cpp`,
+`src/app/level_map_import_dialog.*`, `src/cli/level_map_transfer.*`, `map
+import`, `map export`, `map copy --standalone`, `editor scene omit-from-export`
+and the `level-map-transfer` tests are original VibeStudio work. Unlike
+NetRadiant Custom, layers of an imported map are not recreated, and the import
+is previewed before it runs. The `.bsp` conversion passes `-game`,
+`-fs_basepath` and `-fs_game` as `Map_ImportFile` does; the game is read from
+the BSP header with the VibeMap3 game profiles of `tools/quake3/q3map2/games.cpp`
+in the pinned VibeMap3 submodule.
+
+### Export Map as OBJ and Export Selection as OBJ
+
+Reviewed on 2026-10-29. **Export Map as OBJ…** (a Wavefront OBJ with an MTL
+library, `map_Kd` paths relative to the game or to the export folder, and
+layers marked Omit From Export left out) follows `ObjExportDialog` in
+[`lib/TbUiLib/src/ObjExportDialog.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ObjExportDialog.cpp),
+`MapWindow::exportDocumentAsObj` in
+[`lib/TbUiLib/src/MapWindow.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapWindow.cpp)
+and the `"Menu/File/Export/Wavefront OBJ..."` action of TrenchBroom v2026.2
+(`4c756be1a54a28d921d18c77716a5f170bdc31d0`, Kristian Duske, Amara M. Kilic and
+contributors, GPL-3.0-or-later). **Export Selection as OBJ…** and its options
+(ignored materials matched by the last part of the shader path, collapse by
+brush, by material or into one mesh, objects instead of groups, vertex welding,
+20-character material names, the MTL's `Kd` and `map_Kd`, and Y-up positions
+written as `x z -y`) follow the brushexport plugin in
+[`contrib/brushexport/`](https://github.com/Garux/netradiant-custom/tree/449778b3840f8f2062daab15c87cb012f2ac945c/contrib/brushexport)
+(`export.cpp`, `interface.cpp`, `callbacks.cpp`, `plugin.cpp`) of NetRadiant
+Custom revision `449778b3840f8f2062daab15c87cb012f2ac945c` (Thomas Nitschke
+and other contributors, GPL-2.0-or-later). Both licences are compatible with
+VibeStudio's GPL-3.0-or-later licence. Only behavioural facts were used; no
+source was copied. `src/core/level_map_obj_export.*`,
+`src/app/level_map_obj_export_dialog.*`, the OBJ commands in
+`src/app/level_map_transfer_actions.cpp`, `map export-obj` in
+`src/cli/level_map_transfer.*` and the `level-map-obj-export` tests are
+original VibeStudio work. Unlike the brushexport plugin, materials keep their
+names in every grouping, patches are exported, and faces are rewound against
+their outward normal rather than by reversing the solver's winding.
+
+### Map Info and the Map tab inspector
+
+Reviewed on 2026-10-29. **Map Info** (totals of brushes, patches, entities,
+in-game entities, group entities and in-game group entities, and a sortable
+count of entities by class, on <kbd>M</kbd>) follows `DoMapInfo`,
+`Scene_EntityBreakdown` and `CountStuffWalker` in
+[`radiant/map.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/map.cpp)
+of NetRadiant Custom revision `449778b3840f8f2062daab15c87cb012f2ac945c`
+(GPL-2.0-or-later): a group entity is worldspawn or one that holds
+primitives, and an entity reaches the game unless it is `func_group`,
+`_decal` or `func_detail*` (merged into the world) or `light*`, `misc_model`
+or `info_null` (dropped). The Map tab's layer summary, **Map Properties**
+(soft bounds from the game, from the map or none, each corner typed as three
+numbers or one, kept as worldspawn's `_tb_soft_map_bounds` key with `none`
+for disabled) and **Mods** (an ordered list kept as `_tb_mod`, separated by
+semicolons, offered from the folders beside the game's own) follow
+`MapInspector`, `MapPropertiesEditor` and `ModEditor` in
+[`lib/TbUiLib/src/MapInspector.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapInspector.cpp)
+and
+[`lib/TbUiLib/src/ModEditor.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ModEditor.cpp),
+and the `"Menu/View/Switch to Map Inspector"` action and its Ctrl+1 key in
+`lib/TbUiLib/src/ActionManager.cpp`, of TrenchBroom v2026.2
+(`4c756be1a54a28d921d18c77716a5f170bdc31d0`, GPL-3.0-or-later). The game
+defaults are VibeStudio's own: ±4096 for Quake-format maps, whose engines send
+coordinates as 1/8-unit shorts, and ±65536 for Quake III maps, from
+`MIN_WORLD_COORD` and `MAX_WORLD_COORD` in
+`external/compilers/vibemap3/tools/quake3/common/maxworld.h`. Only behavioural
+facts were used; no source was copied. `src/core/level_map_inspector.*`, the
+Map Info counts in `src/core/level_map.cpp`, `src/app/level_map_inspector*.*`,
+`map properties` in `src/cli/level_map_properties.*` and the `level-map-info`
+tests are original VibeStudio work. Map settings changing with a group open
+follow the same `MapPropertiesEditor` and `ModEditor`, which change the world
+node whatever group is open.
+
+### Run Last Build, Re-run Last Compile and launch profiles
+
+Reviewed on 2026-10-29. **Run Last Build** on <kbd>F5</kbd> in the NetRadiant
+Custom profile follows `Build_runRecentExecutedBuild` and `g_lastExecutedBuild`
+in
+[`radiant/build.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/build.cpp)
+and its F5 key in `radiant/mainframe.cpp` of NetRadiant Custom revision
+`449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later), also checked
+against NetRadiant `b4b295d7a37797cc2752e48aa8ce42492e7016f0`
+(GPL-2.0-or-later), which binds it and Map Info's M the same way.
+**Re-run Last Compile**, enabled only when there is something to run, and the
+compiler profile remembered for each game follow
+`MapWindow::rerunLastCompilation`, `hasLastCompilationProfile` and
+`setLastCompilationProfileName` in
+[`lib/TbUiLib/src/MapWindow.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapWindow.cpp)
+and the `"Menu/Run/Rerun..."` action in `lib/TbUiLib/src/ActionManager.cpp`;
+the user's launch profiles (a named engine with a parameter line of variables)
+follow TrenchBroom's game engine profiles and Launch Engine dialog
+(`GameEngineProfile`, `GameEngineDialog`, `GameEngineProfileEditor` and
+`LaunchGameEngineDialog` in `lib/TbUiLib/src`), all of TrenchBroom v2026.2
+(`4c756be1a54a28d921d18c77716a5f170bdc31d0`, GPL-3.0-or-later). VibeStudio
+replays the saved command manifest rather than re-planning, and its tokens
+(`{map}`, `{mod}`, `{basedir}`, `{bsp}`, `{iwad}`, `{warp}`) are its own. Only
+behavioural facts were used; no source was copied.
+`src/app/build_rerun_actions.cpp`, `src/app/game_launch_profiles_dialog.*`,
+`src/core/studio_settings_build.cpp`, the user-profile and manifest functions
+in `src/core/build_pipeline.cpp` and `src/core/compiler_runner.cpp`,
+`src/cli/launch_profiles.*` and the `build-rerun` tests are original
+VibeStudio work.
+
+### Project build pipelines
+
+Reviewed on 2026-10-29. **Build Pipelines…**, pipelines of the project's own
+with stages that can be added, reordered and turned off, typed arguments and
+variables, follows NetRadiant Custom's **Build** > **Customize…**
+(`DoBuildMenu`, `BuildMenuDialog_construct`, `build_commands_parse` and
+`build_commands_write` in
+[`radiant/build.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/build.cpp),
+registered as `BuildMenuCustomize` in `radiant/mainframe.cpp`, revision
+`449778b3840f8f2062daab15c87cb012f2ac945c`, GPL-2.0-or-later) and
+TrenchBroom's compilation profiles (`CompilationProfileManager`,
+`CompilationProfileEditor` and the `${MAP_BASE_NAME}`- and `${CPU_COUNT}`-style
+variables of `CompilationVariables` in `lib/TbUiLib/src` of TrenchBroom v2026.2,
+`4c756be1a54a28d921d18c77716a5f170bdc31d0`, GPL-3.0-or-later). VibeStudio's
+pipelines are lists of its own compiler profiles kept in the project manifest,
+with variable names, switch-group dropping and the program trust check of its
+own. Only behavioural facts were used; no source was copied.
+`src/app/build_pipelines_dialog.*`, `src/app/build_pipeline_actions.cpp`,
+`src/core/build_program_trust.*`, the project-pipeline functions in
+`src/core/build_pipeline.cpp`, `src/cli/build_pipelines.*` and the
+`build-project-pipelines` tests are original VibeStudio work.
+
 ## View-relative turns and flips
 
 Reviewed on 2026-10-22. **Roll Clockwise** and **Counter-clockwise**, yaw on
@@ -3486,6 +3858,57 @@ Tab acting only during mouse look, `src/core/level_camera_focus.*`,
 (`src/cli/level_camera_focus.*`) and the `level-camera-focus` tests are
 original VibeStudio work.
 
+Reviewed on 2026-10-29. **Camera Floor Up** and **Camera Floor Down** (the
+camera to the nearest standing height 32 units above the top of a visible
+object that is selected or whose box holds the camera's x and y, a 0.1-unit
+dead band, and the rise to or fall back to 16 units under the lowest of them)
+follow `FloorHeightWalker`, `CamWnd::Cam_ChangeFloor`, `Camera_ChangeFloorUp`,
+`Camera_ChangeFloorDown` and the `UpFloor` and `DownFloor` commands on
+<kbd>Page Up</kbd> and <kbd>Page Down</kbd> in `radiant/camwindow.cpp` of
+NetRadiant Custom (same revision and licence as above). The same keys in the
+NetRadiant, GtkRadiant, Q3Radiant and DoomEdit profiles follow `UpFloor` and
+`DownFloor` in Xonotic NetRadiant's `radiant/camwindow.cpp` (`b4b295d7`, as
+above), the `g_Commands[]` tables in GtkRadiant's `radiant/mainframe.cpp` at
+[`5fc27697b313ddb925e57605c9983f5727a3c19f`](https://github.com/TTimo/GtkRadiant/blob/5fc27697b313ddb925e57605c9983f5727a3c19f/radiant/mainframe.cpp)
+(1.4) and
+[`270af88f3c2471f6773bded0b5760a3115b52965`](https://github.com/TTimo/GtkRadiant/blob/270af88f3c2471f6773bded0b5760a3115b52965/radiant/mainframe.cpp)
+(1.6), `CamWnd_Construct` in GtkRadiant 1.5's
+[`radiant/camwindow.cpp`](https://github.com/TTimo/GtkRadiant/blob/017673373699174b574c92a262496826a6b409e9/radiant/camwindow.cpp)
+(`017673373699174b574c92a262496826a6b409e9`), Q3Radiant's `MainFrm.cpp` and
+Doom 3's `MainFrm.cpp` (both as above), all GPL-2.0-or-later except Doom 3
+(GPL-3.0-or-later with additional terms), and the QeRadiant profile follows
+[Eutectic's QeRadiant/Q3Radiant shortcut reference](https://icculus.org/gtkradiant/documentation/q3radiant_manual/appndx/sskey_dl.htm).
+On Doom maps the standing height is the sector floor plus Doom's 41-unit
+`VIEWHEIGHT`, kept 4 units under the ceiling, from `p_local.h` and
+`P_CalcHeight` in `p_user.c` of
+[id Software's DOOM source](https://github.com/id-Software/DOOM/tree/a77dfb96cb91780ca334d0d4cfd86957558007e0/linuxdoom-1.10)
+(`a77dfb96cb91780ca334d0d4cfd86957558007e0`, GPL-2.0-or-later). Only
+behavioural and key facts were used; no source was copied. The sector variant,
+selected brush entities counting through their brushes, definition boxes for
+point entities, hidden and filtered objects left out, the plan-view key
+hand-off to Raise and Lower Floor, `levelCameraFloorStep`, `map camera-focus
+--floor` and the `level-camera-floor` tests are original VibeStudio work.
+
+Reviewed on 2026-10-29. The camera's drive keys working from the 2D views
+follow `CamWnd_Move_Discrete_Enable` and `CamWnd_Move_Enable`, which connect
+`CameraStrafeLeft`, `CameraStrafeRight`, `CameraUp`, `CameraDown`,
+`CameraAngleUp` and `CameraAngleDown` as main-window accelerators and key
+events, in `radiant/camwindow.cpp` of NetRadiant Custom (same revision and
+licence as above). The NetRadiant Custom profile's discrete 32-unit and
+22.5-degree drive steps, their 90-degree pitch stop and the 500-unit starting
+speed follow `m_bCamDiscrete`, `SPEED_MOVE`, `SPEED_TURN`,
+`Camera_PitchUp_Discrete`, `Camera_PitchDown_Discrete` and `m_nMoveSpeed`
+there; **Increase Camera Speed** and **Decrease Camera Speed** on
+<kbd>Shift</kbd>+<kbd>Keypad +</kbd> and <kbd>Shift</kbd>+<kbd>Keypad -</kbd>
+follow `CameraSpeed_increase`, `CameraSpeed_decrease`, `CAM_MIN_SPEED`,
+`CAM_MAX_SPEED`, `CAM_SPEED_STEP` and the `CameraSpeedInc` and `CameraSpeedDec`
+commands. Only behavioural and key facts were used; no source was copied. The
+fixed speed list, stepping from the map-scaled speed, the command hand-off in
+the 2D views, the 89-degree camera stop, the readout,
+`src/app/level_camera_drive_actions.cpp`, the `camera.moveSpeed` and
+`plan.cameraDriveKeys` gestures and the `level-camera-drive-keys` tests are
+original VibeStudio work.
+
 ## Level camera display modes
 
 Reviewed on 2026-10-25. **Show Textures in Camera**, **Hide Textures in
@@ -3512,6 +3935,53 @@ and the surface shader's diagonal bits), `src/core/level_camera_render.*`,
 `src/app/level_camera_render_actions.cpp` and the `level-camera-render` tests
 are original VibeStudio work.
 
+Reviewed on 2026-10-28. **Shade Faces in Camera** (on by default, no key) and
+**Fog in Camera** (off by default, no key) follow the "Controls/Map
+view/View Filter > Shade faces" and "Use fog" actions in
+`lib/TbUiLib/src/ActionManager.cpp`, `MapViewBase::toggleShadeFaces` and
+`toggleShowFog`, and the "Shade faces" and "Use fog" boxes in
+`lib/TbUiLib/src/ViewEditor.cpp` of TrenchBroom v2026.2 (same revision and
+licence as above). **Grid on Camera Faces** and **Show Grid** hiding the
+camera's grids follow TrenchBroom drawing the grid on brush faces while the
+document grid is visible ("Menu/View/Grid/Show Grid", `MapWindow::toggleShowGrid`
+and the `setShowGrid` and `setGridSize` calls in `MapViewBase`). Only
+behaviour was used; TrenchBroom's renderer and shaders were not consulted or
+copied. The linear fog ramp with its start, end and fixed strength towards the
+camera's background, the fog distances on the **View** tab, the face grid in
+the plane of each face's dominant world axes with contrast-chosen line colour
+and crowding fade, the brush-face marks (`levelCameraFaceGridTriangles`), the
+surface shader's new uniforms and corner bit, and the `level-camera-shading`
+tests are original VibeStudio work.
+
+Reviewed on 2026-10-29. **Far Clip in Camera**, **Shorter Draw Distance** and
+**Longer Draw Distance** (a saved far plane, off by default, whose distance is
+2^((step + 7) / 2) units for steps 1 to 23, starting at step 14, on
+<kbd>Ctrl</kbd>+<kbd>\\</kbd>, <kbd>Ctrl</kbd>+<kbd>[</kbd> and
+<kbd>Ctrl</kbd>+<kbd>]</kbd>) follow `Camera_getFarClipPlane`,
+`Camera_ToggleFarClip`, `Camera_CubeIn`, `Camera_CubeOut`, the
+`ToggleCubicClip`, `CubicClipZoomIn` and `CubicClipZoomOut` commands and the
+`CubicClipping` and `CubicScale` preferences in `radiant/camwindow.cpp` and
+`radiant/camwindow.h` of NetRadiant Custom (same revision and licence as
+above); Xonotic NetRadiant
+[`radiant/camwindow.cpp`](https://github.com/xonotic/netradiant/blob/b4b295d7a37797cc2752e48aa8ce42492e7016f0/radiant/camwindow.cpp)
+(`b4b295d7a37797cc2752e48aa8ce42492e7016f0`, GPL-2.0-or-later) binds the same
+keys, and so do the `ToggleCubicClip`, `CubicClipZoomIn` and
+`CubicClipZoomOut` entries of GtkRadiant 1.4 and 1.6 and GtkRadiant 1.5's
+`CamWnd_Construct` (revisions as in the camera floor paragraph above).
+Q3Radiant's `MainFrm.cpp` and Doom 3's `MainFrm.cpp` (`CameraClip_Toggle`,
+`CameraClip_ZoomOut`, `CameraClip_ZoomIn`) bind the toggle on Ctrl+\ and the
+longer step on Ctrl+[ and the shorter on Ctrl+], which those profiles keep;
+the QeRadiant profile leaves Ctrl+\ unbound because Eutectic's shortcut
+reference says it works only in Q3Radiant. Only behavioural and key
+facts were used; no source was copied. The finite reversed-depth far plane in
+the shared view-projection (`levelCameraPerspectiveDepth`), its orthographic
+counterpart behind the front of the map, the CPU culling and wireframe
+clipping that repeat it, the fog ending at the clip while both are on
+(`levelCameraFogWithinFarClip`), whole-unit distances, the **View** tab's
+**Draw distance** list, the camera readout, `editor far-clip`
+(`src/cli/level_camera_far_clip.*`) and the `level-camera-far-clip` tests and
+camera frames in `render-device-smoke` are original VibeStudio work.
+
 ## Plan pane visibility
 
 Reviewed on 2026-10-22. **Show Top View**, **Show Front View** and **Show Side
@@ -3531,6 +4001,43 @@ combination splitter proportions, revealing a pane from **Top/Front/Side View**,
 `LevelPlanPanes` in `src/core/level_editor_controls.*`,
 `src/app/level_plan_pane_actions.cpp`, `editor layout --panes` and the
 `level-plan-panes` tests are original VibeStudio work.
+
+## Plan framing
+
+Reviewed on 2026-10-29. Changing the 2D view's plane while keeping its zoom and
+centring it on the selection or the camera (**Top View**, **Front View**,
+**Side View** and **Next 2D View**, on keypad 7, 1 and 3 and
+<kbd>Ctrl</kbd>+<kbd>Tab</kbd>, and recentring every 2D view in the split
+layout), the Radiant framing of **Frame Selection** (the 2D views only, the
+selection's larger half-extent, at least 128 units, three times over each view,
+or a 128-unit half box round the camera with nothing selected, on
+<kbd>&#96;</kbd>) and **Zoom 100%** (no default key) follow `XY_SetViewType`,
+`XYWnd_Centralize`, `XY_Centralize`, `GetCenterBbox`, `XY_Focus`,
+`XYWnd::FocusOnBounds`, `XY_NextView`, `XY_Zoom100` and `XYWindow_Construct` in
+[`radiant/xywindow.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/xywindow.cpp)
+of NetRadiant Custom revision `449778b3840f8f2062daab15c87cb012f2ac945c`
+(GPL-2.0-or-later); the NetRadiant profile keeps them because `XY_Focus`,
+`XY_TopFrontSide` and `XY_Zoom100` in
+[`radiant/xywindow.cpp`](https://github.com/xonotic/netradiant/blob/b4b295d7a37797cc2752e48aa8ce42492e7016f0/radiant/xywindow.cpp)
+at Xonotic NetRadiant `b4b295d7a37797cc2752e48aa8ce42492e7016f0`
+(GPL-2.0-or-later) do the same. **Reset 2D Views** (the other views take the
+active one's zoom and its position on the axes they share; unavailable while
+the views are linked) follows the "Menu/View/Camera/Reset 2D Cameras" action in
+[`lib/TbUiLib/src/ActionManager.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ActionManager.cpp),
+`MapWindow::reset2dCameras` and `MapView2D::reset2dCameras` of TrenchBroom
+v2026.2 (`4c756be1a54a28d921d18c77716a5f170bdc31d0`, Kristian Duske and
+contributors, GPL-3.0-or-later). These licences are compatible with
+VibeStudio's GPL-3.0-or-later licence. Only behaviour and key facts were used;
+no source was copied. Applying the recentre to every one-plan profile, the
+whole-map fallback with neither a selection nor a camera, the
+`plan.radiantFraming` gesture, recentring while the three-plan panes also take
+focus, clamping to the plan zoom range, leaving TrenchBroom's
+<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> to Read Aloud with the command
+unbound, the focus claim that scopes a user's key for it to the 2D views while
+it can act, `levelPlanCentreFor`, `resetLevelPlanNavigation` and
+`levelPlanFocusState` in `src/core/level_navigation.*`,
+`src/app/level_plan_framing_actions.cpp` and the `level-plan-framing-ui` and
+`level-navigation` tests are original VibeStudio work.
 
 ## Grid coordinates and block grid
 
@@ -3760,6 +4267,80 @@ coordinates and an embedded preview. `src/core/level_uv_edit.*`,
 `src/app/level_uv_view.*`, `src/app/level_uv_editor_dialog.*`,
 `src/app/level_uv_editor_actions.cpp`, `src/cli/level_uv_edit.*` and the
 `level-uv-edit` and `level-uv-editor-ui` tests are original VibeStudio work.
+
+## Face inspector
+
+The **Face** section of the Levels **Surfaces** tab, **Show Face Inspector**
+and `map face-attributes` were added on 2026-10-28 from behavioural facts
+only; no source was copied. They follow TrenchBroom 2026.2 at
+`4c756be1a54a28d921d18c77716a5f170bdc31d0` (Kristian Duske and contributors,
+GPL-3.0-or-later): the face inspector's offset, scale and angle fields that
+show "multi" for differing faces and set the value on every selected face
+([`FaceAttribsEditor.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/FaceAttribsEditor.cpp)),
+the UV view of one selected face with an origin handle that starts at the
+face's lower-left corner
+([`UVViewHelper.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/UVViewHelper.cpp),
+[`UVOriginTool.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/UVOriginTool.cpp)),
+a turn that sets the rotation value and then corrects the offsets so the
+origin keeps its place, rounded to four decimals
+([`UVRotateTool.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/UVRotateTool.cpp)),
+the same correction after a scale
+([`UVScaleTool.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/UVScaleTool.cpp)),
+a drag that moves the offsets
+([`UVOffsetTool.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/UVOffsetTool.cpp)),
+each drag one undo step, and "Menu/View/Switch to Face Inspector" on
+<kbd>Ctrl</kbd>+<kbd>3</kbd> in
+[`ActionManager.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ActionManager.cpp).
+A brush-primitive face's values are Radiant's reading of its matrix
+(NetRadiant Custom `TexMatToFakeTexCoords` in
+[`radiant/brush_primit.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/brush_primit.cpp)
+at `449778b3`, GPL-2.0-or-later), shared with Reset Textures. Unlike
+TrenchBroom, the view draws the face over the fixed image in texture space as
+the UV Editor does, the stretch knobs sit on the face's bounds, the turn reads
+how far the face turns per degree so mirrored and unevenly scaled textures
+follow the pointer, the pivot snaps to the face's points, and Ctrl+3 shows the
+section only while the keyboard focus is in Levels so the studio's mode keys
+keep working elsewhere. `src/core/level_face_attributes.*`, the handles in
+`src/app/level_uv_view.*`, the Face section in `src/app/level_surface_tools.*`,
+`src/app/level_face_inspector_actions.cpp`, the focus-layer key claims in
+`src/app/studio_actions.*`, `src/cli/level_face_attributes.*` and the
+`level-face-attributes` and `level-face-inspector-ui` tests are original
+VibeStudio work.
+
+## Camera UV tool
+
+The Levels camera's **UV** tool (`map.uvTool`, <kbd>G</kbd> in the NetRadiant
+Custom profile) and `map edit-uv`'s `--stretch`, `--skew-u`, `--skew-v`,
+`--pivot`, `--rows` and `--columns` were added on 2026-10-29 from behavioural
+facts only; no source was copied. They follow NetRadiant Custom's UV tool at
+`449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later): the
+`MouseUV` toggle on <kbd>G</kbd>, which returns to the default tool when chosen
+again, in
+[`radiant/tools.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/tools.cpp),
+and `UVManipulator` in
+[`radiant/selection_mtor_uv.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtor_uv.cpp):
+one selected face or patch with its texture's repeat lines laid over its
+plane, a pivot that starts at the surface's texture-space corner, a circle
+about it that turns the texture, U and V lines that stretch it and their
+crossing that stretches both, <kbd>Alt</kbd> and a line that skews it, a drag
+elsewhere on the surface that moves it, a patch's control points, rows and
+columns in texture space, snapping within a few pixels (moved corners onto
+lines, stretched lines onto corners, turns and skews along edges, the pivot
+onto lines and corners), <kbd>Ctrl</kbd> to always snap, <kbd>Shift</kbd> for
+one axis, 15° turns or even stretches, a line held only when the pointer is
+nearer it than the middle of the repeat beside it, and each drag one undo
+step. Unlike NetRadiant Custom, a face's move, turn and stretch set its own
+texture values through the Face inspector's service, so a classic face stays
+classic; a skew needs Valve 220 or brush primitives, converting a classic face
+only when **Allow Valve 220 Conversion** is on; the circle is a fixed size on
+screen with a knob along the texture's U direction; there are no grid-density
+handles and no pivot-line drags; a click on another face picks it; and the
+camera previews the texture live by replacing the face's texture coordinates.
+`src/core/level_uv_tool.*`, `src/app/level_camera_uv_tool.*`,
+`src/app/level_camera_uv_tool_actions.cpp`, the texture-coordinate preview in
+`src/app/model_viewport_tools.cpp`, the `map edit-uv` additions in
+`src/cli/level_uv_edit.cpp` and the `level-uv-tool` and
+`level-camera-uv-tool-ui` tests are original VibeStudio work.
 
 ## Arbitrary rotation and scale
 

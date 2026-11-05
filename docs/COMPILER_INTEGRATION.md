@@ -519,12 +519,75 @@ Behavior:
   `<pipeline id>.<stage id>.json` into it.
 - Per-stage extra arguments are passed as `--stage-args <stageId>=<args>`.
 
+Project pipelines: a project manifest's `buildPipelines` array keeps pipelines
+of the project's own (`projectBuildPipelines()`, `setProjectBuildPipelines()`),
+edited in **Build Pipelines…** and with `build pipeline-set` and
+`build pipeline-remove`. Each is a name, variables and an ordered list of
+compiler profile stages, each with an id, a typed argument line, an on/off
+switch and an input (`map` or `previous`):
+
+```json
+"buildPipelines": [{
+  "id": "fast-light", "name": "Fast light", "variables": {"QUALITY": "-extra"},
+  "stages": [
+    {"id": "qbsp", "name": "QBSP", "profile": "vibemap2-bsp", "arguments": "", "enabled": true, "input": "map"},
+    {"id": "vis", "name": "VIS", "profile": "vibemap2-vis", "arguments": "", "enabled": false, "input": "previous"},
+    {"id": "light", "name": "LIGHT", "profile": "vibemap2-light", "arguments": "${QUALITY} -threads ${CPU_COUNT}", "enabled": true, "input": "previous"}
+  ]
+}]
+```
+
+The pipeline's engine, input and output types come from its first stage, and
+every stage must be a compiler of that engine. Argument lines are split as a
+shell would and grouped from switch to switch; `${MAP}`, `${MAP_DIR}`,
+`${MAP_NAME}`, `${OUTPUT}`, `${PROJECT_DIR}`, `${GAME_DIR}`, `${MOD}`,
+`${CPU_COUNT}` and the pipeline's own variables are filled in per word, a group
+with an empty variable is left out with a warning, and an unknown variable
+fails the plan so a run starts nothing. `BuildPipelineRequest::projectPipelines`
+puts them before the built-in ones and `BuildPipelineRequest::variables` sets
+values for one run. The key is optional within manifest schema 2, so an older
+reader keeps it as an unknown key.
+
+Program trust (`src/core/build_program_trust.*`): a project folder or a saved
+run can come from someone else, and both can name a program (a project's
+`compilerToolOverrides` and `compilerSearchPaths`, discovery from the project
+root, or a manifest's `program`). Before **Run Pipeline**, **Run Profile**,
+**Re-run Last Compile**, `build run` and `compiler rerun` start anything,
+`reviewBuildPrograms()` checks every program against `knownCompilerPrograms()`,
+discovered from the user's own configuration only (StudioSettings compiler
+paths, search paths typed on the command line, the studio's compiler folders
+from the current folder, and PATH) and matched by the engine family of the
+stage's or the saved run's profile. A discovered compiler inside the project
+(or map folder) does not count. Anything else needs the user's trust: the GUI
+shows each program's full command line and folder with **Cancel** as the
+default, and the CLI exits 4 with the same text and JSON `programTrust` unless
+`--trust-programs` is given. Trust is recorded per user in StudioSettings
+(`trustedBuildPrograms()`: the project or map folder, the program path and its
+SHA-256), never in the project, so a changed program is asked about again.
+
 `gameLaunchProfiles()` then turns a finished build into a launch command line
 from argument templates using `{map}`, `{mod}`, `{basedir}`, and `{bsp}`, with
 profiles for Quake, Quake II, Quake III, and Doom source ports plus a `custom`
 profile that adds nothing of its own. `buildGameLaunchPlan()` only produces a
 reviewable plan; `startGameLaunch()` refuses to run one that is not marked
-runnable.
+runnable. `GameLaunchRequest::userProfiles` carries the user's own profiles
+(`StudioSettings::userGameLaunchProfiles()`, edited in **Launch Profiles…** and
+with `launch profile-set`), looked up before the built-in ones: their typed
+argument line is split as a shell would and grouped from each switch to the
+next (`gameLaunchArgumentGroups()`), and a group whose token has no value is
+dropped, silently for `{mod}`. `extraArguments` come last; the Build page and
+`launch plan` fill them from the installation's saved extra arguments
+(`StudioSettings::launchExtraArguments()`).
+
+Repeating builds: Levels' **Run Profile** and the Toolchain's **Run Profile**
+keep each run's command manifest in `.vibestudio/compiler-runs`
+(`compilerRunManifestDirectory()`, `newCompilerRunManifestPath()`).
+`findNewestCompilerRunManifest()` finds the newest run of a map there, which
+**Re-run Last Compile** and `compiler rerun --last` replay through
+`rerunCompilerCommandManifest()`, saving the replay beside it. **Run Last
+Build** instead re-plans what the project ran last
+(`StudioSettings::lastBuildRun()`: a pipeline, with or without its launch, or a
+Levels profile) against the open map.
 
 ## CLI Examples
 
@@ -533,6 +596,7 @@ vibestudio --cli compiler set-path vibemap2-bsp --executable C:\tools\vibemap2\v
 vibestudio --cli compiler plan vibemap2-bsp --input maps/start.map --workspace-root E:\Projects\QuakeMod
 vibestudio --cli compiler run vibemap2-bsp --input maps/start.map --workspace-root E:\Projects\QuakeMod --manifest build/qbsp-run.json --register-output --watch
 vibestudio --cli compiler rerun build/qbsp-run.json --manifest build/qbsp-rerun.json
+vibestudio --cli compiler rerun --last maps/start.map --workspace-root E:\Projects\QuakeMod
 vibestudio --cli compiler copy-command build/qbsp-run.json
 vibestudio --cli compiler plan vibemap3-light --input maps/q3dm1.bsp --workspace-root E:\Projects\Q3Mod
 vibestudio --cli build list --json
@@ -542,6 +606,8 @@ vibestudio --cli build run quake-fast --input maps/start.map --disable-stage lig
 vibestudio --cli bsp inspect build/start.bsp --json
 vibestudio --cli launch plan --map start --json
 vibestudio --cli launch run --bsp maps/start.bsp --deploy --allow-test-maps
+vibestudio --cli launch profile-set user-dev --name "Developer" --arguments "+set fs_game {mod} +set developer 1 +devmap {map}"
+vibestudio --cli launch extra-args --arguments "+set developer 1"
 ```
 
 ## License Boundary

@@ -1768,29 +1768,36 @@
     {
       "id": "nrc:BuildMenuCustomize",
       "status": "Partial",
-      "workflow": "The **Build** page runs fixed pipelines for each game (BSP, VIS, light), chosen in its **Pipeline** list; compiler paths are set on the **Toolchain** tab. `build plan` and `build run` accept --disable-stage and --stage-args stage=arguments for one run, and `compiler set-path` overrides executables.",
+      "workflow": "**Build** > **Build Pipelines\u2026** (or **Pipelines\u2026** beside the Build page's **Pipeline** list) keeps pipelines of the project's own in its manifest: a name, compiler-profile stages that can be added, removed, reordered and turned off, each with typed arguments and its input (the map or the previous output), and variables used as ${NAME}, beside built-in ${MAP}, ${MAP_NAME}, ${OUTPUT}, ${GAME_DIR}, ${MOD} and ${CPU_COUNT}. A live preview shows the command lines, and problems are named with OK held. They appear in the Pipeline list after the built-in ones and run through Run Pipeline, Build and Launch and Run Last Build. `build list/plan/run --workspace-root` read them (with --variable), and `build pipeline-set` and `build pipeline-remove` edit them. A program named by project data runs only once trusted.",
       "gui": [
+        "build.edit-pipelines",
+        "build.run-pipeline",
         "shell.mode.build"
       ],
       "cli": [
         "build list",
         "build plan",
         "build run",
-        "compiler set-path"
+        "build pipeline-set",
+        "build pipeline-remove"
       ],
-      "limitation": "Users cannot create, rename or save their own pipelines or stage arguments in the GUI. Stage switches and arguments exist only for a single CLI run and in prepared workspaces. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add user-defined pipelines stored in the project manifest, each with a stage list, per-stage arguments and enabled flags. Edit them in a Build page dialog, and have build list, plan and run read them.",
+      "limitation": "Pipelines are per project rather than per game, and a project must be open. Stages run VibeStudio compiler profiles only, not free command lines or copy steps. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/build_pipeline.cpp",
-        "src/cli/cli.cpp",
-        "src/tests/build_pipeline_smoke_test.cpp",
-        "src/tests/level_build_artifacts_compiler_workflow.py"
+        "src/core/build_program_trust.cpp",
+        "src/app/build_pipelines_dialog.cpp",
+        "src/app/build_pipeline_actions.cpp",
+        "src/cli/build_pipelines.cpp",
+        "src/tests/build_project_pipelines_smoke_test.cpp",
+        "src/tests/build_project_pipelines_ui_smoke_test.cpp"
       ]
     },
     {
       "id": "nrc:Build_runRecentExecutedBuild",
       "status": "Partial",
-      "workflow": "**Run Build Pipeline** (F7) runs the pipeline chosen on the Build page, which follows the open map's game, and offers to save unsaved map edits to a new file first. **Build and Launch** (F5) also starts the game. `compiler rerun` replays a saved command manifest, and `build run` runs a pipeline again.",
+      "workflow": "**Build** > **Run Last Build** runs again the build you ran last for the project, on the open map: the build pipeline (with its launch when it was **Build and Launch**) or the Levels **Run Profile** compile, recorded per project. It is <kbd>F5</kbd> in the NetRadiant Custom profile, as NRC's Build_runRecentExecutedBuild, and in NetRadiant, which binds it too; there **Build and Launch** has no key, elsewhere F5 stays Build and Launch. It stays in Levels (also on the **Tools** tab's Region and Build group and in command search) and is enabled once something has been built. **Run Build Pipeline** (F7) still runs the Build page's pipeline. `build run` runs a pipeline again and `compiler rerun --last` replays a map's newest saved compile.",
       "gui": [
+        "build.run-last",
         "build.run-pipeline",
         "build.run-and-launch"
       ],
@@ -1798,12 +1805,14 @@
         "build run",
         "compiler rerun"
       ],
-      "limitation": "The chosen pipeline is not remembered across sessions, and F7 does not replay a single compiler-profile run. F5 means Build and Launch rather than a plain rerun, and the NRC profile does not rebind it. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Record the last executed pipeline or compiler profile for each project, and add a build.runLast command bound to F5 in the Radiant profiles.",
+      "limitation": "Run Last Build re-plans the recorded pipeline or profile with the current settings rather than replaying it exactly (Re-run Last Compile does that), and refuses when the last build was for another game. A region compile is not recorded as the last build. NRC's customisable build menu entries are VibeStudio's fixed pipelines and profiles. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/application_shell.cpp",
-        "src/core/build_pipeline.cpp",
-        "src/tests/build_pipeline_smoke_test.cpp",
-        "src/tests/level_build_workspace_ui_smoke_test.cpp"
+        "src/app/build_rerun_actions.cpp",
+        "src/core/studio_settings_build.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/core/studio_semantics.cpp",
+        "src/tests/build_rerun_smoke_test.cpp",
+        "src/tests/build_rerun_ui_smoke_test.cpp"
       ]
     },
     {
@@ -1915,7 +1924,7 @@
     {
       "id": "nrc:CameraAngleDown",
       "status": "Partial",
-      "workflow": "Drive: Look down in **Customize Editor Gestures** (Camera Keys), or `editor gestures --set camera.driveKeys.pitchDown=KEY`, binds downward pitch. It is unbound in **NetRadiant Custom Style**, as upstream; the GtkRadiant 1.4/1.5 and Q3Radiant presets use Z. camera.discreteDriveKeys gives 22.5-degree steps.",
+      "workflow": "Drive: Look down is unbound in **NetRadiant Custom Style**, as upstream; bind it in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.pitchDown=KEY`. In NRC's default discrete mode each press pitches down 22.5 degrees, stopping at -89 (NRC's -90 less the camera's margin), from the camera or from a 2D view while no command there can act on the key. The GtkRadiant 1.4/1.5, Q3Radiant, QeRadiant and DoomEdit presets use Z, which works from their 2D views too.",
       "gui": [
         "editor.gestures"
       ],
@@ -1923,21 +1932,20 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "Discrete pitch stops at -85 degrees and held pitch at -89, not NRC's -90. A bound key needs camera focus, so it does not work from plan views, and it is continuous unless discrete steps are on. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route bound pitch keys from plan views when no plan command claims them, matching NRC's global scope. Consider a -90-degree discrete limit for NRC-family profiles (currently -85), with clamp tests. Optionally default the NRC profile to discrete steps.",
+      "limitation": "The camera stops 1 degree short of NRC's -90 degrees so it keeps its heading. A command that can act in a 2D view keeps its key there. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
+        "src/core/level_editor_controls.cpp",
         "src/core/level_camera_keys.cpp",
-        "src/core/level_gestures.cpp",
-        "src/core/level_editor_familiar_controls.cpp",
-        "src/app/model_viewport.cpp",
         "src/app/model_viewport_drive.cpp",
-        "src/tests/level_camera_drive_ui_smoke_test.cpp",
-        "src/tests/level_gestures_ui_smoke_test.cpp"
+        "src/app/level_camera_drive_actions.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/LEVEL_EDITOR.md"
       ]
     },
     {
       "id": "nrc:CameraAngleUp",
       "status": "Partial",
-      "workflow": "Drive: Look up in **Customize Editor Gestures** (Camera Keys), or `editor gestures --set camera.driveKeys.pitchUp=KEY`, binds pitch. It is unbound in **NetRadiant Custom Style**, as upstream; the GtkRadiant 1.4/1.5 and Q3Radiant presets use A. camera.discreteDriveKeys gives 22.5-degree steps.",
+      "workflow": "Drive: Look up is unbound in **NetRadiant Custom Style**, as upstream; bind it in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.pitchUp=KEY`. In NRC's default discrete mode each press pitches up 22.5 degrees, stopping at NRC's 90 less the camera's 1-degree margin (89), from the camera or from a 2D view while no command there can act on the key. The GtkRadiant 1.4/1.5, Q3Radiant, QeRadiant and DoomEdit presets use A, which now works from their 2D views too and keeps Q3Radiant's 85-degree stop.",
       "gui": [
         "editor.gestures"
       ],
@@ -1945,15 +1953,15 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "Discrete pitch stops at 85 degrees and held pitch at 89, not NRC's 90. A bound key needs camera focus, so it does not work from plan views, and it is continuous unless discrete steps are on. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route bound pitch keys from plan views when no plan command claims them, matching NRC's global scope. Consider a 90-degree discrete limit for NRC-family profiles (currently 85), with clamp tests. Optionally default the NRC profile to discrete steps.",
+      "limitation": "The camera stops 1 degree short of NRC's 90 degrees so it keeps its heading. A command that can act in a 2D view keeps its key there. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
+        "src/core/level_editor_controls.cpp",
         "src/core/level_camera_keys.cpp",
-        "src/core/level_gestures.cpp",
-        "src/core/level_editor_familiar_controls.cpp",
-        "src/app/model_viewport.cpp",
         "src/app/model_viewport_drive.cpp",
+        "src/app/level_camera_drive_actions.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
         "src/tests/level_camera_drive_ui_smoke_test.cpp",
-        "src/tests/level_gestures_ui_smoke_test.cpp"
+        "docs/LEVEL_EDITOR.md"
       ]
     },
     {
@@ -1984,7 +1992,7 @@
     {
       "id": "nrc:CameraDown",
       "status": "Partial",
-      "workflow": "Drive: Down and Fly: Down are available in **Customize Editor Gestures** (Camera Keys) and are unbound in **NetRadiant Custom Style**, as upstream. Bind one there or with `editor gestures --set camera.driveKeys.down=KEY`. It moves along world Z; camera.discreteDriveKeys gives 32-unit steps. GtkRadiant-family profiles bind C.",
+      "workflow": "Drive: Down is unbound in **NetRadiant Custom Style**, as upstream. Bound in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.down=KEY`, it lowers the camera 32 units along world Z per press in NRC's default discrete mode, from the camera or from a 2D view while no command there can act on the key; GtkRadiant-family profiles bind C, which works from their 2D views too. `camera.discreteDriveKeys=off` sinks while held.",
       "gui": [
         "editor.gestures"
       ],
@@ -1992,16 +2000,15 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "A bound key works only while the camera has focus, not from plan views as NRC's accelerator does. It is continuous unless discrete drive steps are enabled. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route bound vertical drive keys from plan views when no plan command claims them, matching NRC's global scope, with overlap warnings and tests. Optionally default the NRC profile to discrete drive steps.",
+      "limitation": "A key a 2D view uses itself stays the view's, and a command that can act there keeps its key. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_keys.cpp",
-        "src/core/level_gestures.cpp",
-        "src/app/level_gestures_dialog.cpp",
-        "src/app/model_viewport.cpp",
+        "src/core/level_editor_familiar_controls.cpp",
+        "src/app/level_camera_drive_actions.cpp",
         "src/app/model_viewport_drive.cpp",
-        "src/tests/level_gestures_smoke_test.cpp",
-        "src/tests/level_gestures_ui_smoke_test.cpp",
-        "src/tests/level_camera_drive_ui_smoke_test.cpp"
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -2377,41 +2384,53 @@
     {
       "id": "nrc:CameraSpeedDec",
       "status": "Partial",
-      "workflow": "Holding the profile's slow flight modifier (Alt by default) cuts the map-scaled flying speed to 0.3. **Customize Editor Gestures** or `editor gestures` changes which modifier does this.",
+      "workflow": "**View** > **Camera** > **Decrease Camera Speed** (also the **Tools** tab's **Navigate** group and command search; <kbd>Shift</kbd>+<kbd>Keypad -</kbd> in the NetRadiant Custom profile) steps the saved camera speed down NRC's list to its 50-unit minimum, where the command greys out. It shares the per-profile `camera.moveSpeed` setting, the **Speed** readout and the status announcement with Increase Camera Speed; from the map-scaled speed it goes to the next lower listed speed.",
       "gui": [
+        "map.camera-speed-down",
         "editor.gestures"
       ],
       "cli": [
         "editor gestures"
       ],
-      "limitation": "There is no persistent lower speed, no decrease command, no keypad binding and no readout. The slow modifier works only while it is held. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Build this with Increase Camera Speed as a Decrease Camera Speed command over the same saved setting, clamped to a minimum, with a palette entry, a status readout and Shift+Keypad - in the NRC profile.",
+      "limitation": "NRC's acceleration to the held speed is not reproduced, and mouse look's own dolly keeps the map's scale. Physical keypad Shift chords and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/model_viewport.cpp",
+        "src/core/level_camera_keys.cpp",
         "src/core/level_gestures.cpp",
-        "src/tests/level_gestures_smoke_test.cpp"
+        "src/app/level_camera_drive_actions.cpp",
+        "src/app/model_viewport.cpp",
+        "src/core/studio_semantics.cpp",
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:CameraSpeedInc",
       "status": "Partial",
-      "workflow": "Flying speed scales with the size of the map. Holding the profile's fast modifier (Shift by default) triples it, and holding the slow modifier (Alt) cuts it to 0.3. Both modifiers are set in **Customize Editor Gestures** or with `editor gestures`.",
+      "workflow": "**View** > **Camera** > **Increase Camera Speed** (also the **Tools** tab's **Navigate** group and command search; <kbd>Shift</kbd>+<kbd>Keypad +</kbd> in the NetRadiant Custom profile) steps the speed held camera keys fly and drive at through NRC's list: 50, then 250 to 9750 by 250, then 9999. The NRC profile starts at 500 (CamMoveSpeed); other profiles scale with the map until changed, and a step from there goes to the next listed speed. The speed is kept per profile with the gestures (`camera.moveSpeed`), shown as **Speed** beside **Textures** above the views and announced in the status bar; the command greys out at 9999. The fast and slow modifiers still multiply it. `editor gestures --set camera.moveSpeed=N|auto` sets it from the command line.",
       "gui": [
+        "map.camera-speed-up",
         "editor.gestures"
       ],
       "cli": [
         "editor gestures"
       ],
-      "limitation": "There is no stepped speed that persists, no increase command, no NRC keypad binding and no speed readout. A modifier changes the speed only while it is held. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a saved camera speed setting used by ModelViewport::flySpeed, with an Increase Camera Speed command and palette entry. Show the speed in the status bar, expose a field through `editor gestures`, and bind Shift+Keypad + in the NRC profile.",
+      "limitation": "The list is fixed, so 50 steps up to 250 rather than NRC's 300, and NRC's acceleration to the held speed is not reproduced. Mouse look's own dolly keeps the map's scale. Physical keypad Shift chords and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/model_viewport.cpp",
+        "src/core/level_camera_keys.cpp",
         "src/core/level_gestures.cpp",
-        "src/tests/level_gestures_smoke_test.cpp"
+        "src/app/level_camera_drive_actions.cpp",
+        "src/app/model_viewport.cpp",
+        "src/core/studio_semantics.cpp",
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:CameraStrafeLeft",
       "status": "Partial",
-      "workflow": "**NetRadiant Custom Style** binds A to Drive: Left while the camera has focus, and to Fly: Left during mouse look. Rebind it in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.left=KEY`. camera.discreteDriveKeys switches to 32-unit ground-plane steps.",
+      "workflow": "**NetRadiant Custom Style** binds A to Drive: Left. Each press or repeat steps 32 units along the negative ground-plane right vector, as NRC's default discrete camera does; during mouse look A is Fly: Left. A also strafes the camera from a 2D view while no command there can act on the key, as NRC's global accelerator does. Rebind it in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.left=KEY`; `camera.discreteDriveKeys=off` glides instead and `plan.cameraDriveKeys=off` keeps the key in the camera.",
       "gui": [
         "editor.gestures"
       ],
@@ -2419,23 +2438,21 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "The key strafes only while the camera has focus; plan views do not route it as NRC's global accelerator does. The default is continuous held motion rather than NRC's discrete steps. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route the bound camera strafe keys from plan views when no plan command claims them, with overlap warnings and plan-focus tests. Optionally default the NRC profile to discrete drive steps.",
+      "limitation": "A command the user gives A keeps it in the 2D views while it can act; the overlap is listed in Customize Gestures and `editor gestures`. NRC's acceleration to the held speed is not reproduced. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_keys.cpp",
         "src/core/level_editor_controls.cpp",
-        "src/core/level_gestures.cpp",
-        "src/app/model_viewport.cpp",
+        "src/app/level_camera_drive_actions.cpp",
         "src/app/model_viewport_drive.cpp",
-        "src/app/map_viewport.cpp",
-        "src/tests/level_gestures_smoke_test.cpp",
-        "src/tests/level_camera_drive_ui_smoke_test.cpp",
-        "src/tests/editor_profiles_smoke_test.cpp"
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:CameraStrafeRight",
       "status": "Partial",
-      "workflow": "**NetRadiant Custom Style** binds D to Drive: Right while the camera has focus; during mouse look, D is Fly: Right. **Customize Editor Gestures** (Camera Keys) or `editor gestures --set camera.driveKeys.right=KEY` rebinds it. camera.discreteDriveKeys gives 32-unit ground-plane steps.",
+      "workflow": "**NetRadiant Custom Style** binds D to Drive: Right. Each press or repeat steps 32 units along the ground-plane right vector, as NRC's default discrete camera does; during mouse look D is Fly: Right and glides. D also strafes the camera from a 2D view, as NRC's global accelerator does, while no command there can act on the key (on a Doom map **Draw Sector** keeps D). **Customize Editor Gestures** (Camera Keys) or `editor gestures --set camera.driveKeys.right=KEY` rebinds it; `camera.discreteDriveKeys=off` gives held, gliding motion, and `plan.cameraDriveKeys=off` keeps the key in the camera.",
       "gui": [
         "editor.gestures"
       ],
@@ -2443,23 +2460,22 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "Strafing works only while the camera has focus; plan views do not route D as NRC's global accelerator does, so a 2D-focused user must click the camera first. The default is held, continuous motion rather than NRC's discrete steps. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route the bound camera strafe keys from plan views when no plan command claims them, reporting overlaps through levelCameraShortcutWarnings, with plan-focus tests. Optionally default the NRC profile to discrete drive steps.",
+      "limitation": "A command that can act in a 2D view keeps the key there, which overlap diagnostics report when the user changes either binding. NRC's acceleration to the held speed is not reproduced. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_keys.cpp",
         "src/core/level_editor_controls.cpp",
-        "src/core/level_gestures.cpp",
-        "src/app/model_viewport.cpp",
+        "src/core/level_editor_familiar_controls.cpp",
+        "src/app/level_camera_drive_actions.cpp",
         "src/app/model_viewport_drive.cpp",
-        "src/app/map_viewport.cpp",
-        "src/tests/level_gestures_smoke_test.cpp",
-        "src/tests/level_camera_drive_ui_smoke_test.cpp",
-        "src/tests/editor_profiles_smoke_test.cpp"
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:CameraUp",
       "status": "Partial",
-      "workflow": "Drive: Up and Fly: Up exist in **Customize Editor Gestures** (Camera Keys) and are unbound in **NetRadiant Custom Style**, as upstream. Bind one there or with `editor gestures --set camera.driveKeys.up=KEY`. Motion follows world Z, and camera.discreteDriveKeys gives 32-unit steps. GtkRadiant-family profiles bind D.",
+      "workflow": "Drive: Up is unbound in **NetRadiant Custom Style**, as upstream. Bound in **Customize Editor Gestures** (Camera Keys) or with `editor gestures --set camera.driveKeys.up=KEY`, it raises the camera 32 units along world Z per press in NRC's default discrete mode, from the camera or from a 2D view while no command there can act on the key, as NRC's accelerator does; GtkRadiant-family profiles bind D, which works from their 2D views too. `camera.discreteDriveKeys=off` rises while held.",
       "gui": [
         "editor.gestures"
       ],
@@ -2467,37 +2483,36 @@
         "editor gestures",
         "editor controls"
       ],
-      "limitation": "A bound key works only while the camera has focus, not from plan views as NRC's accelerator does. It moves continuously unless discrete drive steps are enabled. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Route bound vertical drive keys from plan views when no plan command claims them, matching NRC's global accelerator scope, with overlap warnings and tests. Optionally default the NRC profile to discrete drive steps.",
+      "limitation": "A key a 2D view uses itself (arrows, + -, Home, F, Space, Delete and the like) stays the view's, and a command that can act there keeps its key. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_keys.cpp",
-        "src/core/level_gestures.cpp",
-        "src/app/level_gestures_dialog.cpp",
-        "src/app/model_viewport.cpp",
+        "src/core/level_editor_familiar_controls.cpp",
+        "src/app/level_camera_drive_actions.cpp",
         "src/app/model_viewport_drive.cpp",
-        "src/tests/level_gestures_smoke_test.cpp",
-        "src/tests/level_gestures_ui_smoke_test.cpp",
-        "src/tests/level_camera_drive_ui_smoke_test.cpp"
+        "src/tests/level_camera_drive_keys_smoke_test.cpp",
+        "src/tests/level_camera_drive_keys_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:CapCurrentCurve",
       "status": "Partial",
-      "workflow": "**Cap Patch\u2026** previews and adds planar radial caps on chosen boundaries of one source patch (first and last rows by default), in the source or a chosen material, with planar or boundary UVs, an optional centre and Invert, as one undo step. Closed ends become discs and open arcs close along their chord. Shift+C opens it in the GtkRadiant 1.4/1.5 and Q3Radiant profiles. `map cap-patch` does the same.",
+      "workflow": "Select patches and choose **Cap Patch\u2026** (Shift+C in the NetRadiant Custom, GtkRadiant 1.4/1.5 and Q3Radiant profiles). **Cap style** offers Radial (VibeStudio's planar disc and chord caps) and NetRadiant Custom's Bevel, Endcap, Inverted Bevel, Inverted Endcap and Cylinder seams with upstream's control layouts and width checks (3 or 5, 5 and 9). **All selected patches** caps every visible selected patch, first and last rows by default, the seam styles in the current material, with planar (Cap Texture) or boundary UVs, as one undo step that selects the caps; patches of the wrong width are left uncapped with the reason. `map cap-patch --style` with repeatable `--patch` does the same.",
       "gui": [
         "map.cap-patch"
       ],
       "cli": [
         "map cap-patch"
       ],
-      "limitation": "Cylinder and Endcap ends close as discs and half-discs, but NRC's Bevel (quarter sector to the arc's centre), Inverted Bevel and Inverted Endcap fills cannot be made, because an open arc always closes on its chord. Each run caps one patch, not every selected patch in the current texture, and the NetRadiant Custom profile does not bind Shift+C. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add NRC cap styles as seam patches built from each first and last row with NRC's width checks: Bevel (sector to the corner opposite the arc's middle control), Inverted Bevel and Inverted Endcap, plus matching Endcap and Cylinder topology. Apply them to every selected patch in the current material, expose them in the dialog and `map cap-patch --style`, and bind Shift+C in the NetRadiant Custom profile.",
+      "limitation": "Seam caps are mapped at map units per tile (128 by default) rather than by the material image's size at Radiant's default scale, and the dialog previews before applying rather than acting at once. The NetRadiant baseline profile leaves Shift+C unbound (audited against NRC only). Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch_cap.cpp",
         "src/app/patch_cap_dialog.cpp",
         "src/app/patch_cap_actions.cpp",
         "src/cli/cli.cpp",
+        "src/core/level_editor_controls.cpp",
         "src/tests/patch_cap_smoke_test.cpp",
-        "src/tests/patch_cap_ui_smoke_test.cpp",
-        "src/tests/patch_cap_compiler_workflow.py"
+        "src/tests/patch_cap_ui_smoke_test.cpp"
       ]
     },
     {
@@ -2561,41 +2576,62 @@
     },
     {
       "id": "nrc:CubicClipZoomIn",
-      "status": "Planned",
-      "workflow": "There is no camera draw-distance control. The Levels camera projects with an unbounded far plane. The nearest substitutes are **Region** and **Filters** on the **View** tab: they hide objects by box or by kind, not by distance from the camera. Existing control: None",
-      "gui": [],
-      "cli": [],
-      "limitation": "There is no far-clip distance, no step command and no status readout. Region works on a box and also changes the plan views. Once this is built, native physical-input and macOS/Linux acceptance will still be open. Remaining work: Give the Levels camera a saved cubic-clip distance: a bounded far plane that OpenGL, Vulkan and picking all respect. Add Shorter Draw Distance commands with palette entries, NetRadiant Custom (NRC) Ctrl+[ binding and a status readout. Build it alongside Toggle Cubic Clip.",
+      "status": "Partial",
+      "workflow": "**View** > **Camera Display** > **Shorter Draw Distance** (command search; <kbd>Ctrl</kbd>+<kbd>[</kbd> in the NetRadiant Custom, NetRadiant and GtkRadiant profiles, <kbd>Ctrl</kbd>+<kbd>]</kbd> in the Q3Radiant, QeRadiant and DoomEdit profiles as those editors bind it) brings the far clip one step nearer, about 1.4 times shorter, stopping at 16 units with an announcement. It keeps the step while the clip is off. The **View** tab's **Draw distance** list and the camera corner show the result, and `editor far-clip --shorter` changes the same saved step.",
+      "gui": [
+        "map.shorter-draw-distance"
+      ],
+      "cli": [
+        "editor far-clip"
+      ],
+      "limitation": "The steps are NRC's 23 cubic scales rounded to whole units, with no free-form distance; DoomEdit's longer scale range (up to 99) is not reproduced. DarkRadiant keys unaudited. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/model_viewport_render.cpp",
-        "src/app/model_viewport.cpp",
-        "docs/plans/level-editor-commands.md"
+        "src/core/level_camera_render.cpp",
+        "src/app/level_camera_render_actions.cpp",
+        "src/core/level_editor_familiar_controls.cpp",
+        "src/tests/level_camera_far_clip_smoke_test.cpp",
+        "docs/manual/editor-profiles.md"
       ]
     },
     {
       "id": "nrc:CubicClipZoomOut",
-      "status": "Planned",
-      "workflow": "There is no camera draw-distance control. The Levels camera already draws everything in front of it, with no far limit. **Region** and **Filters** on the **View** tab control what is shown by box or by kind, not by distance. Existing control: None",
-      "gui": [],
-      "cli": [],
-      "limitation": "There is no adjustable far-clip distance, step command or readout to extend. Once this is built, native physical-input and macOS/Linux acceptance will still be open. Remaining work: Build this with Shorter Draw Distance as a Longer Draw Distance command over the same saved cubic-clip distance. Clamp it to a bounded range, add a palette entry and the NRC Ctrl+] binding, and show the distance in the status bar.",
+      "status": "Partial",
+      "workflow": "**View** > **Camera Display** > **Longer Draw Distance** (command search; <kbd>Ctrl</kbd>+<kbd>]</kbd> in the NetRadiant Custom, NetRadiant and GtkRadiant profiles, <kbd>Ctrl</kbd>+<kbd>[</kbd> in the Q3Radiant, QeRadiant and DoomEdit profiles as those editors bind it) pushes the far clip one step farther, about 1.4 times longer, stopping at 32768 units with an announcement. It keeps the step while the clip is off, and `editor far-clip --longer` changes the same saved step.",
+      "gui": [
+        "map.longer-draw-distance"
+      ],
+      "cli": [
+        "editor far-clip"
+      ],
+      "limitation": "The longest distance is NRC's 32768 units, so the clip is turned off to see beyond it. DarkRadiant keys unaudited. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/model_viewport_render.cpp",
-        "src/app/model_viewport.cpp",
-        "docs/plans/level-editor-commands.md"
+        "src/core/level_camera_render.cpp",
+        "src/app/level_camera_render_actions.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/tests/level_camera_far_clip_smoke_test.cpp",
+        "docs/EDITOR_PROFILES.md"
       ]
     },
     {
       "id": "nrc:DownFloor",
-      "status": "Planned",
-      "workflow": "There is no floor-stepping command. Fly the camera down with a vertical fly key assigned in **Customize Editor Gestures** (the NetRadiant Custom profile binds none by default), or use **Go to Coordinates\u2026** with **Take the camera there too** ticked. Existing control: None",
-      "gui": [],
-      "cli": [],
-      "limitation": "Nothing finds standing heights from the scene. docs/EDITOR_PROFILES.md records floor stepping as unsupported in the GtkRadiant 1.4/1.5, NetRadiant and Q3Radiant profiles. Page Down already runs Lower Floor on selected Doom sectors, so an NRC binding needs profile scoping. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Build this with Camera Floor Up. Search the same visible and selected bounds for the nearest standing height below the camera, falling back to the lowest underside. On Doom maps, use sector floors plus eye height. Bind PgDn only in the NRC profile.",
+      "status": "Partial",
+      "workflow": "**View** > **Camera** > **Camera Floor Down** (also the **Tools** tab's **Navigate** group and command search; <kbd>Page Down</kbd> in the NetRadiant Custom, NetRadiant, GtkRadiant, Q3Radiant, QeRadiant and DoomEdit profiles) drops the first-person camera to the nearest standing height below it: 32 units over a lower top under the camera or selected. When nothing stands lower it goes to 16 units under the lowest object, if that is lower. On Doom maps it uses sector floor plus eye height, with no underside. Hidden and filtered objects never count, and the camera keeps its heading. Plan views that follow the camera follow it, and the map is never changed. In a plan view a Doom map's Lower Floor keeps Page Down while sectors are selected. `map camera-focus --floor down` reports the same height.",
+      "gui": [
+        "map.camera-floor-down"
+      ],
+      "cli": [
+        "map camera-focus"
+      ],
+      "limitation": "As for Camera Floor Up: model entities count by their definition box; no floor stepping in the orthographic orbit camera; Doom things, slopes and 3D floors are not considered; keys wait for the camera after an edit; DarkRadiant keys unaudited; physical-input and macOS/Linux acceptance open.",
       "evidence": [
-        "docs/EDITOR_PROFILES.md",
-        "src/app/model_viewport.cpp",
-        "src/core/level_camera_keys.cpp"
+        "src/core/level_camera_focus.cpp",
+        "src/app/level_camera_focus_actions.cpp",
+        "src/core/level_editor_familiar_controls.cpp",
+        "src/core/studio_semantics.cpp",
+        "src/cli/level_camera_focus.cpp",
+        "src/tests/level_camera_floor_smoke_test.cpp",
+        "src/tests/level_camera_floor_ui_smoke_test.cpp",
+        "docs/manual/cli.md"
       ]
     },
     {
@@ -3567,22 +3603,26 @@
     {
       "id": "nrc:ImportMap",
       "status": "Partial",
-      "workflow": "`map paste --from other.map` inserts a map file's objects as one texture-locked edit, at original coordinates, at an offset, at the camera or along a ray. In the GUI, map text on the clipboard goes in with **Paste at Original Position**. **Insert Prefab\u2026** places saved .vprefab assemblies with remapped target links.",
+      "workflow": "**File** > **Import Map\u2026** reads a .map on a worker, previews its entities, brushes, patches, groups and layers, renames names the open map already uses to the next free number, and inserts everything at its own coordinates through the paste service as one undo step that selects it; worldspawn brushes join the open worldspawn and complete groups keep their structure. In a Quake III-family map a .bsp is converted first through the VibeMap3 convert profile with -game from the BSP header and the project's game and -fs_basepath/-fs_game from its installation, as NetRadiant Custom's Map_ImportFile does; Quake and Quake II BSPs are refused before anything runs, and a silent VibeMap3 failure is reported with its exit code. File input has no clipboard size or block limits. `map import --from other.map|other.bsp [--game KEY]` does the same on the command line.",
       "gui": [
+        "map.import-map",
         "map.paste-at-original",
         "map.insert-prefab"
       ],
       "cli": [
+        "map import",
         "map paste"
       ],
-      "limitation": "No GUI command picks a .map file to merge; the text must go through the clipboard. Paste accepts at most 8 MiB / 4,194,304 characters and 8,192 blocks, so large maps cannot be imported whole. Pasted target names are not renamed, and .bsp files need a separate VibeMap3 convert run. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add an **Import Map\u2026** File command and palette entry. It should read a .map on a worker, preview object counts, rename clashing target names and insert through the existing paste service at original coordinates as one undo step. Lift the paste limits for file input with a streamed path, offer .bsp conversion through the VibeMap3 convert profile, and add a UI test.",
+      "limitation": "Imported layers are not recreated (NRC merges identical layer trees); everything joins the creation layer or open group. Different brush formats are refused rather than converted. Only targetname and the target, killtarget, pathtarget, combattarget and deathtarget keys are renamed. The .bsp route needs a built or configured VibeMap3 and was tested with a fake VibeMap3, not a real conversion. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
+        "src/core/level_map_transfer.cpp",
         "src/core/level_map.cpp",
-        "src/core/level_placement.cpp",
-        "src/app/level_paste_actions.cpp",
-        "src/app/level_prefab_actions.cpp",
-        "src/tests/level_paste_smoke_test.cpp",
-        "src/tests/level_paste_workflow.py"
+        "src/app/level_map_import_dialog.cpp",
+        "src/app/level_map_transfer_actions.cpp",
+        "src/cli/level_map_transfer.cpp",
+        "src/tests/level_map_transfer_smoke_test.cpp",
+        "src/tests/level_map_transfer_ui_smoke_test.cpp",
+        "src/tests/level_map_obj_export_smoke_test.cpp"
       ]
     },
     {
@@ -3750,17 +3790,23 @@
     {
       "id": "nrc:MapInfo",
       "status": "Partial",
-      "workflow": "The **Statistics** section on the Levels sidebar's **Map** page lists counts for entities, target links, brushes (solved and degenerate), faces, patches, Doom objects and textures. It also shows the format, engine, bounds and issue counts. `map inspect` prints the same statistics, with --json for automation.",
-      "gui": [],
+      "workflow": "**Map Info** (<kbd>M</kbd> in the NetRadiant Custom and NetRadiant profiles, also in **View** > **Level Sidebars**, the **Tools** tab and command search) opens the Levels **Map** tab's **Statistics** with the keyboard in a sortable class table. The totals cover brushes, patches, entities, in-game entities and group entities (worldspawn and entities that hold brushes or patches) with how many of them reach the game, by NetRadiant Custom's rule (no func_group, _decal or func_detail*, no light*, misc_model or info_null). The table lists Class, Count and In game for each class; press Enter on a class to list its entities in the Outliner. Doom thing types sort by number. On a TrenchBroom-format map, layers and groups (func_group with _tb_type) count as layers and groups rather than entities, and a line of their own names how many there are. `map inspect` prints the totals and the class lines, and its --json `statistics` has groupEntityCount, inGameEntityCount, inGameGroupEntityCount and entityClasses.",
+      "gui": [
+        "map.map-info",
+        "map.statistics"
+      ],
       "cli": [
         "map inspect"
       ],
-      "limitation": "No count of entities by class and no group or in-game entity counts. No command, palette entry or M shortcut opens the section. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a sortable class and count table, plus group and in-game entity counts, to levelMapStatistics, the Statistics section and `map inspect --json`. Add a **Map Info** command that opens the Statistics section, with M in the NRC profile, a palette entry and a UI test.",
+      "limitation": "A section of the Map tab rather than NetRadiant Custom's modal dialog. Group status comes from primitives, not entity definitions, so a brush entity with no brushes counts as a point entity. TrenchBroom layer and group containers are left out of the entity totals by design, so those totals are lower than NRC's by that number (the in-game totals agree). Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_map.cpp",
-        "src/app/level_sidebar_actions.cpp",
-        "src/app/application_shell.cpp",
-        "src/tests/level_map_smoke_test.cpp"
+        "src/app/level_map_inspector.cpp",
+        "src/app/level_map_inspector_actions.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/tests/level_map_info_smoke_test.cpp",
+        "src/tests/level_map_info_ui_smoke_test.cpp",
+        "src/tests/build_rerun_smoke_test.cpp"
       ]
     },
     {
@@ -3918,35 +3964,34 @@
     {
       "id": "nrc:MouseBuild",
       "status": "Partial",
-      "workflow": "**Extrude Faces** pushes or pulls picked brush faces along their normals, **Split Extrusion** creates a separate brush, and **Extrude Faces Precisely\u2026** takes an exact distance. **Duplicate with Offset\u2026** builds linear arrays, and **Repeat Last Commands** replays a recorded clone and transform on a new selection. `map extrude-faces`, `map duplicate` and `map repeat` automate them.",
+      "workflow": "**Build** on the Levels tool bar (**Build Tool**; <kbd>B</kbd> in the NetRadiant Custom profile) extrudes and chains. A drag on or beside a selected brush's face, in a 2D view or the camera, pulls it out into a new brush or pushes it in to split a slab off through the shared extrusion service; Shift and a drag from the selection lays copies end to end, one box length apart, as one Duplicate with Offset array, the last copy left selected so **Repeat Last Commands** carries the chain on; a click selects. It excludes the object tools and the Shear Tool. **Extrude Faces**, **Duplicate with Offset\u2026** and **Repeat Last Commands** remain. `map drag-planes --mode extrude`, `map duplicate --copies` and `map repeat` automate them.",
       "gui": [
-        "map.duplicate-selection",
-        "map.repeat",
+        "map.build-tool",
         "map.extrude-faces",
         "map.extrude-split",
-        "map.extrude-precisely",
-        "map.duplicate-with-offset"
+        "map.duplicate-with-offset",
+        "map.repeat"
       ],
       "cli": [
+        "map drag-planes",
         "map extrude-faces",
         "map duplicate",
         "map repeat"
       ],
-      "limitation": "There is no single Build mode and no chain-building gesture: extrusion is a component-mode tool, and clones come from separate commands. Upstream's own behaviour is a placeholder at the pinned revision, so parity is judged against its stated intent. Native physical-input and macOS/Linux acceptance remain open. Remaining work: If NRC finishes the tool, add a Build entry to the Levels tool bar. A face drag would go to the shared extrusion service and a modified drag would build an offset clone chain recorded for Repeat. Until then, keep the existing commands.",
+      "limitation": "Upstream's Build manipulator is a placeholder at the pinned revision, so the tool follows its stated purpose (extrude, build chains, clone). A chain follows the drag's main axis only, with no spacing, and copies preview as boxes. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/level_geometry_actions.cpp",
-        "src/app/level_camera_component_actions.cpp",
-        "src/core/level_map.cpp",
-        "src/tests/level_brush_smoke_test.cpp",
-        "src/tests/level_camera_components_smoke_test.cpp",
-        "src/tests/level_duplicate_ui_smoke_test.cpp",
-        "src/tests/level_repeat_smoke_test.cpp"
+        "src/app/level_plane_drag_actions.cpp",
+        "src/core/level_plane_drag.cpp",
+        "src/app/map_viewport_plane_drag.cpp",
+        "src/app/model_viewport_plane_drag.cpp",
+        "src/tests/level_plane_drag_smoke_test.cpp",
+        "src/tests/level_plane_drag_ui_smoke_test.cpp"
       ]
     },
     {
       "id": "nrc:MouseDrag",
       "status": "Partial",
-      "workflow": "The Levels **Select** tool is the default and behaves like the QE4 drag. A drag on the selection moves it, a drag beside it resizes the sides facing the pointer (the `resize-selection` gesture), and an empty 2D drag draws a brush. In the camera, a drag moves the selection across the ground, or vertically with Alt. **Edit Faces** moves single brush planes. **Customize Editor Gestures** and `editor gestures` adjust these per profile.",
+      "workflow": "The Levels **Select** tool is NetRadiant Custom's QE4 drag. A drag on the selection moves it. In the NetRadiant Custom, NetRadiant and GtkRadiant profiles a drag over empty space beside the selection moves the selected brushes' planes that face the press point (the `drag-planes` gesture), sloped faces along their own normals and planes back to back on other selected brushes with them, stopping at the furthest grid step that keeps every face; with nothing facing the press the box resizes. In the NetRadiant Custom profile Alt drags the vertices under the pointer, or the corners of the plane under it, in a 2D view and the plane under the pointer in the camera, Ctrl+Alt extrudes the plane under the pointer into new brushes or splits a slab off, and Alt during a camera move lifts the selection. An empty 2D drag draws a brush. **Customize Editor Gestures** and `editor gestures` set the empty drag and the vertex, plane and extrude keys per profile; `map drag-planes` makes the same drags.",
       "gui": [
         "editor.gestures",
         "map.draw-brush",
@@ -3955,48 +4000,59 @@
       "cli": [
         "editor gestures",
         "editor controls",
+        "map drag-planes",
         "map move",
         "map resize"
       ],
-      "limitation": "Resizing remaps the selection's box instead of translating the brush planes that face the pointer, so oblique brushes stretch rather than moving their sloped faces. The Select tool has no Alt plane or vertex drags and no Ctrl+Alt extrude gesture, and camera brush creation needs **Draw Brush**. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Offer an NRC-style plane-drag resize that translates the brush planes facing the press point. Add the Alt plane/vertex and Ctrl+Alt extrude modifiers to the Select tool's gesture table, routed through the existing face-extrusion and component services.",
+      "limitation": "In the camera a plain drag over empty space does not pick the planes facing it (Alt picks one plane), and an empty camera drag does not create a brush (use **Draw Brush**). Patches and light radii are not plane-dragged, and a drag stops before a face would vanish rather than keeping a redundant plane. NetRadiant Custom's component-mode drags stay with the component tools. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/map_viewport.cpp",
-        "src/app/model_viewport.cpp",
-        "src/app/level_view_actions.cpp",
+        "src/core/level_plane_drag.cpp",
+        "src/app/level_plane_drag_controller.cpp",
+        "src/app/map_viewport_plane_drag.cpp",
+        "src/app/model_viewport_plane_drag.cpp",
         "src/core/level_editor_controls.cpp",
         "src/core/level_gestures.cpp",
-        "src/tests/editor_profiles_smoke_test.cpp",
+        "src/tests/level_plane_drag_smoke_test.cpp",
+        "src/tests/level_plane_drag_ui_smoke_test.cpp",
         "src/tests/level_gestures_smoke_test.cpp",
-        "src/tests/level_camera_resize_ui_smoke_test.cpp"
+        "src/tests/editor_profiles_smoke_test.cpp"
       ]
     },
     {
       "id": "nrc:MouseDragOrTransform",
       "status": "Partial",
-      "workflow": "**Shear Tool** is a checkable command. Turning it on gives the 2D views shear handles; turning it off, or pressing Escape, returns to the default **Select** drag behaviour. One key assigned in **Keyboard Shortcuts** therefore alternates between the two. `map shear` covers automation.",
+      "workflow": "**Select or Transform Tool** (<kbd>Q</kbd> in the NetRadiant Custom profile; **Transform** menu, **Tools** tab and command search) switches to the **Transform** tool when **Select** is the current tool and back to **Select** from any other tool, keeping the tool bar's check state in step; in a vertex, edge or face mode it alternates **Move Components** and **Shear Components**. `map shear --side`, `map rotate`, `map resize` and `map move` cover the Transform tool's edits from scripts.",
       "gui": [
-        "map.shear-tool"
+        "map.select-or-transform-tool",
+        "map.transform-tool"
       ],
       "cli": [
-        "map shear"
+        "map shear",
+        "map rotate",
+        "map resize",
+        "map move"
       ],
-      "limitation": "The shear handles cover only part of NRC's Transform tool: there is no box scaling, rotation or pivot. They work only in 2D views, and the NetRadiant Custom profile does not bind Q to the toggle. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Bind the Shear Tool, or a future combined Transform tool, to Q in the NetRadiant Custom profile. Make the command return to the Select tool explicitly and keep the tool bar's check state in step.",
+      "limitation": "Only the NetRadiant Custom profile binds Q (only NRC 449778b3 was audited; the NetRadiant baseline leaves it unbound). The Transform tool's own limits apply. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/level_editing_actions.cpp",
-        "src/app/map_viewport.cpp",
+        "src/app/level_object_gizmo_actions.cpp",
         "src/core/level_editor_controls.cpp",
-        "src/app/application_shell.cpp",
-        "src/tests/level_sidebar_ui_smoke_test.cpp"
+        "src/core/level_editor_familiar_controls.cpp",
+        "src/tests/level_object_transform_ui_smoke_test.cpp",
+        "docs/manual/editor-profiles.md",
+        "docs/EDITOR_PROFILES.md"
       ]
     },
     {
       "id": "nrc:MouseRotate",
       "status": "Partial",
-      "workflow": "**Rotate 90\u00b0 Left** and **Right** turn the selection in the active view. **Rotate Selection\u2026** previews any angle about the selection centre, the world origin or a custom pivot, with Texture Lock. In component mode, **Rotate Components** gives XYZ rotation rings about a movable pivot (**Move Component Pivot**). `map rotate` and `map transform-components` automate both.",
+      "workflow": "**Rotate** on the Levels tool bar, or **Rotate Tool** (R in the NetRadiant Custom profile; **Edit** > **Manipulators**, the **Transform** menu, the **Tools** tab and command search), puts NetRadiant Custom's rotate manipulator on the selected brushes, patches and entities in every plan view and the camera: X, Y and Z rings (a face-on ring left out, edge-on rings dragged along their tangent), an outer ring that turns about the line of sight, a free trackball turn inside the rings and the shared pivot point from the Translate tool. A drag previews a dashed wire of the turned selection; rings follow the rotation step while **Snap** is on and Shift snaps any turn to 15 degrees. On release the turn applies through the shared numeric rotation (one plain turn about a world axis, else an Euler X, Y, Z turn) with **Texture Lock** and **Allow Valve 220 Conversion** as one undo step; Escape cancels. The pivot can be dragged (bounds/grid snapping), clicked, typed (**Set Object Pivot\u2026**) or reset, and stays put through a turn. Choosing the tool again returns to **Select**, and another tool's mode hands back **Select**. Hidden, locked and out-of-group selections show no manipulator. `map rotate --around x,y,z` (or `--axis`) with `--degrees`, `--pivot`, `--angle-step` and `--context` runs the same core service (core/level_object_manipulator.h rotateLevelMapObjects()).",
       "gui": [
+        "map.rotate-tool",
+        "map.set-object-pivot",
+        "map.reset-object-pivot",
+        "map.rotate-precisely",
         "map.rotate-left",
         "map.rotate-right",
-        "map.rotate-precisely",
         "map.component-rotate-tool",
         "map.component-pivot-tool"
       ],
@@ -4004,44 +4060,60 @@
         "map rotate",
         "map transform-components"
       ],
-      "limitation": "Whole objects cannot be rotated by dragging: interactive rings exist only for picked components. There is no screen-axis ring or trackball rotation, no draggable object pivot, no Rotate tool on the Levels tool bar and no R key in the NetRadiant Custom profile. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add an object Rotate tool that reuses the component rotation rings and pivot for whole brushes, patches and entities. It would publish through the numeric rotation service (Texture Lock, Valve 220 policy), add a screen ring with free rotation and Shift angle snapping, and come with a tool-bar entry and an NRC R binding.",
+      "limitation": "Quake-family maps only. The free turn starts only inside the rings, where NetRadiant Custom takes any drag off the handles, and a click there does not select. Rings are full circles rather than viewer-facing half rings. The camera previews a dashed wire, not turned surfaces, and a texture-lock refusal shows on release. Choosing Rotate leaves component modes; picked components keep Rotate Components. The manipulator is pointer-only; keyboard users use Rotate Selection\u2026 and the quarter turns. Native physical input, screen readers and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/level_rotation_actions.cpp",
-        "src/app/level_rotation_dialog.cpp",
+        "src/core/level_object_manipulator.h",
+        "src/core/level_object_manipulator.cpp",
         "src/app/level_component_gizmo.cpp",
-        "src/tests/level_rotation_smoke_test.cpp",
-        "src/tests/level_rotation_ui_smoke_test.cpp",
-        "src/tests/level_component_gizmo_smoke_test.cpp"
+        "src/app/level_object_gizmo_actions.cpp",
+        "src/app/map_viewport_object_gizmo.cpp",
+        "src/app/model_viewport_object_gizmo.cpp",
+        "src/app/level_view_actions.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/cli/level_move_repeat.cpp",
+        "src/tests/level_object_rotate_smoke_test.cpp",
+        "src/tests/level_object_rotate_ui_smoke_test.cpp",
+        "docs/manual/levels.md",
+        "docs/manual/cli.md",
+        "docs/LEVEL_EDITOR.md"
       ]
     },
     {
       "id": "nrc:MouseRotateOrScale",
       "status": "Partial",
-      "workflow": "There is no alternating command. In component mode, **Rotate Components** and **Scale Components** are separate checkable tools, and each can be given a key in **Keyboard Shortcuts**. Whole objects use **Rotate Selection\u2026** and **Resize Selection\u2026**.",
+      "workflow": "**Rotate or Scale Tool** (Edit > Manipulators, the **Transform** menu, the **Tools** tab and command search; listed in the NetRadiant Custom profile without a default key, as in NetRadiant Custom, and bindable in **Keyboard Shortcuts**) switches to the **Scale** tool from the **Rotate** tool and to **Rotate** from any other tool, so one key alternates between NetRadiant Custom's two manipulators. In a vertex, edge or face mode it switches between **Rotate Components** and **Scale Components** instead. The tools themselves are the object Rotate and Scale manipulators about the shared pivot (`map rotate --around`, `map resize --drag`).",
       "gui": [
+        "map.rotate-or-scale-tool",
+        "map.rotate-tool",
+        "map.scale-tool",
         "map.component-rotate-tool",
-        "map.component-scale-tool",
-        "map.rotate-precisely",
-        "map.resize-selection"
+        "map.component-scale-tool"
       ],
       "cli": [
         "map rotate",
         "map resize",
         "map transform-components"
       ],
-      "limitation": "No single command toggles between rotate and scale, and whole objects have no rotate or scale tool modes to toggle. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Once object Rotate and Scale tools exist, add a bindable map command that alternates between them, falling back to the component tools in component mode. List it in the NRC profile catalogue without a default key.",
+      "limitation": "A view toggle with no CLI of its own (the tools' edits have map rotate and map resize). No profile gives it a key. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/level_geometry_actions.cpp",
-        "src/app/level_component_gizmo.cpp",
-        "src/app/application_shell.cpp",
-        "src/tests/level_component_gizmo_smoke_test.cpp"
+        "src/app/level_object_gizmo_actions.cpp",
+        "src/core/studio_semantics.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/tests/level_object_scale_ui_smoke_test.cpp",
+        "docs/manual/levels.md",
+        "docs/EDITOR_PROFILES.md"
       ]
     },
     {
       "id": "nrc:MouseScale",
       "status": "Partial",
-      "workflow": "Objects are resized by dragging the box handles in a 2D view or the labelled X/Y/Z face handles in the camera. **Resize Selection\u2026** takes exact sizes and the point that stays fixed, and **Texture Scale Lock** stretches textures with the geometry. In component mode, **Scale Components** gives axis and uniform handles about the shared pivot. `map resize` and `map transform-components` automate both.",
+      "workflow": "**Scale** on the Levels tool bar, or **Scale Tool** (no default key, as in NetRadiant Custom; **Edit** > **Manipulators**, the **Transform** menu, the **Tools** tab and command search), puts NetRadiant Custom's scale manipulator on the selected brushes, patches and entities in every plan view and the camera: X, Y and Z handles ending in squares (one pointing along the view left out), a view-plane square and the shared pivot point from the Translate tool. Dragging moves the side of the bounds farther from the pivot with the grid-snapped travel (an axis, or the view's axes for the square); <kbd>Shift</kbd> scales the axes equally and <kbd>Ctrl</kbd> lands the new size on the grid. A dashed wire previews the result and the status line gives the factors and size; release applies it through Scale Selection's service about the pivot with **Texture Scale Lock** as one undo step, and Escape cancels. The pivot can be dragged, clicked, typed (**Set Object Pivot\u2026**) or reset. Choosing the tool again returns to **Select**. Hidden, locked and out-of-group selections show no manipulator. `map resize --drag N` with `--axis x|y|z` or `--view top|front|side`, `--equal`, `--grid`, `--size-grid`, `--pivot` and `--context` runs the same core service (core/level_object_manipulator.h scaleLevelMapObjects()).",
       "gui": [
+        "map.scale-tool",
+        "map.rotate-or-scale-tool",
+        "map.set-object-pivot",
+        "map.reset-object-pivot",
+        "map.scale-selection",
         "map.resize-selection",
         "map.texture-scale-lock",
         "map.component-scale-tool"
@@ -4050,47 +4122,65 @@
         "map resize",
         "map transform-components"
       ],
-      "limitation": "Interactive object resizing is driven by the bounding box and anchored at the opposite side, not centred on a pivot. Objects have no uniform scale handle, no draggable pivot and no Scale tool mode; only the numeric dialog sets a fixed point. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add an object Scale tool that reuses the component axis and uniform scale handles and the pivot. It would publish through resizeLevelMapSelection or the affine transform service, honour Texture Scale Lock, offer Shift for equal axes and Ctrl for grid-snapped sizes, and come with a tool-bar entry and a bindable command.",
+      "limitation": "Quake-family maps only. Factors stay above zero (NetRadiant Custom can scale through zero to mirror; Flip and map resize --factors mirror). Shift on the square follows the larger change rather than NetRadiant Custom's smaller one. An axis with no extent keeps its size (NetRadiant Custom's boundless fallback for origin-only selections is not built). The camera previews a dashed wire, not scaled surfaces, and a Texture Scale Lock refusal shows on release. The manipulator is pointer-only; keyboard users use Resize Selection\u2026 and Scale Selection\u2026. Native physical input, screen readers and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/map_viewport.cpp",
-        "src/app/model_viewport_resize.cpp",
-        "src/core/box_resize.cpp",
-        "src/app/level_camera_resize_actions.cpp",
+        "src/core/level_object_manipulator.h",
+        "src/core/level_object_manipulator.cpp",
         "src/app/level_component_gizmo.cpp",
-        "src/tests/box_resize_smoke_test.cpp",
-        "src/tests/level_camera_resize_ui_smoke_test.cpp",
-        "src/tests/level_component_gizmo_smoke_test.cpp"
+        "src/app/level_object_gizmo_actions.cpp",
+        "src/app/map_viewport_object_gizmo.cpp",
+        "src/app/model_viewport_object_gizmo.cpp",
+        "src/cli/level_move_repeat.cpp",
+        "src/tests/level_object_scale_smoke_test.cpp",
+        "src/tests/level_object_scale_ui_smoke_test.cpp",
+        "docs/manual/levels.md",
+        "docs/manual/cli.md",
+        "docs/LEVEL_EDITOR.md"
       ]
     },
     {
       "id": "nrc:MouseTransform",
       "status": "Partial",
-      "workflow": "**Shear Tool** adds side handles in every 2D view that slant the selection about the opposite side, snapped to the grid. **Shear\u2026** slants about the centre by an exact angle. Resize handles and dragging cover scaling and moving. In component mode, **Shear Components** offers six shear directions. `map shear` and `map transform-components` automate them.",
+      "workflow": "**Transform** on the Levels tool bar, or **Transform Tool** (no default key, as in NetRadiant Custom; **Edit** > **Manipulators**, the **Transform** menu, the **Tools** tab and command search), puts NetRadiant Custom's box manipulator on the selected brushes, patches and entities in every plan view and the camera: lines through the middle of the box (a plan view's outline) skew that side along itself, corner squares turn the selection about the opposite corner, a drag inside moves it (level in the camera, <kbd>Alt</kbd> lifts it; <kbd>Shift</kbd> keeps the main axis and <kbd>Ctrl</kbd> lands the box on the grid), and a drag just outside a side or corner scales that axis or both about the opposite side (<kbd>Shift</kbd> keeps proportions, <kbd>Ctrl</kbd> lands the size on the grid). With a placed shared pivot every skew, turn and scale works about it. A dashed wire previews the result and the status line names the drag; release applies it as one undo step through the shear, rotation, scale or move service with Texture Lock, the Valve 220 policy or Texture Scale Lock, and Escape cancels. Choosing the tool again returns to **Select**; hidden, locked and out-of-group selections show no manipulator. `map shear --side --offset --pivot`, `map rotate --around --pivot`, `map resize --factors --pivot` and `map move` make the same edits.",
       "gui": [
+        "map.transform-tool",
+        "map.select-or-transform-tool",
+        "map.set-object-pivot",
+        "map.reset-object-pivot",
         "map.shear-tool",
         "map.shear-selection",
         "map.component-shear-tool"
       ],
       "cli": [
         "map shear",
+        "map rotate",
+        "map resize",
+        "map move",
         "map transform-components"
       ],
-      "limitation": "No single box manipulator combines skew, scale, rotation and translation. Object shear handles work only in 2D views, their corners do nothing, and object pivots cannot be dragged. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Extend the Shear Tool into a combined Transform tool: edge skew, side and corner scaling, rotation and free movement on the selection box in plan and camera views. It would share a draggable object pivot with the other manipulators and use the existing affine transform service.",
+      "limitation": "Quake-family maps only. Plan views offer only the corner turns about their line of sight (NetRadiant Custom also turns about in-plane axes from the sides' midpoints). The scale from outside reaches a 32-pixel band round the box rather than the whole view, and the camera has no Alt pick of a single plane. In component modes the component tools (Shear Components and the rest) stand in. Skews, turns and scales preview as dashed wires; texture-lock refusals show on release. Pointer targets stop growing at 15% of the box's size on screen and a zone round its centre always moves; on a box under 16 pixels on screen the lines and corners give way, so skewing or turning it needs a closer zoom. The manipulator is pointer-only; keyboard users use Shear\u2026, Rotate Selection\u2026, Scale Selection\u2026 and Move Selection\u2026. Native physical input, screen readers and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/level_editing_actions.cpp",
-        "src/app/map_viewport.cpp",
-        "src/core/level_map.cpp",
+        "src/core/level_object_manipulator.h",
+        "src/core/level_object_manipulator.cpp",
         "src/app/level_component_gizmo.cpp",
-        "src/tests/level_map_tools_smoke_test.cpp",
-        "src/tests/level_sidebar_ui_smoke_test.cpp",
-        "src/tests/level_component_gizmo_smoke_test.cpp"
+        "src/app/level_object_gizmo_actions.cpp",
+        "src/app/level_view_actions.cpp",
+        "src/cli/level_move_repeat.cpp",
+        "src/tests/level_object_transform_smoke_test.cpp",
+        "src/tests/level_object_transform_ui_smoke_test.cpp",
+        "docs/manual/levels.md",
+        "docs/manual/cli.md",
+        "docs/LEVEL_EDITOR.md"
       ]
     },
     {
       "id": "nrc:MouseTranslate",
       "status": "Partial",
-      "workflow": "The Levels **Select** tool moves objects by dragging: freely in a 2D view, and in the camera across the ground, or vertically with Alt. Arrow-key nudges and **Move Selection\u2026** give exact offsets. In component mode, **Move Components** adds camera XYZ handles and a centre handle. `map move`, `map move-components` and `map transform-components` cover automation.",
+      "workflow": "**Translate** on the Levels tool bar, or **Translate Tool** (W in the NetRadiant Custom profile outside mouse look; **Edit** > **Manipulators**, the **Transform** menu, the **Tools** tab and command search), puts NetRadiant Custom's translate manipulator on the selected brushes, patches and entities in every plan view and the camera. It has X, Y and Z arrows (hidden when nearly along the view), a square that moves in the view plane, and the shared pivot point. A drag previews the move, snaps it to the grid while **Snap** is on (Shift keeps the main axis; Ctrl lands the box's nearer side on the grid), and on release applies it through the shared Move placement with **Texture Lock** as one undo step; Escape cancels. Dragging the pivot snaps each moved axis to the box's minimum, centre or maximum or the grid; a click places or frees it, and **Set Object Pivot\u2026** and **Reset Object Pivot** type or reset it. A placed pivot travels with the selection. Choosing the tool again returns to **Select**. Hidden, locked and out-of-group selections show no manipulator and say why. `map move` with several `--object` values, `--to x,y,z [--pivot x,y,z]`, `--snap grid|bounds --grid N` or `--context GROUP` runs the same core service (core/level_object_manipulator.h).",
       "gui": [
+        "map.translate-tool",
+        "map.set-object-pivot",
+        "map.reset-object-pivot",
         "map.move-selection",
         "map.component-move-tool"
       ],
@@ -4099,47 +4189,50 @@
         "map move-components",
         "map transform-components"
       ],
-      "limitation": "Whole objects have no translate manipulator: no axis arrows, no free-move square and no draggable pivot. Object drags are limited to the view plane or the camera's ground/vertical split. The Levels tool bar has no Translate tool, and the NetRadiant Custom profile binds nothing to W outside mouse look. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add an object-level Translate tool to the Levels tool bar. It would extend the camera component move handles (XYZ arrows and centre handle) to whole brushes, patches and entities in plan and camera views, add a draggable shared pivot, publish through the shared move service with Texture Lock, and come with a bindable command and an optional NRC W key outside mouse look.",
+      "limitation": "Quake-family maps only; Doom maps have no object manipulator. Choosing Translate leaves component modes, where NRC's tool also moves picked components (component moves keep Move Components). A placed pivot survives a change of tool, where NRC resets it, and the bounds snap compares plain distances. The camera preview moves the selected triangles without previewing texture-lock UVs. The manipulator is pointer-only; keyboard users use nudges, Move Selection\u2026 and Set Object Pivot\u2026. Rotate, Scale and Transform object manipulators, which reuse the shared tool state and pivot, are separate packages. Native physical input, screen readers and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/map_viewport.cpp",
-        "src/app/model_viewport.cpp",
-        "src/app/model_viewport_components.cpp",
+        "src/core/level_object_manipulator.h",
+        "src/core/level_object_manipulator.cpp",
+        "src/app/level_component_gizmo.cpp",
+        "src/app/map_viewport_object_gizmo.cpp",
+        "src/app/model_viewport_object_gizmo.cpp",
+        "src/app/level_object_gizmo_actions.cpp",
         "src/app/level_view_actions.cpp",
-        "src/core/level_map.cpp",
-        "src/tests/level_map_smoke_test.cpp",
-        "src/tests/level_component_drag_ui_smoke_test.cpp",
-        "docs/plans/level-editor-production.md"
+        "src/core/level_editor_controls.cpp",
+        "src/cli/level_move_repeat.cpp",
+        "src/tests/level_object_translate_smoke_test.cpp",
+        "src/tests/level_object_translate_ui_smoke_test.cpp",
+        "docs/manual/levels.md",
+        "docs/manual/cli.md",
+        "docs/LEVEL_EDITOR.md"
       ]
     },
     {
       "id": "nrc:MouseUV",
       "status": "Partial",
-      "workflow": "Texture alignment is numeric and stepped. The **Surfaces** tab and **Inspector** shift, rotate, scale, fit, justify and flip faces, picked faces or patches. **Surface Alignment\u2026** previews detailed changes, and **Edit Patch Control Points\u2026** edits patch UVs. Doom walls can be dragged with **Drag Textures in Camera**. `map align-textures`, `map edit` and `map edit-patch` automate these edits.",
+      "workflow": "Choose **UV** on the Levels tool bar, **UV Tool** in the **Surfaces** menu, the **Tools** tab or command search, or press <kbd>G</kbd> in the NetRadiant Custom profile (again to return to **Select**). Click a brush face or patch in the camera, or pick one face or select one patch. The texture's repeat lines appear over it with a pivot and a ring. Drag on the surface to move the texture, the ring to turn it about the pivot, a repeat line to stretch it along U or V (both where two cross), a line with <kbd>Alt</kbd> to skew it, the pivot to place it, and a patch's control point, row or column to move their texture coordinates. Drags snap within a few pixels to corners, edges and repeat lines, <kbd>Ctrl</kbd> always snaps, and <kbd>Shift</kbd> keeps one axis, turns in steps or keeps proportions. The camera previews the texture live, each drag is one undo step and <kbd>Esc</kbd> puts a drag back. A face's move, turn and stretch set its own texture values through the Face inspector's service, so classic faces stay classic. A skew converts a classic face to Valve 220 only when **Allow Valve 220 Conversion** is on. `map edit-uv` stretches and skews about `--pivot`, and moves a patch's `--rows` and `--columns`, through the same service. `map face-attributes` covers turns and stretches by value.",
       "gui": [
-        "map.align-surfaces",
-        "map.surfaceShiftLeft",
-        "map.surfaceShiftRight",
-        "map.surfaceRotateLeft",
-        "map.surfaceRotateRight",
-        "map.surfaceGrowU",
-        "map.surfaceShrinkU",
-        "map.edit-patch",
-        "map.drag-camera-textures"
+        "map.uv-tool",
+        "map.uv-editor",
+        "map.show-face-inspector",
+        "map.align-surfaces"
       ],
       "cli": [
-        "map align-textures",
-        "map edit",
-        "map edit-patch"
+        "map edit-uv",
+        "map face-attributes",
+        "map align-textures"
       ],
-      "limitation": "Brushes and patches have no direct on-face UV manipulator: no texture drag, no rotation circle, no U/V scale or skew handles and no pivot. There is no UV tool on the Levels tool bar and no G key in the NetRadiant Custom profile. The production record lists direct UV manipulation as open. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Build a camera UV tool. It would project the face or patch texture grid, expose drag, rotate, scale and skew handles about a movable pivot with vertex and edge snapping, and publish each drag as one undo step through the shared surface and texture-transform services.",
+      "limitation": "There are no grid-density handles and no separate pivot-line drags as in NetRadiant Custom, and the ring is a fixed screen size. A patch's lines and lattice are drawn on its least-squares plane, so curved patches show an approximation. A turn on a sloped classic face follows the measured rotation rate, so edge alignment there is approximate. Brush-primitive faces and patches need the camera to have loaded the material's image. The tool has no keyboard nudges of its own; the Face section and UV Editor are the keyboard routes. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/core/level_surface.cpp",
-        "src/app/level_surface_tools.cpp",
-        "src/app/level_surface_dialog.cpp",
-        "src/app/level_editing_actions.cpp",
-        "src/tests/level_surface_ui_smoke_test.cpp",
-        "src/tests/level_surface_quick_ui_smoke_test.cpp",
-        "docs/plans/level-editor-production.md"
+        "src/core/level_uv_tool.cpp",
+        "src/app/level_camera_uv_tool.cpp",
+        "src/app/level_camera_uv_tool_actions.cpp",
+        "src/app/model_viewport_tools.cpp",
+        "src/cli/level_uv_edit.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/tests/level_uv_tool_smoke_test.cpp",
+        "src/tests/level_camera_uv_tool_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -4276,19 +4369,22 @@
     {
       "id": "nrc:NextView",
       "status": "Partial",
-      "workflow": "**Next 2D View** steps Top, Front and Side in the same order; the NetRadiant Custom profile binds Ctrl+Tab. In three-plan layouts it moves focus to the next pane. **Cycle Map View** also steps through 3D in one-pane layouts.",
+      "workflow": "**Next 2D View** (<kbd>Ctrl</kbd>+<kbd>Tab</kbd> in the NetRadiant Custom profile, also in command search) steps Top, Front and Side. With one 2D view (also when Draw Sector or Make Sector Mode switches a Doom map's view to Top) it keeps the view's zoom and centres the new plane on the selection's bounds, or on the camera when nothing is selected, as NRC's XY_NextView and XY_SetViewType do; with neither it fits the map. In a plan view the profile's Ctrl+Tab takes precedence over the view's own Ctrl+Tab (add the next object), which still works where the profile leaves the key free. In three-plan layouts it moves to the next shown pane, and with the profile's Radiant framing (`plan.radiantFraming`, on in NRC and NetRadiant) also centres every plan on the selection or camera, keeping each zoom, as XY_Centralize does. **Cycle Map View** also steps through 3D in one-pane layouts with the same recentring.",
       "gui": [
         "map.next-projection",
         "map.cycle-view"
       ],
       "cli": [],
-      "limitation": "In one-plan layouts the new projection refits the whole map instead of keeping zoom and centring on the selection or camera; in three-plan layouts focus moves instead of recentring. The plan view also owns Ctrl+Tab (add next object), and no test presses Ctrl+Tab under this profile. No CLI route. Native physical-input and macOS/Linux acceptance remain open. Remaining work: On a projection change keep the current zoom and centre on the selection bounds, or the camera when nothing is selected (at least for Radiant profiles), instead of MapViewport::setProjection's zoomToFit; let the profile's Ctrl+Tab take precedence over the plan view's own Ctrl+Tab, and cover both with a UI smoke test.",
+      "limitation": "In NRC's split layout Next View only recentres; VibeStudio also moves focus to the next pane. Pure view navigation, so no CLI route. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
-        "src/app/map_viewport.cpp",
+        "src/app/level_plan_framing_actions.cpp",
+        "src/core/level_navigation.cpp",
         "src/core/level_editor_controls.cpp",
+        "src/app/map_viewport.cpp",
+        "src/tests/level_plan_framing_ui_smoke_test.cpp",
         "src/tests/level_profiles_ui_smoke_test.cpp",
-        "src/tests/shell_interaction_smoke_test.cpp"
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -4343,73 +4439,88 @@
     {
       "id": "nrc:PatchBevel",
       "status": "Partial",
-      "workflow": "**Patch Bevel** on the Levels **Shapes** tab builds the same three-column quarter-round with the same control layout. Draw it, add it at the view centre, or use **Replace Selected Brushes**. `map add-patch --shape bevel` and `map add-shape --shape patch-bevel` script it.",
-      "gui": [],
-      "cli": [
-        "map add-patch",
-        "map add-shape"
+      "workflow": "Select brushes or patches (or nothing, for the work zone) and choose **Patch Bevel** (**Edit** > **Patch Shapes**, the **Create** menu, the **Tools** tab's **Patches** group or command search). The three-column quarter-round from one corner of the bounds to the other. It fills the selection's bounds along the active 2D view's axis, in the **Textures** material with **Natural** mapping by the material's image size, and replaces the selected brushes and patches in one undo step, in the last one's brush entity. The Shapes tab's **Patch Bevel** draws one in a box, adds one at the view centre or replaces the selection. `map add-shape --shape patch-bevel --object brush:N --object patch:N` and `map add-patch --shape bevel` script it.",
+      "gui": [
+        "map.patch-bevel",
+        "map.add-patch"
       ],
-      "limitation": "Mapping is one stretched repeat rather than Natural. **Add Patch\u2026** lacks this shape, although the manual lists it. There is no palette entry or profile key. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Apply Natural mapping on creation, offer the bevel in the Add Patch\u2026 dialog, and add a palette entry.",
+      "cli": [
+        "map add-shape",
+        "map add-patch"
+      ],
+      "limitation": "A material whose image cannot be found is mapped as 64 by 64 texels. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch.cpp",
         "src/core/level_shapes.cpp",
-        "src/app/level_shapes_panel.cpp",
-        "src/tests/level_patch_tools_smoke_test.cpp",
-        "src/tests/level_shapes_smoke_test.cpp"
+        "src/app/level_patch_prefab_actions.cpp",
+        "src/tests/level_patch_prefab_smoke_test.cpp",
+        "src/tests/level_patch_prefab_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:PatchCone",
       "status": "Partial",
-      "workflow": "**Patch Cone** on the Levels **Shapes** tab with **Segments** 4, **Add Patch\u2026** (Cone) and `map add-patch --shape cone` each make a nine-column, three-row cone. The cone fits a box along the chosen axis and uses the Textures material.",
+      "workflow": "Select brushes or patches (or nothing, for the work zone) and choose **Classic Patch Cone** (**Edit** > **Patch Shapes**, the **Create** menu, the **Tools** tab's **Patches** group or command search). Radiant's 9x3 cone, its bottom and middle rings at full width and its top row at the tip, so its sides bulge. It fills the selection's bounds along the active 2D view's axis, in the **Textures** material with **Natural** mapping by the material's image size, and replaces the selected brushes and patches in one undo step, in the last one's brush entity. The Shapes tab's **Classic Patch Cone** draws one in a box, adds one at the view centre or replaces the selection. `map add-shape --shape patch-classic-cone --object brush:N --object patch:N` and `map add-patch --shape classic-cone` script it.",
       "gui": [
+        "map.patch-classic-cone",
         "map.add-patch"
       ],
       "cli": [
-        "map add-patch",
-        "map add-shape"
+        "map add-shape",
+        "map add-patch"
       ],
-      "limitation": "VibeStudio's cone tapers straight, with the middle ring at half radius, which matches NRC's Exact Cone rather than this bulging classic profile. To match, drag the middle row in **Edit Patch Control Points\u2026**. Mapping is one stretched repeat rather than Natural. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a classic Radiant cone variant, with a full-radius middle ring, to createLevelPatch, the Shapes tab and `map add-patch`, and apply Natural mapping on creation.",
+      "limitation": "The straight-sided **Patch Cone** stays a separate shape, laid out as NRC's Exact Cone, from angle 0. A material whose image cannot be found is mapped as 64 by 64 texels. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch.cpp",
         "src/core/level_shapes.cpp",
-        "src/app/patch_editor_dialog.cpp",
-        "src/tests/level_patch_tools_smoke_test.cpp"
+        "src/app/level_patch_prefab_actions.cpp",
+        "src/tests/level_patch_prefab_smoke_test.cpp",
+        "src/tests/level_patch_prefab_ui_smoke_test.cpp",
+        "docs/manual/levels.md",
+        "src/core/level_shapes.h"
       ]
     },
     {
       "id": "nrc:PatchCylinder",
       "status": "Partial",
-      "workflow": "**Patch Cylinder** on the Levels **Shapes** tab with **Segments** 4 makes the same nine-column ring, using the Textures material and the view axis. Use **Draw in a View**, **Add at View Centre**, or **Replace Selected Brushes**, which fills their bounds in one undo step. **Add Patch\u2026** offers a nine-column cylinder with adjustable rows. `map add-patch --shape cylinder` defaults to 9x3.",
+      "workflow": "Select brushes or patches (or nothing, for the work zone) and choose **Patch Cylinder** (**Edit** > **Patch Shapes**, the **Create** menu, the **Tools** tab's **Patches** group or command search). Radiant's nine-column, three-row cylinder, its ring starting half a turn round where NRC's Cylinder does (other segment counts start where its Exact Cylinder does). It fills the selection's bounds along the active 2D view's axis, in the **Textures** material with **Natural** mapping by the material's image size, and replaces the selected brushes and patches in one undo step, in the last one's brush entity. The Shapes tab's **Patch Cylinder** draws one in a box, adds one at the view centre or replaces the selection. `map add-shape --shape patch-cylinder --object brush:N --object patch:N` and `map add-patch --shape cylinder` script it.",
       "gui": [
+        "map.patch-cylinder",
         "map.add-patch"
       ],
       "cli": [
-        "map add-patch",
-        "map add-shape"
+        "map add-shape",
+        "map add-patch"
       ],
-      "limitation": "New patches get one stretched texture repeat (UV 0 to 1) instead of Natural mapping, and the ring's seam starts on the opposite side from NRC's. The Shapes tab defaults to eight segments (17 columns), **Replace Selected Brushes** takes only world brushes, and **Add Patch\u2026** always stands the cylinder on Z. There is no palette entry or profile key. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Apply Natural mapping from the material's dimensions when a patch shape is created. Default patch shapes to four segments, Radiant's 9x3. Register palette entries for the patch prefabs.",
+      "limitation": "A material whose image cannot be found is mapped as 64 by 64 texels. Selected point entities are kept rather than deleted. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch.cpp",
         "src/core/level_shapes.cpp",
-        "src/app/level_shapes_panel.cpp",
-        "src/app/patch_editor_dialog.cpp",
-        "src/tests/level_patch_tools_smoke_test.cpp",
-        "src/tests/level_geometry_tools_ui_smoke_test.cpp",
-        "src/tests/level_patch_smoke_test.cpp"
+        "src/app/level_patch_prefab_actions.cpp",
+        "src/tests/level_patch_prefab_smoke_test.cpp",
+        "src/tests/level_patch_prefab_ui_smoke_test.cpp",
+        "docs/manual/levels.md",
+        "src/tests/level_patch_tools_smoke_test.cpp"
       ]
     },
     {
       "id": "nrc:PatchDeform",
-      "status": "Planned",
-      "workflow": "No equivalent. Patch control points can only be moved deliberately, through **Edit Patch Control Points\u2026**, **Edit Vertices** in the views, or `map edit-patch` and `map transform-components`. Existing control: None",
-      "gui": [],
-      "cli": [],
-      "limitation": "Nothing randomises patch control points, so roughening a surface means moving many points by hand. Once built, native physical-input and macOS/Linux acceptance would also be open. Remaining work: Add **Deform Patch\u2026**: offset every control point of the selected patches by a random amount up to a maximum along X, Y or Z, with a seed so runs repeat, as one undo step. Add a `map deform-patch` CLI command and core, UI and CLI tests.",
+      "status": "Partial",
+      "workflow": "Select patches and choose **Deform Patch\u2026**: **Maximum** (64), **Axis** (Z) and a **Seed** (a new random one each time, **New Seed**, or typed to repeat a result). Every control point moves along the axis by a random whole number of units from 0 to the maximum (a negative maximum moves them the other way), texture coordinates stay and hidden patches are left alone, as one undo step; the dialog remembers the maximum and axis. `map deform-patch` takes `--max`, `--axis` and `--seed` and reports a drawn seed.",
+      "gui": [
+        "map.deform-patch"
+      ],
+      "cli": [
+        "map deform-patch"
+      ],
+      "limitation": "The offsets come from VibeStudio's seeded Mersenne Twister, so the same settings do not reproduce upstream's rand() results. No profile binds a key, as upstream has none. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch_tools.cpp",
-        "src/app/patch_editor_dialog.cpp",
-        "docs/LEVEL_EDITOR.md"
+        "src/app/level_patch_convert_deform_actions.cpp",
+        "src/cli/level_patch_convert_deform.cpp",
+        "src/tests/level_patch_convert_deform_smoke_test.cpp",
+        "src/tests/level_patch_convert_deform_ui_smoke_test.cpp"
       ]
     },
     {
@@ -4513,19 +4624,23 @@
     {
       "id": "nrc:PatchEndCap",
       "status": "Partial",
-      "workflow": "**Patch End Cap** on the Levels **Shapes** tab builds the same five-column arch with the same control layout. Draw it, add it at the view centre, or use **Replace Selected Brushes**. `map add-patch --shape endcap` and `map add-shape --shape patch-endcap` script it.",
-      "gui": [],
-      "cli": [
-        "map add-patch",
-        "map add-shape"
+      "workflow": "Select brushes or patches (or nothing, for the work zone) and choose **Patch End Cap** (**Edit** > **Patch Shapes**, the **Create** menu, the **Tools** tab's **Patches** group or command search). The five-column half-round arch. It fills the selection's bounds along the active 2D view's axis, in the **Textures** material with **Natural** mapping by the material's image size, and replaces the selected brushes and patches in one undo step, in the last one's brush entity. The Shapes tab's **Patch End Cap** draws one in a box, adds one at the view centre or replaces the selection. `map add-shape --shape patch-endcap --object brush:N --object patch:N` and `map add-patch --shape endcap` script it.",
+      "gui": [
+        "map.patch-end-cap",
+        "map.add-patch"
       ],
-      "limitation": "Mapping is one stretched repeat rather than Natural. **Add Patch\u2026** lacks this shape, although the manual lists it. There is no palette entry or profile key. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Apply Natural mapping on creation, offer the end cap in the Add Patch\u2026 dialog, and add a palette entry.",
+      "cli": [
+        "map add-shape",
+        "map add-patch"
+      ],
+      "limitation": "A material whose image cannot be found is mapped as 64 by 64 texels. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch.cpp",
         "src/core/level_shapes.cpp",
-        "src/app/level_shapes_panel.cpp",
-        "src/tests/level_patch_tools_smoke_test.cpp",
-        "src/tests/level_shapes_smoke_test.cpp"
+        "src/app/level_patch_prefab_actions.cpp",
+        "src/tests/level_patch_prefab_smoke_test.cpp",
+        "src/tests/level_patch_prefab_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -4631,16 +4746,23 @@
     {
       "id": "nrc:PatchSphere",
       "status": "Partial",
-      "workflow": "**Patch Sphere** on the Levels **Shapes** tab with **Segments** 4 and **Bands** 2 builds the same 9x5 control rings. Draw it, add it at the view centre, or replace selected brushes. `map add-patch --shape sphere` defaults to 9x5, and `map add-shape --shape patch-sphere` fits a box.",
-      "gui": [],
-      "cli": [
-        "map add-patch",
-        "map add-shape"
+      "workflow": "Select brushes or patches (or nothing, for the work zone) and choose **Patch Sphere** (**Edit** > **Patch Shapes**, the **Create** menu, the **Tools** tab's **Patches** group or command search). Radiant's nine-column, five-row sphere, full-width rings at the bottom, middle and top between the poles, its ring starting where NRC's Sphere does; the Shapes tab starts patch spheres at 4 segments and 2 bands. It fills the selection's bounds along the active 2D view's axis, in the **Textures** material with **Natural** mapping by the material's image size, and replaces the selected brushes and patches in one undo step, in the last one's brush entity. The Shapes tab's **Patch Sphere** draws one in a box, adds one at the view centre or replaces the selection. `map add-shape --shape patch-sphere --object brush:N --object patch:N` and `map add-patch --shape sphere` script it.",
+      "gui": [
+        "map.patch-sphere",
+        "map.add-patch"
       ],
-      "limitation": "The Shapes tab defaults to 8 segments and 4 bands (17x9), and the seam starts on the opposite side. Mapping is one stretched repeat rather than Natural. **Add Patch\u2026** has no sphere. There is no palette entry or profile key. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Default patch spheres to 4 segments and 2 bands, apply Natural mapping on creation, and offer the sphere in the Add Patch\u2026 dialog.",
+      "cli": [
+        "map add-shape",
+        "map add-patch"
+      ],
+      "limitation": "A material whose image cannot be found is mapped as 64 by 64 texels. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch.cpp",
         "src/core/level_shapes.cpp",
+        "src/app/level_patch_prefab_actions.cpp",
+        "src/tests/level_patch_prefab_smoke_test.cpp",
+        "src/tests/level_patch_prefab_ui_smoke_test.cpp",
+        "docs/manual/levels.md",
         "src/app/level_shapes_panel.cpp",
         "src/tests/level_patch_tools_smoke_test.cpp"
       ]
@@ -4648,19 +4770,23 @@
     {
       "id": "nrc:PatchSquareCylinder",
       "status": "Partial",
-      "workflow": "**Square Patch Cylinder** on the Levels **Shapes** tab builds the same corner-started 9x3 tube along the chosen or view axis, with the Textures material. Draw it, add it at the view centre, or use **Replace Selected Brushes**. `map add-patch --shape square-cylinder` and `map add-shape --shape patch-square-cylinder` script it.",
-      "gui": [],
-      "cli": [
-        "map add-patch",
-        "map add-shape"
+      "workflow": "Select brushes or patches (or nothing, for the work zone) and choose **Square Patch Cylinder** (**Edit** > **Patch Shapes**, the **Create** menu, the **Tools** tab's **Patches** group or command search). The corner-started four-sided 9x3 tube. It fills the selection's bounds along the active 2D view's axis, in the **Textures** material with **Natural** mapping by the material's image size, and replaces the selected brushes and patches in one undo step, in the last one's brush entity. The Shapes tab's **Square Patch Cylinder** draws one in a box, adds one at the view centre or replaces the selection. `map add-shape --shape patch-square-cylinder --object brush:N --object patch:N` and `map add-patch --shape square-cylinder` script it.",
+      "gui": [
+        "map.patch-square-cylinder",
+        "map.add-patch"
       ],
-      "limitation": "Mapping is one stretched repeat rather than Natural. **Add Patch\u2026** offers only plane, cylinder and cone, although the manual lists all seven shapes. There is no palette entry or profile key. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Apply Natural mapping at creation, add the missing shapes to the Add Patch\u2026 dialog (or correct docs/manual/levels.md), and add palette entries.",
+      "cli": [
+        "map add-shape",
+        "map add-patch"
+      ],
+      "limitation": "A material whose image cannot be found is mapped as 64 by 64 texels. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch.cpp",
         "src/core/level_shapes.cpp",
-        "src/app/level_shapes_panel.cpp",
-        "src/tests/level_patch_tools_smoke_test.cpp",
-        "src/tests/level_shapes_smoke_test.cpp"
+        "src/app/level_patch_prefab_actions.cpp",
+        "src/tests/level_patch_prefab_smoke_test.cpp",
+        "src/tests/level_patch_prefab_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -4688,68 +4814,78 @@
     {
       "id": "nrc:PatchXactCone",
       "status": "Partial",
-      "workflow": "**Patch Cone** on the Levels **Shapes** tab builds the same straight tangent-intersection cone: **Segments** 3 to 15 gives 7 to 31 columns. `map add-patch --shape cone --segments N --rows M` sets both dimensions. **Add Patch\u2026** offers a nine-column cone with adjustable rows, and the **Re-disperse** commands follow up.",
+      "workflow": "Select brushes or patches (or nothing) and choose **Exact Patch Cone\u2026** (**Edit** > **Patch Shapes**, the **Create** menu, the **Tools** tab's **Patches** group or command search). The **Patch Density** dialog offers odd **Columns** 7 to 31 (13 to start), **Rows** 3 to 31 (3 to start) and **Square**; **OK** builds NRC's straight true-circle Exact Cone, starting at angle 0 and tapering to its tip at the top of the selection's bounds along the active view's axis, mapped **Natural**, squared after mapping when asked, and replaces the selection in one undo step. The **Shapes** tab's **Patch Cone** has **Segments**, **Rows** and **Square**, and **Add Patch\u2026** has **Rows** and **Square** for the cone. `map add-patch --shape cone --segments N --rows M --ring-start exact --square` and `map add-shape --shape patch-cone --rows M --square` script it.",
       "gui": [
-        "map.add-patch",
-        "map.patch-redisperse-columns",
-        "map.patch-redisperse-rows"
+        "map.patch-exact-cone",
+        "map.add-patch"
       ],
       "cli": [
         "map add-patch",
-        "map add-shape",
-        "map patch-matrix"
+        "map add-shape"
       ],
-      "limitation": "The Shapes tab always makes three rows and **Add Patch\u2026** always makes nine columns standing on Z, so only the CLI sets both dimensions. There is no Square option at creation. Mapping is one stretched repeat rather than Natural. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a Rows control and a Square option for round patch shapes in the Shapes tab and the Add Patch\u2026 dialog, and apply Natural mapping on creation.",
+      "limitation": "A material whose image cannot be found is mapped as 64 by 64 texels, and an image the camera has not loaded is read from the open package on the UI thread (one image). The Shapes tab and Add Patch\u2026 keep the Auto ring start, which equals Exact at every density but four segments (Radiant's fixed prefabs); only the Exact commands and --ring-start exact force angle 0 there. Native physical-input, screen-reader and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch.cpp",
+        "src/core/level_shapes.cpp",
+        "src/app/level_patch_prefab_actions.cpp",
         "src/app/level_shapes_panel.cpp",
         "src/app/patch_editor_dialog.cpp",
         "src/cli/cli.cpp",
-        "src/tests/level_patch_tools_smoke_test.cpp"
+        "src/tests/level_patch_density_smoke_test.cpp",
+        "src/tests/level_patch_density_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:PatchXactCylinder",
       "status": "Partial",
-      "workflow": "**Patch Cylinder** on the Levels **Shapes** tab uses the same tangent-intersection construction: **Segments** 3 to 15 gives 7 to 31 columns. `map add-patch --shape cylinder --segments N --rows M` sets both dimensions. **Re-disperse Patch Columns** and **Re-disperse Patch Rows** (or `map patch-matrix`) space the result afterwards.",
+      "workflow": "Select brushes or patches (or nothing, for the work zone) and choose **Exact Patch Cylinder\u2026** (**Edit** > **Patch Shapes**, the **Create** menu, the **Tools** tab's **Patches** group or command search). The **Patch Density** dialog offers NetRadiant Custom's odd **Columns** 7 to 31 (13 to start) and **Rows** 3 to 31 (3 to start), and **Square** (re-disperse columns and rows), and says which bounds the patch fills and what it replaces; it remembers the last choice. **OK** builds a true-circle cylinder starting at angle 0, as NRC's Exact Cylinder does, filling the selection's bounds along the active view's axis, in the **Textures** material with **Natural** mapping by the image's size, squared after mapping when asked, and replaces the selected brushes and patches in one undo step. The **Shapes** tab's **Patch Cylinder** has **Segments**, **Rows** and **Square**, and **Add Patch\u2026** has **Rows** and **Square** for the cylinder. `map add-patch --shape cylinder --segments N --rows M --ring-start exact --square` and `map add-shape --shape patch-cylinder --rows M --square --ring-start exact` script it.",
       "gui": [
-        "map.add-patch",
-        "map.patch-redisperse-columns",
-        "map.patch-redisperse-rows"
+        "map.patch-exact-cylinder",
+        "map.patch-cylinder",
+        "map.add-patch"
       ],
       "cli": [
         "map add-patch",
-        "map add-shape",
-        "map patch-matrix"
+        "map add-shape"
       ],
-      "limitation": "The Shapes tab always makes three rows and **Add Patch\u2026** always makes nine columns, so only the CLI sets both. There is no Square option at creation. Mapping is one stretched repeat rather than Natural. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a Rows control and a Square (re-disperse) option for round patch shapes in the Shapes tab and the Add Patch\u2026 dialog, and apply Natural mapping on creation.",
+      "limitation": "A material whose image cannot be found is mapped as 64 by 64 texels, and an image the camera has not loaded is read from the open package on the UI thread (one image). The Shapes tab and Add Patch\u2026 keep the Auto ring start, which equals Exact at every density but four segments (Radiant's fixed prefabs); only the Exact commands and --ring-start exact force angle 0 there. Native physical-input, screen-reader and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch.cpp",
+        "src/core/level_shapes.cpp",
+        "src/app/level_patch_prefab_actions.cpp",
         "src/app/level_shapes_panel.cpp",
-        "src/core/level_patch_tools.cpp",
+        "src/app/patch_editor_dialog.cpp",
         "src/cli/cli.cpp",
-        "src/tests/level_patch_tools_smoke_test.cpp"
+        "src/tests/level_patch_density_smoke_test.cpp",
+        "src/tests/level_patch_density_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:PatchXactSphere",
       "status": "Partial",
-      "workflow": "**Patch Sphere** on the Levels **Shapes** tab uses the same construction. **Segments** 3 to 15 (7 to 31 columns) and **Bands** 2 to 15 (5 to 31 rows) match NRC's ranges. Draw it, add it at the view centre, or replace selected brushes. `map add-patch --shape sphere --segments N --bands M` scripts it, and the **Re-disperse** commands follow up.",
+      "workflow": "Select brushes or patches (or nothing) and choose **Exact Patch Sphere\u2026** (**Edit** > **Patch Shapes**, the **Create** menu, the **Tools** tab's **Patches** group or command search). The **Patch Density** dialog offers odd **Columns** 7 to 31 (13 to start) and **Rows** 5 to 31 from pole to pole (7 to start) and **Square**; **OK** builds a true-circle sphere starting at angle 0, as NRC's Exact Sphere does, filling the selection's bounds along the active view's axis, mapped **Natural**, squared after mapping when asked, and replaces the selection in one undo step. The **Shapes** tab's **Patch Sphere** has **Segments**, **Bands** and **Square**, and **Add Patch\u2026** offers the sphere with segments, bands and **Square**. `map add-patch --shape sphere --segments N --bands M --ring-start exact --square` and `map add-shape --shape patch-sphere --square --ring-start exact` script it.",
       "gui": [
-        "map.patch-redisperse-columns",
-        "map.patch-redisperse-rows"
+        "map.patch-exact-sphere",
+        "map.patch-sphere",
+        "map.add-patch"
       ],
       "cli": [
         "map add-patch",
-        "map add-shape",
-        "map patch-matrix"
+        "map add-shape"
       ],
-      "limitation": "There is no Square option at creation, and mapping is one stretched repeat rather than Natural. **Add Patch\u2026** has no sphere, although the manual says it does. There is no palette entry or profile key. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a Square (re-disperse) option and Natural mapping on creation, and add the sphere, with segments and bands, to the Add Patch\u2026 dialog.",
+      "limitation": "A material whose image cannot be found is mapped as 64 by 64 texels, and an image the camera has not loaded is read from the open package on the UI thread (one image). The Shapes tab and Add Patch\u2026 keep the Auto ring start, which equals Exact at every density but four segments (Radiant's fixed prefabs); only the Exact commands and --ring-start exact force angle 0 there. Native physical-input, screen-reader and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch.cpp",
         "src/core/level_shapes.cpp",
+        "src/app/level_patch_prefab_actions.cpp",
         "src/app/level_shapes_panel.cpp",
-        "src/tests/level_patch_tools_smoke_test.cpp"
+        "src/app/patch_editor_dialog.cpp",
+        "src/cli/cli.cpp",
+        "src/tests/level_patch_density_smoke_test.cpp",
+        "src/tests/level_patch_density_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -5205,8 +5341,9 @@
     {
       "id": "nrc:SaveSelected",
       "status": "Partial",
-      "workflow": "`map copy --object \u2026 --output fragment.map` writes the selected entities, brushes and patches as a .map fragment, keeping brush-entity ownership and complete groups. In the GUI, **Export Selection as Prefab\u2026** or the Prefabs sidebar's **Save Selection\u2026** saves a .vprefab with its asset references and an anchor. **Copy Selection** puts the same .map text on the clipboard.",
+      "workflow": "**File** > **Export Selection as Map\u2026** writes the selected world brushes and patches inside a worldspawn with the map's keys (or without them, by file type), then the selected entities with their selected brushes, on a worker behind a cancellable progress window, through guarded publication with a backup of a replaced file; the open map's own file is refused. `map copy --standalone [--worldspawn-keys]` writes the same file.",
       "gui": [
+        "map.export-selection-as-map",
         "map.copy-selection",
         "map.export-prefab"
       ],
@@ -5214,14 +5351,14 @@
         "map copy",
         "map export-prefab"
       ],
-      "limitation": "No GUI command writes the selection straight to a .map file; prefabs use the .vprefab format. Copied world brushes are written bare, without a worldspawn entity or its keys, so the fragment is not a standalone map as NRC's export is. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add **Export Selection as Map\u2026**. It should run the existing copy service on a worker and write a standalone .map, with a worldspawn wrapper and optional worldspawn keys, through guarded publication. Add the same wrapper as an option to `map copy`, a palette entry and a UI test.",
+      "limitation": "The worldspawn-keys choice is made through the save dialog's file type rather than an option box. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
+        "src/core/level_map_transfer.cpp",
         "src/core/level_map.cpp",
+        "src/core/level_document.cpp",
         "src/cli/level_clipboard.cpp",
-        "src/app/level_prefab_actions.cpp",
-        "src/core/level_prefab.cpp",
-        "src/tests/level_object_clipboard_workflow.py",
-        "src/tests/level_prefab_smoke_test.cpp"
+        "src/tests/level_map_transfer_smoke_test.cpp",
+        "src/tests/level_map_transfer_ui_smoke_test.cpp"
       ]
     },
     {
@@ -5973,7 +6110,7 @@
     {
       "id": "nrc:SimplePatchMesh",
       "status": "Partial",
-      "workflow": "**Add Patch\u2026** opens the patch editor with a plane at the view centre, square to the active plan view. Choose **Orientation**, **Columns** and **Rows** (3 to 31) and the sizes, then **Generate Shape**. **Patch Plane** on the Levels **Shapes** tab draws a 3x3 plane across a box's top, or replaces selected brushes with one. `map add-patch --shape plane --columns N --rows M` scripts it.",
+      "workflow": "Choose **Add Patch\u2026** (<kbd>Shift</kbd>+<kbd>P</kbd> in the NetRadiant Custom profile, the **Create** menu, the **Tools** tab or command search). The patch editor opens with a plane across the top of the selection's bounds (or the work zone), square to the active view, in the **Textures** material with **Cap Texture** mapping. Choose any of the eight shapes, its **Axis**, **Columns** and **Rows** (3 to 31), **Segments**, **Bands**, sizes and **Mapping**, then **Generate Shape**. With brushes or patches selected, **Replace the selected brushes and patches** is ticked, so **Add Patch** puts the patch in their place in one undo step. The Shapes tab's **Patch Plane** has **Columns** and **Rows** too. `map add-patch --shape plane --columns N --rows M` and `map add-shape --shape patch-plane --columns N --rows M` script it.",
       "gui": [
         "map.add-patch"
       ],
@@ -5981,14 +6118,18 @@
         "map add-patch",
         "map add-shape"
       ],
-      "limitation": "**Add Patch\u2026** neither fits nor replaces the selection, and starts with the map's first texture rather than the Textures choice. The Shapes tab plane is 3x3 only. New planes get a stretched 0 to 1 mapping rather than Cap Texture. Shift+P is unbound in the NetRadiant Custom profile and there is no palette entry. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Fit Add Patch\u2026 to the selection's bounds, with an option to replace the selection, and seed it with the Textures material. Expose Columns and Rows for Patch Plane in the Shapes tab. Apply planar (Align to Face) mapping on creation, and bind Shift+P in the NetRadiant Custom profile.",
+      "limitation": "Add Patch\u2026 is the full patch editor rather than NRC's small density dialog, and has no Redisperse box (its Rows and Columns menu re-disperses). A material whose image cannot be found is mapped as 64 by 64 texels. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/patch_editor_actions.cpp",
-        "src/app/patch_editor_dialog.cpp",
         "src/core/level_patch.cpp",
         "src/core/level_shapes.cpp",
-        "src/tests/patch_editor_ui_smoke_test.cpp",
-        "src/tests/level_patch_smoke_test.cpp"
+        "src/app/level_patch_prefab_actions.cpp",
+        "src/tests/level_patch_prefab_smoke_test.cpp",
+        "src/tests/level_patch_prefab_ui_smoke_test.cpp",
+        "docs/manual/levels.md",
+        "src/app/patch_editor_actions.cpp",
+        "src/app/patch_editor_dialog.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/tests/patch_editor_ui_smoke_test.cpp"
       ]
     },
     {
@@ -6647,15 +6788,24 @@
     },
     {
       "id": "nrc:ToggleCubicClip",
-      "status": "Planned",
-      "workflow": "There is no far-clip control; the 3D view renders with an infinite far plane. **Set Region to View**, **Isolate Selection** and **Hide Selection** reduce what is drawn, but they work by box or object, not by distance from the camera. Existing control: None",
-      "gui": [],
-      "cli": [],
-      "limitation": "Distant geometry is always drawn, so dense maps cannot be culled by camera distance. NRC's Ctrl+\\ toggle, toolbar button and cubic scale have no counterpart. Native physical-input and macOS/Linux acceptance would remain open once built. Remaining work: Add a persisted camera far-clip toggle and distance, with step commands for CubicClipZoomIn and CubicClipZoomOut, applied in the shared view-projection matrix used by both GPU backends and to draw culling. Include a camera toggle, palette entries, Ctrl+\\ in the NRC profile, a status readout, a settings key the CLI can read, and tests.",
+      "status": "Partial",
+      "workflow": "**View** > **Camera Display** > **Far Clip in Camera** (also a **View** tab box and command search; <kbd>Ctrl</kbd>+<kbd>\\</kbd> in the NetRadiant Custom, NetRadiant, GtkRadiant 1.4 to 1.6, Q3Radiant and DoomEdit profiles) stops the camera drawing anything beyond its draw distance (1448 units at first, NRC's cubic scale 14). The clip is a far plane in the shared view-projection, so OpenGL and Vulkan both clip and clipped faces cannot be picked. Placing or pasting at the camera pointer never lands on a brush beyond it either. The drawn-triangle count, wireframe strokes and ground grid follow it; fog ends at it while both are on. The choice is saved and announced, the camera corner shows it, and `editor far-clip --clip on|off` reads or sets it.",
+      "gui": [
+        "map.preview-far-clip"
+      ],
+      "cli": [
+        "editor far-clip"
+      ],
+      "limitation": "NRC's camera toolbar button has no counterpart beyond the View tab box and menu item. Painted overlays (component handles, gizmos, entity links and linked-group boxes) are not clipped. Level dialog previews ignore the clip, and the CLI change applies when the studio next starts. QeRadiant leaves Ctrl+\\ unbound, as its manual gives the key to Q3Radiant only. DarkRadiant's keys await an audit. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/model_viewport_render.cpp",
+        "src/core/level_camera_render.cpp",
         "src/app/model_viewport.cpp",
-        "docs/plans/level-editor-commands.md"
+        "src/core/level_paste.cpp",
+        "src/app/level_entity_create_actions.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/tests/level_camera_far_clip_smoke_test.cpp",
+        "src/tests/level_camera_far_clip_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -7013,106 +7163,127 @@
     },
     {
       "id": "nrc:UpFloor",
-      "status": "Planned",
-      "workflow": "There is no floor-stepping command. To reach another storey, fly the camera with vertical fly keys, which the NetRadiant Custom profile leaves unbound but **Customize Editor Gestures** can assign, or type a height in **Go to Coordinates\u2026** with **Take the camera there too** ticked. Existing control: None",
-      "gui": [],
-      "cli": [],
-      "limitation": "Nothing finds standing heights from the scene. docs/EDITOR_PROFILES.md records floor stepping as unsupported in the GtkRadiant 1.4/1.5, NetRadiant and Q3Radiant profiles. Page Up already runs Raise Floor on selected Doom sectors, so an NRC binding needs profile scoping. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add Camera Floor Up and Down commands. They find the next standing height from the visible brush, patch and entity bounds under the camera, plus selected objects. On Doom maps, use sector floor heights plus eye height. Move the camera, update plans that follow it, and bind PgUp/PgDn only in the NRC profile.",
+      "status": "Partial",
+      "workflow": "**View** > **Camera** > **Camera Floor Up** (also the **Tools** tab's **Navigate** group and command search; <kbd>Page Up</kbd> in the NetRadiant Custom, NetRadiant, GtkRadiant, Q3Radiant, QeRadiant and DoomEdit profiles, claimed in the camera and the plan views) lifts the first-person camera to the nearest standing height above it. That is 32 units over the top of a visible brush, patch or point entity whose box holds the camera's x and y, or of anything selected. From below everything, it first goes to 16 units under the lowest. On Doom maps it is the sector floor plus the 41-unit eye height, kept 4 units under the ceiling, for sectors under the camera or selected. Hidden and filtered objects never count. Heading, pitch and mouse look are kept, the status bar names what the camera stands on, plan views that follow the camera follow it, and the map is never changed. In a plan view a Doom map's Raise Floor keeps Page Up while sectors are selected. `map camera-focus --floor up` reports the same height.",
+      "gui": [
+        "map.camera-floor-up"
+      ],
+      "cli": [
+        "map camera-focus"
+      ],
+      "limitation": "Point entities with models count by their definition box, not the model's bounds as NRC's scene AABB does. The orthographic orbit camera of the VibeStudio Default profile has no floor stepping. Doom things, slopes and 3D floors are not considered. A key pressed while the camera rebuilds after an edit does nothing until it is ready. DarkRadiant's keys await an audit. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "docs/EDITOR_PROFILES.md",
-        "src/app/model_viewport.cpp",
-        "src/core/level_camera_keys.cpp"
+        "src/core/level_camera_focus.h",
+        "src/core/level_camera_focus.cpp",
+        "src/app/level_camera_focus_actions.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/cli/level_camera_focus.cpp",
+        "src/tests/level_camera_floor_smoke_test.cpp",
+        "src/tests/level_camera_floor_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:ViewFront",
       "status": "Partial",
-      "workflow": "**Front View** shows the front projection; the NetRadiant Custom profile binds keypad 1. In three-plan layouts it focuses the existing front pane. `map render --projection front-xz` draws the same projection as an SVG for automation.",
+      "workflow": "**Front View** (keypad 1 in the NetRadiant Custom profile) shows the front projection. With one 2D view it keeps the zoom and centres on the selection, or the camera when nothing is selected, and pressing it on the front plane recentres there, as NRC's XY_Front does. In three-plan layouts it focuses the front pane and, with Radiant framing (NRC, NetRadiant), centres every plan on the selection or camera. `map render --projection front-xz` draws the same projection as an SVG for automation.",
       "gui": [
         "map.view-front"
       ],
       "cli": [
         "map render"
       ],
-      "limitation": "A one-plan switch refits the whole map instead of keeping zoom and centring on the selection or camera, and the split-layout recentre is not reproduced. Native keypad input and macOS/Linux acceptance remain open. Remaining work: On a projection change keep the current zoom and centre on the selection bounds, or the camera when nothing is selected, instead of MapViewport::setProjection's zoomToFit; optionally recentre all plans in three-plan layouts for the NetRadiant Custom profile.",
+      "limitation": "In NRC's split layout the command only recentres; VibeStudio also focuses the pane. Native keypad input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
-        "src/app/map_viewport.cpp",
+        "src/app/level_plan_framing_actions.cpp",
+        "src/core/level_navigation.cpp",
         "src/core/level_editor_controls.cpp",
-        "src/core/map_render.cpp",
-        "src/tests/level_views_ui_smoke_test.cpp",
-        "src/tests/level_view_workspace_ui_smoke_test.cpp"
+        "src/tests/level_plan_framing_ui_smoke_test.cpp",
+        "src/tests/level_view_workspace_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:ViewSide",
       "status": "Partial",
-      "workflow": "**Side View** shows the side projection; the NetRadiant Custom profile binds keypad 3. In three-plan layouts it focuses the existing side pane. `map render --projection side-zy` draws the same projection as an SVG for automation.",
+      "workflow": "**Side View** (keypad 3 in the NetRadiant Custom profile) shows the side projection. With one 2D view it keeps the zoom and centres on the selection, or the camera when nothing is selected, and pressing it on the side plane recentres there, as NRC's XY_Side does. In three-plan layouts it focuses the side pane and, with Radiant framing (NRC, NetRadiant), centres every plan on the selection or camera. `map render --projection side-zy` draws the same projection as an SVG for automation.",
       "gui": [
         "map.view-side"
       ],
       "cli": [
         "map render"
       ],
-      "limitation": "A one-plan switch refits the whole map instead of keeping zoom and centring on the selection or camera, and the split-layout recentre is not reproduced. Native keypad input and macOS/Linux acceptance remain open. Remaining work: On a projection change keep the current zoom and centre on the selection bounds, or the camera when nothing is selected, instead of MapViewport::setProjection's zoomToFit; optionally recentre all plans in three-plan layouts for the NetRadiant Custom profile.",
+      "limitation": "In NRC's split layout the command only recentres; VibeStudio also focuses the pane. Native keypad input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
-        "src/app/map_viewport.cpp",
+        "src/app/level_plan_framing_actions.cpp",
+        "src/core/level_navigation.cpp",
         "src/core/level_editor_controls.cpp",
-        "src/core/map_render.cpp",
+        "src/tests/level_plan_framing_ui_smoke_test.cpp",
         "src/tests/level_views_ui_smoke_test.cpp",
-        "src/tests/level_view_workspace_ui_smoke_test.cpp"
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:ViewTop",
       "status": "Partial",
-      "workflow": "**Top View** shows the top projection; the NetRadiant Custom profile binds keypad 7. In three-plan layouts it focuses the existing top pane. `map render --projection top-xy` draws the same projection as an SVG for automation.",
+      "workflow": "**Top View** (keypad 7 in the NetRadiant Custom profile) shows the top projection. With one 2D view (also when Draw Sector or Make Sector Mode switches a Doom map's view to Top) it keeps the zoom and centres on the selection, or the camera when nothing is selected, and pressing it on the top plane recentres there, as NRC's XY_Top does. In three-plan layouts it focuses the top pane and, with Radiant framing (NRC, NetRadiant), centres every plan on the selection or camera. `map render --projection top-xy` draws the same projection as an SVG for automation.",
       "gui": [
         "map.view-top"
       ],
       "cli": [
         "map render"
       ],
-      "limitation": "A one-plan switch refits the whole map instead of keeping zoom and centring on the selection or camera, and the split-layout recentre is not reproduced. Native keypad input and macOS/Linux acceptance remain open. Remaining work: On a projection change keep the current zoom and centre on the selection bounds, or the camera when nothing is selected, instead of MapViewport::setProjection's zoomToFit; optionally recentre all plans in three-plan layouts for the NetRadiant Custom profile.",
+      "limitation": "In NRC's split layout the command only recentres; VibeStudio also focuses the pane. Native keypad input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
-        "src/app/map_viewport.cpp",
+        "src/app/level_plan_framing_actions.cpp",
+        "src/core/level_navigation.cpp",
         "src/core/level_editor_controls.cpp",
-        "src/core/map_render.cpp",
+        "src/tests/level_plan_framing_ui_smoke_test.cpp",
         "src/tests/level_views_ui_smoke_test.cpp",
-        "src/tests/level_view_workspace_ui_smoke_test.cpp"
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:XYFocusOnSelected",
       "status": "Partial",
-      "workflow": "**Frame Selection** frames the selection in every visible plan, using the smallest fitted scale when plan zoom is linked; the NetRadiant Custom profile binds backtick. When the 3D view is showing it also moves the camera to frame the selection. F in a focused plan view frames that pane only and leaves the camera.",
+      "workflow": "**Frame Selection** (backtick in the NetRadiant Custom profile; also **Zoom to Selection** and the map menu) follows the profile's `plan.radiantFraming` gesture, on in NetRadiant Custom and NetRadiant: only the visible 2D views move, each fitting the selection's bounds in two-thirds of the view and never closer than 384 units across, or a 256-unit box round the camera when nothing is selected, as XY_Focus and XYWnd::FocusOnBounds do; the 3D camera stays and the status bar says which. Linked zoom takes the smallest framed scale. Other profiles keep VibeStudio's framing, which also turns the camera to the selection; the gesture switches either way in Customize Gestures or `editor gestures --set plan.radiantFraming=on|off`.",
       "gui": [
         "map.frame-selection"
       ],
-      "cli": [],
-      "limitation": "Unlike NRC, Frame Selection moves the 3D camera, frames more tightly, and with nothing selected fits the whole map instead of the camera surroundings. No CLI route. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a profile setting, on for the Radiant styles, that keeps Frame Selection to the plan views and leaves the 3D camera, frames with NRC's two-thirds margin, and frames the camera surroundings when nothing is selected.",
+      "cli": [
+        "editor gestures"
+      ],
+      "limitation": "Radiant framing is on only for NRC and NetRadiant; GtkRadiant, Q3Radiant, QeRadiant, DoomEdit and DarkRadiant await audits of their focus commands. NRC's component-mode selection bounds are not used. Automatic framing after Find Brush, placement and Scene list picks keeps VibeStudio's behaviour. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/application_shell.cpp",
-        "src/app/level_view_actions.cpp",
-        "src/app/map_viewport.cpp",
+        "src/app/level_plan_framing_actions.cpp",
+        "src/core/level_navigation.cpp",
         "src/core/level_editor_controls.cpp",
-        "src/tests/level_views_ui_smoke_test.cpp",
-        "src/tests/shell_interaction_smoke_test.cpp"
+        "src/core/level_gestures.cpp",
+        "src/tests/level_plan_framing_ui_smoke_test.cpp",
+        "src/tests/level_view_links_ui_smoke_test.cpp",
+        "src/tests/level_gestures_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "nrc:Zoom100",
-      "status": "Planned",
-      "workflow": "No 1:1 zoom command for the Levels plan views. Zoom In and Zoom Out step by 1.25, Zoom to Fit frames the whole map, and saved level views restore a stored zoom; these are the nearest routes. Actual Size exists only in the texture preview. Existing control: None.",
-      "gui": [],
+      "status": "Partial",
+      "workflow": "**View** > **Zoom 100%** (also the **Tools** tab's **Navigate** group, the **Select** tool menu and command search) sets every visible 2D view to one screen pixel per map unit about its own centre, as NRC's XY_Zoom100 does; with **Link Plan Zoom** on the views keep it together. The status bar announces the scale. It has no default key, as in NRC, whose profile lists the empty slot; give it one in Keyboard Shortcuts.",
+      "gui": [
+        "map.zoom-actual-size"
+      ],
       "cli": [],
-      "limitation": "Plan scale can only be reached by stepping, gestures, fitting or restoring a saved view; there is no exact reset to one pixel per unit and no CLI route. Remaining work: Add a Zoom 100% command that sets every visible plan pane to zoom 1.0 (one logical pixel per unit) about its centre via restoreNavigationState, honours clampZoom and linked zoom, announces the scale, and has a palette entry and an empty profile key slot.",
+      "limitation": "Hidden plan panes keep their scale until linked zoom reaches them. Pure view navigation, so no CLI route. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/map_viewport.cpp",
+        "src/app/level_plan_framing_actions.cpp",
         "src/app/application_shell.cpp",
-        "docs/plans/level-editor-commands.md"
+        "src/core/studio_semantics.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/tests/level_plan_framing_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -7784,14 +7955,14 @@
     {
       "id": "nrc:plugin/contrib/brushexport/plugin.cpp/About",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** and `about show` report version, platform and credits. Upstream references are credited in docs/CREDITS.md.",
+      "workflow": "**About VibeStudio** and `about show` report version, platform and credits. Upstream references are credited in docs/CREDITS.md, including the brushexport plugin behind **Export Selection as OBJ\u2026**.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "It is only a plugin credits box. VibeStudio does not load NRC plugins, and attribution for studied upstream behaviour lives in About VibeStudio and docs/CREDITS.md. There is no per-plugin about box. OBJ export of brushes, the feature this plugin provides, is Planned (see Export .obj).",
+      "limitation": "It is only a plugin credits box. VibeStudio does not load NRC plugins, and attribution for studied upstream behaviour lives in About VibeStudio and docs/CREDITS.md. There is no per-plugin about box. OBJ export of brushes, the feature this plugin provides, is Partial (see Export .obj).",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/studio_semantics.cpp",
@@ -7802,28 +7973,44 @@
     },
     {
       "id": "nrc:plugin/contrib/brushexport/plugin.cpp/Export .obj",
-      "status": "Planned",
-      "workflow": "There is no map-to-OBJ route. **Export Model Frame** and `model export` write OBJ only for models. Levels can save a selection as a `.vprefab` (`map export-prefab`) or draw an SVG picture of the map. Existing control: None",
-      "gui": [],
-      "cli": [],
-      "limitation": "Brush and patch geometry cannot leave VibeStudio as a mesh, and there are no ignore-list, grouping or weld options. Native physical-input and macOS/Linux acceptance would follow once built. Remaining work: Add **Export Selection as OBJ\u2026** and `map export-obj`. Triangulate selected brushes and patches through the shared preview-mesh builder, which already groups triangles by texture, with UVs from material sizes. Write OBJ/MTL through the model OBJ writer, with an ignore list that defaults to tool textures, grouping per object, per material or as one mesh, optional welding, guarded writes, a dry run, and GUI/CLI smoke tests.",
+      "status": "Partial",
+      "workflow": "**File** > **Export Selection as OBJ\u2026** writes the selected brushes and patches (a selected brush entity brings its brushes) as OBJ and MTL. The options window offers the ignored-material list (tool materials by default, matched by the last part of the path as brushexport does, with **Restore Tool Materials**), **Group faces** by brush and patch, by material or into one mesh, objects or groups, **Weld shared corners**, triangles, the material library and 20-character material names. `map export-obj --object ...` takes `--ignore`, `--no-default-ignores`, `--group`, `--groups`, `--no-weld`, `--triangulate`, `--no-mtl` and `--short-material-names`.",
+      "gui": [
+        "map.export-selection-as-obj",
+        "map.export-map-as-obj"
+      ],
+      "cli": [
+        "map export-obj"
+      ],
+      "limitation": "Unlike brushexport, materials keep their names when everything is collapsed into one mesh, and patches are exported too. Placed models and point entities are not exported. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/core/map_preview_mesh.cpp",
-        "src/core/model_frame_export.cpp",
-        "src/tests/model_frame_export_smoke_test.cpp"
+        "src/core/level_map_obj_export.cpp",
+        "src/app/level_map_obj_export_dialog.cpp",
+        "src/cli/level_map_transfer.cpp",
+        "src/tests/level_map_obj_export_smoke_test.cpp",
+        "src/tests/level_map_obj_export_ui_smoke_test.cpp"
       ]
     },
     {
       "id": "nrc:plugin/contrib/brushexport/plugin.cpp/{command}",
-      "status": "Planned",
-      "workflow": "There is no brush-to-OBJ route. Model OBJ export (**Export Model Frame**, `model export`) covers only models. Map selections can be saved as prefabs or SVG images. The About entry is covered by **About VibeStudio**. Existing control: None",
-      "gui": [],
-      "cli": [],
-      "limitation": "Level geometry cannot be exported to OBJ or MTL, with or without material filtering, grouping or welding. Native physical-input and macOS/Linux acceptance would follow once built. Remaining work: Add a shared map OBJ export service that reuses the preview-mesh triangulation and the model OBJ writer. Give it an ignore list, grouping and weld options, a palette entry, and a `map export-obj` CLI with dry run and guarded writes. Smoke-test it on classic, Valve 220 and brush-primitive maps.",
+      "status": "Partial",
+      "workflow": "Export .obj is **Export Selection as OBJ\u2026** (and **Export Map as OBJ\u2026** for the whole map) in the **File** menu, the Create menu, the Tools tab and command search, with the plugin's ignore list, collapse modes, objects or groups, welding, material library and short names, and `map export-obj` with dry run and guarded writes. About is covered by **About VibeStudio**.",
+      "gui": [
+        "map.export-selection-as-obj",
+        "map.export-map-as-obj",
+        "app.about"
+      ],
+      "cli": [
+        "map export-obj",
+        "about show"
+      ],
+      "limitation": "Placed models, point entities and Doom maps are not exported, and the plugin's own credits box has no counterpart. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/core/map_preview_mesh.cpp",
-        "src/core/model_frame_export.cpp",
-        "src/tests/model_frame_export_smoke_test.cpp"
+        "src/core/level_map_obj_export.cpp",
+        "src/app/level_map_transfer_actions.cpp",
+        "src/cli/level_map_transfer.cpp",
+        "src/tests/level_map_obj_export_smoke_test.cpp",
+        "src/tests/level_map_obj_export_ui_smoke_test.cpp"
       ]
     },
     {
@@ -10525,15 +10712,22 @@
     },
     {
       "id": "tb:Controls/Map view/View Filter > Shade faces",
-      "status": "Planned",
-      "workflow": "No equivalent toggle. The level camera always shades flat and textured faces with a Lambert term from a camera-relative light, matching TrenchBroom's default state, so faces pointing different ways read apart. No command turns this shading off. Existing control: None",
-      "gui": [],
+      "status": "Partial",
+      "workflow": "**View** > **Camera Display** > **Shade Faces in Camera** (also a **View** tab box and a command-search entry) turns the camera's direction-based face shading on or off. It is on by default, as in TrenchBroom. When it is off, every texture or flat colour shows at full brightness. Both GPU backends skip the Lambert factor through a surface-shader uniform. The choice is kept for the next session, can be changed with the camera hidden, and never touches the map. It has no default key, as in TrenchBroom, and any profile can bind one.",
+      "gui": [
+        "map.preview-shading"
+      ],
       "cli": [],
-      "limitation": "Shading is permanently on. Faces cannot be shown unshaded for a material or flat-colour check, and no profile can bind a toggle. Native physical-input and macOS/Linux acceptance remain open once a toggle is built. Remaining work: Add a uniform flag that skips the Lambert factor in model_surface.vert for both backends. Add a persisted Shade Faces toggle on the View tab and a palette command, then regenerate the shader data.",
+      "limitation": "Placed models and patches follow the same toggle, and there is no per-kind choice. Level dialog previews, such as the brush editor and primitive dialogs, stay shaded. OpenGL pixels were compiled but not drawn under offscreen Windows. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
+        "src/core/level_camera_render.h",
         "src/core/shaders/model_surface.vert",
-        "src/app/model_viewport.cpp",
-        "src/app/model_viewport_render.cpp"
+        "src/app/model_viewport_render.cpp",
+        "src/app/level_camera_render_actions.cpp",
+        "src/app/level_sidebar_actions.cpp",
+        "src/tests/level_camera_shading_smoke_test.cpp",
+        "src/tests/level_camera_shading_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -10738,17 +10932,22 @@
     },
     {
       "id": "tb:Controls/Map view/View Filter > Use fog",
-      "status": "Planned",
-      "workflow": "No equivalent. The level camera has no distance fog; depth comes from face shading, perspective and the plan views. Quake III fog shaders appear only as a fog trait in the material library and in the Materials workbench previews. Existing control: None",
-      "gui": [],
+      "status": "Partial",
+      "workflow": "**View** > **Camera Display** > **Fog in Camera** (also a **View** tab box and a command-search entry) blends faces towards the camera's background as their distance from the eye grows. **Fog start** and **Fog end** on the **View** tab set the range and are kept, at 512 and 4096 units at first. Faces keep a fifth of their colour beyond the end. In the orthographic orbit camera, distances count from the front of the map. Fog is applied in the surface shader for OpenGL and Vulkan, before the selection, edges and hover outline, so those stay crisp. It is off by default and has no default key, as in TrenchBroom. It never touches the map.",
+      "gui": [
+        "map.preview-fog"
+      ],
       "cli": [],
-      "limitation": "Large maps cannot be given an editor depth cue, and no profile can bind one. Native physical-input and macOS/Linux acceptance remain open once a fog option is built. Remaining work: Add an optional distance-fog term to model_surface.frag for OpenGL and Vulkan, with colour and start/end distances from the camera. Add a persisted Fog toggle on the View tab and a palette command.",
+      "limitation": "The fog colour is the camera background, with a fixed 80% strength and no colour or strength preference. TrenchBroom keeps those in preferences and uses an exponential ramp. 3D Wireframe strokes and the painted ground grid are not fogged. Level dialog previews take no fog. OpenGL pixels were compiled but not drawn under offscreen Windows. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
+        "src/core/level_camera_render.h",
         "src/core/shaders/model_surface.frag",
         "src/app/model_viewport_render.cpp",
+        "src/app/level_camera_render_actions.cpp",
         "src/app/level_sidebar_actions.cpp",
-        "src/app/material_library_model.cpp",
-        "src/core/shaders/material_screen.frag"
+        "src/tests/level_camera_shading_smoke_test.cpp",
+        "src/tests/level_camera_shading_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -11094,18 +11293,21 @@
     {
       "id": "tb:Menu/Edit/Convert Selection to Patches",
       "status": "Partial",
-      "workflow": "In a Quake III map, select world brushes, choose a patch shape such as **Patch Plane** in the Levels Shapes tab and press **Replace Selected Brushes**. One patch fills their combined bounds (a plane lies across the top) and is selected, as one undo step. `map add-shape --object` does the same headlessly. **Edit Vertices** then reshapes its control points.",
-      "gui": [],
-      "cli": [
-        "map add-shape"
+      "workflow": "In a Quake III map, select brushes or pick faces and choose **Convert Selection to Patches** (Ctrl+P in the TrenchBroom profile while the focus is in Levels; Go to File keeps Ctrl+P elsewhere). Each face becomes flat 3x3 patches covering it exactly, in its material with its texture mapping (classic, Valve 220 or brush primitives), facing out; selected brushes are replaced and picked faces keep their brush, as one undo step; the patches are selected and **Edit Vertices** turns on. `map convert-patches` does the same with `--columns`, `--rows`, `--keep-brushes` and `--texture-size` or `--package`.",
+      "gui": [
+        "map.convert-to-patches"
       ],
-      "limitation": "Whole brushes are replaced by one patch; selected faces are not each turned into their own patch. Face materials and alignment are not carried over (the shape's texture is used), brush-entity brushes are refused and control-point editing is not entered automatically. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a core conversion for Quake III maps that emits one planar patch per selected brush face (or per face of selected brushes), with configurable rows and columns and with material and UVs projected from the face mapping, as one undo step. Expose it as a GUI command with a palette entry, a TrenchBroom binding (Ctrl+P is the global **Go to File**, so scope it to the map context) and a map convert-patches CLI command, then enter Edit Vertices.",
+      "cli": [
+        "map convert-patches"
+      ],
+      "limitation": "The Levels command converts at 3x3 only (other grids through the command line); a face of more than four corners becomes several patches; brushDef3 (idTech 4) faces are not converted; classic and Valve 220 faces whose image size is unknown are mapped as 64 by 64 texels. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/core/level_shapes.cpp",
-        "src/app/level_shapes_panel.cpp",
-        "src/core/level_patch.cpp",
-        "src/tests/level_shapes_smoke_test.cpp",
-        "src/tests/level_patch_tools_smoke_test.cpp"
+        "src/core/level_patch_convert.cpp",
+        "src/app/level_patch_convert_deform_actions.cpp",
+        "src/cli/level_patch_convert_deform.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/tests/level_patch_convert_deform_smoke_test.cpp",
+        "src/tests/level_patch_convert_deform_ui_smoke_test.cpp"
       ]
     },
     {
@@ -11273,53 +11475,66 @@
     {
       "id": "tb:Menu/Edit/Tools/Rotate Tool",
       "status": "Partial",
-      "workflow": "**Rotate Selection\u2026** (Tools > Transform) previews any angle about the selection centre, the world origin or a custom pivot, with Texture Lock. **Rotate 90\u00b0 Left/Right** turn by quarter turns as the active view shows the map. **Rotate Components** drags rings for picked components only. `map rotate` scripts rotation.",
+      "workflow": "**Rotate Tool** (R in the TrenchBroom profile, also on the Levels tool bar, **Edit** > **Manipulators**, the **Transform** menu, the **Tools** tab and command search) toggles an interactive rotation handle on whole brushes, patches and entities in the 2D views and the camera: X, Y and Z rings, an outer ring about the line of sight and a movable centre (the shared object pivot: drag with bounds/grid snapping, click, **Set Object Pivot\u2026**, **Reset Object Pivot**). Under the TrenchBroom profile there is no free turn inside the rings (`editing.objectRotateFreeTurn` off), so a click or drag there selects and moves as the views otherwise do, as TrenchBroom's handle passes it on. Rings snap to the rotation step while **Snap** is on (Shift: 15 degrees), preview a dashed wire, and apply on release with **Texture Lock** and the Valve 220 policy as one undo step through the same rotation service as **Rotate Selection\u2026**, which covers TrenchBroom's typed angle and axis. Choosing it again returns to **Select**. `map rotate --around x,y,z --degrees N [--angle-step N] [--pivot x,y,z]` scripts the same turn.",
       "gui": [
-        "map.rotate-left",
-        "map.rotate-right",
+        "map.rotate-tool",
+        "map.rotate-or-scale-tool",
+        "map.set-object-pivot",
+        "map.reset-object-pivot",
         "map.rotate-precisely",
-        "map.component-rotate-tool"
+        "map.rotate-left",
+        "map.rotate-right"
       ],
       "cli": [
         "map rotate"
       ],
-      "limitation": "There is no rotation handle for whole objects, no draggable centre in the views and no R binding. The ring gizmo works only on vertex, edge and face picks. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Extend the component ring gizmo to whole selections (brushes, patches and entities with angle keys), with a movable pivot, angle-step snapping and Texture Lock, and one undo step per drag. Add a checkable tool, a palette entry and the TrenchBroom R binding.",
+      "limitation": "Quake-family maps only. There is no rotate tool page beside the views; Rotate Selection\u2026 provides the typed angle and axis. The 2D views show NetRadiant Custom's edge-on rings beside TrenchBroom's single view ring. The angle step is the manipulator rotation step setting (Component Manipulator Options\u2026), not a separate TrenchBroom preference. The camera previews a dashed wire, not turned surfaces. The handle is pointer-only. Native physical input, screen readers and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/level_rotation_actions.cpp",
-        "src/app/level_rotation_dialog.cpp",
+        "src/core/level_object_manipulator.cpp",
         "src/app/level_component_gizmo.cpp",
-        "src/tests/level_rotation_ui_smoke_test.cpp",
-        "src/tests/level_rotation_smoke_test.cpp",
-        "src/tests/level_component_gizmo_smoke_test.cpp"
+        "src/app/level_object_gizmo_actions.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/core/level_gestures.cpp",
+        "src/tests/level_object_rotate_smoke_test.cpp",
+        "src/tests/level_object_rotate_ui_smoke_test.cpp",
+        "docs/manual/levels.md",
+        "docs/manual/editor-profiles.md",
+        "docs/EDITOR_PROFILES.md"
       ]
     },
     {
       "id": "tb:Menu/Edit/Tools/Scale Tool",
       "status": "Partial",
-      "workflow": "When something is selected, 2D views show edge and corner resize handles and the camera shows labelled X, Y and Z face handles. **Resize Selection\u2026** (Tools > Transform) takes exact sizes and the point that stays fixed. **Texture Scale Lock** decides whether textures stretch. `map resize` scripts resizing.",
+      "workflow": "**Scale Tool** (<kbd>T</kbd> in the TrenchBroom profile, also on the Levels tool bar, **Edit** > **Manipulators**, the **Transform** menu, the **Tools** tab and command search) toggles the scale handles: the box round the selection keeps its face and corner handles in the 2D views, and the camera adds TrenchBroom's twelve edge handles and eight corner handles to its labelled faces, sliding edges and corners along the line from the opposite edge or corner and landing where it crosses a grid plane. Every box-handle drag, in the 2D views and the camera and under any tool, takes <kbd>Shift</kbd> to keep proportions (the view's other axis in 2D, where a corner stays on its diagonal; all other axes in the camera) and <kbd>Alt</kbd> to scale about the centre, as soon as the key changes. Release applies the box through the shared resize service with **Texture Scale Lock** as one undo step. NetRadiant Custom's axis handles and pivot show beside the box while the tool is on; a box handle under the pointer wins. Choosing it again returns to **Select**. `map resize --mins/--maxs` scripts any resulting box, and `map resize --drag` the axis handles.",
       "gui": [
+        "map.scale-tool",
         "map.resize-selection",
-        "map.texture-scale-lock",
-        "map.component-scale-tool"
+        "map.scale-selection",
+        "map.texture-scale-lock"
       ],
       "cli": [
         "map resize"
       ],
-      "limitation": "The handles are always shown rather than toggled with T. There are no proportional or centre-scaling modifiers, and the camera has no edge or corner handles. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add proportional (Shift) and about-centre (Alt) modifiers to plan and camera resize drags, add edge and corner handles in the camera, and give the TrenchBroom profile a tool toggle bound to T.",
+      "limitation": "Quake-family maps only for the tool (Doom keeps its face handles in Select). The 2D views have no separate edge handles beyond the box's corners (the 3D box's edges seen end-on) and sides; Select keeps the face and corner handles too, so T adds the camera's edge and corner handles and NetRadiant Custom's axis handles rather than the only way to resize. There is no TrenchBroom scale tool page (typed factors); Scale Selection\u2026 covers it. The camera preview stretches the selected triangles rather than re-solving brushes. Native physical input (Alt may reach the menu bar on some platforms), screen readers and macOS/Linux acceptance remain open.",
       "evidence": [
+        "src/core/box_resize.h",
         "src/core/box_resize.cpp",
         "src/app/map_viewport.cpp",
+        "src/app/model_viewport_resize.cpp",
         "src/app/level_camera_resize_actions.cpp",
+        "src/core/level_editor_controls.cpp",
         "src/tests/box_resize_smoke_test.cpp",
+        "src/tests/level_object_scale_ui_smoke_test.cpp",
         "src/tests/level_camera_resize_ui_smoke_test.cpp",
-        "src/tests/level_transform_ui_smoke_test.cpp",
-        "src/tests/level_transform_smoke_test.cpp"
+        "docs/manual/levels.md",
+        "docs/manual/editor-profiles.md",
+        "docs/EDITOR_PROFILES.md"
       ]
     },
     {
       "id": "tb:Menu/Edit/Tools/Shear Tool",
       "status": "Partial",
-      "workflow": "**Shear Tool** (Tools > Transform) shows side handles in 2D views. Dragging one slants the selection about the opposite side, following Texture Lock, and Escape turns the tool off. **Shear\u2026** slants by a typed angle about the centre, **Shear Components** works on picks, and `map shear` scripts shearing.",
+      "workflow": "**Shear Tool** (<kbd>G</kbd> in the TrenchBroom profile; **Transform** menu, **Tools** tab and command search) shows side handles in the 2D views and turns the camera box's six labelled faces into shear handles: a side face slides sideways, or up and down while <kbd>Alt</kbd> is held (the slide so far kept when Alt changes), and the top or bottom slides anywhere within its plane, snapped to the grid, with a dashed box and selection wire. Release slants the selection about the opposite side as one undo step following Texture Lock (shearing without it where the face format cannot slant textures), and Escape cancels a drag; in a 2D view Escape also turns the tool off. It and the object tools replace each other. **Shear\u2026** slants by a typed angle, **Shear Components** works on picks, and `map shear` (with `--side` and `--offset` for a camera-style slide, `--about N` for the line that stays) scripts it.",
       "gui": [
         "map.shear-tool",
         "map.shear-selection",
@@ -11328,15 +11543,18 @@
       "cli": [
         "map shear"
       ],
-      "limitation": "There are no shear handles in the 3D camera and no G binding in the TrenchBroom profile. Where the face format cannot slant textures, the tool shears without texture lock. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add camera shear handles on the faces of the selection's box, reusing the camera resize handles, with a modifier for vertical shear. Add a palette entry and the TrenchBroom G binding.",
+      "limitation": "The camera previews a dashed wire, not the sheared surfaces. Escape in the camera cancels a drag but does not turn the tool off. Camera shear handles are offered on Quake-family maps only; on a Doom map the tool brings a 2D view back and uses the plan views' handles. Where the face format cannot slant textures, the tool shears without texture lock. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
+        "src/app/model_viewport_resize.cpp",
+        "src/app/level_camera_resize_actions.cpp",
         "src/app/level_editing_actions.cpp",
-        "src/app/map_viewport.cpp",
-        "src/core/level_map.cpp",
-        "src/cli/cli.cpp",
+        "src/core/level_object_manipulator.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/cli/level_move_repeat.cpp",
+        "src/tests/level_object_transform_smoke_test.cpp",
+        "src/tests/level_object_transform_ui_smoke_test.cpp",
         "src/tests/level_sidebar_ui_smoke_test.cpp",
-        "src/tests/level_map_tools_smoke_test.cpp",
-        "src/tests/level_component_transform_cli_smoke_test.cpp"
+        "docs/manual/levels.md"
       ]
     },
     {
@@ -11403,34 +11621,48 @@
     {
       "id": "tb:Menu/File/Export/Map...",
       "status": "Partial",
-      "workflow": "**Save Map As\u2026** writes the whole map to another path. `map copy` writes chosen objects to a separate fragment .map and leaves the source alone. **Save Region As\u2026** writes a sealed region as a map of its own without changing the open document's path.",
+      "workflow": "**File** > **Export Map\u2026** writes a copy of the map without changing its path or saved state and refuses the open file. Layers marked **Omit from export** in the Scene panel (TrenchBroom's `_tb_layer_omit_from_export` key, one undo step, saved in the scene note and as TrenchBroom's key) are left out with their groups and objects. `map export` adds `--omit-layer`, `--include-omitted`, `--scene-format` and `--dry-run`; `editor scene omit-from-export` sets the mark.",
       "gui": [
+        "map.export-map",
         "map.save-as",
         "map.region-save"
       ],
       "cli": [
+        "map export",
         "map copy"
       ],
-      "limitation": "Unlike TrenchBroom's export, Save Map As makes the new path the document's own. Save Region As only covers a region and adds seal brushes. Scene layers have no Omit From Export flag, so there is no way to write the map without chosen layers. Remaining work: Add Export Map\u2026, which writes a copy through writeLevelDocument without taking over the path and refuses the current file. It should leave out layers flagged Omit From Export, with the flag stored in the scene metadata. Add a matching `map export` CLI command with an omit-layer option and a dry run.",
+      "limitation": "TrenchBroom's preference to strip TrenchBroom properties on export is not built. Omit from export is a Scene panel box with no palette command or layer context-menu toggle, and Doom maps cannot leave layers out. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/level_document_actions.cpp",
-        "src/app/level_sidebar_panels.cpp",
-        "src/core/level_document.cpp",
-        "src/cli/level_clipboard.cpp",
-        "src/tests/level_document_ui_smoke_test.cpp",
-        "src/tests/level_object_clipboard_workflow.py"
+        "src/core/level_map_transfer.cpp",
+        "src/core/level_scene.cpp",
+        "src/app/level_scene_panel.cpp",
+        "src/app/level_map_transfer_actions.cpp",
+        "src/cli/level_map_transfer.cpp",
+        "src/tests/level_map_transfer_smoke_test.cpp",
+        "src/tests/level_map_transfer_ui_smoke_test.cpp"
       ]
     },
     {
       "id": "tb:Menu/File/Export/Wavefront OBJ...",
-      "status": "Planned",
-      "workflow": "VibeStudio cannot export a map as OBJ. **Export Map Image\u2026** writes an SVG picture of the map, and the Models surface exports single model frames as OBJ. Existing control: None",
-      "gui": [],
-      "cli": [],
-      "limitation": "Brushes and patches cannot be taken into Blender or another modeller. The existing OBJ writer only handles model frames. Remaining work: Write OBJ and MTL from the camera mesh: brush faces and tessellated patches with UVs, grouped by material. Write material paths relative to the game or the export folder, and skip hidden objects. Add File > Export Map as OBJ\u2026 and a `map export-obj` CLI command with a dry run.",
+      "status": "Partial",
+      "workflow": "**File** > **Export Map as OBJ\u2026** opens an options window and writes the map's brushes and Quake III patches as a Wavefront OBJ with an MTL library beside it, from the Levels camera's geometry and UVs, on a worker behind a cancellable progress window. Positions are in map units, one map unit to one OBJ unit, Y up. Material paths are relative to the game folder or to the export folder. Hidden objects and layers marked **Omit from export** are left out, while view filters do not apply, as in TrenchBroom. The library's name has no spaces, and replaced files are backed up. `map export-obj` does the same with `--material-paths game|export`, `--package`, `--engine` and `--dry-run`.",
+      "gui": [
+        "map.export-map-as-obj",
+        "map.export-selection-as-obj",
+        "map.export-map"
+      ],
+      "cli": [
+        "map export-obj",
+        "map export"
+      ],
+      "limitation": "Placed models, point entities and Doom maps are not exported. Images inside .pk3 or .pak files are named by their package path but not copied out. Without the package open, classic and Valve 220 UVs assume 64 x 64 texels. There is no scale option, and the window is modal rather than TrenchBroom's modeless dialog. No Blender import was run here. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/core/map_preview_mesh.cpp",
-        "src/core/model_frame_export.cpp"
+        "src/core/level_map_obj_export.cpp",
+        "src/app/level_map_obj_export_dialog.cpp",
+        "src/app/level_map_transfer_actions.cpp",
+        "src/cli/level_map_transfer.cpp",
+        "src/tests/level_map_obj_export_smoke_test.cpp",
+        "src/tests/level_map_obj_export_ui_smoke_test.cpp"
       ]
     },
     {
@@ -11726,45 +11958,51 @@
     {
       "id": "tb:Menu/Run/Launch...",
       "status": "Partial",
-      "workflow": "**Launch Game** (Ctrl+G) uses the **Launch and Test** tab in Build mode: launch profile, map name (defaulting to the compiled map), game folder and **Copy build to game**. VibeStudio validates the plan and shows the exact command line, plus any files it will copy, for confirmation before starting the game. **Build and Launch** runs the pipeline first. The launch plan and launch run commands use the same service.",
+      "workflow": "**Launch Game** (Ctrl+G) uses the **Launch and Test** tab: launch profile (Automatic, the built-in source ports or your own), map name (defaulting to the compiled map), game folder, **Extra arguments** (kept per installation, split as a shell would) and **Copy build to game**. **Launch Profiles\u2026** (also **Build** > **Launch Profiles\u2026**) edits your own engine profiles, as TrenchBroom's game engine profiles: a name, an engine and an argument line with {map}, {mod}, {basedir}, {bsp}, {iwad} and {warp}, a live preview with the current values and problems named in words. VibeStudio validates the plan and shows the exact command line, plus any files it will copy, before starting the game; from Levels this review appears over the map without changing mode. `launch plan`/`launch run` use the same service with your profiles and the saved extra arguments, and `launch profiles`, `launch profile-set`, `launch profile-remove` and `launch extra-args` manage them.",
       "gui": [
         "game.launch",
+        "game.edit-launch-profiles",
         "build.run-and-launch"
       ],
       "cli": [
         "launch plan",
-        "launch run"
+        "launch run",
+        "launch profiles",
+        "launch profile-set",
+        "launch profile-remove",
+        "launch extra-args"
       ],
-      "limitation": "Launch profiles are built-in argument templates. The GUI has no field for extra engine arguments, so the **Custom launch** profile it offers passes nothing; only the CLI's --extra-args fills it. There is no editor for your own engine profiles. Launching switches to Build mode rather than opening a dialog over Levels. Native physical input and macOS/Linux engine acceptance remain open. Remaining work: Add an Extra arguments field to Launch and Test, saved per installation, that feeds GameLaunchRequest::extraArguments. Allow user-defined launch profiles using the {map}, {mod}, {basedir} and {bsp} tokens. Offer the launch review from Levels without changing mode, and extend the shell tests.",
+      "limitation": "Your launch profiles share the installation's executable and are kept for every game rather than per game; they are not read from or written to TrenchBroom's preferences. The review is a confirmation rather than TrenchBroom's editable Launch Engine dialog, and the map's enabled mods are not yet offered as {mod}. Native physical input and macOS/Linux engine acceptance remain open.",
       "evidence": [
         "src/core/build_pipeline.cpp",
-        "src/app/game_launch_task_dialog.cpp",
+        "src/core/studio_settings_build.cpp",
+        "src/app/game_launch_profiles_dialog.cpp",
+        "src/app/build_rerun_actions.cpp",
         "src/app/application_shell.cpp",
-        "src/core/level_build_deployment.cpp",
-        "src/tests/build_pipeline_smoke_test.cpp",
-        "src/tests/shell_interaction_smoke_test.cpp",
-        "src/tests/level_build_deployment_ui_smoke_test.cpp",
+        "src/cli/launch_profiles.cpp",
+        "src/tests/build_rerun_smoke_test.cpp",
+        "src/tests/build_rerun_ui_smoke_test.cpp",
         "docs/manual/build-and-launch.md"
       ]
     },
     {
       "id": "tb:Menu/Run/Rerun...",
       "status": "Partial",
-      "workflow": "The chosen compiler profile stays on the Levels document bar, so choosing **Run Profile** again recompiles the saved map in one click. **Run Build Pipeline** (F7) and **Run Compiler Profile** (Ctrl+R) repeat the Build page selection. Run Profile and Run Compiler Profile write a command manifest under .vibestudio/compiler-runs, which the compiler rerun command replays.",
+      "workflow": "**Build** > **Re-run Last Compile** (command search, the **Tools** tab, no default key as in TrenchBroom) replays the open map's newest saved compile from .vibestudio/compiler-runs (in the project, or beside the map with no project open) exactly as it ran, the same program, arguments and folder, through the shared rerunCompilerCommandManifest(), and saves the replay beside it as the new newest run. It is enabled only when the open map has a saved run, asks to save unsaved edits first and, when saving writes a new file, compiles that file with the same profile. Run Profile remembers the profile for each game, and the next map of that game opens with it chosen. `compiler rerun --last <map>` does the same from the command line.",
       "gui": [
-        "build.run-pipeline",
-        "compiler.run"
+        "compiler.rerun-last"
       ],
       "cli": [
         "compiler rerun"
       ],
-      "limitation": "No GUI command replays the last manifest: Run Profile rebuilds the plan from current settings. Loading a map resets the profile list to that format's default, so the last profile used is not remembered. There is no dedicated re-run command, palette entry or key. Native physical input and macOS/Linux acceptance remain open. Remaining work: Add a Re-run Last Compile command, with a palette entry and optional key, that replays the newest .vibestudio/compiler-runs manifest for the open map through rerunCompilerCommandManifest. Enable it only when such a manifest exists, remember the last Levels profile for each game, and add a shell test.",
+      "limitation": "It replays the saved command rather than reopening a compile dialog, offers only the newest run (the enablement check reads the newest 64 runs per folder), and build pipelines' own stage manifests are not replayed. VibeStudio's remembered profile must suit the map's format. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/compiler_runner.cpp",
+        "src/app/build_rerun_actions.cpp",
         "src/app/application_shell.cpp",
-        "src/app/level_document_actions.cpp",
         "src/cli/cli.cpp",
-        "src/tests/compiler_profiles_smoke_test.cpp"
+        "src/tests/build_rerun_smoke_test.cpp",
+        "src/tests/build_rerun_ui_smoke_test.cpp"
       ]
     },
     {
@@ -11853,8 +12091,9 @@
     {
       "id": "tb:Menu/View/Camera/Reset 2D Cameras",
       "status": "Partial",
-      "workflow": "**Link Plan Centres** and **Link Plan Zoom**, in the View menu and the viewport **Layout** button menu, keep the top, front and side panes on one world point and one scale; switching them on synchronises the panes at once. **Centre Plan Views on Camera** recentres the plans on the 3D camera once. `editor view-links` reads or sets the defaults.",
+      "workflow": "**Reset 2D Views** (View menu, the viewport **Layout** button menu, the **Tools** tab's **Navigate** group and command search) gives the other 2D views the focused one's zoom and its position on the axes they share, each keeping its own value on its remaining axis, as TB's MapView2D::reset2dCameras does, once and without changing **Link Plan Centres**, **Link Plan Zoom** or their saved defaults. It is available in the three-plan layouts with two or more panes showing and waits while centres and zoom are both linked, as TB disables it while Link 2D Cameras is on. TrenchBroom's <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> is VibeStudio's Read Aloud, which keeps the key in every view, so the TrenchBroom profile leaves the command unbound as a documented adaptation; users who give it that key in Keyboard Shortcuts get it only in a 2D view while it can act. **Link Plan Centres**, **Link Plan Zoom** and **Centre Plan Views on Camera** remain for lasting links; `editor view-links` reads or sets their defaults.",
       "gui": [
+        "map.reset-plan-views",
         "map.link-plan-centers",
         "map.link-plan-zoom",
         "map.center-plans-on-camera"
@@ -11862,13 +12101,17 @@
       "cli": [
         "editor view-links"
       ],
-      "limitation": "No single command copies the active pane's centre and zoom to the others while links stay off. Switching links on synchronises from the primary plan pane, not the focused one, and changes the saved defaults. There is no TrenchBroom Ctrl+Shift+U binding and no animation. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a Reset 2D Views command that runs linkLevelPlanNavigation once from the focused plan pane, with centres and zoom linked, without changing the persistent link settings. Give it a registry entry and bind Ctrl+Shift+U in the TrenchBroom profile.",
+      "limitation": "No default key in the TrenchBroom profile (Ctrl+Shift+U stays Read Aloud; opt in by remapping). No animation. One-plan layouts have no other 2D view to reset, since their single pane changes plane rather than switching between separate 2D cameras. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/app/level_view_actions.cpp",
         "src/core/level_navigation.cpp",
+        "src/app/level_plan_framing_actions.cpp",
+        "src/app/level_view_actions.cpp",
         "src/app/application_shell.cpp",
-        "src/tests/level_view_links_ui_smoke_test.cpp",
-        "src/tests/level_navigation_smoke_test.cpp"
+        "src/core/level_editor_controls.cpp",
+        "src/tests/level_plan_framing_ui_smoke_test.cpp",
+        "src/tests/level_navigation_smoke_test.cpp",
+        "docs/manual/levels.md",
+        "docs/ACCESSIBILITY_LOCALIZATION.md"
       ]
     },
     {
@@ -12164,20 +12407,21 @@
     {
       "id": "tb:Menu/View/Grid/Show Grid",
       "status": "Partial",
-      "workflow": "**Show Grid** (palette, or 0 in the TrenchBroom profile) toggles the **Grid** item in the view bar's **Show** menu, which the sidebar **View** tab mirrors. Every plan pane shows or hides its grid lines, and the state is kept for the next session.",
+      "workflow": "**Show Grid** (palette, or 0 in the TrenchBroom profile) toggles the **Grid** item in the view bar's **Show** menu, which the sidebar **View** tab mirrors. It is now checkable and checked while the grid shows. Every plan pane shows or hides its grid lines, and the camera's ground grid follows. **Grid on Camera Faces** (**View** > **Camera Display**, a **View** tab box and command search) draws the current grid size on brush faces in the camera while Show Grid is on. Lines lie in the plane of the world axes each face is most nearly square to and fade as they crowd. The states are kept for the next session.",
       "gui": [
-        "map.toggle-grid"
+        "map.toggle-grid",
+        "map.preview-face-grid"
       ],
       "cli": [],
-      "limitation": "TrenchBroom also hides the grid it draws on brush faces in the 3D view. The VibeStudio camera draws no face grid, and its ground grid uses its own spacing and ignores the toggle, so in the TrenchBroom profile's default single 3D view the command has no visible effect. The palette command is not checkable; the **Show** menu item shows the state. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Draw an optional grid at the current grid size on brush faces in the level camera, and have the camera's grid follow the shared Show Grid state.",
+      "limitation": "Grid on Camera Faces is off by default, whereas TrenchBroom always draws the face grid while the grid is visible, so a TrenchBroom user turns it on once. The face grid covers brush faces only, not patches, placed models or Doom surfaces. It has no major lines or colour preference; line colour is chosen by face brightness. The camera's ground grid keeps its own adaptive spacing. OpenGL pixels were compiled but not drawn under offscreen Windows. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
-        "src/app/map_viewport.cpp",
-        "src/app/level_view_actions.cpp",
-        "src/app/level_sidebar_actions.cpp",
-        "src/app/model_viewport.cpp",
-        "src/core/level_editor_controls.cpp",
-        "src/tests/shell_interaction_smoke_test.cpp",
+        "src/app/level_camera_render_actions.cpp",
+        "src/app/level_preview_actions.cpp",
+        "src/app/model_viewport_render.cpp",
+        "src/core/shaders/model_surface.frag",
+        "src/core/level_camera_render.h",
+        "src/tests/level_camera_shading_ui_smoke_test.cpp",
         "docs/manual/levels.md"
       ]
     },
@@ -12243,41 +12487,55 @@
     {
       "id": "tb:Menu/View/Switch to Face Inspector",
       "status": "Partial",
-      "workflow": "**Show Surfaces** opens the **Surfaces** tab, titled **Face** under the TrenchBroom profile: shift, rotate, scale, fit, justify, flip, natural alignment, and copy and paste for picked faces. **Surface Alignment** gives numeric values with a preview, and the **Textures** browser is a neighbouring tab. `map edit` and `map align-textures` set face mapping from the CLI.",
+      "workflow": "**Show Face Inspector** opens the Levels **Surfaces** tab (titled **Face** under the TrenchBroom profile) at its **Face** section and never hides it; the TrenchBroom profile binds <kbd>Ctrl</kbd>+<kbd>3</kbd> wherever focus is in Levels, while <kbd>Ctrl</kbd>+<kbd>3</kbd> still opens Models elsewhere. The section shows the one picked face over its texture with a movable pivot, a turn knob and U, V and U+V stretch knobs, and drags, arrow keys and [ ] move or turn it, and the **Offset U/V**, **Scale U/V** and **Rotation** fields set the targeted faces' values, showing **Mixed** where they differ, each change one undo step. Surface and content flags and value are in the **Flags** section of the same tab, and the **Textures** browser is a neighbouring tab. `map face-attributes` reads and sets the same values, including turns and stretches about `--pivot`.",
       "gui": [
+        "map.show-face-inspector",
+        "map.sidebar.surfaces",
         "map.align-surfaces"
       ],
       "cli": [
+        "map face-attributes",
+        "map face-flags",
         "map edit",
         "map align-textures"
       ],
-      "limitation": "The tab has no graphical UV editor and no inline numeric face-attribute or flag fields. Ctrl+3 switches to Models mode, so the TrenchBroom profile has no key for this command, and the command is missing from the documented registry. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a UV view with offset, scale and rotation handles to the Surfaces tab, with inline numeric offset, scale, rotation and surface-flag fields for the picked face. Add a documented registry entry and a profile-scoped binding.",
+      "limitation": "Brush-primitive faces show Radiant's reading of their matrix, which ties the U scale's sign to the turn, and need the material's image size from the Levels preview. There is no shear handle, the turn and stretch knobs do not snap to face edges or vertices, the field steps do not follow the grid, and patches stay with the UV Editor. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/core/level_sidebar.cpp",
-        "src/app/level_sidebar_actions.cpp",
+        "src/core/level_face_attributes.cpp",
+        "src/app/level_face_inspector_actions.cpp",
         "src/app/level_surface_tools.cpp",
-        "src/app/level_surface_dialog.cpp",
-        "src/tests/level_sidebar_smoke_test.cpp",
-        "src/tests/level_sidebar_ui_smoke_test.cpp",
-        "src/tests/level_surface_quick_ui_smoke_test.cpp"
+        "src/app/level_uv_view.cpp",
+        "src/app/studio_actions.cpp",
+        "src/core/level_editor_controls.cpp",
+        "src/cli/level_face_attributes.cpp",
+        "src/tests/level_face_attributes_smoke_test.cpp",
+        "src/tests/level_face_inspector_ui_smoke_test.cpp",
+        "src/tests/level_prism_ui_smoke_test.cpp",
+        "docs/manual/levels.md"
       ]
     },
     {
       "id": "tb:Menu/View/Switch to Map Inspector",
       "status": "Partial",
-      "workflow": "**Show Map** opens the Levels **Map** tab: worldspawn keys, a pre-build checklist, statistics, entity definitions, raw details and the text outline. The TrenchBroom profile puts Map, Entity and Face first in one right-hand sidebar, as TrenchBroom's inspector does. `map inspect` reports entities, statistics and validation, and `editor scene` manages layers.",
-      "gui": [],
+      "workflow": "**Show Map** opens the Levels **Map** tab, bound to <kbd>Ctrl</kbd>+<kbd>1</kbd> in the TrenchBroom profile while the keyboard is inside Levels; elsewhere Ctrl+1 still opens Workspace. Besides worldspawn keys, the checklist, statistics and definitions, the tab holds a **Layers** summary, **Map Properties** with TrenchBroom's soft bounds (kept as _tb_soft_map_bounds, with the count of objects outside) and **Mods** (an ordered _tb_mod list from the installation's folders, refreshed when the installation changes, or typed), each change one undo step. As in TrenchBroom, Map Properties, Mods and the Worldspawn keys change while a group is open, and the group stays open. `map properties` reports and sets the same, and `map inspect --json` includes them as mapProperties.",
+      "gui": [
+        "map.sidebar.map"
+      ],
       "cli": [
+        "map properties",
         "map inspect",
         "editor scene"
       ],
-      "limitation": "Layers are on the **Outliner** tab, and the Map tab has no mod list or soft-bounds editor. Ctrl+1 switches studio modes, so the TrenchBroom profile has no key for this command, and the command is missing from the documented registry. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a layer summary or the layer list, plus TrenchBroom-style soft-bounds and mod settings, to the Map tab. Add documented registry entries for the sidebar commands and offer a TrenchBroom-profile binding that does not break the Ctrl+digit mode shortcuts.",
+      "limitation": "The layer summary is read-only; showing, locking and editing layers stay in the Outliner. Soft bounds are not drawn in the views or reported on Health, and VibeStudio does not load assets from the enabled mods. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
-        "src/core/level_sidebar.cpp",
-        "src/app/level_sidebar_actions.cpp",
+        "src/core/level_map_inspector.cpp",
+        "src/app/level_map_inspector.cpp",
+        "src/app/level_map_inspector_actions.cpp",
         "src/app/level_sidebar_panels.cpp",
-        "src/tests/level_sidebar_smoke_test.cpp",
-        "src/tests/level_sidebar_ui_smoke_test.cpp"
+        "src/cli/level_map_properties.cpp",
+        "src/tests/level_map_info_smoke_test.cpp",
+        "src/tests/level_map_info_ui_smoke_test.cpp",
+        "src/tests/build_rerun_ui_smoke_test.cpp"
       ]
     },
     {

@@ -1,5 +1,6 @@
 #include "core/build_pipeline.h"
 #include "core/level_doom_nodes.h"
+#include "core/project_manifest.h"
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -11,6 +12,7 @@
 #include <QProcess>
 #include <QRegularExpression>
 #include <QSaveFile>
+#include <QThread>
 
 namespace vibestudio {
 
@@ -159,16 +161,16 @@ GameLaunchProfile launchProfile(
 	return profile;
 }
 
-// Splits a single argument template into concrete process arguments. The
-// template is split on whitespace first so that resolved values may contain
-// spaces. A template whose tokens do not all resolve is dropped as a unit.
-bool resolveArgumentTemplate(
-	const QString& templateText,
+// Resolves one argument group (a template's words) into concrete process
+// arguments. The words are split before the tokens are replaced, so resolved
+// values may contain spaces. A group whose tokens do not all resolve is
+// dropped as a unit.
+bool resolveArgumentWords(
+	const QStringList& parts,
 	const QMap<QString, QString>& tokens,
 	QStringList* argumentsOut,
 	QStringList* missingTokensOut)
 {
-	const QStringList parts = templateText.split(' ', Qt::SkipEmptyParts);
 	QStringList resolvedParts;
 	bool complete = true;
 	for (const QString& part : parts) {
@@ -202,6 +204,20 @@ bool resolveArgumentTemplate(
 		*argumentsOut = resolvedParts;
 	}
 	return true;
+}
+
+// The {name} tokens a word uses, known or not.
+QStringList tokensInWord(const QString& word)
+{
+	static const QRegularExpression token(QStringLiteral("\\{([A-Za-z_]+)\\}"));
+	QStringList names;
+	for (auto match = token.globalMatch(word); match.hasNext();) {
+		const QString name = match.next().captured(1);
+		if (!names.contains(name)) {
+			names << name;
+		}
+	}
+	return names;
 }
 
 QJsonArray stringArrayJson(const QStringList& values)
@@ -271,17 +287,112 @@ OperationState aggregatePipelineState(const BuildPipelineResult& result)
 	return OperationState::Completed;
 }
 
+// The ${NAME} variables a word of a project pipeline's arguments uses.
+QStringList variablesInWord(const QString& word)
+{
+	static const QRegularExpression variable(QStringLiteral("\\$\\{([A-Za-z_][A-Za-z0-9_]*)\\}"));
+	QStringList names;
+	for (auto match = variable.globalMatch(word); match.hasNext();) {
+		const QString name = match.next().captured(1);
+		if (!names.contains(name)) {
+			names << name;
+		}
+	}
+	return names;
+}
+
+// Every variable a project pipeline's stages can use, with its value for
+// this request: the built-in ones, then the pipeline's own (which may use the
+// built-in ones), then the request's, which win.
+QMap<QString, QString> projectPipelineVariables(const BuildPipelineDescriptor& pipeline, const BuildPipelineRequest& request, const QString& inputPath)
+{
+	QMap<QString, QString> values;
+	const QFileInfo input(inputPath);
+	values.insert(QStringLiteral("MAP"), inputPath);
+	values.insert(QStringLiteral("MAP_DIR"), inputPath.isEmpty() ? QString() : QDir::cleanPath(input.absolutePath()));
+	values.insert(QStringLiteral("MAP_NAME"), inputPath.isEmpty() ? QString() : input.completeBaseName());
+	QString output = absoluteCleanPath(request.outputPath);
+	if (output.isEmpty() && !inputPath.isEmpty() && !pipeline.outputExtension.isEmpty()) {
+		output = QDir::cleanPath(input.absolutePath() + QLatin1Char('/') + input.completeBaseName() + QLatin1Char('.') + pipeline.outputExtension);
+	}
+	values.insert(QStringLiteral("OUTPUT"), output);
+	values.insert(QStringLiteral("PROJECT_DIR"), absoluteCleanPath(request.workspaceRootPath));
+	values.insert(QStringLiteral("GAME_DIR"), QString());
+	values.insert(QStringLiteral("MOD"), QString());
+	values.insert(QStringLiteral("CPU_COUNT"), QString::number(std::max(1, QThread::idealThreadCount())));
+	for (auto it = request.variables.cbegin(); it != request.variables.cend(); ++it) {
+		if (buildPipelineVariableNames().contains(it.key().trimmed())) {
+			values.insert(it.key().trimmed(), it.value());
+		}
+	}
+	const QMap<QString, QString> builtIn = values;
+	for (auto it = pipeline.variables.cbegin(); it != pipeline.variables.cend(); ++it) {
+		QString value = it.value();
+		for (auto known = builtIn.cbegin(); known != builtIn.cend(); ++known) {
+			value.replace(QStringLiteral("${%1}").arg(known.key()), known.value());
+		}
+		values.insert(it.key(), value);
+	}
+	for (auto it = request.variables.cbegin(); it != request.variables.cend(); ++it) {
+		values.insert(it.key().trimmed(), it.value());
+	}
+	return values;
+}
+
+// A project stage's arguments: split as a shell would, grouped from switch to
+// switch, each ${NAME} filled in. A group with an empty variable is left out
+// with a warning; an unknown variable is an error.
+QStringList projectStageArguments(const BuildPipelineStage& stage, const QMap<QString, QString>& variables, QStringList* warnings, QStringList* errors)
+{
+	QStringList arguments;
+	for (const QStringList& group : gameLaunchArgumentGroups(stage.argumentLine)) {
+		QStringList resolved;
+		QStringList empty;
+		for (const QString& word : group) {
+			QString value = word;
+			for (const QString& name : variablesInWord(word)) {
+				if (!variables.contains(name)) {
+					if (errors) {
+						errors->push_back(QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\" uses ${%2}, which is not a variable of this pipeline.").arg(stage.id, name));
+					}
+					continue;
+				}
+				if (variables.value(name).isEmpty() && !empty.contains(name)) {
+					empty << name;
+				}
+				value.replace(QStringLiteral("${%1}").arg(name), variables.value(name));
+			}
+			resolved << value;
+		}
+		if (!empty.isEmpty()) {
+			if (warnings) {
+				const QString names = QStringLiteral("${%1}").arg(empty.join(QStringLiteral("}, ${")));
+				warnings->push_back(QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\" leaves out \"%2\" because %3 is empty.")
+					.arg(stage.id, group.join(QLatin1Char(' ')), names));
+			}
+			continue;
+		}
+		arguments += resolved;
+	}
+	return arguments;
+}
+
 // Resolves stages, inputs, and outputs. `stageRequestsOut` receives one entry
 // per stage result (a default-constructed request for skipped stages) so the
 // run phase can reuse the resolved commands without re-deriving them.
-BuildPipelineResult planPipelineInternal(const BuildPipelineRequest& request, QVector<CompilerCommandRequest>* stageRequestsOut)
+// `argumentsInvalidOut` is set when a project stage's arguments cannot be
+// resolved, which stops a run before any stage starts.
+BuildPipelineResult planPipelineInternal(const BuildPipelineRequest& request, QVector<CompilerCommandRequest>* stageRequestsOut, bool* argumentsInvalidOut = nullptr)
 {
 	BuildPipelineResult result;
 	result.dryRun = request.dryRun;
 	result.inputPath = absoluteCleanPath(request.inputPath);
 	result.finalOutputPath = result.inputPath;
+	if (argumentsInvalidOut) {
+		*argumentsInvalidOut = false;
+	}
 
-	if (!buildPipelineForId(request.pipelineId, &result.pipeline)) {
+	if (!buildPipelineForId(request.pipelineId, request.projectPipelines, &result.pipeline)) {
 		result.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "Build pipeline \"%1\" is not known.").arg(request.pipelineId.trimmed());
 		result.state = OperationState::Failed;
 		return result;
@@ -312,7 +423,9 @@ BuildPipelineResult planPipelineInternal(const BuildPipelineRequest& request, QV
 		}
 		if (stage.optional && !stage.enabledByDefault) {
 			skipped[index] = true;
-			skipReasons[index] = QCoreApplication::translate("VibeStudioBuildPipeline", "Optional stage is disabled by default for this pipeline.");
+			skipReasons[index] = result.pipeline.projectDefined
+				? QCoreApplication::translate("VibeStudioBuildPipeline", "Stage is turned off in this project pipeline.")
+				: QCoreApplication::translate("VibeStudioBuildPipeline", "Optional stage is disabled by default for this pipeline.");
 			continue;
 		}
 		if (!compilerProfileForId(stage.profileId, &profiles[index])) {
@@ -339,6 +452,8 @@ BuildPipelineResult planPipelineInternal(const BuildPipelineRequest& request, QV
 
 	QMap<QString, QString> stageOutputs;
 	QString latestOutputPath = result.inputPath;
+	const QMap<QString, QString> variables
+		= result.pipeline.projectDefined ? projectPipelineVariables(result.pipeline, request, result.inputPath) : QMap<QString, QString>();
 
 	for (int index = 0; index < stageCount; ++index) {
 		const BuildPipelineStage& stage = result.pipeline.stages.at(index);
@@ -376,6 +491,20 @@ BuildPipelineResult planPipelineInternal(const BuildPipelineRequest& request, QV
 		command.workingDirectory = request.workingDirectory;
 		command.workspaceRootPath = request.workspaceRootPath;
 		command.extraArguments = stage.extraArguments;
+		if (result.pipeline.projectDefined) {
+			QStringList argumentWarnings;
+			QStringList argumentErrors;
+			command.extraArguments += projectStageArguments(stage, variables, &argumentWarnings, &argumentErrors);
+			for (const QString& warning : std::as_const(argumentWarnings)) {
+				appendUnique(&result.warnings, warning);
+			}
+			for (const QString& error : std::as_const(argumentErrors)) {
+				appendUnique(&result.errors, error);
+			}
+			if (!argumentErrors.isEmpty() && argumentsInvalidOut) {
+				*argumentsInvalidOut = true;
+			}
+		}
 		command.extraArguments += stageArgumentsFor(request.stageExtraArguments, stage.id);
 		command.extraSearchPaths = request.extraSearchPaths;
 		command.executableOverrides = request.executableOverrides;
@@ -622,11 +751,16 @@ QStringList buildPipelineIds()
 
 bool buildPipelineForId(const QString& id, BuildPipelineDescriptor* out)
 {
+	return buildPipelineForId(id, {}, out);
+}
+
+bool buildPipelineForId(const QString& id, const QVector<BuildPipelineDescriptor>& projectPipelines, BuildPipelineDescriptor* out)
+{
 	const QString normalized = normalizedId(id);
 	if (normalized.isEmpty()) {
 		return false;
 	}
-	for (const BuildPipelineDescriptor& descriptor : buildPipelineDescriptors()) {
+	for (const BuildPipelineDescriptor& descriptor : projectPipelines + buildPipelineDescriptors()) {
 		if (normalizedId(descriptor.id) == normalized) {
 			if (out) {
 				*out = descriptor;
@@ -651,6 +785,322 @@ QStringList buildPipelineIdsForInput(const QString& inputPath)
 	return ids;
 }
 
+// Project build pipelines. Workflow reference: NetRadiant Custom's build menu
+// (DoBuildMenu and build_commands_parse/write with [RadiantPath]-style
+// variables in radiant/build.cpp at 449778b3, GPL-2.0-or-later) and
+// TrenchBroom's compilation profiles (CompilationProfileManager and the
+// ${MAP_BASE_NAME}, ${CPU_COUNT} variables of CompilationVariables at
+// 4c756be1, GPL-3.0-or-later): named lists of compiler commands with
+// arguments and variables. Original Qt implementation over VibeStudio's
+// compiler profiles, kept in the project manifest; see docs/CREDITS.md.
+QStringList buildPipelineVariableNames()
+{
+	return {QStringLiteral("MAP"), QStringLiteral("MAP_DIR"), QStringLiteral("MAP_NAME"), QStringLiteral("OUTPUT"), QStringLiteral("PROJECT_DIR"),
+		QStringLiteral("GAME_DIR"), QStringLiteral("MOD"), QStringLiteral("CPU_COUNT")};
+}
+
+QString projectBuildPipelineId(const QString& name, const QVector<BuildPipelineDescriptor>& existing)
+{
+	QString slug;
+	for (const QChar character : name.trimmed().toLower()) {
+		if ((character >= QLatin1Char('a') && character <= QLatin1Char('z')) || (character >= QLatin1Char('0') && character <= QLatin1Char('9'))) {
+			slug += character;
+		} else if (!slug.isEmpty() && !slug.endsWith(QLatin1Char('-'))) {
+			slug += QLatin1Char('-');
+		}
+	}
+	while (slug.endsWith(QLatin1Char('-'))) {
+		slug.chop(1);
+	}
+	const QString base = slug.isEmpty() ? QStringLiteral("pipeline") : slug.left(48);
+	const auto taken = [&existing](const QString& id) {
+		for (const BuildPipelineDescriptor& pipeline : existing) {
+			if (normalizedId(pipeline.id) == normalizedId(id)) {
+				return true;
+			}
+		}
+		return buildPipelineForId(id);
+	};
+	QString id = base;
+	for (int copy = 2; taken(id); ++copy) {
+		id = QStringLiteral("%1-%2").arg(base).arg(copy);
+	}
+	return id;
+}
+
+QString projectBuildPipelineStageId(const QString& profileId, const BuildPipelineDescriptor& pipeline)
+{
+	CompilerProfileDescriptor profile;
+	QString base = compilerProfileForId(profileId, &profile) && !profile.stageId.trimmed().isEmpty() ? normalizedId(profile.stageId) : QStringLiteral("stage");
+	static const QRegularExpression unsafe(QStringLiteral("[^a-z0-9-]+"));
+	base.replace(unsafe, QStringLiteral("-"));
+	if (base.isEmpty()) {
+		base = QStringLiteral("stage");
+	}
+	const auto taken = [&pipeline](const QString& id) {
+		for (const BuildPipelineStage& stage : pipeline.stages) {
+			if (normalizedId(stage.id) == id) {
+				return true;
+			}
+		}
+		return false;
+	};
+	QString id = base;
+	for (int copy = 2; taken(id); ++copy) {
+		id = QStringLiteral("%1-%2").arg(base).arg(copy);
+	}
+	return id;
+}
+
+void normalizeProjectBuildPipeline(BuildPipelineDescriptor* pipeline)
+{
+	if (!pipeline) {
+		return;
+	}
+	pipeline->projectDefined = true;
+	CompilerProfileDescriptor first;
+	if (!pipeline->stages.isEmpty() && compilerProfileForId(pipeline->stages.constFirst().profileId, &first)) {
+		pipeline->engineFamily = first.engineFamily;
+		pipeline->inputExtensions = first.inputExtensions;
+		pipeline->outputExtension = first.defaultOutputExtension;
+	}
+	for (qsizetype index = 0; index < pipeline->stages.size(); ++index) {
+		BuildPipelineStage& stage = pipeline->stages[index];
+		// Every stage can be turned off; the first one always reads the map.
+		stage.optional = true;
+		stage.inputFromPrevious = index > 0 && stage.inputFromPrevious;
+		stage.inputFromStageId = stage.inputFromPrevious ? pipeline->stages.at(index - 1).id : QString();
+		stage.extraArguments.clear();
+		if (stage.displayName.trimmed().isEmpty()) {
+			CompilerProfileDescriptor profile;
+			stage.displayName = compilerProfileForId(stage.profileId, &profile) ? profile.displayName : stage.id;
+		}
+	}
+}
+
+BuildPipelineDescriptor projectBuildPipelineFrom(const BuildPipelineDescriptor& source, const QString& name, const QVector<BuildPipelineDescriptor>& existing)
+{
+	BuildPipelineDescriptor pipeline;
+	pipeline.id = projectBuildPipelineId(name, existing);
+	pipeline.displayName = name.trimmed();
+	pipeline.description = source.description;
+	pipeline.variables = source.variables;
+	for (const BuildPipelineStage& from : source.stages) {
+		BuildPipelineStage stage;
+		stage.id = from.id;
+		stage.profileId = from.profileId;
+		stage.displayName = from.displayName;
+		stage.description = from.description;
+		stage.enabledByDefault = from.enabledByDefault;
+		// A built-in stage's fixed arguments become its typed line.
+		stage.argumentLine = from.argumentLine.isEmpty() ? compilerCommandLineText(QString(), from.extraArguments).trimmed() : from.argumentLine;
+		stage.inputFromPrevious = from.inputFromPrevious || !from.inputFromStageId.trimmed().isEmpty();
+		pipeline.stages.push_back(stage);
+	}
+	normalizeProjectBuildPipeline(&pipeline);
+	return pipeline;
+}
+
+QStringList projectBuildPipelineProblems(const BuildPipelineDescriptor& pipeline, const QVector<BuildPipelineDescriptor>& projectPipelines)
+{
+	QStringList problems;
+	static const QRegularExpression idPattern(QStringLiteral("^[a-z0-9][a-z0-9-]{0,63}$"));
+	static const QRegularExpression variablePattern(QStringLiteral("^[A-Z][A-Z0-9_]{0,31}$"));
+	if (!idPattern.match(pipeline.id).hasMatch()) {
+		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "A pipeline id uses lower-case letters, digits and hyphens.");
+	} else if (buildPipelineForId(pipeline.id)) {
+		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "\"%1\" is a built-in pipeline; choose another id.").arg(pipeline.id);
+	}
+	if (pipeline.displayName.trimmed().isEmpty()) {
+		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Give the pipeline a name.");
+	}
+	int sameId = 0;
+	int sameName = 0;
+	for (const BuildPipelineDescriptor& other : projectPipelines) {
+		sameId += normalizedId(other.id) == normalizedId(pipeline.id) ? 1 : 0;
+		sameName += !pipeline.displayName.trimmed().isEmpty() && other.displayName.trimmed().compare(pipeline.displayName.trimmed(), Qt::CaseInsensitive) == 0 ? 1 : 0;
+	}
+	if (sameId > 1) {
+		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Another pipeline of the project has the id \"%1\".").arg(pipeline.id);
+	}
+	if (sameName > 1) {
+		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Another pipeline of the project is called \"%1\".").arg(pipeline.displayName.trimmed());
+	}
+	const QStringList builtInVariables = buildPipelineVariableNames();
+	for (auto it = pipeline.variables.cbegin(); it != pipeline.variables.cend(); ++it) {
+		if (!variablePattern.match(it.key()).hasMatch()) {
+			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Variable \"%1\": a name uses capital letters, digits and underscores, starting with a letter.").arg(it.key());
+		} else if (builtInVariables.contains(it.key())) {
+			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "${%1} is a built-in variable; choose another name.").arg(it.key());
+		}
+	}
+	if (pipeline.stages.isEmpty()) {
+		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Add at least one stage.");
+	}
+	QString family;
+	QStringList stageIds;
+	for (const BuildPipelineStage& stage : pipeline.stages) {
+		const QString label = stage.displayName.trimmed().isEmpty() ? stage.id : stage.displayName.trimmed();
+		if (!idPattern.match(stage.id).hasMatch()) {
+			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\": a stage id uses lower-case letters, digits and hyphens.").arg(label);
+		} else if (stageIds.contains(stage.id)) {
+			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Two stages have the id \"%1\".").arg(stage.id);
+		}
+		stageIds << stage.id;
+		CompilerProfileDescriptor profile;
+		if (!compilerProfileForId(stage.profileId, &profile)) {
+			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\": compiler profile \"%2\" is not known.").arg(label, stage.profileId);
+		} else if (family.isEmpty()) {
+			family = profile.engineFamily;
+		} else if (profile.engineFamily.compare(family, Qt::CaseInsensitive) != 0) {
+			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\" is a %2 compiler, but the pipeline starts with a %3 one.").arg(label, profile.engineFamily, family);
+		}
+		if (stage.argumentLine.count(QLatin1Char('"')) % 2 != 0) {
+			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\": the arguments have an unclosed quote.").arg(label);
+		}
+		for (const QString& word : splitGameLaunchArguments(stage.argumentLine)) {
+			for (const QString& name : variablesInWord(word)) {
+				if (!builtInVariables.contains(name) && !pipeline.variables.contains(name)) {
+					problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\" uses ${%2}, which is not a variable of this pipeline.").arg(label, name);
+				}
+			}
+		}
+	}
+	problems.removeDuplicates();
+	return problems;
+}
+
+QJsonObject projectBuildPipelineJson(const BuildPipelineDescriptor& pipeline)
+{
+	QJsonObject object;
+	object.insert(QStringLiteral("id"), pipeline.id);
+	object.insert(QStringLiteral("name"), pipeline.displayName);
+	if (!pipeline.description.trimmed().isEmpty()) {
+		object.insert(QStringLiteral("description"), pipeline.description);
+	}
+	if (!pipeline.variables.isEmpty()) {
+		QJsonObject variables;
+		for (auto it = pipeline.variables.cbegin(); it != pipeline.variables.cend(); ++it) {
+			variables.insert(it.key(), it.value());
+		}
+		object.insert(QStringLiteral("variables"), variables);
+	}
+	QJsonArray stages;
+	for (qsizetype index = 0; index < pipeline.stages.size(); ++index) {
+		const BuildPipelineStage& stage = pipeline.stages.at(index);
+		QJsonObject stageObject;
+		stageObject.insert(QStringLiteral("id"), stage.id);
+		stageObject.insert(QStringLiteral("name"), stage.displayName);
+		stageObject.insert(QStringLiteral("profile"), stage.profileId);
+		stageObject.insert(QStringLiteral("arguments"), stage.argumentLine);
+		stageObject.insert(QStringLiteral("enabled"), stage.enabledByDefault);
+		stageObject.insert(QStringLiteral("input"), index > 0 && stage.inputFromPrevious ? QStringLiteral("previous") : QStringLiteral("map"));
+		stages.append(stageObject);
+	}
+	object.insert(QStringLiteral("stages"), stages);
+	return object;
+}
+
+bool projectBuildPipelineFromJson(const QJsonObject& object, BuildPipelineDescriptor* out)
+{
+	BuildPipelineDescriptor pipeline;
+	pipeline.id = object.value(QStringLiteral("id")).toString().trimmed();
+	pipeline.displayName = object.value(QStringLiteral("name")).toString().trimmed();
+	pipeline.description = object.value(QStringLiteral("description")).toString().trimmed();
+	const QJsonObject variables = object.value(QStringLiteral("variables")).toObject();
+	for (auto it = variables.constBegin(); it != variables.constEnd(); ++it) {
+		pipeline.variables.insert(it.key(), it.value().toString());
+	}
+	for (const QJsonValue& value : object.value(QStringLiteral("stages")).toArray()) {
+		const QJsonObject stageObject = value.toObject();
+		BuildPipelineStage stage;
+		stage.id = stageObject.value(QStringLiteral("id")).toString().trimmed();
+		stage.displayName = stageObject.value(QStringLiteral("name")).toString().trimmed();
+		stage.profileId = stageObject.value(QStringLiteral("profile")).toString().trimmed();
+		stage.argumentLine = stageObject.value(QStringLiteral("arguments")).toString().trimmed();
+		stage.enabledByDefault = stageObject.value(QStringLiteral("enabled")).toBool(true);
+		stage.inputFromPrevious = stageObject.value(QStringLiteral("input")).toString() == QLatin1String("previous");
+		pipeline.stages.push_back(stage);
+	}
+	normalizeProjectBuildPipeline(&pipeline);
+	if (out) {
+		*out = pipeline;
+	}
+	return !pipeline.id.isEmpty() || !pipeline.displayName.isEmpty() || !pipeline.stages.isEmpty();
+}
+
+QVector<BuildPipelineDescriptor> projectBuildPipelines(const ProjectManifest& manifest, QStringList* warnings, bool keepInvalid)
+{
+	QVector<BuildPipelineDescriptor> all;
+	for (const QJsonValue& value : manifest.buildPipelines) {
+		BuildPipelineDescriptor pipeline;
+		if (projectBuildPipelineFromJson(value.toObject(), &pipeline)) {
+			all.push_back(pipeline);
+		}
+	}
+	if (keepInvalid) {
+		return all;
+	}
+	QVector<BuildPipelineDescriptor> usable;
+	for (const BuildPipelineDescriptor& pipeline : std::as_const(all)) {
+		const QStringList problems = projectBuildPipelineProblems(pipeline, all);
+		if (problems.isEmpty()) {
+			usable.push_back(pipeline);
+		} else if (warnings) {
+			warnings->push_back(QCoreApplication::translate("VibeStudioBuildPipeline", "Project pipeline \"%1\" is left out: %2")
+				.arg(pipeline.displayName.isEmpty() ? pipeline.id : pipeline.displayName, problems.join(QLatin1Char(' '))));
+		}
+	}
+	return usable;
+}
+
+void setProjectBuildPipelines(ProjectManifest* manifest, const QVector<BuildPipelineDescriptor>& pipelines)
+{
+	if (!manifest) {
+		return;
+	}
+	QJsonArray array;
+	for (BuildPipelineDescriptor pipeline : pipelines) {
+		normalizeProjectBuildPipeline(&pipeline);
+		array.append(projectBuildPipelineJson(pipeline));
+	}
+	manifest->buildPipelines = array;
+}
+
+QJsonObject buildPipelineDescriptorJson(const BuildPipelineDescriptor& pipeline)
+{
+	QJsonObject entry;
+	entry.insert(QStringLiteral("id"), pipeline.id);
+	entry.insert(QStringLiteral("displayName"), pipeline.displayName);
+	entry.insert(QStringLiteral("engineFamily"), pipeline.engineFamily);
+	entry.insert(QStringLiteral("description"), pipeline.description);
+	entry.insert(QStringLiteral("inputExtensions"), QJsonArray::fromStringList(pipeline.inputExtensions));
+	entry.insert(QStringLiteral("source"), pipeline.projectDefined ? QStringLiteral("project") : QStringLiteral("built-in"));
+	if (pipeline.projectDefined) {
+		QJsonObject variables;
+		for (auto it = pipeline.variables.cbegin(); it != pipeline.variables.cend(); ++it) {
+			variables.insert(it.key(), it.value());
+		}
+		entry.insert(QStringLiteral("variables"), variables);
+	}
+	QJsonArray stages;
+	for (const BuildPipelineStage& stage : pipeline.stages) {
+		QJsonObject stageObject;
+		stageObject.insert(QStringLiteral("id"), stage.id);
+		stageObject.insert(QStringLiteral("profileId"), stage.profileId);
+		stageObject.insert(QStringLiteral("displayName"), stage.displayName);
+		stageObject.insert(QStringLiteral("optional"), stage.optional);
+		stageObject.insert(QStringLiteral("enabledByDefault"), stage.enabledByDefault);
+		stageObject.insert(QStringLiteral("inputFromStageId"), stage.inputFromStageId);
+		if (pipeline.projectDefined) {
+			stageObject.insert(QStringLiteral("arguments"), stage.argumentLine);
+		}
+		stages.append(stageObject);
+	}
+	entry.insert(QStringLiteral("stages"), stages);
+	return entry;
+}
+
 BuildPipelineResult planBuildPipeline(const BuildPipelineRequest& request)
 {
 	return planPipelineInternal(request, nullptr);
@@ -659,8 +1109,14 @@ BuildPipelineResult planBuildPipeline(const BuildPipelineRequest& request)
 BuildPipelineResult runBuildPipeline(const BuildPipelineRequest& request, const BuildPipelineCallbacks& callbacks)
 {
 	QVector<CompilerCommandRequest> stageRequests;
-	BuildPipelineResult result = planPipelineInternal(request, &stageRequests);
+	bool argumentsInvalid = false;
+	BuildPipelineResult result = planPipelineInternal(request, &stageRequests, &argumentsInvalid);
 	if (result.pipeline.id.isEmpty()) {
+		return result;
+	}
+	if (argumentsInvalid) {
+		// A stage would run with an argument that cannot be resolved: nothing starts.
+		result.state = OperationState::Failed;
 		return result;
 	}
 
@@ -817,6 +1273,9 @@ QString buildPipelineResultText(const BuildPipelineResult& result)
 	if (!result.pipeline.engineFamily.isEmpty()) {
 		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Engine: %1").arg(result.pipeline.engineFamily);
 	}
+	if (result.pipeline.projectDefined) {
+		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Source: the project's own pipeline");
+	}
 	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "State: %1").arg(operationStateId(result.state));
 	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Succeeded: %1").arg(result.succeeded() ? QCoreApplication::translate("VibeStudioBuildPipeline", "yes") : QCoreApplication::translate("VibeStudioBuildPipeline", "no"));
 	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Dry run: %1").arg(result.dryRun ? QCoreApplication::translate("VibeStudioBuildPipeline", "yes") : QCoreApplication::translate("VibeStudioBuildPipeline", "no"));
@@ -879,6 +1338,7 @@ QJsonObject buildPipelineResultJson(const BuildPipelineResult& result)
 	object.insert(QStringLiteral("pipelineId"), result.pipeline.id);
 	object.insert(QStringLiteral("displayName"), result.pipeline.displayName);
 	object.insert(QStringLiteral("engineFamily"), result.pipeline.engineFamily);
+	object.insert(QStringLiteral("source"), result.pipeline.projectDefined ? QStringLiteral("project") : QStringLiteral("built-in"));
 	object.insert(QStringLiteral("state"), operationStateId(result.state));
 	object.insert(QStringLiteral("succeeded"), result.succeeded());
 	object.insert(QStringLiteral("dryRun"), result.dryRun);
@@ -1013,11 +1473,16 @@ QStringList gameLaunchProfileIds()
 
 bool gameLaunchProfileForId(const QString& id, GameLaunchProfile* out)
 {
+	return gameLaunchProfileForId(id, {}, out);
+}
+
+bool gameLaunchProfileForId(const QString& id, const QVector<GameLaunchProfile>& userProfiles, GameLaunchProfile* out)
+{
 	const QString normalized = normalizedId(id);
 	if (normalized.isEmpty()) {
 		return false;
 	}
-	for (const GameLaunchProfile& profile : gameLaunchProfiles()) {
+	for (const GameLaunchProfile& profile : userProfiles + gameLaunchProfiles()) {
 		if (normalizedId(profile.id) == normalized) {
 			if (out) {
 				*out = profile;
@@ -1041,6 +1506,149 @@ QString defaultGameLaunchProfileId(GameEngineFamily family)
 		break;
 	}
 	return QStringLiteral("custom");
+}
+
+// User launch profiles. Workflow reference: TrenchBroom GameEngineProfile and
+// LaunchGameEngineDialog at 4c756be1 (GPL-3.0-or-later): a named engine with
+// a parameter line of variables. Original Qt implementation with VibeStudio's
+// own tokens; see docs/CREDITS.md.
+QStringList gameLaunchTokens()
+{
+	return {QStringLiteral("map"), QStringLiteral("mod"), QStringLiteral("basedir"), QStringLiteral("bsp"), QStringLiteral("iwad"), QStringLiteral("warp")};
+}
+
+QStringList splitGameLaunchArguments(const QString& text)
+{
+	return QProcess::splitCommand(text);
+}
+
+QVector<QStringList> gameLaunchArgumentGroups(const QString& argumentLine)
+{
+	QVector<QStringList> groups;
+	for (const QString& word : splitGameLaunchArguments(argumentLine)) {
+		// A switch starts a group; a number such as -1 is a value, not a switch.
+		bool number = false;
+		word.toDouble(&number);
+		const bool startsSwitch = !number && (word.startsWith(QLatin1Char('-')) || word.startsWith(QLatin1Char('+')));
+		if (groups.isEmpty() || startsSwitch) {
+			groups.push_back({word});
+		} else {
+			groups.last().push_back(word);
+		}
+	}
+	return groups;
+}
+
+QString userGameLaunchProfileId(const QString& name, const QVector<GameLaunchProfile>& existing)
+{
+	QString slug;
+	for (const QChar character : name.trimmed().toLower()) {
+		if ((character >= QLatin1Char('a') && character <= QLatin1Char('z')) || (character >= QLatin1Char('0') && character <= QLatin1Char('9'))) {
+			slug += character;
+		} else if (!slug.isEmpty() && !slug.endsWith(QLatin1Char('-'))) {
+			slug += QLatin1Char('-');
+		}
+	}
+	while (slug.endsWith(QLatin1Char('-'))) {
+		slug.chop(1);
+	}
+	const QString base = QStringLiteral("user-%1").arg(slug.isEmpty() ? QStringLiteral("profile") : slug.left(40));
+	const auto taken = [&existing](const QString& id) {
+		for (const GameLaunchProfile& profile : existing) {
+			if (normalizedId(profile.id) == normalizedId(id)) {
+				return true;
+			}
+		}
+		return gameLaunchProfileIds().contains(id);
+	};
+	QString id = base;
+	for (int copy = 2; taken(id); ++copy) {
+		id = QStringLiteral("%1-%2").arg(base).arg(copy);
+	}
+	return id;
+}
+
+QString userGameLaunchProfileProblem(const GameLaunchProfile& profile)
+{
+	static const QRegularExpression idPattern(QStringLiteral("^[a-z0-9][a-z0-9-]{0,63}$"));
+	if (!idPattern.match(profile.id).hasMatch()) {
+		return QCoreApplication::translate("VibeStudioBuildPipeline", "A launch profile id uses lower-case letters, digits and hyphens.");
+	}
+	if (gameLaunchProfileIds().contains(normalizedId(profile.id))) {
+		return QCoreApplication::translate("VibeStudioBuildPipeline", "\"%1\" is a built-in launch profile; choose another id.").arg(profile.id);
+	}
+	if (profile.displayName.trimmed().isEmpty()) {
+		return QCoreApplication::translate("VibeStudioBuildPipeline", "Give the launch profile a name.");
+	}
+	if (profile.argumentLine.count(QLatin1Char('"')) % 2 != 0) {
+		return QCoreApplication::translate("VibeStudioBuildPipeline", "The arguments have an unclosed quote.");
+	}
+	const QStringList known = gameLaunchTokens();
+	for (const QStringList& group : gameLaunchArgumentGroups(profile.argumentLine)) {
+		for (const QString& word : group) {
+			for (const QString& name : tokensInWord(word)) {
+				if (!known.contains(name)) {
+					return QCoreApplication::translate("VibeStudioBuildPipeline", "{%1} is not a launch token. Use {map}, {mod}, {basedir}, {bsp}, {iwad} or {warp}.").arg(name);
+				}
+			}
+		}
+	}
+	if (!profile.engineFamily.isEmpty() && profile.engineFamily != QStringLiteral("unknown")
+		&& gameEngineFamilyFromId(profile.engineFamily) == GameEngineFamily::Unknown) {
+		return QCoreApplication::translate("VibeStudioBuildPipeline", "Engine \"%1\" is not idTech1, idTech2 or idTech3.").arg(profile.engineFamily);
+	}
+	return {};
+}
+
+QStringList resolveGameLaunchArgumentLine(const QString& argumentLine, const QMap<QString, QString>& tokens, QStringList* droppedGroups)
+{
+	// The same resolution buildGameLaunchPlan applies to a user profile.
+	QStringList arguments;
+	for (const QStringList& group : gameLaunchArgumentGroups(argumentLine)) {
+		QStringList resolved;
+		if (resolveArgumentWords(group, tokens, &resolved, nullptr)) {
+			arguments += resolved;
+		} else if (droppedGroups) {
+			droppedGroups->push_back(group.join(QLatin1Char(' ')));
+		}
+	}
+	return arguments;
+}
+
+QJsonObject gameLaunchProfileJson(const GameLaunchProfile& profile)
+{
+	QJsonObject object;
+	object.insert(QStringLiteral("id"), profile.id);
+	object.insert(QStringLiteral("displayName"), profile.displayName);
+	object.insert(QStringLiteral("engineFamily"), profile.engineFamily);
+	object.insert(QStringLiteral("description"), profile.description);
+	object.insert(QStringLiteral("requiresMap"), profile.requiresMap);
+	object.insert(QStringLiteral("userDefined"), profile.userDefined);
+	if (profile.userDefined) {
+		object.insert(QStringLiteral("arguments"), profile.argumentLine);
+	} else {
+		object.insert(QStringLiteral("arguments"), profile.argumentTemplates.join(QLatin1Char(' ')));
+	}
+	return object;
+}
+
+bool gameLaunchProfileFromJson(const QJsonObject& object, GameLaunchProfile* out)
+{
+	GameLaunchProfile profile;
+	profile.id = object.value(QStringLiteral("id")).toString().trimmed();
+	profile.displayName = object.value(QStringLiteral("displayName")).toString().trimmed();
+	profile.engineFamily = object.value(QStringLiteral("engineFamily")).toString().trimmed();
+	profile.description = object.value(QStringLiteral("description")).toString();
+	profile.requiresMap = object.value(QStringLiteral("requiresMap")).toBool(true);
+	profile.userDefined = true;
+	profile.argumentLine = object.value(QStringLiteral("arguments")).toString().trimmed();
+	if (!userGameLaunchProfileProblem(profile).isEmpty()) {
+		return false;
+	}
+	if (out) {
+		*out = profile;
+	}
+	return true;
 }
 
 QString doomIwadPath(const GameInstallationProfile& installation, const QString& baseDirectory)
@@ -1094,11 +1702,19 @@ GameLaunchPlan buildGameLaunchPlan(const GameLaunchRequest& request, const GameI
 	const QString requestedProfileId = request.launchProfileId.trimmed().isEmpty()
 		? defaultGameLaunchProfileId(installation.engineFamily)
 		: request.launchProfileId;
-	plan.profileFound = gameLaunchProfileForId(requestedProfileId, &plan.profile);
+	plan.profileFound = gameLaunchProfileForId(requestedProfileId, request.userProfiles, &plan.profile);
 	if (!plan.profileFound) {
 		plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "Game launch profile \"%1\" is not known.").arg(requestedProfileId.trimmed());
 		plan.commandLine = compilerCommandLineText(plan.program, plan.arguments);
 		return plan;
+	}
+
+	// A profile of the user's own made for another engine still runs, as typed,
+	// but its switches are probably not this engine's.
+	if (plan.profile.userDefined && !plan.profile.engineFamily.isEmpty() && plan.profile.engineFamily != QLatin1String("unknown")
+		&& installation.engineFamily != GameEngineFamily::Unknown && gameEngineFamilyFromId(plan.profile.engineFamily) != installation.engineFamily) {
+		plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "Launch profile \"%1\" is for %2, but the installation is %3.")
+			.arg(plan.profile.displayName, plan.profile.engineFamily, gameEngineFamilyDisplayName(installation.engineFamily));
 	}
 
 	plan.program = absoluteCleanPath(request.executablePath.trimmed().isEmpty() ? installation.executablePath : request.executablePath);
@@ -1130,10 +1746,29 @@ GameLaunchPlan buildGameLaunchPlan(const GameLaunchRequest& request, const GameI
 	tokens.insert(QStringLiteral("basedir"), baseDirectory);
 	tokens.insert(QStringLiteral("bsp"), artifactPath);
 
-	for (const QString& argumentTemplate : plan.profile.argumentTemplates) {
+	// A user profile's line is split into switch groups now, so a quoted word
+	// keeps its spaces; a built-in template is one group of plain words.
+	QVector<QStringList> groups;
+	if (plan.profile.userDefined) {
+		groups = gameLaunchArgumentGroups(plan.profile.argumentLine);
+	} else {
+		for (const QString& argumentTemplate : std::as_const(plan.profile.argumentTemplates)) {
+			groups << argumentTemplate.split(' ', Qt::SkipEmptyParts);
+		}
+	}
+	const QStringList known = gameLaunchTokens();
+	for (const QStringList& group : std::as_const(groups)) {
+		for (const QString& word : group) {
+			for (const QString& name : tokensInWord(word)) {
+				if (!known.contains(name)) {
+					plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "Argument \"%1\" uses {%2}, which is not a launch token, so it is passed as written.")
+						.arg(word, name);
+				}
+			}
+		}
 		QStringList resolved;
 		QStringList missingTokens;
-		if (resolveArgumentTemplate(argumentTemplate, tokens, &resolved, &missingTokens)) {
+		if (resolveArgumentWords(group, tokens, &resolved, &missingTokens)) {
 			plan.arguments += resolved;
 			continue;
 		}
@@ -1143,7 +1778,7 @@ GameLaunchPlan buildGameLaunchPlan(const GameLaunchRequest& request, const GameI
 			continue;
 		}
 		plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "Argument \"%1\" was dropped because %2 is not set.")
-			.arg(argumentTemplate, missingTokens.join(QStringLiteral(", ")));
+			.arg(group.join(QLatin1Char(' ')), missingTokens.join(QStringLiteral(", ")));
 	}
 	plan.arguments += request.extraArguments;
 

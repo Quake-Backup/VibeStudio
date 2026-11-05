@@ -18,6 +18,7 @@
 #include <QRegularExpression>
 
 #include <algorithm>
+#include <atomic>
 
 namespace vibestudio
 {
@@ -160,6 +161,21 @@ struct Request {
 	bool authored = false;
 };
 } // namespace
+
+namespace
+{
+std::atomic<int> defaultDialect {static_cast<int>(MaterialDialect::Automatic)};
+} // namespace
+
+void setLevelPreviewDefaultDialect(MaterialDialect dialect)
+{
+	defaultDialect.store(static_cast<int>(dialect), std::memory_order_relaxed);
+}
+
+MaterialDialect levelPreviewDefaultDialect()
+{
+	return static_cast<MaterialDialect>(defaultDialect.load(std::memory_order_relaxed));
+}
 
 int LevelPreviewAssets::readyCount() const
 {

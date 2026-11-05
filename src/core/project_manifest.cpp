@@ -26,7 +26,7 @@ const QStringList& knownManifestKeys()
 		QStringLiteral("sourceFolders"), QStringLiteral("packageFolders"), QStringLiteral("outputFolder"), QStringLiteral("tempFolder"),
 		QStringLiteral("selectedInstallationId"), QStringLiteral("compilerSearchPaths"), QStringLiteral("compilerToolOverrides"),
 		QStringLiteral("registeredOutputPaths"), QStringLiteral("settingsOverrides"), QStringLiteral("release"),
-		QStringLiteral("createdUtc"), QStringLiteral("updatedUtc"),
+		QStringLiteral("buildPipelines"), QStringLiteral("createdUtc"), QStringLiteral("updatedUtc"),
 	};
 	return keys;
 }
@@ -453,6 +453,7 @@ bool loadProjectManifest(const QString& projectRootPath, ProjectManifest* manife
 	loaded.registeredOutputPaths = jsonToStringList(object.value(QStringLiteral("registeredOutputPaths")));
 	loaded.settingsOverrides = projectSettingsOverridesFromJson(object.value(QStringLiteral("settingsOverrides")));
 	loaded.release = releaseSettingsFromJson(object.value(QStringLiteral("release")));
+	loaded.buildPipelines = object.value(QStringLiteral("buildPipelines")).toArray();
 	for (auto it = object.constBegin(); it != object.constEnd(); ++it) {
 		if (!knownManifestKeys().contains(it.key())) {
 			loaded.extraFields.insert(it.key(), it.value());
@@ -589,6 +590,11 @@ bool saveProjectManifest(const ProjectManifest& manifest, QString* error)
 		object.insert(QStringLiteral("release"), release);
 	} else {
 		object.remove(QStringLiteral("release"));
+	}
+	if (!normalized.buildPipelines.isEmpty()) {
+		object.insert(QStringLiteral("buildPipelines"), normalized.buildPipelines);
+	} else {
+		object.remove(QStringLiteral("buildPipelines"));
 	}
 	object.insert(QStringLiteral("createdUtc"), normalized.createdUtc.toUTC().toString(Qt::ISODate));
 	object.insert(QStringLiteral("updatedUtc"), normalized.updatedUtc.toUTC().toString(Qt::ISODate));

@@ -81,11 +81,30 @@ bool fail(QString* error, const QString& message)
 	return false;
 }
 
+// How far along the view ray the camera's far clip lets it reach; infinite
+// without a far clip or when the ray runs parallel to it.
+double farClipRayLimit(const LevelPastePlacement& placement, V direction)
+{
+	const V& at = placement.farClipPoint;
+	const V& n = placement.farClipNormal;
+	if (!at.valid || !n.valid || !finite(at) || !finite(n)) {
+		return std::numeric_limits<double>::infinity();
+	}
+	const double speed = dot(n, direction);
+	if (!(speed > 1e-12)) {
+		return std::numeric_limits<double>::infinity();
+	}
+	const double limit = dot(n, {at.x - placement.rayOrigin.x, at.y - placement.rayOrigin.y, at.z - placement.rayOrigin.z, true}) / speed;
+	return std::isfinite(limit) ? limit : std::numeric_limits<double>::infinity();
+}
+
 // Convex half-space ray clipping. Source brushes only; models and patches do
-// not obscure a brush hit, matching TB's brush-only paste target query.
+// not obscure a brush hit, matching TB's brush-only paste target query. Hits
+// past the camera's far clip are left out, as the camera does not draw them.
 bool brushTarget(const LevelMapDocument& document, const LevelPastePlacement& placement, V direction, V* point, V* normal)
 {
 	const auto hidden = levelMapHiddenObjects(document);
+	const double reach = farClipRayLimit(placement, direction);
 	double closest = std::numeric_limits<double>::infinity();
 	for (const auto& brush : document.brushes) {
 		detail::placementCancellationCheckpoint();
@@ -134,7 +153,7 @@ bool brushTarget(const LevelMapDocument& document, const LevelPastePlacement& pl
 		}
 		const bool entry = !placement.rayForwardOnly || enter >= 0;
 		const double t = entry ? enter : leave;
-		if (valid && (!placement.rayForwardOnly || t >= 0) && t < closest && std::isfinite(t)) {
+		if (valid && (!placement.rayForwardOnly || t >= 0) && t < closest && t <= reach && std::isfinite(t)) {
 			closest = t;
 			*point = {placement.rayOrigin.x + t * direction.x, placement.rayOrigin.y + t * direction.y,
 			          placement.rayOrigin.z + t * direction.z, true};
@@ -286,7 +305,10 @@ bool levelPasteOffset(const LevelMapDocument& destination, const LevelMapDocumen
 				            QCoreApplication::translate("LevelPaste", "Cursor paste needs a finite camera and a forward-facing view ray."));
 			}
 			if (!brushTarget(destination, placement, direction, &point, &normal)) {
-				const double distance = placement.rayForwardOnly ? 256 : 0;
+				// A far clip nearer than the miss plane pulls it in, so the
+				// paste lands where the camera still draws.
+				const double reach = farClipRayLimit(placement, direction);
+				const double distance = placement.rayForwardOnly ? std::clamp(reach, 0.0, 256.0) : 0;
 				point = {placement.rayOrigin.x + distance * direction.x, placement.rayOrigin.y + distance * direction.y,
 				         placement.rayOrigin.z + distance * direction.z, true};
 				if (placement.grid > 0) {

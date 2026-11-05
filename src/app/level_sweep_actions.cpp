@@ -39,6 +39,8 @@ void ApplicationShell::sweepLevelFacesFromUi(bool inViews)
 	if (!archive && m_packageArchive.isOpen()) {
 		archive = std::make_shared<const PackageArchive>(m_packageArchive);
 	}
+	// Material previews read the game's base packages beneath it.
+	archive = levelMaterialReader(std::move(archive));
 	auto dialog = std::make_unique<LevelSweepDialog>(m_levelMapDocument, request, archive, activePaletteId(), this);
 	const auto publish = levelPlacementCommitter();
 	dialog->setApplyHandler([this, publish](const LevelMapDocument& candidate, QString* error) {

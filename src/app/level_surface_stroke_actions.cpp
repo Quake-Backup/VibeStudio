@@ -4,6 +4,7 @@
 #include "app/level_surface_worker.h"
 #include "app/map_viewport.h"
 #include "app/model_viewport.h"
+#include "core/level_camera_render.h"
 #include <QStatusBar>
 #include <QTimer>
 #include <QToolButton>
@@ -39,6 +40,7 @@ void ApplicationShell::beginLevelSurfaceStroke()
 	work.archive = m_packageArchive.snapshotReader();
 	if (!work.archive && m_packageArchive.isOpen()) { work.archive = std::make_shared<const PackageArchive>(m_packageArchive); }
 	if (m_packageStaging.isLoaded()) { work.staging = std::make_shared<const PackageStagingModel>(m_packageStaging); }
+	work.baseReaders = levelBaseReaders();
 	work.palette = activePaletteId(); work.clipboardArchive = m_levelSurfaceClipboardArchive; work.clipboardStaging = m_levelSurfaceClipboardStaging;
 	work.clipboardPalette = m_levelSurfaceClipboardPalette; work.clipboardEngineFamily = m_levelSurfaceClipboardEngineFamily;
 	work.clipboardFormat = m_levelSurfaceClipboardFormat; work.clipboardContextCaptured = true;
@@ -67,6 +69,8 @@ void ApplicationShell::beginLevelSurfaceStroke()
 			}
 			m_levelMap3D->setMaterialStrokePreview(result.preview.mesh, levelPreviewSurfaceImages(result.preview.mesh, result.assets), triangles,
 				state->work.stroke ? state->work.stroke->plan().faceCount() + state->work.stroke->plan().patchCount() : 0);
+			// Grid on Camera Faces follows the preview's own triangle order.
+			m_levelMap3D->setFaceGridTriangles(levelCameraFaceGridTriangles(result.preview));
 		};
 	}
 	m_levelMaterialStrokeCancel->setEnabled(true);
@@ -171,7 +175,10 @@ void ApplicationShell::completeLevelSurfaceStroke(LevelSurfaceResult result)
 			preview.document.entities.removeIf([&](const auto& entity) { return !state->visibleEntities.contains(entity.id); });
 		}
 		preview.archive = state->work.archive; preview.staging = state->work.stagingIndexed ? nullptr : state->work.staging;
-		preview.options.paletteId = state->work.palette; preview.assetKey = state->assetKey;
+		preview.options.paletteId = state->work.palette; preview.options.materialDialect = materialDialectChoice(); preview.assetKey = state->assetKey;
+		// The stroke draws over the same base packages as the camera.
+		preview.baseReaders = state->work.baseReaders;
+		preview.baseKey = preview.baseReaders.isEmpty() ? QString() : m_levelBaseReadersKey;
 		preview.loadSerial = state->work.token; preview.sourceKey = QString::number(state->work.stroke->stepCount());
 		m_levelSurfaceStrokePreview->request(std::move(preview));
 		const auto message = tr("%n surface(s) in stroke preview · Release to apply; Escape cancels.", nullptr, result.changedFaces + result.changedPatches);

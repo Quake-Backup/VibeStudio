@@ -249,6 +249,24 @@ ModelViewport::ModelViewport(QWidget* parent)
 	: QWidget(parent)
 {
 	m_componentGizmo = new LevelComponentGizmo(this);
+	m_objectGizmo = new LevelComponentGizmo(this);
+	connect(m_objectGizmo,&LevelComponentGizmo::changed,this,[this,wasActive = std::make_shared<bool>(false)] {
+		syncObjectGizmoPreview();
+		setAccessibleDescription(accessibleSummary());
+		if (m_objectGizmo->active()) { Q_EMIT hoverChanged(m_objectGizmo->summary()); }
+		// The move cursor goes when the drag that set it ends.
+		if (*wasActive && !m_objectGizmo->active() && !m_looking) { unsetCursor(); }
+		*wasActive = m_objectGizmo->active();
+		update();
+	});
+	// The drag-tool gestures and Build tool (model_viewport_plane_drag.cpp).
+	m_planeDrag = new LevelPlaneDragController(this);
+	connect(m_planeDrag,&LevelPlaneDragController::changed,this,[this] {
+		setAccessibleDescription(accessibleSummary());
+		if (m_planeDrag->active()) { Q_EMIT hoverChanged(m_planeDrag->summary()); }
+		update();
+	});
+	connect(m_planeDrag,&LevelPlaneDragController::activeChanged,this,[this](bool active) { if (!active && !m_looking) { unsetCursor(); } });
 	m_vertexInsertion = new LevelVertexInsertion(this);
 	connect(m_vertexInsertion,&LevelVertexInsertion::changed,this,[this] {
 		setAccessibleDescription(accessibleSummary()); Q_EMIT hoverChanged(componentSummary()); update();
@@ -348,6 +366,7 @@ void ModelViewport::setMesh(const ModelMesh& mesh, bool keepView)
 	invalidateRaster(true);
 	const bool keepCamera = keepView && m_hasMesh;
 	m_mesh = mesh;
+	m_texCoordBackup.clear();
 	++m_meshRevision;
 	m_nativeMdl = false;
 	m_mdlPlaybackSkins.clear();
@@ -498,6 +517,7 @@ void ModelViewport::clearMesh()
 	m_selectedEdges.clear(); m_edgeSelectionSurface = -1;
 	invalidateRaster(true);
 	m_mesh = ModelMesh();
+	m_texCoordBackup.clear();
 	++m_meshRevision;
 	m_nativeMdl = false;
 	m_mdlPlaybackSkins.clear();
@@ -672,6 +692,111 @@ void ModelViewport::setPolygonEdges(bool enabled)
 bool ModelViewport::polygonEdges() const
 {
 	return m_polygonEdges;
+}
+
+void ModelViewport::setFaceShading(bool shade)
+{
+	if (m_faceShading == shade) {
+		return;
+	}
+	m_faceShading = shade;
+	invalidateRaster();
+	update();
+}
+
+bool ModelViewport::faceShading() const
+{
+	return m_faceShading;
+}
+
+void ModelViewport::setDistanceFog(bool enabled, double start, double end, double strength)
+{
+	const bool valid = std::isfinite(start) && std::isfinite(end) && std::isfinite(strength);
+	enabled = enabled && valid && strength > 0.0;
+	start = enabled ? std::max(0.0, start) : 0.0;
+	end = enabled ? std::max(start + 1.0, end) : 0.0;
+	strength = enabled ? std::min(strength, 1.0) : 0.0;
+	if (m_fog == enabled && m_fogStart == start && m_fogEnd == end && m_fogStrength == strength) {
+		return;
+	}
+	m_fog = enabled;
+	m_fogStart = start;
+	m_fogEnd = end;
+	m_fogStrength = strength;
+	invalidateRaster();
+	update();
+}
+
+bool ModelViewport::distanceFog() const
+{
+	return m_fog;
+}
+
+void ModelViewport::setFarClip(double distance)
+{
+	const double next = std::isfinite(distance) && distance > kNearPlane ? distance : 0.0;
+	if (m_farClip == next) {
+		return;
+	}
+	m_farClip = next;
+	invalidateRaster();
+	update();
+}
+
+double ModelViewport::farClip() const
+{
+	return m_farClip;
+}
+
+bool ModelViewport::farClipPlane(ModelVec3* point, ModelVec3* normal) const
+{
+	if (!(m_farClip > 0.0) || !point || !normal) {
+		return false;
+	}
+	// The plane clipSegmentToFarClip and the view-projection cut at: the clip
+	// distance ahead of the eye in perspective, or behind the front of the
+	// drawn geometry along the view in orthographic views.
+	const Camera camera = buildCamera();
+	if (m_perspective) {
+		*normal = camera.forward;
+		*point = makeVec(m_eye.x + camera.forward.x * m_farClip, m_eye.y + camera.forward.y * m_farClip, m_eye.z + camera.forward.z * m_farClip);
+		return true;
+	}
+	if (!m_gpuGeometry) {
+		return false;
+	}
+	const double depth = dotVec(m_gpuGeometry->centre, camera.eye) + m_gpuGeometry->radius - m_farClip;
+	*normal = makeVec(-camera.eye.x, -camera.eye.y, -camera.eye.z);
+	*point = makeVec(camera.eye.x * depth, camera.eye.y * depth, camera.eye.z * depth);
+	return true;
+}
+
+void ModelViewport::setFaceGrid(double spacing)
+{
+	const double next = std::isfinite(spacing) && spacing > 0.0 ? spacing : 0.0;
+	if (m_faceGrid == next) {
+		return;
+	}
+	m_faceGrid = next;
+	invalidateRaster();
+	update();
+}
+
+double ModelViewport::faceGrid() const
+{
+	return m_faceGrid;
+}
+
+void ModelViewport::setFaceGridTriangles(const QBitArray& triangles)
+{
+	if (m_faceGridTriangles == triangles) {
+		return;
+	}
+	m_faceGridTriangles = triangles;
+	// The marks live in the uploaded corners, so the geometry is rebuilt.
+	++m_faceGridRevision;
+	invalidateRaster();
+	update();
 }
 
 void ModelViewport::setHighContrast(bool enabled)
@@ -1006,6 +1131,12 @@ QString ModelViewport::accessibleSummary() const
 	if (isRendering()) { summary += QStringLiteral(" ") + tr("Rendering model…"); }
 	if (m_pointerDriving) { summary += QStringLiteral(" ") + tr("Position steering; release or Escape stops movement."); }
 	if (m_componentMode) { summary += QStringLiteral(" ") + componentSummary(); }
+	if (objectGizmoShown()) { summary += QStringLiteral(" ") + m_objectGizmo->summary(); }
+	if (m_planeDrag->active()) { summary += QStringLiteral(" ") + m_planeDrag->summary(); }
+	else if (m_buildMode) {
+		summary += QStringLiteral(" ") + tr("Build tool: drag a selected brush's face out to extrude a new brush, or in to split a slab off; "
+			"Shift and a drag on the selection lay copies end to end.");
+	}
 	if (!m_groupContextLabel.isEmpty()) { summary += QStringLiteral(" ") + tr("Editing group: %1").arg(m_groupContextLabel); }
 	if (m_hasMesh && m_linkedGroups.drawsAnything()) {
 		summary += QStringLiteral(" ") + levelLinkedGroupsDescription(m_linkedGroups.boxes, m_linkedGroups.inUse, m_linkedGroups.showAll);
@@ -1374,7 +1505,7 @@ void ModelViewport::clearMaterialStrokePreview()
 	if (!m_materialStrokeRaster) { return; }
 	auto original = std::move(m_materialStrokeRaster);
 	const QScopedValueRollback guard(m_materialStrokePreviewChange, true);
-	if (m_materialStrokePreviewChanged) { setMesh(original->mesh, true); setSurfaceSkins(m_materialStrokeSkins); }
+	if (m_materialStrokePreviewChanged) { setMesh(original->mesh, true); setSurfaceSkins(m_materialStrokeSkins); setFaceGridTriangles(original->faceGridTriangles); }
 	setHighlightedTriangles(m_materialStrokeHighlights); setSurfaceStrokePreview({}, 0);
 	m_materialStrokeSkins.clear(); m_materialStrokeHighlights.clear(); m_materialStrokePreviewChanged = false;
 }
@@ -1487,18 +1618,20 @@ void ModelViewport::paintGround(QPainter& painter, const Palette& palette) const
 
 	QPen minorPen(palette.grid, 1.0);
 	QPen majorPen(palette.gridMajor, 1.4);
+	// The far clip cuts the ground grid where it cuts the faces.
+	const auto line = [&](ModelVec3 from, ModelVec3 to) {
+		QPointF a;
+		QPointF b;
+		if (clipSegmentToFarClip(&from, &to) && projectSegment(from, to, &a, &b)) {
+			painter.drawLine(a, b);
+		}
+	};
 	for (int step = -half; step <= half; ++step) {
 		const double offset = step * spacing;
 		const bool major = step == 0 || (std::abs(step) % 8) == 0;
 		painter.setPen(major ? majorPen : minorPen);
-		QPointF a;
-		QPointF b;
-		if (projectSegment(makeVec(offset, -extent, 0.0), makeVec(offset, extent, 0.0), &a, &b)) {
-			painter.drawLine(a, b);
-		}
-		if (projectSegment(makeVec(-extent, offset, 0.0), makeVec(extent, offset, 0.0), &a, &b)) {
-			painter.drawLine(a, b);
-		}
+		line(makeVec(offset, -extent, 0.0), makeVec(offset, extent, 0.0));
+		line(makeVec(-extent, offset, 0.0), makeVec(extent, offset, 0.0));
 	}
 }
 
@@ -1682,7 +1815,16 @@ void ModelViewport::paintTriangles(QPainter &painter, const Palette &palette)
 		work->highContrast = m_highContrast;
 		work->showEdges = m_showEdges;
 		work->polygonEdges = m_polygonEdges;
-		work->moving = m_dragStarted && m_dragAction == DragAction::Move;
+		work->faceShading = m_faceShading;
+		work->fogStart = m_fogStart;
+		work->fogEnd = m_fogEnd;
+		work->fogStrength = m_fog ? m_fogStrength : 0.0;
+		work->farClip = m_farClip;
+		work->faceGrid = m_faceGrid;
+		work->faceGridTriangles = m_faceGridTriangles;
+		// The object manipulator's translation previews through the same offset.
+		work->moving = (m_dragStarted && m_dragAction == DragAction::Move)
+			|| (m_objectGizmo->active() && (m_moveOffset.x != 0.0f || m_moveOffset.y != 0.0f || m_moveOffset.z != 0.0f));
 		work->resizingSelection = isResizingSelection();
 		work->resizeFrom = m_selectionResizeBox; work->resizeTo = m_selectionResizePreview;
 		work->resizeOrigins = m_selectionResizeOrigins;
@@ -1725,6 +1867,14 @@ void ModelViewport::paintTriangles(QPainter &painter, const Palette &palette)
 		if (m_gpuGeometry && m_gpuGeometry->key.matches(work->geometryKey))
 		{
 			work->geometry = m_gpuGeometry;
+		}
+		else if (m_gpuGeometry && !m_texCoordTouched.isEmpty() && m_texCoordTouchedMesh == m_meshRevision
+			&& m_gpuGeometry->key.matchesButTexCoords(work->geometryKey))
+		{
+			// Since that upload only setTexCoordPreview() changed anything, and
+			// only on these triangles.
+			work->texCoordBase = m_gpuGeometry;
+			work->texCoordTriangles = m_texCoordTouched;
 		}
 		work->flagsKey = currentFlagsKey();
 		if (m_gpuFlags && m_gpuFlags->key.matches(work->flagsKey))
@@ -1847,12 +1997,14 @@ ModelViewport::GeometryKey ModelViewport::currentGeometryKey(bool textured, bool
 {
 	GeometryKey key;
 	key.mesh = m_meshRevision;
+	key.texCoords = m_texCoordRevision;
 	key.frame = m_frame;
 	key.blendFrame = m_blendFrame;
 	key.frameBlend = m_frameBlend;
 	key.textured = textured;
 	key.highContrast = m_highContrast;
 	key.polygonEdges = m_polygonEdges;
+	key.faceGrid = m_faceGridRevision;
 	key.editMoveActive = m_editMoveActive || m_mirroredJointPreview;
 	if (key.editMoveActive)
 	{
@@ -1989,6 +2141,8 @@ void ModelViewport::paintEvent(QPaintEvent*)
 		paintLinkedGroups(painter, palette);
 		paintSelectionResize(painter);
 		paintComponents(painter);
+		paintObjectGizmo(painter);
+		paintPlaneDrag(painter);
 		paintClip(painter);
 	}
 	paintBrushDraw(painter);
@@ -2023,10 +2177,13 @@ ViewportHudLayout ModelViewport::hudLayoutFor(const QPaintDevice* device) const
 	if (!m_viewLabel.isEmpty()) { left << m_viewLabel; }
 	if (m_perspective) { left << tr("Camera, %1%2 view").arg(qRound(m_fov)).arg(QChar(0x00b0)); }
 	left << effectiveRenderModeName();
+	// The far clip's distance, as NetRadiant Custom shows its cubic scale.
+	if (m_farClip > 0.0) { left << isolated(tr("Far clip %1 units").arg(localeNumber(m_farClip, 0, 'f'))); }
 	if (isResizingSelection()) { left << selectionResizeSummary(false); }
 	if (m_brushDrawTool) { left << brushDrawSummary(false); }
 	if (m_assembleTool) { left << brushAssembleSummary(false); }
 	if (m_componentMode) { left << (isMovingComponents() ? componentSummary() : tr("%n component(s) picked",nullptr,m_componentPicks.size())); }
+	if (objectGizmoShown()) { left << (m_objectGizmo->active() ? m_objectGizmo->summary() : m_objectGizmo->toolName()); }
 	if (!m_groupContextLabel.isEmpty()) { left << tr("Editing group: %1").arg(m_groupContextLabel); }
 	if (m_texturedSurfaceCount > 0) { left << tr("%n textured face(s)",nullptr,m_texturedSurfaceCount); }
 	if (m_componentMode && m_componentHandlesLimited) { left << tr("Handle limit reached; select fewer objects."); }
@@ -2066,6 +2223,8 @@ void ModelViewport::mousePressEvent(QMouseEvent* event)
 	}
 	m_materialGestureButtons.setFlag(event->button(), false);
 	if (isMovingComponents() || m_componentNativeArmed) { finishComponentMove(false); event->accept(); return; }
+	if (m_objectGizmo->active()) { m_objectGizmo->finish(false); event->accept(); return; }
+	if (m_planeDrag->active()) { planeDragMousePress(event); return; }
 	if (m_componentBanding) { m_componentBanding = false; update(); event->accept(); return; }
 	if (m_pointerDriving) { endPointerDrive(); event->accept(); return; }
 	if (isDrawingBrush()) { finishBrushDraw(false); event->accept(); return; }
@@ -2104,7 +2263,16 @@ void ModelViewport::mousePressEvent(QMouseEvent* event)
 		if (beginBrushDraw(event->position(),event->modifiers())) { m_pressButton = button; setCursor(Qt::CrossCursor); }
 		event->accept(); return;
 	}
-	if (button == Qt::LeftButton && event->modifiers() == Qt::NoModifier && beginSelectionResize(event->position())) {
+	// The object manipulator's handles outrank the resize box and the drag.
+	if (button == Qt::LeftButton && (event->modifiers() & ~Qt::KeypadModifier) == Qt::NoModifier && !m_looking && beginObjectTransform(event->position())) {
+		event->accept(); return;
+	}
+	// NetRadiant Custom's plane and extrude drags, and the Build tool's.
+	if (planeDragMousePress(event)) { return; }
+	// TrenchBroom's Shear Tool also takes a face with Alt held: up and down.
+	const bool shearAlt = m_selectionShearMode && (event->modifiers() & ~Qt::KeypadModifier) == Qt::AltModifier;
+	if (button == Qt::LeftButton && (event->modifiers() == Qt::NoModifier || shearAlt) && beginSelectionResize(event->position())) {
+		if (shearAlt) { updateSelectionResizeModifiers(Qt::AltModifier); }
 		m_pressButton = button; setCursor(Qt::SizeAllCursor); event->accept(); return;
 	}
 	if (m_surfaceStrokeActive) { finishSurfaceStroke(false); }
@@ -2149,6 +2317,7 @@ void ModelViewport::mousePressEvent(QMouseEvent* event)
 		if (!isRendering() && hit.valid && hit.triangle >= 0 && hit.triangle < m_highlighted.size() && m_highlighted.at(hit.triangle)) {
 			m_dragAction = DragAction::Move;
 			m_moveVertical = keys == Qt::AltModifier;
+			m_moveBase = makeVec(0.0, 0.0, 0.0);
 			m_moveStart = orbitPivotAt(event->position());
 			m_moveOffset = makeVec(0.0, 0.0, 0.0);
 		}
@@ -2174,6 +2343,19 @@ void ModelViewport::mouseMoveEvent(QMouseEvent* event)
 		if (!m_componentGizmo->releasePending() && event->buttons() != Qt::LeftButton) { m_componentGizmo->finish(false); }
 		else if (!m_componentGizmo->releasePending()) { m_componentGizmo->updateDrag(position); }
 		event->accept(); return;
+	}
+	if (planeDragMouseMove(event)) { return; }
+	if (m_objectGizmo->active()) {
+		if (!m_objectGizmo->releasePending() && !event->buttons().testFlag(Qt::LeftButton)) { m_objectGizmo->finish(false); }
+		else if (!m_objectGizmo->releasePending()) { m_objectGizmo->updateDrag(position,event->modifiers()); }
+		event->accept(); return;
+	}
+	if (event->buttons() == Qt::NoButton && m_pressButton == Qt::NoButton && objectGizmoShown() && !isRendering()
+		&& m_objectGizmo->hitTest(position,componentGizmoFrame(m_objectGizmo->pivot()),font()) >= 0
+		// Where a box handle and the Scale manipulator overlap, the box
+		// handle takes the press, so it speaks for the spot too.
+		&& !(m_objectGizmo->tool() == LevelComponentTool::Scale && selectionResizeHandleAt(position) >= 0)) {
+		Q_EMIT hoverChanged(m_objectGizmo->summary()); event->accept(); return;
 	}
 	if (isAssemblingBrush()) {
 		if (event->buttons() != Qt::LeftButton) { finishBrushAssemble(false); } else { updateBrushAssemble(position); }
@@ -2207,7 +2389,7 @@ void ModelViewport::mouseMoveEvent(QMouseEvent* event)
 		event->accept(); return;
 	}
 	if (isDrawingBrush()) { updateBrushDraw(position,event->modifiers()); event->accept(); return; }
-	if (isResizingSelection()) { updateSelectionResize(position); event->accept(); return; }
+	if (isResizingSelection()) { updateSelectionResize(position,event->modifiers()); event->accept(); return; }
 	if (m_surfaceToolPressed || m_surfaceStrokeActive) { extendSurfaceStroke(position); event->accept(); return; }
 	if (m_editMoveActive) { updateEditTransform(position); event->accept(); return; }
 	if (m_pressButton != Qt::NoButton) {
@@ -2228,6 +2410,15 @@ void ModelViewport::mouseMoveEvent(QMouseEvent* event)
 			}
 		}
 		if (m_dragAction == DragAction::Move) {
+			// Where an Alt press drags a plane, Alt during the move lifts it, as
+			// NetRadiant Custom's TranslateFreeXY_Z does, keeping the move so far.
+			const bool vertical = event->modifiers().testFlag(Qt::AltModifier);
+			ModelVec3 here;
+			if (m_controls.planeDragModifiers.testFlag(Qt::AltModifier) && vertical != m_moveVertical && movePlanePoint(position, &here)) {
+				m_moveBase = m_moveOffset;
+				m_moveStart = here;
+				m_moveVertical = vertical;
+			}
 			updateMove(position);
 			event->accept();
 			return;
@@ -2249,7 +2440,8 @@ void ModelViewport::mouseMoveEvent(QMouseEvent* event)
 			if (motion == CameraFreeLookMotion::Pan) {
 				panPerspective(delta);
 			} else if (motion == CameraFreeLookMotion::Dolly) {
-				moveCamera(-delta.y() * flySpeed() / 600.0, delta.x() * flySpeed() / 600.0, 0.0);
+				// The pointer's own scale, not the saved key speed.
+				moveCamera(-delta.y() * automaticFlySpeed() / 600.0, delta.x() * automaticFlySpeed() / 600.0, 0.0);
 			} else {
 				turnCamera(-delta.x() * kLookDegreesPerPixel, -delta.y() * kLookDegreesPerPixel);
 			}
@@ -2288,6 +2480,8 @@ void ModelViewport::mouseReleaseEvent(QMouseEvent* event)
 	}
 	if (m_vertexInsertion->active() && event->button() == Qt::LeftButton) { m_vertexInsertion->updateDrag(event->position(),event->modifiers()); m_vertexInsertion->finish(true); event->accept(); return; }
 	if (m_componentGizmo->active() && event->button() == Qt::LeftButton) { m_componentGizmo->updateDrag(event->position()); m_componentGizmo->finish(true); event->accept(); return; }
+	if (m_objectGizmo->active() && event->button() == Qt::LeftButton) { m_objectGizmo->updateDrag(event->position(),event->modifiers()); m_objectGizmo->finish(true); event->accept(); return; }
+	if (planeDragMouseRelease(event)) { return; }
 	if ((m_componentMoving || m_componentNativeArmed) && event->button() == Qt::LeftButton) { updateComponentMove(event->position(),event->modifiers()); finishComponentMove(true); event->accept(); return; }
 	if (m_componentBanding && event->button() == Qt::LeftButton) {
 		m_componentBanding = false;
@@ -2311,7 +2505,7 @@ void ModelViewport::mouseReleaseEvent(QMouseEvent* event)
 		updateBrushDraw(event->position(),event->modifiers()); finishBrushDraw(true); event->accept(); return;
 	}
 	if (isResizingSelection() && event->button() == Qt::LeftButton) {
-		updateSelectionResize(event->position()); finishSelectionResize(true); event->accept(); return;
+		updateSelectionResize(event->position(),event->modifiers()); finishSelectionResize(true); event->accept(); return;
 	}
 	if ((m_surfaceToolPressed || m_surfaceStrokeActive) && event->button() == Qt::LeftButton) {
 		extendSurfaceStroke(event->position()); finishSurfaceStroke(true); event->accept(); return;
@@ -2405,6 +2599,17 @@ void ModelViewport::keyPressEvent(QKeyEvent* event)
 		if (m_skinPaintHandler) { m_skinPaintHandler(ModelViewportStrokePhase::Cancel, commandPosition()); }
 		event->accept(); return;
 	}
+	// Every key belongs to an object manipulator drag: Escape calls it off,
+	// and Shift and Ctrl change its snapping at once.
+	if (m_planeDrag->active()) {
+		if (event->key() == Qt::Key_Escape) { m_planeDrag->finish(false); m_planeDragClick = false; }
+		event->accept(); return;
+	}
+	if (m_objectGizmo->active()) {
+		if (event->key() == Qt::Key_Escape) { m_objectGizmo->finish(false); }
+		else if (levelComponentModifierKey(event->key())) { m_objectGizmo->updateModifiers(levelComponentModifierState(event->key(),event->modifiers(),true)); }
+		event->accept(); return;
+	}
 	if (updateClipPointModifiers(event->key(),event->modifiers(),true)) { event->accept(); return; }
 	if (updateComponentModifiers(event->key(),event->modifiers(),true)) { event->accept(); return; }
 	if (m_assembleTool && !m_looking) {
@@ -2456,6 +2661,7 @@ void ModelViewport::keyPressEvent(QKeyEvent* event)
 	if (isDrawingBrush()) { updateBrushDraw(m_brushDrawPoint,event->modifiers()); event->accept(); return; }
 	if (isResizingSelection()) {
 		if (event->key() == Qt::Key_Escape) { finishSelectionResize(false); }
+		else if (levelComponentModifierKey(event->key())) { updateSelectionResizeModifiers(levelComponentModifierState(event->key(),event->modifiers(),true)); }
 		event->accept(); return;
 	}
 	if (event->key() == Qt::Key_Escape && m_lookHoldActive) { setLooking(false); event->accept(); return; }
@@ -2942,6 +3148,40 @@ bool ModelViewport::projectSegment(const ModelVec3& a, const ModelVec3& b, QPoin
 	return true;
 }
 
+bool ModelViewport::clipSegmentToFarClip(ModelVec3* a, ModelVec3* b) const
+{
+	if (!(m_farClip > 0.0) || !a || !b) {
+		return true;
+	}
+	// How far past the far plane each end lies: ahead of the eye in
+	// perspective, behind the front of the drawn geometry in orthographic
+	// views (as model_viewport_render.cpp measures it).
+	double past[2] = {0.0, 0.0};
+	if (m_perspective) {
+		const ModelVec3& eye = m_camera.position;
+		past[0] = dotVec(makeVec(double(a->x) - eye.x, double(a->y) - eye.y, double(a->z) - eye.z), m_camera.forward) - m_farClip;
+		past[1] = dotVec(makeVec(double(b->x) - eye.x, double(b->y) - eye.y, double(b->z) - eye.z), m_camera.forward) - m_farClip;
+	} else if (m_gpuGeometry) {
+		const double front = dotVec(m_gpuGeometry->centre, m_camera.eye) + m_gpuGeometry->radius;
+		past[0] = front - dotVec(*a, m_camera.eye) - m_farClip;
+		past[1] = front - dotVec(*b, m_camera.eye) - m_farClip;
+	} else {
+		return true;
+	}
+	if (past[0] > 0.0 && past[1] > 0.0) {
+		return false;
+	}
+	if (past[0] > 0.0 || past[1] > 0.0) {
+		ModelVec3* outside = past[0] > 0.0 ? a : b;
+		const ModelVec3 inside = past[0] > 0.0 ? *b : *a;
+		const double over = std::max(past[0], past[1]);
+		const double t = over / (over - std::min(past[0], past[1]));
+		*outside = makeVec(outside->x + t * (double(inside.x) - outside->x), outside->y + t * (double(inside.y) - outside->y),
+			outside->z + t * (double(inside.z) - outside->z));
+	}
+	return true;
+}
+
 ModelVec3 ModelViewport::viewDirection() const
 {
 	const double yaw = m_lookYaw * kPi / 180.0;
@@ -3169,6 +3409,16 @@ bool ModelViewport::claimsKey(int key, Qt::KeyboardModifiers modifiers) const
 
 double ModelViewport::flySpeed() const
 {
+	// The saved camera speed (Increase/Decrease Camera Speed, editor gestures
+	// camera.moveSpeed) when there is one.
+	if (m_controls.moveSpeed > 0) {
+		return std::clamp(static_cast<double>(m_controls.moveSpeed), static_cast<double>(kLevelCameraMinMoveSpeed), static_cast<double>(kLevelCameraMaxMoveSpeed));
+	}
+	return automaticFlySpeed();
+}
+
+double ModelViewport::automaticFlySpeed() const
+{
 	// Units per second: about a Quake player's run for a room-sized scene,
 	// quicker across a large one.
 	return std::clamp(m_radius * 0.35, 192.0, 1600.0);
@@ -3257,7 +3507,7 @@ void ModelViewport::setMoveGrid(double units)
 
 bool ModelViewport::isMovingSelection() const
 {
-	return m_dragStarted && m_dragAction == DragAction::Move;
+	return (m_dragStarted && m_dragAction == DragAction::Move) || m_objectGizmo->active();
 }
 
 bool ModelViewport::movePlanePoint(const QPointF& viewPoint, ModelVec3* point) const
@@ -3305,6 +3555,9 @@ void ModelViewport::updateMove(const QPointF& viewPoint)
 		dy = std::round(dy / m_moveGrid) * m_moveGrid;
 		dz = std::round(dz / m_moveGrid) * m_moveGrid;
 	}
+	dx += m_moveBase.x;
+	dy += m_moveBase.y;
+	dz += m_moveBase.z;
 	const ModelVec3 offset = makeVec(dx, dy, dz);
 	if (offset.x == m_moveOffset.x && offset.y == m_moveOffset.y && offset.z == m_moveOffset.z) {
 		return;
@@ -3329,6 +3582,13 @@ void ModelViewport::cancelMove()
 
 void ModelViewport::keyReleaseEvent(QKeyEvent* event)
 {
+	if (m_objectGizmo->active()) {
+		if (levelComponentModifierKey(event->key())) { m_objectGizmo->updateModifiers(levelComponentModifierState(event->key(),event->modifiers(),false)); }
+		event->accept(); return;
+	}
+	if (isResizingSelection() && levelComponentModifierKey(event->key())) {
+		updateSelectionResizeModifiers(levelComponentModifierState(event->key(),event->modifiers(),false)); event->accept(); return;
+	}
 	if (updateClipPointModifiers(event->key(),event->modifiers(),false)) { event->accept(); return; }
 	if (updateComponentModifiers(event->key(),event->modifiers(),false)) { event->accept(); return; }
 	if (m_assembleTool && event->key() == Qt::Key_Shift) { updateBrushAssembleHover(commandPosition(),Qt::NoModifier); }
@@ -3400,6 +3660,7 @@ bool ModelViewport::event(QEvent* event)
 		if (key->key() == Qt::Key_Escape || key->matches(QKeySequence::SelectAll) || isMovingComponents() || m_componentBanding || m_componentNativeArmed) { event->accept(); return true; }
 	}
 	if (event->type() == QEvent::ShortcutOverride && m_materialStrokeRaster) { event->accept(); return true; }
+	if (event->type() == QEvent::ShortcutOverride && (m_objectGizmo->active() || m_planeDrag->active())) { event->accept(); return true; }
 	if (event->type() == QEvent::ShortcutOverride && m_pointerDriving && static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape) {
 		event->accept(); return true;
 	}
@@ -3408,6 +3669,8 @@ bool ModelViewport::event(QEvent* event)
 		finishClipPoint(false);
 		finishBrushAssemble(false);
 		finishComponentMove(false); m_componentBanding = false;
+		m_objectGizmo->finish(false);
+		m_planeDrag->finish(false); m_planeDragClick = false;
 		m_materialGestureButtons = {};
 		if (event->type() != QEvent::UngrabMouse || materialStrokeActive()) { finishMaterialStroke(false); }
 		endPointerDrive();

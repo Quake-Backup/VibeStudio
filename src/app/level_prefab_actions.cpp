@@ -30,6 +30,8 @@ void ApplicationShell::showLevelPrefab(bool capture, bool stage, const QString &
 	if (!archive && m_packageArchive.isOpen()) {
 		archive = std::make_shared<const PackageArchive>(m_packageArchive);
 	}
+	// Material previews read the game's base packages beneath it.
+	archive = levelMaterialReader(std::move(archive));
 	const auto mode = capture ? (stage ? LevelPrefabDialogMode::Stage : LevelPrefabDialogMode::Export) : LevelPrefabDialogMode::Insert;
 	LevelPrefabDialog dialog(m_levelMapDocument, mode, input, packageEntry, archive, activePaletteId(), this);
 	if (!capture && m_levelMapViewport) {

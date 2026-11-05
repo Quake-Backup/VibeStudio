@@ -152,16 +152,38 @@ int main(int argc, char **argv)
 				ok &= image.save(QDir(capture).filePath(QStringLiteral("caps-200-status.png")));
 			}
 		}
+		// NetRadiant Custom's Cap Selection types: Cylinder seams the nine-wide
+		// rows; Bevel cannot, and says why; Radial takes the centre back.
+		auto *style = dialog.findChild<QComboBox *>(QStringLiteral("capStyle"));
+		ok &= expect(style && style->count() == 6 && !style->toolTip().isEmpty(), "six labelled cap styles");
+		if (style) {
+			dialog.setCurrentMaterial(QStringLiteral("studio/cap"));
+			auto *texture = dialog.findChild<QComboBox *>(QStringLiteral("capTexture"));
+			style->setCurrentIndex(static_cast<int>(LevelPatchCapStyle::Cylinder));
+			ok &= expect(until([&] { return dialog.isReady(); }) && dialog.previewValid() && dialog.capResult().caps.size() == 2 &&
+							 dialog.capResult().caps.first().width == 3 && dialog.capResult().caps.first().height == 5 &&
+							 dialog.request().texture == QStringLiteral("studio/cap") && texture->currentIndex() == 1 &&
+							 !custom->isEnabled(),
+						 "Cylinder seams both rows in the current material", status->toPlainText());
+			style->setCurrentIndex(static_cast<int>(LevelPatchCapStyle::Bevel));
+			ok &= expect(until([&] { return dialog.isReady(); }) && !dialog.previewValid() && !apply->isEnabled() &&
+							 status->toPlainText().contains(QStringLiteral("9")),
+						 "Bevel refuses a nine-wide boundary with the reason", status->toPlainText());
+			style->setCurrentIndex(0);
+			ok &= expect(until([&] { return dialog.isReady(); }) && dialog.previewValid() && texture->currentIndex() == 0 && custom->isEnabled(),
+						 "Radial returns to the source material and the custom centre", status->toPlainText());
+		}
 		ok &= expect(serializeLevelMap(map).bytes == before, "preview leaves live map untouched");
-		dialog.setApplyHandler([](int, const auto &, QString *error) {
+		dialog.setApplyHandler([](const QVector<int> &, const auto &, QString *error) {
 			*error = QStringLiteral("changed source");
 			return false;
 		});
 		dialog.accept();
 		ok &= expect(dialog.isVisible(), "failed apply keeps review open");
 		auto edited = map;
-		dialog.setApplyHandler(
-			[&](int id, const auto &request, QString *error) { return capLevelMapPatch(&edited, id, request, nullptr, error); });
+		dialog.setApplyHandler([&](const QVector<int> &ids, const auto &request, QString *error) {
+			return capLevelMapPatches(&edited, ids, request, nullptr, error);
+		});
 		dialog.accept();
 		ok &= expect(dialog.result() == QDialog::Accepted && edited.patches.size() == 3, "reviewed caps apply");
 		if (scale == 200) {

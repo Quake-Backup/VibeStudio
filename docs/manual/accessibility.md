@@ -126,7 +126,14 @@ voice service.
 reads the selected text, the current line of an editor, the focused list row or
 control, or else the latest status message, even when
 **Read status changes aloud** is off. Press it again, or choose
-**Stop Reading Aloud**, to stop. Password and key fields are never read.
+**Stop Reading Aloud**, to stop. Password and key fields are never read. The
+key works everywhere, the Levels 2D views and 3D view included, whichever
+[editor profile](editor-profiles.md) you use: profiles whose own editor uses
+<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> for something else leave that
+command without a key. If you give **Reset 2D Views** (TrenchBroom's key for
+it) <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> yourself, a 2D view takes the
+key only while that command can act there, and the key reads aloud everywhere
+else.
 
 | System | Speech engine | Notes |
 | --- | --- | --- |

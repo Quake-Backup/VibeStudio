@@ -511,6 +511,135 @@ without it a map keeps the form it opened with. JSON reports the form written as
 `sceneStorage`. WADs refuse `trenchbroom` (exit code 2). See
 [Share layers and groups with TrenchBroom](levels.md#share-layers-and-groups-with-trenchbroom).
 
+## Import maps and export copies
+
+```sh
+vibestudio --cli map import maps/start.map --from maps/room.map --output maps/start-room.map --json
+vibestudio --cli map import maps/start.map --from maps/old.bsp --output maps/start-old.map --dry-run --json
+vibestudio --cli editor scene omit-from-export maps/start.map --id LAYER-ID --omit true --output maps/start-marked.map
+vibestudio --cli map export maps/start-marked.map --output build/start-export.map --json
+vibestudio --cli map copy maps/start.map --object brush:12 --object entity:3 --standalone --worldspawn-keys --output maps/piece.map
+```
+
+`map import` does what **Import Map…** does: it adds every brush, patch and
+entity of `--from` at their own coordinates as one undo step and saves the
+result to `--output`. The other map's worldspawn brushes join this map's
+worldspawn and its worldspawn keys are left out. Complete groups and linked
+groups keep their structure, but layers are not recreated: everything joins the
+creation layer, or the group `--context UUID` opens. Names this map already uses
+(`targetname`, `target`, `killtarget` and the other target keys) get the next
+free number, `door` becoming `door1`; `--keep-target-names` keeps them. A `.bsp`
+is converted to a `.map` with the VibeMap3 convert profile first, for the game
+its header names; add `--workspace-root` for a project's compiler paths, game
+and installation folder, or `--game KEY` (such as `et` or `jk2`) to choose
+between games that share a BSP format. JSON reports the `preview` counts and
+`renamedTargets`, the `imported` objects and, for a `.bsp`, the `conversion`
+command and exit code. Different brush formats, patches in a map that is not
+Quake III, Quake and Quake II `.bsp` files, and WADs are refused with exit
+code 4.
+
+`map export` writes a copy of the map to `--output` and leaves the source as it
+was; the source's own path is refused (exit code 4). Layers marked with
+`editor scene omit-from-export --omit true`, or the **Omit from export** box,
+are left out with everything in them. Repeat `--omit-layer NAME` to leave out
+more layers, or use `--include-omitted` to keep marked ones. JSON reports
+`omittedLayers` and `omittedObjects`. Both commands take `--dry-run` and need
+`--overwrite` to replace a file. See
+[Import and export maps](levels.md#import-and-export-maps).
+
+## Read and set map properties
+
+```sh
+vibestudio --cli map inspect maps/start.map --json
+vibestudio --cli map properties maps/start.map --game-root C:/Games/Quake --json
+vibestudio --cli map properties maps/start.map --soft-bounds "-2048 -2048 -512 2048 2048 1024" --enable-mod hipnotic --output maps/start-props.map
+```
+
+`map inspect --json` reports Map Info in `statistics`: `groupEntityCount`,
+`inGameEntityCount`, `inGameGroupEntityCount`, `patchCount` and
+`entityClasses`, one `{className, count, groupCount, inGameCount}` per class,
+sorted by name; the text report lists the classes under **Entity classes**.
+Its `mapProperties` object holds what the **Map** tab shows: `softBounds`
+(`mode` `game`, `custom` or `none`, the bounds in force, `gameDefault`,
+`outsideCount` and up to 256 `outsideObjects`), `mods` and `layers`.
+
+`map properties <map>` prints the same soft bounds, mods and layer summary;
+`--game-root DIR` adds `availableMods`, the folders of an installation that
+are not a game's own (`--game KEY` leaves out only that game's folder). To
+change the map, `--soft-bounds game|none|"minX minY minZ maxX maxY maxZ"`
+sets TrenchBroom's `_tb_soft_map_bounds` worldspawn key (game takes it away),
+and `--mods "a;b"`, `--no-mods`, repeatable `--enable-mod NAME` and
+`--disable-mod NAME` set `_tb_mod`. Each change is one undo step, written to
+`--output` with `--dry-run` and `--overwrite` as other map commands; JSON
+lists the `changed` settings. Doom maps report but refuse changes with exit
+code 4, as does disabling a mod that is not enabled; option mistakes exit 2.
+See [Check maps and entities](levels.md#check-maps-and-entities).
+
+## Export geometry as OBJ
+
+```sh
+vibestudio --cli map export-obj maps/start.map --package baseq3 --output build/start.obj --json
+vibestudio --cli map export-obj maps/start.map --object brush:12 --group material --output build/piece.obj --dry-run
+vibestudio --cli map export-obj maps/start.map --package baseq3 --material-paths export --ignore sky1 --output build/start.obj --overwrite
+```
+
+`map export-obj` does what **Export Map as OBJ…** does, or, with repeatable
+`--object entity:id|brush:id|patch:id`, **Export Selection as OBJ…**: it writes
+the brushes and patches as a Wavefront `.obj`, with a `.mtl` library of the
+same name beside it. `--group object|material|single` gathers faces per brush
+and patch (the default), per material or into one mesh; `--groups` writes `g`
+records instead of `o`; `--no-weld` keeps corners apart; `--triangulate`
+writes triangles; `--no-mtl` leaves the library out; `--short-material-names`
+keeps the last 20 characters of each name; `--z-up` keeps the map's axes
+instead of Y up. Tool materials (caulk, clip, trigger, hint, skip, origin,
+nodraw and others) are left out: add more with repeatable `--ignore NAME`, or
+keep them with `--no-default-ignores`. `--package` names the package or folder
+that holds the images, for texture sizes, colours and `map_Kd` paths;
+`--material-paths export` writes those paths relative to the `.obj`, from the
+package folder or `--material-root`. Hidden objects and layers marked
+**Omit from export** are left out of whole-map exports (`--omit-layer`,
+`--include-omitted`); view filters do not apply. Positions are in map units,
+one map unit to one OBJ unit. A name with spaces gets a library named with
+underscores (`my room.obj` uses `my_room.mtl`). `--engine idTech3` reads a
+classic-format Quake III map with no Quake III evidence of its own as Quake
+III, so its `textures/` images resolve. JSON reports `brushes`, `patches`, `polygons`,
+`triangles`, `vertices`, `materials`, `ignoredFaces`, `omittedLayers`,
+`unsizedMaterials` and `unresolvedMaterials`. It takes `--dry-run` and needs
+`--overwrite` to replace either file; Doom maps are refused with exit code 4.
+See [Export geometry to a modeller](levels.md#export-geometry-to-a-modeller).
+
+## Repeat a compile and set launch arguments
+
+```sh
+vibestudio --cli compiler rerun --last maps/start.map --workspace-root . --json
+vibestudio --cli launch profiles --json
+vibestudio --cli launch profile-set user-dev --name "Developer" --arguments "+set fs_game {mod} +set developer 1 +devmap {map}" --engine idTech3
+vibestudio --cli launch extra-args --arguments "+set developer 1"
+vibestudio --cli launch plan --map start --launch-profile user-dev --json
+```
+
+`compiler rerun --last <map>` replays the map's newest saved compile, as
+**Re-run Last Compile** does: it looks in `.vibestudio/compiler-runs` under
+`--workspace-root` and the map's folder, and saves the new run beside the one it
+repeats (or at `--manifest`). JSON adds `replayedManifestPath`; no saved run of
+the map exits with code 3. A saved run can come from someone else, so its
+program must be one of your configured compilers for its game (`compiler
+set-path`, `--compiler-search-paths`, VibeStudio's compiler folders or PATH) or
+trusted before for that project; otherwise the command exits with code 4,
+prints the command line and JSON `programTrust`, and `--trust-programs` trusts
+it in your settings and replays it. `launch profiles` lists the built-in launch profiles
+and your own, with the tokens `{map}`, `{mod}`, `{basedir}`, `{bsp}`, `{iwad}`
+and `{warp}`. `launch profile-set <id> --name NAME --arguments "LINE"` adds or
+replaces one of your profiles (`--engine idTech1|idTech2|idTech3|any`); a
+built-in id, a repeated name, an unknown token or an unclosed quote exits with
+code 4. `launch profile-remove <id>` removes one. `launch extra-args` shows the
+extra arguments of the selected installation (or `--installation ID`), and
+`--arguments "ARGS"` or `--clear` sets them, as the Build page's **Extra
+arguments** field does. Changes take `--dry-run`. `launch plan` and `launch
+run` add the saved extra arguments unless you pass `--extra-args`, which is now
+split as a shell would, so quotes keep spaces. See
+[Build again](build-and-launch.md#build-again).
+
 ## Replay level edits
 
 For a one-off unique copy or array, use the same operation as **Duplicate, Make
@@ -842,6 +971,26 @@ vibestudio --cli build plan quake-full --input ./maps/start.map
 vibestudio --cli build run quake-full --input ./maps/start.map --watch
 ```
 
+Keep pipelines of your own in a project, as **Build Pipelines…** does, and run them:
+
+```sh
+vibestudio --cli build pipeline-set fast-light --workspace-root ./mymod --name "Fast light" --from quake-full --disable-stage vis --stage-args 'light=-extra -threads ${CPU_COUNT}'
+vibestudio --cli build list --workspace-root ./mymod
+vibestudio --cli build run fast-light --workspace-root ./mymod --input ./mymod/maps/start.map --variable MOD=mymod
+vibestudio --cli build pipeline-remove fast-light --workspace-root ./mymod --dry-run
+```
+
+`build pipeline-set` starts a new pipeline from `--from` (a built-in or project
+pipeline) or from ordered `--stage ID=PROFILE` options, then applies
+`--stage-args ID=ARGUMENTS`, `--disable-stage ID`, `--enable-stage ID`,
+`--map-input ID` and `--variable NAME=VALUE`; problems exit with code 4 and are
+listed in JSON `problems`. In a POSIX shell, put `${...}` in single quotes, as
+above, so the shell leaves it alone. `build run` stops with code 4 when a stage
+would start a program that is not one of your configured compilers, such as one
+named by the project's own compiler paths, and shows its command line; add
+`--trust-programs` to trust it for that project in your settings. See
+[Make the project's own pipelines](build-and-launch.md#make-the-projects-own-pipelines).
+
 Ask a model through your Claude Code login, or build a level with Quake-MapGen:
 
 ```sh
@@ -981,7 +1130,10 @@ remaining.map` exports them and saves the remaining map. Repeat `--object` for
 brushes, patches or entities. Create output directories first; existing files
 require `--overwrite`, including dry runs. Cut JSON reports `clipboardWritten`
 and `mapWritten` separately, so a saved fragment is recoverable if the map save
-fails. See [object clipboard examples](../LEVEL_PASTE.md#cli).
+fails. See [object clipboard examples](../LEVEL_PASTE.md#cli). Add `--standalone`
+to wrap the copied world brushes in a worldspawn block, as **Export Selection as
+Map…** does, and `--worldspawn-keys` to copy the source's worldspawn keys too;
+see [Import maps and export copies](#import-maps-and-export-copies).
 
 
 ## Select level objects by hierarchy or source line
@@ -1256,6 +1408,46 @@ negative number that every compiler reads. The change is one undo step and suppo
 `brushes`, the bits set and cleared by name and the `value`. See
 [Set face flags](levels.md#set-face-flags).
 
+## Read and set texture values
+
+`map face-attributes` reads or sets the texture offset, scale and rotation of
+brush faces, as the **Face** section of the Levels **Surfaces** tab does. Name
+faces with **--object brush:ID** or **entity:ID** and
+**--face brushId:faceNumber** (face numbers start at one); both repeat.
+
+Without a change, it reports each face's values as its format stores them, and
+what the **Face** section shows for them all, with values that differ as
+`null`:
+
+```sh
+vibestudio --cli map face-attributes base.map --face 3:1 --json
+```
+
+To change them, give one or more of **--offset-u**, **--offset-v** (texels),
+**--scale-u**, **--scale-v** (map units per texel, never 0) and **--rotation**
+(degrees), and **--output**. Every named face takes the values in its own
+format and keeps the others:
+
+```sh
+vibestudio --cli map face-attributes base.map --object brush:3 --scale-u 0.5 --scale-v 0.5 --output base-fine.map
+```
+
+**--pivot X,Y,Z** keeps that map point's place on the texture through a new
+scale or rotation, as the section's turn and stretch handles do, and
+**--move U,V** then moves the texture by texels:
+
+```sh
+vibestudio --cli map face-attributes base.map --face 3:2 --rotation 30 --pivot 0,64,128 --move 8,0 --output base-turned.map --json
+```
+
+Brush-primitive faces need their image size: **--package** (with **--palette**
+where the game uses one) or **--texture-size W,H**. A zero scale, hidden faces,
+locked layers and faces outside the **--context** group are refused and nothing
+is written. The change is one undo step and supports **--dry-run** and
+**--overwrite**. JSON reports `changedFaces`, `brushes`, the values `set`,
+`move`, `pivot` and each face's values after the change. See
+[Use the Face inspector](levels.md#use-the-face-inspector).
+
 ## List and edit texture coordinates
 
 `map edit-uv` works on one brush face's outline or one patch's control points
@@ -1280,10 +1472,22 @@ Give one change and **--output**:
 - **--rotate DEG** turns clockwise as the **UV Editor** draws texture space
   (negative turns anticlockwise), about **--anchor N** or else the centre of
   the points that turn.
+- **--stretch U,V** multiplies the texels across the surface along U and V
+  (2 halves the texture there), and **--skew-u K** or **--skew-v K** adds K
+  texels of U for each texel of V away from the pivot (or of V for each texel
+  of U), as the camera's **UV** tool does. Both work about **--pivot U,V**, or
+  else the centre of the points that change. A face's stretch sets its scale
+  values, so a classic face stays classic; a classic face takes a skew only
+  with **--allow-valve220**.
+
+On a patch, **--rows 1,3** and **--columns 2** choose whole rows and columns
+of control points, alongside or instead of **--points**, for **--offset**,
+**--rotate**, **--stretch** and the skews.
 
 ```sh
 vibestudio --cli map edit-uv base.map --target face:3:1 --rotate 15 --anchor 1 --output base-turned.map
 vibestudio --cli map edit-uv curves.map --target patch:0 --move-point 5 --to 32,16 --texture-size 128,128 --output curves-uv.map --json
+vibestudio --cli map edit-uv base.map --target face:3:1 --stretch 2,1 --pivot 0,0 --output base-stretched.map
 ```
 
 Brush-primitive faces and patches count repeats, so they need **--package**
@@ -1295,8 +1499,10 @@ patches, locked layers and targets outside the **--context** group are refused
 and nothing is written. The change is one undo step and supports **--dry-run**
 and **--overwrite**. JSON reports `format`, `material`, `imageSize`, `points`
 (after the change), `fit` (`exact`, `converted`, `approximated` or
-`unchanged`) and, for a turn, the `pivot`. See
-[Edit texture coordinates in the UV Editor](levels.md#edit-texture-coordinates-in-the-uv-editor).
+`unchanged`) and, for a turn, stretch or skew, the `pivot`, with the
+`stretch` factors or the `skew`. See
+[Edit texture coordinates in the UV Editor](levels.md#edit-texture-coordinates-in-the-uv-editor)
+and [Drag textures with the UV tool](levels.md#drag-textures-with-the-uv-tool).
 
 ## Round level geometry to the grid
 
@@ -1377,6 +1583,152 @@ already at the camera fails and writes nothing. JSON reports `camera`, `delta`,
 ```sh
 vibestudio --cli map move room.map --object brush:3 --object entity:2 --camera 128,0,64 --grid 16 --output at-camera.map --json
 ```
+
+## Move a selection as the Translate tool does
+
+`map move` with several **--object** values, **--to x,y,z**, **--snap** or
+**--context GROUP** moves the whole selection the way the Levels **Translate**
+tool does, as one undo step. Give **--delta x,y,z**, or **--to x,y,z** to move
+the pivot there: the centre of the selection's box, or **--pivot x,y,z**.
+**--snap grid --grid N** rounds the move to the grid; **--snap bounds --grid N**
+lands the side of the box nearest a grid line on it, as <kbd>Ctrl</kbd> does in
+the tool. **--texture-lock on|off** (on by default) and **--allow-valve220**
+work as for other moves. A hidden, locked or out-of-group object in the
+selection, or a move that snaps to nothing, fails and writes nothing.
+Quake-family maps only. JSON reports `delta`, `pivotBefore`, `pivotAfter`,
+`mins`, `maxs`, `objects`, `selection`, `snap`, `grid` and the save fields:
+
+```sh
+vibestudio --cli map move room.map --object brush:3 --object brush:4 --delta 5,0,0 --snap bounds --grid 16 --output translated.map --json
+vibestudio --cli map move room.map --object brush:3 --to 256,0,64 --pivot 0,0,0 --output at-point.map
+```
+
+See [Move the selection with the Translate tool](levels.md#move-the-selection-with-the-translate-tool).
+
+## Turn a selection as the Rotate tool does
+
+`map rotate` with **--around x,y,z**, **--angle-step N** or **--context GROUP** turns
+the whole selection the way the Levels **Rotate** tool does, as one undo step.
+Give **--degrees N** and the direction to turn about: **--around x,y,z** (any
+length), or **--axis x|y|z** (Z by default). The turn is right-handed about that
+direction through the centre of the selection's box, or through **--pivot x,y,z**.
+**--angle-step N** first rounds the angle to a multiple of N degrees, as the
+tool's snapping does. A turn about X, Y or Z is one plain turn; any other
+direction becomes the X, then Y, then Z turn that **--euler** applies.
+**--texture-lock on|off** (on by default) and **--allow-valve220** work as for
+other turns. A hidden, locked or out-of-group object in the selection, a zero
+direction or a turn that snaps to nothing fails and writes nothing.
+Quake-family maps only. **--turns**, **--euler** and **--pivot-grid** belong to
+the plain `map rotate` and cannot be combined with this form. JSON reports
+`axis` (normalised), `degrees` (after rounding), `worldAxis` or `eulerXyz`,
+`pivot`, `mins`, `maxs`, `objects`, `selection`, `angleStep` and the save fields:
+
+```sh
+vibestudio --cli map rotate room.map --object brush:3 --object patch:1 --around 0,0,1 --degrees 100 --angle-step 45 --output turned.map --json
+vibestudio --cli map rotate room.map --object brush:3 --around 1,1,0 --degrees 30 --pivot 0,0,0 --allow-valve220 --output tilted.map
+```
+
+See [Turn the selection with the Rotate tool](levels.md#turn-the-selection-with-the-rotate-tool).
+
+`map resize` with **--drag N**, **--equal**, **--size-grid N** or **--context
+GROUP** scales the whole selection the way the Levels **Scale** tool does, as one
+undo step through the same service as **Scale Selection…**. **--drag N** with
+**--axis x|y|z** is that axis handle dragged N units outward; with **--view
+top|front|side** it is the square dragged N units along both of that view's
+axes. The side of the box farther from the pivot follows the drag: the factor
+is (e + N) / e, where e is that side's distance from the pivot (the centre of
+the box, or **--pivot x,y,z**). **--grid N** first rounds N to the grid,
+**--equal** scales the axes equally as <kbd>Shift</kbd> does, and **--size-grid
+N** lands each new size on a multiple of N as <kbd>Ctrl</kbd> does. A size never
+shrinks below the grid, or 1 unit. **--factors x,y,z** with **--context** gives
+the factors directly; **--context** does not take **--size**, **--mins** or
+**--maxs**, and says so. **--texture-lock on|off** (off by default, as for `map
+resize`) and **--allow-valve220** decide whether textures stretch. A hidden,
+locked or out-of-group object, a mirroring factor or a scale that comes to 1
+fails and writes nothing. Quake-family maps only. JSON reports `factors`,
+`pivot`, `mins`, `maxs`, `objects`, `selection` and, for a drag, `handle`,
+`drag`, `equal`, `grid` and `sizeGrid`:
+
+```sh
+vibestudio --cli map resize room.map --object brush:3 --object brush:4 --axis x --drag 24 --grid 16 --equal --output bigger.map --json
+vibestudio --cli map resize room.map --object brush:3 --view top --drag 10 --size-grid 16 --pivot 0,0,0 --output wider.map
+```
+
+To resize a box by its sides, as the tool's box handles do with <kbd>Shift</kbd>
+or <kbd>Alt</kbd>, give the resulting box to **--mins** and **--maxs**. See
+[Scale the selection with the Scale tool](levels.md#scale-the-selection-with-the-scale-tool).
+
+## Slant a selection as the Shear and Transform tools do
+
+`map shear` slants objects: with **--axis**, **--along** and **--factor** (or
+**--angle** degrees), points slide along **--axis** by the factor times their
+distance from the selection's centre along **--along**, or from **--about N**,
+the coordinate along **--along** that stays put. In `map shear` **--about**
+is always this option and needs a finite number, so a missing or bad value is a
+usage error; with any other command, **--about** prints the About screen.
+
+With **--side x+|x-|y+|y-|z+|z-** and **--offset dx,dy,dz**, that side of the
+whole selection's box slides by the offset while the opposite side stays, as
+the **Shear Tool**'s handles in the camera and the **Transform** tool's side
+lines do. The part of the offset along the side's own axis is ignored, so
+**--side z+ --offset 16,8,0** slides the top 16 along X and 8 along Y.
+**--pivot x,y,z** keeps the plane through that point instead of the opposite
+side, as a placed pivot does, and **--context GROUP** works in an open group.
+**--texture-lock on|off** (on by default) and **--allow-valve220** work as for
+other transforms. A hidden, locked or out-of-group object, a side that does
+not move, a side on the plane that stays, or a slant of more than 16 units for
+each unit across the box fails and writes nothing. Quake-family maps only.
+JSON reports `side`, `offset`, `anchor` (the coordinate that stays),
+`factors`, `matrix`, `mins`, `maxs`, `objects` and `selection`:
+
+```sh
+vibestudio --cli map shear room.map --object brush:3 --axis x --along z --angle 30 --about 0 --output slanted.map
+vibestudio --cli map shear room.map --object brush:3 --object brush:4 --side z+ --offset 16,8,0 --output leaning.map --json
+```
+
+See [Transform the selection with the Transform tool](levels.md#transform-the-selection-with-the-transform-tool).
+
+## Drag brush planes as the Select and Build tools do
+
+`map drag-planes` makes the drags of NetRadiant Custom's drag tool and the
+**Build** tool. **--from x,y,z** is the point you press and **--view
+top|front|side** the 2D view's line of sight (top by default); for the
+camera give **--direction x,y,z**, the ray through the press point, with
+**--camera** and, if it differs, **--forward x,y,z**, the camera's line of
+sight. The **--object** brushes, and the brushes of **--object** entities,
+are what the drag may move. **--mode** chooses the drag:
+
+- **facing-planes** (the default) moves the planes facing the press point,
+  and planes lying against them on the other brushes, by **--delta
+  dx,dy,dz**. Each plane moves by the part of the delta along its normal.
+- **plane** moves the plane under the press point, or behind the nearest
+  edge, with the planes lying on it either way round, by **--delta** or
+  **--distance N** along its normal.
+- **vertices** moves the vertices within **--tolerance** units (4 by default)
+  across the view from the press point, or else the corners of the plane
+  under it, by **--delta**.
+- **extrude** pulls the faces on the plane under the press point out into
+  new brushes, or pushes them in to split a slab off, by **--distance**;
+  **--texture-lock on|off** (on by default) decides the moved face's mapping.
+
+A plane drag that would make a face vanish stops at the furthest **--grid**
+step that keeps every face (64 steps when **--grid** is 0, the default), and
+the report counts the brushes that stopped short. Plane drags leave textures
+where they lie in the world. **--context GROUP** works in an open group. A
+hidden, locked or out-of-group brush, or a press that picks nothing, fails
+with exit code 4 and writes nothing. Quake-family maps only. JSON reports
+`mode`, `picked` (the faces or vertices as `brush:ID/face/...`), `planes`,
+`brushes`, `movedPlanes`, `vertices`, `clampedBrushes`, `createdBrushes`,
+`translation` or `distance` and `normal`, and `selection`:
+
+```sh
+vibestudio --cli map drag-planes room.map --object brush:0 --from 200,0,0 --view top --delta 32,0,0 --grid 16 --output wider.map
+vibestudio --cli map drag-planes room.map --object brush:0 --mode extrude --from 80,0,200 --direction 0,0,-1 --camera --distance 16 --output raised.map --json
+```
+
+The **Build** tool's chain of copies is `map duplicate` with **--delta** set
+to one box length and **--copies**. See [Drag brush planes and build from
+faces](levels.md#drag-brush-planes-and-build-from-faces).
 
 ## Repeat transforms on copies or components
 
@@ -1528,6 +1880,125 @@ value or material name the editor would refuse is a usage error (exit 2).
 
 **Status: Partial.** The CLI and the Levels editor share the same service.
 See [Make a room with caulk and openings](levels.md#make-a-room-with-caulk-and-openings).
+
+## Read or set the camera's draw distance
+
+The Levels camera's **Far Clip in Camera** and its draw distance are saved
+settings, so automation can read or set them with `editor far-clip`:
+
+```sh
+vibestudio --cli editor far-clip --json
+vibestudio --cli editor far-clip --clip on --distance 2048
+vibestudio --cli editor far-clip --shorter --dry-run --json
+```
+
+`--clip on|off` turns the clip on or off. Choose the distance with one of
+`--step 1-23`, `--distance UNITS` (the nearest of the 23 draw distances, from
+16 to 32768 units), `--shorter` or `--longer` (one step, stopping at either
+end); the distance is kept while the clip is off. `--dry-run` shows the result
+without saving it. JSON reports `farClip` (`enabled`, `step`, `distance`,
+`minimumStep`, `maximumStep`, `defaultStep` and the `distances` of every step),
+`settingsKey`, `changed`, `applied` and `dryRun`. A bad value, two distance
+choices or `--dry-run` with nothing to change is a usage error (exit 2); a
+settings file that cannot be written exits 1. The studio reads the saved choice
+when it starts.
+
+**Status: Partial.** The CLI and the Levels camera share the same settings
+key and step table. See [Look around the map](levels.md#look-around-the-map)
+for the camera commands.
+
+## Add patch shapes
+
+`map add-patch` adds a Quake III patch: `--shape plane`, `cylinder`,
+`square-cylinder`, `cone` (straight sides), `classic-cone` (Radiant's cone,
+full width until its tip), `sphere`, `bevel` or `endcap`, filling
+`--size x,y,z` about `--origin x,y,z`, along `--axis x|y|z`. `--segments` and
+`--bands` set a round shape's spans, `--columns` and `--rows` a plane's
+grid, and `--rows` the control rows along any other shape but a sphere. New
+patches are mapped as NetRadiant Custom maps them, **Cap Texture**
+on a plane and **Natural** on the rest, by the material's image size
+`--texture-size W,H` (64,64 when left out). `--mapping natural`, `cap`,
+`stretch` (one repeat over the whole grid) or `radiant` (the default) chooses
+the layout. `--ring-start exact` starts a round ring at angle 0, on the
+positive side of the first axis across, as NetRadiant Custom's **Exact
+Cylinder**, **Cone** and **Sphere** do; `auto`, the default, starts the
+9x3 cylinder, the 9x5 sphere and every classic cone half a turn round, as
+its fixed prefabs do. `--square` re-disperses every span once the patch is
+mapped, as its **Square** box does, so the patch is faceted but keeps its
+round texture coordinates. Both apply to the round shapes only: `cylinder`,
+`cone`, `classic-cone` and `sphere`; on another shape they are refused with
+exit code 2, as `map add-shape` refuses them. JSON reports `patchId`, `selector`, `mapping`, `ringStart`,
+`square`, `columns` and `rows`.
+
+`map add-shape` with a `patch-` shape does the same in a box, and with
+`--object brush:N` or `--object patch:N` replaces those brushes and patches as
+NetRadiant Custom's Patch menu does: the patch fills their bounds and joins the
+brush entity of the last one, in one undo step. `patch-cylinder`, `patch-cone`
+and `patch-classic-cone` take `--rows`, and they and `patch-sphere` take
+`--square` and `--ring-start`. JSON adds `replaced` and `mapping`, and for the
+round shapes `ringStart` and `square`.
+
+```sh
+vibestudio --cli map add-patch start.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --texture-size 256,256 --output cone.map --json
+vibestudio --cli map add-shape start.map --shape patch-cylinder --sides 4 --object brush:3 --object patch:1 --texture base/pipe --texture-size 128,128 --output pipe.map --json
+vibestudio --cli map add-shape start.map --shape patch-plane --columns 5 --rows 7 --mins 0,0,0 --maxs 256,256,64 --texture base/floor --output floor.map
+vibestudio --cli map add-patch start.map --shape cylinder --segments 6 --rows 5 --ring-start exact --square --size 128,128,256 --texture textures/base/pipe --output pipe.map --json
+```
+
+A bad `--mapping`, `--texture-size` or `--ring-start`, either of the first two
+with a brush shape, or `--rows`, `--square` or `--ring-start` with an
+`add-shape` shape that does not read it, is a usage error (exit 2); an `--object` that does not exist, or a brush or patch
+the map's layers lock, exits 1 and nothing is written. See
+[Add Radiant's patch shapes](levels.md#add-radiants-patch-shapes).
+
+**Status: Partial.** The CLI and the Levels editor share the same services.
+
+## Cap, convert and deform patches
+
+`map cap-patch` is **Cap Patch…**. Repeat `--patch ID` to cap several
+patches in one edit, as NetRadiant Custom's **Cap Selection** caps every
+selected patch. `--style radial` (the default) closes a boundary with a flat
+radial cap; `bevel`, `endcap`, `inverted-bevel`, `inverted-endcap` and
+`cylinder` build NetRadiant Custom's seams: the bevels need boundaries of 3
+or 5 control points, the end caps 5 and `cylinder` 9. The first and last rows are capped unless
+repeatable `--boundary first-row|last-row|first-column|last-column` names
+others. `--texture`, `--uv planar|boundary`, `--units-per-tile N`, `--invert`
+and, for radial caps of one boundary, `--center X,Y,Z` work as the dialog's
+controls. A patch the style cannot cap is skipped and listed in the `cap`
+report's `skipped`; when none can be capped nothing is written (exit 4).
+
+`map convert-patches` is **Convert Selection to Patches**: every face of
+repeatable `--object brush:ID` or `entity:ID` brushes, which are removed
+unless `--keep-brushes` is given, and repeatable `--face face:brushId:faceNumber`
+faces (one-based), whose brushes stay, become flat patches in their
+materials, keeping each face's texture mapping. `--columns` and `--rows` set
+each patch's grid, odd numbers from 3 to 31 (3 by 3 by default). Classic and
+Valve 220 faces need their image sizes to turn texels into patch repeats:
+`--texture-size W,H` gives one for every material, or `--package` reads each
+from an archive or folder; otherwise 64 by 64 is used and reported in
+`unsizedMaterials`. JSON also reports `patches`, `faces`, `brushesRemoved` and
+`skipped`.
+
+`map deform-patch` is **Deform Patch…**: every control point of repeatable
+`--patch ID`, or `--object patch:ID` or `entity:ID`, moves along `--axis x`,
+`y` or `z` (default `z`) by a random whole number of units from 0 to `--max`
+(default 64, from -9999 to 9999). `--seed N` repeats a run exactly; without it
+a seed is drawn, and JSON reports it as `seed` with `max`, `axis`, `changed`
+and `skipped` (hidden patches).
+
+```sh
+vibestudio --cli map cap-patch curves.map --patch 0 --patch 3 --style cylinder --texture base/pipe_cap --output capped.map --json
+vibestudio --cli map convert-patches arena.map --object brush:4 --face face:7:2 --columns 5 --rows 5 --package ./baseq3 --output arena-patches.map --json
+vibestudio --cli map deform-patch cave.map --patch 2 --max 16 --axis z --seed 7 --output cave-rough.map --json
+```
+
+All three run as one undo step through the Levels editor's services and need
+`--output`; `--dry-run` writes nothing and an existing output needs
+`--overwrite`. Bad options exit 2, and a brush or patch that does not exist,
+or one on a locked layer, exits 4 with nothing written. See
+[Cap, convert and deform patches](levels.md#cap-convert-and-deform-patches).
+
+**Status: Partial.** The CLI and the Levels editor share the same services.
 
 ## Rebuild brushes as prisms, cones and spheres
 
@@ -1796,15 +2267,35 @@ no objects, the camera stays at **--camera-position x,y,z** (0,0,0 by default).
 MAP02** for a map in a Doom or Hexen WAD and **--engine** for the usual engine
 hint.
 
+**--floor up** or **--floor down** then steps the camera as **Camera Floor Up**
+and **Camera Floor Down** do, from where it stands after any levelling or focus:
+to the nearest height 32 units above the top of a visible brush, patch or point
+entity whose box holds the camera's x and y, or of an object named with
+**--object**, which count as selected. **--selected entity:2** (repeat it for
+more) also counts an object as selected but leaves the camera where it stands, as
+a selection elsewhere in the map does in the Levels views; it works only with
+**--floor**, and the `floor` object lists the whole selection as `selection`.
+From below them all, up first goes to 16
+units under the lowest; down goes there once nothing lower is left. On a Doom
+or Hexen map the sectors under the camera, and named ones, offer their floor
+plus the 41-unit eye height, at least 4 units under the ceiling. Point entities
+take their size from **--definitions file** (a `.def`, `.fgd` or `.ent` file),
+else the game's built-in classes, else a 16-unit cube.
+
 ```text
 vibestudio --cli map camera-focus start.map --object brush:12 --camera-yaw 45 --camera-pitch -30 --fov 100 --aspect 16:9 --json
 vibestudio --cli map camera-focus start.map --level --camera-yaw 50 --camera-pitch 20 --camera-position 0,0,64
+vibestudio --cli map camera-focus start.map --floor up --camera-position 128,64,72 --json
+vibestudio --cli map camera-focus start.map --floor up --camera-position 100,100,448 --selected entity:2 --json
 ```
 
 JSON reports `camera` (`position`, `yaw`, `pitch`, `fieldOfView`, `aspect`),
 `levelled`, and with objects a `focus` object: the `objects`, their box
 (`mins`, `maxs`, `centre`), `fitDistance`, `distance` after the offset, `offset`
-and `minimumDistance`. The query writes nothing (`mapWritten: false`). See
+and `minimumDistance`. With **--floor**, a `floor` object gives the
+`direction`, whether the camera `moved`, its new `height`, the `source`
+(`standing-height`, `underside`, `sector-eye-height` or `none`), the `object`
+that gave it and how many `candidates` were measured. The query writes nothing (`mapWritten: false`). See
 [Look around the map](levels.md#look-around-the-map) for the commands in the
 studio.
 

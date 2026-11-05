@@ -7,6 +7,7 @@
 
 #include "core/level_camera_focus.h"
 #include "core/level_visibility.h"
+#include "core/map_geometry.h"
 
 #include <QCoreApplication>
 #include <QSet>
@@ -135,6 +136,193 @@ bool levelCameraFocusObjectsBounds(const LevelMapDocument& document, const QVect
 		*maxs = high;
 	}
 	return true;
+}
+
+QString levelCameraFloorDirectionId(LevelCameraFloorDirection direction)
+{
+	return direction == LevelCameraFloorDirection::Up ? QStringLiteral("up") : QStringLiteral("down");
+}
+
+bool levelCameraFloorDirectionFromId(const QString& id, LevelCameraFloorDirection* direction)
+{
+	const QString key = id.trimmed().toLower();
+	if (key != QLatin1String("up") && key != QLatin1String("down")) {
+		return false;
+	}
+	if (direction) {
+		*direction = key == QLatin1String("up") ? LevelCameraFloorDirection::Up : LevelCameraFloorDirection::Down;
+	}
+	return true;
+}
+
+QString levelCameraFloorSourceId(LevelCameraFloorSource source)
+{
+	switch (source) {
+	case LevelCameraFloorSource::StandingHeight:
+		return QStringLiteral("standing-height");
+	case LevelCameraFloorSource::Underside:
+		return QStringLiteral("underside");
+	case LevelCameraFloorSource::SectorEyeHeight:
+		return QStringLiteral("sector-eye-height");
+	case LevelCameraFloorSource::None:
+		break;
+	}
+	return QStringLiteral("none");
+}
+
+// Workflow reference: NRC camwindow.cpp FloorHeightWalker and
+// CamWnd::Cam_ChangeFloor at 449778b3 (GPL-2.0-or-later). Original Qt
+// implementation; see docs/CREDITS.md.
+LevelCameraFloorStep levelCameraFloorStep(const LevelMapDocument& document, const LevelCameraFloorRequest& request)
+{
+	LevelCameraFloorStep step;
+	const LevelMapVec3& camera = request.position;
+	if (!finiteCoordinate(camera.x) || !finiteCoordinate(camera.y) || !finiteCoordinate(camera.z)) {
+		step.error = QCoreApplication::translate("LevelCameraFocus", "The camera position must be finite.");
+		return step;
+	}
+	step.valid = true;
+	step.position = {camera.x, camera.y, camera.z, true};
+	QSet<QString> excluded = levelMapHiddenObjects(document);
+	excluded.unite(request.excludedObjects);
+	QSet<QString> selected;
+	for (const LevelMapSelectionRef& ref : document.selection) {
+		selected.insert(levelMapSelectionRefId(ref));
+	}
+	const double current = camera.z;
+	// The nearest standing heights above and below, and the lowest underside.
+	struct Candidate {
+		bool found = false;
+		double height = 0.0;
+		LevelMapSelectionRef object;
+	};
+	Candidate up;
+	Candidate down;
+	Candidate bottom;
+	const auto offer = [&](double stand, const LevelMapSelectionRef& object) {
+		if (stand > current + kLevelCameraFloorEpsilon && (!up.found || stand < up.height)) {
+			up = {true, stand, object};
+		}
+		if (stand < current - kLevelCameraFloorEpsilon && (!down.found || stand > down.height)) {
+			down = {true, stand, object};
+		}
+	};
+	const auto under = [&camera](double lowX, double lowY, double highX, double highY) {
+		return camera.x > lowX && camera.x < highX && camera.y > lowY && camera.y < highY;
+	};
+	const bool doom = document.format == LevelMapFormat::DoomWad;
+	if (doom) {
+		QHash<int, const LevelMapDoomSector*> sectors;
+		for (const LevelMapDoomSector& sector : document.doomSectors) {
+			sectors.insert(sector.id, &sector);
+		}
+		const QPointF at(camera.x, camera.y);
+		for (const DoomSectorOutline& outline : buildDoomSectorOutlines(document)) {
+			const LevelMapSelectionRef ref {LevelMapSelectionKind::DoomSector, outline.sectorId};
+			const QString id = levelMapSelectionRefId(ref);
+			const LevelMapDoomSector* sector = sectors.value(outline.sectorId, nullptr);
+			if (!sector || excluded.contains(id)) {
+				continue;
+			}
+			bool inside = false;
+			if (outline.bounds.contains(at)) {
+				for (const QPolygonF& loop : outline.loops) {
+					if (loop.containsPoint(at, Qt::OddEvenFill)) {
+						inside = !inside;
+					}
+				}
+			}
+			if (!inside && !selected.contains(id)) {
+				continue;
+			}
+			// The player's eye stands 41 units above the floor, but never
+			// closer than 4 units to the ceiling (P_CalcHeight), nor under the
+			// floor in a closed sector.
+			const double floorHeight = sector->floorHeight;
+			const double eye = std::max(floorHeight, std::min(floorHeight + kLevelCameraDoomEyeHeight, sector->ceilingHeight - kLevelCameraDoomCeilingGap));
+			++step.candidates;
+			offer(eye, ref);
+		}
+	} else {
+		QSet<int> owners;
+		QSet<int> selectedEntities;
+		for (const LevelMapBrush& brush : document.brushes) {
+			owners.insert(brush.entityId);
+		}
+		for (const LevelMapPatch& patch : document.patches) {
+			owners.insert(patch.entityId);
+		}
+		for (const LevelMapSelectionRef& ref : document.selection) {
+			if (ref.kind == LevelMapSelectionKind::Entity) {
+				selectedEntities.insert(ref.objectId);
+			}
+		}
+		const auto measure = [&](const LevelMapSelectionRef& ref, int entityId, const LevelMapVec3& low, const LevelMapVec3& high) {
+			if (!finiteCoordinate(low.x) || !finiteCoordinate(low.y) || !finiteCoordinate(low.z) || !finiteCoordinate(high.x)
+				|| !finiteCoordinate(high.y) || !finiteCoordinate(high.z) || low.z > high.z) {
+				return;
+			}
+			const QString id = levelMapSelectionRefId(ref);
+			if (excluded.contains(id)) {
+				return;
+			}
+			if (!under(low.x, low.y, high.x, high.y) && !selected.contains(id) && !selectedEntities.contains(entityId)) {
+				return;
+			}
+			++step.candidates;
+			offer(high.z + kLevelCameraFloorStandHeight, ref);
+			const double underside = low.z - kLevelCameraFloorUndersideClearance;
+			if (!bottom.found || underside < bottom.height) {
+				bottom = {true, underside, ref};
+			}
+		};
+		for (const LevelMapBrush& brush : document.brushes) {
+			if (brush.boundsSolved) {
+				measure({LevelMapSelectionKind::QuakeBrush, brush.id}, brush.entityId, brush.mins, brush.maxs);
+			}
+		}
+		for (const LevelMapPatch& patch : document.patches) {
+			if (patch.mins.valid && patch.maxs.valid) {
+				measure({LevelMapSelectionKind::QuakePatch, patch.id}, patch.entityId, patch.mins, patch.maxs);
+			}
+		}
+		for (const LevelMapEntity& entity : document.entities) {
+			if (owners.contains(entity.id) || !entity.origin.valid || entity.className.compare(QStringLiteral("worldspawn"), Qt::CaseInsensitive) == 0) {
+				continue;
+			}
+			const ResizeBox box = request.entityBounds.value(entity.className.toCaseFolded(), ResizeBox {{-8.0, -8.0, -8.0}, {8.0, 8.0, 8.0}});
+			const LevelMapVec3 low {entity.origin.x + box.mins[0], entity.origin.y + box.mins[1], entity.origin.z + box.mins[2], true};
+			const LevelMapVec3 high {entity.origin.x + box.maxs[0], entity.origin.y + box.maxs[1], entity.origin.z + box.maxs[2], true};
+			if (low.x <= high.x && low.y <= high.y) {
+				measure({LevelMapSelectionKind::Entity, entity.id}, entity.id, low, high);
+			}
+		}
+	}
+	Candidate chosen;
+	if (request.direction == LevelCameraFloorDirection::Up) {
+		// Below everything, the camera first rises to the lowest underside.
+		if (bottom.found && bottom.height > current) {
+			chosen = bottom;
+			step.source = LevelCameraFloorSource::Underside;
+		} else if (up.found) {
+			chosen = up;
+			step.source = doom ? LevelCameraFloorSource::SectorEyeHeight : LevelCameraFloorSource::StandingHeight;
+		}
+	} else if (down.found) {
+		chosen = down;
+		step.source = doom ? LevelCameraFloorSource::SectorEyeHeight : LevelCameraFloorSource::StandingHeight;
+	} else if (bottom.found && bottom.height < current) {
+		chosen = bottom;
+		step.source = LevelCameraFloorSource::Underside;
+	}
+	if (!chosen.found || chosen.height == current) {
+		step.source = LevelCameraFloorSource::None;
+		return step;
+	}
+	step.moved = true;
+	step.object = chosen.object;
+	step.position.z = chosen.height;
+	return step;
 }
 
 } // namespace vibestudio

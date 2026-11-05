@@ -3,6 +3,9 @@
 // and Quake III dialects, run as a separate process against packages
 // generated here (no game data).
 
+#include "core/level_document.h"
+#include "core/level_map.h"
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
@@ -244,11 +247,11 @@ int main(int argc, char** argv)
 	const QDir root(temp.path());
 	int lastExit = 0;
 	QString lastOutput;
-	const auto run = [&](const QStringList& arguments) {
+	const auto runCommand = [&](const QStringList& arguments) {
 		QProcess process;
 		process.setWorkingDirectory(temp.path());
 		process.start(cli, QStringList {QStringLiteral("--cli"), QStringLiteral("--json"), QStringLiteral("--settings-file"),
-							   root.filePath(QStringLiteral("cli.ini")), QStringLiteral("material")}
+							   root.filePath(QStringLiteral("cli.ini"))}
 				+ arguments);
 		const bool ended = process.waitForStarted() && process.waitForFinished(120000);
 		if (!ended) {
@@ -260,6 +263,7 @@ int main(int argc, char** argv)
 		lastExit = ended && process.exitStatus() == QProcess::NormalExit ? process.exitCode() : -1;
 		return QJsonDocument::fromJson(out).object();
 	};
+	const auto run = [&](const QStringList& arguments) { return runCommand(QStringList {QStringLiteral("material")} + arguments); };
 
 	// Fixtures.
 	const QString q3 = root.filePath(QStringLiteral("q3"));
@@ -478,6 +482,43 @@ int main(int argc, char** argv)
 	expect(lastExit == 0 && names.contains(QStringLiteral("textures/test/glow")) && names.contains(QStringLiteral("textures/mod/lamp"))
 			&& result.value(QStringLiteral("basePackages")).toInt() == 1,
 		"--include-base lists the base package's materials too", lastOutput);
+
+	// map materials reads the base packages beneath the package and the chosen
+	// game as the Levels camera does: a mod map's face named after the base
+	// game's shader finds it there.
+	{
+		vibestudio::LevelMapDocument map;
+		vibestudio::LevelMapCreateRequest create;
+		create.starterRoom = false;
+		QString mapError;
+		const QString mapPath = mod + QStringLiteral("/maps/lamp.map");
+		QDir().mkpath(QFileInfo(mapPath).absolutePath());
+		const bool built = vibestudio::createLevelMap(create, &map, &mapError)
+			&& vibestudio::addLevelMapBoxBrush(&map, {0, 0, 0, true}, {64, 64, 64, true}, QStringLiteral("test/glow"))
+			&& vibestudio::saveLevelMapAs(map, mapPath).succeeded();
+		expect(built, "the mod map is written", mapError);
+		const auto glow = [](const QJsonObject& object) {
+			for (const QJsonValue& value : object.value(QStringLiteral("materials")).toObject().value(QStringLiteral("materials")).toArray()) {
+				if (value.toObject().value(QStringLiteral("name")).toString() == QStringLiteral("test/glow")) {
+					return value.toObject();
+				}
+			}
+			return QJsonObject();
+		};
+		const QStringList mapArgs {QStringLiteral("map"), QStringLiteral("materials"), mapPath, QStringLiteral("--engine"), QStringLiteral("idTech3"),
+			QStringLiteral("--package"), mod};
+		result = runCommand(mapArgs);
+		expect(glow(result).value(QStringLiteral("status")).toString() != QStringLiteral("stage-image"),
+			"without --base the mod map's face does not find the base shader", lastOutput);
+		result = runCommand(mapArgs + QStringList {QStringLiteral("--base"), q3});
+		const QJsonObject found = glow(result);
+		expect(found.value(QStringLiteral("status")).toString() == QStringLiteral("stage-image")
+				&& found.value(QStringLiteral("shaderPath")).toString().startsWith(QStringLiteral("scripts/"))
+				&& found.value(QStringLiteral("sourceLayer")).toString() == QStringLiteral("base:0"),
+			"with --base the face finds the base shader and its image beneath the package", lastOutput);
+		runCommand(mapArgs + QStringList {QStringLiteral("--dialect"), QStringLiteral("doom9")});
+		expect(lastExit == 2, "map materials refuses an unknown dialect", lastOutput);
+	}
 
 	// usage: the maps that use a material.
 	writeFile(q3 + QStringLiteral("/maps/test.map"),

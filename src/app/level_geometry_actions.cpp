@@ -294,6 +294,16 @@ void ApplicationShell::registerLevelGeometryCommands()
 		tr("Give the selected patches a thickness: a copy behind each, facing away, and walls along its open edges, as NetRadiant Custom's "
 		   "Thicken does."),
 		QStringLiteral("patch-thicken"), tr("Patches"), [this]() { thickenLevelPatchesFromUi(); });
+	// NetRadiant Custom's Deform… and TrenchBroom's Convert Selection to
+	// Patches (level_patch_convert_deform_actions.cpp).
+	add(QStringLiteral("map.deformPatch"), tr("Deform Patch…"),
+		tr("Move every control point of the selected patches along X, Y or Z by a random whole number of units up to a maximum, with a seed "
+		   "that repeats the result, as NetRadiant Custom's Deform does. One undo step."),
+		QStringLiteral("patch-sphere"), tr("Patches"), [this]() { deformLevelPatchesFromUi(); });
+	add(QStringLiteral("map.convertToPatches"), tr("Convert Selection to Patches"),
+		tr("Turn the selected brushes, or the picked faces, of a Quake III map into flat patches in their materials with their texture "
+		   "mapping, then edit their control points, as TrenchBroom does. Converted brushes are replaced; Undo brings them back."),
+		QStringLiteral("patch-plane"), tr("Patches"), [this]() { convertLevelSelectionToPatchesFromUi(); });
 	// Regions.
 	const QString regions = tr("Region");
 	add(QStringLiteral("map.regionDraw"), tr("Draw Region"),
@@ -391,6 +401,8 @@ void ApplicationShell::refreshLevelGeometryCommands()
 		m_commands->setEnabled(id, patches);
 	}
 	m_commands->setEnabled(QStringLiteral("map.thickenPatch"), patches);
+	m_commands->setEnabled(QStringLiteral("map.deformPatch"), patches);
+	m_commands->setEnabled(QStringLiteral("map.convertToPatches"), levelSelectionConvertibleToPatches());
 	m_commands->setEnabled(QStringLiteral("map.regionDraw"), textMap);
 	m_commands->setEnabled(QStringLiteral("map.regionSetBrush"), textMap && brushes);
 	m_commands->setEnabled(QStringLiteral("map.regionBounds"), textMap);

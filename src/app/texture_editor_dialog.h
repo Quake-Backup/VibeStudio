@@ -9,6 +9,7 @@
 #include <memory>
 
 class QAction;
+class QActionGroup;
 class QCheckBox;
 class QComboBox;
 class QLabel;
@@ -49,13 +50,37 @@ public:
 	// Capture immutable source values on the UI thread; resolution runs on the worker.
 	std::function<TexturePreviewSource()> paletteSource;
 	std::function<bool(const TextureExportResult&, const TextureExportOptions&, const QString&, bool, bool, QString*)> handoff;
+	// Stage several generated files (package path, bytes) as one package step.
+	std::function<bool(const QVector<TextureExportCompanion>&, bool, QString*)> stageFiles;
+	// Saves and exports, for the studio's activity history: title, path, summary.
+	std::function<void(const QString&, const QString&, const QString&)> activity;
 	[[nodiscard]] const TextureDocument& document() const { return m_document; }
 	[[nodiscard]] const IdTechPaletteResolution& paletteResolution() const { return m_palette; }
 	[[nodiscard]] bool isBusy() const { return m_busy; }
 	[[nodiscard]] bool hasUnsavedChanges() const;
 	bool setImage(const QImage& image, const QString& source, QString* error = nullptr);
 	bool editImage(const QImage& image, const QString& source, const IdTechPaletteResolution& palette);
-	bool editDecodedImage(const IdTechImageDecodeResult& decoded, const QString& source, const IdTechPaletteResolution& palette);
+	// Sprites open with every frame as a layer, aligned on their origins, and
+	// the displayed frame selected; other images open their displayed level.
+	bool editDecodedImage(const IdTechImageDecodeResult& decoded, const QString& source, const IdTechPaletteResolution& palette, int displayedFrame = -1);
+	// Load a raw 768-byte palette (.lmp/.pal, PLAYPAL's first palette) or a
+	// PCX palette as the document palette, or write it as a raw .lmp/.pal.
+	void loadPaletteFromPath(const QString& path);
+	bool savePaletteToPath(const QString& path, QString* error = nullptr) const;
+	// Import images as layers (frames); smaller images are centred, larger refused.
+	void importFramesFromPaths(const QStringList& paths);
+	void analyzeColors();
+	void setFramePlaying(bool playing);
+	[[nodiscard]] bool framePlaying() const;
+	void showFrame(int frame);
+	[[nodiscard]] int frameCount() const { return int(m_frames.size()); }
+	void swapColors();
+	// Normal, gloss and (when something glows) glow maps from the composite,
+	// named for DarkPlaces-family ports (_norm/_gloss/_glow) or ioquake3's
+	// OpenGL2 renderer (_n/_s/_glow), beside the package path or a PNG file.
+	[[nodiscard]] QVector<TextureExportCompanion> companionMaps(const QString& basePath) const;
+	void stageCompanionMaps();
+	bool exportCompanionMaps(const QString& basePngPath, bool overwrite, QString* error = nullptr);
 	void setPaletteResolution(const IdTechPaletteResolution& resolution, bool markChanged = true);
 	void refreshPaletteSource(const QString& paletteId = {}, bool markChanged = true);
 	void refreshContext();
@@ -104,6 +129,10 @@ private:
 	void refreshTransforms();
 	void updateInspectorWidth();
 	void retireRecovery();
+	void rememberColor(const QColor& color);
+	void refreshRecentColors();
+	void refreshFrames();
+	void refreshOnionSkin();
 	[[nodiscard]] QJsonObject projectMetadata() const;
 	TextureDocument m_document;
 	TextureProjectIdentity m_projectIdentity;
@@ -167,6 +196,27 @@ private:
 	QAction* m_redo = nullptr;
 	QAction* m_stage = nullptr;
 	QAction* m_apply = nullptr;
+	QToolBar* m_toolStrip = nullptr;
+	QActionGroup* m_toolActions = nullptr;
+	QLabel* m_zoomLabel = nullptr;
+	QLineEdit* m_secondaryColor = nullptr;
+	QWidget* m_recentColors = nullptr;
+	QStringList m_recent;
+	QComboBox* m_mirror = nullptr;
+	QComboBox* m_gradientShape = nullptr;
+	QCheckBox* m_gradientDither = nullptr;
+	QCheckBox* m_cloneAligned = nullptr;
+	QLabel* m_colorStats = nullptr;
+	QLabel* m_framePreview = nullptr;
+	QLabel* m_frameStatus = nullptr;
+	QSpinBox* m_frameIndex = nullptr;
+	QSpinBox* m_frameRate = nullptr;
+	QPushButton* m_framePlay = nullptr;
+	QCheckBox* m_onionSkin = nullptr;
+	QTimer* m_frameTimer = nullptr;
+	QVector<QImage> m_frames;
+	quint64 m_framesRevision = 0;
+	QComboBox* m_companionNaming = nullptr;
 };
 
 } // namespace vibestudio

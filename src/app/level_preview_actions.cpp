@@ -3,6 +3,7 @@
 #include "app/map_viewport.h"
 #include "app/model_viewport.h"
 #include "app/studio_layout.h"
+#include "core/level_camera_render.h"
 #include "core/level_filter_tags.h"
 #include "core/level_view_filters.h"
 
@@ -38,6 +39,7 @@ QWidget *ApplicationShell::buildLevelPreviewStatus()
 	m_levelPreviewProgress = new QProgressBar;
 	m_levelPreviewProgress->setAccessibleName(tr("Loading level materials"));
 	m_levelPreviewProgress->setMaximumWidth(100);
+	m_levelPreviewProgress->setMinimumWidth(1);
 	m_levelPreviewProgress->hide();
 	layout->addWidget(m_levelPreviewProgress);
 	auto *textured = new QCheckBox(tr("Textures"));
@@ -59,6 +61,18 @@ QWidget *ApplicationShell::buildLevelPreviewStatus()
 		});
 	}
 	layout->addWidget(textured);
+	// The speed held camera keys fly and drive at (level_camera_drive_actions.cpp).
+	m_levelCameraSpeedLabel = new QLabel;
+	m_levelCameraSpeedLabel->setObjectName(QStringLiteral("levelCameraSpeed"));
+	m_levelCameraSpeedLabel->setAccessibleName(tr("Camera speed"));
+	m_levelCameraSpeedLabel->setTextFormat(Qt::PlainText);
+	// Long translations and large text must not widen the Levels page past its
+	// window (which shifts every view under the pointer): when the strip is
+	// short of room the speed readout gives way first, clipped, with its
+	// accessible name kept, as the progress bar does.
+	m_levelCameraSpeedLabel->setMinimumWidth(1);
+	m_levelCameraSpeedLabel->hide();
+	layout->addWidget(m_levelCameraSpeedLabel);
 	const auto button = [&](const QString &name, const QString &text, const QString &help) {
 		auto *control = new QToolButton;
 		control->setObjectName(name);
@@ -123,6 +137,7 @@ void ApplicationShell::refreshLevelMap3D()
 		}
 		m_levelMap3D->clearSkin();
 		m_levelMap3D->clearMesh();
+		m_levelMap3D->setFaceGridTriangles({});
 		m_levelMap3D->setEnabled(true);
 		m_levelMap3DSource.clear();
 		m_levelPreviewRequestKey.clear();
@@ -188,6 +203,8 @@ void ApplicationShell::refreshLevelMap3D()
 			m_levelMap3D->setBackfaceCulling(true);
 			m_levelMap3D->clearSkin();
 			m_levelMap3D->setMesh(result.preview.mesh, result.sourceKey == m_levelMap3DSource);
+			// Grid on Camera Faces marks brush faces only.
+			m_levelMap3D->setFaceGridTriangles(levelCameraFaceGridTriangles(result.preview));
 			const QHash<int, QImage> stillImages = levelPreviewSurfaceImages(result.preview.mesh, result.assets);
 			m_levelMap3D->setSurfaceSkins(stillImages);
 			refreshLevelMaterialAnimation(result.preview.mesh, stillImages);
@@ -201,6 +218,8 @@ void ApplicationShell::refreshLevelMap3D()
 			refreshLevelMap3DHighlight();
 			applyPendingLevelBookmarkCamera();
 			refreshLevelCameraMarker();
+			// The Face section's view shows the material images just read.
+			refreshLevelFaceInspector();
 			if (m_levelMapHover && levelMap3DShowing()) {
 				m_levelMapHover->setText(levelSweepReadout(m_levelMap3D->hoverSummary()));
 			}
@@ -228,8 +247,10 @@ void ApplicationShell::refreshLevelMap3D()
 	request.options.paletteId = activePaletteId();
 	request.options.materialDialect = materialDialectChoice();
 	// Faces read the game's base packages beneath the package, as on the
-	// Materials page and in the animated faces.
-	request.basePackagePaths = materialBasePackagePaths();
+	// Materials page and in the animated faces, once they have loaded.
+	refreshLevelBaseReaders();
+	request.baseReaders = levelBaseReaders();
+	request.baseKey = request.baseReaders.isEmpty() ? QString() : m_levelBaseReadersKey;
 	request.sourceKey = QString::number(m_levelMapLoadSerial);
 	request.loadSerial = m_levelMapLoadSerial;
 	request.assetKey = m_packageArchive.sourcePath() + QLatin1Char('|') + QString::number(m_packageStaging.revision()) + QLatin1Char('|') +
@@ -238,7 +259,7 @@ void ApplicationShell::refreshLevelMap3D()
 	hash.addData((request.sourceKey + QLatin1Char('|') + request.document.sourcePath + QLatin1Char('|') + request.document.mapName +
 				  QLatin1Char('|') + QString::number(request.document.revision) + QLatin1Char('|') + request.assetKey + QLatin1Char('|') +
 				  request.options.paletteId + QLatin1Char('|') + materialDialectId(request.options.materialDialect) + QLatin1Char('|') +
-				  request.basePackagePaths.join(QLatin1Char('|')))
+				  request.baseKey)
 					 .toUtf8());
 	// Hidden IDs, not only their count: two equally sized isolates differ.
 	// Doom keeps record arrays intact, so visible-array ids alone cannot

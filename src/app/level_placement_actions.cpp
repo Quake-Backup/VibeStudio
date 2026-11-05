@@ -113,6 +113,8 @@ void ApplicationShell::placeLevelMapObjectsFromUi(bool paste) {
 	if (!archive && m_packageArchive.isOpen()) {
 		archive = std::make_shared<const PackageArchive>(m_packageArchive);
 	}
+	// Material previews read the game's base packages beneath it.
+	archive = levelMaterialReader(std::move(archive));
 	LevelPlacementDialog dialog(m_levelMapDocument, paste ? LevelPlacementMode::Paste : LevelPlacementMode::Duplicate,
 								paste ? QGuiApplication::clipboard()->text() : QString(), archive, activePaletteId(), this);
 	dialog.setTextureLock(m_settings.levelTextureLock());

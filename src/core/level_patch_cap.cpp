@@ -1,6 +1,10 @@
 #include "core/level_patch_cap.h"
+#include "core/level_patch_tools.h"
+#include "core/level_scene_locks.h"
+#include "core/level_visibility.h"
 #include <QCoreApplication>
 #include <QJsonArray>
+#include <QMap>
 #include <QSet>
 #include <algorithm>
 #include <cmath>
@@ -27,8 +31,8 @@ LevelMapVec3 cross(const LevelMapVec3 &a, const LevelMapVec3 &b)
 }
 double length(const LevelMapVec3 &a) { return std::hypot(a.x, a.y, a.z); }
 
-bool build(const LevelMapPatch &source, LevelPatchBoundary edge, const LevelPatchCapRequest &request, LevelPatchCapResult *out,
-		   QString *error)
+bool buildRadial(const LevelMapPatch &source, LevelPatchBoundary edge, const LevelPatchCapRequest &request, LevelPatchCapResult *out,
+				 QString *error)
 {
 	const auto indices = levelPatchBoundaryIndices(source, edge);
 	if (indices.isEmpty()) {
@@ -155,13 +159,203 @@ bool build(const LevelMapPatch &source, LevelPatchBoundary edge, const LevelPatc
 		return false;
 	}
 	out->caps << cap;
+	out->sources << source.id;
 	out->boundaries << edge;
 	out->centers << center;
 	out->closed << closed;
 	out->reversed << reversed;
 	return true;
 }
+
+// One control of a seam: a position and its texture coordinates, so every
+// control the seam derives from the boundary carries the boundary's mapping
+// the way it carries its position.
+struct SeamPoint {
+	LevelMapVec3 p{0, 0, 0, true};
+	double u = 0, v = 0;
+};
+SeamPoint seamMix(const SeamPoint &a, double wa, const SeamPoint &b, double wb, const SeamPoint &c = {}, double wc = 0)
+{
+	return {add(add(scale(a.p, wa), scale(b.p, wb)), scale(c.p, wc)), a.u * wa + b.u * wb + c.u * wc, a.v * wa + b.v * wb + c.v * wc};
+}
+
+// NetRadiant Custom's Cap Selection seams: the control layouts of its
+// Patch::ConstructSeam, from the boundary's controls `p` taken forwards (the
+// first row) or backwards (the last row), as its Patch::MakeCap takes them.
+// Workflow reference: NRC radiant/patch.cpp Patch::MakeCap and
+// Patch::ConstructSeam, radiant/patchmanip.cpp Patch_makeCaps at 449778b3
+// (GPL-2.0-or-later). Original implementation; see docs/CREDITS.md.
+bool buildSeam(const LevelMapPatch &source, LevelPatchBoundary edge, const LevelPatchCapRequest &request, LevelPatchCapResult *out,
+			   QString *error)
+{
+	const auto indices = levelPatchBoundaryIndices(source, edge);
+	if (indices.isEmpty()) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelPatchCap", "Choose a valid patch boundary."));
+	}
+	const auto widths = levelPatchCapStyleWidths(request.style);
+	const int width = static_cast<int>(indices.size());
+	if (!widths.contains(width)) {
+		if (error) {
+			const QString style = levelPatchCapStyleLabel(request.style);
+			*error = widths.size() == 1
+						 ? QCoreApplication::translate("LevelPatchCap", "%1 caps need a boundary of %2 control points; this one has %3.")
+							   .arg(style)
+							   .arg(widths.first())
+							   .arg(width)
+						 : QCoreApplication::translate("LevelPatchCap", "%1 caps need a boundary of %2 or %3 control points; this one has %4.")
+							   .arg(style)
+							   .arg(widths.first())
+							   .arg(widths.last())
+							   .arg(width);
+		}
+		return false;
+	}
+	// The first row and last column forwards, as NetRadiant Custom takes its
+	// first row; the last row and first column backwards, so each cap faces
+	// out of the patch as Radial caps do. Invert takes them the other way,
+	// which turns every seam layout round.
+	const bool reversed = (edge == LevelPatchBoundary::LastRow || edge == LevelPatchBoundary::FirstColumn) != request.invert;
+	QVector<SeamPoint> p;
+	for (int i = 0; i < width; ++i) {
+		const int index = indices[reversed ? width - 1 - i : i];
+		p.append({source.controlPoints[index], source.controlU[index], source.controlV[index]});
+	}
+	double extent = 0;
+	for (const auto &point : std::as_const(p)) {
+		extent = std::max(extent, length(sub(point.p, p.first().p)));
+	}
+	if (extent < 1e-7) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelPatchCap", "The boundary is collapsed to one point and cannot form a cap."));
+	}
+	LevelMapPatch cap;
+	QVector<SeamPoint> grid;
+	SeamPoint closesOn;
+	switch (request.style) {
+	case LevelPatchCapStyle::Bevel: {
+		// The corner opposite the arc's middle control, where a quarter
+		// round's centre lies; the arc runs down the last column.
+		const SeamPoint corner = seamMix(p[2], 1, p[0], 1, p[1], -1);
+		cap.width = cap.height = 3;
+		grid = {corner, corner, p[2], corner, corner, p[1], corner, corner, p[0]};
+		closesOn = corner;
+		break;
+	}
+	case LevelPatchCapStyle::InvertedBevel:
+		// The arc down the first column, filled out to its middle control.
+		cap.width = cap.height = 3;
+		grid = {p[0], p[1], p[1], p[1], p[1], p[1], p[2], p[1], p[1]};
+		closesOn = p[1];
+		break;
+	case LevelPatchCapStyle::Endcap: {
+		// The chord across the first row, each half of the arc down a side,
+		// meeting at its middle control.
+		const SeamPoint chord = seamMix(p[0], 0.5, p[4], 0.5);
+		cap.width = cap.height = 3;
+		grid = {p[0], chord, p[4], p[1], p[2], p[3], p[2], p[2], p[2]};
+		closesOn = chord;
+		break;
+	}
+	case LevelPatchCapStyle::InvertedEndcap:
+		// The arc across the first row, out to the line through its corner
+		// controls.
+		cap.width = 5;
+		cap.height = 3;
+		grid = {p[4], p[3], p[2], p[1], p[0], p[3], p[3], p[2], p[1], p[1], p[3], p[3], p[2], p[1], p[1]};
+		closesOn = p[2];
+		break;
+	case LevelPatchCapStyle::Cylinder:
+		// Each half of the ring down a side, joined by straight chords:
+		// the middle column halfway across each row, as Re-disperse puts it.
+		cap.width = 3;
+		cap.height = 5;
+		for (int row = 0; row < 5; ++row) {
+			grid << p[row] << seamMix(p[row], 0.5, p[8 - row], 0.5) << p[8 - row];
+		}
+		closesOn = seamMix(p[0], 0.5, p[4], 0.5);
+		break;
+	case LevelPatchCapStyle::Radial:
+		return fail(error, QT_TRANSLATE_NOOP("LevelPatchCap", "Choose a cap style."));
+	}
+	cap.entityId = source.entityId;
+	cap.textureName = request.texture.isEmpty() ? source.textureName : levelPatchMaterialToken(request.texture, source.fixedSubdivisions);
+	cap.fixedSubdivisions = source.fixedSubdivisions;
+	const int along =
+		(edge == LevelPatchBoundary::FirstRow || edge == LevelPatchBoundary::LastRow) ? source.subdivisionsX : source.subdivisionsY;
+	cap.subdivisionsX = source.fixedSubdivisions ? along : 0;
+	cap.subdivisionsY = source.fixedSubdivisions ? along : 0;
+	cap.headerTail = source.headerTail;
+	cap.controlGridNormalized = cap.definitionDirty = true;
+	for (const auto &point : std::as_const(grid)) {
+		cap.controlPoints << point.p;
+		cap.controlU << point.u;
+		cap.controlV << point.v;
+	}
+	refreshLevelPatchBounds(&cap);
+	if (!validateLevelPatch(cap, error)) {
+		return false;
+	}
+	// Radiant maps every new seam with Cap Texture.
+	if (request.uv == LevelPatchCapUv::Planar && !planarLevelPatchTexture(&cap, request.unitsPerTile, request.unitsPerTile, error)) {
+		return false;
+	}
+	const bool closed = length(sub(p.first().p, p.last().p)) <= 1e-7;
+	out->caps << cap;
+	out->sources << source.id;
+	out->boundaries << edge;
+	out->centers << closesOn.p;
+	out->closed << closed;
+	out->reversed << reversed;
+	return true;
+}
 } // namespace
+
+QStringList levelPatchCapStyleIds()
+{
+	return {QStringLiteral("radial"),		   QStringLiteral("bevel"),			  QStringLiteral("endcap"),
+			QStringLiteral("inverted-bevel"), QStringLiteral("inverted-endcap"), QStringLiteral("cylinder")};
+}
+
+QString levelPatchCapStyleId(LevelPatchCapStyle style) { return levelPatchCapStyleIds().value(static_cast<int>(style)); }
+
+QString levelPatchCapStyleLabel(LevelPatchCapStyle style)
+{
+	static const char *const labels[] = {QT_TRANSLATE_NOOP("LevelPatchCap", "Radial"),
+										 QT_TRANSLATE_NOOP("LevelPatchCap", "Bevel"),
+										 QT_TRANSLATE_NOOP("LevelPatchCap", "Endcap"),
+										 QT_TRANSLATE_NOOP("LevelPatchCap", "Inverted Bevel"),
+										 QT_TRANSLATE_NOOP("LevelPatchCap", "Inverted Endcap"),
+										 QT_TRANSLATE_NOOP("LevelPatchCap", "Cylinder")};
+	const int index = static_cast<int>(style);
+	return index >= 0 && index < 6 ? QCoreApplication::translate("LevelPatchCap", labels[index]) : QString();
+}
+
+bool parseLevelPatchCapStyle(const QString &id, LevelPatchCapStyle *style)
+{
+	const qsizetype index = levelPatchCapStyleIds().indexOf(id.trimmed().toLower());
+	if (index < 0 || !style) {
+		return false;
+	}
+	*style = static_cast<LevelPatchCapStyle>(index);
+	return true;
+}
+
+QVector<int> levelPatchCapStyleWidths(LevelPatchCapStyle style)
+{
+	// NetRadiant Custom's Patch_makeCaps width checks.
+	switch (style) {
+	case LevelPatchCapStyle::Bevel:
+	case LevelPatchCapStyle::InvertedBevel:
+		return {3, 5};
+	case LevelPatchCapStyle::Endcap:
+	case LevelPatchCapStyle::InvertedEndcap:
+		return {5};
+	case LevelPatchCapStyle::Cylinder:
+		return {9};
+	case LevelPatchCapStyle::Radial:
+		break;
+	}
+	return {};
+}
 
 bool prepareLevelPatchCaps(const LevelMapPatch &source, const LevelPatchCapRequest &request, LevelPatchCapResult *result, QString *error,
 						   const std::function<bool()> &cancelled)
@@ -180,7 +374,15 @@ bool prepareLevelPatchCaps(const LevelMapPatch &source, const LevelPatchCapReque
 						"LevelPatchCap",
 						"Choose one to four distinct boundaries, a positive texture scale, and at most one boundary for a custom center."));
 	}
+	const bool radial = request.style == LevelPatchCapStyle::Radial;
+	if (static_cast<int>(request.style) < 0 || static_cast<int>(request.style) > static_cast<int>(LevelPatchCapStyle::Cylinder)) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelPatchCap", "Choose a cap style."));
+	}
+	if (!radial && request.customCenter) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelPatchCap", "Only radial caps take a custom center; the other styles close where their layout does."));
+	}
 	LevelPatchCapResult prepared;
+	prepared.style = request.style;
 	QSet<int> seen;
 	for (auto edge : request.boundaries) {
 		if (cancelled && cancelled()) {
@@ -190,17 +392,20 @@ bool prepareLevelPatchCaps(const LevelMapPatch &source, const LevelPatchCapReque
 			return fail(error, QT_TRANSLATE_NOOP("LevelPatchCap", "A cap boundary was selected more than once."));
 		}
 		seen.insert(static_cast<int>(edge));
-		if (!build(source, edge, request, &prepared, error)) {
+		if (!(radial ? buildRadial(source, edge, request, &prepared, error) : buildSeam(source, edge, request, &prepared, error))) {
 			if (error) {
 				*error = QCoreApplication::translate("LevelPatchCap", "Cannot cap %1: %2").arg(levelPatchBoundaryId(edge), *error);
 			}
 			return false;
 		}
 	}
-	if (request.uv == LevelPatchCapUv::Boundary) {
+	if (request.uv == LevelPatchCapUv::Boundary && radial) {
 		prepared.warnings << QCoreApplication::translate(
 			"LevelPatchCap",
 			"Boundary UVs are retained; seams and distortion converge at the cap center. Planar mapping avoids this for flat caps.");
+	} else if (request.uv == LevelPatchCapUv::Boundary) {
+		prepared.warnings << QCoreApplication::translate(
+			"LevelPatchCap", "Boundary UVs are carried to the seam's other control points, so the texture can stretch where the seam folds.");
 	}
 	if (request.invert) {
 		prepared.warnings << QCoreApplication::translate(
@@ -240,13 +445,125 @@ bool capLevelMapPatch(LevelMapDocument *document, int patchId, const LevelPatchC
 	return true;
 }
 
+// Workflow reference: NRC radiant/patchmanip.cpp Scene_PatchDoCap_Selected
+// and Patch_makeCaps at 449778b3 (GPL-2.0-or-later): every visible selected
+// patch, its caps beside it and selected. Original implementation; see
+// docs/CREDITS.md.
+bool capLevelMapPatches(LevelMapDocument *document, const QVector<int> &patchIds, const LevelPatchCapRequest &request,
+						LevelPatchCapResult *result, QString *error)
+{
+	LevelPatchCapResult staged;
+	if (const auto guarded = guardLevelSceneEdit(
+			document, error, [&](LevelMapDocument *candidate) { return capLevelMapPatches(candidate, patchIds, request, &staged, error); });
+		guarded.has_value()) {
+		if (*guarded && result) {
+			*result = staged;
+		}
+		return *guarded;
+	}
+	if (error) {
+		error->clear();
+	}
+	if (!document || document->format != LevelMapFormat::Quake3Map) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelPatchCap", "Open a Quake III-family map to add patch caps."));
+	}
+	if (patchIds.isEmpty() || patchIds.size() > 256) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelPatchCap", "Choose between 1 and 256 patches to cap."));
+	}
+	const QSet<int> wanted(patchIds.cbegin(), patchIds.cend());
+	if (wanted.size() != patchIds.size()) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelPatchCap", "A patch was chosen more than once."));
+	}
+	const QSet<QString> hidden = levelMapHiddenObjects(*document);
+	LevelPatchCapResult prepared;
+	prepared.style = request.style;
+	// Caps go in their source's entity: each owner's caps, by index.
+	QMap<int, QVector<int>> byOwner;
+	int found = 0;
+	for (const auto &patch : std::as_const(document->patches)) {
+		if (!wanted.contains(patch.id)) {
+			continue;
+		}
+		++found;
+		if (hidden.contains(levelMapSelectionRefId({LevelMapSelectionKind::QuakePatch, patch.id}))) {
+			prepared.skipped << QCoreApplication::translate("LevelPatchCap", "Patch %1 is hidden.").arg(patch.id);
+			continue;
+		}
+		LevelPatchCapResult one;
+		QString problem;
+		if (!prepareLevelPatchCaps(patch, request, &one, &problem)) {
+			prepared.skipped << QCoreApplication::translate("LevelPatchCap", "Patch %1: %2").arg(patch.id).arg(problem);
+			continue;
+		}
+		for (qsizetype i = 0; i < one.caps.size(); ++i) {
+			byOwner[patch.entityId] << static_cast<int>(prepared.caps.size() + i);
+		}
+		prepared.caps += one.caps;
+		prepared.sources += one.sources;
+		prepared.boundaries += one.boundaries;
+		prepared.centers += one.centers;
+		prepared.closed += one.closed;
+		prepared.reversed += one.reversed;
+		if (prepared.warnings.isEmpty()) {
+			prepared.warnings = one.warnings;
+		}
+	}
+	if (found != wanted.size()) {
+		return fail(error, QT_TRANSLATE_NOOP("LevelPatchCap", "The source patch no longer exists."));
+	}
+	if (prepared.caps.isEmpty()) {
+		if (error) {
+			*error = prepared.skipped.isEmpty() ? QCoreApplication::translate("LevelPatchCap", "Nothing to cap.")
+												: prepared.skipped.join(QLatin1Char('\n'));
+		}
+		return false;
+	}
+	LevelMapDocument working = *document;
+	QVector<int> ids(prepared.caps.size(), -1);
+	int steps = 0;
+	for (auto owner = byOwner.cbegin(); owner != byOwner.cend(); ++owner) {
+		for (qsizetype start = 0; start < owner.value().size(); start += 64) {
+			const QVector<int> chunk = owner.value().mid(start, 64);
+			QVector<LevelMapPatch> caps;
+			for (int index : chunk) {
+				caps << prepared.caps[index];
+			}
+			QVector<int> added;
+			if (!addLevelMapPatches(&working, caps, owner.key(), &added, error)) {
+				return false;
+			}
+			for (qsizetype i = 0; i < chunk.size() && i < added.size(); ++i) {
+				ids[chunk[i]] = added[i];
+			}
+			++steps;
+		}
+	}
+	const int capped = static_cast<int>(QSet<int>(prepared.sources.cbegin(), prepared.sources.cend()).size());
+	if (steps > 1 && !collapseLevelMapUndoSteps(&working, steps, QCoreApplication::translate("LevelPatchCap", "Cap %n patch(es)", nullptr, capped),
+												QCoreApplication::translate("LevelPatchCap", "Remove the patch caps"), error)) {
+		return false;
+	}
+	QVector<LevelMapSelectionRef> selection;
+	for (int i = 0; i < ids.size(); ++i) {
+		prepared.caps[i].id = ids[i];
+		selection << LevelMapSelectionRef{LevelMapSelectionKind::QuakePatch, ids[i]};
+	}
+	setLevelMapSelection(&working, selection);
+	*document = std::move(working);
+	if (result) {
+		*result = std::move(prepared);
+	}
+	return true;
+}
+
 QJsonObject levelPatchCapReportJson(const LevelPatchCapResult &result)
 {
-	QJsonArray caps, warnings;
+	QJsonArray caps, warnings, skipped;
 	for (qsizetype i = 0; i < result.caps.size(); ++i) {
 		const auto &cap = result.caps[i];
 		const auto center = result.centers[i];
 		caps << QJsonObject{{QStringLiteral("id"), cap.id},
+							{QStringLiteral("source"), result.sources.value(i, -1)},
 							{QStringLiteral("entity"), cap.entityId},
 							{QStringLiteral("boundary"), levelPatchBoundaryId(result.boundaries[i])},
 							{QStringLiteral("closed"), result.closed[i]},
@@ -258,6 +575,12 @@ QJsonObject levelPatchCapReportJson(const LevelPatchCapResult &result)
 	for (const auto &warning : result.warnings) {
 		warnings << warning;
 	}
-	return {{QStringLiteral("caps"), caps}, {QStringLiteral("warnings"), warnings}};
+	for (const auto &reason : result.skipped) {
+		skipped << reason;
+	}
+	return {{QStringLiteral("style"), levelPatchCapStyleId(result.style)},
+			{QStringLiteral("caps"), caps},
+			{QStringLiteral("skipped"), skipped},
+			{QStringLiteral("warnings"), warnings}};
 }
 } // namespace vibestudio

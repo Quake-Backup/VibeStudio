@@ -131,6 +131,8 @@ void ApplicationShell::createLevelBrushFromPointsFromUi()
 	if (!archive && m_packageArchive.isOpen()) {
 		archive = std::make_shared<const PackageArchive>(m_packageArchive);
 	}
+	// Material previews read the game's base packages beneath it.
+	archive = levelMaterialReader(std::move(archive));
 	const QString remembered = QString::fromUtf8(m_settings.shellLayoutState(QStringLiteral("levelBrushPoints")));
 	LevelBrushPointsDialog dialog(m_levelMapDocument, remembered, levelBrushMaterial(), {}, archive, activePaletteId(), this);
 	dialog.setSelectionPointsProvider([this] { return levelSelectionCornerText(); },

@@ -31,9 +31,11 @@ private:
 	void updatePreview();
 	QFormLayout* m_form = nullptr;
 	QComboBox *m_profile = nullptr, *m_alpha = nullptr, *m_filter = nullptr, *m_fullbright = nullptr, *m_mip = nullptr;
-	QLineEdit *m_matte = nullptr, *m_name = nullptr, *m_animation = nullptr, *m_flags = nullptr, *m_contents = nullptr;
+	QComboBox *m_spriteType = nullptr, *m_spriteTexture = nullptr, *m_storedPalette = nullptr;
+	QLineEdit *m_matte = nullptr, *m_name = nullptr, *m_animation = nullptr, *m_flags = nullptr, *m_contents = nullptr, *m_wall = nullptr;
 	QSpinBox *m_threshold = nullptr, *m_value = nullptr, *m_left = nullptr, *m_top = nullptr;
-	QCheckBox *m_dither = nullptr, *m_generated = nullptr, *m_extended = nullptr;
+	QCheckBox *m_dither = nullptr, *m_generated = nullptr, *m_extended = nullptr, *m_randomSync = nullptr, *m_centered = nullptr, *m_doomSprite = nullptr;
+	bool m_framesShown = false;
 	QLabel *m_description = nullptr, *m_preview = nullptr, *m_report = nullptr;
 	QVector<QImage> m_images;
 	bool m_loading = false;

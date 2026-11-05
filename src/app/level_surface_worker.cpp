@@ -1,6 +1,7 @@
 #include "app/level_surface_worker.h"
 #include "core/level_face_clipboard.h"
 #include "core/level_materials.h"
+#include "core/material_library.h"
 #include "core/package_staging.h"
 #include <QCoreApplication>
 #include <QSet>
@@ -31,6 +32,10 @@ bool LevelSurfaceWorker::start(LevelSurfaceWork request)
 	work->result.reset = request.resetTextures;
 	m_thread = QThread::create([work, request = std::move(request)]() mutable {
 		const auto cancelled = [work] { return work->cancelled.load(); };
+		// Image sizes resolve over the game's base packages, as in the camera.
+		const auto overBase = [&request](const std::shared_ptr<const PackageArchiveReader>& archive) -> std::shared_ptr<const PackageArchiveReader> {
+			return request.baseReaders.isEmpty() ? archive : std::make_shared<MaterialLayeredReader>(archive, request.baseReaders);
+		};
 		try {
 			if (request.resetTextures) {
 				// Brush-primitive faces read Reset Textures values in texels, so
@@ -53,7 +58,7 @@ bool LevelSurfaceWorker::start(LevelSurfaceWork request)
 				}
 				if (request.archive && !visible.brushes.isEmpty()) {
 					LevelPreviewAssetOptions options; options.paletteId = request.palette;
-					const auto assets = resolveLevelPreviewAssets(visible, *request.archive, options, [cancelled](int, int) { return !cancelled(); });
+					const auto assets = resolveLevelPreviewAssets(visible, *overBase(request.archive), options, [cancelled](int, int) { return !cancelled(); });
 					request.textureSizes.insert(levelPreviewTextureSizes(assets));
 				}
 				LevelSurfaceEditPlan plan;
@@ -151,7 +156,7 @@ bool LevelSurfaceWorker::start(LevelSurfaceWork request)
 					source.engineFamily = request.clipboardEngineFamily.isEmpty() ? request.document.engineFamily : request.clipboardEngineFamily;
 					LevelMapBrush brush; brush.faces << request.clipboard.face(); source.brushes << brush;
 					LevelPreviewAssetOptions options; options.paletteId = request.clipboardPalette;
-					const auto assets = resolveLevelPreviewAssets(source, *request.clipboardArchive, options, [cancelled](int, int) { return !cancelled(); });
+					const auto assets = resolveLevelPreviewAssets(source, *overBase(request.clipboardArchive), options, [cancelled](int, int) { return !cancelled(); });
 					request.paste.textureSize = levelPreviewTextureSizes(assets).value(copiedMaterial);
 				}
 				if (cancelled()) { return; }
@@ -172,7 +177,7 @@ bool LevelSurfaceWorker::start(LevelSurfaceWork request)
 			}
 			if (request.archive && !visible.brushes.isEmpty()) {
 				LevelPreviewAssetOptions options; options.paletteId = request.palette;
-				const auto assets = resolveLevelPreviewAssets(visible, *request.archive, options,
+				const auto assets = resolveLevelPreviewAssets(visible, *overBase(request.archive), options,
 					[cancelled](int, int) { return !cancelled(); });
 				request.textureSizes.insert(levelPreviewTextureSizes(assets));
 			}

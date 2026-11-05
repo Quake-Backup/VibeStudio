@@ -34,8 +34,13 @@ IdTechImageDecodeResult decodeExtraImage(IdTechImageFormat format, const QByteAr
 	if (bytes.size() > 64 * 1024 * 1024 || cancelled(context)) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Image import exceeds its byte limit or was cancelled.")); }
 	if (format == IdTechImageFormat::Dds) {
 		result.image = decodeDdsImage(bytes, context, &result.error);
-		if (bytes.size() >= 128 && u32(bytes, 28) > 1) {
-			result.warnings << message(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "DDS import uses the base mip only; lower mip levels are not retained."));
+		if (!result.image.isNull() && bytes.size() >= 128 && u32(bytes, 28) > 1) {
+			// The editor edits the base surface and regenerates mips on export.
+			result.mipLevels = decodeDdsMipLevels(bytes, context);
+			if (result.mipLevels.size() < 2) {
+				result.mipLevels.clear();
+				result.warnings << message(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "DDS import uses the base mip only; lower mip levels are not retained."));
+			}
 		}
 	} else if (format == IdTechImageFormat::Ftx) {
 		if (bytes.size() < 12) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "The FTX header is truncated.")); }

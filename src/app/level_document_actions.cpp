@@ -94,12 +94,8 @@ void ApplicationShell::adoptLevelMapDocument(LevelMapDocument document)
 	if (m_levelMapName && m_levelMapDocument.format == LevelMapFormat::DoomWad) {
 		m_levelMapName->setEditText(m_levelMapDocument.mapName);
 	}
-	if (m_levelMapCompilerProfile) {
-		const int index = m_levelMapCompilerProfile->findData(compilerRequestForLevelMap(m_levelMapDocument, {}).profileId);
-		if (index >= 0) {
-			m_levelMapCompilerProfile->setCurrentIndex(index);
-		}
-	}
+	// The profile last run from Levels for this game, else the format's own.
+	selectLevelCompilerProfileForMap();
 	registerWatchedDocument(m_levelMapDocument.sourcePath, DocumentWatchRole::LevelMap, m_levelMapDocument.mapName);
 	refreshLevelMapNameChoices();
 	refreshLevelMapWorkbench();

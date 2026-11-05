@@ -42,6 +42,11 @@ struct LevelDocumentSaveRequest {
 // Serializes an immutable snapshot, checks source conflicts, backs up replaced
 // content, and commits atomically. No source or session state changes on failure.
 LevelMapSaveReport writeLevelDocument(const LevelMapDocument& document, const LevelDocumentSaveRequest& request);
+// Publishes map text that is not a whole document, such as Export Selection as
+// Map's, with the same backup, conflict and atomic-commit rules. Refuses to
+// write over `protectedPath`, the open map's own file. `request.sceneStorage`
+// is not used.
+LevelMapSaveReport writeLevelMapBytes(const QByteArray& bytes, const LevelDocumentSaveRequest& request, const QString& protectedPath = {});
 void adoptLevelDocumentSave(LevelMapDocument* document, const LevelMapSaveReport& report);
 
 struct LevelMapRecovery {

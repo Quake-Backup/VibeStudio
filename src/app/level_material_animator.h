@@ -37,10 +37,10 @@ public:
 	[[nodiscard]] bool isEnabled() const { return m_enabled; }
 	// Reduced motion keeps every face still.
 	void setReducedMotion(bool reduced);
-	// The package the map's materials come from and the packages beneath it
-	// (file paths, lowest first), read for the Materials page's Quake III
-	// game. Read in the background when next needed.
-	void setPackage(std::shared_ptr<const PackageArchiveReader> reader, const QStringList& basePaths,
+	// The package the map's materials come from and the loaded packages
+	// beneath it (lowest first), read for the Materials page's Quake III game.
+	// Read in the background when next needed.
+	void setPackage(std::shared_ptr<const PackageArchiveReader> reader, const QVector<std::shared_ptr<const PackageArchiveReader>>& bases,
 		MaterialDialect dialect = MaterialDialect::Automatic);
 	[[nodiscard]] MaterialDialect dialect() const { return m_dialect; }
 	// The camera's mesh now shown, its surfaces named by material, and each
@@ -65,7 +65,7 @@ private:
 	MaterialTaskLane* m_frameLane = nullptr;
 	std::shared_ptr<MaterialLookup> m_lookup;
 	std::shared_ptr<const PackageArchiveReader> m_reader;
-	QStringList m_basePaths;
+	QVector<std::shared_ptr<const PackageArchiveReader>> m_bases;
 	MaterialDialect m_dialect = MaterialDialect::Automatic;
 	bool m_lookupStale = true;
 	MaterialEngine m_engine = MaterialEngine::Unknown;

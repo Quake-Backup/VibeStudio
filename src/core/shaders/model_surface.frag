@@ -5,7 +5,9 @@
 //
 // Colours are premultiplied. Hatching, selected edges, edges and the hovered
 // outline follow the studio's long-standing rules: widths in logical pixels,
-// patterns along screen diagonals.
+// patterns along screen diagonals. The optional face grid and distance fog
+// (the Levels camera's Grid on Camera Faces and Fog in Camera) come first,
+// so the selection and edges are drawn over them unfaded.
 
 #include "common.glsl"
 
@@ -20,6 +22,9 @@ VIBE_UNIFORMS {
 	vec4 highlightColor;
 	vec4 params;
 	ivec4 iparams;
+	vec4 view;
+	vec4 fogColor;
+	vec4 gridParams;
 };
 
 // The surface's skin, premultiplied.
@@ -36,6 +41,7 @@ VIBE_VARYING_IN(1) vec3 vBarycentricW;
 VIBE_FLAT_IN(2) vec4 vShade;
 VIBE_FLAT_IN(3) int vTriangle;
 VIBE_FLAT_IN(4) uint vFlags;
+VIBE_VARYING_IN(5) vec3 vWorld;
 
 VIBE_FRAGMENT_OUT(0) vec4 outColor;
 VIBE_FRAGMENT_OUT(1) int outTriangle;
@@ -57,6 +63,13 @@ void main()
 		length(vec2(dFdx(barycentric.y), dFdy(barycentric.y))),
 		length(vec2(dFdx(barycentric.z), dFdy(barycentric.z))));
 	vec3 edgeDistance = barycentric / max(gradient, vec3(1.0e-20));
+	// The face grid lies in the plane of the two world axes the face is most
+	// nearly square to, measured in grid cells; how many cells a pixel spans
+	// gives the distance to the nearest line in pixels.
+	uint axis = (vFlags >> 9u) & 3u;
+	vec2 gridPoint = axis == 0u ? vWorld.yz : (axis == 1u ? vWorld.xz : vWorld.xy);
+	vec2 gridCell = gridPoint / max(view.z, 1.0e-6);
+	vec2 cellsPerPixel = vec2(length(vec2(dFdx(gridCell.x), dFdy(gridCell.x))), length(vec2(dFdx(gridCell.y), dFdy(gridCell.y))));
 
 	vec4 color;
 	if ((vFlags & 32u) != 0u) {
@@ -93,6 +106,29 @@ void main()
 	}
 
 	float ratio = params.x;
+	if ((vFlags & 2048u) != 0u && view.z > 0.0) {
+		vec2 pixels = abs(fract(gridCell + 0.5) - 0.5) / max(cellsPerPixel, vec2(1.0e-6));
+		vec2 coverage = clamp(vec2(0.5 * gridParams.y * ratio + 0.5) - pixels, 0.0, 1.0);
+		// Lines fade as they come closer than eight pixels apart and are gone
+		// at four, so a distant or glancing face reads as a face, not as grid.
+		vec2 spacing = 1.0 / max(cellsPerPixel, vec2(1.0e-6));
+		vec2 fade = clamp((spacing - 4.0 * ratio) / (4.0 * ratio), 0.0, 1.0);
+		float line = max(coverage.x * fade.x, coverage.y * fade.y) * gridParams.x;
+		if (line > 0.0) {
+			// Dark lines on light faces, light lines on dark ones.
+			vec3 straight = color.rgb / max(color.a, 1.0 / 255.0);
+			float luma = dot(straight, vec3(0.299, 0.587, 0.114));
+			color = tint(color, vec4(vec3(luma > 0.55 ? 0.0 : 1.0), line));
+		}
+	}
+	// Fog fades the face, grid included; the selection and edges stay crisp.
+	// Perspective views count from the eye, orthographic ones along the view
+	// from the front of the geometry.
+	if (fogColor.a > 0.0) {
+		float eyeDistance = cameraEye.w > 0.5 ? length(vWorld - cameraEye.xyz) : gridParams.z - dot(vWorld, cameraEye.xyz);
+		float ramp = clamp((eyeDistance - view.x) / max(view.y - view.x, 1.0e-3), 0.0, 1.0);
+		color = tint(color, vec4(fogColor.rgb, fogColor.a * ramp));
+	}
 	float diagonal = (gl_FragCoord.x + gl_FragCoord.y) / ratio;
 	if ((vFlags & 1u) != 0u && mod(diagonal, 8.0) < 1.2) {
 		color = tint(color, hatchColor);

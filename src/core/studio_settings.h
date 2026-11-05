@@ -28,6 +28,21 @@ struct LevelEditorControls;
 struct LevelPlanPanes;
 struct LevelRoomPreferences;
 struct LevelCsgToolPreferences;
+struct GameLaunchProfile;
+struct BuildProgramTrustRecord;
+
+// The build a project ran last (Run Last Build): a build pipeline, run with
+// or without a launch, or a compiler profile run from Levels on the open map.
+struct StudioBuildRunRecord {
+	// "pipeline" or "profile".
+	QString kind;
+	QString id;
+	bool launch = false;
+	QString inputPath;
+	QDateTime timeUtc;
+
+	[[nodiscard]] bool isValid() const { return (kind == QLatin1String("pipeline") || kind == QLatin1String("profile")) && !id.trimmed().isEmpty(); }
+};
 
 enum class StudioTheme {
 	System,
@@ -264,6 +279,24 @@ public:
 	// mod's folder, or empty for the base game.
 	QString launchGameDirectory(const QString& installationId) const;
 	void setLaunchGameDirectory(const QString& installationId, const QString& folder);
+	// Build and launch memory (studio_settings_build.cpp): the extra engine
+	// arguments every launch of an installation adds, as typed; the user's own
+	// launch profiles (core/build_pipeline.h); the build a project ran last
+	// (an empty path is "no project"); and the compiler profile last run from
+	// Levels for a game ("quake", "quake2", "quake3" or "doom").
+	QString launchExtraArguments(const QString& installationId) const;
+	void setLaunchExtraArguments(const QString& installationId, const QString& arguments);
+	QVector<GameLaunchProfile> userGameLaunchProfiles() const;
+	void setUserGameLaunchProfiles(const QVector<GameLaunchProfile>& profiles);
+	StudioBuildRunRecord lastBuildRun(const QString& projectPath) const;
+	void setLastBuildRun(const QString& projectPath, const StudioBuildRunRecord& record);
+	QString levelCompilerProfile(const QString& gameKey) const;
+	void setLevelCompilerProfile(const QString& gameKey, const QString& profileId);
+	// Programs from a project or a saved run the user has trusted, per project
+	// or map folder (core/build_program_trust.h). Kept here, never in the
+	// project.
+	QVector<BuildProgramTrustRecord> trustedBuildPrograms() const;
+	void setTrustedBuildPrograms(const QVector<BuildProgramTrustRecord>& records);
 	// Commands last run from the command palette, newest first, at most
 	// kMaximumRecentCommands.
 	QStringList recentCommands() const;

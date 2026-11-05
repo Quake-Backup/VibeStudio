@@ -359,5 +359,7 @@ void ApplicationShell::refreshLevelCameraComponents()
 	for (auto* view : std::as_const(m_levelPlanViews)) { view->setComponentExtrusion(m_levelComponentExtrusion,normal,vertices); }
 	m_levelMap3D->setComponentExtrusion(m_levelComponentExtrusion,normal,vertices);
 	refreshLevelComponentGizmos();
+	// The object manipulator follows the same selection and geometry.
+	refreshLevelObjectGizmos();
 }
 } // namespace vibestudio

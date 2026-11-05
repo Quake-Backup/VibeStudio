@@ -9,9 +9,9 @@ the image list without closing the texture document.
 
 > [!NOTE]
 > **Status: Partial.** Decoding the classic idTech image formats, the Texture
-> Editor and its game export profiles work and have automated tests, but they
-> have not been proven in real projects yet. Sprite files cannot be written,
-> and WAD3 export and Doom wall-texture definitions are not built.
+> Editor and its game export profiles, sprites, WAD3 textures and Doom wall
+> definitions work and have automated tests, but they have not been proven in
+> real projects or loaded in the games yet.
 
 ## Browse textures
 
@@ -53,11 +53,11 @@ transparent index marked) and **Sprite Creator**.
 | --- | --- | --- |
 | Doom patches, flats, `PLAYPAL`, `COLORMAP` | Doom, Heretic, Hexen WADs | Patches keep their offsets. Flats are recognised by size (4096, 4160 or 16384 bytes) in a flat namespace or folder. |
 | Quake `.lmp` pictures, WAD2 miptextures | Quake | Miptextures decode all four mip levels. |
-| WAD3 miptextures | Half-Life-style WADs | Each texture carries its own palette. There is no WAD3 texture export. |
+| WAD3 miptextures | Half-Life-style WADs | Each texture carries its own palette. Export with **Half-Life · miptexture** or **WAD3 texture**. |
 | `.wal`, `.m8`, `.m32` | Quake II engine games | WAL surface flags, content flags and animation names are read. |
 | PCX, TGA | Quake II skins and pictures, Quake III | 8-bit PCX only. |
 | `.spr`, `.sp2` | Quake, Half-Life and Quake II sprites | See [Work with sprites](#work-with-sprites). |
-| DDS, FTX, SiN `.swl` | Exchange with other tools | DDS shows its base mip level only. There is no SWL export. |
+| DDS, FTX, SiN `.swl` | Exchange with other tools | **Mip** shows a DDS file's stored mip levels; the editor writes DDS with or without mip levels, and SWL. |
 | PNG, JPEG, BMP, GIF, TIFF, WebP | Quake III and source ports | Read through Qt's image plugins, so they depend on your build. |
 
 Images up to 64 MiB decode; one that fails shows the reason instead of a
@@ -96,6 +96,7 @@ change the map in memory; save it in **Levels** afterwards (see
 | **Use for Map Painting** | Makes it the paint material and switches **Levels** to its paint tool. |
 | **Use in Open Map…** | Replaces a texture the map already uses with this one. |
 | **Show in Packages** | Shows the exact package entry. |
+| **Edit in Texture Editor** | Opens the image in the Texture Editor once it is decoded; a sprite opens with every frame as a layer. |
 | **Show in Materials** | Lists the shaders and materials that read the image on the **Materials** page, drawn the way the game draws them (see [Materials and shaders](materials.md)). |
 | **Export PNG…** | Writes the decoded image to a PNG file. |
 
@@ -105,36 +106,61 @@ change the map in memory; save it in **Levels** afterwards (see
    an image and choose **Edit Selected** to edit the mip level or sprite frame
    on screen, keeping its name, WAL flags or patch offsets for export.
    **Open…** in the editor imports a loose image file instead.
-2. Pick a section from the editor's inspector list: **Paint**, **Transform**,
-   **Selection**, **Palette**, **Layers**, **Package**, **Export** or
-   **Recovery**.
+2. Pick a tool from the **Drawing tools** strip beside the canvas, and a
+   section from the editor's inspector list: **Paint**, **Transform**,
+   **Selection**, **Palette**, **Layers**, **Package**, **Export**,
+   **Recovery**, **Adjust** or **Frames**.
 3. Edit the image, then choose **Save Project** to keep a layered `.vtexture`
    file.
 
 - **Paint**: **Pencil**, **Brush** (square or round, **Replace RGBA** or
   **Blend over**), **Eraser**, **Line**, **Rectangle**, **Ellipse**, **Fill**
-  with a tolerance, and **Eyedropper**. **Wrap painting** lets strokes cross the
-  edges, and **Tile Preview** shows a 3 × 3 repeat so seams stand out.
+  with a tolerance, **Gradient** (linear, radial or reflected, optionally
+  dithered), **Clone Stamp** and **Eyedropper**. **Wrap painting** lets strokes
+  cross the edges, and **Tile Preview** shows a 3 × 3 repeat so seams stand out.
+  **Mirror** repeats strokes across the centre lines, and with a graphics
+  tablet **Pen pressure sets brush width**.
+- **Colours**: the paint colour and a **Secondary color**, used by right-click
+  painting and as the gradient's end; **Swap Colors** exchanges them and
+  **Recent colors** keeps the last eight.
+- **Adjust**: brightness, contrast, hue, saturation, lightness, gamma,
+  posterize, invert and greyscale; **Blur**, **Sharpen**, **Add noise**,
+  **Emboss** and **Find edges**; **Make Seamless** for tiling textures; and
+  **Replace with Paint Color**. Each acts on the active layer within the
+  selection.
+- **Frames**: the visible layers are a sprite's frames. Preview and play them,
+  use an onion skin to line them up, and **Import Frames…** to add images as
+  layers.
 - **Transform**: crop, resample, rotate and flip the canvas, **Offset and Wrap**
   or **Offset Half Size** to bring edge seams into view, and
   **Set Canvas Size** to pad or crop without resampling.
 - **Selection**: a rectangle selection limits every edit; copy, cut, paste,
   move, resize or rotate the selected pixels.
 - **Palette**: choose the **Game palette**, then **Remap to Palette**
-  (optionally dithered) or **Refresh Palette Source**. Existing pixels keep
-  their colours until you remap or export.
-- **Layers**: visibility, locks, opacity, blend modes, **Import Layer…**,
-  **Merge Down** and **Flatten**.
+  (optionally dithered) or **Refresh Palette Source**. **Load Palette File…**
+  and **Save Palette As…** read and write raw palettes, and **Analyze Colors**
+  counts the pixels a palette export would change. Existing pixels keep their
+  colours until you remap or export.
+- **Layers**: tick a layer to show it and drag layers to reorder them; locks,
+  opacity, blend modes, **Import Layer…**, **Merge Down** and **Flatten**.
 
 On the canvas, arrow keys move the pixel cursor, <kbd>Space</kbd> applies the
-tool or sets a shape's end points, <kbd>Shift</kbd>+arrow keys grow a
-selection, <kbd>F</kbd> fits, <kbd>0</kbd> shows actual size and
-<kbd>Esc</kbd> cancels. Middle-drag pans. Each stroke is one undo step.
+tool or sets a shape's end points (<kbd>Shift</kbd>+<kbd>Space</kbd> with the
+secondary colour), <kbd>Shift</kbd>+arrow keys grow a selection, <kbd>F</kbd>
+fits, <kbd>0</kbd> shows actual size and <kbd>Esc</kbd> cancels. Middle-drag
+pans. Each stroke is one undo step.
+
+While the canvas has focus, single keys choose tools: <kbd>P</kbd> Pencil,
+<kbd>B</kbd> Brush, <kbd>E</kbd> Eraser, <kbd>G</kbd> Fill,
+<kbd>Shift</kbd>+<kbd>G</kbd> Gradient, <kbd>I</kbd> Eyedropper, <kbd>M</kbd>
+Rectangle Selection, <kbd>L</kbd> Line, <kbd>R</kbd> Rectangle, <kbd>O</kbd>
+Ellipse and <kbd>S</kbd> Clone Stamp. <kbd>X</kbd> swaps the colours. For the
+Clone Stamp, <kbd>Ctrl</kbd>+click or <kbd>Ctrl</kbd>+<kbd>Space</kbd> sets
+where it copies from.
 
 The **Recovery** section keeps background copies of unsaved work; restoring
 one opens it as an unsaved draft. Images are 8-bit RGBA or indexed colour, up
-to 4,194,304 pixels (for example 2048 × 2048) and 32 layers. Pressure-sensitive
-painting is not supported.
+to 4,194,304 pixels (for example 2048 × 2048) and 32 layers.
 
 ## Export and convert
 
@@ -162,11 +188,19 @@ file. For game formats, use the editor's **Export** section:
 | **Quake II · WAL** | `quake2-wal` | Four mip levels with flags and animation name; index 255 is reserved. |
 | **Doom · flat** | `doom-flat` | Exactly 64 × 64 pixels. |
 | **Doom · patch** | `doom-patch` | Columns with transparency and offsets. |
+| **DDS · BGRA8 with mipmaps** | `dds-mipmaps` | Uncompressed, with every mip level down to 1 × 1. |
+| **SiN · SWL** | `sin-swl` | Four mip levels with their own palette, animation name and flags. |
+| **Half-Life · miptexture** | `halflife-miptex` | Four mip levels with their own palette; a name starting with `{` is transparent at index 255. |
+| **Half-Life · WAD3 texture** | `halflife-wad3` | One miptexture in a new WAD3 file. |
+| **Quake · sprite** | `quake-spr` | Each visible layer is a frame. |
+| **Half-Life · sprite** | `halflife-spr` | Each visible layer is a frame, with one palette and a rendering mode. |
+| **Quake II · sprite** | `quake2-sp2` | An `.sp2` and one PCX per visible layer, written beside it. |
 
 </details>
 
 Indexed profiles need a real palette; a generated stand-in is used only if you
-tick **Allow generated palette**. Choose how transparency is handled with
+tick **Allow generated palette**. WAD3, Half-Life sprites and SWL store their
+own palette, built from the image unless **Stored palette** says otherwise. Choose how transparency is handled with
 **Preserve or reject**, **Composite on matte** or **Binary threshold**, and
 tick **Use source-port limits** to relax the classic size limits, with
 warnings. Exporting never marks the project as saved. To convert many package
@@ -182,18 +216,26 @@ images at once, use `asset convert` on the command line.
    or **Stage and Apply** to also put it on the brushes and patches selected in
    **Levels**.
 
-Quake miptextures go into a WAD2 under the same name as the export. Doom flats
-and patches go between `F_START`/`F_END` or `P_START`/`P_END` markers, which
-are added if missing. **Stage and Apply** works with PNG or TGA files under
+Quake miptextures go into a WAD2, and Half-Life miptextures into a WAD3, under
+the same name as the export. Doom flats and patches go between
+`F_START`/`F_END` or `P_START`/`P_END` markers, which are added if missing;
+tick **Stage as a sprite frame** for sprite frames (`S_START`/`S_END`).
+Type a name in **Define wall texture** to also add a `TEXTURE1` wall texture
+made of the patch, so a level can use it straight away. **Stage and Apply** works with PNG or TGA files under
 `textures/` in Quake III maps, and with Quake II WAL files or WAD2 miptextures
 in Quake-family maps.
 
 Staged textures appear in the browser straight away, but nothing is written
 until you save the package in **Packages** and the map in **Levels**,
 separately (see [Packages](packages.md)). For Quake, point the map's `wad` key
-or the compiler's WAD search path at the saved WAD2. WAD3 output and Doom
-`PNAMES`/`TEXTURE1` wall definitions are not available, so a staged Doom patch
-still needs a wall definition before a level can use it.
+or the compiler's WAD search path at the saved WAD2. If the WAD had no
+`TEXTURE1`, the new one lists only your textures: source ports such as GZDoom
+merge it with the game's, but the original Doom needs the game's definitions
+copied in.
+
+**Stage Companion Maps** in the **Package** section adds normal, gloss and glow
+maps as PNG files beside the texture, named the way DarkPlaces-family ports or
+ioquake3's OpenGL2 renderer look for them.
 
 ## Paint a model skin
 
@@ -214,14 +256,29 @@ paint program. See [Models](models.md#paint-a-skin-over-the-uvs).
   A `.sp2` file names images stored elsewhere in the package, and up to 256 of
   its frames are loaded. Doom sprite lumps use the patch format and decode like
   patches.
-- **Edit Selected** opens the frame on screen in the Texture Editor as an
-  ordinary image, which you can export with any profile, such as a Doom patch.
+- **Edit Selected** opens a sprite with every frame as a layer, lined up on the
+  sprite's origin, with the frame on screen selected. Paint the frames, preview
+  them in **Frames**, and export them with **Quake · sprite**, **Half-Life ·
+  sprite** or **Quake II · sprite**, or one frame with any other profile.
+- Doom sprite frames are patches: export each with **Doom · patch** and stage it
+  into the sprite namespace.
 - The **Sprite Creator** tab plans a new sprite: choose the **Engine** (Doom or
   Quake), **Name**, **Frames** and **Rotations**, then **Plan Sprite** to list
   the frame names, palette and package staging lines. It writes no files.
 
-Planned: writing `.spr` and `.sp2` files, staging frames into a WAD's sprite
-namespace, and animating sprite frames in the editor.
+Frame groups open as separate frames; exported sprites store single frames,
+and a document holds at most 32 frames.
+
+## Edit textures from other pages
+
+- **Levels**: right-click a texture in the map's texture list and choose
+  **Edit in Texture Editor**. Doom wall textures built from several patches
+  cannot open as one image; edit their patches instead.
+- **Models**: right-click a skin row in the model details and choose **Edit Skin
+  in Texture Editor**.
+
+The image opens with its name and format kept, so **Stage Export** or **Stage and
+Apply** puts it back.
 
 ## Generate a texture (optional)
 
@@ -247,7 +304,7 @@ vibestudio --cli asset convert ./pak0.pk3 --entry textures/base/wall.png --outpu
 | Task | Command |
 | --- | --- |
 | Decode an image or sprite to PNG | `texture decode` |
-| Report which palette decodes indexed art | `texture palette` |
+| Report which palette decodes indexed art, or write it to a file | `texture palette` |
 | Create, edit or check a `.vtexture` project | `texture create`, `texture edit`, `texture inspect` |
 | List profiles, check an export, or export | `texture profiles`, `texture validate`, `texture export` |
 | Stage into a package draft | `texture stage` |

@@ -16,6 +16,7 @@
 #include "core/level_shapes.h"
 
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QJsonDocument>
@@ -192,6 +193,26 @@ void ApplicationShell::buildLevelShapesPage(SidebarPage* page)
 		tr("How far each step's floor rises above the last; a negative height makes the stairs go down."));
 	m_levelShapeColumns = shapeSpin(QStringLiteral("levelShapeColumns"), 1, 32, 4, tr("Columns"), tr("How many sectors the grid has across."));
 	m_levelShapeRows = shapeSpin(QStringLiteral("levelShapeRows"), 1, 32, 4, tr("Rows"), tr("How many sectors the grid has down."));
+	// Patch shapes start at Radiant's densities: four spans round (nine
+	// columns), a sphere's two from pole to pole (five rows) and a 3 by 3
+	// plane, as NetRadiant Custom's Patch menu builds them.
+	m_levelShapePatchSegments = shapeSpin(QStringLiteral("levelShapePatchSegments"), 3, 15, 4, tr("Segments"),
+		tr("Quadratic spans round a patch cylinder, cone or sphere; 4 is Radiant's nine-column ring."));
+	m_levelShapePatchBands = shapeSpin(QStringLiteral("levelShapePatchBands"), 2, 15, 2, tr("Sphere bands"),
+		tr("Spans from pole to pole of a patch sphere; 2 is Radiant's five-row sphere."));
+	m_levelShapePatchColumns = shapeSpin(QStringLiteral("levelShapePatchColumns"), 3, 31, 3, tr("Control columns"),
+		tr("How many control points a patch plane has across, an odd number from 3 to 31."));
+	m_levelShapePatchRows = shapeSpin(QStringLiteral("levelShapePatchRows"), 3, 31, 3, tr("Control rows"),
+		tr("How many control points a patch plane has down, or a patch cylinder or cone has along its axis, an odd number from 3 to 31."));
+	for (QSpinBox* spin : {m_levelShapePatchColumns, m_levelShapePatchRows}) {
+		spin->setSingleStep(2);
+	}
+	// NetRadiant Custom's Square box on its Exact shapes.
+	m_levelShapePatchSquare = new QCheckBox(tr("Re-disperse columns and rows"));
+	m_levelShapePatchSquare->setObjectName(QStringLiteral("levelShapePatchSquare"));
+	m_levelShapePatchSquare->setAccessibleName(tr("Square the patch"));
+	m_levelShapePatchSquare->setToolTip(tr("Re-disperse columns and rows once the patch is mapped: each span's middle control point goes halfway "
+										   "between its ends, so a round patch is made of flat facets, as NetRadiant Custom's Square box does."));
 	m_levelShapeForm->addRow(fieldLabel(tr("Axis"), m_levelShapeAxis), m_levelShapeAxis);
 	m_levelShapeForm->addRow(fieldLabel(tr("Sides"), m_levelShapeSides), m_levelShapeSides);
 	m_levelShapeForm->addRow(fieldLabel(tr("Bands"), m_levelShapeBands), m_levelShapeBands);
@@ -206,8 +227,15 @@ void ApplicationShell::buildLevelShapesPage(SidebarPage* page)
 	m_levelShapeForm->addRow(fieldLabel(tr("Step height"), m_levelShapeStepHeight), m_levelShapeStepHeight);
 	m_levelShapeForm->addRow(fieldLabel(tr("Columns"), m_levelShapeColumns), m_levelShapeColumns);
 	m_levelShapeForm->addRow(fieldLabel(tr("Rows"), m_levelShapeRows), m_levelShapeRows);
+	m_levelShapeForm->addRow(fieldLabel(tr("Segments"), m_levelShapePatchSegments), m_levelShapePatchSegments);
+	m_levelShapeForm->addRow(fieldLabel(tr("Bands"), m_levelShapePatchBands), m_levelShapePatchBands);
+	m_levelShapeForm->addRow(fieldLabel(tr("Columns"), m_levelShapePatchColumns), m_levelShapePatchColumns);
+	m_levelShapeForm->addRow(fieldLabel(tr("Rows"), m_levelShapePatchRows), m_levelShapePatchRows);
+	m_levelShapeForm->addRow(fieldLabel(tr("Square"), m_levelShapePatchSquare), m_levelShapePatchSquare);
+	connect(m_levelShapePatchSquare, &QCheckBox::toggled, this, [this]() { saveLevelShapeSettings(); });
 	for (QSpinBox* spin : {m_levelShapeSides, m_levelShapeBands, m_levelShapeThickness, m_levelShapeArc, m_levelShapeStart, m_levelShapeSteps,
-			 m_levelShapeWidth, m_levelShapeDepth, m_levelShapeStepHeight, m_levelShapeColumns, m_levelShapeRows}) {
+			 m_levelShapeWidth, m_levelShapeDepth, m_levelShapeStepHeight, m_levelShapeColumns, m_levelShapeRows, m_levelShapePatchSegments,
+			 m_levelShapePatchBands, m_levelShapePatchColumns, m_levelShapePatchRows}) {
 		connect(spin, &QSpinBox::valueChanged, this, [this]() { saveLevelShapeSettings(); });
 	}
 	for (QComboBox* combo : {m_levelShapeAxis, m_levelShapeRise, m_levelShapeFit}) {
@@ -278,6 +306,11 @@ void ApplicationShell::buildLevelShapesPage(SidebarPage* page)
 	restoreSpin(m_levelShapeStepHeight, "stepHeight");
 	restoreSpin(m_levelShapeColumns, "columns");
 	restoreSpin(m_levelShapeRows, "rows");
+	restoreSpin(m_levelShapePatchSegments, "patchSegments");
+	restoreSpin(m_levelShapePatchBands, "patchBands");
+	restoreSpin(m_levelShapePatchColumns, "patchColumns");
+	restoreSpin(m_levelShapePatchRows, "patchRows");
+	m_levelShapePatchSquare->setChecked(saved.value(QStringLiteral("patchSquare")).toBool(false));
 	if (const int axis = m_levelShapeAxis->findData(saved.value(QStringLiteral("axis")).toInt(-1)); axis >= 0) {
 		m_levelShapeAxis->setCurrentIndex(axis);
 	}
@@ -341,12 +374,19 @@ void ApplicationShell::refreshLevelShapesPanel()
 	} else if (sector) {
 		parameters = {QStringLiteral("width"), QStringLiteral("depth")};
 	}
-	const auto show = [this, &parameters](QWidget* field, const char* key) {
-		m_levelShapeForm->setRowVisible(field, parameters.contains(QLatin1String(key)));
+	// Patch shapes read their own segments, bands and plane grid.
+	const bool patchShape = levelShapeIsPatch(current);
+	const auto show = [this, &parameters](QWidget* field, const char* key, bool family = true) {
+		m_levelShapeForm->setRowVisible(field, family && parameters.contains(QLatin1String(key)));
 	};
 	show(m_levelShapeAxis, "axis");
-	show(m_levelShapeSides, "sides");
-	show(m_levelShapeBands, "bands");
+	show(m_levelShapeSides, "sides", !patchShape);
+	show(m_levelShapeBands, "bands", !patchShape);
+	show(m_levelShapePatchSegments, "sides", patchShape);
+	show(m_levelShapePatchBands, "bands", patchShape);
+	show(m_levelShapePatchColumns, "columns", patchShape);
+	show(m_levelShapePatchRows, "rows", patchShape);
+	show(m_levelShapePatchSquare, "square", patchShape);
 	show(m_levelShapeFit, "fit");
 	show(m_levelShapeThickness, "thickness");
 	show(m_levelShapeArc, "arc");
@@ -356,25 +396,21 @@ void ApplicationShell::refreshLevelShapesPanel()
 	show(m_levelShapeWidth, "width");
 	show(m_levelShapeDepth, "depth");
 	show(m_levelShapeStepHeight, "stepHeight");
-	show(m_levelShapeColumns, "columns");
-	show(m_levelShapeRows, "rows");
-	// Round shapes and polygons have sides; arches, rings and round patches
-	// are built of segments.
-	const bool patchShape = levelShapeIsPatch(current);
-	const bool segments = current == QLatin1String("arch") || current == QLatin1String("ring") || patchShape;
+	show(m_levelShapeColumns, "columns", !patchShape);
+	show(m_levelShapeRows, "rows", !patchShape);
+	// Round shapes and polygons have sides; arches and rings are built of
+	// segments.
+	const bool segments = current == QLatin1String("arch") || current == QLatin1String("ring");
 	if (auto* label = qobject_cast<QLabel*>(m_levelShapeForm->labelForField(m_levelShapeSides))) {
 		label->setText(segments ? tr("Segments") : tr("Sides"));
 	}
 	m_levelShapeSides->setAccessibleName(segments ? tr("Segments") : tr("Sides"));
-	{
-		// A patch is at most 31 control points across: 15 quadratic spans.
+	if (!patchShape) {
 		const QSignalBlocker sides(m_levelShapeSides);
-		const QSignalBlocker bands(m_levelShapeBands);
 		m_levelShapeSides->setMinimum(current == QLatin1String("arch") ? 1 : 3);
 		// Cylinders and cones go as far as the component editor's 128 faces.
 		const int radial = levelBrushPrimitiveMaxSides(current);
-		m_levelShapeSides->setMaximum(patchShape ? 15 : (current == QLatin1String("sphere") || radial == 0 ? 64 : radial));
-		m_levelShapeBands->setMaximum(patchShape ? 15 : 16);
+		m_levelShapeSides->setMaximum(current == QLatin1String("sphere") || radial == 0 ? 64 : radial);
 	}
 	if (m_levelShapeSettingsSection) {
 		m_levelShapeSettingsSection->setVisible(!parameters.isEmpty());
@@ -395,9 +431,10 @@ void ApplicationShell::refreshLevelShapesPanel()
 	m_levelShapeDraw->setIcon(studioIcon(icon));
 	m_levelShapeDraw->setText(tr("Draw in a View"));
 
+	// A patch shape also takes the place of selected patches.
 	bool brushes = false;
 	for (const LevelMapSelectionRef& ref : std::as_const(m_levelMapDocument.selection)) {
-		brushes = brushes || ref.kind == LevelMapSelectionKind::QuakeBrush;
+		brushes = brushes || ref.kind == LevelMapSelectionKind::QuakeBrush || (patchShape && ref.kind == LevelMapSelectionKind::QuakePatch);
 	}
 	m_levelShapeDraw->setEnabled(quake || doom);
 	m_levelShapeAdd->setEnabled(quake || doom);
@@ -406,7 +443,8 @@ void ApplicationShell::refreshLevelShapesPanel()
 	if (!hasMap) {
 		m_levelShapeNote->setText(tr("Open a map to add shapes to it."));
 	} else if (quake && patchShape) {
-		m_levelShapeNote->setText(tr("New patches get %1, the material chosen in Textures; shape them further with Edit Vertices or the Patches tools.")
+		m_levelShapeNote->setText(tr("New patches get %1, the material chosen in Textures, mapped as Radiant maps them: Cap Texture on a plane, "
+									 "Natural on the rest. Shape them further with Edit Vertices or the Patches tools.")
 				.arg(levelBrushMaterial()));
 	} else if (quake) {
 		m_levelShapeNote->setText(tr("New brushes get %1, the material chosen in Textures.").arg(levelBrushMaterial()));
@@ -441,6 +479,11 @@ void ApplicationShell::saveLevelShapeSettings()
 		{QStringLiteral("stepHeight"), m_levelShapeStepHeight->value()},
 		{QStringLiteral("columns"), m_levelShapeColumns->value()},
 		{QStringLiteral("rows"), m_levelShapeRows->value()},
+		{QStringLiteral("patchSegments"), m_levelShapePatchSegments->value()},
+		{QStringLiteral("patchBands"), m_levelShapePatchBands->value()},
+		{QStringLiteral("patchColumns"), m_levelShapePatchColumns->value()},
+		{QStringLiteral("patchRows"), m_levelShapePatchRows->value()},
+		{QStringLiteral("patchSquare"), m_levelShapePatchSquare->isChecked()},
 	};
 	m_settings.setShellLayoutState(QStringLiteral("levelShapes/settings"), QJsonDocument(settings).toJson(QJsonDocument::Compact));
 }
@@ -480,6 +523,16 @@ LevelShapeRequest ApplicationShell::levelShapeRequest(const LevelMapVec3& mins, 
 		levelBrushPrimitiveFitFromId(m_levelShapeFit->currentData().toString(), &request.fit);
 	}
 	request.texture = levelBrushMaterial();
+	if (levelShapeIsPatch(request.shape) && m_levelShapePatchSegments) {
+		request.sides = m_levelShapePatchSegments->value();
+		request.bands = m_levelShapePatchBands->value();
+		request.columns = m_levelShapePatchColumns->value() | 1;
+		request.rows = m_levelShapePatchRows->value() | 1;
+		request.patchSquare = m_levelShapePatchSquare->isChecked();
+		// Mapped as NetRadiant Custom maps a new patch, by the image's size.
+		request.patchMapping = LevelPatchCreateMapping::Radiant;
+		request.patchImageSize = levelPatchImageSize(request.texture);
+	}
 	return request;
 }
 
@@ -525,6 +578,36 @@ void ApplicationShell::addLevelShapeAtViewCentre()
 
 void ApplicationShell::replaceLevelSelectionWithShape()
 {
+	if (levelShapeIsPatch(m_levelShape)) {
+		// NetRadiant Custom's patch prefabs: the patch fills the selected
+		// brushes' and patches' bounds and takes their place, in the brush
+		// entity of the last one or the world.
+		LevelShapeRequest request = levelShapeRequest({}, {}, levelShapeViewAxis());
+		const double grid = m_levelMapViewport ? m_levelMapViewport->gridSize() : 8.0;
+		int replaced = 0;
+		for (const LevelMapSelectionRef& ref : std::as_const(m_levelMapDocument.selection)) {
+			replaced += ref.kind == LevelMapSelectionKind::QuakeBrush || ref.kind == LevelMapSelectionKind::QuakePatch ? 1 : 0;
+		}
+		int patchId = -1;
+		QString error;
+		if (replaced == 0 || !levelMapPatchShapeBounds(m_levelMapDocument, grid, &request.mins, &request.maxs)) {
+			statusBar()->showMessage(tr("Select the brushes or patches the shape should replace."));
+			return;
+		}
+		// Hidden objects stay, so count what the patch took the place of.
+		QVector<LevelMapSelectionRef> taken;
+		if (!replaceLevelMapSelectionWithPatchShape(&m_levelMapDocument, request, &patchId, &error, &taken)) {
+			statusBar()->showMessage(tr("Could not replace them: %1").arg(error), 6000);
+			return;
+		}
+		rememberLevelMaterial(request.texture);
+		recordActivity(tr("Selection replaced with a patch shape"), QStringLiteral("%1 patch:%2").arg(request.shape).arg(patchId), QStringLiteral("level-map"),
+			OperationState::Warning, tr("Unsaved map edit"));
+		refreshLevelMapWorkbench();
+		const int count = static_cast<int>(taken.size());
+		statusBar()->showMessage(tr("Replaced %n brush(es) and patch(es) with the %1.", nullptr, count).arg(levelShapeLabel(request.shape)), 5000);
+		return;
+	}
 	QVector<int> brushes;
 	for (const LevelMapSelectionRef& ref : std::as_const(m_levelMapDocument.selection)) {
 		if (ref.kind == LevelMapSelectionKind::QuakeBrush) {

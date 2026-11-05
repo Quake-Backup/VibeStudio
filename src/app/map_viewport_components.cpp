@@ -845,7 +845,7 @@ bool MapViewport::nudgeComponents(const QPointF& planeDelta)
 
 bool MapViewport::keepsKey(int key, Qt::KeyboardModifiers modifiers) const
 {
-	return m_dragging || m_banding || m_resizing || isMovingComponents() || m_componentBanding || m_componentNativeArmed
+	return m_dragging || m_banding || m_resizing || isMovingComponents() || m_componentBanding || m_componentNativeArmed || m_planeDrag->active()
 		|| navigationHoldKeyMatches(m_controls.panHoldKey, key, modifiers) || !planArrowPanDirection(m_controls, key, modifiers).isNull();
 }
 

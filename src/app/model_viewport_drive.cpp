@@ -13,9 +13,62 @@ void ModelViewport::stepCameraDrive(const CameraKeyMotion& motion)
 	// Q3Radiant's fixed movement/turn defaults; see the audited profile credits.
 	moveCamera(std::clamp(motion.forward, -1.0, 1.0) * 32.0, std::clamp(motion.right, -1.0, 1.0) * 32.0,
 		std::clamp(motion.up, -1.0, 1.0) * 32.0, true);
-	const double pitch = std::clamp(m_lookPitch + std::clamp(motion.pitch, -1.0, 1.0) * 22.5, -85.0, 85.0);
+	// Q3Radiant stops a pitch step at 85 degrees, NetRadiant Custom at 90
+	// (Camera_PitchUp_Discrete); turnCamera() keeps the camera 1 degree short
+	// of vertical so it never loses its heading.
+	const double limit = std::isfinite(m_controls.drivePitchLimitDegrees) ? std::clamp(m_controls.drivePitchLimitDegrees, 0.0, 90.0) : 85.0;
+	const double pitch = std::clamp(m_lookPitch + std::clamp(motion.pitch, -1.0, 1.0) * 22.5, -limit, limit);
 	turnCamera(std::clamp(motion.turn, -1.0, 1.0) * 22.5, pitch - m_lookPitch);
 }
+
+bool ModelViewport::driveCameraFromKey(int key, Qt::KeyboardModifiers modifiers, bool autoRepeat)
+{
+	if (!m_perspective || m_looking || !m_flyTimer) { return false; }
+	// Drive keys only: the fly keys stay with the camera's own focus.
+	auto driveOnly = m_controls;
+	driveOnly.perspective = true;
+	driveOnly.flyKeys = {};
+	const auto motions = cameraKeyMotions(driveOnly, false, Qt::NoButton, Qt::NoModifier, modifiers);
+	const auto motion = motions.constFind(key);
+	if (motion == motions.constEnd()) { return false; }
+	if (m_controls.discreteDriveKeys) {
+		m_heldKeys.remove(key);
+		if (m_heldKeys.isEmpty()) { m_flyTimer->stop(); }
+		stepCameraDrive(motion.value());
+		return true;
+	}
+	// Held flight runs on the camera's own timer and key table, which already
+	// has every drive key while the camera is not looking.
+	if (!autoRepeat && !m_heldKeys.contains(key)) {
+		rebuildKeyMotions();
+		m_heldKeys.insert(key);
+		if (!m_flyTimer->isActive()) {
+			m_flyClock.start();
+			m_flyTimer->start();
+		}
+	}
+	return true;
+}
+
+void ModelViewport::releaseCameraDriveKey(int key)
+{
+	if (m_heldKeys.remove(key) && m_heldKeys.isEmpty() && m_flyTimer) { m_flyTimer->stop(); }
+}
+
+void ModelViewport::releaseCameraDriveKeys()
+{
+	// Only another view's keys can be held here: the camera's own end with
+	// its focus, and it has none while that view has.
+	m_heldKeys.clear();
+	if (m_flyTimer) { m_flyTimer->stop(); }
+}
+
+void ModelViewport::setCameraMoveSpeed(int unitsPerSecond)
+{
+	m_controls.moveSpeed = std::max(0, unitsPerSecond);
+}
+
+double ModelViewport::cameraMoveSpeed() const { return flySpeed(); }
 
 bool ModelViewport::beginPointerDrive(const QPointF& point)
 {

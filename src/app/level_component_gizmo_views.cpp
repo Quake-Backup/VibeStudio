@@ -1,15 +1,20 @@
 #include "app/map_viewport.h"
 #include "app/model_viewport.h"
+#include "app/studio_theme.h"
 #include <algorithm>
 #include <QTimer>
 #include <cmath>
 #include <limits>
 
 namespace vibestudio {
+namespace {
+// The text scale, so the object tools' pointer targets grow with it at 200%.
+double gizmoHandleScale() { return std::clamp(currentStudioTheme().textScalePercent,100,400)/100.0; }
+}
 LevelComponentGizmoFrame MapViewport::componentGizmoFrame() const
 {
 	LevelComponentGizmoFrame frame; frame.radius = 72/std::max(.0001,m_zoom);
-	frame.worldAxes = m_controls.componentAxisDrag;
+	frame.worldAxes = m_controls.componentAxisDrag; frame.handleScale = gizmoHandleScale();
 	const auto projection = m_projection; const auto centre = m_worldCenter; const auto zoom = m_zoom;
 	const QPointF origin(width()*.5,height()*.5);
 	frame.project = [projection,centre,zoom,origin](const LevelMapVec3& point) {
@@ -34,7 +39,7 @@ bool MapViewport::beginComponentTransform(const QPointF& point)
 LevelComponentGizmoFrame ModelViewport::componentGizmoFrame(const LevelMapVec3& pivot)
 {
 	ensureProjection(); LevelComponentGizmoFrame frame;
-	frame.perspective = m_perspective; frame.worldAxes = m_controls.componentAxisDrag;
+	frame.perspective = m_perspective; frame.worldAxes = m_controls.componentAxisDrag; frame.handleScale = gizmoHandleScale();
 	const auto p = pivot.valid ? pivot : m_componentGizmo->pivot(); double depth = 0;
 	(void)projectPoint(m_camera,{float(p.x),float(p.y),float(p.z)},&depth);
 	frame.radius = m_perspective ? 72*std::max(1.0,-depth)/m_camera.focal : 72/m_camera.scale;

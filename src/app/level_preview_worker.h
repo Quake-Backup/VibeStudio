@@ -18,9 +18,10 @@ struct LevelPreviewRequest {
 	std::shared_ptr<const PackageArchiveReader> archive;
 	std::shared_ptr<const PackageStagingModel> staging;
 	LevelPreviewAssetOptions options;
-	// Packages the game mounts beneath the package (file paths, lowest
-	// first), read beneath it as the Materials page reads them.
-	QStringList basePackagePaths;
+	// Loaded packages the game mounts beneath the package (lowest first),
+	// read beneath it as the Materials page reads them, and their key.
+	QVector<std::shared_ptr<const PackageArchiveReader>> baseReaders;
+	QString baseKey;
 	QString assetKey;
 	QString sourceKey;
 	quint64 loadSerial = 0;

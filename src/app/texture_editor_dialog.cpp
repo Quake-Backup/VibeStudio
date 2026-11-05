@@ -9,8 +9,17 @@
 #include "core/studio_settings.h"
 #include "core/texture_output.h"
 #include "core/texture_handoff.h"
+#include "core/texture_adjust.h"
+#include "core/texture_formats.h"
+#include "core/texture_generation.h"
+#include "core/texture_output.h"
 
 #include <QAction>
+#include <QActionGroup>
+#include <QFile>
+#include <QHBoxLayout>
+#include <QLocale>
+#include <QPainter>
 #include <QApplication>
 #include <QCheckBox>
 #include <QClipboard>
@@ -109,7 +118,38 @@ TextureEditorDialog::TextureEditorDialog(QWidget* parent) : QDialog(parent)
 	connect(tiles, &QAction::toggled, this, [this](bool checked) { m_canvas->setTiled(checked); m_canvas->fit(); });
 	auto* grid = view->addAction(QCoreApplication::translate("VibeStudioTextureEditor", "Pixel Grid")); grid->setCheckable(true); grid->setChecked(true);
 	connect(grid, &QAction::toggled, this, [this](bool checked) { m_canvas->setGrid(checked); });
-	canvasLayout->addWidget(view); canvasLayout->addWidget(m_canvas, 1);
+	m_zoomLabel = new QLabel; m_zoomLabel->setObjectName(QStringLiteral("textureZoomLevel"));
+	m_zoomLabel->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Zoom level")); view->addSeparator(); view->addWidget(m_zoomLabel);
+	m_canvas->zoomChanged = [this](double zoom) { m_zoomLabel->setText(QCoreApplication::translate("VibeStudioTextureEditor", "Zoom %1%").arg(QLocale().toString(qRound(zoom * 100)))); };
+	m_canvas->zoomChanged(m_canvas->zoom());
+	// Tool keys act while the canvas has focus, so letters still type into
+	// the inspector's fields and combo boxes keep their keyboard search.
+	m_toolStrip = new QToolBar(QCoreApplication::translate("VibeStudioTextureEditor", "Drawing tools"));
+	m_toolStrip->setObjectName(QStringLiteral("textureToolStrip")); m_toolStrip->setAccessibleName(m_toolStrip->windowTitle());
+	m_toolStrip->setOrientation(Qt::Vertical); m_toolStrip->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	m_toolActions = new QActionGroup(this); m_toolActions->setExclusive(true);
+	const QList<QPair<QString, QKeySequence>> toolKeys{
+		{QCoreApplication::translate("VibeStudioTextureEditor", "Pencil"), QKeySequence(Qt::Key_P)}, {QCoreApplication::translate("VibeStudioTextureEditor", "Eraser"), QKeySequence(Qt::Key_E)},
+		{QCoreApplication::translate("VibeStudioTextureEditor", "Fill"), QKeySequence(Qt::Key_G)}, {QCoreApplication::translate("VibeStudioTextureEditor", "Eyedropper"), QKeySequence(Qt::Key_I)},
+		{QCoreApplication::translate("VibeStudioTextureEditor", "Rectangle Selection"), QKeySequence(Qt::Key_M)}, {QCoreApplication::translate("VibeStudioTextureEditor", "Brush"), QKeySequence(Qt::Key_B)},
+		{QCoreApplication::translate("VibeStudioTextureEditor", "Line"), QKeySequence(Qt::Key_L)}, {QCoreApplication::translate("VibeStudioTextureEditor", "Rectangle"), QKeySequence(Qt::Key_R)},
+		{QCoreApplication::translate("VibeStudioTextureEditor", "Ellipse"), QKeySequence(Qt::Key_O)}, {QCoreApplication::translate("VibeStudioTextureEditor", "Gradient"), QKeySequence(Qt::SHIFT | Qt::Key_G)},
+		{QCoreApplication::translate("VibeStudioTextureEditor", "Clone Stamp"), QKeySequence(Qt::Key_S)}};
+	for (int index = 0; index < toolKeys.size(); ++index) {
+		auto* toolAction = m_toolStrip->addAction(toolKeys[index].first); toolAction->setCheckable(true); toolAction->setActionGroup(m_toolActions);
+		toolAction->setObjectName(QStringLiteral("textureToolAction%1").arg(index)); toolAction->setData(index);
+		toolAction->setShortcut(toolKeys[index].second); toolAction->setShortcutContext(Qt::WidgetShortcut); m_canvas->addAction(toolAction);
+		toolAction->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "%1 (%2 while the canvas has focus)").arg(toolKeys[index].first, toolKeys[index].second.toString(QKeySequence::NativeText)));
+		connect(toolAction, &QAction::triggered, this, [this, index]() { m_tool->setCurrentIndex(index); });
+	}
+	m_toolStrip->addSeparator();
+	auto* swap = m_toolStrip->addAction(QCoreApplication::translate("VibeStudioTextureEditor", "Swap Colors")); swap->setObjectName(QStringLiteral("swapTextureColors"));
+	swap->setShortcut(QKeySequence(Qt::Key_X)); swap->setShortcutContext(Qt::WidgetShortcut); m_canvas->addAction(swap);
+	swap->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Exchange the paint and secondary colors (X while the canvas has focus). Right-click paints with the secondary color."));
+	connect(swap, &QAction::triggered, this, &TextureEditorDialog::swapColors);
+	canvasLayout->addWidget(view);
+	auto* canvasRow = new QHBoxLayout; canvasRow->setContentsMargins(0, 0, 0, 0);
+	canvasRow->addWidget(m_toolStrip); canvasRow->addWidget(m_canvas, 1); canvasLayout->addLayout(canvasRow, 1);
 	m_dimensions = new QLabel; m_dimensions->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Texture dimensions and save state"));
 	m_pixelLabel = new QLabel; m_pixelLabel->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Pixel cursor and color"));
 	canvasLayout->addWidget(m_dimensions); canvasLayout->addWidget(m_pixelLabel); splitter->addWidget(canvasPanel);
@@ -145,9 +185,14 @@ TextureEditorDialog::TextureEditorDialog(QWidget* parent) : QDialog(parent)
 	m_tool->addItems({QCoreApplication::translate("VibeStudioTextureEditor", "Pencil"), QCoreApplication::translate("VibeStudioTextureEditor", "Eraser"),
 		QCoreApplication::translate("VibeStudioTextureEditor", "Fill"), QCoreApplication::translate("VibeStudioTextureEditor", "Eyedropper"), QCoreApplication::translate("VibeStudioTextureEditor", "Rectangle Selection"),
 		QCoreApplication::translate("VibeStudioTextureEditor", "Brush"), QCoreApplication::translate("VibeStudioTextureEditor", "Line"),
-		QCoreApplication::translate("VibeStudioTextureEditor", "Rectangle"), QCoreApplication::translate("VibeStudioTextureEditor", "Ellipse")});
+		QCoreApplication::translate("VibeStudioTextureEditor", "Rectangle"), QCoreApplication::translate("VibeStudioTextureEditor", "Ellipse"),
+		QCoreApplication::translate("VibeStudioTextureEditor", "Gradient"), QCoreApplication::translate("VibeStudioTextureEditor", "Clone Stamp")});
 	form->addRow(QCoreApplication::translate("VibeStudioTextureEditor", "Tool"), m_tool);
-	connect(m_tool, &QComboBox::currentIndexChanged, this, [this](int index) { m_canvas->setTool(static_cast<TextureCanvas::Tool>(index)); });
+	connect(m_tool, &QComboBox::currentIndexChanged, this, [this](int index) {
+		m_canvas->setTool(static_cast<TextureCanvas::Tool>(index));
+		if (auto* action = m_toolActions->actions().value(index)) { action->setChecked(true); }
+	});
+	m_toolActions->actions().first()->setChecked(true);
 	auto* brush = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Brush width"), QStringLiteral("textureBrushWidth"), 1, 128);
 	connect(brush, &QSpinBox::valueChanged, this, [this](int width) { m_canvas->setBrushWidth(width); });
 	auto* brushShape = new QComboBox; brushShape->setObjectName(QStringLiteral("textureBrushShape"));
@@ -176,14 +221,53 @@ TextureEditorDialog::TextureEditorDialog(QWidget* parent) : QDialog(parent)
 	wrap->setAccessibleName(wrap->text());
 	wrap->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Cross canvas edges while painting, drawing shapes, or filling. The selection still clips edits. Tile Preview also allows editing repeated tiles."));
 	form->addRow(wrap); connect(wrap, &QCheckBox::toggled, this, [this](bool enabled) { m_canvas->setWrappedPainting(enabled); });
-	const auto updatePaintControls = [this, brush, brushShape, paintMode, filledShapes, tolerance, wrap]() {
+	// Long translated items must not widen the inspector beyond its fields.
+	const auto compact = [](QComboBox* field) { field->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon); field->setMinimumContentsLength(10); };
+	m_mirror = new QComboBox; m_mirror->setObjectName(QStringLiteral("textureMirror")); compact(m_mirror);
+	m_mirror->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Mirror painting"));
+	m_mirror->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "No mirror"), QStringLiteral("none"));
+	m_mirror->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "Mirror left and right"), QStringLiteral("horizontal"));
+	m_mirror->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "Mirror top and bottom"), QStringLiteral("vertical"));
+	m_mirror->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "Mirror both ways"), QStringLiteral("both"));
+	m_mirror->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Repeat strokes and shapes across the canvas centre lines, shown as dashed guides. Mirrored copies blend once per pixel."));
+	form->addRow(QCoreApplication::translate("VibeStudioTextureEditor", "Mirror"), m_mirror);
+	connect(m_mirror, &QComboBox::currentIndexChanged, this, [this]() {
+		TextureBrush mirror; textureMirrorFromId(m_mirror->currentData().toString(), &mirror); m_canvas->setMirror(mirror.mirrorX, mirror.mirrorY);
+	});
+	auto* pressure = new QCheckBox(QCoreApplication::translate("VibeStudioTextureEditor", "Pen pressure sets brush width")); pressure->setObjectName(QStringLiteral("texturePressure"));
+	pressure->setAccessibleName(pressure->text()); pressure->setChecked(true);
+	pressure->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "With a graphics tablet, lighter pressure paints narrower strokes, down to one texel. The mouse always paints at full width."));
+	form->addRow(pressure); connect(pressure, &QCheckBox::toggled, this, [this](bool enabled) { m_canvas->setPressureEnabled(enabled); });
+	m_gradientShape = new QComboBox; m_gradientShape->setObjectName(QStringLiteral("textureGradientShape")); compact(m_gradientShape);
+	m_gradientShape->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Gradient shape"));
+	m_gradientShape->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "Linear"), textureGradientShapeId(TextureGradientShape::Linear));
+	m_gradientShape->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "Radial"), textureGradientShapeId(TextureGradientShape::Radial));
+	m_gradientShape->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "Reflected"), textureGradientShapeId(TextureGradientShape::Reflected));
+	m_gradientShape->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Drag from the paint color to the secondary color. A right-button drag runs the other way."));
+	form->addRow(QCoreApplication::translate("VibeStudioTextureEditor", "Gradient"), m_gradientShape);
+	m_gradientDither = new QCheckBox(QCoreApplication::translate("VibeStudioTextureEditor", "Dither gradient")); m_gradientDither->setObjectName(QStringLiteral("textureGradientDither"));
+	m_gradientDither->setAccessibleName(m_gradientDither->text());
+	m_gradientDither->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Ordered dithering hides banding, especially after remapping to a game palette."));
+	form->addRow(m_gradientDither);
+	m_cloneAligned = new QCheckBox(QCoreApplication::translate("VibeStudioTextureEditor", "Aligned clone")); m_cloneAligned->setObjectName(QStringLiteral("textureCloneAligned"));
+	m_cloneAligned->setAccessibleName(m_cloneAligned->text()); m_cloneAligned->setChecked(true);
+	m_cloneAligned->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Keep the first stroke's offset from the source for later strokes. Off: every stroke starts copying at the source again."));
+	form->addRow(m_cloneAligned); connect(m_cloneAligned, &QCheckBox::toggled, this, [this](bool aligned) { m_canvas->setCloneAligned(aligned); });
+	auto* cloneSource = button(QCoreApplication::translate("VibeStudioTextureEditor", "Set Clone Source at Cursor"), QStringLiteral("setTextureCloneSource"), [this]() { m_canvas->setCloneSource(m_canvas->cursorPixel()); });
+	cloneSource->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Copy from the pixel cursor. On the canvas, Ctrl+click or Ctrl+Space does the same."));
+	const auto updatePaintControls = [this, brush, brushShape, paintMode, filledShapes, tolerance, wrap, pressure, cloneSource]() {
 		const auto tool = static_cast<TextureCanvas::Tool>(m_tool->currentIndex());
-		brush->setEnabled(tool != TextureCanvas::Tool::Fill && tool != TextureCanvas::Tool::Pick && tool != TextureCanvas::Tool::Select);
-		brushShape->setEnabled(tool == TextureCanvas::Tool::Brush || tool == TextureCanvas::Tool::Eraser || tool == TextureCanvas::Tool::Line);
-		paintMode->setEnabled(tool == TextureCanvas::Tool::Brush || tool == TextureCanvas::Tool::Line || tool == TextureCanvas::Tool::Rectangle || tool == TextureCanvas::Tool::Ellipse);
+		const bool stroke = tool == TextureCanvas::Tool::Pencil || tool == TextureCanvas::Tool::Brush || tool == TextureCanvas::Tool::Eraser || tool == TextureCanvas::Tool::Clone;
+		const bool shape = tool == TextureCanvas::Tool::Line || tool == TextureCanvas::Tool::Rectangle || tool == TextureCanvas::Tool::Ellipse;
+		brush->setEnabled(stroke || shape);
+		brushShape->setEnabled(tool == TextureCanvas::Tool::Brush || tool == TextureCanvas::Tool::Eraser || tool == TextureCanvas::Tool::Line || tool == TextureCanvas::Tool::Clone);
+		paintMode->setEnabled(tool == TextureCanvas::Tool::Brush || shape || tool == TextureCanvas::Tool::Gradient);
 		filledShapes->setEnabled(tool == TextureCanvas::Tool::Rectangle || tool == TextureCanvas::Tool::Ellipse);
 		tolerance->setEnabled(tool == TextureCanvas::Tool::Fill);
-		wrap->setEnabled(tool != TextureCanvas::Tool::Pick && tool != TextureCanvas::Tool::Select);
+		wrap->setEnabled(tool != TextureCanvas::Tool::Pick && tool != TextureCanvas::Tool::Select && tool != TextureCanvas::Tool::Gradient);
+		m_mirror->setEnabled(stroke || shape); pressure->setEnabled(stroke);
+		m_gradientShape->setEnabled(tool == TextureCanvas::Tool::Gradient); m_gradientDither->setEnabled(tool == TextureCanvas::Tool::Gradient);
+		m_cloneAligned->setEnabled(tool == TextureCanvas::Tool::Clone); cloneSource->setEnabled(tool == TextureCanvas::Tool::Clone);
 		updateCanvasEnabled();
 	};
 	connect(m_tool, &QComboBox::currentIndexChanged, this, updatePaintControls); updatePaintControls();
@@ -201,6 +285,16 @@ TextureEditorDialog::TextureEditorDialog(QWidget* parent) : QDialog(parent)
 		const auto color = QColorDialog::getColor(QColor(m_color->text()), this, QCoreApplication::translate("VibeStudioTextureEditor", "Paint color"), QColorDialog::ShowAlphaChannel);
 		if (color.isValid()) { m_color->setText(color.name(QColor::HexArgb)); }
 	});
+	m_secondaryColor = new QLineEdit(QStringLiteral("#ff000000")); m_secondaryColor->setObjectName(QStringLiteral("textureSecondaryColor"));
+	m_secondaryColor->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Secondary color"));
+	m_secondaryColor->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Right-click painting, gradient end and Shift+Space use this color. Right-click with the Eyedropper picks it."));
+	form->addRow(QCoreApplication::translate("VibeStudioTextureEditor", "Secondary color"), m_secondaryColor);
+	connect(m_secondaryColor, &QLineEdit::textChanged, this, [this](const QString& text) { const QColor color(text); if (color.isValid()) { m_canvas->setSecondaryColor(color); } });
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Swap Colors"), QStringLiteral("swapTextureColorsButton"), [this]() { swapColors(); });
+	m_recentColors = new QWidget; m_recentColors->setObjectName(QStringLiteral("textureRecentColors"));
+	m_recentColors->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Recent colors"));
+	auto* recentLayout = new QHBoxLayout(m_recentColors); recentLayout->setContentsMargins(0, 0, 0, 0); recentLayout->setSpacing(2); recentLayout->addStretch(1);
+	form->addRow(QCoreApplication::translate("VibeStudioTextureEditor", "Recent colors"), m_recentColors);
 	form = propertyTab(QCoreApplication::translate("VibeStudioTextureEditor", "Transform"));
 	m_width = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Width"), QStringLiteral("textureWidth"), 1, TextureDocument::MaximumDimension); m_width->setValue(64);
 	m_height = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Height"), QStringLiteral("textureHeight"), 1, TextureDocument::MaximumDimension); m_height->setValue(64);
@@ -254,16 +348,68 @@ TextureEditorDialog::TextureEditorDialog(QWidget* parent) : QDialog(parent)
 	button(QCoreApplication::translate("VibeStudioTextureEditor", "Remap to Palette"), QStringLiteral("remapTexture"), [this]() {
 		applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("palette")}, {QStringLiteral("dither"), m_dither->isChecked()}}});
 	})->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Quantize the current pixels. Later painting can introduce colors outside the palette; remap again before saving if needed."));
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Load Palette File…"), QStringLiteral("loadTexturePalette"), [this]() {
+		const auto path = QFileDialog::getOpenFileName(this, QCoreApplication::translate("VibeStudioTextureEditor", "Load Palette"), {},
+			QCoreApplication::translate("VibeStudioTextureEditor", "Palettes (*.lmp *.pal *.pcx PLAYPAL*);;All files (*)"));
+		if (!path.isEmpty()) { loadPaletteFromPath(path); }
+	})->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Use a raw 768-byte palette, the first palette of a PLAYPAL, or a PCX file's palette. Pixels keep their colors until you remap."));
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Save Palette As…"), QStringLiteral("saveTexturePalette"), [this]() {
+		const auto path = QFileDialog::getSaveFileName(this, QCoreApplication::translate("VibeStudioTextureEditor", "Save Palette"), QStringLiteral("palette.lmp"),
+			QCoreApplication::translate("VibeStudioTextureEditor", "Raw palette (*.lmp *.pal)"));
+		if (path.isEmpty()) { return; }
+		QString error; setStatus(savePaletteToPath(path, &error) ? QCoreApplication::translate("VibeStudioTextureEditor", "Saved the palette: %1").arg(path) : error);
+	})->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Write the 256 colors as raw RGB bytes, the layout of Quake's gfx/palette.lmp."));
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Analyze Colors"), QStringLiteral("analyzeTextureColors"), [this]() { analyzeColors(); })
+		->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Count the visible composite's distinct colors and the pixels a palette export would change."));
+	m_colorStats = new QLabel; m_colorStats->setObjectName(QStringLiteral("textureColorStats")); m_colorStats->setWordWrap(true); m_colorStats->setTextFormat(Qt::PlainText);
+	m_colorStats->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Color analysis")); form->addRow(m_colorStats);
 	form = propertyTab(QCoreApplication::translate("VibeStudioTextureEditor", "Package"));
 	m_virtualPath = new QLineEdit(QStringLiteral("textures/custom/texture.png")); m_virtualPath->setObjectName(QStringLiteral("texturePackagePath"));
 	m_virtualPath->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Package texture path")); form->addRow(QCoreApplication::translate("VibeStudioTextureEditor", "Package path"), m_virtualPath);
 	m_virtualPath->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Package-relative filename with the export extension, or a bare lump name for WAD. Quake miptexture names must match the export name."));
 	m_replace = new QCheckBox(QCoreApplication::translate("VibeStudioTextureEditor", "Replace existing entry")); m_replace->setObjectName(QStringLiteral("replaceTextureEntry")); m_replace->setAccessibleName(m_replace->text()); form->addRow(m_replace);
+	m_companionNaming = new QComboBox; m_companionNaming->setObjectName(QStringLiteral("textureCompanionNaming"));
+	m_companionNaming->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon); m_companionNaming->setMinimumContentsLength(10);
+	m_companionNaming->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Companion map names"));
+	m_companionNaming->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "DarkPlaces, FTE, QuakeSpasm (_norm, _gloss, _glow)"), QStringLiteral("darkplaces"));
+	m_companionNaming->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "ioquake3 OpenGL2 (_n, _s, _glow)"), QStringLiteral("ioquake3"));
+	form->addRow(QCoreApplication::translate("VibeStudioTextureEditor", "Companion maps"), m_companionNaming);
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Stage Companion Maps"), QStringLiteral("stageTextureCompanions"), [this]() { stageCompanionMaps(); })
+		->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Derive normal, gloss and glow maps from the visible composite and stage them as PNGs beside the package path, for source ports that read them."));
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Export Companion Maps…"), QStringLiteral("exportTextureCompanions"), [this]() {
+		const auto path = QFileDialog::getSaveFileName(this, QCoreApplication::translate("VibeStudioTextureEditor", "Export Companion Maps"), QStringLiteral("texture.png"),
+			QCoreApplication::translate("VibeStudioTextureEditor", "Texture name (*.png)"));
+		if (path.isEmpty()) { return; }
+		QString error;
+		if (exportCompanionMaps(path, true, &error)) { setStatus(QCoreApplication::translate("VibeStudioTextureEditor", "Exported companion maps beside %1.").arg(path)); } else { setStatus(error); }
+	})->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Write the companion maps as PNG files named after the chosen texture file."));
 	form = propertyTab(QCoreApplication::translate("VibeStudioTextureEditor", "Layers"));
 	m_layers = new QListWidget; m_layers->setObjectName(QStringLiteral("textureLayers"));
 	m_layers->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Layers, top to bottom"));
 	m_layers->setSelectionMode(QAbstractItemView::SingleSelection); m_layers->setIconSize({40, 40}); m_layers->setMinimumHeight(170);
+	m_layers->setDragDropMode(QAbstractItemView::InternalMove); m_layers->setDefaultDropAction(Qt::MoveAction);
+	m_layers->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Tick a layer to show it. Drag layers, or use Move Layer Up and Down, to reorder them."));
 	form->addRow(m_layers);
+	connect(m_layers, &QListWidget::itemChanged, this, [this](QListWidgetItem* item) {
+		if (m_busy || !item) { return; }
+		const int index = item->data(Qt::UserRole).toInt();
+		if (index < 0 || index >= m_document.layers().size()) { return; }
+		const bool visible = item->checkState() == Qt::Checked;
+		if (m_document.layers()[index].visible == visible) { return; }
+		applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("layer-select")}, {QStringLiteral("index"), index}},
+			QJsonObject{{QStringLiteral("op"), QStringLiteral("layer-properties")}, {QStringLiteral("visible"), visible}}});
+	});
+	connect(m_layers->model(), &QAbstractItemModel::rowsMoved, this, [this](const QModelIndex&, int first, int, const QModelIndex&, int row) {
+		if (m_busy) { return; }
+		// The list shows layers top to bottom; a drop at `row` lands above it.
+		const int to = row > first ? row - 1 : row;
+		auto* item = m_layers->item(to);
+		if (!item) { refreshLayers(); return; }
+		const int from = item->data(Qt::UserRole).toInt(), target = int(m_document.layers().size()) - 1 - to;
+		if (from == target) { refreshLayers(); return; }
+		applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("layer-select")}, {QStringLiteral("index"), from}},
+			QJsonObject{{QStringLiteral("op"), QStringLiteral("layer-move")}, {QStringLiteral("index"), target}}});
+	});
 	connect(m_layers, &QListWidget::currentRowChanged, this, [this](int row) {
 		if (row >= 0 && m_layers->item(row)) { selectLayer(m_layers->item(row)->data(Qt::UserRole).toInt()); }
 	});
@@ -405,7 +551,98 @@ TextureEditorDialog::TextureEditorDialog(QWidget* parent) : QDialog(parent)
 	m_export->changed = [this]() { refresh(); };
 	m_export->previewRequested = [this]() { previewExport(); };
 	m_export->exportRequested = [this]() { exportFile(); };
+	form = propertyTab(QCoreApplication::translate("VibeStudioTextureEditor", "Adjust"));
+	auto* brightness = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Brightness"), QStringLiteral("textureBrightness"), -255, 255);
+	auto* contrast = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Contrast"), QStringLiteral("textureContrast"), -100, 100); contrast->setSuffix(QStringLiteral("%"));
+	auto* hue = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Hue"), QStringLiteral("textureHue"), -180, 180); hue->setSuffix(QStringLiteral("°"));
+	auto* saturation = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Saturation"), QStringLiteral("textureSaturation"), -100, 100); saturation->setSuffix(QStringLiteral("%"));
+	auto* lightness = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Lightness"), QStringLiteral("textureLightness"), -100, 100); lightness->setSuffix(QStringLiteral("%"));
+	auto* gamma = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Gamma"), QStringLiteral("textureGamma"), 10, 1000); gamma->setSuffix(QStringLiteral("%")); gamma->setValue(100);
+	gamma->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "100% leaves tones unchanged; higher values brighten shadows and midtones."));
+	auto* posterize = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Posterize levels"), QStringLiteral("texturePosterize"), 0, 64);
+	posterize->setSpecialValueText(QCoreApplication::translate("VibeStudioTextureEditor", "Off"));
+	auto* invert = new QCheckBox(QCoreApplication::translate("VibeStudioTextureEditor", "Invert colors")); invert->setObjectName(QStringLiteral("textureInvert")); invert->setAccessibleName(invert->text()); form->addRow(invert);
+	auto* grayscale = new QCheckBox(QCoreApplication::translate("VibeStudioTextureEditor", "Grayscale")); grayscale->setObjectName(QStringLiteral("textureGrayscale")); grayscale->setAccessibleName(grayscale->text()); form->addRow(grayscale);
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Apply Adjustment"), QStringLiteral("applyTextureAdjustment"), [this, brightness, contrast, hue, saturation, lightness, gamma, posterize, invert, grayscale]() {
+		applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("adjust")}, {QStringLiteral("brightness"), brightness->value()}, {QStringLiteral("contrast"), contrast->value()},
+			{QStringLiteral("hue"), hue->value()}, {QStringLiteral("saturation"), saturation->value()}, {QStringLiteral("lightness"), lightness->value()},
+			{QStringLiteral("gamma"), gamma->value()}, {QStringLiteral("posterize"), posterize->value() == 1 ? 2 : posterize->value()},
+			{QStringLiteral("invert"), invert->isChecked()}, {QStringLiteral("grayscale"), grayscale->isChecked()}}});
+	})->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Adjust the active layer within the selection: invert, brightness, contrast, hue, saturation, lightness, grayscale, posterize, then gamma. Transparent pixels are unchanged."));
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Reset Adjustment"), QStringLiteral("resetTextureAdjustment"), [brightness, contrast, hue, saturation, lightness, gamma, posterize, invert, grayscale]() {
+		for (auto* field : {brightness, contrast, hue, saturation, lightness, posterize}) { field->setValue(0); }
+		gamma->setValue(100); invert->setChecked(false); grayscale->setChecked(false);
+	});
+	auto* filterKind = new QComboBox; filterKind->setObjectName(QStringLiteral("textureFilterKind")); filterKind->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Filter"));
+	filterKind->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon); filterKind->setMinimumContentsLength(10);
+	filterKind->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "Blur"), textureFilterKindId(TextureFilterKind::Blur));
+	filterKind->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "Sharpen"), textureFilterKindId(TextureFilterKind::Sharpen));
+	filterKind->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "Add noise"), textureFilterKindId(TextureFilterKind::Noise));
+	filterKind->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "Emboss"), textureFilterKindId(TextureFilterKind::Emboss));
+	filterKind->addItem(QCoreApplication::translate("VibeStudioTextureEditor", "Find edges"), textureFilterKindId(TextureFilterKind::Edges));
+	form->addRow(QCoreApplication::translate("VibeStudioTextureEditor", "Filter"), filterKind);
+	auto* radius = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Filter radius"), QStringLiteral("textureFilterRadius"), 1, 16);
+	auto* amount = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Filter amount"), QStringLiteral("textureFilterAmount"), 1, 255); amount->setValue(50);
+	amount->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Sharpen, emboss and edge strength in percent, or the noise range in color levels."));
+	auto* seed = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Noise seed"), QStringLiteral("textureFilterSeed"), 0, 100000); seed->setValue(1);
+	auto* monochrome = new QCheckBox(QCoreApplication::translate("VibeStudioTextureEditor", "Monochrome noise")); monochrome->setObjectName(QStringLiteral("textureFilterMonochrome"));
+	monochrome->setAccessibleName(monochrome->text()); monochrome->setChecked(true); form->addRow(monochrome);
+	auto* filterWrap = new QCheckBox(QCoreApplication::translate("VibeStudioTextureEditor", "Filter across edges")); filterWrap->setObjectName(QStringLiteral("textureFilterWrap"));
+	filterWrap->setAccessibleName(filterWrap->text()); filterWrap->setChecked(true); form->addRow(filterWrap);
+	filterWrap->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Sample the opposite edge of the selection or canvas, so filtering a tiling texture adds no seam."));
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Apply Filter"), QStringLiteral("applyTextureFilter"), [this, filterKind, radius, amount, seed, monochrome, filterWrap]() {
+		applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("filter")}, {QStringLiteral("kind"), filterKind->currentData().toString()}, {QStringLiteral("radius"), radius->value()},
+			{QStringLiteral("amount"), amount->value()}, {QStringLiteral("seed"), seed->value()}, {QStringLiteral("monochrome"), monochrome->isChecked()}, {QStringLiteral("wrap"), filterWrap->isChecked()}}});
+	});
+	const auto updateFilterFields = [filterKind, radius, seed, monochrome]() {
+		const auto kind = filterKind->currentData().toString();
+		radius->setEnabled(kind == QStringLiteral("blur") || kind == QStringLiteral("sharpen"));
+		seed->setEnabled(kind == QStringLiteral("noise")); monochrome->setEnabled(kind == QStringLiteral("noise"));
+	};
+	connect(filterKind, &QComboBox::currentIndexChanged, this, updateFilterFields); updateFilterFields();
+	auto* seamWidth = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Seam blend width"), QStringLiteral("textureSeamlessWidth"), 1, TextureDocument::MaximumDimension / 2); seamWidth->setValue(8);
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Make Seamless"), QStringLiteral("makeTextureSeamless"), [this, seamWidth]() {
+		applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("seamless")}, {QStringLiteral("width"), seamWidth->value()}}});
+	})->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Cross-fade each edge band with the opposite edge so the selection or canvas tiles without a hard seam. Check the result with Tile Preview."));
+	auto* replaceFrom = new QLineEdit(QStringLiteral("#ff000000")); replaceFrom->setObjectName(QStringLiteral("textureReplaceFrom"));
+	replaceFrom->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Color to replace"));
+	replaceFrom->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "A color name, #RRGGBB, or #AARRGGBB. Every matching pixel in the selection changes, connected or not."));
+	form->addRow(QCoreApplication::translate("VibeStudioTextureEditor", "Color to replace"), replaceFrom);
+	auto* replaceTolerance = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Replace tolerance"), QStringLiteral("textureReplaceTolerance"), 0, 255);
+	auto* keepAlpha = new QCheckBox(QCoreApplication::translate("VibeStudioTextureEditor", "Keep each pixel's alpha")); keepAlpha->setObjectName(QStringLiteral("textureReplaceKeepAlpha"));
+	keepAlpha->setAccessibleName(keepAlpha->text()); keepAlpha->setChecked(true); form->addRow(keepAlpha);
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Replace with Paint Color"), QStringLiteral("replaceTextureColor"), [this, replaceFrom, replaceTolerance, keepAlpha]() {
+		applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("replace-color")}, {QStringLiteral("from"), replaceFrom->text()}, {QStringLiteral("to"), m_color->text()},
+			{QStringLiteral("tolerance"), replaceTolerance->value()}, {QStringLiteral("keepAlpha"), keepAlpha->isChecked()}}});
+	});
+	form = propertyTab(QCoreApplication::translate("VibeStudioTextureEditor", "Frames"));
+	auto* framesHelp = new QLabel(QCoreApplication::translate("VibeStudioTextureEditor", "Visible layers are the frames of the sprite export profiles, bottom to top. Edit Selected on a sprite opens every frame as a layer."));
+	framesHelp->setWordWrap(true); framesHelp->setObjectName(QStringLiteral("textureFramesHelp")); framesHelp->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Frames help")); form->addRow(framesHelp);
+	m_framePreview = new QLabel; m_framePreview->setObjectName(QStringLiteral("textureFramePreview")); m_framePreview->setAlignment(Qt::AlignCenter);
+	m_framePreview->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Frame preview")); m_framePreview->setMinimumWidth(1);
+	m_framePreview->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed); m_framePreview->setFixedHeight(fontMetrics().height() * 9); form->addRow(m_framePreview);
+	m_frameIndex = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Frame"), QStringLiteral("textureFrameIndex"), 1, 1);
+	connect(m_frameIndex, &QSpinBox::valueChanged, this, [this](int frame) { showFrame(frame - 1); });
+	m_frameRate = spin(QCoreApplication::translate("VibeStudioTextureEditor", "Frames per second"), QStringLiteral("textureFrameRate"), 1, 60); m_frameRate->setValue(10);
+	m_frameRate->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Preview speed only. Quake and Quake II animate sprite frames at 10 per second; Half-Life sprites use the entity's framerate."));
+	m_framePlay = button(QCoreApplication::translate("VibeStudioTextureEditor", "Play Frames"), QStringLiteral("playTextureFrames"), [this]() { setFramePlaying(!framePlaying()); });
+	m_onionSkin = new QCheckBox(QCoreApplication::translate("VibeStudioTextureEditor", "Onion skin: show the layer below")); m_onionSkin->setObjectName(QStringLiteral("textureOnionSkin"));
+	m_onionSkin->setAccessibleName(m_onionSkin->text()); form->addRow(m_onionSkin);
+	m_onionSkin->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Draw the next visible layer below the active one translucently over the canvas, to line up animation frames. It is not exported."));
+	connect(m_onionSkin, &QCheckBox::toggled, this, [this]() { refreshOnionSkin(); });
+	button(QCoreApplication::translate("VibeStudioTextureEditor", "Import Frames…"), QStringLiteral("importTextureFrames"), [this]() {
+		const auto paths = QFileDialog::getOpenFileNames(this, QCoreApplication::translate("VibeStudioTextureEditor", "Import Frames"), {}, assetImageOpenFilter(false));
+		if (!paths.isEmpty()) { importFramesFromPaths(paths); }
+	})->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "Add each image as a layer above the active one, in the order chosen. Smaller images are centred; larger ones are refused."));
+	m_frameStatus = new QLabel; m_frameStatus->setObjectName(QStringLiteral("textureFrameStatus")); m_frameStatus->setWordWrap(true); m_frameStatus->setTextFormat(Qt::PlainText);
+	m_frameStatus->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Frame status")); form->addRow(m_frameStatus);
+	m_frameTimer = new QTimer(this);
+	connect(m_frameTimer, &QTimer::timeout, this, [this]() { if (!m_frames.isEmpty()) { m_frameIndex->setValue(m_frameIndex->value() % int(m_frames.size()) + 1); } });
+	connect(m_frameRate, &QSpinBox::valueChanged, this, [this](int rate) { m_frameTimer->setInterval(1000 / rate); });
+	m_frameTimer->setInterval(1000 / m_frameRate->value());
+	connect(properties, &QTabWidget::currentChanged, this, [this]() { refreshFrames(); });
 	properties->setMinimumWidth(std::max(300, fontMetrics().horizontalAdvance(m_dither->text()) + 80));
+	for (auto* toolbar : {m_toolStrip}) { for (auto* toolButton : toolbar->findChildren<QToolButton*>()) { toolButton->setFocusPolicy(Qt::StrongFocus); } }
 	auto* propertyPanel = new QWidget; auto* propertyLayout = new QVBoxLayout(propertyPanel); propertyLayout->setContentsMargins(0, 0, 0, 0);
 	auto* section = new QComboBox; section->setObjectName(QStringLiteral("texturePropertySection"));
 	section->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Inspector section"));
@@ -425,25 +662,38 @@ TextureEditorDialog::TextureEditorDialog(QWidget* parent) : QDialog(parent)
 	connect(m_cancel, &QPushButton::clicked, this, &TextureEditorDialog::cancelPending); layout->addWidget(m_cancel);
 	m_status = new QLabel; m_status->setObjectName(QStringLiteral("textureEditorStatus")); m_status->setTextFormat(Qt::PlainText); m_status->setWordWrap(true);
 	m_status->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Texture operation status")); layout->addWidget(m_status);
-	m_canvas->changed = [this]() { refresh(); };
+	m_canvas->changed = [this]() {
+		const auto tool = static_cast<TextureCanvas::Tool>(m_tool->currentIndex());
+		if (tool == TextureCanvas::Tool::Pencil || tool == TextureCanvas::Tool::Brush) { rememberColor(m_canvas->lastPaintColor()); }
+		refresh();
+	};
 	m_canvas->statusChanged = [this](const QString& text) { m_pixelLabel->setText(text); };
 	m_canvas->operationFailed = [this](const QString& text) { setStatus(text); };
 	m_canvas->colorPicked = [this](QColor color) { m_color->setText(color.name(QColor::HexArgb)); };
-	m_canvas->fillRequested = [this, tolerance, wrap](QPoint point) {
+	m_canvas->secondaryColorPicked = [this](QColor color) { m_secondaryColor->setText(color.name(QColor::HexArgb)); };
+	m_canvas->fillRequested = [this, tolerance, wrap](QPoint point, QColor color) {
+		rememberColor(color);
 		applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("fill")}, {QStringLiteral("x"), point.x()}, {QStringLiteral("y"), point.y()},
-			{QStringLiteral("color"), m_color->text()}, {QStringLiteral("tolerance"), tolerance->value()}, {QStringLiteral("wrap"), wrap->isChecked()}}});
+			{QStringLiteral("color"), color.name(QColor::HexArgb)}, {QStringLiteral("tolerance"), tolerance->value()}, {QStringLiteral("wrap"), wrap->isChecked()}}});
 	};
-	m_canvas->shapeRequested = [this](TextureShape shape, QPoint from, QPoint to, const TextureBrush& brush, bool filled) {
+	m_canvas->shapeRequested = [this](TextureShape shape, QPoint from, QPoint to, const TextureBrush& brush, bool filled, QColor color) {
+		rememberColor(color);
 		const QString operation = shape == TextureShape::Line ? QStringLiteral("line") : (shape == TextureShape::Rectangle ? QStringLiteral("rectangle") : QStringLiteral("ellipse"));
 		applyOperations({QJsonObject{{QStringLiteral("op"), operation}, {QStringLiteral("x"), from.x()}, {QStringLiteral("y"), from.y()},
-			{QStringLiteral("x2"), to.x()}, {QStringLiteral("y2"), to.y()}, {QStringLiteral("color"), m_color->text()}, {QStringLiteral("width"), brush.width},
+			{QStringLiteral("x2"), to.x()}, {QStringLiteral("y2"), to.y()}, {QStringLiteral("color"), color.name(QColor::HexArgb)}, {QStringLiteral("width"), brush.width},
 			{QStringLiteral("brush"), textureBrushShapeId(brush.shape)}, {QStringLiteral("mode"), texturePaintModeId(brush.mode)},
-			{QStringLiteral("wrap"), brush.wrap}, {QStringLiteral("filled"), filled}}});
+			{QStringLiteral("wrap"), brush.wrap}, {QStringLiteral("filled"), filled}, {QStringLiteral("mirror"), textureMirrorId(brush)}}});
+	};
+	m_canvas->gradientRequested = [this, paintMode](QPoint from, QPoint to, QColor first, QColor second) {
+		rememberColor(first); rememberColor(second);
+		applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("gradient")}, {QStringLiteral("x"), from.x()}, {QStringLiteral("y"), from.y()},
+			{QStringLiteral("x2"), to.x()}, {QStringLiteral("y2"), to.y()}, {QStringLiteral("color"), first.name(QColor::HexArgb)}, {QStringLiteral("color2"), second.name(QColor::HexArgb)},
+			{QStringLiteral("shape"), m_gradientShape->currentData().toString()}, {QStringLiteral("mode"), paintMode->currentData().toString()}, {QStringLiteral("dither"), m_gradientDither->isChecked()}}});
 	};
 	m_canvas->selectionChanged = [this](QRect rect) { m_crop[0]->setValue(rect.x()); m_crop[1]->setValue(rect.y()); m_crop[2]->setValue(rect.width()); m_crop[3]->setValue(rect.height()); refreshTransforms(); };
 	connect(m_virtualPath, &QLineEdit::textChanged, this, [this]() { refresh(); });
 	setPaletteResolution(m_palette); m_savedMetadata = projectMetadata(); refresh();
-	for (auto* toolbar : {m_tools, view}) {
+	for (auto* toolbar : {m_tools, view, m_toolStrip}) {
 		for (auto* button : toolbar->findChildren<QToolButton*>()) {
 			button->setFocusPolicy(Qt::StrongFocus);
 			if (!button->defaultAction()) {
@@ -470,7 +720,8 @@ void TextureEditorDialog::setStatus(const QString& text) { m_status->setText(tex
 void TextureEditorDialog::updateCanvasEnabled()
 {
 	const auto tool = static_cast<TextureCanvas::Tool>(m_tool->currentIndex());
-	m_canvas->setEnabled(!m_busy && ((m_color && QColor(m_color->text()).isValid()) || tool == TextureCanvas::Tool::Eraser || tool == TextureCanvas::Tool::Pick || tool == TextureCanvas::Tool::Select));
+	m_canvas->setEnabled(!m_busy && ((m_color && QColor(m_color->text()).isValid()) || tool == TextureCanvas::Tool::Eraser || tool == TextureCanvas::Tool::Pick ||
+		tool == TextureCanvas::Tool::Select || tool == TextureCanvas::Tool::Clone));
 }
 void TextureEditorDialog::setPaletteResolution(const IdTechPaletteResolution& resolution, bool markChanged)
 {
@@ -534,13 +785,41 @@ bool TextureEditorDialog::editImage(const QImage& image, const QString& source, 
 	return true;
 }
 
-bool TextureEditorDialog::editDecodedImage(const IdTechImageDecodeResult& decoded, const QString& source, const IdTechPaletteResolution& palette)
+bool TextureEditorDialog::editDecodedImage(const IdTechImageDecodeResult& decoded, const QString& source, const IdTechPaletteResolution& palette, int displayedFrame)
 {
 	if (!decoded.decoded) { setStatus(decoded.error); return false; }
-	if (!confirmDiscard([this, decoded, source, palette]() { editDecodedImage(decoded, source, palette); })) { return false; }
+	if (!confirmDiscard([this, decoded, source, palette, displayedFrame]() { editDecodedImage(decoded, source, palette, displayedFrame); })) { return false; }
 	QString error;
 	if (!setImage(decoded.image, source, &error)) { setStatus(error); return false; }
-	setPaletteResolution(palette); const auto options = textureExportOptionsForImage(decoded); m_export->setOptions(options);
+	setPaletteResolution(palette); auto options = textureExportOptionsForImage(decoded);
+	QVector<QPair<QImage, QPoint>> frames;
+	for (const auto& frame : decoded.frames) {
+		if (frame.image.isNull()) { continue; }
+		// Each frame's top-left corner relative to the sprite origin, y down.
+		const QPoint corner = options.format == TextureExportFormat::Quake2Sprite ? QPoint(-frame.originX, frame.originY - frame.image.height()) : QPoint(frame.originX, -frame.originY);
+		frames.push_back({frame.image, corner});
+	}
+	if (frames.size() > 1 && (options.format == TextureExportFormat::QuakeSprite || options.format == TextureExportFormat::HalfLifeSprite || options.format == TextureExportFormat::Quake2Sprite)) {
+		// Sprite frames become layers aligned on their shared origin.
+		QRect bounds;
+		for (const auto& frame : frames) { bounds |= QRect(frame.second, frame.first.size()); }
+		QVector<TextureLayer> layers; const int kept = std::min<int>(int(frames.size()), TextureDocument::MaximumLayers);
+		for (int index = 0; index < kept; ++index) {
+			TextureLayer layer; layer.id = index + 1; layer.name = QCoreApplication::translate("VibeStudioTextureEditor", "Frame %1").arg(index + 1);
+			layer.pixels = QImage(bounds.size(), QImage::Format_ARGB32); layer.pixels.fill(Qt::transparent);
+			QPainter painter(&layer.pixels); painter.setCompositionMode(QPainter::CompositionMode_Source);
+			painter.drawImage(frames[index].second - bounds.topLeft(), frames[index].first.convertToFormat(QImage::Format_ARGB32)); painter.end();
+			layers << layer;
+		}
+		const int active = std::clamp(displayedFrame, 0, kept - 1);
+		// Restoring into the open document keeps its revision counter monotonic.
+		if (m_document.restoreLayers(bounds.size(), layers, active, &error)) {
+			options.centeredOrigin = false; options.leftOffset = -bounds.left(); options.topOffset = -bounds.top();
+			setStatus(frames.size() > kept ? QCoreApplication::translate("VibeStudioTextureEditor", "Opened the first %1 of %2 sprite frames as layers. A document holds at most 32 layers.").arg(kept).arg(frames.size()) :
+				QCoreApplication::translate("VibeStudioTextureEditor", "Opened %n sprite frame(s) as layers, aligned on the sprite origin. Visible layers export as frames.", nullptr, kept));
+		} else { setStatus(error); }
+	}
+	m_export->setOptions(options);
 	QString target = source;
 	if ((!context || context().wadMagic.isEmpty()) && QFileInfo(source).suffix().compare(textureExportSuffix(options.format), Qt::CaseInsensitive) != 0) {
 		const auto slash = source.lastIndexOf(QLatin1Char('/'));
@@ -582,6 +861,8 @@ void TextureEditorDialog::refresh()
 	setWindowModified(hasUnsavedChanges());
 	setWindowTitle(QCoreApplication::translate("VibeStudioTextureEditor", "Texture Editor — %1[*]").arg(m_source.isEmpty() ? QCoreApplication::translate("VibeStudioTextureEditor", "Untitled") : m_source));
 	refreshContext();
+	refreshFrames();
+	refreshOnionSkin();
 }
 
 QJsonObject TextureEditorDialog::projectMetadata() const
@@ -642,6 +923,7 @@ void TextureEditorDialog::refreshLayers()
 		state << QStringLiteral("%1%").arg(layer.opacity);
 		auto* item = new QListWidgetItem(QIcon(QPixmap::fromImage(layer.pixels.scaled(40, 40, Qt::KeepAspectRatio))), layer.name + QLatin1Char('\n') + state.join(QStringLiteral(" · ")), m_layers);
 		item->setData(Qt::UserRole, index); item->setData(Qt::AccessibleTextRole, item->text());
+		item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsDragEnabled); item->setCheckState(layer.visible ? Qt::Checked : Qt::Unchecked);
 		if (index == m_document.activeLayerIndex()) { m_layers->setCurrentItem(item); }
 	}
 	if (const auto* layer = m_document.activeLayer()) {
@@ -851,6 +1133,7 @@ void TextureEditorDialog::saveProjectToPath(const QString& path, bool overwrite,
 			retireRecovery();
 			setStatus(result->backupPath.isEmpty() ? QCoreApplication::translate("VibeStudioTextureEditor", "Saved texture project: %1").arg(m_source) :
 				QCoreApplication::translate("VibeStudioTextureEditor", "Saved texture project: %1\nPrevious version: %2").arg(m_source, result->backupPath));
+			if (activity) { activity(QCoreApplication::translate("VibeStudioTextureEditor", "Texture Project Saved"), m_source, QCoreApplication::translate("VibeStudioTextureEditor", "%n layer(s) saved.", nullptr, int(m_document.layers().size()))); }
 			if (completed) { completed(); }
 		}, false);
 	});
@@ -884,7 +1167,7 @@ void TextureEditorDialog::previewExport()
 	if (!m_export->options(&options, &error)) { setStatus(error); return; }
 	m_export->invalidatePreview(); const auto palette = m_palette; auto result = std::make_shared<TextureExportResult>();
 	runJob(QCoreApplication::translate("VibeStudioTextureEditor", "Preparing export preview…"), [options, palette, result](TextureDocument& document, QString* error, const TextureProgress& progress) {
-		*result = encodeTextureExport(document.image(), options, palette, progress); *error = result->error; return result->succeeded;
+		*result = encodeTextureDocumentExport(document, options, palette, progress); *error = result->error; return result->succeeded;
 	}, [this, result, palette]() { m_previewRevision = m_document.revision(); m_export->showResult(*result, palette); setStatus(QCoreApplication::translate("VibeStudioTextureEditor", "Export validated. Review the preview and warnings before packaging.")); });
 }
 void TextureEditorDialog::saveExportToPath(const QString& path, bool overwrite, std::function<void()> completed)
@@ -894,15 +1177,28 @@ void TextureEditorDialog::saveExportToPath(const QString& path, bool overwrite, 
 	if (!m_export->options(&options, &error)) { setStatus(error); return; }
 	if (QFileInfo(path).suffix().compare(textureExportSuffix(options.format), Qt::CaseInsensitive) != 0) { setStatus(QCoreApplication::translate("VibeStudioTextureEditor", "The filename extension must match the selected export profile.")); return; }
 	const auto palette = m_palette; auto result = std::make_shared<TextureExportResult>(); auto target = std::make_shared<TextureOutputTarget>();
+	auto companions = std::make_shared<QVector<TextureOutputTarget>>();
 	// Capture before encoding. Cancellation can discard prepared bytes; publication
 	// is a separate short, non-cancellable job so a committed file is never reported cancelled.
-	runJob(QCoreApplication::translate("VibeStudioTextureEditor", "Encoding texture export…"), [path, overwrite, target, options, palette, result](TextureDocument& document, QString* error, const TextureProgress& progress) {
+	runJob(QCoreApplication::translate("VibeStudioTextureEditor", "Encoding texture export…"), [path, overwrite, target, companions, options, palette, result](TextureDocument& document, QString* error, const TextureProgress& progress) {
 		if (!inspectTextureOutputTarget(path, overwrite, target.get(), error, [&] { return !progress(0, 1); })) { return false; }
-		*result = encodeTextureExport(document.image(), options, palette, progress); *error = result->error; return result->succeeded;
-	}, [this, path, target, result, palette, completed = std::move(completed)]() {
-		runJob(QCoreApplication::translate("VibeStudioTextureEditor", "Publishing texture export…"), [target, result](TextureDocument&, QString* error, const TextureProgress&) { return writeTextureOutput(*target, result->bytes, false, error); },
+		*result = encodeTextureDocumentExport(document, options, palette, progress); *error = result->error;
+		if (!result->succeeded) { return false; }
+		// Sprite frames named by the output are published beside it, first.
+		for (const auto& companion : result->companions) {
+			TextureOutputTarget companionTarget;
+			if (!inspectTextureOutputTarget(textureExportCompanionPath(path, companion), overwrite, &companionTarget, error, [&] { return !progress(0, 1); })) { return false; }
+			companions->push_back(companionTarget);
+		}
+		return true;
+	}, [this, path, target, companions, result, palette, completed = std::move(completed)]() {
+		runJob(QCoreApplication::translate("VibeStudioTextureEditor", "Publishing texture export…"), [target, companions, result](TextureDocument&, QString* error, const TextureProgress&) {
+			for (qsizetype index = 0; index < companions->size(); ++index) { if (!writeTextureOutput(companions->at(index), result->companions[index].bytes, false, error)) { return false; } }
+			return writeTextureOutput(*target, result->bytes, false, error);
+		},
 			[this, path, result, palette, completed]() {
 				m_savedPath = path; m_previewRevision = m_document.revision(); m_export->showResult(*result, palette);
+				if (activity) { activity(QCoreApplication::translate("VibeStudioTextureEditor", "Texture Exported"), path, QLocale().formattedDataSize(result->bytes.size())); }
 				setStatus(QCoreApplication::translate("VibeStudioTextureEditor", "Exported: %1. Save Project preserves editable layers and export settings.").arg(path)); if (completed) { completed(); }
 			}, false);
 	});
@@ -924,7 +1220,7 @@ void TextureEditorDialog::stage(bool applyToMap)
 	if (!m_export->options(&options, &error)) { setStatus(error); return; }
 	const auto palette = m_palette; auto result = std::make_shared<TextureExportResult>();
 	runJob(QCoreApplication::translate("VibeStudioTextureEditor", "Preparing texture for package staging…"), [result, options, palette](TextureDocument& document, QString* error, const TextureProgress& progress) {
-		*result = encodeTextureExport(document.image(), options, palette, progress); *error = result->error; return result->succeeded;
+		*result = encodeTextureDocumentExport(document, options, palette, progress); *error = result->error; return result->succeeded;
 	}, [this, result, options, palette, path, replace, applyToMap, current]() {
 			const auto now = context();
 			if (!now.canStage || now.packagePath != current.packagePath || now.packageTargetKey != current.packageTargetKey || (applyToMap && (!now.canApply || now.mapPath != current.mapPath || now.mapTargetKey != current.mapTargetKey))) { setStatus(QCoreApplication::translate("VibeStudioTextureEditor", "The project context changed. Stage again after reviewing the target.")); return; }
@@ -933,6 +1229,213 @@ void TextureEditorDialog::stage(bool applyToMap)
 			m_previewRevision = m_document.revision(); m_export->showResult(*result, palette);
 			setStatus(QCoreApplication::translate("VibeStudioTextureEditor", "Texture staged. Save the package separately; map edits also remain unsaved."));
 		});
+}
+
+QVector<TextureExportCompanion> TextureEditorDialog::companionMaps(const QString& basePath) const
+{
+	const bool ioquake3 = m_companionNaming && m_companionNaming->currentData().toString() == QStringLiteral("ioquake3");
+	const QFileInfo info(basePath);
+	const QString directory = basePath.contains(QLatin1Char('/')) ? basePath.left(basePath.lastIndexOf(QLatin1Char('/')) + 1) : QString();
+	const QString stem = directory + info.completeBaseName();
+	const QImage image = m_document.image().convertToFormat(QImage::Format_ARGB32);
+	QVector<TextureExportCompanion> maps;
+	const auto add = [&](const QString& suffix, const QImage& map) {
+		if (map.isNull()) { return; }
+		QString error; const QByteArray png = encodeTextureOutputPng(map, &error);
+		if (!png.isEmpty()) { maps.push_back({stem + suffix + QStringLiteral(".png"), png}); }
+	};
+	add(ioquake3 ? QStringLiteral("_n") : QStringLiteral("_norm"), deriveTextureNormalMap(image, 2.5, true));
+	add(ioquake3 ? QStringLiteral("_s") : QStringLiteral("_gloss"), deriveTextureGlossMap(image));
+	add(QStringLiteral("_glow"), deriveTextureGlowMap(image, 0.85));
+	return maps;
+}
+
+void TextureEditorDialog::stageCompanionMaps()
+{
+	refreshContext();
+	const auto current = context ? context() : TextureEditorContext{};
+	if (m_busy || !current.canStage || !stageFiles || !current.wadMagic.isEmpty()) {
+		setStatus(QCoreApplication::translate("VibeStudioTextureEditor", "Open a folder, PAK, ZIP or PK3 package to stage companion maps. WADs cannot hold PNG files."));
+		return;
+	}
+	const auto maps = companionMaps(m_virtualPath->text());
+	QString error;
+	if (maps.isEmpty() || !stageFiles(maps, m_replace->isChecked(), &error)) { setStatus(error.isEmpty() ? QCoreApplication::translate("VibeStudioTextureEditor", "No companion maps could be derived.") : error); return; }
+	QStringList paths; for (const auto& map : maps) { paths << map.path; }
+	setStatus(QCoreApplication::translate("VibeStudioTextureEditor", "Staged %1. Save the package separately.").arg(paths.join(QStringLiteral(", "))));
+}
+
+bool TextureEditorDialog::exportCompanionMaps(const QString& basePngPath, bool overwrite, QString* error)
+{
+	const auto maps = companionMaps(QDir::fromNativeSeparators(basePngPath));
+	if (maps.isEmpty()) { if (error) { *error = QCoreApplication::translate("VibeStudioTextureEditor", "No companion maps could be derived."); } return false; }
+	QVector<TextureOutputTarget> targets;
+	for (const auto& map : maps) {
+		TextureOutputTarget target;
+		if (!inspectTextureOutputTarget(map.path, overwrite, &target, error)) { return false; }
+		targets << target;
+	}
+	for (qsizetype index = 0; index < targets.size(); ++index) { if (!writeTextureOutput(targets[index], maps[index].bytes, false, error)) { return false; } }
+	if (activity) { activity(QCoreApplication::translate("VibeStudioTextureEditor", "Companion Maps Exported"), basePngPath, QCoreApplication::translate("VibeStudioTextureEditor", "%n map(s) written.", nullptr, int(maps.size()))); }
+	return true;
+}
+
+void TextureEditorDialog::swapColors()
+{
+	const QString primary = m_color->text(); m_color->setText(m_secondaryColor->text()); m_secondaryColor->setText(primary);
+}
+
+void TextureEditorDialog::rememberColor(const QColor& color)
+{
+	if (!color.isValid()) { return; }
+	const QString name = color.name(QColor::HexArgb);
+	m_recent.removeAll(name); m_recent.prepend(name);
+	while (m_recent.size() > 8) { m_recent.removeLast(); }
+	refreshRecentColors();
+}
+
+void TextureEditorDialog::refreshRecentColors()
+{
+	auto* layout = qobject_cast<QHBoxLayout*>(m_recentColors->layout());
+	for (auto* old : m_recentColors->findChildren<QToolButton*>()) { layout->removeWidget(old); old->hide(); old->deleteLater(); }
+	for (int index = 0; index < m_recent.size(); ++index) {
+		const QColor color(m_recent[index]);
+		auto* swatch = new QToolButton; swatch->setObjectName(QStringLiteral("textureRecentColor%1").arg(index)); swatch->setAutoRaise(false);
+		const int side = fontMetrics().height();
+		QPixmap pixmap(side, side); pixmap.fill(Qt::transparent);
+		QPainter painter(&pixmap); painter.fillRect(pixmap.rect(), palette().color(QPalette::Base)); painter.fillRect(pixmap.rect().adjusted(1, 1, -1, -1), color);
+		painter.setPen(palette().color(QPalette::Text)); painter.drawRect(pixmap.rect().adjusted(0, 0, -1, -1)); painter.end();
+		swatch->setIcon(QIcon(pixmap)); swatch->setIconSize(pixmap.size()); swatch->setFocusPolicy(Qt::StrongFocus);
+		swatch->setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Recent color %1").arg(m_recent[index]));
+		swatch->setToolTip(QCoreApplication::translate("VibeStudioTextureEditor", "%1 · click for the paint color, Shift+click for the secondary color").arg(m_recent[index]));
+		const QString name = m_recent[index];
+		connect(swatch, &QToolButton::clicked, this, [this, name]() {
+			(QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) ? m_secondaryColor : m_color)->setText(name);
+		});
+		layout->insertWidget(index, swatch);
+	}
+}
+
+void TextureEditorDialog::refreshFrames()
+{
+	if (!m_frameIndex) { return; }
+	auto* tabs = findChild<QTabWidget*>(QStringLiteral("textureProperties"));
+	const bool shown = tabs && tabs->currentIndex() == tabs->count() - 1;
+	if (!shown && !framePlaying()) { return; }
+	if (m_framesRevision != m_document.revision() || m_frames.isEmpty()) {
+		int visible = 0; for (const auto& layer : m_document.layers()) { visible += layer.visible; }
+		m_frames = m_document.layerFrames(); m_framesRevision = m_document.revision();
+		const QSignalBlocker blocker(m_frameIndex);
+		m_frameIndex->setRange(1, std::max(1, int(m_frames.size()))); m_frameIndex->setEnabled(m_frames.size() > 1);
+		m_framePlay->setEnabled(m_frames.size() > 1);
+		if (m_frames.size() < 2) { setFramePlaying(false); }
+		m_frameStatus->setText(m_frames.isEmpty() ? QCoreApplication::translate("VibeStudioTextureEditor", "No visible layers: show a layer to preview it as a frame.") :
+			QCoreApplication::translate("VibeStudioTextureEditor", "%n visible layer(s) export as sprite frames.", nullptr, visible));
+	}
+	showFrame(m_frameIndex->value() - 1);
+}
+
+void TextureEditorDialog::showFrame(int frame)
+{
+	if (!m_framePreview) { return; }
+	if (frame < 0 || frame >= m_frames.size()) { m_framePreview->clear(); return; }
+	const QImage& image = m_frames[frame];
+	const QSize size = image.size().scaled(QSize(std::max(1, m_framePreview->width()), m_framePreview->height()), Qt::KeepAspectRatio);
+	QPixmap pixmap(size); QPainter painter(&pixmap);
+	const int cell = std::max(4, fontMetrics().height() / 2);
+	for (int y = 0; y < size.height(); y += cell) { for (int x = 0; x < size.width(); x += cell) { painter.fillRect(QRect(x, y, cell, cell), ((x / cell + y / cell) % 2) ? palette().color(QPalette::Base) : palette().color(QPalette::AlternateBase)); } }
+	painter.drawImage(QRect(QPoint(), size), image); painter.end(); m_framePreview->setPixmap(pixmap);
+	m_framePreview->setAccessibleDescription(QCoreApplication::translate("VibeStudioTextureEditor", "Frame %1 of %2, %3 by %4 pixels.").arg(frame + 1).arg(m_frames.size()).arg(image.width()).arg(image.height()));
+	if (m_frameIndex->value() != frame + 1) { const QSignalBlocker blocker(m_frameIndex); m_frameIndex->setValue(frame + 1); }
+}
+
+bool TextureEditorDialog::framePlaying() const { return m_frameTimer && m_frameTimer->isActive(); }
+
+void TextureEditorDialog::setFramePlaying(bool playing)
+{
+	if (!m_frameTimer) { return; }
+	if (playing && m_frames.size() > 1) { m_frameTimer->start(); } else { m_frameTimer->stop(); }
+	m_framePlay->setText(framePlaying() ? QCoreApplication::translate("VibeStudioTextureEditor", "Stop Frames") : QCoreApplication::translate("VibeStudioTextureEditor", "Play Frames"));
+	m_framePlay->setAccessibleName(m_framePlay->text());
+}
+
+void TextureEditorDialog::refreshOnionSkin()
+{
+	if (!m_onionSkin || !m_onionSkin->isChecked()) { m_canvas->setOnionSkin({}); return; }
+	// The nearest visible layer below the active one, at its own opacity.
+	for (int index = m_document.activeLayerIndex() - 1; index >= 0; --index) {
+		const auto& layer = m_document.layers()[index];
+		if (layer.visible) { m_canvas->setOnionSkin(layer.pixels.convertToFormat(QImage::Format_ARGB32)); return; }
+	}
+	m_canvas->setOnionSkin({});
+}
+
+void TextureEditorDialog::importFramesFromPaths(const QStringList& paths)
+{
+	if (paths.isEmpty()) { return; }
+	const auto palette = m_palette.palette;
+	runJob(QCoreApplication::translate("VibeStudioTextureEditor", "Importing frames…"), [paths, palette](TextureDocument& document, QString* error, const TextureProgress& progress) {
+		for (qsizetype index = 0; index < paths.size(); ++index) {
+			TextureDocument imported;
+			if (!loadTextureFile(paths[index], palette, &imported, error, nullptr, [&](qint64 done, qint64 total) { return progress(index * 1000 + (total ? done * 1000 / total : 0), paths.size() * 1000); })) { return false; }
+			const QImage pixels = imported.image();
+			if (pixels.width() > document.size().width() || pixels.height() > document.size().height()) {
+				if (error) { *error = QCoreApplication::translate("VibeStudioTextureEditor", "%1 is larger than the canvas. Enlarge the canvas first.").arg(QFileInfo(paths[index]).fileName()); }
+				return false;
+			}
+			QImage frame(document.size(), QImage::Format_ARGB32); frame.fill(Qt::transparent);
+			QPainter painter(&frame); painter.setCompositionMode(QPainter::CompositionMode_Source);
+			painter.drawImage(textureAnchorOffset(pixels.size(), document.size(), TextureAnchor::Center), pixels.convertToFormat(QImage::Format_ARGB32)); painter.end();
+			if (!document.addLayer(QFileInfo(paths[index]).completeBaseName().left(128), frame, error)) { return false; }
+		}
+		return true;
+	}, [this, count = paths.size()]() { setStatus(QCoreApplication::translate("VibeStudioTextureEditor", "Imported %n frame(s) as layers.", nullptr, int(count))); });
+}
+
+void TextureEditorDialog::loadPaletteFromPath(const QString& path)
+{
+	const QString id = m_paletteChoice->currentData().toString().isEmpty() ? m_palette.palette.id : m_paletteChoice->currentData().toString();
+	auto resolved = std::make_shared<IdTechPaletteResolution>();
+	runJob(QCoreApplication::translate("VibeStudioTextureEditor", "Loading palette file…"), [path, id, resolved](TextureDocument&, QString* error, const TextureProgress&) {
+		QFile file(path);
+		if (!QFileInfo(path).isFile() || !file.open(QIODevice::ReadOnly) || file.size() > 4 * 1024 * 1024) {
+			if (error) { *error = QCoreApplication::translate("VibeStudioTextureEditor", "Cannot read the palette file, or it exceeds 4 MiB."); } return false;
+		}
+		const auto bytes = file.read(4 * 1024 * 1024 + 1);
+		const bool pcx = QFileInfo(path).suffix().compare(QStringLiteral("pcx"), Qt::CaseInsensitive) == 0;
+		if (!(pcx ? parsePcxPalette(bytes, id, &resolved->palette, error) : parseIdTechPaletteBytes(bytes, id, &resolved->palette, error))) { return false; }
+		resolved->requestedPaletteId = id; resolved->sourceVirtualPath = QFileInfo(path).absoluteFilePath();
+		resolved->palette.sourceDescription = resolved->sourceVirtualPath; resolved->palette.generated = false;
+		return true;
+	}, [this, resolved, path]() {
+		setPaletteResolution(*resolved);
+		setStatus(QCoreApplication::translate("VibeStudioTextureEditor", "Palette loaded from %1. Existing pixels keep their colors until you remap or export.").arg(path));
+	});
+}
+
+bool TextureEditorDialog::savePaletteToPath(const QString& path, QString* error) const
+{
+	if (!m_palette.palette.isValid()) { if (error) { *error = QCoreApplication::translate("VibeStudioTextureEditor", "There is no 256-color palette to save."); } return false; }
+	// The file dialog has confirmed any replacement; publication is guarded.
+	TextureOutputTarget target;
+	return inspectTextureOutputTarget(path, true, &target, error) && writeTextureOutput(target, encodeRawTexturePalette(m_palette.palette.colors), false, error);
+}
+
+void TextureEditorDialog::analyzeColors()
+{
+	const auto palette = m_palette.palette; auto stats = std::make_shared<QPair<int, qint64>>();
+	runJob(QCoreApplication::translate("VibeStudioTextureEditor", "Analyzing colors…"), [palette, stats](TextureDocument& document, QString* error, const TextureProgress& progress) {
+		stats->first = textureDistinctColors(document.image());
+		stats->second = palette.isValid() ? textureOffPalettePixels(document.image(), palette.colors, progress) : 0;
+		if (stats->second < 0) { if (error) { *error = QCoreApplication::translate("VibeStudioTextureEditor", "Texture operation cancelled."); } return false; }
+		return true;
+	}, [this, stats]() {
+		const QLocale locale;
+		const QString distinct = stats->first > 65536 ? QCoreApplication::translate("VibeStudioTextureEditor", "more than 65,536") : locale.toString(stats->first);
+		m_colorStats->setText(QCoreApplication::translate("VibeStudioTextureEditor", "Distinct colors: %1 · Pixels outside %2: %3").arg(distinct, m_palette.palette.displayName.isEmpty() ? m_palette.palette.id : m_palette.palette.displayName, locale.toString(stats->second)));
+		setStatus(stats->second ? QCoreApplication::translate("VibeStudioTextureEditor", "Some pixels are outside the palette. Remap to Palette, or review the export preview.") :
+			QCoreApplication::translate("VibeStudioTextureEditor", "Every visible pixel uses a palette color."));
+	});
 }
 
 QString TextureEditorDialog::recoveryPath() const { return textureRecoveryPath(m_recoveryDirectory, m_recoveryId); }

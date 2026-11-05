@@ -37,6 +37,8 @@ void ApplicationShell::editLevelMapSurfacesFromUi()
 	if (!archive && m_packageArchive.isOpen()) {
 		archive = std::make_shared<const PackageArchive>(m_packageArchive);
 	}
+	// Material previews read the game's base packages beneath it.
+	archive = levelMaterialReader(std::move(archive));
 	LevelSurfaceDialog dialog(m_levelMapDocument, faces, archive, activePaletteId(), this);
 	const auto inspected = inspectedLevelMapSurface();
 	if (!levelComponentsActive() && m_levelMapDocument.selection.size() == 1 && faces.contains(inspected)) {

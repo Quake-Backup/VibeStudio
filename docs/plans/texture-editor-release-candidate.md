@@ -703,9 +703,11 @@ inside `acceptance-windows-tests.json` for the full workload/cancellation data.
 ### Acceptance boundaries and unrelated findings
 
 - Authoring is limited to 8-bit RGBA/indexed working pixels, 4,194,304 canvas
-  pixels, 33,554,432 aggregate layer pixels and 32 layers. Pressure-sensitive
-  painting, high-precision editing, sprite animation, WAD3 encoding and Doom
-  wall-definition composition remain outside the implemented feature set.
+  pixels, 33,554,432 aggregate layer pixels and 32 layers. High-precision
+  editing remains outside the implemented feature set; every idTech 1-3 format
+  the editor writes stores 8 bits per channel. The 2026-10-28 gap round below
+  added pressure-sensitive painting, sprite animation, WAD3 encoding and
+  single-patch Doom wall definitions.
 - Physical mouse/keyboard operation, live clipboard transfer, native screen
   readers, native-window behavior, macOS/ARM, clean-machine installation,
   signing and target-game rendering remain unverified. Direct commands and
@@ -732,3 +734,28 @@ inside `acceptance-windows-tests.json` for the full workload/cancellation data.
   remain under the task's `runtime/` directory and the diagnostic outputs remain
   at the task root; no alternate deletion was attempted. Useful evidence and
   the runtime bundle remain in the designated project task directory.
+
+## Gap closure round — 2026-10-28
+
+A module audit listed what the accepted editor still lacked against its
+product direction and closed it in one round. The original 21 gates above are
+unchanged; this round extends the feature boundary and adds its own evidence.
+
+| Gap | Resolution | Evidence |
+| --- | --- | --- |
+| No colour adjustments or filters | Adjust section and `adjust`/`filter` recipe operations: brightness, contrast, hue, saturation, lightness, gamma, posterize, invert, grayscale; blur, sharpen, noise, emboss, edges, with wrapped sampling | `texture-adjust-smoke` |
+| No gradient, clone, mirror or colour replacement | Gradient and Clone Stamp tools, Mirror, Make Seamless and Replace with Paint Color; `gradient`, `clone`, `replace-color`, `seamless` operations and stroke `mirror` | `texture-adjust-smoke` |
+| No pressure-sensitive painting | Tablet pressure scales each stroke segment's width; recipes accept per-point widths | `texture-adjust-smoke` |
+| One paint colour, tool choice only through a combo box | Secondary colour with right-click painting, swap and recent colours; Drawing tools strip with canvas-scoped tool keys | `texture-editor-ui-smoke`, `texture-accessibility-smoke` |
+| Sprite frames not authorable, sprites not writable | Visible layers are frames; Edit Selected opens sprites as aligned layers; Frames section with playback and onion skin; `quake-spr`, `halflife-spr`, `quake2-sp2` profiles; SP2 frames written and staged beside the sprite | `texture-formats-smoke` |
+| No WAD3, SWL or mipmapped DDS output | `halflife-miptex`, `halflife-wad3` (lump type `0x43`, stored palette, `{` transparency), `sin-swl`, `dds-mipmaps`; median-cut image palettes | `texture-formats-smoke`, `texture-export-smoke`, `texture-export-ui-smoke` |
+| Staged Doom patches unusable as walls; no sprite namespace | `wallTexture` defines a single-patch `TEXTURE1` texture and `PNAMES` entry in the same undo step (Doom and Strife layouts); `doomSprite` stages into `S_START`/`S_END` | `texture-formats-smoke` |
+| DDS import kept only the base mip | Stored DDS mip levels decode for the browser's Mip selector | `texture-formats-smoke` |
+| No palette files or palette compliance check | Load Palette File, Save Palette As and Analyze Colors; `texture palette --output` and `texture inspect` colour statistics | `texture-formats-smoke` |
+| Layers reordered and hidden only through buttons | Row check boxes and drag reordering, each one undo step | `texture-editor-ui-smoke` |
+| Editing reachable only from the Textures page | Edit in Texture Editor on the Textures and Levels texture-list menus, Edit Skin in Texture Editor on model skin rows, and `ApplicationShell::editPackageImageInTextureEditor` for the Materials page | Shell build; manual review |
+| No companion maps or activity history | Stage and export normal, gloss and glow maps beside a texture; project saves, exports and companion maps reach the activity history | Shell build; manual review |
+
+Remaining boundaries: sprite frame groups and multi-patch wall composition
+are not authored; new outputs are verified
+against the shared decoders and fixtures, not yet loaded in the target games.

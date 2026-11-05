@@ -250,8 +250,9 @@ void keys()
 		cameraKeyProblems(nrc.controls.camera).join(QLatin1Char(' ')) + levelEditorControlProblems(nrc.controls).join(QLatin1Char(' ')));
 	LevelEditorControls custom;
 	QJsonObject cleaned;
-	expect(applyLevelGestureOverrides(nrc.controls, {{QStringLiteral("camera.focusHoldKey"), QStringLiteral("G")}}, &custom, &cleaned, &error)
-			&& custom.camera.focusHoldKey == QLatin1String("G") && cleaned.value(QStringLiteral("camera.focusHoldKey")) == QLatin1String("G"),
+	// J is free in the NRC profile (G turns the UV tool on and off there).
+	expect(applyLevelGestureOverrides(nrc.controls, {{QStringLiteral("camera.focusHoldKey"), QStringLiteral("J")}}, &custom, &cleaned, &error)
+			&& custom.camera.focusHoldKey == QLatin1String("J") && cleaned.value(QStringLiteral("camera.focusHoldKey")) == QLatin1String("J"),
 		"the free-focus key is a gesture preference", error);
 	expect(applyLevelGestureOverrides(nrc.controls, {{QStringLiteral("camera.focusHoldKey"), QStringLiteral("none")}}, &custom, nullptr, &error)
 			&& custom.camera.focusHoldKey.isEmpty(),

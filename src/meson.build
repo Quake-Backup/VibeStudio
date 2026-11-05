@@ -55,9 +55,12 @@ subdir('mapgen')
 
 install_headers('core/texture_document.h', subdir: 'vibestudio/core')
 install_headers('core/texture_paint.h', subdir: 'vibestudio/core')
+install_headers('core/texture_adjust.h', subdir: 'vibestudio/core')
 install_headers('core/texture_output.h', subdir: 'vibestudio/core')
 install_headers('core/texture_transform.h', subdir: 'vibestudio/core')
 install_headers('core/texture_export.h', subdir: 'vibestudio/core')
+install_headers('core/texture_formats.h', subdir: 'vibestudio/core')
+install_headers('core/texture_doom_walls.h', subdir: 'vibestudio/core')
 install_headers('core/texture_handoff.h', subdir: 'vibestudio/core')
 install_headers('core/texture_project.h', subdir: 'vibestudio/core')
 install_headers('core/texture_recovery.h', subdir: 'vibestudio/core')
@@ -115,6 +118,9 @@ install_headers('core/level_region_selection.h', 'core/level_region_selection_ty
 install_headers('core/level_object_selection.h', subdir: 'vibestudio/core')
 install_headers('core/level_visibility.h', 'core/level_visibility_types.h', subdir: 'vibestudio/core')
 install_headers('core/level_paste.h', subdir: 'vibestudio/core')
+install_headers('core/level_map_transfer.h', subdir: 'vibestudio/core')
+install_headers('core/level_map_obj_export.h', subdir: 'vibestudio/core')
+install_headers('core/level_map_inspector.h', subdir: 'vibestudio/core')
 install_headers('core/level_face_clipboard.h', subdir: 'vibestudio/core')
 install_headers('core/level_build_workspace.h', subdir: 'vibestudio/core')
 install_headers('core/level_quake_assets.h', subdir: 'vibestudio/core')
@@ -156,6 +162,8 @@ install_headers('core/level_material_find.h', subdir: 'vibestudio/core')
 install_headers('core/level_surface_clipboard.h', subdir: 'vibestudio/core')
 install_headers('core/level_face_flags.h', subdir: 'vibestudio/core')
 install_headers('core/level_uv_edit.h', subdir: 'vibestudio/core')
+install_headers('core/level_face_attributes.h', subdir: 'vibestudio/core')
+install_headers('core/level_uv_tool.h', subdir: 'vibestudio/core')
 install_headers('core/doom_preview_geometry.h', 'core/doom_preview_materials.h', subdir: 'vibestudio/core')
 
 install_headers('core/extra_image.h', subdir: 'vibestudio/core')
@@ -182,6 +190,7 @@ core_sources = files(
   'core/level_camera_keys.cpp',
   'core/studio_settings_gestures.cpp',
   'core/studio_settings_modeller.cpp',
+  'core/studio_settings_build.cpp',
   'core/asset_formats.cpp',
   'core/workspace_document.cpp',
   'core/extra_image.cpp',
@@ -211,6 +220,9 @@ core_sources = files(
   'core/level_textured_selection.cpp',
   'core/level_visibility.cpp',
   'core/level_paste.cpp',
+  'core/level_map_transfer.cpp',
+  'core/level_map_obj_export.cpp',
+  'core/level_map_inspector.cpp',
   'core/level_face_clipboard.cpp',
   # Internal transaction controls are build inputs, not installed public API.
   'core/level_placement_control_p.h',
@@ -221,6 +233,8 @@ core_sources = files(
   'core/level_scene_trenchbroom.cpp',
   'core/level_component_transform.cpp',
   'core/level_grid_round.cpp',
+  'core/level_object_manipulator.cpp',
+  'core/level_plane_drag.cpp',
   'core/level_scene_locks.cpp',
   'core/level_linked_groups.cpp',
   'core/level_linked_objects.cpp',
@@ -251,6 +265,8 @@ core_sources = files(
   'core/level_surface_clipboard.cpp',
   'core/level_face_flags.cpp',
   'core/level_uv_edit.cpp',
+  'core/level_face_attributes.cpp',
+  'core/level_uv_tool.cpp',
   'core/level_navigation.cpp',
   'core/language_completion.cpp',
   'core/completion_snippet.cpp',
@@ -336,14 +352,18 @@ core_sources = files(
   'core/audio_analysis.cpp',
   'core/texture_document.cpp',
   'core/texture_paint.cpp',
+  'core/texture_adjust.cpp',
   'core/texture_output.cpp',
   'core/texture_transform.cpp',
   'core/texture_export.cpp',
+  'core/texture_formats.cpp',
+  'core/texture_doom_walls.cpp',
   'core/texture_handoff.cpp',
   'core/texture_project.cpp',
   'core/texture_recovery.cpp',
   'core/bsp_inspect.cpp',
   'core/build_pipeline.cpp',
+  'core/build_program_trust.cpp',
   'core/compiler_artifact_validation.cpp',
   'core/compiler_known_issues.cpp',
   'core/compiler_profiles.cpp',
@@ -369,6 +389,7 @@ core_sources = files(
   'core/level_patch.cpp',
   'core/level_patch_stitch.cpp',
   'core/level_patch_cap.cpp',
+  'core/level_patch_convert.cpp',
   'core/level_patch_tools.cpp',
   'core/level_selection_tools.cpp',
   'core/level_brush.cpp',
@@ -655,10 +676,13 @@ install_headers('core/level_dependencies.h', 'core/level_document.h', 'core/pack
 install_headers('core/level_patch.h', subdir: 'vibestudio/core')
 install_headers('core/level_patch_stitch.h', subdir: 'vibestudio/core')
 install_headers('core/level_patch_cap.h', subdir: 'vibestudio/core')
+install_headers('core/level_patch_convert.h', subdir: 'vibestudio/core')
 install_headers('core/level_patch_tools.h', subdir: 'vibestudio/core')
 install_headers('core/level_selection_tools.h', subdir: 'vibestudio/core')
 install_headers('core/level_brush.h', subdir: 'vibestudio/core')
 install_headers('core/level_grid_round.h', subdir: 'vibestudio/core')
+install_headers('core/level_object_manipulator.h', subdir: 'vibestudio/core')
+install_headers('core/level_plane_drag.h', subdir: 'vibestudio/core')
 install_headers('core/level_quick_transform.h', subdir: 'vibestudio/core')
 install_headers('core/level_nudge.h', subdir: 'vibestudio/core')
 install_headers('core/level_camera_texture.h', subdir: 'vibestudio/core')
@@ -769,7 +793,7 @@ install_headers('core/package_draft.h', 'core/package_draft_access.h', 'core/pac
 install_headers('core/package_recovery.h', subdir: 'vibestudio/core')
 install_headers('core/package_storage.h', 'core/package_copy.h', 'core/package_copy_budget.h', 'core/package_copy_store.h', subdir: 'vibestudio/core')
 
-install_headers(files('core/level_component_drag.h', 'core/advanced_studio.h', 'core/ai_connectors.h', 'core/ai_transport.h', 'core/ai_workflows.h', 'core/asset_tools.h', 'core/bsp_inspect.h', 'core/build_pipeline.h', 'core/compiler_artifact_validation.h', 'core/compiler_known_issues.h', 'core/compiler_profiles.h', 'core/compiler_registry.h', 'core/compiler_runner.h', 'core/deflate.h', 'core/document_watch.h', 'core/quake_map_preflight.h', 'core/editor_profiles.h', 'core/entity_definitions.h', 'core/game_installation.h', 'core/idtech_image.h', 'core/level_editor_controls.h', 'core/level_gestures.h', 'core/level_camera_keys.h', 'core/level_map.h', 'core/localization.h', 'core/map_assets.h', 'core/map_geometry.h', 'core/map_preview_mesh.h', 'core/map_render.h', 'core/model_mesh.h', 'core/operation_state.h', 'core/package_archive.h', 'core/package_compare.h', 'core/package_preview.h', 'core/package_staging.h', 'core/package_directory.h', 'core/package_browser.h', 'core/parser_fuzz.h', 'core/project_manifest.h', 'core/studio_semantics.h', 'core/studio_manifest.h', 'core/studio_query.h', 'core/studio_settings.h'), subdir: 'vibestudio/core')
+install_headers(files('core/level_component_drag.h', 'core/advanced_studio.h', 'core/ai_connectors.h', 'core/ai_transport.h', 'core/ai_workflows.h', 'core/asset_tools.h', 'core/bsp_inspect.h', 'core/build_pipeline.h', 'core/build_program_trust.h', 'core/compiler_artifact_validation.h', 'core/compiler_known_issues.h', 'core/compiler_profiles.h', 'core/compiler_registry.h', 'core/compiler_runner.h', 'core/deflate.h', 'core/document_watch.h', 'core/quake_map_preflight.h', 'core/editor_profiles.h', 'core/entity_definitions.h', 'core/game_installation.h', 'core/idtech_image.h', 'core/level_editor_controls.h', 'core/level_gestures.h', 'core/level_camera_keys.h', 'core/level_map.h', 'core/localization.h', 'core/map_assets.h', 'core/map_geometry.h', 'core/map_preview_mesh.h', 'core/map_render.h', 'core/model_mesh.h', 'core/operation_state.h', 'core/package_archive.h', 'core/package_compare.h', 'core/package_preview.h', 'core/package_staging.h', 'core/package_directory.h', 'core/package_browser.h', 'core/parser_fuzz.h', 'core/project_manifest.h', 'core/studio_semantics.h', 'core/studio_manifest.h', 'core/studio_query.h', 'core/studio_settings.h'), subdir: 'vibestudio/core')
 
 install_headers('core/ai_image_transport.h', subdir: 'vibestudio/core')
 install_headers('core/ai_harness.h', 'core/ai_gguf_runtime.h', 'core/ai_json_grammar.h', 'core/process_tree.h', subdir: 'vibestudio/core')
@@ -888,9 +912,11 @@ app_sources = files(
   'app/level_build_workspace_actions.cpp',
   'app/patch_editor_dialog.cpp',
   'app/patch_editor_actions.cpp',
+  'app/level_patch_prefab_actions.cpp',
   'app/patch_stitch_dialog.cpp',
   'app/patch_stitch_actions.cpp',
   'app/patch_cap_actions.cpp',
+  'app/level_patch_convert_deform_actions.cpp',
   'app/patch_cap_dialog.cpp',
   'app/brush_editor_dialog.cpp',
   'app/brush_editor_actions.cpp',
@@ -924,6 +950,7 @@ app_sources = files(
   'app/level_grid_round_actions.cpp',
   'app/level_component_gizmo.cpp',
   'app/level_vertex_insertion.cpp',
+  'app/level_plane_drag_controller.cpp',
   'app/level_vertex_insertion_pick.cpp',
   'app/level_vertex_insertion_views.cpp',
   'app/level_vertex_snap_actions.cpp',
@@ -931,10 +958,16 @@ app_sources = files(
   'app/level_component_drag_views.cpp',
   'app/level_component_trace.cpp',
   'app/level_component_gizmo_actions.cpp',
+  'app/level_object_gizmo_actions.cpp',
+  'app/level_plane_drag_actions.cpp',
   'app/level_component_transform_dialog.cpp',
   'app/level_placement_dialog.cpp',
   'app/level_placement_task_dialog.cpp',
   'app/game_launch_task_dialog.cpp',
+  'app/game_launch_profiles_dialog.cpp',
+  'app/build_rerun_actions.cpp',
+  'app/build_pipelines_dialog.cpp',
+  'app/build_pipeline_actions.cpp',
   'app/level_placement_actions.cpp',
   'app/level_delete_actions.cpp',
   'app/level_grid_actions.cpp',
@@ -952,10 +985,17 @@ app_sources = files(
   'app/level_filter_tag_actions.cpp',
   'app/level_smart_tag_actions.cpp',
   'app/level_camera_focus_actions.cpp',
+  'app/level_camera_drive_actions.cpp',
   'app/level_camera_render_actions.cpp',
   'app/level_grid_overlay_actions.cpp',
   'app/level_plan_pane_actions.cpp',
+  'app/level_plan_framing_actions.cpp',
   'app/level_paste_actions.cpp',
+  'app/level_map_transfer_actions.cpp',
+  'app/level_map_import_dialog.cpp',
+  'app/level_map_obj_export_dialog.cpp',
+  'app/level_map_inspector.cpp',
+  'app/level_map_inspector_actions.cpp',
   'app/level_clipboard_actions.cpp',
   'app/level_surface_dialog.cpp',
   'app/level_surface_actions.cpp',
@@ -964,6 +1004,9 @@ app_sources = files(
   'app/level_uv_view.cpp',
   'app/level_uv_editor_dialog.cpp',
   'app/level_uv_editor_actions.cpp',
+  'app/level_face_inspector_actions.cpp',
+  'app/level_camera_uv_tool.cpp',
+  'app/level_camera_uv_tool_actions.cpp',
   'app/level_surface_tools.cpp',
   'app/level_surface_worker.cpp',
   'app/level_texture_reset_dialog.cpp',
@@ -1021,6 +1064,8 @@ app_sources = files(
   'app/package_copy_sessions_dialog.cpp',
   'app/map_viewport.cpp',
   'app/map_viewport_components.cpp',
+  'app/map_viewport_object_gizmo.cpp',
+  'app/map_viewport_plane_drag.cpp',
   'app/map_viewport_grid_overlays.cpp',
   'app/map_viewport_scene_index.cpp',
   'app/map_viewport_projection.cpp',
@@ -1042,6 +1087,8 @@ app_sources = files(
   'app/model_viewport_render.cpp',
   'app/model_viewport_resize.cpp',
   'app/model_viewport_components.cpp',
+  'app/model_viewport_object_gizmo.cpp',
+  'app/model_viewport_plane_drag.cpp',
   'app/map_viewport_clip.cpp',
   'app/model_viewport_clip.cpp',
   'app/map_viewport_assemble.cpp',
@@ -1171,13 +1218,17 @@ app_moc_headers = files(
   'app/level_sweep_canvas.h',
   'app/level_component_gizmo.h',
   'app/level_vertex_insertion.h',
+  'app/level_plane_drag_controller.h',
   'app/level_component_transform_dialog.h',
   'app/editor_profile_dialog.h',
   'app/level_gestures_dialog.h',
+  'app/game_launch_profiles_dialog.h',
+  'app/build_pipelines_dialog.h',
   'app/package_entry_view.h',
   'app/package_staging_view.h',
   'app/package_folder_view.h',
   'app/level_scene_panel.h',
+  'app/level_map_inspector.h',
   'app/level_object_list.h',
   'app/level_load_dialog.h',
   'app/code_files_panel.h',
@@ -1302,7 +1353,7 @@ vibestudio = executable(
   files('cli/model_import_repair.cpp'),
   files('cli/model_controls.cpp'),
   files('cli/ai_generation.cpp'),
-  ['main.cpp', 'cli/cli.cpp', 'cli/audio_session.cpp', 'cli/level_scene.cpp', 'cli/level_component_selection.cpp', 'cli/level_grid_round.cpp', 'cli/level_nudge.cpp', 'cli/level_move_repeat.cpp', 'cli/level_view_transform.cpp','cli/level_bookmarks.cpp', 'cli/workspace.cpp', 'cli/release.cpp', 'cli/level_build_workspace.cpp', 'cli/level_build_artifacts.cpp', 'cli/level_build_deployment.cpp', 'cli/level_material_paint.cpp', 'cli/level_surface_clipboard.cpp', 'cli/level_smart_tags.cpp', 'cli/level_face_flags.cpp', 'cli/level_uv_edit.cpp', 'cli/level_clipboard.cpp', 'cli/level_region_selection.cpp', 'cli/level_object_selection.cpp', 'cli/level_face_transform.cpp', 'cli/level_hollow_options.cpp', 'cli/level_visibility.cpp', 'cli/level_view_filters.cpp', 'cli/level_camera_focus.cpp', 'cli/level_entity_create.cpp','cli/model_mdl.cpp', 'cli/model_appearance.cpp', 'cli/model_assembly.cpp', 'cli/model_collision.cpp', 'cli/model_skin_bindings.cpp', 'cli/model_skin_variants.cpp', 'cli/model_audit.cpp', 'cli/model_game_skin.cpp', 'cli/model_bake.cpp', 'cli/model_skin_paint.cpp', 'cli/model_surfaces.cpp', 'cli/model_tools.cpp', 'cli/model_rig.cpp', 'cli/model_skeletal_edit.cpp', 'cli/model_skinning.cpp', 'cli/model_weight_paint.cpp', 'cli/model_weight_transfer.cpp', 'cli/model_ik.cpp', 'cli/model_animation_curves.cpp', 'cli/model_curve_keys.cpp', 'cli/model_curve_transfer.cpp', 'cli/model_events.cpp', 'cli/model_constraints.cpp', 'cli/model_uv_density.cpp', 'cli/model_frames.cpp', 'cli/model_uv_health.cpp', 'cli/model_uv_ops.cpp', 'cli/model_uv_layout.cpp', 'cli/materials.cpp', 'cli/render.cpp', 'cli/model_material_slots.cpp', 'cli/model_intersections.cpp', 'cli/model_outputs.cpp', 'cli/package_copy_limits.cpp', 'cli/package_copy_store_limits.cpp', 'cli/package_copy_sessions.cpp'],
+  ['main.cpp', 'cli/cli.cpp', 'cli/audio_session.cpp', 'cli/level_scene.cpp', 'cli/level_component_selection.cpp', 'cli/level_grid_round.cpp', 'cli/level_nudge.cpp', 'cli/level_move_repeat.cpp', 'cli/level_view_transform.cpp', 'cli/level_bookmarks.cpp', 'cli/workspace.cpp', 'cli/release.cpp', 'cli/level_build_workspace.cpp', 'cli/level_build_artifacts.cpp', 'cli/level_build_deployment.cpp', 'cli/level_material_paint.cpp', 'cli/level_surface_clipboard.cpp', 'cli/level_smart_tags.cpp', 'cli/level_face_flags.cpp', 'cli/level_uv_edit.cpp', 'cli/level_clipboard.cpp', 'cli/level_region_selection.cpp', 'cli/level_object_selection.cpp', 'cli/level_face_transform.cpp', 'cli/level_hollow_options.cpp', 'cli/level_visibility.cpp', 'cli/level_view_filters.cpp', 'cli/level_camera_focus.cpp', 'cli/level_entity_create.cpp', 'cli/model_mdl.cpp', 'cli/model_appearance.cpp', 'cli/model_assembly.cpp', 'cli/model_collision.cpp', 'cli/model_skin_bindings.cpp', 'cli/model_skin_variants.cpp', 'cli/model_audit.cpp', 'cli/model_game_skin.cpp', 'cli/model_bake.cpp', 'cli/model_skin_paint.cpp', 'cli/model_surfaces.cpp', 'cli/model_tools.cpp', 'cli/model_rig.cpp', 'cli/model_skeletal_edit.cpp', 'cli/model_skinning.cpp', 'cli/model_weight_paint.cpp', 'cli/model_weight_transfer.cpp', 'cli/model_ik.cpp', 'cli/model_animation_curves.cpp', 'cli/model_curve_keys.cpp', 'cli/model_curve_transfer.cpp', 'cli/model_events.cpp', 'cli/model_constraints.cpp', 'cli/model_uv_density.cpp', 'cli/model_frames.cpp', 'cli/model_uv_health.cpp', 'cli/model_uv_ops.cpp', 'cli/model_uv_layout.cpp', 'cli/materials.cpp', 'cli/render.cpp', 'cli/model_material_slots.cpp', 'cli/model_intersections.cpp', 'cli/model_outputs.cpp', 'cli/package_copy_limits.cpp', 'cli/package_copy_store_limits.cpp', 'cli/package_copy_sessions.cpp', 'cli/level_patch_convert_deform.cpp', 'cli/level_face_attributes.cpp', 'cli/level_map_transfer.cpp', 'cli/level_map_properties.cpp', 'cli/launch_profiles.cpp', 'cli/build_pipelines.cpp', 'cli/level_camera_far_clip.cpp'],
   include_directories: vibestudio_includes,
   dependencies: [vibestudio_app_dep],
   install: true,
@@ -1345,6 +1396,24 @@ texture_paint_smoke_test = executable(
   install: false,
 )
 test('texture-paint-smoke', texture_paint_smoke_test, timeout: 90)
+
+texture_adjust_smoke_test = executable(
+  'texture_adjust_smoke_test',
+  ['tests/texture_adjust_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep],
+  install: false,
+)
+test('texture-adjust-smoke', texture_adjust_smoke_test, timeout: 90)
+
+texture_formats_smoke_test = executable(
+  'texture_formats_smoke_test',
+  ['tests/texture_formats_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_core_dep],
+  install: false,
+)
+test('texture-formats-smoke', texture_formats_smoke_test, args: [vibestudio], timeout: 120)
 
 texture_transform_smoke_test = executable(
   'texture_transform_smoke_test',
@@ -1932,6 +2001,32 @@ level_camera_render_ui_smoke_test = executable('level_camera_render_ui_smoke_tes
   cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-camera-render-ui-smoke', level_camera_render_ui_smoke_test, timeout: 400)
 
+level_camera_shading_smoke_test = executable('level_camera_shading_smoke_test', ['tests/level_camera_shading_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-camera-shading-smoke', level_camera_shading_smoke_test, timeout: 60)
+
+level_camera_shading_ui_smoke_test = executable('level_camera_shading_ui_smoke_test', ['tests/level_camera_shading_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+test('level-camera-shading-ui-smoke', level_camera_shading_ui_smoke_test, timeout: 400)
+
+level_camera_far_clip_smoke_test = executable('level_camera_far_clip_smoke_test', ['tests/level_camera_far_clip_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-camera-far-clip-smoke', level_camera_far_clip_smoke_test, args: [vibestudio], timeout: 120)
+
+level_camera_far_clip_ui_smoke_test = executable('level_camera_far_clip_ui_smoke_test', ['tests/level_camera_far_clip_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+test('level-camera-far-clip-ui-smoke', level_camera_far_clip_ui_smoke_test, timeout: 600)
+
+level_camera_floor_smoke_test = executable('level_camera_floor_smoke_test', ['tests/level_camera_floor_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-camera-floor-smoke', level_camera_floor_smoke_test, args: [vibestudio], timeout: 120)
+
+level_camera_floor_ui_smoke_test = executable('level_camera_floor_ui_smoke_test', ['tests/level_camera_floor_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+test('level-camera-floor-ui-smoke', level_camera_floor_ui_smoke_test, timeout: 400)
+
 level_plan_panes_smoke_test = executable('level_plan_panes_smoke_test', ['tests/level_plan_panes_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
 test('level-plan-panes-smoke', level_plan_panes_smoke_test, args: [vibestudio], timeout: 120)
@@ -2299,6 +2394,33 @@ level_patch_tools_smoke_test = executable('level_patch_tools_smoke_test', ['test
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
 test('level-patch-tools-smoke', level_patch_tools_smoke_test, timeout: 120)
 
+# NetRadiant Custom's patch prefabs: Radiant's control-point layouts, Natural
+# and Cap mapping on creation, the classic cone, replacing the selection, and
+# map add-patch / map add-shape; then the prefab commands, the Shapes tab's
+# patch fields and Add Patch… (Shift+P) in the real shell.
+level_patch_prefab_smoke_test = executable('level_patch_prefab_smoke_test', ['tests/level_patch_prefab_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-patch-prefab-smoke', level_patch_prefab_smoke_test, args: [vibestudio], timeout: 180)
+
+level_patch_prefab_ui_smoke_test = executable('level_patch_prefab_ui_smoke_test', ['tests/level_patch_prefab_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+test('level-patch-prefab-ui-smoke', level_patch_prefab_ui_smoke_test, timeout: 600)
+
+# NetRadiant Custom's Exact patch densities and Square box: upstream's Exact
+# layouts at any columns and rows, Square re-dispersing after mapping, and
+# map add-patch / map add-shape; then the Exact commands' Patch Density
+# dialog, the Shapes tab's Rows and Square, and Add Patch… in the real shell.
+level_patch_density_smoke_test = executable('level_patch_density_smoke_test', ['tests/level_patch_density_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-patch-density-smoke', level_patch_density_smoke_test, args: [vibestudio], timeout: 180)
+
+level_patch_density_ui_smoke_test = executable('level_patch_density_ui_smoke_test', ['tests/level_patch_density_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: [vibestudio_app_dep], install: false)
+test('level-patch-density-ui-smoke', level_patch_density_ui_smoke_test, timeout: 600)
+
 level_brush_tools_smoke_test = executable('level_brush_tools_smoke_test', ['tests/level_brush_tools_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
 test('level-brush-tools-smoke', level_brush_tools_smoke_test, timeout: 120)
@@ -2439,6 +2561,12 @@ level_view_links_ui_smoke_test = executable('level_view_links_ui_smoke_test', ['
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
 test('level-view-links-ui-smoke', level_view_links_ui_smoke_test, timeout: 240)
 
+level_plan_framing_ui_smoke_test = executable('level_plan_framing_ui_smoke_test', ['tests/level_plan_framing_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+test('level-plan-framing-ui-smoke', level_plan_framing_ui_smoke_test, timeout: 400)
+
 level_navigation_smoke_test = executable('level_navigation_smoke_test', ['tests/level_navigation_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
 test('level-navigation-smoke', level_navigation_smoke_test, args: [vibestudio], timeout: 120)
@@ -2495,6 +2623,16 @@ level_camera_drive_ui_smoke_test = executable('level_camera_drive_ui_smoke_test'
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
 test('level-camera-drive-ui-smoke', level_camera_drive_ui_smoke_test, timeout: 120)
 
+level_camera_drive_keys_smoke_test = executable('level_camera_drive_keys_smoke_test', ['tests/level_camera_drive_keys_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-camera-drive-keys-smoke', level_camera_drive_keys_smoke_test, args: [vibestudio], timeout: 120)
+
+level_camera_drive_keys_ui_smoke_test = executable('level_camera_drive_keys_ui_smoke_test', ['tests/level_camera_drive_keys_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+test('level-camera-drive-keys-ui-smoke', level_camera_drive_keys_ui_smoke_test, timeout: 600)
+
 level_bookmarks_ui_smoke_test = executable('level_bookmarks_ui_smoke_test', ['tests/level_bookmarks_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
 test('level-bookmarks-ui-smoke', level_bookmarks_ui_smoke_test, timeout: 240)
@@ -2529,6 +2667,54 @@ test('level-paste-smoke', level_paste_smoke_test, timeout: 120)
 level_paste_ui_smoke_test = executable('level_paste_ui_smoke_test', ['tests/level_paste_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
 test('level-paste-ui-smoke', level_paste_ui_smoke_test, timeout: 240)
+
+level_map_transfer_smoke_test = executable('level_map_transfer_smoke_test', ['tests/level_map_transfer_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-map-transfer-smoke', level_map_transfer_smoke_test, args: [vibestudio], timeout: 300)
+
+level_map_transfer_ui_smoke_test = executable('level_map_transfer_ui_smoke_test', ['tests/level_map_transfer_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+test('level-map-transfer-ui-smoke', level_map_transfer_ui_smoke_test, timeout: 900)
+
+level_map_obj_export_smoke_test = executable('level_map_obj_export_smoke_test', ['tests/level_map_obj_export_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-map-obj-export-smoke', level_map_obj_export_smoke_test, args: [vibestudio], timeout: 300)
+
+level_map_obj_export_ui_smoke_test = executable('level_map_obj_export_ui_smoke_test', ['tests/level_map_obj_export_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+test('level-map-obj-export-ui-smoke', level_map_obj_export_ui_smoke_test, timeout: 600)
+
+# Map Info's class table and the Map tab inspector: soft bounds, mods and the
+# layer summary, with `map inspect --json` and `map properties`.
+level_map_info_smoke_test = executable('level_map_info_smoke_test', ['tests/level_map_info_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-map-info-smoke', level_map_info_smoke_test, args: [vibestudio], timeout: 300)
+
+if qt6_test_dep.found()
+  level_map_info_ui_smoke_test = executable('level_map_info_ui_smoke_test', ['tests/level_map_info_ui_smoke_test.cpp'],
+    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+  test('level-map-info-ui-smoke', level_map_info_ui_smoke_test, timeout: 600)
+endif
+
+build_rerun_smoke_test = executable('build_rerun_smoke_test', ['tests/build_rerun_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('build-rerun-smoke', build_rerun_smoke_test, args: [vibestudio], timeout: 300)
+
+if qt6_test_dep.found()
+  build_rerun_ui_smoke_test = executable('build_rerun_ui_smoke_test', ['tests/build_rerun_ui_smoke_test.cpp'],
+    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+  test('build-rerun-ui-smoke', build_rerun_ui_smoke_test, timeout: 600)
+endif
+
+build_project_pipelines_smoke_test = executable('build_project_pipelines_smoke_test', ['tests/build_project_pipelines_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('build-project-pipelines-smoke', build_project_pipelines_smoke_test, args: [vibestudio], timeout: 300)
+
+if qt6_test_dep.found()
+  build_project_pipelines_ui_smoke_test = executable('build_project_pipelines_ui_smoke_test', ['tests/build_project_pipelines_ui_smoke_test.cpp'],
+    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+  test('build-project-pipelines-ui-smoke', build_project_pipelines_ui_smoke_test, timeout: 600)
+endif
 
 level_placement_jobs_smoke_test = executable('level_placement_jobs_smoke_test', ['tests/level_placement_jobs_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
@@ -2617,6 +2803,62 @@ test('level-type-selection-smoke', level_type_selection_smoke_test, args: [vibes
 level_textured_selection_smoke_test = executable('level_textured_selection_smoke_test', ['tests/level_textured_selection_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
 test('level-textured-selection-smoke', level_textured_selection_smoke_test, args: [vibestudio], timeout: 120)
+
+level_object_translate_smoke_test = executable('level_object_translate_smoke_test', ['tests/level_object_translate_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-object-translate-smoke', level_object_translate_smoke_test, args: [vibestudio], timeout: 120)
+
+# The Translate tool in the views, with Qt Test key events.
+if qt6_test_dep.found()
+  level_object_translate_ui_smoke_test = executable('level_object_translate_ui_smoke_test', ['tests/level_object_translate_ui_smoke_test.cpp'],
+    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+  test('level-object-translate-ui-smoke', level_object_translate_ui_smoke_test, timeout: 600)
+endif
+
+level_object_rotate_smoke_test = executable('level_object_rotate_smoke_test', ['tests/level_object_rotate_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-object-rotate-smoke', level_object_rotate_smoke_test, args: [vibestudio], timeout: 120)
+
+# The Rotate tool in the views, with Qt Test key events.
+if qt6_test_dep.found()
+  level_object_rotate_ui_smoke_test = executable('level_object_rotate_ui_smoke_test', ['tests/level_object_rotate_ui_smoke_test.cpp'],
+    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+  test('level-object-rotate-ui-smoke', level_object_rotate_ui_smoke_test, timeout: 600)
+endif
+
+level_object_scale_smoke_test = executable('level_object_scale_smoke_test', ['tests/level_object_scale_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-object-scale-smoke', level_object_scale_smoke_test, args: [vibestudio], timeout: 120)
+
+# The Scale tool and the box handles' Shift and Alt in the views, with Qt Test key events.
+if qt6_test_dep.found()
+  level_object_scale_ui_smoke_test = executable('level_object_scale_ui_smoke_test', ['tests/level_object_scale_ui_smoke_test.cpp'],
+    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+  test('level-object-scale-ui-smoke', level_object_scale_ui_smoke_test, timeout: 600)
+endif
+
+level_object_transform_smoke_test = executable('level_object_transform_smoke_test', ['tests/level_object_transform_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-object-transform-smoke', level_object_transform_smoke_test, args: [vibestudio], timeout: 120)
+
+# The Transform tool and the Shear Tool's camera handles in the views, with Qt Test key events.
+if qt6_test_dep.found()
+  level_object_transform_ui_smoke_test = executable('level_object_transform_ui_smoke_test', ['tests/level_object_transform_ui_smoke_test.cpp'],
+    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+  test('level-object-transform-ui-smoke', level_object_transform_ui_smoke_test, timeout: 600)
+endif
+
+# NetRadiant Custom's drag-tool gestures and the Build tool's chain as core services and map drag-planes.
+level_plane_drag_smoke_test = executable('level_plane_drag_smoke_test', ['tests/level_plane_drag_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-plane-drag-smoke', level_plane_drag_smoke_test, args: [vibestudio], timeout: 120)
+
+# The drag-tool gestures and the Build tool in the views, with real mouse events.
+if qt6_test_dep.found()
+  level_plane_drag_ui_smoke_test = executable('level_plane_drag_ui_smoke_test', ['tests/level_plane_drag_ui_smoke_test.cpp'],
+    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+  test('level-plane-drag-ui-smoke', level_plane_drag_ui_smoke_test, timeout: 600)
+endif
 
 level_material_find_smoke_test = executable('level_material_find_smoke_test', ['tests/level_material_find_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
@@ -2777,6 +3019,19 @@ patch_cap_ui_smoke_test = executable('patch_cap_ui_smoke_test', ['tests/patch_ca
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
 test('patch-cap-ui-smoke', patch_cap_ui_smoke_test, timeout: 180)
 
+# TrenchBroom's Convert Selection to Patches and NetRadiant Custom's Deform:
+# the shared services, map convert-patches and map deform-patch, and the
+# Levels commands, dialog and keys.
+level_patch_convert_deform_smoke_test = executable('level_patch_convert_deform_smoke_test', ['tests/level_patch_convert_deform_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-patch-convert-deform-smoke', level_patch_convert_deform_smoke_test, args: [vibestudio], timeout: 180)
+
+level_patch_convert_deform_ui_smoke_test = executable('level_patch_convert_deform_ui_smoke_test', ['tests/level_patch_convert_deform_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+test('level-patch-convert-deform-ui-smoke', level_patch_convert_deform_ui_smoke_test, timeout: 600)
+
 level_surface_ui_smoke_test = executable('level_surface_ui_smoke_test', ['tests/level_surface_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
 test('level-surface-ui-smoke', level_surface_ui_smoke_test, timeout: 180)
@@ -2891,6 +3146,19 @@ level_texture_projection_ui_smoke_test = executable('level_texture_projection_ui
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
 test('level-texture-projection-ui-smoke', level_texture_projection_ui_smoke_test, timeout: 600)
 
+# TrenchBroom's Face inspector: brush faces' offset, scale and rotation in
+# every format, turns and stretches about a pivot, map face-attributes, and
+# the Surfaces tab's Face section with its handles, fields and Ctrl+3.
+level_face_attributes_smoke_test = executable('level_face_attributes_smoke_test', ['tests/level_face_attributes_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-face-attributes-smoke', level_face_attributes_smoke_test, args: [vibestudio], timeout: 180)
+
+level_face_inspector_ui_smoke_test = executable('level_face_inspector_ui_smoke_test', ['tests/level_face_inspector_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+test('level-face-inspector-ui-smoke', level_face_inspector_ui_smoke_test, timeout: 600)
+
 # Per-face content and surface flags and value (NetRadiant Custom's Surface
 # Inspector flag boxes and Unset): the shared service, map face-flags, the
 # Surfaces tab's Flags section, Clear Face Flags and the Show Surfaces toggle
@@ -2917,6 +3185,19 @@ level_uv_editor_ui_smoke_test = executable('level_uv_editor_ui_smoke_test', ['te
   dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
   cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-uv-editor-ui-smoke', level_uv_editor_ui_smoke_test, timeout: 600)
+
+# The camera UV tool (NetRadiant Custom's G): the shared service's frame,
+# repeat lines, snapping and edits, map edit-uv's stretch, skew, rows and
+# columns, and the camera's drags, pivot, picking and G key in the real shell.
+level_uv_tool_smoke_test = executable('level_uv_tool_smoke_test', ['tests/level_uv_tool_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-uv-tool-smoke', level_uv_tool_smoke_test, args: [vibestudio], timeout: 180)
+
+level_camera_uv_tool_ui_smoke_test = executable('level_camera_uv_tool_ui_smoke_test', ['tests/level_camera_uv_tool_ui_smoke_test.cpp'],
+  include_directories: vibestudio_includes,
+  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+test('level-camera-uv-tool-ui-smoke', level_camera_uv_tool_ui_smoke_test, timeout: 600)
 
 # Vertex editing, regions, patch matrix and Thicken, navigation, picked faces
 # and prefab drops in the real shell, driven by Qt events.

@@ -458,6 +458,14 @@ const QHash<QString, GlyphFunction>& glyphs()
 			p.polyline({{4.0, 7.5}, {4.0, 4.0}, {7.5, 4.0}});
 			p.polyline({{16.5, 20.0}, {20.0, 20.0}, {20.0, 16.5}});
 		});
+		g.insert(QStringLiteral("transform"), [](GlyphPainter& p) {
+			// A box slanted by one side, with the corners that turn it.
+			p.polygon({{7.5, 5.0}, {20.0, 5.0}, {16.5, 19.0}, {4.0, 19.0}});
+			p.rect(5.5, 3.0, 9.5, 7.0, 0.0, true);
+			p.rect(18.0, 3.0, 22.0, 7.0, 0.0, true);
+			p.rect(14.5, 17.0, 18.5, 21.0, 0.0, true);
+			p.rect(2.0, 17.0, 6.0, 21.0, 0.0, true);
+		});
 		g.insert(QStringLiteral("move"), [](GlyphPainter& p) {
 			p.line(12.0, 3.0, 12.0, 21.0);
 			p.line(3.0, 12.0, 21.0, 12.0);

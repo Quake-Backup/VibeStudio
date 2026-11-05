@@ -1,7 +1,8 @@
 #pragma once
 
-// The level camera's levelling and focusing, shared by the Levels View >
-// Camera commands, the held free-focus key and `map camera-focus`.
+// The level camera's levelling, focusing and floor stepping, shared by the
+// Levels View > Camera commands, the held free-focus key and
+// `map camera-focus`.
 //
 // Level Camera keeps the camera where it stands, drops its pitch to zero and
 // turns its heading to the nearest 22.5-degree step, as Radiant's Center
@@ -18,8 +19,11 @@
 // (GPL-2.0-or-later). Original Qt implementation with its own frustum fit and
 // offset curve; see docs/CREDITS.md.
 
+#include "core/box_resize.h"
 #include "core/level_map.h"
 
+#include <QHash>
+#include <QSet>
 #include <QString>
 #include <QVector>
 
@@ -77,5 +81,75 @@ struct LevelCameraFocus {
 // hidden. False when none of them can be measured.
 bool levelCameraFocusObjectsBounds(const LevelMapDocument& document, const QVector<LevelMapSelectionRef>& objects,
 	LevelMapVec3* mins, LevelMapVec3* maxs);
+
+// Camera Floor Up and Camera Floor Down: the next height the camera can stand
+// at above or below where it is, keeping its x and y.
+//
+// On Quake-family maps every visible brush, patch and point entity that is
+// selected, or whose box spans the camera's x and y (strictly inside), offers
+// a standing height 32 units above its top and an underside 16 units below its
+// bottom. Brush entities and worldspawn count through their brushes and
+// patches; a point entity is its origin plus its definition box (from
+// `entityBounds`, by case-folded class name), or a 16-unit cube without one.
+// Up takes the nearest standing height more than 0.1 unit above the camera,
+// unless the camera is below the lowest underside, which it then goes to
+// first; Down takes the nearest standing height more than 0.1 unit below the
+// camera, or else the lowest underside when that is lower.
+//
+// On Doom maps the visible sectors under the camera, and the selected ones,
+// offer their floor plus Doom's 41-unit eye height, kept at least 4 units
+// below the ceiling as the game does (never below the floor). There is no
+// underside: Up and Down take the nearest such height above or below.
+//
+// Workflow reference: NRC camwindow.cpp FloorHeightWalker and
+// CamWnd::Cam_ChangeFloor at 449778b3 (GPL-2.0-or-later); id Software DOOM
+// linuxdoom-1.10 p_local.h VIEWHEIGHT and p_user.c P_CalcHeight at a77dfb96
+// (GPL-2.0-or-later) for the eye height and ceiling gap. Original Qt
+// implementation; see docs/CREDITS.md.
+inline constexpr double kLevelCameraFloorStandHeight = 32.0;
+inline constexpr double kLevelCameraFloorUndersideClearance = 16.0;
+inline constexpr double kLevelCameraFloorEpsilon = 0.1;
+inline constexpr double kLevelCameraDoomEyeHeight = 41.0;
+inline constexpr double kLevelCameraDoomCeilingGap = 4.0;
+
+enum class LevelCameraFloorDirection { Up, Down };
+
+// What gave the camera its new height.
+enum class LevelCameraFloorSource { None, StandingHeight, Underside, SectorEyeHeight };
+
+struct LevelCameraFloorRequest {
+	// Where the camera stands now.
+	LevelMapVec3 position;
+	LevelCameraFloorDirection direction = LevelCameraFloorDirection::Up;
+	// Objects the views hide besides the map's own hidden ones (view filters,
+	// a region), as selectors such as "brush:4"; they never count.
+	QSet<QString> excludedObjects;
+	// Point entity definition boxes by case-folded class name, relative to the
+	// origin, as for paste (core/level_paste.h).
+	QHash<QString, ResizeBox> entityBounds;
+};
+
+struct LevelCameraFloorStep {
+	// False, with a translated reason, for an unusable request.
+	bool valid = false;
+	QString error;
+	// True when the camera changes height; `position` is where it goes (the
+	// request's position when it stays).
+	bool moved = false;
+	LevelMapVec3 position;
+	LevelCameraFloorSource source = LevelCameraFloorSource::None;
+	// The object whose top, underside or sector floor gave the height.
+	LevelMapSelectionRef object;
+	// How many visible objects under the camera or selected were measured.
+	int candidates = 0;
+};
+
+[[nodiscard]] LevelCameraFloorStep levelCameraFloorStep(const LevelMapDocument& document, const LevelCameraFloorRequest& request);
+
+// "up" or "down", and back; false for anything else.
+[[nodiscard]] QString levelCameraFloorDirectionId(LevelCameraFloorDirection direction);
+bool levelCameraFloorDirectionFromId(const QString& id, LevelCameraFloorDirection* direction);
+// "standing-height", "underside", "sector-eye-height" or "none".
+[[nodiscard]] QString levelCameraFloorSourceId(LevelCameraFloorSource source);
 
 } // namespace vibestudio

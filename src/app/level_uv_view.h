@@ -1,11 +1,14 @@
 #pragma once
 
+#include "core/level_face_attributes.h"
 #include "core/level_uv_edit.h"
 
 #include <QImage>
 #include <QPointF>
 #include <QRectF>
 #include <QWidget>
+
+#include <functional>
 
 class QMenu;
 
@@ -29,14 +32,42 @@ namespace vibestudio {
 // the points, A sets or clears the anchor at the current point, Ctrl+A
 // selects every patch point, Ctrl+Z and Ctrl+Shift+Z undo and redo, Escape
 // cancels a drag.
+//
+// With handles on (the Surfaces tab's Face section), a face shows a pivot, a
+// turn knob on a ring about it and stretch knobs along U, along V and along
+// both; dragging inside the face or one of its points moves the texture.
+// Each finished drag, nudge or turn goes out once through `handleEdited` as
+// values for the face (core/level_face_attributes.h), which the inspector
+// commits as one map undo step before giving the view the face again; the
+// view keeps no edit history of its own then.
 class LevelUvView final : public QWidget {
 	Q_OBJECT
   public:
+	enum class Handle { None, Pivot, Turn, StretchU, StretchV, StretchBoth };
 	explicit LevelUvView(QWidget* parent = nullptr);
 	~LevelUvView() override;
 	// Starts again from `layout`, with no edit. `image` may be null: a
-	// checker then shows the repeats.
-	void setSource(const LevelUvLayout& layout, const QImage& image);
+	// checker then shows the repeats. `keepView` keeps the zoom, pan and
+	// pivot when the layout is the same face or patch again, as after an
+	// edit the view itself made.
+	void setSource(const LevelUvLayout& layout, const QImage& image, bool keepView = false);
+	// Shows `message` in place of a surface.
+	void clearSource(const QString& message = {});
+	// The Face section's handles; faces only.
+	void setHandlesEnabled(bool enabled);
+	[[nodiscard]] bool handlesEnabled() const { return m_handles; }
+	// The point turns and stretches keep in place, on the face's plane, and
+	// where it reads on the texture now.
+	[[nodiscard]] LevelMapVec3 pivotWorld() const { return m_pivot; }
+	[[nodiscard]] QPointF pivotTexel() const;
+	bool setPivotTexel(QPointF texel);
+	// Where a handle is drawn, in widget coordinates; not finite when hidden.
+	[[nodiscard]] QPointF handlePosition(Handle handle) const;
+	// Handles: turns the face's texture by about `clockwiseDegrees` as the
+	// view draws it, through its rotation value, about the pivot.
+	bool turnTexture(double clockwiseDegrees);
+	// Handles: called with each finished change, to commit to the map.
+	std::function<void(const LevelFaceAttributesEdit&)> handleEdited;
 	void setImage(const QImage& image);
 	[[nodiscard]] bool hasSource() const { return m_hasSource; }
 	[[nodiscard]] const LevelUvLayout& layout() const { return m_layout; }
@@ -114,8 +145,21 @@ class LevelUvView final : public QWidget {
 	bool event(QEvent* event) override;
 
   private:
-	enum class Drag { None, Point, Grab, Band, Pan };
+	enum class Drag { None, Point, Grab, Band, Pan, Handle };
 	bool setWorkingEdit(const LevelUvEdit& edit);
+	// Handles: shows the face as `edit` would leave it, or the source again
+	// for an empty edit.
+	bool previewHandleEdit(const LevelFaceAttributesEdit& edit);
+	// Handles: reports `edit` and shows the source again unless the commit
+	// replaced it.
+	void reportHandleEdit(const LevelFaceAttributesEdit& edit);
+	[[nodiscard]] Handle handleAt(QPointF screen) const;
+	[[nodiscard]] LevelFaceAttributesEdit handleDragEdit(QPointF screen, Qt::KeyboardModifiers modifiers) const;
+	// Degrees the face's outline turns, as drawn, per degree of rotation value.
+	[[nodiscard]] double turnRate(const LevelTextureValues& values) const;
+	[[nodiscard]] bool faceValues(LevelTextureValues* values) const;
+	[[nodiscard]] double ringRadius() const;
+	void resetPivot();
 	void record(const LevelUvEdit& before);
 	void finishDrag(bool commit);
 	void announce();
@@ -148,6 +192,16 @@ class LevelUvView final : public QWidget {
 	LevelUvEdit m_dragStartEdit;
 	QVector<QPointF> m_dragStartUv;
 	QMenu* m_menu = nullptr;
+	QString m_message;
+	// Handles.
+	bool m_handles = false;
+	LevelMapVec3 m_pivot;
+	Handle m_handle = Handle::None;
+	LevelFaceAttributesEdit m_handleEdit;
+	LevelTextureValues m_dragValues;
+	QPointF m_dragPivot, m_dragKnob;
+	double m_dragRate = 1;
+	quint64 m_sourceSerial = 0;
 };
 
 } // namespace vibestudio
