@@ -14026,8 +14026,10 @@ void ApplicationShell::refreshWorkIndicator()
 	setStatusBarButtonToolTip(m_activityToggle, lines.join(QLatin1Char('\n')));
 	if (m_workIndicator) {
 		// Under reduced motion the ring stands still: its shape alone says
-		// busy. A known total fills it instead of turning it.
-		m_workIndicator->setReducedMotion(m_settings.accessibilityPreferences().reducedMotion);
+		// busy. A known total fills it instead of turning it. The preference
+		// recorded by applyPreferencesToUi() is read rather than the settings
+		// store: this runs on every change of tracked work.
+		m_workIndicator->setReducedMotion(studioReducedMotion());
 		m_workIndicator->setProgress(tracker.progress());
 		m_workIndicator->setToolTip(tracker.summaryText());
 		m_workIndicator->show();
