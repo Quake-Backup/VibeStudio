@@ -89,6 +89,7 @@ credits list.
 - Keep the interface sleek, dense, and production-focused.
 - Use a modern dark studio shell, but prioritize legibility, predictable navigation, and fast repeated workflows over decoration.
 - Every operation that may take noticeable time must expose a loading, progress, queued, cancelled, success, or failure state as appropriate.
+- The user must always be able to see that work is in progress ("Visible Work" in `docs/UX_DESIGN.md`): the start-up screen names each stage before the window exists, busy surfaces show a sleek indicator (loading pane, busy ring, busy overlay) where the result will appear, a ring turns beside the status bar's Activity button while anything is busy, and a frozen interface is recorded rather than excused. Never leave the user staring at nothing or at a window that does not answer; register new busy surfaces with the shared work tracker rather than inventing one-off indicators.
 - Prefer visible task cards, progress bars, inline skeletons, spinners, timelines, status chips, previews, and logs over silent waits.
 - Use progressive disclosure: summaries first, details on demand, raw data/logs available when useful.
 - Graphical elements should clarify real project information; avoid decorative visuals that do not help the user decide or act.

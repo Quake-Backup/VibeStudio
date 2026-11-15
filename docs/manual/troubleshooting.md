@@ -98,6 +98,26 @@ warnings and errors.
 `vibestudio --cli diagnostics crashes` prints the folder on any system. Crash reports are kept in the
 same folder. [Install VibeStudio](install.md) lists where settings and recovery copies are kept.
 
+## The studio stopped answering for a moment
+
+VibeStudio is meant to show you that it is working: a start-up screen while it starts, a loading pane
+or a busy ring where a result will appear, and the status bar's **Activity** button turning while
+anything is busy. If the window itself stops answering, the studio notices once it is responding again:
+
+- Every pause of half a second or more is written to the session log as
+  `ui-responsiveness: the interface did not respond for N ms`.
+- A pause of two seconds or more, which you will have seen as a frozen window, is also recorded in
+  the **Activity** panel as **Studio paused**, with how long it lasted.
+- **Tools** > **Copy Diagnostic Bundle** includes how many pauses there were this session and the
+  longest.
+
+A pause is a defect in the studio, not something you did: work that holds the window should run in
+the background. If it keeps happening, note what you were doing and include the diagnostic bundle in
+a [bug report](#report-a-bug).
+
+If the start-up screen itself is in the way, for example when VibeStudio is started from a script,
+start it with `--no-splash`.
+
 ## Create a diagnostics bundle
 
 A diagnostics bundle describes your setup for a bug report.

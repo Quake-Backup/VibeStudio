@@ -51642,7 +51642,7 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>VibeStudioAssistant</name>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+16567"/>
+        <location filename="../src/app/application_shell.cpp" line="+16702"/>
         <source>Show the raw JSON</source>
         <translation type="unfinished"></translation>
     </message>
@@ -77197,6 +77197,24 @@ Searched: %3
     <message>
         <location line="+2"/>
         <source>- %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>VibeStudioMain</name>
+    <message>
+        <location filename="../src/main.cpp" line="+234"/>
+        <source>Starting the 3D renderer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>Opening the files from the command line</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Restoring your session</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -126220,7 +126238,7 @@ Replace what is there with this variant?</source>
 <context>
     <name>VibeStudioUiPrimitives</name>
     <message>
-        <location filename="../src/app/ui_primitives.cpp" line="+122"/>
+        <location filename="../src/app/ui_primitives.cpp" line="+123"/>
         <location line="+16"/>
         <source>Idle</source>
         <translation type="unfinished">নিষ্ক্রিয়</translation>
@@ -126232,13 +126250,13 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+217"/>
-        <location line="+88"/>
+        <location line="+250"/>
+        <location line="+106"/>
         <source>Loading</source>
         <translation type="unfinished">লোড হচ্ছে</translation>
     </message>
     <message>
-        <location line="-303"/>
+        <location line="-354"/>
         <source>Running</source>
         <translation type="unfinished">চলছে</translation>
     </message>
@@ -126279,12 +126297,12 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+87"/>
-        <location line="+60"/>
+        <location line="+93"/>
         <source>Loading pane</source>
         <translation type="unfinished">লোডিং প্যানেল</translation>
     </message>
     <message>
-        <location line="-59"/>
+        <location line="-92"/>
         <source>Reusable pane and preview loading surface with state text, progress, reduced-motion behavior, and context-specific skeleton rows.</source>
         <translation type="unfinished">অবস্থার লেখা, অগ্রগতি, মোশন কমানোর আচরণ এবং প্রসঙ্গ-নির্দিষ্ট স্কেলিটন সারিসহ পুনর্ব্যবহারযোগ্য প্যানেল ও প্রিভিউ লোডিং ক্ষেত্র।</translation>
     </message>
@@ -126295,11 +126313,12 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+1"/>
+        <location line="+57"/>
         <source>preview generation</source>
         <translation type="unfinished">প্রিভিউ তৈরি</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-56"/>
         <source>compiler stages</source>
         <translation type="unfinished">কম্পাইলারের পর্যায়</translation>
     </message>
@@ -126310,12 +126329,12 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+5"/>
-        <location line="+274"/>
+        <location line="+326"/>
         <source>Detail drawer</source>
         <translation type="unfinished">বিবরণ ড্রয়ার</translation>
     </message>
     <message>
-        <location line="-273"/>
+        <location line="-325"/>
         <source>Reusable collapsible drawer for summary-first logs, metadata, manifests, raw diagnostics, and support-copy text.</source>
         <translation type="unfinished">সারসংক্ষেপ-প্রথম লগ, মেটাডেটা, ম্যানিফেস্ট, কাঁচা ডায়াগনস্টিক্স এবং সাপোর্টের জন্য কপি করার লেখার পুনর্ব্যবহারযোগ্য ভাঁজযোগ্য ড্রয়ার।</translation>
     </message>
@@ -126430,6 +126449,87 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">এআই পর্যালোচনা কমান্ড</translation>
     </message>
     <message>
+        <location line="+5"/>
+        <source>Busy indicator</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>A ring that turns while work runs and fills as measurable work progresses; it stands still under reduced motion, and one sits beside the status bar&apos;s Activity button while anything in the window is busy.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>status bar activity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>start-up stages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>dialog work</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Busy overlay</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>A translucent cover for a surface whose content is being prepared, with a title, detail, progress and an optional Cancel; it appears after a short delay so brief work never flashes, and counts in the window&apos;s running work.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+12"/>
+        <source>session restore</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-11"/>
+        <source>large file opens</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>dialog preparation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>work that holds the interface</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Start-up screen</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>The branded screen shown while the studio starts, naming each stage with a progress line, following the theme, text scale, layout direction and reduced-motion preference, and fading once the window has painted.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>application start</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>renderer start</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>slow first runs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location line="+11"/>
         <source>Shows operation state, progress, and placeholder rows while pane content is loading.</source>
         <translation type="unfinished">প্যানেলের কনটেন্ট লোড হওয়ার সময় অপারেশনের অবস্থা, অগ্রগতি ও প্লেসহোল্ডার সারি দেখায়।</translation>
@@ -126466,12 +126566,12 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+8"/>
-        <location line="+102"/>
+        <location line="+120"/>
         <source>Preparing content.</source>
         <translation type="unfinished">কনটেন্ট প্রস্তুত করা হচ্ছে।</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+7"/>
         <source>%1%</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126802,15 +126902,15 @@ Replace what is there with this variant?</source>
 <context>
     <name>vibestudio::ApplicationShell</name>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-16320"/>
-        <location line="+14007"/>
+        <location filename="../src/app/application_shell.cpp" line="-16454"/>
+        <location line="+14133"/>
         <location line="+55"/>
-        <location line="+408"/>
+        <location line="+416"/>
         <source>ready</source>
         <translation type="unfinished">প্রস্তুত</translation>
     </message>
     <message>
-        <location line="-14468"/>
+        <location line="-14602"/>
         <source>access error</source>
         <translation type="unfinished">অ্যাক্সেস ত্রুটি</translation>
     </message>
@@ -126825,13 +126925,13 @@ Replace what is there with this variant?</source>
         <location line="+3"/>
         <location line="+1"/>
         <location line="+25"/>
-        <location line="+11513"/>
-        <location line="+1859"/>
+        <location line="+11554"/>
+        <location line="+1944"/>
         <source>unknown</source>
         <translation type="unfinished">অজানা</translation>
     </message>
     <message>
-        <location line="-13690"/>
+        <location line="-13816"/>
         <source>System</source>
         <translation type="unfinished">সিস্টেম</translation>
     </message>
@@ -126895,7 +126995,7 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+18"/>
         <location line="+16"/>
-        <location line="+6182"/>
+        <location line="+6223"/>
         <location line="+621"/>
         <location line="+449"/>
         <location line="+528"/>
@@ -126903,46 +127003,46 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">নিষ্ক্রিয়</translation>
     </message>
     <message>
-        <location line="-7794"/>
+        <location line="-7835"/>
         <source>Queued</source>
         <translation type="unfinished">সারিতে</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+6733"/>
+        <location line="+6774"/>
         <location filename="../src/app/audio_browser_actions.cpp" line="+157"/>
         <source>Loading</source>
         <translation type="unfinished">লোড হচ্ছে</translation>
     </message>
     <message>
-        <location line="-6731"/>
-        <location line="+12597"/>
+        <location line="-6772"/>
+        <location line="+12638"/>
         <location line="+377"/>
-        <location line="+12639"/>
+        <location line="+12741"/>
         <source>Running</source>
         <translation type="unfinished">চলছে</translation>
     </message>
     <message>
-        <location line="-25611"/>
-        <location line="+26167"/>
+        <location line="-25754"/>
+        <location line="+26310"/>
         <location filename="../src/app/code_language_actions.cpp" line="+112"/>
         <source>Warning</source>
         <translation type="unfinished">সতর্কতা</translation>
     </message>
     <message>
-        <location line="-26165"/>
+        <location line="-26308"/>
         <source>Failed</source>
         <translation type="unfinished">ব্যর্থ</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+7321"/>
+        <location line="+7362"/>
         <location line="+4575"/>
         <source>Cancelled</source>
         <translation type="unfinished">বাতিল</translation>
     </message>
     <message>
-        <location line="-11894"/>
+        <location line="-11935"/>
         <source>Completed</source>
         <translation type="unfinished">সম্পন্ন</translation>
     </message>
@@ -126976,12 +127076,12 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+4"/>
         <location line="+26"/>
-        <location line="+25410"/>
+        <location line="+25553"/>
         <source>Unknown</source>
         <translation type="unfinished">অজানা</translation>
     </message>
     <message>
-        <location line="-25429"/>
+        <location line="-25572"/>
         <location line="+4"/>
         <source>File</source>
         <translation type="unfinished">ফাইল</translation>
@@ -127010,43 +127110,43 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+11"/>
         <location line="+14"/>
-        <location line="+6756"/>
+        <location line="+6797"/>
         <location line="+5"/>
-        <location line="+14235"/>
+        <location line="+14337"/>
         <location filename="../src/app/package_context_actions.cpp" line="+22"/>
         <source>Unavailable</source>
         <translation type="unfinished">অনুপলব্ধ</translation>
     </message>
     <message>
-        <location line="-21006"/>
+        <location line="-21149"/>
         <source>Text</source>
         <translation type="unfinished">টেক্সট</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+4360"/>
+        <location line="+4401"/>
         <source>Image</source>
         <translation type="unfinished">ছবি</translation>
     </message>
     <message>
         <location filename="../src/app/ai_generation_actions.cpp" line="+408"/>
         <location line="+106"/>
-        <location filename="../src/app/application_shell.cpp" line="-4358"/>
-        <location line="+1140"/>
+        <location filename="../src/app/application_shell.cpp" line="-4399"/>
+        <location line="+1155"/>
         <location line="+25"/>
-        <location line="+3244"/>
-        <location line="+19734"/>
+        <location line="+3270"/>
+        <location line="+19836"/>
         <source>Model</source>
         <translation type="unfinished">মডেল</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-24141"/>
+        <location filename="../src/app/application_shell.cpp" line="-24284"/>
         <location line="+290"/>
-        <location line="+4068"/>
+        <location line="+4109"/>
         <location line="+960"/>
         <location line="+37"/>
         <location line="+3097"/>
-        <location line="+6003"/>
+        <location line="+6096"/>
         <location filename="../src/app/asset_workbench_actions.cpp" line="+94"/>
         <location line="+2"/>
         <location line="+2"/>
@@ -127056,12 +127156,12 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">অডিও</translation>
     </message>
     <message>
-        <location line="-14453"/>
+        <location line="-14587"/>
         <source>Binary</source>
         <translation type="unfinished">বাইনারি</translation>
     </message>
     <message>
-        <location line="+1863"/>
+        <location line="+1904"/>
         <location line="+1288"/>
         <source>Add</source>
         <translation type="unfinished">যোগ করুন</translation>
@@ -127080,17 +127180,17 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+21437"/>
+        <location line="+21539"/>
         <source>Delete</source>
         <translation type="unfinished">মুছুন</translation>
     </message>
     <message>
-        <location line="-21445"/>
+        <location line="-21547"/>
         <source>Stage</source>
         <translation type="unfinished">স্টেজ করুন</translation>
     </message>
     <message>
-        <location line="-3056"/>
+        <location line="-3097"/>
         <source>%1 GiB</source>
         <translation type="unfinished">%1 GiB</translation>
     </message>
@@ -127153,14 +127253,14 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+1"/>
         <location line="+29"/>
-        <location line="+11661"/>
+        <location line="+11702"/>
         <location line="+1121"/>
         <location filename="../src/app/package_context_actions.cpp" line="+7"/>
         <source>Format: %1</source>
         <translation type="unfinished">ফরম্যাট: %1</translation>
     </message>
     <message>
-        <location line="-12810"/>
+        <location line="-12851"/>
         <source>Dimensions: %1</source>
         <translation type="unfinished">মাত্রা: %1</translation>
     </message>
@@ -127189,35 +127289,35 @@ Replace what is there with this variant?</source>
         <location line="+61"/>
         <location line="+1"/>
         <location line="+1"/>
-        <location line="+5952"/>
+        <location line="+5993"/>
         <location line="+6"/>
         <location line="+5517"/>
         <location line="+1"/>
         <location line="+887"/>
         <location line="+384"/>
-        <location line="+591"/>
+        <location line="+676"/>
         <location line="+365"/>
         <source>yes</source>
         <translation type="unfinished">হ্যাঁ</translation>
     </message>
     <message>
-        <location line="-13766"/>
+        <location line="-13892"/>
         <location line="+61"/>
         <location line="+1"/>
         <location line="+1"/>
-        <location line="+5952"/>
+        <location line="+5993"/>
         <location line="+6"/>
         <location line="+5517"/>
         <location line="+1"/>
         <location line="+887"/>
         <location line="+384"/>
-        <location line="+591"/>
+        <location line="+676"/>
         <location line="+365"/>
         <source>no</source>
         <translation type="unfinished">না</translation>
     </message>
     <message>
-        <location line="-13764"/>
+        <location line="-13890"/>
         <source>Palette sample:</source>
         <translation type="unfinished">প্যালেটের নমুনা:</translation>
     </message>
@@ -127263,13 +127363,13 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+18"/>
-        <location line="+13685"/>
-        <location line="+408"/>
+        <location line="+13811"/>
+        <location line="+416"/>
         <source>Name: %1</source>
         <translation type="unfinished">নাম: %1</translation>
     </message>
     <message>
-        <location line="-14092"/>
+        <location line="-14226"/>
         <source>Profile ID: %1</source>
         <translation type="unfinished">প্রোফাইল আইডি: %1</translation>
     </message>
@@ -127280,12 +127380,12 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+11919"/>
+        <location line="+11960"/>
         <source>Engine: %1</source>
         <translation type="unfinished">ইঞ্জিন: %1</translation>
     </message>
     <message>
-        <location line="-11918"/>
+        <location line="-11959"/>
         <location line="+29"/>
         <source>Root: %1</source>
         <translation type="unfinished">রুট: %1</translation>
@@ -127308,22 +127408,22 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+0"/>
         <location line="+1"/>
-        <location line="+5942"/>
+        <location line="+5983"/>
         <location line="+19"/>
         <location line="+1"/>
         <location line="+149"/>
         <location line="+6019"/>
-        <location line="+1210"/>
+        <location line="+1295"/>
         <location line="+164"/>
         <location line="+3"/>
         <location line="+95"/>
-        <location line="+450"/>
+        <location line="+458"/>
         <location line="+1"/>
         <source>none</source>
         <translation type="unfinished">নেই</translation>
     </message>
     <message>
-        <location line="-14053"/>
+        <location line="-14187"/>
         <source>Mod package paths: %1</source>
         <translation type="unfinished">মড প্যাকেজ পাথ: %1</translation>
     </message>
@@ -127370,42 +127470,42 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+12766"/>
+        <location line="+12807"/>
         <source>blocked</source>
         <translation type="unfinished">অবরুদ্ধ</translation>
     </message>
     <message>
-        <location line="-12764"/>
+        <location line="-12805"/>
         <source>Errors:</source>
         <translation type="unfinished">ত্রুটি:</translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+13533"/>
+        <location line="+13659"/>
         <source>Warnings:</source>
         <translation type="unfinished">সতর্কতা:</translation>
     </message>
     <message>
-        <location line="-13522"/>
-        <location line="+6662"/>
-        <location line="+19715"/>
+        <location line="-13648"/>
+        <location line="+6703"/>
+        <location line="+19817"/>
         <source>Project: %1</source>
         <translation type="unfinished">প্রকল্প: %1</translation>
     </message>
     <message>
-        <location line="-26375"/>
+        <location line="-26518"/>
         <source>Ready checks: %1</source>
         <translation type="unfinished">প্রস্তুত পরীক্ষা: %1</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+13334"/>
+        <location line="+13460"/>
         <location filename="../src/app/package_context_actions.cpp" line="+2"/>
         <source>Warnings: %1</source>
         <translation type="unfinished">সতর্কতা: %1</translation>
     </message>
     <message>
-        <location line="-13333"/>
+        <location line="-13459"/>
         <source>Failures: %1</source>
         <translation type="unfinished">ব্যর্থতা: %1</translation>
     </message>
@@ -127421,21 +127521,21 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+4736"/>
+        <location line="+4777"/>
         <source>Images</source>
         <translation type="unfinished">ছবি</translation>
     </message>
     <message>
-        <location line="-4733"/>
+        <location line="-4774"/>
         <source>Text And Maps</source>
         <translation type="unfinished">টেক্সট ও ম্যাপ</translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+4762"/>
+        <location line="+4803"/>
         <location line="+41"/>
         <location line="+8047"/>
-        <location line="+1306"/>
+        <location line="+1399"/>
         <location filename="../src/app/asset_workbench_actions.cpp" line="-18"/>
         <location line="+2"/>
         <location line="+2"/>
@@ -127447,7 +127547,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">মডেল</translation>
     </message>
     <message>
-        <location line="-14153"/>
+        <location line="-14287"/>
         <source>Compiled Maps</source>
         <translation type="unfinished">কম্পাইল করা ম্যাপ</translation>
     </message>
@@ -127457,7 +127557,12 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">বাইনারি বা অজানা</translation>
     </message>
     <message>
-        <location line="+241"/>
+        <location line="+234"/>
+        <source>Checking for unsaved work</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
         <source>Map recovery checkpoint failed</source>
         <translation type="unfinished">ম্যাপ পুনরুদ্ধারের চেকপয়েন্ট ব্যর্থ হয়েছে</translation>
     </message>
@@ -127477,7 +127582,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">ম্যাপ পুনরুদ্ধারের চেকপয়েন্ট ফাইল &gt; ম্যাপ পুনরুদ্ধার করুন মেনুতে পাওয়া যায়।</translation>
     </message>
     <message>
-        <location line="+37"/>
+        <location line="+51"/>
         <location line="+5"/>
         <location line="+2"/>
         <source>The studio is closing.</source>
@@ -127495,7 +127600,7 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+1795"/>
+        <location line="+1821"/>
         <location line="+5398"/>
         <location line="+6"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="+16"/>
@@ -127505,21 +127610,21 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">মান</translation>
     </message>
     <message>
-        <location line="-6939"/>
+        <location line="-6965"/>
         <location line="+25"/>
-        <location line="+4282"/>
+        <location line="+4308"/>
         <source>Format</source>
         <translation type="unfinished">ফরম্যাট</translation>
     </message>
     <message>
-        <location line="-4306"/>
-        <location line="+24957"/>
+        <location line="-4332"/>
+        <location line="+25085"/>
         <location filename="../src/app/code_language_actions.cpp" line="+0"/>
         <source>Error</source>
         <translation type="unfinished">ত্রুটি</translation>
     </message>
     <message>
-        <location line="-24953"/>
+        <location line="-25081"/>
         <source>No model metadata could be read from this entry.</source>
         <translation type="unfinished">এই এন্ট্রি থেকে মডেলের কোনো মেটাডেটা পড়া যায়নি।</translation>
     </message>
@@ -127545,24 +127650,24 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+3828"/>
+        <location line="+3854"/>
         <source>Frames</source>
         <translation type="unfinished">ফ্রেম</translation>
     </message>
     <message>
-        <location line="-3827"/>
+        <location line="-3853"/>
         <location filename="../src/app/level_view_actions.cpp" line="+172"/>
         <source>Surfaces</source>
         <translation type="unfinished">সারফেস</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+1253"/>
+        <location line="+1279"/>
         <source>Vertices</source>
         <translation type="unfinished">ভার্টেক্স</translation>
     </message>
     <message>
-        <location line="-1252"/>
+        <location line="-1278"/>
         <source>Triangles</source>
         <translation type="unfinished">ত্রিভুজ</translation>
     </message>
@@ -127573,19 +127678,19 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+24658"/>
+        <location line="+24786"/>
         <location filename="../src/app/level_find_replace_actions.cpp" line="+318"/>
         <source>%1 to %2</source>
         <translation type="unfinished">%1 থেকে %2</translation>
     </message>
     <message>
-        <location line="-24657"/>
+        <location line="-24785"/>
         <source>Radius</source>
         <translation type="unfinished">ব্যাসার্ধ</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+19862"/>
+        <location line="+19990"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="+51"/>
         <location line="+3"/>
         <location filename="../src/app/level_view_actions.cpp" line="-20"/>
@@ -127593,7 +127698,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">জ্যামিতি</translation>
     </message>
     <message>
-        <location line="-19862"/>
+        <location line="-19990"/>
         <source>Header only; this format&apos;s geometry is not decoded yet.</source>
         <translation type="unfinished">শুধু হেডার; এই ফরম্যাটের জ্যামিতি এখনো ডিকোড করা হয়নি।</translation>
     </message>
@@ -127693,15 +127798,25 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+47"/>
-        <location line="+15593"/>
+        <location line="+15721"/>
         <source>VibeStudio</source>
         <translation type="unfinished">VibeStudio</translation>
     </message>
     <message>
-        <location line="-15573"/>
-        <location line="+7775"/>
-        <location line="+7484"/>
-        <location line="+1842"/>
+        <location line="-15713"/>
+        <source>Preparing commands and menus</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Framing the window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <location line="+7796"/>
+        <location line="+7577"/>
+        <location line="+1851"/>
         <location line="+3716"/>
         <location line="+3048"/>
         <location filename="../src/app/level_filter_tag_actions.cpp" line="+369"/>
@@ -127713,24 +127828,129 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23852"/>
+        <location line="-23975"/>
         <source>Studio work surface</source>
         <translation type="unfinished">স্টুডিওর কাজের ক্ষেত্র</translation>
     </message>
     <message>
-        <location line="+133"/>
+        <location line="+36"/>
+        <source>Building the Workspace page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Levels page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Models page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Textures page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Audio page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Packages page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Code page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Shaders page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Build page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Settings page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Opening the side panels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Styling the pages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+28"/>
+        <source>Reading the workspace</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Reading setup and game installations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Reading the package browser</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Finding the build toolchain</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Preparing the Levels workbench</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Preparing the editors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>Restoring the window layout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Applying your preferences</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Checking project, package and compiler status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
         <source>Studio ready</source>
         <translation type="unfinished">স্টুডিও প্রস্তুত</translation>
     </message>
     <message>
         <location line="+156"/>
-        <location line="+12639"/>
+        <location line="+12732"/>
         <location line="+184"/>
         <source>Workspace</source>
         <translation type="unfinished">ওয়ার্কস্পেস</translation>
     </message>
     <message>
-        <location line="-12822"/>
+        <location line="-12915"/>
         <source>Workspace header</source>
         <translation type="unfinished">ওয়ার্কস্পেসের হেডার</translation>
     </message>
@@ -127810,12 +128030,12 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+26"/>
-        <location line="+12233"/>
+        <location line="+12318"/>
         <source>Project Health</source>
         <translation type="unfinished">প্রকল্পের স্বাস্থ্য</translation>
     </message>
     <message>
-        <location line="-12232"/>
+        <location line="-12317"/>
         <source>Workspace context panels</source>
         <translation type="unfinished">ওয়ার্কস্পেসের প্রসঙ্গ প্যানেল</translation>
     </message>
@@ -127838,7 +128058,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <location line="+3"/>
         <location line="+1965"/>
         <location line="+2084"/>
-        <location line="+14846"/>
+        <location line="+14948"/>
         <location line="+4840"/>
         <location line="+666"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="+281"/>
@@ -127846,7 +128066,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <translation type="unfinished">সমস্যা</translation>
     </message>
     <message>
-        <location line="-24392"/>
+        <location line="-24494"/>
         <source>Workspace search</source>
         <translation type="unfinished">ওয়ার্কস্পেস অনুসন্ধান</translation>
     </message>
@@ -127887,12 +128107,12 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+5"/>
-        <location line="+16977"/>
+        <location line="+17079"/>
         <source>Copy Path</source>
         <translation type="unfinished">পাথ কপি করুন</translation>
     </message>
     <message>
-        <location line="-16976"/>
+        <location line="-17078"/>
         <source>Copy selected virtual path</source>
         <translation type="unfinished">নির্বাচিত ভার্চুয়াল পাথ কপি করুন</translation>
     </message>
@@ -128012,12 +128232,12 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+8"/>
-        <location line="+12016"/>
+        <location line="+12101"/>
         <source>Game Installations</source>
         <translation type="unfinished">গেম ইনস্টলেশন</translation>
     </message>
     <message>
-        <location line="-12014"/>
+        <location line="-12099"/>
         <source>Game installation summary</source>
         <translation type="unfinished">গেম ইনস্টলেশনের সারসংক্ষেপ</translation>
     </message>
@@ -128141,14 +128361,14 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="-9318"/>
-        <location line="+21872"/>
+        <location line="+21974"/>
         <location line="+279"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="+1146"/>
         <source>Entity</source>
         <translation type="unfinished">এন্টিটি</translation>
     </message>
     <message>
-        <location line="-22150"/>
+        <location line="-22252"/>
         <source>Package Plan</source>
         <translation type="unfinished">প্যাকেজ পরিকল্পনা</translation>
     </message>
@@ -128210,12 +128430,12 @@ Double-click or press Enter to show it on the Textures surface.</source>
     <message>
         <location line="+5"/>
         <location line="+6438"/>
-        <location line="+5998"/>
+        <location line="+6091"/>
         <source>Levels</source>
         <translation type="unfinished">লেভেল</translation>
     </message>
     <message>
-        <location line="-12435"/>
+        <location line="-12528"/>
         <source>Level editor header</source>
         <translation type="unfinished">লেভেল এডিটরের হেডার</translation>
     </message>
@@ -128546,12 +128766,12 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+458"/>
-        <location line="+21656"/>
+        <location line="+21758"/>
         <source>Run the pipeline, then launch the game with the built map once it succeeds.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21629"/>
+        <location line="-21731"/>
         <source>Pipelines…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128593,12 +128813,12 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+11546"/>
+        <location line="+11639"/>
         <source>Make your own launch profiles: a name and the engine arguments, with {map}, {mod}, {basedir} and {bsp} filled in at launch.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11499"/>
+        <location line="-11592"/>
         <source>The extra arguments have an unclosed quote, so they are not kept or used until it is closed.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128729,12 +128949,12 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+12112"/>
+        <location line="+12205"/>
         <source>Make this the connector the Assistant, Generate Level, and Edit Map with AI ask.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11457"/>
+        <location line="-11550"/>
         <source>Every model format the studio reads, with skin and material dependencies.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -129476,7 +129696,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <location line="+2368"/>
         <location line="+147"/>
         <location line="+3056"/>
-        <location line="+6532"/>
+        <location line="+6625"/>
         <location filename="../src/app/asset_workbench_actions.cpp" line="-24"/>
         <location line="+2"/>
         <location line="+2"/>
@@ -129486,7 +129706,7 @@ Double-click or press Enter to show it on the Textures surface.</source>
         <translation type="unfinished">টেক্সচার</translation>
     </message>
     <message>
-        <location line="-6533"/>
+        <location line="-6626"/>
         <location filename="../src/app/level_map_inspector_actions.cpp" line="+101"/>
         <source>Statistics</source>
         <translation type="unfinished">পরিসংখ্যান</translation>
@@ -129505,24 +129725,24 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="-5563"/>
-        <location line="+12309"/>
+        <location line="+12402"/>
         <source>Undo the last map edit.</source>
         <translation type="unfinished">ম্যাপের সর্বশেষ সম্পাদনা পূর্বাবস্থায় ফেরান।</translation>
     </message>
     <message>
-        <location line="-12304"/>
+        <location line="-12397"/>
         <location line="+802"/>
         <source>Redo</source>
         <translation type="unfinished">পুনরায় করুন</translation>
     </message>
     <message>
         <location line="-802"/>
-        <location line="+12307"/>
+        <location line="+12400"/>
         <source>Redo the last undone map edit.</source>
         <translation type="unfinished">সর্বশেষ পূর্বাবস্থায় ফেরানো ম্যাপ সম্পাদনা পুনরায় করুন।</translation>
     </message>
     <message>
-        <location line="-12298"/>
+        <location line="-12391"/>
         <source>Map projection</source>
         <translation type="unfinished">ম্যাপ প্রজেকশন</translation>
     </message>
@@ -129554,12 +129774,12 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+12694"/>
+        <location line="+12787"/>
         <source>Grid %1</source>
         <translation type="unfinished">গ্রিড %1</translation>
     </message>
     <message>
-        <location line="-12689"/>
+        <location line="-12782"/>
         <source>Snap</source>
         <translation type="unfinished">স্ন্যাপ</translation>
     </message>
@@ -129581,18 +129801,18 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="-15"/>
-        <location line="+20846"/>
+        <location line="+20948"/>
         <source>Things</source>
         <translation type="unfinished">থিং</translation>
     </message>
     <message>
-        <location line="-20846"/>
-        <location line="+20847"/>
+        <location line="-20948"/>
+        <location line="+20949"/>
         <source>Draw Doom things.</source>
         <translation type="unfinished">Doom থিং আঁকুন।</translation>
     </message>
     <message>
-        <location line="-20846"/>
+        <location line="-20948"/>
         <source>Sector Fill</source>
         <translation type="unfinished">সেক্টর ফিল</translation>
     </message>
@@ -129647,13 +129867,13 @@ Double-click or press Enter to show it on the Textures surface.</source>
     <message>
         <location line="+6"/>
         <location line="+2488"/>
-        <location line="+19861"/>
+        <location line="+19963"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="-970"/>
         <source>Zoom to Fit</source>
         <translation type="unfinished">ফিট করতে জুম করুন</translation>
     </message>
     <message>
-        <location line="-22349"/>
+        <location line="-22451"/>
         <source>Frame the whole map in the viewport.</source>
         <translation type="unfinished">পুরো ম্যাপ ভিউপোর্টে ফ্রেমে আনুন।</translation>
     </message>
@@ -129664,12 +129884,12 @@ Double-click or press Enter to show it on the Textures surface.</source>
     </message>
     <message>
         <location line="+11"/>
-        <location line="+22334"/>
+        <location line="+22436"/>
         <source>Zoom to Selection</source>
         <translation type="unfinished">নির্বাচনে জুম করুন</translation>
     </message>
     <message>
-        <location line="-22334"/>
+        <location line="-22436"/>
         <source>Frame the selected objects in the viewport (F).</source>
         <translation type="unfinished">নির্বাচিত অবজেক্ট ভিউপোর্টে ফ্রেমে আনুন (F)।</translation>
     </message>
@@ -130459,7 +130679,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+12049"/>
+        <location filename="../src/app/application_shell.cpp" line="+12142"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="-822"/>
         <source>Change a key on the selected map object.</source>
         <translation type="unfinished">নির্বাচিত ম্যাপ অবজেক্টের একটি কী পরিবর্তন করুন।</translation>
@@ -130476,7 +130696,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">নির্বাচিত ম্যাপ অবজেক্টকে ডেল্টা মান অনুযায়ী সরান।</translation>
     </message>
     <message>
-        <location line="-12007"/>
+        <location line="-12100"/>
         <source>Entity inspector</source>
         <translation type="unfinished">এন্টিটি ইন্সপেক্টর</translation>
     </message>
@@ -130484,7 +130704,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+3"/>
         <location line="+1757"/>
         <location line="+3623"/>
-        <location line="+8443"/>
+        <location line="+8536"/>
         <location filename="../src/app/level_editing_actions.cpp" line="-39"/>
         <location line="+32"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="-426"/>
@@ -130494,7 +130714,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">কী</translation>
     </message>
     <message>
-        <location line="-13802"/>
+        <location line="-13895"/>
         <source>Colour for %1</source>
         <translation type="unfinished">%1-এর রং</translation>
     </message>
@@ -130625,12 +130845,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="+3124"/>
         <location line="+28"/>
-        <location line="+10791"/>
+        <location line="+10893"/>
         <source>Inspector</source>
         <translation type="unfinished">ইন্সপেক্টর</translation>
     </message>
     <message>
-        <location line="-8840"/>
+        <location line="-8942"/>
         <source>Health</source>
         <translation type="unfinished">স্বাস্থ্য</translation>
     </message>
@@ -130638,13 +130858,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="-4554"/>
         <location line="+1274"/>
         <location line="+374"/>
-        <location line="+16706"/>
+        <location line="+16808"/>
         <location filename="../src/app/level_preview_actions.cpp" line="+48"/>
         <source>Details</source>
         <translation type="unfinished">বিবরণ</translation>
     </message>
     <message>
-        <location line="-15886"/>
+        <location line="-15988"/>
         <source>Outline</source>
         <translation type="unfinished">আউটলাইন</translation>
     </message>
@@ -130655,19 +130875,19 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+20"/>
-        <location line="+14475"/>
+        <location line="+14577"/>
         <location line="+11"/>
         <source>No map open</source>
         <translation type="unfinished">কোনো ম্যাপ খোলা নেই</translation>
     </message>
     <message>
-        <location line="-14485"/>
-        <location line="+14486"/>
+        <location line="-14587"/>
+        <location line="+14588"/>
         <source>Open a Quake, Quake II, or Quake III .map, or a Doom WAD, to inspect its entities, brushes, and health in the viewport.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14474"/>
+        <location line="-14576"/>
         <location line="+6"/>
         <source>Recent maps</source>
         <translation type="unfinished">সাম্প্রতিক ম্যাপ</translation>
@@ -130681,12 +130901,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+129"/>
         <location line="+5432"/>
         <location line="+4694"/>
-        <location line="+1318"/>
+        <location line="+1411"/>
         <source>Packages</source>
         <translation type="unfinished">প্যাকেজ</translation>
     </message>
     <message>
-        <location line="-11443"/>
+        <location line="-11536"/>
         <source>Package manager header</source>
         <translation type="unfinished">প্যাকেজ ম্যানেজারের হেডার</translation>
     </message>
@@ -130878,12 +131098,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+3"/>
-        <location line="+10512"/>
+        <location line="+10597"/>
         <source>Package extraction cancellation requested</source>
         <translation type="unfinished">প্যাকেজ এক্সট্র্যাকশন বাতিলের অনুরোধ করা হয়েছে</translation>
     </message>
     <message>
-        <location line="-10507"/>
+        <location line="-10592"/>
         <source>New Folder</source>
         <translation type="unfinished">নতুন ফোল্ডার</translation>
     </message>
@@ -130939,12 +131159,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+12146"/>
+        <location line="+12239"/>
         <source>Stage a rename for the selected package entry.</source>
         <translation type="unfinished">নির্বাচিত প্যাকেজ এন্ট্রির নাম পরিবর্তন স্টেজ করুন।</translation>
     </message>
     <message>
-        <location line="-12145"/>
+        <location line="-12238"/>
         <source>Stage package delete</source>
         <translation type="unfinished">প্যাকেজ থেকে মুছে ফেলা স্টেজ করুন</translation>
     </message>
@@ -130965,12 +131185,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+12157"/>
+        <location line="+12250"/>
         <source>Compare the source package with the staged result before saving.</source>
         <translation type="unfinished">সংরক্ষণের আগে সোর্স প্যাকেজকে স্টেজ করা ফলাফলের সঙ্গে তুলনা করুন।</translation>
     </message>
     <message>
-        <location line="-12155"/>
+        <location line="-12248"/>
         <source>Undo package edit</source>
         <translation type="unfinished">প্যাকেজ সম্পাদনা পূর্বাবস্থায় ফেরান</translation>
     </message>
@@ -131179,13 +131399,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+4554"/>
         <location line="+1829"/>
         <location line="+2136"/>
-        <location line="+3948"/>
+        <location line="+4041"/>
         <location filename="../src/app/level_asset_browsers.cpp" line="-209"/>
         <source>Preview</source>
         <translation type="unfinished">প্রিভিউ</translation>
     </message>
     <message>
-        <location line="-12466"/>
+        <location line="-12559"/>
         <source>Staging</source>
         <translation type="unfinished">স্টেজিং</translation>
     </message>
@@ -131266,7 +131486,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+30"/>
-        <location line="+13910"/>
+        <location line="+14012"/>
         <location line="+8"/>
         <location line="+47"/>
         <location line="+2547"/>
@@ -131276,31 +131496,31 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">কোনো প্যাকেজ খোলা নেই</translation>
     </message>
     <message>
-        <location line="-17726"/>
-        <location line="+13918"/>
+        <location line="-17828"/>
+        <location line="+14020"/>
         <source>Open a PAK, WAD, ZIP, or PK3 archive, or a folder, to browse its entries, preview content, and stage changes for a new package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13896"/>
-        <location line="+10982"/>
+        <location line="-13998"/>
+        <location line="+11075"/>
         <location filename="../src/app/level_view_actions.cpp" line="-145"/>
         <source>Build</source>
         <translation type="unfinished">বিল্ড</translation>
     </message>
     <message>
-        <location line="-10981"/>
+        <location line="-11074"/>
         <source>Build header</source>
         <translation type="unfinished">বিল্ডের হেডার</translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+22280"/>
+        <location line="+22382"/>
         <source>Inspect Artifacts</source>
         <translation type="unfinished">আর্টিফ্যাক্ট পরীক্ষা করুন</translation>
     </message>
     <message>
-        <location line="-22279"/>
+        <location line="-22381"/>
         <source>Inspect compiled artifacts</source>
         <translation type="unfinished">কম্পাইল করা আর্টিফ্যাক্ট পরীক্ষা করুন</translation>
     </message>
@@ -131313,8 +131533,8 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="-380"/>
         <location line="+401"/>
         <location line="+2380"/>
-        <location line="+9980"/>
-        <location line="+3011"/>
+        <location line="+10073"/>
+        <location line="+3020"/>
         <location line="+985"/>
         <location filename="../src/app/code_formatting.cpp" line="+58"/>
         <location filename="../src/app/code_index_actions.cpp" line="+68"/>
@@ -131325,7 +131545,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">বাতিল করুন</translation>
     </message>
     <message>
-        <location line="-16355"/>
+        <location line="-16457"/>
         <source>Cancel build pipeline</source>
         <translation type="unfinished">বিল্ড পাইপলাইন বাতিল করুন</translation>
     </message>
@@ -131462,12 +131682,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+5"/>
-        <location line="+22538"/>
+        <location line="+22640"/>
         <source>Show Output</source>
         <translation type="unfinished">আউটপুট দেখান</translation>
     </message>
     <message>
-        <location line="-22538"/>
+        <location line="-22640"/>
         <source>Open the folder that holds the compiled map.</source>
         <translation type="unfinished">কম্পাইল করা ম্যাপটি যে ফোল্ডারে আছে সেটি খুলুন।</translation>
     </message>
@@ -131483,12 +131703,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+0"/>
-        <location line="+11780"/>
+        <location line="+11873"/>
         <source>Stage the built map into the open package under maps/, for Save As to write.</source>
         <translation type="unfinished">এভাবে সংরক্ষণ করার সময় লেখার জন্য বিল্ড করা ম্যাপ খোলা প্যাকেজের maps/ এর ভেতরে স্টেজ করুন।</translation>
     </message>
     <message>
-        <location line="-11778"/>
+        <location line="-11871"/>
         <source>Add the built map to the open package</source>
         <translation type="unfinished">বিল্ড করা ম্যাপ খোলা প্যাকেজে যোগ করুন</translation>
     </message>
@@ -131499,12 +131719,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+0"/>
-        <location line="+11882"/>
+        <location line="+11975"/>
         <source>Ask the Assistant about the last build&apos;s problems. You see what is sent before it goes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11880"/>
+        <location line="-11973"/>
         <source>Explain the build problems with the Assistant</source>
         <translation type="unfinished">সহকারীর মাধ্যমে বিল্ডের সমস্যা ব্যাখ্যা করুন</translation>
     </message>
@@ -131515,12 +131735,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+21910"/>
+        <location line="+22012"/>
         <source>Build Pipeline</source>
         <translation type="unfinished">বিল্ড পাইপলাইন</translation>
     </message>
     <message>
-        <location line="-21909"/>
+        <location line="-22011"/>
         <source>Chained compile stages with per-stage logs, diagnostics, and output paths.</source>
         <translation type="unfinished">প্রতি পর্যায়ের লগ, ডায়াগনস্টিক্স ও আউটপুট পাথসহ পরপর যুক্ত কম্পাইল পর্যায়।</translation>
     </message>
@@ -131763,12 +131983,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+21539"/>
+        <location line="+21641"/>
         <source>Map name to load, for example start</source>
         <translation type="unfinished">লোড করার ম্যাপের নাম, যেমন start</translation>
     </message>
     <message>
-        <location line="-21537"/>
+        <location line="-21639"/>
         <source>Map</source>
         <translation type="unfinished">ম্যাপ</translation>
     </message>
@@ -131796,14 +132016,14 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+5"/>
-        <location line="+21997"/>
+        <location line="+22099"/>
         <location line="+19"/>
         <location line="+3"/>
         <source>Launch Game</source>
         <translation type="unfinished">গেম লঞ্চ করুন</translation>
     </message>
     <message>
-        <location line="-22017"/>
+        <location line="-22119"/>
         <source>Launch configured game</source>
         <translation type="unfinished">কনফিগার করা গেম লঞ্চ করুন</translation>
     </message>
@@ -131860,14 +132080,14 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+81"/>
-        <location line="+10289"/>
+        <location line="+10382"/>
         <location line="+215"/>
         <location filename="../src/app/level_shapes_panel.cpp" line="+127"/>
         <source>Settings</source>
         <translation type="unfinished">সেটিংস</translation>
     </message>
     <message>
-        <location line="-10503"/>
+        <location line="-10596"/>
         <source>Settings header</source>
         <translation type="unfinished">সেটিংসের হেডার</translation>
     </message>
@@ -131899,12 +132119,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="+7"/>
         <location line="+1922"/>
-        <location line="+7779"/>
+        <location line="+7864"/>
         <source>Setup status</source>
         <translation type="unfinished">সেটআপের স্ট্যাটাস</translation>
     </message>
     <message>
-        <location line="-9698"/>
+        <location line="-9783"/>
         <source>Current setup step</source>
         <translation type="unfinished">বর্তমান সেটআপ ধাপ</translation>
     </message>
@@ -131997,12 +132217,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">চেহারা</translation>
     </message>
     <message>
-        <location line="+10024"/>
+        <location line="+10109"/>
         <source>Accessibility and language preferences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10008"/>
+        <location line="-10093"/>
         <location line="+13"/>
         <source>Theme</source>
         <translation type="unfinished">থিম</translation>
@@ -132015,13 +132235,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="-3"/>
-        <location line="+9438"/>
-        <location line="+8812"/>
+        <location line="+9523"/>
+        <location line="+8829"/>
         <source>%1%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18244"/>
+        <location line="-18346"/>
         <source>UI density</source>
         <translation type="unfinished">ইন্টারফেসের ঘনত্ব</translation>
     </message>
@@ -132047,7 +132267,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">নেভিগেশন</translation>
     </message>
     <message>
-        <location line="+14090"/>
+        <location line="+14192"/>
         <source>Reduce motion</source>
         <translation type="unfinished">মোশন কমান</translation>
     </message>
@@ -132067,7 +132287,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">টেক্সট-টু-স্পিচ</translation>
     </message>
     <message>
-        <location line="-14141"/>
+        <location line="-14243"/>
         <location line="+20"/>
         <source>Language</source>
         <translation type="unfinished">ভাষা</translation>
@@ -132175,13 +132395,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">রিজনিং</translation>
     </message>
     <message>
-        <location line="+13987"/>
+        <location line="+14089"/>
         <location line="+3"/>
         <source>Voice</source>
         <translation type="unfinished">ভয়েস</translation>
     </message>
     <message>
-        <location line="-13979"/>
+        <location line="-14081"/>
         <location filename="../src/app/level_protected_property_actions.cpp" line="+127"/>
         <source>Local</source>
         <translation type="unfinished">লোকাল</translation>
@@ -132205,23 +132425,23 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="+18"/>
-        <location line="+12105"/>
+        <location line="+12198"/>
         <source>Model name</source>
         <translation type="unfinished">মডেলের নাম</translation>
     </message>
     <message>
-        <location line="-12104"/>
+        <location line="-12197"/>
         <source>The model&apos;s name as the provider or runtime lists it.</source>
         <translation type="unfinished">প্রোভাইডার বা রানটাইম যে নামে মডেলটি তালিকাভুক্ত করে, সেই নাম।</translation>
     </message>
     <message>
         <location line="+11"/>
-        <location line="+12092"/>
+        <location line="+12185"/>
         <source>Endpoint address</source>
         <translation type="unfinished">এন্ডপয়েন্টের ঠিকানা</translation>
     </message>
     <message>
-        <location line="-12091"/>
+        <location line="-12184"/>
         <source>Leave empty for the provider&apos;s own address. A local runtime is usually http://localhost with its port.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132229,12 +132449,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location filename="../src/app/ai_generation_actions.cpp" line="-96"/>
         <location line="+106"/>
         <location filename="../src/app/application_shell.cpp" line="+1"/>
-        <location line="+12075"/>
+        <location line="+12168"/>
         <source>Endpoint</source>
         <translation type="unfinished">এন্ডপয়েন্ট</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-12064"/>
+        <location filename="../src/app/application_shell.cpp" line="-12157"/>
         <source>API key source</source>
         <translation type="unfinished">API কী-এর উৎস</translation>
     </message>
@@ -132544,12 +132764,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+3"/>
         <location line="+93"/>
         <location line="+147"/>
-        <location line="+15584"/>
+        <location line="+15686"/>
         <source>Palette</source>
         <translation type="unfinished">প্যালেট</translation>
     </message>
     <message>
-        <location line="-15823"/>
+        <location line="-15925"/>
         <source>Palette used to decode indexed idTech art. Real palettes are read from the open package when it has one.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132630,12 +132850,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+3"/>
-        <location line="+15094"/>
+        <location line="+15196"/>
         <source>No palette resolved yet.</source>
         <translation type="unfinished">এখনো কোনো প্যালেট নির্ধারণ করা হয়নি।</translation>
     </message>
     <message>
-        <location line="-15092"/>
+        <location line="-15194"/>
         <source>Palette source</source>
         <translation type="unfinished">প্যালেটের উৎস</translation>
     </message>
@@ -132842,12 +133062,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+17"/>
-        <location line="+12366"/>
+        <location line="+12468"/>
         <source>No textures to show</source>
         <translation type="unfinished">দেখানোর মতো কোনো টেক্সচার নেই</translation>
     </message>
     <message>
-        <location line="-12346"/>
+        <location line="-12448"/>
         <source>Model workbench header</source>
         <translation type="unfinished">মডেল ওয়ার্কবেঞ্চের হেডার</translation>
     </message>
@@ -132973,7 +133193,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+9"/>
-        <location line="+15948"/>
+        <location line="+16050"/>
         <location filename="../src/app/level_asset_browsers.cpp" line="+62"/>
         <location line="+100"/>
         <location line="+316"/>
@@ -132981,13 +133201,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">প্লে করুন</translation>
     </message>
     <message>
-        <location line="-15948"/>
-        <location line="+15956"/>
+        <location line="-16050"/>
+        <location line="+16058"/>
         <source>Play or pause the model animation (Space).</source>
         <translation type="unfinished">মডেলের অ্যানিমেশন প্লে করুন বা বিরতি দিন (Space)।</translation>
     </message>
     <message>
-        <location line="-15954"/>
+        <location line="-16056"/>
         <source>Play or pause the model animation</source>
         <translation type="unfinished">মডেলের অ্যানিমেশন প্লে করুন বা বিরতি দিন</translation>
     </message>
@@ -133222,8 +133442,8 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location filename="../src/app/application_shell.cpp" line="+6614"/>
         <location line="+743"/>
         <location line="+360"/>
-        <location line="+596"/>
-        <location line="+7003"/>
+        <location line="+681"/>
+        <location line="+7020"/>
         <location line="+834"/>
         <location filename="../src/app/model_page.cpp" line="-97"/>
         <source>Summary</source>
@@ -133235,7 +133455,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">স্কিন</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15977"/>
+        <location filename="../src/app/application_shell.cpp" line="-16079"/>
         <location filename="../src/app/model_page.cpp" line="+1"/>
         <source>Metadata</source>
         <translation type="unfinished">মেটাডেটা</translation>
@@ -133264,12 +133484,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+19"/>
-        <location line="+12109"/>
+        <location line="+12211"/>
         <source>No models to show</source>
         <translation type="unfinished">দেখানোর মতো কোনো মডেল নেই</translation>
     </message>
     <message>
-        <location line="-12089"/>
+        <location line="-12191"/>
         <source>Audio workbench header</source>
         <translation type="unfinished">অডিও ওয়ার্কবেঞ্চের হেডার</translation>
     </message>
@@ -133332,12 +133552,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+16073"/>
+        <location line="+16175"/>
         <source>Waveform</source>
         <translation type="unfinished">ওয়েভফর্ম</translation>
     </message>
     <message>
-        <location line="-16072"/>
+        <location line="-16174"/>
         <source>Format details</source>
         <translation type="unfinished">ফরম্যাটের বিবরণ</translation>
     </message>
@@ -133378,13 +133598,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+6"/>
-        <location line="+12948"/>
+        <location line="+13050"/>
         <location line="+1"/>
         <source>Volume</source>
         <translation type="unfinished">ভলিউম</translation>
     </message>
     <message>
-        <location line="-12941"/>
+        <location line="-13043"/>
         <source>Playback volume</source>
         <translation type="unfinished">প্লেব্যাকের ভলিউম</translation>
     </message>
@@ -133485,19 +133705,19 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+20"/>
-        <location line="+11915"/>
+        <location line="+12017"/>
         <source>No sounds to show</source>
         <translation type="unfinished">দেখানোর মতো কোনো সাউন্ড নেই</translation>
     </message>
     <message>
-        <location line="-11895"/>
+        <location line="-11997"/>
         <location line="+2931"/>
-        <location line="+6011"/>
+        <location line="+6104"/>
         <source>Code</source>
         <translation type="unfinished">কোড</translation>
     </message>
     <message>
-        <location line="-8941"/>
+        <location line="-9034"/>
         <source>Code workbench header</source>
         <translation type="unfinished">কোড ওয়ার্কবেঞ্চের হেডার</translation>
     </message>
@@ -133514,12 +133734,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+9917"/>
+        <location line="+10010"/>
         <source>Scan the project for languages, symbols, build tasks, and launch profiles.</source>
         <translation type="unfinished">প্রকল্পে ভাষা, সিম্বল, বিল্ড টাস্ক ও লঞ্চ প্রোফাইল স্ক্যান করুন।</translation>
     </message>
     <message>
-        <location line="-9911"/>
+        <location line="-10004"/>
         <source>Code tools</source>
         <translation type="unfinished">কোড টুল</translation>
     </message>
@@ -133586,12 +133806,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+12"/>
-        <location line="+16642"/>
+        <location line="+16744"/>
         <source>No file open.</source>
         <translation type="unfinished">কোনো ফাইল খোলা নেই।</translation>
     </message>
     <message>
-        <location line="-16634"/>
+        <location line="-16736"/>
         <location line="+2927"/>
         <source>Code editor</source>
         <translation type="unfinished">কোড এডিটর</translation>
@@ -133628,12 +133848,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+4"/>
-        <location line="+16594"/>
+        <location line="+16696"/>
         <source>Choose a file under Project files to edit it here.</source>
         <translation type="unfinished">এখানে সম্পাদনা করতে প্রকল্প ফাইলের অধীনে একটি ফাইল বেছে নিন।</translation>
     </message>
     <message>
-        <location line="-16581"/>
+        <location line="-16683"/>
         <source>Open files</source>
         <translation type="unfinished">খোলা ফাইল</translation>
     </message>
@@ -133786,12 +134006,12 @@ Edited, not saved:
     </message>
     <message>
         <location line="+1"/>
-        <location line="+18361"/>
+        <location line="+18463"/>
         <source>Index</source>
         <translation type="unfinished">ইনডেক্স</translation>
     </message>
     <message>
-        <location line="-18356"/>
+        <location line="-18458"/>
         <source>Editor and output</source>
         <translation type="unfinished">এডিটর ও আউটপুট</translation>
     </message>
@@ -133865,13 +134085,13 @@ Edited, not saved:
     <message>
         <location line="+9"/>
         <location line="+978"/>
-        <location line="+10621"/>
+        <location line="+10723"/>
         <location filename="../src/app/release_actions.cpp" line="+482"/>
         <source>No project open</source>
         <translation type="unfinished">কোনো প্রকল্প খোলা নেই</translation>
     </message>
     <message>
-        <location line="-11598"/>
+        <location line="-11700"/>
         <source>Open a project folder to browse and edit its scripts, configs, shaders, and QuakeC with highlighting and diagnostics.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133932,13 +134152,13 @@ Edited, not saved:
     </message>
     <message>
         <location line="+1"/>
-        <location line="+7614"/>
+        <location line="+7699"/>
         <location line="+52"/>
         <source>Task Details</source>
         <translation type="unfinished">টাস্কের বিবরণ</translation>
     </message>
     <message>
-        <location line="-7665"/>
+        <location line="-7750"/>
         <source>Select an activity to inspect logs, warnings, timing, and raw task metadata.</source>
         <translation type="unfinished">লগ, সতর্কতা, সময় ও কাঁচা টাস্ক মেটাডেটা দেখতে একটি কার্যকলাপ নির্বাচন করুন।</translation>
     </message>
@@ -133949,19 +134169,19 @@ Edited, not saved:
     </message>
     <message>
         <location line="+2"/>
-        <location line="+7779"/>
+        <location line="+7864"/>
         <source>Settings metadata</source>
         <translation type="unfinished">সেটিংসের মেটাডেটা</translation>
     </message>
     <message>
-        <location line="-7777"/>
-        <location line="+7779"/>
+        <location line="-7862"/>
+        <location line="+7864"/>
         <location line="+178"/>
         <source>Raw diagnostics</source>
         <translation type="unfinished">কাঁচা ডায়াগনস্টিক্স</translation>
     </message>
     <message>
-        <location line="-7950"/>
+        <location line="-8035"/>
         <source>Shows settings, recent project, compiler, and project diagnostics.</source>
         <translation type="unfinished">সেটিংস, সাম্প্রতিক প্রকল্প, কম্পাইলার ও প্রকল্পের ডায়াগনস্টিক্স দেখায়।</translation>
     </message>
@@ -133972,24 +134192,24 @@ Edited, not saved:
     </message>
     <message>
         <location line="+1"/>
-        <location line="+7897"/>
+        <location line="+7982"/>
         <source>Inspector Details</source>
         <translation type="unfinished">ইন্সপেক্টরের বিবরণ</translation>
     </message>
     <message>
-        <location line="-7896"/>
+        <location line="-7981"/>
         <source>Settings, setup, and raw diagnostics.</source>
         <translation type="unfinished">সেটিংস, সেটআপ ও কাঁচা ডায়াগনস্টিক্স।</translation>
     </message>
     <message>
         <location line="+4"/>
         <location line="+7523"/>
-        <location line="+3281"/>
+        <location line="+3382"/>
         <source>Activity</source>
         <translation type="unfinished">কার্যকলাপ</translation>
     </message>
     <message>
-        <location line="-10802"/>
+        <location line="-10903"/>
         <source>Activity panel</source>
         <translation type="unfinished">কার্যকলাপ প্যানেল</translation>
     </message>
@@ -134046,12 +134266,12 @@ Edited, not saved:
     </message>
     <message>
         <location line="+7"/>
-        <location line="+7745"/>
+        <location line="+7830"/>
         <source>Manifest status: %1</source>
         <translation type="unfinished">ম্যানিফেস্টের স্ট্যাটাস: %1</translation>
     </message>
     <message>
-        <location line="-7741"/>
+        <location line="-7826"/>
         <source>Current project path: %1</source>
         <translation type="unfinished">বর্তমান প্রকল্পের পাথ: %1</translation>
     </message>
@@ -134104,13 +134324,13 @@ Edited, not saved:
         <location line="+5662"/>
         <location line="+739"/>
         <location line="+380"/>
-        <location line="+593"/>
+        <location line="+678"/>
         <location filename="../src/app/package_context_actions.cpp" line="-3"/>
         <source>Source: %1</source>
         <translation type="unfinished">সোর্স: %1</translation>
     </message>
     <message>
-        <location line="-589"/>
+        <location line="-674"/>
         <location filename="../src/app/package_context_actions.cpp" line="+2"/>
         <source>Entries: %1</source>
         <translation type="unfinished">এন্ট্রি: %1</translation>
@@ -134142,12 +134362,12 @@ Edited, not saved:
     </message>
     <message>
         <location line="+1"/>
-        <location line="+7730"/>
+        <location line="+7815"/>
         <source>Project Manifest</source>
         <translation type="unfinished">প্রকল্প ম্যানিফেস্ট</translation>
     </message>
     <message>
-        <location line="-7729"/>
+        <location line="-7814"/>
         <source>Install Validation</source>
         <translation type="unfinished">ইনস্টলেশন যাচাইকরণ</translation>
     </message>
@@ -134162,24 +134382,24 @@ Edited, not saved:
         <translation type="unfinished">মাউন্ট করা প্যাকেজ রুট</translation>
     </message>
     <message>
-        <location line="+10587"/>
+        <location line="+10689"/>
         <location filename="../src/app/package_context_actions.cpp" line="-1"/>
         <source>No package</source>
         <translation type="unfinished">প্যাকেজ নেই</translation>
     </message>
     <message>
-        <location line="-10586"/>
+        <location line="-10688"/>
         <source>Compiler Context</source>
         <translation type="unfinished">কম্পাইলার প্রসঙ্গ</translation>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+7647"/>
+        <location line="+7732"/>
         <source>%1 of %2 executables</source>
         <translation type="unfinished">%2টির মধ্যে %1টি এক্সিকিউটেবল</translation>
     </message>
     <message>
-        <location line="-7646"/>
+        <location line="-7731"/>
         <source>Raw Workspace</source>
         <translation type="unfinished">কাঁচা ওয়ার্কস্পেস</translation>
     </message>
@@ -134239,30 +134459,30 @@ Edited, not saved:
         <location line="+958"/>
         <location line="+4322"/>
         <location line="+64"/>
-        <location line="+1765"/>
+        <location line="+1850"/>
         <location line="+46"/>
-        <location line="+7066"/>
+        <location line="+7083"/>
         <location line="+4398"/>
         <source>Ready</source>
         <translation type="unfinished">প্রস্তুত</translation>
     </message>
     <message>
-        <location line="-19132"/>
-        <location line="+7622"/>
+        <location line="-19234"/>
+        <location line="+7707"/>
         <location line="+46"/>
         <source>Missing</source>
         <translation type="unfinished">অনুপস্থিত</translation>
     </message>
     <message>
-        <location line="-7664"/>
-        <location line="+7544"/>
+        <location line="-7749"/>
+        <location line="+7629"/>
         <location line="+85"/>
-        <location line="+408"/>
+        <location line="+416"/>
         <source>missing</source>
         <translation type="unfinished">অনুপস্থিত</translation>
     </message>
     <message>
-        <location line="-8035"/>
+        <location line="-8128"/>
         <source>open</source>
         <translation type="unfinished">খোলা</translation>
     </message>
@@ -134278,7 +134498,7 @@ Last opened %3. Double-click to open.</source>
         <location line="+1865"/>
         <location line="+343"/>
         <location line="+43"/>
-        <location line="+16475"/>
+        <location line="+16577"/>
         <location filename="../src/app/level_duplicate_move_actions.cpp" line="+189"/>
         <location line="+66"/>
         <location filename="../src/app/level_nudge_actions.cpp" line="+369"/>
@@ -134289,7 +134509,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18718"/>
+        <location line="-18820"/>
         <source>No recent projects</source>
         <translation type="unfinished">কোনো সাম্প্রতিক প্রকল্প নেই</translation>
     </message>
@@ -134363,18 +134583,18 @@ Last opened %3. Double-click to open.</source>
     </message>
     <message>
         <location line="+44"/>
-        <location line="+20122"/>
+        <location line="+20224"/>
         <source>Test maps allowed</source>
         <translation type="unfinished">টেস্ট ম্যাপের অনুমতি আছে</translation>
     </message>
     <message>
-        <location line="-20122"/>
+        <location line="-20224"/>
         <source>Installation made read-only</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+19423"/>
+        <location line="+19525"/>
         <location line="+3"/>
         <location line="+8"/>
         <location line="+3"/>
@@ -134384,7 +134604,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">গেম</translation>
     </message>
     <message>
-        <location line="-20121"/>
+        <location line="-20223"/>
         <source>Built maps may be copied into its maps folder before launching.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134474,13 +134694,13 @@ Last opened %3. Double-click to open.</source>
         <location line="+3445"/>
         <location line="+439"/>
         <location line="+2139"/>
-        <location line="+5913"/>
+        <location line="+6015"/>
         <location line="+38"/>
         <source>%1: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-11971"/>
+        <location line="-12073"/>
         <source>Found %n confirmable installation candidates.</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -134597,7 +134817,7 @@ Last opened %3. Double-click to open.</source>
         <location line="+29"/>
         <location line="+23"/>
         <location line="+79"/>
-        <location line="+5030"/>
+        <location line="+5132"/>
         <location line="+1789"/>
         <location line="+1001"/>
         <location line="+112"/>
@@ -134607,7 +134827,7 @@ Last opened %3. Double-click to open.</source>
         <location line="+19"/>
         <location line="+402"/>
         <location line="+5208"/>
-        <location line="+218"/>
+        <location line="+221"/>
         <location filename="../src/app/package_document_actions.cpp" line="-51"/>
         <location line="+71"/>
         <location line="+31"/>
@@ -134617,7 +134837,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">প্যাকেজ</translation>
     </message>
     <message>
-        <location line="-20061"/>
+        <location line="-20166"/>
         <source>Opening package.</source>
         <translation type="unfinished">প্যাকেজ খোলা হচ্ছে।</translation>
     </message>
@@ -134717,12 +134937,12 @@ Last opened %3. Double-click to open.</source>
         <location line="+4156"/>
         <location line="+740"/>
         <location line="+360"/>
-        <location line="+596"/>
+        <location line="+681"/>
         <source>Warnings</source>
         <translation type="unfinished">সতর্কতা</translation>
     </message>
     <message>
-        <location line="-6768"/>
+        <location line="-6853"/>
         <source>Open a project folder to activate project health, package roots, and next actions.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134793,12 +135013,12 @@ Last opened %3. Double-click to open.</source>
     </message>
     <message>
         <location line="+40"/>
-        <location line="+19702"/>
+        <location line="+19804"/>
         <source>Package: %1</source>
         <translation type="unfinished">প্যাকেজ: %1</translation>
     </message>
     <message>
-        <location line="-19702"/>
+        <location line="-19804"/>
         <source>%1 / %2 / %3</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134839,12 +135059,12 @@ Last opened %3. Double-click to open.</source>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+10450"/>
+        <location line="+10552"/>
         <source>modified</source>
         <translation type="unfinished">পরিবর্তিত</translation>
     </message>
     <message>
-        <location line="-10414"/>
+        <location line="-10516"/>
         <source>No project open. Dependency graph will connect project roots, installs, packages, and compilers.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -135129,7 +135349,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">%1 · লুকানো</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+16096"/>
+        <location filename="../src/app/application_shell.cpp" line="+16198"/>
         <location filename="../src/app/level_object_model.cpp" line="-110"/>
         <source>Brush %1</source>
         <translation type="unfinished">ব্রাশ %1</translation>
@@ -135156,9 +135376,9 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">ভার্টেক্স %1</translation>
     </message>
     <message>
-        <location line="-14633"/>
+        <location line="-14735"/>
         <location line="+3106"/>
-        <location line="+10578"/>
+        <location line="+10680"/>
         <location line="+2415"/>
         <location filename="../src/app/level_object_model.cpp" line="+1"/>
         <source>%1, %2</source>
@@ -135204,7 +135424,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15737"/>
+        <location filename="../src/app/application_shell.cpp" line="-15839"/>
         <source>LEAK
 The map leaks. The trail from %1 is drawn in the view; press Enter to frame it.</source>
         <translation type="unfinished"></translation>
@@ -135381,22 +135601,22 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <location line="+9"/>
         <location line="+2850"/>
         <location line="+10"/>
-        <location line="+12846"/>
+        <location line="+12948"/>
         <location line="+681"/>
         <location line="+54"/>
         <source>Map edit failed: %1</source>
         <translation type="unfinished">ম্যাপ সম্পাদনা ব্যর্থ হয়েছে: %1</translation>
     </message>
     <message>
-        <location line="-16447"/>
-        <location line="+16399"/>
+        <location line="-16549"/>
+        <location line="+16501"/>
         <source>Level map entities edited</source>
         <translation type="unfinished">লেভেল ম্যাপের এন্টিটি সম্পাদিত হয়েছে</translation>
     </message>
     <message>
         <location filename="../src/app/ai_generation_actions.cpp" line="-272"/>
         <location line="+56"/>
-        <location filename="../src/app/application_shell.cpp" line="-16399"/>
+        <location filename="../src/app/application_shell.cpp" line="-16501"/>
         <location line="+9"/>
         <location line="+46"/>
         <location line="+93"/>
@@ -135411,7 +135631,7 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <location line="+41"/>
         <location line="+167"/>
         <location line="+9"/>
-        <location line="+12849"/>
+        <location line="+12951"/>
         <location line="+681"/>
         <location line="+54"/>
         <location line="+463"/>
@@ -135518,13 +135738,13 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <translation type="unfinished">অসংরক্ষিত ম্যাপ সম্পাদনা</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-16907"/>
-        <location line="+16444"/>
+        <location filename="../src/app/application_shell.cpp" line="-17009"/>
+        <location line="+16546"/>
         <source>Level map entity edited</source>
         <translation type="unfinished">লেভেল ম্যাপের এন্টিটি সম্পাদিত হয়েছে</translation>
     </message>
     <message>
-        <location line="-16436"/>
+        <location line="-16538"/>
         <source>Select map objects before moving them.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -135558,13 +135778,13 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+16860"/>
+        <location line="+16962"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="+0"/>
         <source>Level map selection moved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16813"/>
+        <location line="-16915"/>
         <location line="+30"/>
         <source>Open a Quake-family .map to add entities.</source>
         <translation type="unfinished"></translation>
@@ -135626,7 +135846,7 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+199"/>
-        <location line="+13050"/>
+        <location line="+13152"/>
         <source>Texture</source>
         <translation type="unfinished">টেক্সচার</translation>
     </message>
@@ -135636,7 +135856,7 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <translation type="unfinished">লেভেল ম্যাপে ব্রাশ যোগ করা হয়েছে</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15657"/>
+        <location filename="../src/app/application_shell.cpp" line="-15759"/>
         <location line="+33"/>
         <source>Open a Doom or Hexen map to add things.</source>
         <translation type="unfinished"></translation>
@@ -135968,14 +136188,14 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <location line="+31"/>
         <location line="+314"/>
         <location line="+1"/>
-        <location line="+10415"/>
+        <location line="+10517"/>
         <location filename="../src/app/level_plan_pane_actions.cpp" line="+142"/>
         <location line="+1"/>
         <source>, </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10723"/>
+        <location line="-10825"/>
         <source>Keys for %1</source>
         <translation type="unfinished">%1-এর কী</translation>
     </message>
@@ -136520,12 +136740,12 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+14147"/>
+        <location line="+14249"/>
         <source>Ceiling flat</source>
         <translation type="unfinished">সিলিং ফ্ল্যাট</translation>
     </message>
     <message>
-        <location line="-14145"/>
+        <location line="-14247"/>
         <source>Left empty, each door keeps its own ceiling flat.</source>
         <translation type="unfinished">খালি রাখলে প্রতিটি দরজা নিজের সিলিং ফ্ল্যাট রাখে।</translation>
     </message>
@@ -137679,14 +137899,14 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+10253"/>
+        <location line="+10355"/>
         <location line="+2109"/>
         <location filename="../src/app/build_rerun_actions.cpp" line="+31"/>
         <source>level-map</source>
         <translation type="unfinished">level-map</translation>
     </message>
     <message>
-        <location line="-12361"/>
+        <location line="-12463"/>
         <location line="+1228"/>
         <source>Planning compiler command.</source>
         <translation type="unfinished">কম্পাইলার কমান্ডের পরিকল্পনা করা হচ্ছে।</translation>
@@ -137728,7 +137948,7 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message numerus="yes">
         <location line="+36"/>
-        <location line="+14096"/>
+        <location line="+14198"/>
         <source>%n stage(s)</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -137736,7 +137956,7 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-14095"/>
+        <location line="-14197"/>
         <source>%n texture(s)</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -137976,8 +138196,8 @@ Open a folder, PAK, WAD, ZIP, or PK3 to see type and size distribution.</source>
         <location line="+30"/>
         <location line="+23"/>
         <location line="+313"/>
-        <location line="+1711"/>
-        <location line="+3776"/>
+        <location line="+1796"/>
+        <location line="+3793"/>
         <source>%n entries</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -137985,12 +138205,12 @@ Open a folder, PAK, WAD, ZIP, or PK3 to see type and size distribution.</source>
         </translation>
     </message>
     <message>
-        <location line="-5815"/>
+        <location line="-5917"/>
         <source>Package is empty</source>
         <translation type="unfinished">প্যাকেজ খালি</translation>
     </message>
     <message>
-        <location line="+7425"/>
+        <location line="+7527"/>
         <source>Undo: %1</source>
         <translation type="unfinished">পূর্বাবস্থায় ফেরান: %1</translation>
     </message>
@@ -138000,7 +138220,7 @@ Open a folder, PAK, WAD, ZIP, or PK3 to see type and size distribution.</source>
         <translation type="unfinished">পুনরায় করুন: %1</translation>
     </message>
     <message>
-        <location line="-7373"/>
+        <location line="-7475"/>
         <source>No package loaded for staging
 Open a folder, PAK, WAD, ZIP, or PK3 before staging changes.</source>
         <translation type="unfinished"></translation>
@@ -138109,13 +138329,13 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     </message>
     <message>
         <location line="+10"/>
-        <location line="+2205"/>
-        <location line="+408"/>
+        <location line="+2290"/>
+        <location line="+416"/>
         <source>Path: %1</source>
         <translation type="unfinished">পাথ: %1</translation>
     </message>
     <message>
-        <location line="-2612"/>
+        <location line="-2705"/>
         <source>Kind: %1</source>
         <translation type="unfinished">প্রকার: %1</translation>
     </message>
@@ -138136,13 +138356,13 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+2021"/>
-        <location line="+537"/>
+        <location line="+2106"/>
+        <location line="+545"/>
         <source>Storage: %1</source>
         <translation type="unfinished">স্টোরেজ: %1</translation>
     </message>
     <message>
-        <location line="-2557"/>
+        <location line="-2650"/>
         <source>Readable now: %1</source>
         <translation type="unfinished">এখন পঠনযোগ্য: %1</translation>
     </message>
@@ -138285,18 +138505,18 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+9152"/>
+        <location line="+9254"/>
         <source>Raw Metadata</source>
         <translation type="unfinished">কাঁচা মেটাডেটা</translation>
     </message>
     <message>
-        <location line="-9043"/>
-        <location line="+11074"/>
+        <location line="-9145"/>
+        <location line="+11176"/>
         <source>Folder %1</source>
         <translation type="unfinished">ফোল্ডার %1</translation>
     </message>
     <message>
-        <location line="-11073"/>
+        <location line="-11175"/>
         <source>Package root</source>
         <translation type="unfinished">প্যাকেজের রুট</translation>
     </message>
@@ -138326,12 +138546,12 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     <message>
         <location line="-3"/>
         <location line="+4"/>
-        <location line="+14576"/>
+        <location line="+14681"/>
         <source>not found</source>
         <translation type="unfinished">পাওয়া যায়নি</translation>
     </message>
     <message>
-        <location line="-14577"/>
+        <location line="-14682"/>
         <source>Source only, not built</source>
         <translation type="unfinished">শুধু সোর্স, বিল্ড করা হয়নি</translation>
     </message>
@@ -138349,12 +138569,12 @@ Executable: %2</source>
     </message>
     <message>
         <location line="+43"/>
-        <location line="+7851"/>
+        <location line="+7953"/>
         <source>Automatic</source>
         <translation type="unfinished">স্বয়ংক্রিয়</translation>
     </message>
     <message>
-        <location line="-7848"/>
+        <location line="-7950"/>
         <source>Project manifest (missing)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -138421,12 +138641,12 @@ Executable: %2</source>
         <location line="+24"/>
         <location line="+52"/>
         <location line="+14"/>
-        <location line="+5649"/>
+        <location line="+5751"/>
         <source>compiler</source>
         <translation type="unfinished">কম্পাইলার</translation>
     </message>
     <message>
-        <location line="-5737"/>
+        <location line="-5839"/>
         <source>%1 now runs %2.</source>
         <translation type="unfinished">%1 এখন %2 চালায়।</translation>
     </message>
@@ -138632,12 +138852,12 @@ Executable: %2</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+12644"/>
+        <location line="+12746"/>
         <source>Skipped: %1</source>
         <translation type="unfinished">এড়ানো হয়েছে: %1</translation>
     </message>
     <message>
-        <location line="-12643"/>
+        <location line="-12745"/>
         <source>Errors: %1</source>
         <translation type="unfinished">ত্রুটি: %1</translation>
     </message>
@@ -138701,11 +138921,12 @@ Executable: %2</source>
     </message>
     <message>
         <location line="+2"/>
+        <location line="+960"/>
         <source>  %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="-957"/>
         <source>  Error: %1</source>
         <translation type="unfinished">  ত্রুটি: %1</translation>
     </message>
@@ -138745,7 +138966,7 @@ Executable: %2</source>
     <message numerus="yes">
         <location line="+1"/>
         <location line="+360"/>
-        <location line="+596"/>
+        <location line="+681"/>
         <source>%n warnings</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -138753,7 +138974,7 @@ Executable: %2</source>
         </translation>
     </message>
     <message>
-        <location line="-955"/>
+        <location line="-1040"/>
         <location line="+360"/>
         <source>Raw Report</source>
         <translation type="unfinished">কাঁচা রিপোর্ট</translation>
@@ -138826,12 +139047,12 @@ Executable: %2</source>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+6999"/>
+        <location line="+7101"/>
         <source>Package Stage Add</source>
         <translation type="unfinished">প্যাকেজে যোগ স্টেজ</translation>
     </message>
     <message>
-        <location line="-6999"/>
+        <location line="-7101"/>
         <source>File staged for save-as.</source>
         <translation type="unfinished">এভাবে সংরক্ষণের জন্য ফাইল স্টেজ করা হয়েছে।</translation>
     </message>
@@ -139073,12 +139294,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+6"/>
-        <location line="+12280"/>
+        <location line="+12382"/>
         <source>Output: %1</source>
         <translation type="unfinished">আউটপুট: %1</translation>
     </message>
     <message>
-        <location line="-12275"/>
+        <location line="-12377"/>
         <source>SHA-256: %1</source>
         <translation type="unfinished">SHA-256: %1</translation>
     </message>
@@ -139329,12 +139550,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+0"/>
-        <location line="+327"/>
+        <location line="+412"/>
         <source>pending</source>
         <translation type="unfinished">মুলতুবি</translation>
     </message>
     <message>
-        <location line="-326"/>
+        <location line="-411"/>
         <source>Step %1 of %2, %3: %4</source>
         <translation type="unfinished">ধাপ %1/%2, %3: %4</translation>
     </message>
@@ -139345,12 +139566,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+11"/>
-        <location line="+323"/>
+        <location line="+408"/>
         <source>Warning: %1</source>
         <translation type="unfinished">সতর্কতা: %1</translation>
     </message>
     <message>
-        <location line="-309"/>
+        <location line="-394"/>
         <source>Review</source>
         <translation type="unfinished">পর্যালোচনা করুন</translation>
     </message>
@@ -139401,12 +139622,12 @@ The new archive is written beside it and verified first; only then does the orig
         <location line="+10"/>
         <location line="+10"/>
         <location line="+26"/>
-        <location line="+4573"/>
+        <location line="+4675"/>
         <source>setup</source>
         <translation type="unfinished">সেটআপ</translation>
     </message>
     <message>
-        <location line="-4640"/>
+        <location line="-4742"/>
         <source>Setup resumed.</source>
         <translation type="unfinished">সেটআপ আবার শুরু হয়েছে।</translation>
     </message>
@@ -139427,12 +139648,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+1"/>
-        <location line="+953"/>
+        <location line="+1046"/>
         <source>Setup step: %1</source>
         <translation type="unfinished">সেটআপের ধাপ: %1</translation>
     </message>
     <message>
-        <location line="-946"/>
+        <location line="-1039"/>
         <source>Skipped for now</source>
         <translation type="unfinished">আপাতত এড়িয়ে যাওয়া হয়েছে</translation>
     </message>
@@ -139479,13 +139700,13 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+0"/>
-        <location line="+763"/>
-        <location line="+3826"/>
+        <location line="+848"/>
+        <location line="+3843"/>
         <source>settings</source>
         <translation type="unfinished">সেটিংস</translation>
     </message>
     <message>
-        <location line="-4587"/>
+        <location line="-4689"/>
         <source>Settings loaded successfully.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139523,12 +139744,40 @@ The new archive is written beside it and verified first; only then does the orig
         </translation>
     </message>
     <message>
-        <location line="+28"/>
+        <location line="+29"/>
         <source>No activity</source>
         <translation type="unfinished">কোনো কার্যকলাপ নেই</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+62"/>
+        <source>Running now:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location line="+0"/>
+        <source>Running now (%n):</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <location line="+35"/>
+        <source>Studio paused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>The interface did not respond for %1 seconds.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Work that holds the window should run in the background. If this keeps happening, note what you were doing and attach Tools &gt; Copy Diagnostic Bundle to a bug report.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>No task selected</source>
         <translation type="unfinished">কোনো টাস্ক নির্বাচিত নেই</translation>
     </message>
@@ -139555,12 +139804,12 @@ The new archive is written beside it and verified first; only then does the orig
     <message>
         <location line="+2"/>
         <location line="+341"/>
-        <location line="+408"/>
+        <location line="+416"/>
         <source>State: %1</source>
         <translation type="unfinished">অবস্থা: %1</translation>
     </message>
     <message>
-        <location line="-748"/>
+        <location line="-756"/>
         <source>Detail: %1</source>
         <translation type="unfinished">বিবরণ: %1</translation>
     </message>
@@ -139657,12 +139906,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+11980"/>
+        <location line="+11997"/>
         <source>Cancellation requested. The current stage is being stopped.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11975"/>
+        <location line="-11992"/>
         <source>Compiler cancellation requested.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139708,48 +139957,48 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+11"/>
-        <location line="+537"/>
+        <location line="+545"/>
         <source>Schema: %1</source>
         <translation type="unfinished">স্কিমা: %1</translation>
     </message>
     <message>
-        <location line="-536"/>
+        <location line="-544"/>
         <location line="+36"/>
-        <location line="+501"/>
+        <location line="+509"/>
         <source>Status: %1</source>
         <translation type="unfinished">স্ট্যাটাস: %1</translation>
     </message>
     <message>
-        <location line="-536"/>
+        <location line="-544"/>
         <source>Selected mode index: %1</source>
         <translation type="unfinished">নির্বাচিত মোডের ইনডেক্স: %1</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+549"/>
+        <location line="+557"/>
         <source>Current project: %1</source>
         <translation type="unfinished">বর্তমান প্রকল্প: %1</translation>
     </message>
     <message>
-        <location line="-548"/>
-        <location line="+536"/>
+        <location line="-556"/>
+        <location line="+544"/>
         <source>Recent projects: %1</source>
         <translation type="unfinished">সাম্প্রতিক প্রকল্প: %1</translation>
     </message>
     <message>
-        <location line="-535"/>
-        <location line="+545"/>
+        <location line="-543"/>
+        <location line="+553"/>
         <source>Game installations: %1</source>
         <translation type="unfinished">গেম ইনস্টলেশন: %1</translation>
     </message>
     <message>
-        <location line="-544"/>
-        <location line="+545"/>
+        <location line="-552"/>
+        <location line="+553"/>
         <source>Selected installation: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-544"/>
+        <location line="-552"/>
         <source>Selected editor profile: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139771,13 +140020,13 @@ The new archive is written beside it and verified first; only then does the orig
         <location line="+1"/>
         <location line="+2"/>
         <location line="+1"/>
-        <location line="+511"/>
+        <location line="+519"/>
         <location line="+1"/>
         <source>enabled</source>
         <translation type="unfinished">সক্ষম</translation>
     </message>
     <message>
-        <location line="-538"/>
+        <location line="-546"/>
         <location line="+10"/>
         <location line="+1"/>
         <location line="+4"/>
@@ -139790,13 +140039,13 @@ The new archive is written beside it and verified first; only then does the orig
         <location line="+1"/>
         <location line="+1"/>
         <location line="+1"/>
-        <location line="+511"/>
+        <location line="+519"/>
         <location line="+1"/>
         <source>disabled</source>
         <translation type="unfinished">অক্ষম</translation>
     </message>
     <message>
-        <location line="-537"/>
+        <location line="-545"/>
         <source>Compiler tools with source: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139807,52 +140056,52 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+3"/>
-        <location line="+528"/>
-        <location line="+12348"/>
+        <location line="+536"/>
+        <location line="+12357"/>
         <source>Locale: %1</source>
         <translation type="unfinished">লোকেল: %1</translation>
     </message>
     <message>
-        <location line="-12875"/>
-        <location line="+528"/>
-        <location line="+4382"/>
+        <location line="-12892"/>
+        <location line="+536"/>
+        <location line="+4391"/>
         <location line="+7966"/>
         <source>Theme: %1</source>
         <translation type="unfinished">থিম: %1</translation>
     </message>
     <message>
-        <location line="-12875"/>
-        <location line="+528"/>
-        <location line="+4359"/>
+        <location line="-12892"/>
+        <location line="+536"/>
+        <location line="+4368"/>
         <location line="+8"/>
         <source>Text scale: %1%</source>
         <translation type="unfinished">টেক্সট স্কেল: %1%</translation>
     </message>
     <message>
-        <location line="-4894"/>
-        <location line="+528"/>
+        <location line="-4911"/>
+        <location line="+536"/>
         <source>Density: %1</source>
         <translation type="unfinished">ঘনত্ব: %1</translation>
     </message>
     <message>
-        <location line="-527"/>
+        <location line="-535"/>
         <source>Editor profile: %1</source>
         <translation type="unfinished">এডিটর প্রোফাইল: %1</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+527"/>
+        <location line="+535"/>
         <source>Reduced motion: %1</source>
         <translation type="unfinished">মোশন কমানো: %1</translation>
     </message>
     <message>
-        <location line="-526"/>
-        <location line="+527"/>
+        <location line="-534"/>
+        <location line="+535"/>
         <source>Text to speech: %1</source>
         <translation type="unfinished">টেক্সট-টু-স্পিচ: %1</translation>
     </message>
     <message>
-        <location line="-526"/>
+        <location line="-534"/>
         <source>Interface language: %1 (running in %2)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -140158,12 +140407,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+0"/>
-        <location line="+3013"/>
+        <location line="+3030"/>
         <source>AI-free</source>
         <translation type="unfinished">এআই-মুক্ত</translation>
     </message>
     <message>
-        <location line="-3013"/>
+        <location line="-3030"/>
         <source>Experimental opt-in</source>
         <translation type="unfinished">পরীক্ষামূলক, ঐচ্ছিক অংশগ্রহণ</translation>
     </message>
@@ -140231,12 +140480,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+9"/>
-        <location line="+408"/>
+        <location line="+416"/>
         <source>Last opened: %1</source>
         <translation type="unfinished">শেষবার খোলা হয়েছে: %1</translation>
     </message>
     <message>
-        <location line="-390"/>
+        <location line="-398"/>
         <source>Project manifest: available.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -140292,12 +140541,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+1"/>
-        <location line="+383"/>
+        <location line="+391"/>
         <source>Settings storage: %1</source>
         <translation type="unfinished">সেটিংস স্টোরেজ: %1</translation>
     </message>
     <message>
-        <location line="-381"/>
+        <location line="-389"/>
         <source>Project Details</source>
         <translation type="unfinished">প্রকল্পের বিবরণ</translation>
     </message>
@@ -140362,7 +140611,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished">পছন্দসমূহ সংরক্ষিত হয়েছে।</translation>
     </message>
     <message>
-        <location line="+146"/>
+        <location line="+154"/>
         <source>Selected mode: %1</source>
         <translation type="unfinished">নির্বাচিত মোড: %1</translation>
     </message>
@@ -140698,12 +140947,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+7723"/>
+        <location line="+7732"/>
         <source>Save File &amp;As…</source>
         <translation type="unfinished">ফাইল এভাবে সংরক্ষণ করুন(&amp;A)…</translation>
     </message>
     <message>
-        <location line="-7722"/>
+        <location line="-7731"/>
         <source>Save this document to a chosen path, preserving its text format and undo history.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -140996,12 +141245,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+5"/>
-        <location line="+9907"/>
+        <location line="+9916"/>
         <source>Edit Brush Components…</source>
         <translation type="unfinished">ব্রাশের উপাদান সম্পাদনা করুন…</translation>
     </message>
     <message>
-        <location line="-9906"/>
+        <location line="-9915"/>
         <source>Reshape the selected brush&apos;s vertices, edges and faces.</source>
         <translation type="unfinished">নির্বাচিত ব্রাশের ভার্টেক্স, এজ ও ফেসের আকার বদলান।</translation>
     </message>
@@ -141017,12 +141266,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+7"/>
-        <location line="+9904"/>
+        <location line="+9913"/>
         <source>Edit Patch Control Points…</source>
         <translation type="unfinished">প্যাচ কন্ট্রোল পয়েন্ট সম্পাদনা করুন…</translation>
     </message>
     <message>
-        <location line="-9903"/>
+        <location line="-9912"/>
         <source>Reshape, subdivide and texture the selected patch.</source>
         <translation type="unfinished">নির্বাচিত প্যাচের আকার বদলান, উপবিভক্ত করুন এবং টেক্সচার দিন।</translation>
     </message>
@@ -141093,12 +141342,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+10012"/>
+        <location line="+10021"/>
         <source>Rotate Selection…</source>
         <translation type="unfinished">নির্বাচন ঘোরান…</translation>
     </message>
     <message>
-        <location line="-10009"/>
+        <location line="-10018"/>
         <source>Rotate 90° R&amp;ight</source>
         <translation type="unfinished">ডানে 90° ঘোরান(&amp;i)</translation>
     </message>
@@ -141787,12 +142036,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+26"/>
-        <location line="+9463"/>
+        <location line="+9472"/>
         <source>Paste with Offset…</source>
         <translation type="unfinished">অফসেটসহ পেস্ট করুন…</translation>
     </message>
     <message>
-        <location line="-9462"/>
+        <location line="-9471"/>
         <source>Preview clipboard objects at an explicit offset, with package materials and one undo step.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -141823,12 +142072,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+9458"/>
+        <location line="+9467"/>
         <source>Duplicate with Offset…</source>
         <translation type="unfinished">অফসেটসহ ডুপ্লিকেট করুন…</translation>
     </message>
     <message>
-        <location line="-9457"/>
+        <location line="-9466"/>
         <source>Preview copies at an explicit offset, preserving texture alignment and entity ownership.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -142698,12 +142947,12 @@ The new archive is written beside it and verified first; only then does the orig
     <message>
         <location line="+5"/>
         <location line="+411"/>
-        <location line="+8325"/>
+        <location line="+8334"/>
         <source>Copy</source>
         <translation type="unfinished">কপি করুন</translation>
     </message>
     <message>
-        <location line="-8734"/>
+        <location line="-8743"/>
         <source>Copy the last answer</source>
         <translation type="unfinished">শেষ উত্তর কপি করুন</translation>
     </message>
@@ -142875,7 +143124,7 @@ The new archive is written beside it and verified first; only then does the orig
         <location line="+3"/>
         <location line="+3"/>
         <location line="+3"/>
-        <location filename="../src/app/application_shell.cpp" line="-14080"/>
+        <location filename="../src/app/application_shell.cpp" line="-14173"/>
         <location line="+2627"/>
         <location line="+603"/>
         <source>Generate</source>
@@ -142934,7 +143183,7 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+7"/>
-        <location filename="../src/app/application_shell.cpp" line="+11456"/>
+        <location filename="../src/app/application_shell.cpp" line="+11549"/>
         <source>The request that will be sent</source>
         <translation type="unfinished"></translation>
     </message>
@@ -143341,12 +143590,12 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished">স্ট্যাটাস বার</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+9"/>
         <source>Show or hide the activity panel: every task with its progress, log, and result.</source>
         <translation type="unfinished">কার্যকলাপ প্যানেল দেখান বা লুকান: প্রতিটি টাস্ক তার অগ্রগতি, লগ ও ফলাফলসহ।</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+3"/>
         <source>Show or hide the inspector panel: settings, setup, and project diagnostics.</source>
         <translation type="unfinished">ইন্সপেক্টর প্যানেল দেখান বা লুকান: সেটিংস, সেটআপ ও প্রকল্পের ডায়াগনস্টিক্স।</translation>
     </message>
@@ -144394,8 +144643,8 @@ Used %n time(s) in the open map</source>
         <translation type="unfinished">ফ্রেম %1/%2</translation>
     </message>
     <message>
-        <location line="-8838"/>
-        <location line="+8849"/>
+        <location line="-8940"/>
+        <location line="+8951"/>
         <source>%1, %2 x %3</source>
         <translation type="unfinished">%1, %2 x %3</translation>
     </message>
@@ -144784,8 +145033,8 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished">ফোল্ডারে দেখান</translation>
     </message>
     <message>
-        <location line="-21917"/>
-        <location line="+21923"/>
+        <location line="-22060"/>
+        <location line="+22066"/>
         <location line="+3519"/>
         <source>%1 — %2</source>
         <translation type="unfinished"></translation>
@@ -144860,7 +145109,7 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished">পরিবর্তিত</translation>
     </message>
     <message>
-        <location line="-7451"/>
+        <location line="-7460"/>
         <source>Undo &amp;Package Edit</source>
         <translation type="unfinished">প্যাকেজ সম্পাদনা পূর্বাবস্থায় ফেরান(&amp;P)</translation>
     </message>
@@ -144875,13 +145124,13 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished">প্যাকেজ সম্পাদনা পুনরায় করুন(&amp;a)</translation>
     </message>
     <message>
-        <location line="-11497"/>
-        <location line="+11498"/>
+        <location line="-11590"/>
+        <location line="+11591"/>
         <source>Redo the last undone package edit.</source>
         <translation type="unfinished">সর্বশেষ পূর্বাবস্থায় ফেরানো প্যাকেজ সম্পাদনা পুনরায় করুন।</translation>
     </message>
     <message>
-        <location line="+6562"/>
+        <location line="+6571"/>
         <location line="+171"/>
         <source>Includes pending package changes. Waveforms use PCM; compressed codecs report header metadata.</source>
         <translation type="unfinished"></translation>
@@ -145148,7 +145397,7 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished">ফাইল সংরক্ষণ</translation>
     </message>
     <message>
-        <location line="-20341"/>
+        <location line="-20443"/>
         <source>The level camera shows brushes, patches and placed models using package material images. Select geometry to edit it; Details lists unresolved images and preview limitations.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -145297,18 +145546,18 @@ Reloading discards them. Reload?</source>
     <message>
         <location line="+1"/>
         <location line="+68"/>
-        <location line="+8464"/>
+        <location line="+8566"/>
         <source>Loading texture preview…</source>
         <translation type="unfinished">টেক্সচার প্রিভিউ লোড হচ্ছে…</translation>
     </message>
     <message>
-        <location line="-7527"/>
+        <location line="-7629"/>
         <location filename="../src/app/package_document_actions.cpp" line="-29"/>
         <source>The package changed; select the entry again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1941"/>
+        <location line="+2034"/>
         <source>Preview and add a box, wedge, cylinder, cone or sphere brush.</source>
         <translation type="unfinished">একটি বক্স, ওয়েজ, সিলিন্ডার, কোন বা গোলক ব্রাশের প্রিভিউ দেখুন ও যোগ করুন।</translation>
     </message>
@@ -145383,7 +145632,7 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4815"/>
+        <location line="+4824"/>
         <source>Loading palette from the current texture source…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -145437,12 +145686,12 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21176"/>
+        <location line="-21319"/>
         <source>Showing an excerpt. The Preview tab contains the full sampled text.</source>
         <translation type="unfinished">একটি অংশ দেখানো হচ্ছে। প্রিভিউ ট্যাবে নমুনা নেওয়া পুরো লেখা আছে।</translation>
     </message>
     <message>
-        <location line="+2391"/>
+        <location line="+2432"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="+52"/>
         <source>Layout</source>
         <translation type="unfinished">লেআউট</translation>
@@ -145553,7 +145802,7 @@ Wall</source>
         <translation type="unfinished">লোড হচ্ছে…</translation>
     </message>
     <message>
-        <location line="+5818"/>
+        <location line="+5920"/>
         <source>Package copy cancelled. No files were handed off.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -145600,10 +145849,10 @@ Wall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16448"/>
+        <location line="-16550"/>
         <location line="+110"/>
-        <location line="+9771"/>
-        <location line="+6576"/>
+        <location line="+9864"/>
+        <location line="+6585"/>
         <source>Materials</source>
         <translation type="unfinished">ম্যাটেরিয়াল</translation>
     </message>
@@ -145619,13 +145868,13 @@ Wall</source>
         <translation type="unfinished">মডেল প্রস্তুত</translation>
     </message>
     <message>
-        <location line="-20943"/>
+        <location line="-21086"/>
         <source>Size unavailable</source>
         <translation type="unfinished">আকার অনুপলব্ধ</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+11391"/>
+        <location line="+11432"/>
         <source>Size exceeds the supported range</source>
         <translation type="unfinished">আকার সমর্থিত পরিসর ছাড়িয়ে গেছে</translation>
     </message>
@@ -145689,36 +145938,36 @@ Wall</source>
     </message>
     <message>
         <location line="+794"/>
-        <location line="+12366"/>
+        <location line="+12468"/>
         <source>Create a texture or browse images from a package.</source>
         <translation type="unfinished">একটি টেক্সচার তৈরি করুন বা প্যাকেজ থেকে ছবি ব্রাউজ করুন।</translation>
     </message>
     <message>
-        <location line="-12246"/>
+        <location line="-12348"/>
         <source>Preview frames per second. Selecting a clip uses its saved rate when specified; this control does not change the source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+143"/>
-        <location line="+12109"/>
+        <location line="+12211"/>
         <source>Create a mesh or browse models from a package.</source>
         <translation type="unfinished">একটি মেশ তৈরি করুন বা প্যাকেজ থেকে মডেল ব্রাউজ করুন।</translation>
     </message>
     <message>
-        <location line="-11909"/>
-        <location line="+11915"/>
+        <location line="-12011"/>
+        <location line="+12017"/>
         <source>Open a sound or browse audio from a package.</source>
         <translation type="unfinished">একটি সাউন্ড খুলুন বা প্যাকেজ থেকে অডিও ব্রাউজ করুন।</translation>
     </message>
     <message>
-        <location line="-10652"/>
+        <location line="-10754"/>
         <location line="+4710"/>
         <location line="+39"/>
         <location line="+171"/>
         <location line="+224"/>
         <location line="+1033"/>
         <location line="+1"/>
-        <location line="+4418"/>
+        <location line="+4520"/>
         <location line="+64"/>
         <location line="+4"/>
         <location filename="../src/app/package_context_actions.cpp" line="-76"/>
@@ -145726,7 +145975,7 @@ Wall</source>
         <translation type="unfinished">প্যাকেজ ভিউ অনুপলব্ধ</translation>
     </message>
     <message>
-        <location line="-7485"/>
+        <location line="-7587"/>
         <source>Gesture preferences could not be applied: %1. Profile defaults are in use.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -146135,12 +146384,12 @@ Wall</source>
     </message>
     <message>
         <location line="+9"/>
-        <location line="+12751"/>
+        <location line="+12853"/>
         <source>No materials yet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-12750"/>
+        <location line="-12852"/>
         <source>Open a package, folder or WAD to browse its textures, shaders and materials with a live preview, or open a .shader or .mtr script.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -146259,7 +146508,7 @@ Wall</source>
     </message>
     <message numerus="yes">
         <location line="+316"/>
-        <location line="+16401"/>
+        <location line="+16503"/>
         <source>%1 set to %2 on %n entit(y)(ies). Use Save Map to update the file after a change check and backup.</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -146267,7 +146516,7 @@ Wall</source>
         </translation>
     </message>
     <message>
-        <location line="-16392"/>
+        <location line="-16494"/>
         <source>Entity key edited; use Save Map to update the file after a change check and backup.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -146306,24 +146555,24 @@ Wall</source>
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="+595"/>
-        <location line="+9722"/>
+        <location line="+9824"/>
         <location filename="../src/app/model_browser_appearance.cpp" line="-145"/>
         <source>Show in Materials</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9721"/>
+        <location line="-9823"/>
         <source>Preview this texture or shader the way the game draws it, and edit it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+9718"/>
+        <location line="+9820"/>
         <source>Edit in Texture Editor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9713"/>
+        <location line="-9815"/>
         <source>This wall texture is composed from patches in TEXTURE1. Edit one of its patches in Textures.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -146466,7 +146715,7 @@ Wall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3716"/>
+        <location line="+3809"/>
         <source>Browse, preview and edit the textures, shaders and materials of idTech 1 to 4, as text or as nodes.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -146937,7 +147186,7 @@ Wall</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+192"/>
+        <location line="+201"/>
         <source>This project turns AI off in its manifest. Every workflow stays local and deterministic here.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -148962,12 +149211,12 @@ A value set here is set on all %n entit(y)(ies).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15908"/>
+        <location line="-16010"/>
         <source>Surface and component picks cleared. Whole objects remain selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9079"/>
+        <location line="+9181"/>
         <source>Vision</source>
         <comment>accessibility settings group about seeing the screen, not computer vision</comment>
         <translation type="unfinished">ভিশন</translation>
@@ -149347,13 +149596,13 @@ A value set here is set on all %n entit(y)(ies).</source>
         <translation type="unfinished">প্রোফাইল</translation>
     </message>
     <message>
-        <location line="-8899"/>
-        <location line="+8900"/>
+        <location line="-8908"/>
+        <location line="+8909"/>
         <source>Program</source>
         <translation type="unfinished">প্রোগ্রাম</translation>
     </message>
     <message>
-        <location line="-9433"/>
+        <location line="-9442"/>
         <location line="+354"/>
         <source>%1 · on this machine</source>
         <translation type="unfinished"></translation>
@@ -149374,7 +149623,7 @@ A value set here is set on all %n entit(y)(ies).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8260"/>
+        <location line="+8269"/>
         <source>Find and Replace Textures…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -149964,12 +150213,12 @@ Working directory: %2</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+53"/>
+        <location line="+56"/>
         <source>Qt runtime: %1</source>
         <translation type="unfinished">Qt রানটাইম: %1</translation>
     </message>
     <message>
-        <location line="-52"/>
+        <location line="-55"/>
         <source>Platform: %1 (%2)</source>
         <translation type="unfinished">প্ল্যাটফর্ম: %1 (%2)</translation>
     </message>
@@ -150000,6 +150249,11 @@ Working directory: %2</source>
     </message>
     <message>
         <location line="+2"/>
+        <source>Interface pauses: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Crash reports kept: %1</source>
         <translation type="unfinished">রাখা ক্র্যাশ রিপোর্ট: %1</translation>
     </message>
@@ -150014,8 +150268,8 @@ Working directory: %2</source>
         <translation type="unfinished">কম্পাইলার:</translation>
     </message>
     <message>
-        <location line="-14"/>
-        <location line="+16"/>
+        <location line="-17"/>
+        <location line="+19"/>
         <source>  %1: %2</source>
         <translation type="unfinished"></translation>
     </message>
@@ -150352,7 +150606,7 @@ Working directory: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15443"/>
+        <location filename="../src/app/application_shell.cpp" line="-15548"/>
         <location filename="../src/app/code_document_actions.cpp" line="-54"/>
         <source>Untitled %1</source>
         <translation type="unfinished">শিরোনামহীন %1</translation>
@@ -151926,7 +152180,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+18944"/>
+        <location filename="../src/app/application_shell.cpp" line="+19046"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="+1"/>
         <source>Groups</source>
         <translation type="unfinished"></translation>
@@ -153750,7 +154004,7 @@ Activate to open line %2.</source>
         <translation type="unfinished">ভিউ লেআউট ফিরিয়ে আনুন</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-9739"/>
+        <location filename="../src/app/application_shell.cpp" line="-9748"/>
         <location filename="../src/app/level_view_actions.cpp" line="+0"/>
         <source>Maximize Active View</source>
         <translation type="unfinished">সক্রিয় ভিউ বড় করুন</translation>
@@ -154242,7 +154496,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-1700"/>
+        <location filename="../src/app/application_shell.cpp" line="-1793"/>
         <location filename="../src/app/workspace_actions.cpp" line="+6"/>
         <source>Open Workspace</source>
         <translation type="unfinished">ওয়ার্কস্পেস খুলুন</translation>
@@ -168962,6 +169216,47 @@ Verified bytes: %3 of %4</source>
     </message>
 </context>
 <context>
+    <name>vibestudio::BusyIndicator</name>
+    <message>
+        <location filename="../src/app/studio_progress.cpp" line="+432"/>
+        <source>Working</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Work is in progress.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1% complete.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>vibestudio::BusyOverlay</name>
+    <message>
+        <location line="+39"/>
+        <source>Cancel</source>
+        <translation type="unfinished">বাতিল করুন</translation>
+    </message>
+    <message>
+        <location line="+199"/>
+        <source>%1 %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+50"/>
+        <source>%1 of %2</source>
+        <translation type="unfinished">%1/%2</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Working</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>vibestudio::CodeFilesPanel</name>
     <message>
         <location filename="../src/app/code_files_panel.cpp" line="+35"/>
@@ -176840,6 +177135,39 @@ lines</source>
     </message>
 </context>
 <context>
+    <name>vibestudio::StudioSplash</name>
+    <message>
+        <location filename="../src/app/studio_splash.cpp" line="+61"/>
+        <source>Version %1 · Pre-alpha preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+114"/>
+        <source>Ready</source>
+        <translation type="unfinished">প্রস্তুত</translation>
+    </message>
+    <message>
+        <location line="+69"/>
+        <source>%1 of %2</source>
+        <translation type="unfinished">%1/%2</translation>
+    </message>
+    <message>
+        <location line="+37"/>
+        <source>VibeStudio is starting.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+88"/>
+        <source>VibeStudio is starting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1 (%2 of %3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>vibestudio::StudioSyntaxHighlighter</name>
     <message>
         <location filename="../src/app/syntax_highlight.cpp" line="+498"/>
@@ -176860,6 +177188,43 @@ lines</source>
         <location line="+2"/>
         <source>Warning: %1</source>
         <translation type="unfinished">সতর্কতা: %1</translation>
+    </message>
+</context>
+<context>
+    <name>vibestudio::UiResponsivenessMonitor</name>
+    <message>
+        <location filename="../src/app/studio_progress.cpp" line="+94"/>
+        <source>The interface has not paused this session.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location line="+2"/>
+        <source>%n interface pause(s) this session, the longest %1.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>vibestudio::WorkTracker</name>
+    <message>
+        <location line="-640"/>
+        <source>Nothing is running.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>One task is running.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location line="+3"/>
+        <source>%n tasks are running.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
     </message>
 </context>
 </TS>

@@ -48,6 +48,7 @@ void applyMonospaceContentFont(QTextEdit* content);
 class LoadingPane final : public QFrame {
 public:
 	explicit LoadingPane(QWidget* parent = nullptr);
+	~LoadingPane() override;
 
 	void setTitle(const QString& title);
 	void setDetail(const QString& detail);
@@ -71,6 +72,8 @@ protected:
 private:
 	void refresh();
 	void rebuildPlaceholders();
+	// A busy pane counts in the window's running work (studioWorkTracker()).
+	void syncWorkTracker(bool busy, const QString& label);
 
 	QLabel* m_titleLabel = nullptr;
 	QLabel* m_stateLabel = nullptr;
@@ -86,6 +89,7 @@ private:
 	OperationState m_state = OperationState::Idle;
 	OperationProgress m_progressValue;
 	bool m_reducedMotion = false;
+	int m_workToken = 0;
 };
 
 class DetailDrawer final : public QFrame {

@@ -1,5 +1,7 @@
 #include "app/application_shell.h"
+#include "app/studio_progress.h"
 #include "app/studio_runtime.h"
+#include "app/studio_splash.h"
 #include "app/studio_theme.h"
 #include "cli/cli.h"
 #include "core/package_import_store.h"
@@ -18,6 +20,7 @@
 #include <QStringList>
 #include <QDir>
 #include <QFileInfo>
+#include <QPointer>
 #include <QTimer>
 #include <QScopeGuard>
 #include <QThreadPool>
@@ -202,6 +205,13 @@ int main(int argc, char** argv)
 	// real session that crashed left behind.
 	const bool interactive = !args.contains(QStringLiteral("--self-test")) && flagValue(args, QStringLiteral("--ui-snapshot")).isEmpty();
 
+	// The start-up screen is up before the window is built, and names each
+	// stage of start-up as it comes (docs/UX_DESIGN.md, "Visible Work"). A
+	// scripted run or a headless platform has nobody to show it to, and
+	// `--no-splash` leaves it out on request.
+	QPointer<vibestudio::StudioSplash> splash;
+	const bool showSplash = interactive && !args.contains(QStringLiteral("--no-splash")) && vibestudio::StudioSplash::platformShowsSplash();
+
 	{
 		vibestudio::StudioSettings settings;
 		const vibestudio::AccessibilityPreferences preferences = settings.accessibilityPreferences();
@@ -213,6 +223,15 @@ int main(int argc, char** argv)
 		// Theme before the first widget exists, so nothing is built with the
 		// platform style and then repolished.
 		vibestudio::applyStudioTheme(app, vibestudio::studioThemeTokens(preferences));
+		if (showSplash) {
+			splash = new vibestudio::StudioSplash;
+			// The shell's stages, the renderer before it, the session after.
+			splash->setExpectedStages(vibestudio::ApplicationShell::startupStageCount() + 2);
+			splash->setReducedMotion(preferences.reducedMotion);
+			splash->listenForStartupStages();
+			splash->present();
+		}
+		vibestudio::reportStartupStage(QCoreApplication::translate("VibeStudioMain", "Starting the 3D renderer"));
 		// The 3D renderer the user chose, starting on its own thread now so
 		// the first 3D view does not wait for it.
 		vibestudio::RenderBackendChoice renderer = vibestudio::RenderBackendChoice::Automatic;
@@ -238,17 +257,29 @@ int main(int argc, char** argv)
 	shell.show();
 
 	const QStringList paths = pathsToOpen(args);
+	if (!paths.isEmpty()) {
+		vibestudio::reportStartupStage(QCoreApplication::translate("VibeStudioMain", "Opening the files from the command line"));
+	}
 	for (const QString& path : paths) {
 		shell.openPathFromCommandLine(path);
 	}
 	// Once the window is up the session begins: a crash last time is offered
 	// back; otherwise the last session reopens, unless a path given on the
-	// command line already says what the user wants.
+	// command line already says what the user wants. The start-up screen
+	// stays over the window until that is done, naming it.
 	if (interactive) {
 		const bool reopenLast = paths.isEmpty();
-		QTimer::singleShot(0, &shell, [&shell, reopenLast]() {
+		QTimer::singleShot(0, &shell, [&shell, splash, reopenLast]() {
+			if (reopenLast) {
+				vibestudio::reportStartupStage(QCoreApplication::translate("VibeStudioMain", "Restoring your session"));
+			}
 			shell.beginSession(reopenLast);
+			if (splash) {
+				splash->finish(&shell);
+			}
 		});
+	} else if (splash) {
+		splash->finish(&shell);
 	}
 
 	// `--ui-snapshot <dir>` renders every work surface to PNG and exits. Run it

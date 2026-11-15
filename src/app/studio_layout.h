@@ -572,6 +572,9 @@ bool statusBarButtonFolded(const QToolButton* button);
 // Relabels a status bar button, such as the Activity toggle's running count,
 // keeping the label in its tooltip while it is folded, and refitting the bar.
 void setStatusBarButtonText(QToolButton* button, const QString& text);
+// Changes a status bar button's tooltip in a way that survives folding: the
+// bar composes a folded button's tooltip from its label and this text.
+void setStatusBarButtonToolTip(QToolButton* button, const QString& toolTip);
 QFrame* createDivider(Qt::Orientation orientation = Qt::Horizontal);
 // Fits a list's rows to its width and elides each text line instead of
 // growing a horizontal scroll bar. Paths elide in the middle by default so

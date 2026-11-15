@@ -2859,6 +2859,15 @@ void setStatusBarButtonText(QToolButton* button, const QString& text)
 	refitStatusBarOf(button);
 }
 
+void setStatusBarButtonToolTip(QToolButton* button, const QString& toolTip)
+{
+	if (!button) {
+		return;
+	}
+	button->setProperty("unfoldedToolTip", toolTip);
+	applyFoldedButtonTip(button);
+}
+
 void fitStatusBarToMessages(QStatusBar* bar, const QList<QToolButton*>& foldOrder)
 {
 	if (!bar) {

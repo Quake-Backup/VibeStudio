@@ -51362,7 +51362,7 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>VibeStudioAssistant</name>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+16567"/>
+        <location filename="../src/app/application_shell.cpp" line="+16702"/>
         <source>Show the raw JSON</source>
         <translation type="unfinished"></translation>
     </message>
@@ -76832,6 +76832,24 @@ Searched: %3
     <message>
         <location line="+2"/>
         <source>- %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>VibeStudioMain</name>
+    <message>
+        <location filename="../src/main.cpp" line="+234"/>
+        <source>Starting the 3D renderer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>Opening the files from the command line</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Restoring your session</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -125612,7 +125630,7 @@ Replace what is there with this variant?</source>
 <context>
     <name>VibeStudioUiPrimitives</name>
     <message>
-        <location filename="../src/app/ui_primitives.cpp" line="+122"/>
+        <location filename="../src/app/ui_primitives.cpp" line="+123"/>
         <location line="+16"/>
         <source>Idle</source>
         <translation type="unfinished">Siaga</translation>
@@ -125624,13 +125642,13 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+217"/>
-        <location line="+88"/>
+        <location line="+250"/>
+        <location line="+106"/>
         <source>Loading</source>
         <translation type="unfinished">Memuat</translation>
     </message>
     <message>
-        <location line="-303"/>
+        <location line="-354"/>
         <source>Running</source>
         <translation type="unfinished">Berjalan</translation>
     </message>
@@ -125671,12 +125689,12 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+87"/>
-        <location line="+60"/>
+        <location line="+93"/>
         <source>Loading pane</source>
         <translation type="unfinished">Panel pemuatan</translation>
     </message>
     <message>
-        <location line="-59"/>
+        <location line="-92"/>
         <source>Reusable pane and preview loading surface with state text, progress, reduced-motion behavior, and context-specific skeleton rows.</source>
         <translation type="unfinished">Komponen pemuatan panel dan pratinjau yang dapat dipakai ulang, dengan teks status, progres, perilaku gerakan berkurang, dan baris skeleton khusus konteks.</translation>
     </message>
@@ -125687,11 +125705,12 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+1"/>
+        <location line="+57"/>
         <source>preview generation</source>
         <translation type="unfinished">pembuatan pratinjau</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-56"/>
         <source>compiler stages</source>
         <translation type="unfinished">tahap kompilator</translation>
     </message>
@@ -125702,12 +125721,12 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+5"/>
-        <location line="+274"/>
+        <location line="+326"/>
         <source>Detail drawer</source>
         <translation type="unfinished">Laci detail</translation>
     </message>
     <message>
-        <location line="-273"/>
+        <location line="-325"/>
         <source>Reusable collapsible drawer for summary-first logs, metadata, manifests, raw diagnostics, and support-copy text.</source>
         <translation type="unfinished">Laci yang dapat diciutkan dan dipakai ulang untuk log, metadata, manifes, diagnostik mentah, dan teks salinan dukungan, dengan ringkasan di awal.</translation>
     </message>
@@ -125822,6 +125841,87 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">perintah tinjauan AI</translation>
     </message>
     <message>
+        <location line="+5"/>
+        <source>Busy indicator</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>A ring that turns while work runs and fills as measurable work progresses; it stands still under reduced motion, and one sits beside the status bar&apos;s Activity button while anything in the window is busy.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>status bar activity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>start-up stages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>dialog work</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Busy overlay</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>A translucent cover for a surface whose content is being prepared, with a title, detail, progress and an optional Cancel; it appears after a short delay so brief work never flashes, and counts in the window&apos;s running work.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+12"/>
+        <source>session restore</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-11"/>
+        <source>large file opens</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>dialog preparation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>work that holds the interface</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Start-up screen</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>The branded screen shown while the studio starts, naming each stage with a progress line, following the theme, text scale, layout direction and reduced-motion preference, and fading once the window has painted.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>application start</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>renderer start</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>slow first runs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location line="+11"/>
         <source>Shows operation state, progress, and placeholder rows while pane content is loading.</source>
         <translation type="unfinished">Menampilkan status operasi, progres, dan baris placeholder saat konten panel dimuat.</translation>
@@ -125858,12 +125958,12 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+8"/>
-        <location line="+102"/>
+        <location line="+120"/>
         <source>Preparing content.</source>
         <translation type="unfinished">Menyiapkan konten.</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+7"/>
         <source>%1%</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126194,15 +126294,15 @@ Replace what is there with this variant?</source>
 <context>
     <name>vibestudio::ApplicationShell</name>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-16320"/>
-        <location line="+14007"/>
+        <location filename="../src/app/application_shell.cpp" line="-16454"/>
+        <location line="+14133"/>
         <location line="+55"/>
-        <location line="+408"/>
+        <location line="+416"/>
         <source>ready</source>
         <translation type="unfinished">siap</translation>
     </message>
     <message>
-        <location line="-14468"/>
+        <location line="-14602"/>
         <source>access error</source>
         <translation type="unfinished">kesalahan akses</translation>
     </message>
@@ -126217,13 +126317,13 @@ Replace what is there with this variant?</source>
         <location line="+3"/>
         <location line="+1"/>
         <location line="+25"/>
-        <location line="+11513"/>
-        <location line="+1859"/>
+        <location line="+11554"/>
+        <location line="+1944"/>
         <source>unknown</source>
         <translation type="unfinished">tidak diketahui</translation>
     </message>
     <message>
-        <location line="-13690"/>
+        <location line="-13816"/>
         <source>System</source>
         <translation type="unfinished">Sistem</translation>
     </message>
@@ -126287,7 +126387,7 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+18"/>
         <location line="+16"/>
-        <location line="+6182"/>
+        <location line="+6223"/>
         <location line="+621"/>
         <location line="+449"/>
         <location line="+528"/>
@@ -126295,46 +126395,46 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">Siaga</translation>
     </message>
     <message>
-        <location line="-7794"/>
+        <location line="-7835"/>
         <source>Queued</source>
         <translation type="unfinished">Dalam antrean</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+6733"/>
+        <location line="+6774"/>
         <location filename="../src/app/audio_browser_actions.cpp" line="+157"/>
         <source>Loading</source>
         <translation type="unfinished">Memuat</translation>
     </message>
     <message>
-        <location line="-6731"/>
-        <location line="+12597"/>
+        <location line="-6772"/>
+        <location line="+12638"/>
         <location line="+377"/>
-        <location line="+12639"/>
+        <location line="+12741"/>
         <source>Running</source>
         <translation type="unfinished">Berjalan</translation>
     </message>
     <message>
-        <location line="-25611"/>
-        <location line="+26167"/>
+        <location line="-25754"/>
+        <location line="+26310"/>
         <location filename="../src/app/code_language_actions.cpp" line="+112"/>
         <source>Warning</source>
         <translation type="unfinished">Peringatan</translation>
     </message>
     <message>
-        <location line="-26165"/>
+        <location line="-26308"/>
         <source>Failed</source>
         <translation type="unfinished">Gagal</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+7321"/>
+        <location line="+7362"/>
         <location line="+4575"/>
         <source>Cancelled</source>
         <translation type="unfinished">Dibatalkan</translation>
     </message>
     <message>
-        <location line="-11894"/>
+        <location line="-11935"/>
         <source>Completed</source>
         <translation type="unfinished">Selesai</translation>
     </message>
@@ -126368,12 +126468,12 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+4"/>
         <location line="+26"/>
-        <location line="+25410"/>
+        <location line="+25553"/>
         <source>Unknown</source>
         <translation type="unfinished">Tidak diketahui</translation>
     </message>
     <message>
-        <location line="-25429"/>
+        <location line="-25572"/>
         <location line="+4"/>
         <source>File</source>
         <translation type="unfinished">File</translation>
@@ -126402,43 +126502,43 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+11"/>
         <location line="+14"/>
-        <location line="+6756"/>
+        <location line="+6797"/>
         <location line="+5"/>
-        <location line="+14235"/>
+        <location line="+14337"/>
         <location filename="../src/app/package_context_actions.cpp" line="+22"/>
         <source>Unavailable</source>
         <translation type="unfinished">Tidak tersedia</translation>
     </message>
     <message>
-        <location line="-21006"/>
+        <location line="-21149"/>
         <source>Text</source>
         <translation type="unfinished">Teks</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+4360"/>
+        <location line="+4401"/>
         <source>Image</source>
         <translation type="unfinished">Gambar</translation>
     </message>
     <message>
         <location filename="../src/app/ai_generation_actions.cpp" line="+408"/>
         <location line="+106"/>
-        <location filename="../src/app/application_shell.cpp" line="-4358"/>
-        <location line="+1140"/>
+        <location filename="../src/app/application_shell.cpp" line="-4399"/>
+        <location line="+1155"/>
         <location line="+25"/>
-        <location line="+3244"/>
-        <location line="+19734"/>
+        <location line="+3270"/>
+        <location line="+19836"/>
         <source>Model</source>
         <translation type="unfinished">Model</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-24141"/>
+        <location filename="../src/app/application_shell.cpp" line="-24284"/>
         <location line="+290"/>
-        <location line="+4068"/>
+        <location line="+4109"/>
         <location line="+960"/>
         <location line="+37"/>
         <location line="+3097"/>
-        <location line="+6003"/>
+        <location line="+6096"/>
         <location filename="../src/app/asset_workbench_actions.cpp" line="+94"/>
         <location line="+2"/>
         <location line="+2"/>
@@ -126448,12 +126548,12 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">Audio</translation>
     </message>
     <message>
-        <location line="-14453"/>
+        <location line="-14587"/>
         <source>Binary</source>
         <translation type="unfinished">Biner</translation>
     </message>
     <message>
-        <location line="+1863"/>
+        <location line="+1904"/>
         <location line="+1288"/>
         <source>Add</source>
         <translation type="unfinished">Tambah</translation>
@@ -126472,17 +126572,17 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+21437"/>
+        <location line="+21539"/>
         <source>Delete</source>
         <translation type="unfinished">Hapus</translation>
     </message>
     <message>
-        <location line="-21445"/>
+        <location line="-21547"/>
         <source>Stage</source>
         <translation type="unfinished">Tahapkan</translation>
     </message>
     <message>
-        <location line="-3056"/>
+        <location line="-3097"/>
         <source>%1 GiB</source>
         <translation type="unfinished">%1 GiB</translation>
     </message>
@@ -126545,14 +126645,14 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+1"/>
         <location line="+29"/>
-        <location line="+11661"/>
+        <location line="+11702"/>
         <location line="+1121"/>
         <location filename="../src/app/package_context_actions.cpp" line="+7"/>
         <source>Format: %1</source>
         <translation type="unfinished">Format: %1</translation>
     </message>
     <message>
-        <location line="-12810"/>
+        <location line="-12851"/>
         <source>Dimensions: %1</source>
         <translation type="unfinished">Dimensi: %1</translation>
     </message>
@@ -126581,35 +126681,35 @@ Replace what is there with this variant?</source>
         <location line="+61"/>
         <location line="+1"/>
         <location line="+1"/>
-        <location line="+5952"/>
+        <location line="+5993"/>
         <location line="+6"/>
         <location line="+5517"/>
         <location line="+1"/>
         <location line="+887"/>
         <location line="+384"/>
-        <location line="+591"/>
+        <location line="+676"/>
         <location line="+365"/>
         <source>yes</source>
         <translation type="unfinished">ya</translation>
     </message>
     <message>
-        <location line="-13766"/>
+        <location line="-13892"/>
         <location line="+61"/>
         <location line="+1"/>
         <location line="+1"/>
-        <location line="+5952"/>
+        <location line="+5993"/>
         <location line="+6"/>
         <location line="+5517"/>
         <location line="+1"/>
         <location line="+887"/>
         <location line="+384"/>
-        <location line="+591"/>
+        <location line="+676"/>
         <location line="+365"/>
         <source>no</source>
         <translation type="unfinished">tidak</translation>
     </message>
     <message>
-        <location line="-13764"/>
+        <location line="-13890"/>
         <source>Palette sample:</source>
         <translation type="unfinished">Sampel palet:</translation>
     </message>
@@ -126655,13 +126755,13 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+18"/>
-        <location line="+13685"/>
-        <location line="+408"/>
+        <location line="+13811"/>
+        <location line="+416"/>
         <source>Name: %1</source>
         <translation type="unfinished">Nama: %1</translation>
     </message>
     <message>
-        <location line="-14092"/>
+        <location line="-14226"/>
         <source>Profile ID: %1</source>
         <translation type="unfinished">ID profil: %1</translation>
     </message>
@@ -126672,12 +126772,12 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+11919"/>
+        <location line="+11960"/>
         <source>Engine: %1</source>
         <translation type="unfinished">Engine: %1</translation>
     </message>
     <message>
-        <location line="-11918"/>
+        <location line="-11959"/>
         <location line="+29"/>
         <source>Root: %1</source>
         <translation type="unfinished">Root: %1</translation>
@@ -126700,22 +126800,22 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+0"/>
         <location line="+1"/>
-        <location line="+5942"/>
+        <location line="+5983"/>
         <location line="+19"/>
         <location line="+1"/>
         <location line="+149"/>
         <location line="+6019"/>
-        <location line="+1210"/>
+        <location line="+1295"/>
         <location line="+164"/>
         <location line="+3"/>
         <location line="+95"/>
-        <location line="+450"/>
+        <location line="+458"/>
         <location line="+1"/>
         <source>none</source>
         <translation type="unfinished">tidak ada</translation>
     </message>
     <message>
-        <location line="-14053"/>
+        <location line="-14187"/>
         <source>Mod package paths: %1</source>
         <translation type="unfinished">Jalur paket mod: %1</translation>
     </message>
@@ -126762,42 +126862,42 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+12766"/>
+        <location line="+12807"/>
         <source>blocked</source>
         <translation type="unfinished">diblokir</translation>
     </message>
     <message>
-        <location line="-12764"/>
+        <location line="-12805"/>
         <source>Errors:</source>
         <translation type="unfinished">Kesalahan:</translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+13533"/>
+        <location line="+13659"/>
         <source>Warnings:</source>
         <translation type="unfinished">Peringatan:</translation>
     </message>
     <message>
-        <location line="-13522"/>
-        <location line="+6662"/>
-        <location line="+19715"/>
+        <location line="-13648"/>
+        <location line="+6703"/>
+        <location line="+19817"/>
         <source>Project: %1</source>
         <translation type="unfinished">Proyek: %1</translation>
     </message>
     <message>
-        <location line="-26375"/>
+        <location line="-26518"/>
         <source>Ready checks: %1</source>
         <translation type="unfinished">Pemeriksaan siap: %1</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+13334"/>
+        <location line="+13460"/>
         <location filename="../src/app/package_context_actions.cpp" line="+2"/>
         <source>Warnings: %1</source>
         <translation type="unfinished">Peringatan: %1</translation>
     </message>
     <message>
-        <location line="-13333"/>
+        <location line="-13459"/>
         <source>Failures: %1</source>
         <translation type="unfinished">Kegagalan: %1</translation>
     </message>
@@ -126813,21 +126913,21 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+4736"/>
+        <location line="+4777"/>
         <source>Images</source>
         <translation type="unfinished">Gambar</translation>
     </message>
     <message>
-        <location line="-4733"/>
+        <location line="-4774"/>
         <source>Text And Maps</source>
         <translation type="unfinished">Teks dan peta</translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+4762"/>
+        <location line="+4803"/>
         <location line="+41"/>
         <location line="+8047"/>
-        <location line="+1306"/>
+        <location line="+1399"/>
         <location filename="../src/app/asset_workbench_actions.cpp" line="-18"/>
         <location line="+2"/>
         <location line="+2"/>
@@ -126839,7 +126939,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">Model</translation>
     </message>
     <message>
-        <location line="-14153"/>
+        <location line="-14287"/>
         <source>Compiled Maps</source>
         <translation type="unfinished">Peta terkompilasi</translation>
     </message>
@@ -126849,7 +126949,12 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">Biner atau tidak diketahui</translation>
     </message>
     <message>
-        <location line="+241"/>
+        <location line="+234"/>
+        <source>Checking for unsaved work</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
         <source>Map recovery checkpoint failed</source>
         <translation type="unfinished">Titik pemulihan peta gagal</translation>
     </message>
@@ -126869,7 +126974,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">Titik pemulihan peta tersedia di File &gt; Pulihkan peta.</translation>
     </message>
     <message>
-        <location line="+288"/>
+        <location line="+302"/>
         <source>Suggestions: %1</source>
         <translation type="unfinished">Saran: %1</translation>
     </message>
@@ -126880,7 +126985,7 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+1795"/>
+        <location line="+1821"/>
         <location line="+5398"/>
         <location line="+6"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="+16"/>
@@ -126890,21 +126995,21 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">Nilai</translation>
     </message>
     <message>
-        <location line="-6939"/>
+        <location line="-6965"/>
         <location line="+25"/>
-        <location line="+4282"/>
+        <location line="+4308"/>
         <source>Format</source>
         <translation type="unfinished">Format</translation>
     </message>
     <message>
-        <location line="-4306"/>
-        <location line="+24957"/>
+        <location line="-4332"/>
+        <location line="+25085"/>
         <location filename="../src/app/code_language_actions.cpp" line="+0"/>
         <source>Error</source>
         <translation type="unfinished">Kesalahan</translation>
     </message>
     <message>
-        <location line="-24953"/>
+        <location line="-25081"/>
         <source>No model metadata could be read from this entry.</source>
         <translation type="unfinished">Tidak ada metadata model yang dapat dibaca dari entri ini.</translation>
     </message>
@@ -126930,24 +127035,24 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+3828"/>
+        <location line="+3854"/>
         <source>Frames</source>
         <translation type="unfinished">Frame</translation>
     </message>
     <message>
-        <location line="-3827"/>
+        <location line="-3853"/>
         <location filename="../src/app/level_view_actions.cpp" line="+172"/>
         <source>Surfaces</source>
         <translation type="unfinished">Permukaan</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+1253"/>
+        <location line="+1279"/>
         <source>Vertices</source>
         <translation type="unfinished">Verteks</translation>
     </message>
     <message>
-        <location line="-1252"/>
+        <location line="-1278"/>
         <source>Triangles</source>
         <translation type="unfinished">Segitiga</translation>
     </message>
@@ -126958,19 +127063,19 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+24658"/>
+        <location line="+24786"/>
         <location filename="../src/app/level_find_replace_actions.cpp" line="+318"/>
         <source>%1 to %2</source>
         <translation type="unfinished">%1 hingga %2</translation>
     </message>
     <message>
-        <location line="-24657"/>
+        <location line="-24785"/>
         <source>Radius</source>
         <translation type="unfinished">Radius</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+19862"/>
+        <location line="+19990"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="+51"/>
         <location line="+3"/>
         <location filename="../src/app/level_view_actions.cpp" line="-20"/>
@@ -126978,7 +127083,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">Geometri</translation>
     </message>
     <message>
-        <location line="-19862"/>
+        <location line="-19990"/>
         <source>Header only; this format&apos;s geometry is not decoded yet.</source>
         <translation type="unfinished">Hanya header; geometri format ini belum didekode.</translation>
     </message>
@@ -127076,15 +127181,25 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="+47"/>
-        <location line="+15593"/>
+        <location line="+15721"/>
         <source>VibeStudio</source>
         <translation type="unfinished">VibeStudio</translation>
     </message>
     <message>
-        <location line="-15573"/>
-        <location line="+7775"/>
-        <location line="+7484"/>
-        <location line="+1842"/>
+        <location line="-15713"/>
+        <source>Preparing commands and menus</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Framing the window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <location line="+7796"/>
+        <location line="+7577"/>
+        <location line="+1851"/>
         <location line="+3716"/>
         <location line="+3048"/>
         <location filename="../src/app/level_filter_tag_actions.cpp" line="+369"/>
@@ -127096,24 +127211,129 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23852"/>
+        <location line="-23975"/>
         <source>Studio work surface</source>
         <translation type="unfinished">Area kerja studio</translation>
     </message>
     <message>
-        <location line="+133"/>
+        <location line="+36"/>
+        <source>Building the Workspace page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Levels page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Models page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Textures page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Audio page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Packages page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Code page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Shaders page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Build page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Building the Settings page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Opening the side panels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Styling the pages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+28"/>
+        <source>Reading the workspace</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Reading setup and game installations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Reading the package browser</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Finding the build toolchain</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Preparing the Levels workbench</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Preparing the editors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>Restoring the window layout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Applying your preferences</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Checking project, package and compiler status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
         <source>Studio ready</source>
         <translation type="unfinished">Studio siap</translation>
     </message>
     <message>
         <location line="+156"/>
-        <location line="+12639"/>
+        <location line="+12732"/>
         <location line="+184"/>
         <source>Workspace</source>
         <translation type="unfinished">Ruang kerja</translation>
     </message>
     <message>
-        <location line="-12822"/>
+        <location line="-12915"/>
         <source>Workspace header</source>
         <translation type="unfinished">Header ruang kerja</translation>
     </message>
@@ -127193,12 +127413,12 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="+26"/>
-        <location line="+12233"/>
+        <location line="+12318"/>
         <source>Project Health</source>
         <translation type="unfinished">Kesehatan proyek</translation>
     </message>
     <message>
-        <location line="-12232"/>
+        <location line="-12317"/>
         <source>Workspace context panels</source>
         <translation type="unfinished">Panel konteks ruang kerja</translation>
     </message>
@@ -127221,7 +127441,7 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
         <location line="+3"/>
         <location line="+1965"/>
         <location line="+2084"/>
-        <location line="+14846"/>
+        <location line="+14948"/>
         <location line="+4840"/>
         <location line="+666"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="+281"/>
@@ -127229,7 +127449,7 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
         <translation type="unfinished">Masalah</translation>
     </message>
     <message>
-        <location line="-24392"/>
+        <location line="-24494"/>
         <source>Workspace search</source>
         <translation type="unfinished">Pencarian ruang kerja</translation>
     </message>
@@ -127270,12 +127490,12 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="+5"/>
-        <location line="+16977"/>
+        <location line="+17079"/>
         <source>Copy Path</source>
         <translation type="unfinished">Salin jalur</translation>
     </message>
     <message>
-        <location line="-16976"/>
+        <location line="-17078"/>
         <source>Copy selected virtual path</source>
         <translation type="unfinished">Salin jalur virtual terpilih</translation>
     </message>
@@ -127395,12 +127615,12 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="+8"/>
-        <location line="+12016"/>
+        <location line="+12101"/>
         <source>Game Installations</source>
         <translation type="unfinished">Instalasi game</translation>
     </message>
     <message>
-        <location line="-12014"/>
+        <location line="-12099"/>
         <source>Game installation summary</source>
         <translation type="unfinished">Ringkasan instalasi game</translation>
     </message>
@@ -127524,14 +127744,14 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="-9318"/>
-        <location line="+21872"/>
+        <location line="+21974"/>
         <location line="+279"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="+1146"/>
         <source>Entity</source>
         <translation type="unfinished">Entitas</translation>
     </message>
     <message>
-        <location line="-22150"/>
+        <location line="-22252"/>
         <source>Package Plan</source>
         <translation type="unfinished">Rencana paket</translation>
     </message>
@@ -127593,12 +127813,12 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     <message>
         <location line="+5"/>
         <location line="+6438"/>
-        <location line="+5998"/>
+        <location line="+6091"/>
         <source>Levels</source>
         <translation type="unfinished">Level</translation>
     </message>
     <message>
-        <location line="-12435"/>
+        <location line="-12528"/>
         <source>Level editor header</source>
         <translation type="unfinished">Header editor level</translation>
     </message>
@@ -127721,12 +127941,12 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="+285"/>
-        <location line="+21656"/>
+        <location line="+21758"/>
         <source>Run the pipeline, then launch the game with the built map once it succeeds.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21629"/>
+        <location line="-21731"/>
         <source>Pipelines…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -127768,12 +127988,12 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+11546"/>
+        <location line="+11639"/>
         <source>Make your own launch profiles: a name and the engine arguments, with {map}, {mod}, {basedir} and {bsp} filled in at launch.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11499"/>
+        <location line="-11592"/>
         <source>The extra arguments have an unclosed quote, so they are not kept or used until it is closed.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -127904,12 +128124,12 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+12112"/>
+        <location line="+12205"/>
         <source>Make this the connector the Assistant, Generate Level, and Edit Map with AI ask.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11823"/>
+        <location line="-11916"/>
         <location filename="../src/app/asset_workbench_actions.cpp" line="-22"/>
         <source>Edit the displayed mip level or sprite frame with its native export metadata.</source>
         <translation type="unfinished">Edit level mip atau frame sprite yang ditampilkan beserta metadata ekspor aslinya.</translation>
@@ -128007,17 +128227,17 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     <message>
         <location line="+1"/>
         <location line="+68"/>
-        <location line="+8464"/>
+        <location line="+8566"/>
         <source>Loading texture preview…</source>
         <translation type="unfinished">Memuat pratinjau tekstur…</translation>
     </message>
     <message>
-        <location line="-5704"/>
+        <location line="-5713"/>
         <source>Write the edited map to a new path without touching the source.</source>
         <translation type="unfinished">Tulis peta yang telah diedit ke jalur baru tanpa menyentuh sumbernya.</translation>
     </message>
     <message>
-        <location line="-12446"/>
+        <location line="-12539"/>
         <location line="+747"/>
         <source>Open Map</source>
         <translation type="unfinished">Buka peta</translation>
@@ -128954,7 +129174,7 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
         <location line="+2368"/>
         <location line="+147"/>
         <location line="+3056"/>
-        <location line="+6532"/>
+        <location line="+6625"/>
         <location filename="../src/app/asset_workbench_actions.cpp" line="-2"/>
         <location line="+2"/>
         <location line="+2"/>
@@ -128964,7 +129184,7 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
         <translation type="unfinished">Tekstur</translation>
     </message>
     <message>
-        <location line="-6533"/>
+        <location line="-6626"/>
         <location filename="../src/app/level_map_inspector_actions.cpp" line="+101"/>
         <source>Statistics</source>
         <translation type="unfinished">Statistik</translation>
@@ -128983,24 +129203,24 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="-5563"/>
-        <location line="+12309"/>
+        <location line="+12402"/>
         <source>Undo the last map edit.</source>
         <translation type="unfinished">Urungkan pengeditan peta terakhir.</translation>
     </message>
     <message>
-        <location line="-12304"/>
+        <location line="-12397"/>
         <location line="+802"/>
         <source>Redo</source>
         <translation type="unfinished">Ulangi</translation>
     </message>
     <message>
         <location line="-802"/>
-        <location line="+12307"/>
+        <location line="+12400"/>
         <source>Redo the last undone map edit.</source>
         <translation type="unfinished">Ulangi pengeditan peta terakhir yang diurungkan.</translation>
     </message>
     <message>
-        <location line="-12298"/>
+        <location line="-12391"/>
         <source>Map projection</source>
         <translation type="unfinished">Proyeksi peta</translation>
     </message>
@@ -129032,12 +129252,12 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+12694"/>
+        <location line="+12787"/>
         <source>Grid %1</source>
         <translation type="unfinished">Kisi %1</translation>
     </message>
     <message>
-        <location line="-12689"/>
+        <location line="-12782"/>
         <source>Snap</source>
         <translation type="unfinished">Snap</translation>
     </message>
@@ -129059,18 +129279,18 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="-15"/>
-        <location line="+20846"/>
+        <location line="+20948"/>
         <source>Things</source>
         <translation type="unfinished">Thing</translation>
     </message>
     <message>
-        <location line="-20846"/>
-        <location line="+20847"/>
+        <location line="-20948"/>
+        <location line="+20949"/>
         <source>Draw Doom things.</source>
         <translation type="unfinished">Gambar thing Doom.</translation>
     </message>
     <message>
-        <location line="-20846"/>
+        <location line="-20948"/>
         <source>Sector Fill</source>
         <translation type="unfinished">Isian sektor</translation>
     </message>
@@ -129125,13 +129345,13 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     <message>
         <location line="+6"/>
         <location line="+2488"/>
-        <location line="+19861"/>
+        <location line="+19963"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="-970"/>
         <source>Zoom to Fit</source>
         <translation type="unfinished">Zoom agar pas</translation>
     </message>
     <message>
-        <location line="-22349"/>
+        <location line="-22451"/>
         <source>Frame the whole map in the viewport.</source>
         <translation type="unfinished">Bingkai seluruh peta di viewport.</translation>
     </message>
@@ -129142,12 +129362,12 @@ Klik ganda atau tekan Enter untuk menampilkannya di area Tekstur.</translation>
     </message>
     <message>
         <location line="+11"/>
-        <location line="+22334"/>
+        <location line="+22436"/>
         <source>Zoom to Selection</source>
         <translation type="unfinished">Zoom ke pilihan</translation>
     </message>
     <message>
-        <location line="-22334"/>
+        <location line="-22436"/>
         <source>Frame the selected objects in the viewport (F).</source>
         <translation type="unfinished">Bingkai objek terpilih di viewport (F).</translation>
     </message>
@@ -129921,7 +130141,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+12049"/>
+        <location filename="../src/app/application_shell.cpp" line="+12142"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="-822"/>
         <source>Change a key on the selected map object.</source>
         <translation type="unfinished">Ubah sebuah kunci pada objek peta terpilih.</translation>
@@ -129938,7 +130158,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Pindahkan objek peta terpilih sebesar delta tertentu.</translation>
     </message>
     <message>
-        <location line="-12007"/>
+        <location line="-12100"/>
         <source>Entity inspector</source>
         <translation type="unfinished">Inspektur entitas</translation>
     </message>
@@ -129946,7 +130166,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+3"/>
         <location line="+1757"/>
         <location line="+3623"/>
-        <location line="+8443"/>
+        <location line="+8536"/>
         <location filename="../src/app/level_editing_actions.cpp" line="-39"/>
         <location line="+32"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="-426"/>
@@ -129956,7 +130176,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Kunci</translation>
     </message>
     <message>
-        <location line="-13802"/>
+        <location line="-13895"/>
         <source>Colour for %1</source>
         <translation type="unfinished">Warna untuk %1</translation>
     </message>
@@ -130087,12 +130307,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="+3124"/>
         <location line="+28"/>
-        <location line="+10791"/>
+        <location line="+10893"/>
         <source>Inspector</source>
         <translation type="unfinished">Inspektur</translation>
     </message>
     <message>
-        <location line="-8840"/>
+        <location line="-8942"/>
         <source>Health</source>
         <translation type="unfinished">Kesehatan</translation>
     </message>
@@ -130100,13 +130320,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="-4554"/>
         <location line="+1274"/>
         <location line="+374"/>
-        <location line="+16706"/>
+        <location line="+16808"/>
         <location filename="../src/app/level_preview_actions.cpp" line="+48"/>
         <source>Details</source>
         <translation type="unfinished">Detail</translation>
     </message>
     <message>
-        <location line="-15886"/>
+        <location line="-15988"/>
         <source>Outline</source>
         <translation type="unfinished">Kerangka</translation>
     </message>
@@ -130117,19 +130337,19 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+20"/>
-        <location line="+14475"/>
+        <location line="+14577"/>
         <location line="+11"/>
         <source>No map open</source>
         <translation type="unfinished">Tidak ada peta yang terbuka</translation>
     </message>
     <message>
-        <location line="-14485"/>
-        <location line="+14486"/>
+        <location line="-14587"/>
+        <location line="+14588"/>
         <source>Open a Quake, Quake II, or Quake III .map, or a Doom WAD, to inspect its entities, brushes, and health in the viewport.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14474"/>
+        <location line="-14576"/>
         <location line="+6"/>
         <source>Recent maps</source>
         <translation type="unfinished">Peta terbaru</translation>
@@ -130143,12 +130363,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+129"/>
         <location line="+5432"/>
         <location line="+4694"/>
-        <location line="+1318"/>
+        <location line="+1411"/>
         <source>Packages</source>
         <translation type="unfinished">Paket</translation>
     </message>
     <message>
-        <location line="-11443"/>
+        <location line="-11536"/>
         <source>Package manager header</source>
         <translation type="unfinished">Header manajer paket</translation>
     </message>
@@ -130319,12 +130539,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+3"/>
-        <location line="+10512"/>
+        <location line="+10597"/>
         <source>Package extraction cancellation requested</source>
         <translation type="unfinished">Pembatalan ekstraksi paket diminta</translation>
     </message>
     <message>
-        <location line="-10507"/>
+        <location line="-10592"/>
         <source>New Folder</source>
         <translation type="unfinished">Folder baru</translation>
     </message>
@@ -130380,12 +130600,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+12146"/>
+        <location line="+12239"/>
         <source>Stage a rename for the selected package entry.</source>
         <translation type="unfinished">Tahapkan penggantian nama untuk entri paket yang dipilih.</translation>
     </message>
     <message>
-        <location line="-12145"/>
+        <location line="-12238"/>
         <source>Stage package delete</source>
         <translation type="unfinished">Tahapkan penghapusan dari paket</translation>
     </message>
@@ -130406,12 +130626,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+12157"/>
+        <location line="+12250"/>
         <source>Compare the source package with the staged result before saving.</source>
         <translation type="unfinished">Bandingkan paket sumber dengan hasil yang ditahapkan sebelum menyimpan.</translation>
     </message>
     <message>
-        <location line="-12143"/>
+        <location line="-12236"/>
         <source>Package compression level</source>
         <translation type="unfinished">Tingkat kompresi paket</translation>
     </message>
@@ -130585,13 +130805,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+4554"/>
         <location line="+1829"/>
         <location line="+2136"/>
-        <location line="+3948"/>
+        <location line="+4041"/>
         <location filename="../src/app/level_asset_browsers.cpp" line="-209"/>
         <source>Preview</source>
         <translation type="unfinished">Pratinjau</translation>
     </message>
     <message>
-        <location line="-12466"/>
+        <location line="-12559"/>
         <source>Staging</source>
         <translation type="unfinished">Penahapan</translation>
     </message>
@@ -130672,7 +130892,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+30"/>
-        <location line="+13910"/>
+        <location line="+14012"/>
         <location line="+8"/>
         <location line="+47"/>
         <location line="+2547"/>
@@ -130682,31 +130902,31 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Tidak ada paket yang terbuka</translation>
     </message>
     <message>
-        <location line="-17726"/>
-        <location line="+13918"/>
+        <location line="-17828"/>
+        <location line="+14020"/>
         <source>Open a PAK, WAD, ZIP, or PK3 archive, or a folder, to browse its entries, preview content, and stage changes for a new package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-13896"/>
-        <location line="+10982"/>
+        <location line="-13998"/>
+        <location line="+11075"/>
         <location filename="../src/app/level_view_actions.cpp" line="-145"/>
         <source>Build</source>
         <translation type="unfinished">Build</translation>
     </message>
     <message>
-        <location line="-10981"/>
+        <location line="-11074"/>
         <source>Build header</source>
         <translation type="unfinished">Header build</translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+22280"/>
+        <location line="+22382"/>
         <source>Inspect Artifacts</source>
         <translation type="unfinished">Periksa artefak</translation>
     </message>
     <message>
-        <location line="-22279"/>
+        <location line="-22381"/>
         <source>Inspect compiled artifacts</source>
         <translation type="unfinished">Periksa artefak terkompilasi</translation>
     </message>
@@ -130719,8 +130939,8 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="-380"/>
         <location line="+401"/>
         <location line="+2380"/>
-        <location line="+9980"/>
-        <location line="+3011"/>
+        <location line="+10073"/>
+        <location line="+3020"/>
         <location line="+985"/>
         <location filename="../src/app/code_formatting.cpp" line="+58"/>
         <location filename="../src/app/code_index_actions.cpp" line="+68"/>
@@ -130731,7 +130951,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Batal</translation>
     </message>
     <message>
-        <location line="-16355"/>
+        <location line="-16457"/>
         <source>Cancel build pipeline</source>
         <translation type="unfinished">Batalkan pipeline build</translation>
     </message>
@@ -130868,12 +131088,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+5"/>
-        <location line="+22538"/>
+        <location line="+22640"/>
         <source>Show Output</source>
         <translation type="unfinished">Tampilkan keluaran</translation>
     </message>
     <message>
-        <location line="-22538"/>
+        <location line="-22640"/>
         <source>Open the folder that holds the compiled map.</source>
         <translation type="unfinished">Buka folder yang berisi peta terkompilasi.</translation>
     </message>
@@ -130889,12 +131109,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+0"/>
-        <location line="+11780"/>
+        <location line="+11873"/>
         <source>Stage the built map into the open package under maps/, for Save As to write.</source>
         <translation type="unfinished">Tahapkan peta hasil build ke dalam paket yang terbuka di bawah maps/, untuk ditulis oleh Simpan sebagai.</translation>
     </message>
     <message>
-        <location line="-11778"/>
+        <location line="-11871"/>
         <source>Add the built map to the open package</source>
         <translation type="unfinished">Tambahkan peta hasil build ke paket yang terbuka</translation>
     </message>
@@ -130905,12 +131125,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+0"/>
-        <location line="+11882"/>
+        <location line="+11975"/>
         <source>Ask the Assistant about the last build&apos;s problems. You see what is sent before it goes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11880"/>
+        <location line="-11973"/>
         <source>Explain the build problems with the Assistant</source>
         <translation type="unfinished">Jelaskan masalah build dengan Asisten</translation>
     </message>
@@ -130921,12 +131141,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+21910"/>
+        <location line="+22012"/>
         <source>Build Pipeline</source>
         <translation type="unfinished">Pipeline build</translation>
     </message>
     <message>
-        <location line="-21909"/>
+        <location line="-22011"/>
         <source>Chained compile stages with per-stage logs, diagnostics, and output paths.</source>
         <translation type="unfinished">Tahap kompilasi berantai dengan log, diagnostik, dan jalur keluaran per tahap.</translation>
     </message>
@@ -131169,12 +131389,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+21539"/>
+        <location line="+21641"/>
         <source>Map name to load, for example start</source>
         <translation type="unfinished">Nama peta yang akan dimuat, misalnya start</translation>
     </message>
     <message>
-        <location line="-21537"/>
+        <location line="-21639"/>
         <source>Map</source>
         <translation type="unfinished">Peta</translation>
     </message>
@@ -131202,14 +131422,14 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+5"/>
-        <location line="+21997"/>
+        <location line="+22099"/>
         <location line="+19"/>
         <location line="+3"/>
         <source>Launch Game</source>
         <translation type="unfinished">Luncurkan game</translation>
     </message>
     <message>
-        <location line="-22017"/>
+        <location line="-22119"/>
         <source>Launch configured game</source>
         <translation type="unfinished">Luncurkan game yang telah dikonfigurasi</translation>
     </message>
@@ -131266,14 +131486,14 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+81"/>
-        <location line="+10289"/>
+        <location line="+10382"/>
         <location line="+215"/>
         <location filename="../src/app/level_shapes_panel.cpp" line="+127"/>
         <source>Settings</source>
         <translation type="unfinished">Pengaturan</translation>
     </message>
     <message>
-        <location line="-10503"/>
+        <location line="-10596"/>
         <source>Settings header</source>
         <translation type="unfinished">Header pengaturan</translation>
     </message>
@@ -131305,12 +131525,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="+7"/>
         <location line="+1922"/>
-        <location line="+7779"/>
+        <location line="+7864"/>
         <source>Setup status</source>
         <translation type="unfinished">Status penyiapan</translation>
     </message>
     <message>
-        <location line="-9698"/>
+        <location line="-9783"/>
         <source>Current setup step</source>
         <translation type="unfinished">Langkah penyiapan saat ini</translation>
     </message>
@@ -131403,12 +131623,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Penampilan</translation>
     </message>
     <message>
-        <location line="+10024"/>
+        <location line="+10109"/>
         <source>Accessibility and language preferences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10008"/>
+        <location line="-10093"/>
         <location line="+13"/>
         <source>Theme</source>
         <translation type="unfinished">Tema</translation>
@@ -131421,13 +131641,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="-3"/>
-        <location line="+9438"/>
-        <location line="+8812"/>
+        <location line="+9523"/>
+        <location line="+8829"/>
         <source>%1%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18244"/>
+        <location line="-18346"/>
         <source>UI density</source>
         <translation type="unfinished">Kepadatan UI</translation>
     </message>
@@ -131453,7 +131673,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Navigasi</translation>
     </message>
     <message>
-        <location line="+14090"/>
+        <location line="+14192"/>
         <source>Reduce motion</source>
         <translation type="unfinished">Kurangi gerakan</translation>
     </message>
@@ -131473,7 +131693,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Teks ke ucapan</translation>
     </message>
     <message>
-        <location line="-14141"/>
+        <location line="-14243"/>
         <location line="+20"/>
         <source>Language</source>
         <translation type="unfinished">Bahasa</translation>
@@ -131581,13 +131801,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Penalaran</translation>
     </message>
     <message>
-        <location line="+13987"/>
+        <location line="+14089"/>
         <location line="+3"/>
         <source>Voice</source>
         <translation type="unfinished">Suara</translation>
     </message>
     <message>
-        <location line="-13979"/>
+        <location line="-14081"/>
         <location filename="../src/app/level_protected_property_actions.cpp" line="+127"/>
         <source>Local</source>
         <translation type="unfinished">Lokal</translation>
@@ -131611,23 +131831,23 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="+18"/>
-        <location line="+12105"/>
+        <location line="+12198"/>
         <source>Model name</source>
         <translation type="unfinished">Nama model</translation>
     </message>
     <message>
-        <location line="-12104"/>
+        <location line="-12197"/>
         <source>The model&apos;s name as the provider or runtime lists it.</source>
         <translation type="unfinished">Nama model seperti yang tercantum oleh penyedia atau runtime.</translation>
     </message>
     <message>
         <location line="+11"/>
-        <location line="+12092"/>
+        <location line="+12185"/>
         <source>Endpoint address</source>
         <translation type="unfinished">Alamat endpoint</translation>
     </message>
     <message>
-        <location line="-12091"/>
+        <location line="-12184"/>
         <source>Leave empty for the provider&apos;s own address. A local runtime is usually http://localhost with its port.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -131635,12 +131855,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location filename="../src/app/ai_generation_actions.cpp" line="-96"/>
         <location line="+106"/>
         <location filename="../src/app/application_shell.cpp" line="+1"/>
-        <location line="+12075"/>
+        <location line="+12168"/>
         <source>Endpoint</source>
         <translation type="unfinished">Endpoint</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-12064"/>
+        <location filename="../src/app/application_shell.cpp" line="-12157"/>
         <source>API key source</source>
         <translation type="unfinished">Sumber kunci API</translation>
     </message>
@@ -131950,12 +132170,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+3"/>
         <location line="+93"/>
         <location line="+147"/>
-        <location line="+15584"/>
+        <location line="+15686"/>
         <source>Palette</source>
         <translation type="unfinished">Palet</translation>
     </message>
     <message>
-        <location line="-15823"/>
+        <location line="-15925"/>
         <source>Palette used to decode indexed idTech art. Real palettes are read from the open package when it has one.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132036,12 +132256,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+3"/>
-        <location line="+15094"/>
+        <location line="+15196"/>
         <source>No palette resolved yet.</source>
         <translation type="unfinished">Belum ada palet yang ditentukan.</translation>
     </message>
     <message>
-        <location line="-15092"/>
+        <location line="-15194"/>
         <source>Palette source</source>
         <translation type="unfinished">Sumber palet</translation>
     </message>
@@ -132248,12 +132468,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+17"/>
-        <location line="+12366"/>
+        <location line="+12468"/>
         <source>No textures to show</source>
         <translation type="unfinished">Tidak ada tekstur untuk ditampilkan</translation>
     </message>
     <message>
-        <location line="-12346"/>
+        <location line="-12448"/>
         <source>Model workbench header</source>
         <translation type="unfinished">Header meja kerja model</translation>
     </message>
@@ -132369,7 +132589,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+9"/>
-        <location line="+15948"/>
+        <location line="+16050"/>
         <location filename="../src/app/level_asset_browsers.cpp" line="+62"/>
         <location line="+100"/>
         <location line="+316"/>
@@ -132377,13 +132597,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Putar</translation>
     </message>
     <message>
-        <location line="-15948"/>
-        <location line="+15956"/>
+        <location line="-16050"/>
+        <location line="+16058"/>
         <source>Play or pause the model animation (Space).</source>
         <translation type="unfinished">Putar atau jeda animasi model (Space).</translation>
     </message>
     <message>
-        <location line="-15954"/>
+        <location line="-16056"/>
         <source>Play or pause the model animation</source>
         <translation type="unfinished">Putar atau jeda animasi model</translation>
     </message>
@@ -132616,8 +132836,8 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location filename="../src/app/application_shell.cpp" line="+6614"/>
         <location line="+743"/>
         <location line="+360"/>
-        <location line="+596"/>
-        <location line="+7003"/>
+        <location line="+681"/>
+        <location line="+7020"/>
         <location line="+834"/>
         <location filename="../src/app/model_page.cpp" line="-97"/>
         <source>Summary</source>
@@ -132629,7 +132849,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Skin</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15977"/>
+        <location filename="../src/app/application_shell.cpp" line="-16079"/>
         <location filename="../src/app/model_page.cpp" line="+1"/>
         <source>Metadata</source>
         <translation type="unfinished">Metadata</translation>
@@ -132658,12 +132878,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+19"/>
-        <location line="+12109"/>
+        <location line="+12211"/>
         <source>No models to show</source>
         <translation type="unfinished">Tidak ada model untuk ditampilkan</translation>
     </message>
     <message>
-        <location line="-12089"/>
+        <location line="-12191"/>
         <source>Audio workbench header</source>
         <translation type="unfinished">Header meja kerja audio</translation>
     </message>
@@ -132726,12 +132946,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+16073"/>
+        <location line="+16175"/>
         <source>Waveform</source>
         <translation type="unfinished">Bentuk gelombang</translation>
     </message>
     <message>
-        <location line="-16072"/>
+        <location line="-16174"/>
         <source>Format details</source>
         <translation type="unfinished">Detail format</translation>
     </message>
@@ -132772,13 +132992,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+6"/>
-        <location line="+12948"/>
+        <location line="+13050"/>
         <location line="+1"/>
         <source>Volume</source>
         <translation type="unfinished">Volume</translation>
     </message>
     <message>
-        <location line="-12941"/>
+        <location line="-13043"/>
         <source>Playback volume</source>
         <translation type="unfinished">Volume pemutaran</translation>
     </message>
@@ -132879,19 +133099,19 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+20"/>
-        <location line="+11915"/>
+        <location line="+12017"/>
         <source>No sounds to show</source>
         <translation type="unfinished">Tidak ada suara untuk ditampilkan</translation>
     </message>
     <message>
-        <location line="-11895"/>
+        <location line="-11997"/>
         <location line="+2931"/>
-        <location line="+6011"/>
+        <location line="+6104"/>
         <source>Code</source>
         <translation type="unfinished">Kode</translation>
     </message>
     <message>
-        <location line="-8941"/>
+        <location line="-9034"/>
         <source>Code workbench header</source>
         <translation type="unfinished">Header meja kerja kode</translation>
     </message>
@@ -132908,12 +133128,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+9917"/>
+        <location line="+10010"/>
         <source>Scan the project for languages, symbols, build tasks, and launch profiles.</source>
         <translation type="unfinished">Pindai proyek untuk mencari bahasa, simbol, tugas build, dan profil peluncuran.</translation>
     </message>
     <message>
-        <location line="-9911"/>
+        <location line="-10004"/>
         <source>Code tools</source>
         <translation type="unfinished">Alat kode</translation>
     </message>
@@ -132976,12 +133196,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+12"/>
-        <location line="+16642"/>
+        <location line="+16744"/>
         <source>No file open.</source>
         <translation type="unfinished">Tidak ada file yang terbuka.</translation>
     </message>
     <message>
-        <location line="-16634"/>
+        <location line="-16736"/>
         <location line="+2927"/>
         <source>Code editor</source>
         <translation type="unfinished">Editor kode</translation>
@@ -133018,12 +133238,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+4"/>
-        <location line="+16594"/>
+        <location line="+16696"/>
         <source>Choose a file under Project files to edit it here.</source>
         <translation type="unfinished">Pilih file di bawah File proyek untuk mengeditnya di sini.</translation>
     </message>
     <message>
-        <location line="-16581"/>
+        <location line="-16683"/>
         <source>Open files</source>
         <translation type="unfinished">File terbuka</translation>
     </message>
@@ -133084,12 +133304,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+18361"/>
+        <location line="+18463"/>
         <source>Index</source>
         <translation type="unfinished">Indeks</translation>
     </message>
     <message>
-        <location line="-18356"/>
+        <location line="-18458"/>
         <source>Editor and output</source>
         <translation type="unfinished">Editor dan keluaran</translation>
     </message>
@@ -133147,13 +133367,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="+9"/>
         <location line="+978"/>
-        <location line="+10621"/>
+        <location line="+10723"/>
         <location filename="../src/app/release_actions.cpp" line="+482"/>
         <source>No project open</source>
         <translation type="unfinished">Tidak ada proyek yang terbuka</translation>
     </message>
     <message>
-        <location line="-11598"/>
+        <location line="-11700"/>
         <source>Open a project folder to browse and edit its scripts, configs, shaders, and QuakeC with highlighting and diagnostics.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133214,13 +133434,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+7614"/>
+        <location line="+7699"/>
         <location line="+52"/>
         <source>Task Details</source>
         <translation type="unfinished">Detail tugas</translation>
     </message>
     <message>
-        <location line="-7665"/>
+        <location line="-7750"/>
         <source>Select an activity to inspect logs, warnings, timing, and raw task metadata.</source>
         <translation type="unfinished">Pilih sebuah aktivitas untuk memeriksa log, peringatan, waktu, dan metadata tugas mentah.</translation>
     </message>
@@ -133231,19 +133451,19 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+2"/>
-        <location line="+7779"/>
+        <location line="+7864"/>
         <source>Settings metadata</source>
         <translation type="unfinished">Metadata pengaturan</translation>
     </message>
     <message>
-        <location line="-7777"/>
-        <location line="+7779"/>
+        <location line="-7862"/>
+        <location line="+7864"/>
         <location line="+178"/>
         <source>Raw diagnostics</source>
         <translation type="unfinished">Diagnostik mentah</translation>
     </message>
     <message>
-        <location line="-7950"/>
+        <location line="-8035"/>
         <source>Shows settings, recent project, compiler, and project diagnostics.</source>
         <translation type="unfinished">Menampilkan pengaturan, proyek terbaru, kompilator, dan diagnostik proyek.</translation>
     </message>
@@ -133254,24 +133474,24 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+7897"/>
+        <location line="+7982"/>
         <source>Inspector Details</source>
         <translation type="unfinished">Detail inspektur</translation>
     </message>
     <message>
-        <location line="-7896"/>
+        <location line="-7981"/>
         <source>Settings, setup, and raw diagnostics.</source>
         <translation type="unfinished">Pengaturan, penyiapan, dan diagnostik mentah.</translation>
     </message>
     <message>
         <location line="+4"/>
         <location line="+7523"/>
-        <location line="+3281"/>
+        <location line="+3382"/>
         <source>Activity</source>
         <translation type="unfinished">Aktivitas</translation>
     </message>
     <message>
-        <location line="-10802"/>
+        <location line="-10903"/>
         <source>Activity panel</source>
         <translation type="unfinished">Panel aktivitas</translation>
     </message>
@@ -133328,12 +133548,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+7"/>
-        <location line="+7745"/>
+        <location line="+7830"/>
         <source>Manifest status: %1</source>
         <translation type="unfinished">Status manifes: %1</translation>
     </message>
     <message>
-        <location line="-7741"/>
+        <location line="-7826"/>
         <source>Current project path: %1</source>
         <translation type="unfinished">Jalur proyek saat ini: %1</translation>
     </message>
@@ -133386,13 +133606,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+5662"/>
         <location line="+739"/>
         <location line="+380"/>
-        <location line="+593"/>
+        <location line="+678"/>
         <location filename="../src/app/package_context_actions.cpp" line="-53"/>
         <source>Source: %1</source>
         <translation type="unfinished">Sumber: %1</translation>
     </message>
     <message>
-        <location line="-589"/>
+        <location line="-674"/>
         <location filename="../src/app/package_context_actions.cpp" line="+2"/>
         <source>Entries: %1</source>
         <translation type="unfinished">Entri: %1</translation>
@@ -133424,12 +133644,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+7730"/>
+        <location line="+7815"/>
         <source>Project Manifest</source>
         <translation type="unfinished">Manifes proyek</translation>
     </message>
     <message>
-        <location line="-7729"/>
+        <location line="-7814"/>
         <source>Install Validation</source>
         <translation type="unfinished">Validasi instalasi</translation>
     </message>
@@ -133444,24 +133664,24 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Root paket yang di-mount</translation>
     </message>
     <message>
-        <location line="+10587"/>
+        <location line="+10689"/>
         <location filename="../src/app/package_context_actions.cpp" line="-1"/>
         <source>No package</source>
         <translation type="unfinished">Tidak ada paket</translation>
     </message>
     <message>
-        <location line="-10586"/>
+        <location line="-10688"/>
         <source>Compiler Context</source>
         <translation type="unfinished">Konteks kompilator</translation>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+7647"/>
+        <location line="+7732"/>
         <source>%1 of %2 executables</source>
         <translation type="unfinished">%1 dari %2 file eksekusi</translation>
     </message>
     <message>
-        <location line="-7646"/>
+        <location line="-7731"/>
         <source>Raw Workspace</source>
         <translation type="unfinished">Ruang kerja mentah</translation>
     </message>
@@ -133520,30 +133740,30 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+958"/>
         <location line="+4322"/>
         <location line="+64"/>
-        <location line="+1765"/>
+        <location line="+1850"/>
         <location line="+46"/>
-        <location line="+7066"/>
+        <location line="+7083"/>
         <location line="+4398"/>
         <source>Ready</source>
         <translation type="unfinished">Siap</translation>
     </message>
     <message>
-        <location line="-19132"/>
-        <location line="+7622"/>
+        <location line="-19234"/>
+        <location line="+7707"/>
         <location line="+46"/>
         <source>Missing</source>
         <translation type="unfinished">Tidak ada</translation>
     </message>
     <message>
-        <location line="-7664"/>
-        <location line="+7544"/>
+        <location line="-7749"/>
+        <location line="+7629"/>
         <location line="+85"/>
-        <location line="+408"/>
+        <location line="+416"/>
         <source>missing</source>
         <translation type="unfinished">tidak ada</translation>
     </message>
     <message>
-        <location line="-8035"/>
+        <location line="-8128"/>
         <source>open</source>
         <translation type="unfinished">terbuka</translation>
     </message>
@@ -133559,7 +133779,7 @@ Last opened %3. Double-click to open.</source>
         <location line="+1865"/>
         <location line="+343"/>
         <location line="+43"/>
-        <location line="+16475"/>
+        <location line="+16577"/>
         <location filename="../src/app/level_duplicate_move_actions.cpp" line="+189"/>
         <location line="+66"/>
         <location filename="../src/app/level_nudge_actions.cpp" line="+369"/>
@@ -133570,7 +133790,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18718"/>
+        <location line="-18820"/>
         <source>No recent projects</source>
         <translation type="unfinished">Tidak ada proyek terbaru</translation>
     </message>
@@ -133643,18 +133863,18 @@ Last opened %3. Double-click to open.</source>
     </message>
     <message>
         <location line="+44"/>
-        <location line="+20122"/>
+        <location line="+20224"/>
         <source>Test maps allowed</source>
         <translation type="unfinished">Peta uji diizinkan</translation>
     </message>
     <message>
-        <location line="-20122"/>
+        <location line="-20224"/>
         <source>Installation made read-only</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+19423"/>
+        <location line="+19525"/>
         <location line="+3"/>
         <location line="+8"/>
         <location line="+3"/>
@@ -133664,7 +133884,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">game</translation>
     </message>
     <message>
-        <location line="-20121"/>
+        <location line="-20223"/>
         <source>Built maps may be copied into its maps folder before launching.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133754,13 +133974,13 @@ Last opened %3. Double-click to open.</source>
         <location line="+3445"/>
         <location line="+439"/>
         <location line="+2139"/>
-        <location line="+5913"/>
+        <location line="+6015"/>
         <location line="+38"/>
         <source>%1: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-11971"/>
+        <location line="-12073"/>
         <source>Found %n confirmable installation candidates.</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -133875,7 +134095,7 @@ Last opened %3. Double-click to open.</source>
         <location line="+29"/>
         <location line="+23"/>
         <location line="+79"/>
-        <location line="+5030"/>
+        <location line="+5132"/>
         <location line="+1789"/>
         <location line="+1001"/>
         <location line="+112"/>
@@ -133885,7 +134105,7 @@ Last opened %3. Double-click to open.</source>
         <location line="+19"/>
         <location line="+402"/>
         <location line="+5208"/>
-        <location line="+218"/>
+        <location line="+221"/>
         <location filename="../src/app/package_document_actions.cpp" line="-51"/>
         <location line="+71"/>
         <location line="+31"/>
@@ -133895,7 +134115,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">paket</translation>
     </message>
     <message>
-        <location line="-20061"/>
+        <location line="-20166"/>
         <source>Opening package.</source>
         <translation type="unfinished">Membuka paket.</translation>
     </message>
@@ -133955,12 +134175,12 @@ Last opened %3. Double-click to open.</source>
         <location line="+4156"/>
         <location line="+740"/>
         <location line="+360"/>
-        <location line="+596"/>
+        <location line="+681"/>
         <source>Warnings</source>
         <translation type="unfinished">Peringatan</translation>
     </message>
     <message>
-        <location line="-6768"/>
+        <location line="-6853"/>
         <source>Open a project folder to activate project health, package roots, and next actions.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134031,12 +134251,12 @@ Last opened %3. Double-click to open.</source>
     </message>
     <message>
         <location line="+40"/>
-        <location line="+19702"/>
+        <location line="+19804"/>
         <source>Package: %1</source>
         <translation type="unfinished">Paket: %1</translation>
     </message>
     <message>
-        <location line="-19702"/>
+        <location line="-19804"/>
         <source>%1 / %2 / %3</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134077,12 +134297,12 @@ Last opened %3. Double-click to open.</source>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+10450"/>
+        <location line="+10552"/>
         <source>modified</source>
         <translation type="unfinished">diubah</translation>
     </message>
     <message>
-        <location line="-10414"/>
+        <location line="-10516"/>
         <source>No project open. Dependency graph will connect project roots, installs, packages, and compilers.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134358,7 +134578,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">%1 · tersembunyi</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+16096"/>
+        <location filename="../src/app/application_shell.cpp" line="+16198"/>
         <location filename="../src/app/level_object_model.cpp" line="-110"/>
         <source>Brush %1</source>
         <translation type="unfinished">Brush %1</translation>
@@ -134385,9 +134605,9 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">Verteks %1</translation>
     </message>
     <message>
-        <location line="-14633"/>
+        <location line="-14735"/>
         <location line="+3106"/>
-        <location line="+10578"/>
+        <location line="+10680"/>
         <location line="+2415"/>
         <location filename="../src/app/level_object_model.cpp" line="+1"/>
         <source>%1, %2</source>
@@ -134433,7 +134653,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15737"/>
+        <location filename="../src/app/application_shell.cpp" line="-15839"/>
         <source>LEAK
 The map leaks. The trail from %1 is drawn in the view; press Enter to frame it.</source>
         <translation type="unfinished"></translation>
@@ -134601,22 +134821,22 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <location line="+9"/>
         <location line="+2850"/>
         <location line="+10"/>
-        <location line="+12846"/>
+        <location line="+12948"/>
         <location line="+681"/>
         <location line="+54"/>
         <source>Map edit failed: %1</source>
         <translation type="unfinished">Pengeditan peta gagal: %1</translation>
     </message>
     <message>
-        <location line="-16447"/>
-        <location line="+16399"/>
+        <location line="-16549"/>
+        <location line="+16501"/>
         <source>Level map entities edited</source>
         <translation type="unfinished">Entitas peta level diedit</translation>
     </message>
     <message>
         <location filename="../src/app/ai_generation_actions.cpp" line="-272"/>
         <location line="+56"/>
-        <location filename="../src/app/application_shell.cpp" line="-16399"/>
+        <location filename="../src/app/application_shell.cpp" line="-16501"/>
         <location line="+9"/>
         <location line="+46"/>
         <location line="+93"/>
@@ -134631,7 +134851,7 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <location line="+41"/>
         <location line="+167"/>
         <location line="+9"/>
-        <location line="+12849"/>
+        <location line="+12951"/>
         <location line="+681"/>
         <location line="+54"/>
         <location line="+463"/>
@@ -134738,13 +134958,13 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <translation type="unfinished">Edit peta belum disimpan</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-16907"/>
-        <location line="+16444"/>
+        <location filename="../src/app/application_shell.cpp" line="-17009"/>
+        <location line="+16546"/>
         <source>Level map entity edited</source>
         <translation type="unfinished">Entitas peta level diedit</translation>
     </message>
     <message>
-        <location line="-16436"/>
+        <location line="-16538"/>
         <source>Select map objects before moving them.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134777,13 +134997,13 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+16860"/>
+        <location line="+16962"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="+0"/>
         <source>Level map selection moved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16813"/>
+        <location line="-16915"/>
         <location line="+30"/>
         <source>Open a Quake-family .map to add entities.</source>
         <translation type="unfinished"></translation>
@@ -134845,7 +135065,7 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+199"/>
-        <location line="+13050"/>
+        <location line="+13152"/>
         <source>Texture</source>
         <translation type="unfinished">Tekstur</translation>
     </message>
@@ -134855,7 +135075,7 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <translation type="unfinished">Brush peta level ditambahkan</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15657"/>
+        <location filename="../src/app/application_shell.cpp" line="-15759"/>
         <location line="+33"/>
         <source>Open a Doom or Hexen map to add things.</source>
         <translation type="unfinished"></translation>
@@ -135184,14 +135404,14 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <location line="+31"/>
         <location line="+314"/>
         <location line="+1"/>
-        <location line="+10415"/>
+        <location line="+10517"/>
         <location filename="../src/app/level_plan_pane_actions.cpp" line="+142"/>
         <location line="+1"/>
         <source>, </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10723"/>
+        <location line="-10825"/>
         <source>Keys for %1</source>
         <translation type="unfinished">Tombol untuk %1</translation>
     </message>
@@ -135722,12 +135942,12 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+14147"/>
+        <location line="+14249"/>
         <source>Ceiling flat</source>
         <translation type="unfinished">Flat langit-langit</translation>
     </message>
     <message>
-        <location line="-14145"/>
+        <location line="-14247"/>
         <source>Left empty, each door keeps its own ceiling flat.</source>
         <translation type="unfinished">Jika dikosongkan, setiap pintu mempertahankan flat langit-langitnya sendiri.</translation>
     </message>
@@ -136965,14 +137185,14 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+10253"/>
+        <location line="+10355"/>
         <location line="+2109"/>
         <location filename="../src/app/build_rerun_actions.cpp" line="+31"/>
         <source>level-map</source>
         <translation type="unfinished">peta-level</translation>
     </message>
     <message>
-        <location line="-12361"/>
+        <location line="-12463"/>
         <location line="+1228"/>
         <source>Planning compiler command.</source>
         <translation type="unfinished">Merencanakan perintah kompilator.</translation>
@@ -137014,14 +137234,14 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message numerus="yes">
         <location line="+36"/>
-        <location line="+14096"/>
+        <location line="+14198"/>
         <source>%n stage(s)</source>
         <translation type="unfinished">
             <numerusform></numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-14095"/>
+        <location line="-14197"/>
         <source>%n texture(s)</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -137260,15 +137480,15 @@ Open a folder, PAK, WAD, ZIP, or PK3 to see type and size distribution.</source>
         <location line="+30"/>
         <location line="+23"/>
         <location line="+313"/>
-        <location line="+1711"/>
-        <location line="+3776"/>
+        <location line="+1796"/>
+        <location line="+3793"/>
         <source>%n entries</source>
         <translation type="unfinished">
             <numerusform></numerusform>
         </translation>
     </message>
     <message>
-        <location line="-5815"/>
+        <location line="-5917"/>
         <source>Package is empty</source>
         <translation type="unfinished">Paket kosong</translation>
     </message>
@@ -137382,13 +137602,13 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     </message>
     <message>
         <location line="+10"/>
-        <location line="+2205"/>
-        <location line="+408"/>
+        <location line="+2290"/>
+        <location line="+416"/>
         <source>Path: %1</source>
         <translation type="unfinished">Jalur: %1</translation>
     </message>
     <message>
-        <location line="-2612"/>
+        <location line="-2705"/>
         <source>Kind: %1</source>
         <translation type="unfinished">Jenis: %1</translation>
     </message>
@@ -137409,13 +137629,13 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+2021"/>
-        <location line="+537"/>
+        <location line="+2106"/>
+        <location line="+545"/>
         <source>Storage: %1</source>
         <translation type="unfinished">Penyimpanan: %1</translation>
     </message>
     <message>
-        <location line="-2557"/>
+        <location line="-2650"/>
         <source>Readable now: %1</source>
         <translation type="unfinished">Dapat dibaca sekarang: %1</translation>
     </message>
@@ -137551,18 +137771,18 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+9152"/>
+        <location line="+9254"/>
         <source>Raw Metadata</source>
         <translation type="unfinished">Metadata mentah</translation>
     </message>
     <message>
-        <location line="-9043"/>
-        <location line="+11074"/>
+        <location line="-9145"/>
+        <location line="+11176"/>
         <source>Folder %1</source>
         <translation type="unfinished">Folder %1</translation>
     </message>
     <message>
-        <location line="-11073"/>
+        <location line="-11175"/>
         <source>Package root</source>
         <translation type="unfinished">Root paket</translation>
     </message>
@@ -137592,12 +137812,12 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     <message>
         <location line="-3"/>
         <location line="+4"/>
-        <location line="+14576"/>
+        <location line="+14681"/>
         <source>not found</source>
         <translation type="unfinished">tidak ditemukan</translation>
     </message>
     <message>
-        <location line="-14577"/>
+        <location line="-14682"/>
         <source>Source only, not built</source>
         <translation type="unfinished">Hanya sumber, belum di-build</translation>
     </message>
@@ -137615,12 +137835,12 @@ File eksekusi: %2</translation>
     </message>
     <message>
         <location line="+43"/>
-        <location line="+7851"/>
+        <location line="+7953"/>
         <source>Automatic</source>
         <translation type="unfinished">Otomatis</translation>
     </message>
     <message>
-        <location line="-7848"/>
+        <location line="-7950"/>
         <source>Project manifest (missing)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -137687,12 +137907,12 @@ File eksekusi: %2</translation>
         <location line="+24"/>
         <location line="+52"/>
         <location line="+14"/>
-        <location line="+5649"/>
+        <location line="+5751"/>
         <source>compiler</source>
         <translation type="unfinished">kompilator</translation>
     </message>
     <message>
-        <location line="-5737"/>
+        <location line="-5839"/>
         <source>%1 now runs %2.</source>
         <translation type="unfinished">%1 sekarang menjalankan %2.</translation>
     </message>
@@ -137893,12 +138113,12 @@ File eksekusi: %2</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+12644"/>
+        <location line="+12746"/>
         <source>Skipped: %1</source>
         <translation type="unfinished">Dilewati: %1</translation>
     </message>
     <message>
-        <location line="-12643"/>
+        <location line="-12745"/>
         <source>Errors: %1</source>
         <translation type="unfinished">Kesalahan: %1</translation>
     </message>
@@ -137957,11 +138177,12 @@ File eksekusi: %2</translation>
     </message>
     <message>
         <location line="+2"/>
+        <location line="+960"/>
         <source>  %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="-957"/>
         <source>  Error: %1</source>
         <translation type="unfinished">  Kesalahan: %1</translation>
     </message>
@@ -138000,14 +138221,14 @@ File eksekusi: %2</translation>
     <message numerus="yes">
         <location line="+1"/>
         <location line="+360"/>
-        <location line="+596"/>
+        <location line="+681"/>
         <source>%n warnings</source>
         <translation type="unfinished">
             <numerusform></numerusform>
         </translation>
     </message>
     <message>
-        <location line="-955"/>
+        <location line="-1040"/>
         <location line="+360"/>
         <source>Raw Report</source>
         <translation type="unfinished">Laporan mentah</translation>
@@ -138075,12 +138296,12 @@ File eksekusi: %2</translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+6999"/>
+        <location line="+7101"/>
         <source>Package Stage Add</source>
         <translation type="unfinished">Penahapan penambahan paket</translation>
     </message>
     <message>
-        <location line="-6999"/>
+        <location line="-7101"/>
         <source>File staged for save-as.</source>
         <translation type="unfinished">File ditahapkan untuk simpan sebagai.</translation>
     </message>
@@ -138412,7 +138633,7 @@ Diedit, belum disimpan:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7964"/>
+        <location line="+8066"/>
         <source>Undo: %1</source>
         <translation type="unfinished">Urungkan: %1</translation>
     </message>
@@ -138422,7 +138643,7 @@ Diedit, belum disimpan:
         <translation type="unfinished">Ulangi: %1</translation>
     </message>
     <message>
-        <location line="-7357"/>
+        <location line="-7459"/>
         <source>Draft: %1
 %2</source>
         <translation type="unfinished">Draf: %1
@@ -138477,14 +138698,14 @@ Diedit, belum disimpan:
         <translation type="unfinished">%1 (entri sumber %2)</translation>
     </message>
     <message>
-        <location line="-12151"/>
+        <location line="-12177"/>
         <location line="+5"/>
         <location line="+2"/>
         <source>The studio is closing.</source>
         <translation type="unfinished">Studio sedang ditutup.</translation>
     </message>
     <message>
-        <location line="+12151"/>
+        <location line="+12177"/>
         <location filename="../src/app/package_document_actions.cpp" line="-29"/>
         <source>The package changed; select the entry again.</source>
         <translation type="unfinished"></translation>
@@ -138638,12 +138859,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+6"/>
-        <location line="+12280"/>
+        <location line="+12382"/>
         <source>Output: %1</source>
         <translation type="unfinished">Keluaran: %1</translation>
     </message>
     <message>
-        <location line="-12275"/>
+        <location line="-12377"/>
         <source>SHA-256: %1</source>
         <translation type="unfinished">SHA-256: %1</translation>
     </message>
@@ -138893,12 +139114,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+0"/>
-        <location line="+327"/>
+        <location line="+412"/>
         <source>pending</source>
         <translation type="unfinished">tertunda</translation>
     </message>
     <message>
-        <location line="-326"/>
+        <location line="-411"/>
         <source>Step %1 of %2, %3: %4</source>
         <translation type="unfinished">Langkah %1 dari %2, %3: %4</translation>
     </message>
@@ -138909,12 +139130,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+11"/>
-        <location line="+323"/>
+        <location line="+408"/>
         <source>Warning: %1</source>
         <translation type="unfinished">Peringatan: %1</translation>
     </message>
     <message>
-        <location line="-309"/>
+        <location line="-394"/>
         <source>Review</source>
         <translation type="unfinished">Tinjau</translation>
     </message>
@@ -138965,12 +139186,12 @@ The new archive is written beside it and verified first; only then does the orig
         <location line="+10"/>
         <location line="+10"/>
         <location line="+26"/>
-        <location line="+4573"/>
+        <location line="+4675"/>
         <source>setup</source>
         <translation type="unfinished">penyiapan</translation>
     </message>
     <message>
-        <location line="-4640"/>
+        <location line="-4742"/>
         <source>Setup resumed.</source>
         <translation type="unfinished">Penyiapan dilanjutkan.</translation>
     </message>
@@ -138991,12 +139212,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+1"/>
-        <location line="+953"/>
+        <location line="+1046"/>
         <source>Setup step: %1</source>
         <translation type="unfinished">Langkah penyiapan: %1</translation>
     </message>
     <message>
-        <location line="-946"/>
+        <location line="-1039"/>
         <source>Skipped for now</source>
         <translation type="unfinished">Dilewati untuk sementara</translation>
     </message>
@@ -139043,13 +139264,13 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+0"/>
-        <location line="+763"/>
-        <location line="+3826"/>
+        <location line="+848"/>
+        <location line="+3843"/>
         <source>settings</source>
         <translation type="unfinished">pengaturan</translation>
     </message>
     <message>
-        <location line="-4587"/>
+        <location line="-4689"/>
         <source>Settings loaded successfully.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139086,12 +139307,39 @@ The new archive is written beside it and verified first; only then does the orig
         </translation>
     </message>
     <message>
-        <location line="+28"/>
+        <location line="+29"/>
         <source>No activity</source>
         <translation type="unfinished">Tidak ada aktivitas</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+62"/>
+        <source>Running now:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location line="+0"/>
+        <source>Running now (%n):</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <location line="+35"/>
+        <source>Studio paused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>The interface did not respond for %1 seconds.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Work that holds the window should run in the background. If this keeps happening, note what you were doing and attach Tools &gt; Copy Diagnostic Bundle to a bug report.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>No task selected</source>
         <translation type="unfinished">Tidak ada tugas yang dipilih</translation>
     </message>
@@ -139118,12 +139366,12 @@ The new archive is written beside it and verified first; only then does the orig
     <message>
         <location line="+2"/>
         <location line="+341"/>
-        <location line="+408"/>
+        <location line="+416"/>
         <source>State: %1</source>
         <translation type="unfinished">Status: %1</translation>
     </message>
     <message>
-        <location line="-748"/>
+        <location line="-756"/>
         <source>Detail: %1</source>
         <translation type="unfinished">Detail: %1</translation>
     </message>
@@ -139220,12 +139468,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+11980"/>
+        <location line="+11997"/>
         <source>Cancellation requested. The current stage is being stopped.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11975"/>
+        <location line="-11992"/>
         <source>Compiler cancellation requested.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139271,48 +139519,48 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+11"/>
-        <location line="+537"/>
+        <location line="+545"/>
         <source>Schema: %1</source>
         <translation type="unfinished">Skema: %1</translation>
     </message>
     <message>
-        <location line="-536"/>
+        <location line="-544"/>
         <location line="+36"/>
-        <location line="+501"/>
+        <location line="+509"/>
         <source>Status: %1</source>
         <translation type="unfinished">Status: %1</translation>
     </message>
     <message>
-        <location line="-536"/>
+        <location line="-544"/>
         <source>Selected mode index: %1</source>
         <translation type="unfinished">Indeks mode terpilih: %1</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+549"/>
+        <location line="+557"/>
         <source>Current project: %1</source>
         <translation type="unfinished">Proyek saat ini: %1</translation>
     </message>
     <message>
-        <location line="-548"/>
-        <location line="+536"/>
+        <location line="-556"/>
+        <location line="+544"/>
         <source>Recent projects: %1</source>
         <translation type="unfinished">Proyek terbaru: %1</translation>
     </message>
     <message>
-        <location line="-535"/>
-        <location line="+545"/>
+        <location line="-543"/>
+        <location line="+553"/>
         <source>Game installations: %1</source>
         <translation type="unfinished">Instalasi game: %1</translation>
     </message>
     <message>
-        <location line="-544"/>
-        <location line="+545"/>
+        <location line="-552"/>
+        <location line="+553"/>
         <source>Selected installation: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-544"/>
+        <location line="-552"/>
         <source>Selected editor profile: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139334,13 +139582,13 @@ The new archive is written beside it and verified first; only then does the orig
         <location line="+1"/>
         <location line="+2"/>
         <location line="+1"/>
-        <location line="+511"/>
+        <location line="+519"/>
         <location line="+1"/>
         <source>enabled</source>
         <translation type="unfinished">aktif</translation>
     </message>
     <message>
-        <location line="-538"/>
+        <location line="-546"/>
         <location line="+10"/>
         <location line="+1"/>
         <location line="+4"/>
@@ -139353,13 +139601,13 @@ The new archive is written beside it and verified first; only then does the orig
         <location line="+1"/>
         <location line="+1"/>
         <location line="+1"/>
-        <location line="+511"/>
+        <location line="+519"/>
         <location line="+1"/>
         <source>disabled</source>
         <translation type="unfinished">nonaktif</translation>
     </message>
     <message>
-        <location line="-537"/>
+        <location line="-545"/>
         <source>Compiler tools with source: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139370,52 +139618,52 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+3"/>
-        <location line="+528"/>
-        <location line="+12348"/>
+        <location line="+536"/>
+        <location line="+12357"/>
         <source>Locale: %1</source>
         <translation type="unfinished">Lokal: %1</translation>
     </message>
     <message>
-        <location line="-12875"/>
-        <location line="+528"/>
-        <location line="+4382"/>
+        <location line="-12892"/>
+        <location line="+536"/>
+        <location line="+4391"/>
         <location line="+7966"/>
         <source>Theme: %1</source>
         <translation type="unfinished">Tema: %1</translation>
     </message>
     <message>
-        <location line="-12875"/>
-        <location line="+528"/>
-        <location line="+4359"/>
+        <location line="-12892"/>
+        <location line="+536"/>
+        <location line="+4368"/>
         <location line="+8"/>
         <source>Text scale: %1%</source>
         <translation type="unfinished">Skala teks: %1%</translation>
     </message>
     <message>
-        <location line="-4894"/>
-        <location line="+528"/>
+        <location line="-4911"/>
+        <location line="+536"/>
         <source>Density: %1</source>
         <translation type="unfinished">Kepadatan: %1</translation>
     </message>
     <message>
-        <location line="-527"/>
+        <location line="-535"/>
         <source>Editor profile: %1</source>
         <translation type="unfinished">Profil editor: %1</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+527"/>
+        <location line="+535"/>
         <source>Reduced motion: %1</source>
         <translation type="unfinished">Gerakan dikurangi: %1</translation>
     </message>
     <message>
-        <location line="-526"/>
-        <location line="+527"/>
+        <location line="-534"/>
+        <location line="+535"/>
         <source>Text to speech: %1</source>
         <translation type="unfinished">Teks ke ucapan: %1</translation>
     </message>
     <message>
-        <location line="-526"/>
+        <location line="-534"/>
         <source>Interface language: %1 (running in %2)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139720,12 +139968,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+0"/>
-        <location line="+3013"/>
+        <location line="+3030"/>
         <source>AI-free</source>
         <translation type="unfinished">Bebas AI</translation>
     </message>
     <message>
-        <location line="-3013"/>
+        <location line="-3030"/>
         <source>Experimental opt-in</source>
         <translation type="unfinished">Eksperimental, perlu diaktifkan</translation>
     </message>
@@ -139791,12 +140039,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+9"/>
-        <location line="+408"/>
+        <location line="+416"/>
         <source>Last opened: %1</source>
         <translation type="unfinished">Terakhir dibuka: %1</translation>
     </message>
     <message>
-        <location line="-390"/>
+        <location line="-398"/>
         <source>Project manifest: available.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139852,12 +140100,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+1"/>
-        <location line="+383"/>
+        <location line="+391"/>
         <source>Settings storage: %1</source>
         <translation type="unfinished">Penyimpanan pengaturan: %1</translation>
     </message>
     <message>
-        <location line="-381"/>
+        <location line="-389"/>
         <source>Project Details</source>
         <translation type="unfinished">Detail proyek</translation>
     </message>
@@ -139922,7 +140170,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished">Preferensi disimpan.</translation>
     </message>
     <message>
-        <location line="+146"/>
+        <location line="+154"/>
         <source>Selected mode: %1</source>
         <translation type="unfinished">Mode terpilih: %1</translation>
     </message>
@@ -140253,12 +140501,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+7723"/>
+        <location line="+7732"/>
         <source>Save File &amp;As…</source>
         <translation type="unfinished">Simpan file sebag&amp;ai…</translation>
     </message>
     <message>
-        <location line="-7722"/>
+        <location line="-7731"/>
         <source>Save this document to a chosen path, preserving its text format and undo history.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -140549,12 +140797,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+5"/>
-        <location line="+9907"/>
+        <location line="+9916"/>
         <source>Edit Brush Components…</source>
         <translation type="unfinished">Edit komponen brush…</translation>
     </message>
     <message>
-        <location line="-9906"/>
+        <location line="-9915"/>
         <source>Reshape the selected brush&apos;s vertices, edges and faces.</source>
         <translation type="unfinished">Bentuk ulang verteks, tepi, dan face brush yang dipilih.</translation>
     </message>
@@ -140570,12 +140818,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+7"/>
-        <location line="+9904"/>
+        <location line="+9913"/>
         <source>Edit Patch Control Points…</source>
         <translation type="unfinished">Edit titik kontrol patch…</translation>
     </message>
     <message>
-        <location line="-9903"/>
+        <location line="-9912"/>
         <source>Reshape, subdivide and texture the selected patch.</source>
         <translation type="unfinished">Bentuk ulang, bagi, dan beri tekstur pada patch terpilih.</translation>
     </message>
@@ -140646,12 +140894,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+10012"/>
+        <location line="+10021"/>
         <source>Rotate Selection…</source>
         <translation type="unfinished">Putar pilihan…</translation>
     </message>
     <message>
-        <location line="-10009"/>
+        <location line="-10018"/>
         <source>Rotate 90° R&amp;ight</source>
         <translation type="unfinished">Putar 90° ke ka&amp;nan</translation>
     </message>
@@ -141339,12 +141587,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+26"/>
-        <location line="+9463"/>
+        <location line="+9472"/>
         <source>Paste with Offset…</source>
         <translation type="unfinished">Tempel dengan offset…</translation>
     </message>
     <message>
-        <location line="-9462"/>
+        <location line="-9471"/>
         <source>Preview clipboard objects at an explicit offset, with package materials and one undo step.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -141375,12 +141623,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+9458"/>
+        <location line="+9467"/>
         <source>Duplicate with Offset…</source>
         <translation type="unfinished">Duplikat dengan offset…</translation>
     </message>
     <message>
-        <location line="-9457"/>
+        <location line="-9466"/>
         <source>Preview copies at an explicit offset, preserving texture alignment and entity ownership.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -142250,12 +142498,12 @@ The new archive is written beside it and verified first; only then does the orig
     <message>
         <location line="+5"/>
         <location line="+411"/>
-        <location line="+8325"/>
+        <location line="+8334"/>
         <source>Copy</source>
         <translation type="unfinished">Salin</translation>
     </message>
     <message>
-        <location line="-8734"/>
+        <location line="-8743"/>
         <source>Copy the last answer</source>
         <translation type="unfinished">Salin jawaban terakhir</translation>
     </message>
@@ -142424,7 +142672,7 @@ The new archive is written beside it and verified first; only then does the orig
         <location line="+3"/>
         <location line="+3"/>
         <location line="+3"/>
-        <location filename="../src/app/application_shell.cpp" line="-14080"/>
+        <location filename="../src/app/application_shell.cpp" line="-14173"/>
         <location line="+2627"/>
         <location line="+603"/>
         <source>Generate</source>
@@ -142483,7 +142731,7 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+7"/>
-        <location filename="../src/app/application_shell.cpp" line="+11456"/>
+        <location filename="../src/app/application_shell.cpp" line="+11549"/>
         <source>The request that will be sent</source>
         <translation type="unfinished"></translation>
     </message>
@@ -142888,12 +143136,12 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished">Bilah status</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+9"/>
         <source>Show or hide the activity panel: every task with its progress, log, and result.</source>
         <translation type="unfinished">Tampilkan atau sembunyikan panel aktivitas: setiap tugas beserta progres, log, dan hasilnya.</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+3"/>
         <source>Show or hide the inspector panel: settings, setup, and project diagnostics.</source>
         <translation type="unfinished">Tampilkan atau sembunyikan panel inspektur: pengaturan, penyiapan, dan diagnostik proyek.</translation>
     </message>
@@ -143685,7 +143933,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9254"/>
+        <location line="-9263"/>
         <source>Undo &amp;Package Edit</source>
         <translation type="unfinished">Urungkan pengeditan &amp;paket</translation>
     </message>
@@ -143700,13 +143948,13 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished">Ulangi pengeditan pa&amp;ket</translation>
     </message>
     <message>
-        <location line="-11497"/>
-        <location line="+11498"/>
+        <location line="-11590"/>
+        <location line="+11591"/>
         <source>Redo the last undone package edit.</source>
         <translation type="unfinished">Ulangi pengeditan paket terakhir yang diurungkan.</translation>
     </message>
     <message numerus="yes">
-        <location line="+4708"/>
+        <location line="+4717"/>
         <source>%n code file(s)</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -143959,13 +144207,13 @@ Used %n time(s) in the open map</source>
         <translation type="unfinished">Frame %1 dari %2</translation>
     </message>
     <message>
-        <location line="-8838"/>
-        <location line="+8849"/>
+        <location line="-8940"/>
+        <location line="+8951"/>
         <source>%1, %2 x %3</source>
         <translation type="unfinished">%1, %2 x %3</translation>
     </message>
     <message>
-        <location line="-5828"/>
+        <location line="-5837"/>
         <source>Fit the selection to a new size. Texture Scale Lock stretches brush textures with it; otherwise their source parameters stay fixed. Viewport handles use the same setting.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -144030,7 +144278,7 @@ Used %n time(s) in the open map</source>
         <translation type="unfinished">Kunci tekstur akan mempertahankan dialek peta atau melaporkan alasan mengapa tidak dapat melakukannya.</translation>
     </message>
     <message>
-        <location line="+5807"/>
+        <location line="+5816"/>
         <source>Not decodable</source>
         <translation type="unfinished">Tidak dapat didekode</translation>
     </message>
@@ -144376,8 +144624,8 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished">Tampilkan di folder</translation>
     </message>
     <message>
-        <location line="-21917"/>
-        <location line="+21923"/>
+        <location line="-22060"/>
+        <location line="+22066"/>
         <location line="+3519"/>
         <source>%1 — %2</source>
         <translation type="unfinished"></translation>
@@ -144422,7 +144670,7 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished">Diubah</translation>
     </message>
     <message>
-        <location line="-7429"/>
+        <location line="-7438"/>
         <source>Preview and add a box, wedge, cylinder, cone or sphere brush.</source>
         <translation type="unfinished">Pratinjau dan tambahkan brush kotak, baji, silinder, kerucut, atau bola.</translation>
     </message>
@@ -144432,7 +144680,7 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6017"/>
+        <location line="+6026"/>
         <location line="+171"/>
         <source>Includes pending package changes. Waveforms use PCM; compressed codecs report header metadata.</source>
         <translation type="unfinished"></translation>
@@ -144869,12 +145117,12 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21181"/>
+        <location line="-21324"/>
         <source>Showing an excerpt. The Preview tab contains the full sampled text.</source>
         <translation type="unfinished">Menampilkan kutipan. Tab Pratinjau berisi seluruh teks sampel.</translation>
     </message>
     <message>
-        <location line="+2391"/>
+        <location line="+2432"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="+52"/>
         <source>Layout</source>
         <translation type="unfinished">Tata letak</translation>
@@ -144985,7 +145233,7 @@ Dinding</translation>
         <translation type="unfinished">Memuat…</translation>
     </message>
     <message>
-        <location line="+5818"/>
+        <location line="+5920"/>
         <source>Package copy cancelled. No files were handed off.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -145032,10 +145280,10 @@ Dinding</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16448"/>
+        <location line="-16550"/>
         <location line="+110"/>
-        <location line="+9771"/>
-        <location line="+6576"/>
+        <location line="+9864"/>
+        <location line="+6585"/>
         <source>Materials</source>
         <translation type="unfinished">Material</translation>
     </message>
@@ -145051,13 +145299,13 @@ Dinding</translation>
         <translation type="unfinished">Model siap</translation>
     </message>
     <message>
-        <location line="-20943"/>
+        <location line="-21086"/>
         <source>Size unavailable</source>
         <translation type="unfinished">Ukuran tidak tersedia</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+11391"/>
+        <location line="+11432"/>
         <source>Size exceeds the supported range</source>
         <translation type="unfinished">Ukuran melebihi rentang yang didukung</translation>
     </message>
@@ -145121,36 +145369,36 @@ Dinding</translation>
     </message>
     <message>
         <location line="+794"/>
-        <location line="+12366"/>
+        <location line="+12468"/>
         <source>Create a texture or browse images from a package.</source>
         <translation type="unfinished">Buat tekstur atau jelajahi gambar dari paket.</translation>
     </message>
     <message>
-        <location line="-12246"/>
+        <location line="-12348"/>
         <source>Preview frames per second. Selecting a clip uses its saved rate when specified; this control does not change the source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+143"/>
-        <location line="+12109"/>
+        <location line="+12211"/>
         <source>Create a mesh or browse models from a package.</source>
         <translation type="unfinished">Buat mesh atau jelajahi model dari paket.</translation>
     </message>
     <message>
-        <location line="-11909"/>
-        <location line="+11915"/>
+        <location line="-12011"/>
+        <location line="+12017"/>
         <source>Open a sound or browse audio from a package.</source>
         <translation type="unfinished">Buka suara atau jelajahi audio dari paket.</translation>
     </message>
     <message>
-        <location line="-10652"/>
+        <location line="-10754"/>
         <location line="+4710"/>
         <location line="+39"/>
         <location line="+171"/>
         <location line="+224"/>
         <location line="+1033"/>
         <location line="+1"/>
-        <location line="+4418"/>
+        <location line="+4520"/>
         <location line="+64"/>
         <location line="+4"/>
         <location filename="../src/app/package_context_actions.cpp" line="-76"/>
@@ -145158,7 +145406,7 @@ Dinding</translation>
         <translation type="unfinished">Tampilan paket tidak tersedia</translation>
     </message>
     <message>
-        <location line="-7485"/>
+        <location line="-7587"/>
         <source>Gesture preferences could not be applied: %1. Profile defaults are in use.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -145567,12 +145815,12 @@ Dinding</translation>
     </message>
     <message>
         <location line="+9"/>
-        <location line="+12751"/>
+        <location line="+12853"/>
         <source>No materials yet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-12750"/>
+        <location line="-12852"/>
         <source>Open a package, folder or WAD to browse its textures, shaders and materials with a live preview, or open a .shader or .mtr script.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -145687,14 +145935,14 @@ Dinding</translation>
     </message>
     <message numerus="yes">
         <location line="+316"/>
-        <location line="+16401"/>
+        <location line="+16503"/>
         <source>%1 set to %2 on %n entit(y)(ies). Use Save Map to update the file after a change check and backup.</source>
         <translation type="unfinished">
             <numerusform></numerusform>
         </translation>
     </message>
     <message>
-        <location line="-16392"/>
+        <location line="-16494"/>
         <source>Entity key edited; use Save Map to update the file after a change check and backup.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -145732,24 +145980,24 @@ Dinding</translation>
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="+595"/>
-        <location line="+9722"/>
+        <location line="+9824"/>
         <location filename="../src/app/model_browser_appearance.cpp" line="-145"/>
         <source>Show in Materials</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9721"/>
+        <location line="-9823"/>
         <source>Preview this texture or shader the way the game draws it, and edit it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+9718"/>
+        <location line="+9820"/>
         <source>Edit in Texture Editor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9713"/>
+        <location line="-9815"/>
         <source>This wall texture is composed from patches in TEXTURE1. Edit one of its patches in Textures.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -145890,7 +146138,7 @@ Dinding</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3716"/>
+        <location line="+3809"/>
         <source>Browse, preview and edit the textures, shaders and materials of idTech 1 to 4, as text or as nodes.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -146361,7 +146609,7 @@ Dinding</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+192"/>
+        <location line="+201"/>
         <source>This project turns AI off in its manifest. Every workflow stays local and deterministic here.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -148302,12 +148550,12 @@ A value set here is set on all %n entit(y)(ies).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-15908"/>
+        <location line="-16010"/>
         <source>Surface and component picks cleared. Whole objects remain selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9079"/>
+        <location line="+9181"/>
         <source>Vision</source>
         <comment>accessibility settings group about seeing the screen, not computer vision</comment>
         <translation type="unfinished">Visi</translation>
@@ -148681,13 +148929,13 @@ A value set here is set on all %n entit(y)(ies).</source>
         <translation type="unfinished">Profil</translation>
     </message>
     <message>
-        <location line="-8899"/>
-        <location line="+8900"/>
+        <location line="-8908"/>
+        <location line="+8909"/>
         <source>Program</source>
         <translation type="unfinished">Program</translation>
     </message>
     <message>
-        <location line="-9433"/>
+        <location line="-9442"/>
         <location line="+354"/>
         <source>%1 · on this machine</source>
         <translation type="unfinished"></translation>
@@ -148708,7 +148956,7 @@ A value set here is set on all %n entit(y)(ies).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8260"/>
+        <location line="+8269"/>
         <source>Find and Replace Textures…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -149290,12 +149538,12 @@ Working directory: %2</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+53"/>
+        <location line="+56"/>
         <source>Qt runtime: %1</source>
         <translation type="unfinished">Runtime Qt: %1</translation>
     </message>
     <message>
-        <location line="-52"/>
+        <location line="-55"/>
         <source>Platform: %1 (%2)</source>
         <translation type="unfinished">Platform: %1 (%2)</translation>
     </message>
@@ -149326,6 +149574,11 @@ Working directory: %2</source>
     </message>
     <message>
         <location line="+2"/>
+        <source>Interface pauses: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Crash reports kept: %1</source>
         <translation type="unfinished">Laporan crash yang disimpan: %1</translation>
     </message>
@@ -149340,8 +149593,8 @@ Working directory: %2</source>
         <translation type="unfinished">Kompilator:</translation>
     </message>
     <message>
-        <location line="-14"/>
-        <location line="+16"/>
+        <location line="-17"/>
+        <location line="+19"/>
         <source>  %1: %2</source>
         <translation type="unfinished"></translation>
     </message>
@@ -149556,7 +149809,7 @@ Working directory: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15443"/>
+        <location filename="../src/app/application_shell.cpp" line="-15548"/>
         <location filename="../src/app/code_document_actions.cpp" line="-109"/>
         <source>Untitled %1</source>
         <translation type="unfinished">Tanpa judul %1</translation>
@@ -151127,7 +151380,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+18944"/>
+        <location filename="../src/app/application_shell.cpp" line="+19046"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="+1"/>
         <source>Groups</source>
         <translation type="unfinished"></translation>
@@ -152929,7 +153182,7 @@ Activate to open line %2.</source>
         <translation type="unfinished">Pulihkan tata letak tampilan</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-9739"/>
+        <location filename="../src/app/application_shell.cpp" line="-9748"/>
         <location filename="../src/app/level_view_actions.cpp" line="+0"/>
         <source>Maximize Active View</source>
         <translation type="unfinished">Maksimalkan tampilan aktif</translation>
@@ -153419,7 +153672,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-1700"/>
+        <location filename="../src/app/application_shell.cpp" line="-1793"/>
         <location filename="../src/app/workspace_actions.cpp" line="+6"/>
         <source>Open Workspace</source>
         <translation type="unfinished">Buka ruang kerja</translation>
@@ -167997,6 +168250,47 @@ Verified bytes: %3 of %4</source>
     </message>
 </context>
 <context>
+    <name>vibestudio::BusyIndicator</name>
+    <message>
+        <location filename="../src/app/studio_progress.cpp" line="+432"/>
+        <source>Working</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Work is in progress.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1% complete.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>vibestudio::BusyOverlay</name>
+    <message>
+        <location line="+39"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Batal</translation>
+    </message>
+    <message>
+        <location line="+199"/>
+        <source>%1 %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+50"/>
+        <source>%1 of %2</source>
+        <translation type="unfinished">%1 dari %2</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Working</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>vibestudio::CodeFilesPanel</name>
     <message>
         <location filename="../src/app/code_files_panel.cpp" line="+35"/>
@@ -175794,6 +176088,39 @@ lines</source>
     </message>
 </context>
 <context>
+    <name>vibestudio::StudioSplash</name>
+    <message>
+        <location filename="../src/app/studio_splash.cpp" line="+61"/>
+        <source>Version %1 · Pre-alpha preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+114"/>
+        <source>Ready</source>
+        <translation type="unfinished">Siap</translation>
+    </message>
+    <message>
+        <location line="+69"/>
+        <source>%1 of %2</source>
+        <translation type="unfinished">%1 dari %2</translation>
+    </message>
+    <message>
+        <location line="+37"/>
+        <source>VibeStudio is starting.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+88"/>
+        <source>VibeStudio is starting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1 (%2 of %3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>vibestudio::StudioSyntaxHighlighter</name>
     <message>
         <location filename="../src/app/syntax_highlight.cpp" line="+498"/>
@@ -175814,6 +176141,41 @@ lines</source>
         <location line="+2"/>
         <source>Warning: %1</source>
         <translation type="unfinished">Peringatan: %1</translation>
+    </message>
+</context>
+<context>
+    <name>vibestudio::UiResponsivenessMonitor</name>
+    <message>
+        <location filename="../src/app/studio_progress.cpp" line="+94"/>
+        <source>The interface has not paused this session.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location line="+2"/>
+        <source>%n interface pause(s) this session, the longest %1.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>vibestudio::WorkTracker</name>
+    <message>
+        <location line="-640"/>
+        <source>Nothing is running.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>One task is running.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location line="+3"/>
+        <source>%n tasks are running.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
     </message>
 </context>
 </TS>

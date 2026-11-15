@@ -1,6 +1,7 @@
 #include "app/ui_primitives.h"
 #include "app/studio_accessibility.h"
 #include "app/studio_layout.h"
+#include "app/studio_progress.h"
 #include "app/studio_theme.h"
 #include "app/wrapping_action_button.h"
 
@@ -283,6 +284,39 @@ QVector<UiPrimitiveDescriptor> uiPrimitiveDescriptors()
 				QCoreApplication::translate("VibeStudioUiPrimitives", "AI review commands"),
 			},
 		},
+		{
+			QStringLiteral("busy-indicator"),
+			QCoreApplication::translate("VibeStudioUiPrimitives", "Busy indicator"),
+			QCoreApplication::translate("VibeStudioUiPrimitives", "A ring that turns while work runs and fills as measurable work progresses; it stands still under reduced motion, and one sits beside the status bar's Activity button while anything in the window is busy."),
+			{
+				QCoreApplication::translate("VibeStudioUiPrimitives", "status bar activity"),
+				QCoreApplication::translate("VibeStudioUiPrimitives", "start-up stages"),
+				QCoreApplication::translate("VibeStudioUiPrimitives", "dialog work"),
+				QCoreApplication::translate("VibeStudioUiPrimitives", "preview generation"),
+			},
+		},
+		{
+			QStringLiteral("busy-overlay"),
+			QCoreApplication::translate("VibeStudioUiPrimitives", "Busy overlay"),
+			QCoreApplication::translate("VibeStudioUiPrimitives", "A translucent cover for a surface whose content is being prepared, with a title, detail, progress and an optional Cancel; it appears after a short delay so brief work never flashes, and counts in the window's running work."),
+			{
+				QCoreApplication::translate("VibeStudioUiPrimitives", "session restore"),
+				QCoreApplication::translate("VibeStudioUiPrimitives", "large file opens"),
+				QCoreApplication::translate("VibeStudioUiPrimitives", "dialog preparation"),
+				QCoreApplication::translate("VibeStudioUiPrimitives", "work that holds the interface"),
+			},
+		},
+		{
+			QStringLiteral("start-up-screen"),
+			QCoreApplication::translate("VibeStudioUiPrimitives", "Start-up screen"),
+			QCoreApplication::translate("VibeStudioUiPrimitives", "The branded screen shown while the studio starts, naming each stage with a progress line, following the theme, text scale, layout direction and reduced-motion preference, and fading once the window has painted."),
+			{
+				QCoreApplication::translate("VibeStudioUiPrimitives", "application start"),
+				QCoreApplication::translate("VibeStudioUiPrimitives", "session restore"),
+				QCoreApplication::translate("VibeStudioUiPrimitives", "renderer start"),
+				QCoreApplication::translate("VibeStudioUiPrimitives", "slow first runs"),
+			},
+		},
 	};
 }
 
@@ -344,6 +378,24 @@ LoadingPane::LoadingPane(QWidget* parent)
 	setDetail(QCoreApplication::translate("VibeStudioUiPrimitives", "Preparing content."));
 	setPlaceholderRows(defaultPlaceholderRows());
 	refresh();
+}
+
+LoadingPane::~LoadingPane()
+{
+	syncWorkTracker(false, QString());
+}
+
+void LoadingPane::syncWorkTracker(bool busy, const QString& label)
+{
+	WorkTracker& tracker = studioWorkTracker();
+	if (busy && m_workToken == 0) {
+		m_workToken = tracker.begin(label, m_progressValue);
+	} else if (busy) {
+		tracker.update(m_workToken, label, m_progressValue);
+	} else if (m_workToken != 0) {
+		tracker.end(m_workToken);
+		m_workToken = 0;
+	}
 }
 
 void LoadingPane::setTitle(const QString& title)
@@ -446,6 +498,7 @@ void LoadingPane::refresh()
 	m_detailLabel->setText(m_detail.isEmpty() ? QCoreApplication::translate("VibeStudioUiPrimitives", "Preparing content.") : m_detail);
 
 	const bool busy = isBusyState(m_state);
+	syncWorkTracker(busy, titleText);
 	if (m_progressValue.total > 0) {
 		m_progress->setRange(0, m_progressValue.total);
 		m_progress->setValue(m_progressValue.current);

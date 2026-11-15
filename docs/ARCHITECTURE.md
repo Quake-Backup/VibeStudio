@@ -1,5 +1,23 @@
 # VibeStudio Architecture
 
+Visible work (docs/UX_DESIGN.md, "Visible Work") is a shell-wide concern with
+one home. `app/studio_progress` holds the start-up stage reporter
+(`reportStartupStage`, which the shell calls between the steps of its
+construction and `main()` around them), the window's `WorkTracker` (every
+`LoadingPane` and `BusyOverlay` registers itself while busy; the shell
+registers its running activity tasks), the `BusyIndicator` ring and
+`BusyOverlay` widgets, and the `UiResponsivenessMonitor`, a heartbeat timer on
+the interface thread that measures how long it was held and reports each pause
+once it is over. `app/studio_splash` is the start-up screen: a frameless,
+themed window that listens for stages, paints synchronously before each one,
+and fades once the studio window's `QWindow` has been exposed. The shell shows a
+ring beside the status bar's Activity button while the tracker counts anything
+(a widget of its own, since swapping a button icon every tick would relayout
+the window), logs every pause, and records pauses of two seconds or more in the Activity
+Center. `startup_progress_smoke_test` checks that the shell reports exactly
+`ApplicationShell::startupStageCount()` stages; `studio_progress_smoke_test`
+covers the widgets, the tracker and the monitor.
+
 Rip separates planning (`core/model_rip.cpp`) from candidate construction
 (`core/model_rip_apply.cpp`). All-pose geometric adjacency retains indexed
 UV/normal corners; bounded generation carries source-face provenance to hidden

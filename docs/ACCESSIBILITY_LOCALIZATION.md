@@ -1837,10 +1837,27 @@ widgets built later start with them:
   that names the work (`setBusyProgress()`, as `LoadingPane` does) instead of
   Qt's moving marquee. A bar takes its real range once the total is known.
 
-Everything else in the shell is static, so there is nothing further for the
-setting to suppress yet. The blinking text cursor has its own switch, **Stop the
-text cursor blinking**, since some readers want the cursor still without losing
-the other motion cues.
+The visible-work indicators (`app/studio_progress`, `app/studio_splash`;
+docs/UX_DESIGN.md "Visible Work") follow the setting too:
+
+- The start-up screen's ring stands still and the screen does not fade out;
+  it simply goes once the window has painted. Its stage line and progress
+  track carry the same information in words and length.
+- Every `BusyIndicator`, on its own, inside a `BusyOverlay`, or beside the
+  status bar's Activity button, stops turning: the ring's shape says busy, the
+  label beside it says what. A ring with a known total fills rather than
+  turning in any case, so measurable work looks the same with or without the
+  setting.
+- The shell pushes the preference into every indicator and overlay when it
+  changes (`applyPreferencesToUi()`), and widgets built later start from
+  `studioReducedMotion()`.
+
+Screen readers hear the start-up screen once ("VibeStudio is starting") and
+each busy overlay as it appears, with its title and detail; a ring's accessible
+description names the work, or the percentage complete. Everything else in the
+shell is static. The blinking text cursor has its own switch, **Stop the text
+cursor blinking**, since some readers want the cursor still without losing the
+other motion cues.
 
 The window title names the current page and project ("Levels — Foundry —
 VibeStudio"), which task bars and window switchers show and a screen reader

@@ -82,7 +82,10 @@ On **Settings** > **Accessibility**, under **Vision**:
 Under **Motion and Timing**:
 
 - **Reduce motion** replaces spinners and animated progress bars with plain
-  status text, opens the rail without sliding, switches pages without fading,
+  status text, keeps every busy ring still (including the start-up screen's
+  and the one beside the status bar's **Activity** button), opens the rail
+  without sliding,
+  switches pages without fading, lets the start-up screen go without a fade,
   and stops model animation playback.
 - **Stop the text cursor blinking** keeps the cursor steady everywhere.
 - **Status messages stay** sets how long status bar messages remain:

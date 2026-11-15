@@ -6,7 +6,7 @@ the user should understand what the app is doing, whether it is safe to act,
 where results will appear, and how to inspect more detail.
 
 ## Core Principles
-- The user should never wonder whether VibeStudio is frozen, busy, waiting, done, or blocked.
+- The user should never wonder whether VibeStudio is frozen, busy, waiting, done, or blocked. Work is always visible: see [Visible Work](#visible-work).
 - Common workflows should stay clean and direct.
 - Efficient workflows are part of UX: reduce repeated setup, duplicate file picking, unnecessary modal stops, context switching, and manual command reconstruction.
 - Accessibility is part of UX: support high-visibility themes, scaling, keyboard access, screen-reader metadata, reduced motion, and OS-backed TTS as normal product features.
@@ -18,6 +18,59 @@ where results will appear, and how to inspect more detail.
 - Errors should explain what happened, where it happened, and what the next practical action is.
 - AI-assisted workflows should feel like supervised acceleration: clear context, provider, plan, cost/usage where available, proposed actions, and review state.
 - AI-free users should never encounter dead ends that require cloud services.
+
+## Visible Work
+
+The user must always be able to see that the studio is working. A blank
+window, a window that has not appeared yet, a page that stops answering, or a
+control that does nothing for a second are all the same failure: the user is
+left to guess whether anything is happening. VibeStudio treats that as a
+defect, not as polish. Every surface promises four things:
+
+1. **Something appears at once.** The start-up screen is up within the first
+   moments of the process, before the window exists, and names each stage of
+   start-up as the shell reports it ("Building the Levels page", "Restoring
+   your session"). It follows the theme, text scale, layout direction and
+   reduced-motion preference the user chose, and fades only once the studio
+   window has painted. Scripted runs (`--self-test`, `--ui-snapshot`,
+   `--no-splash`) and headless platforms leave it out.
+2. **Busy looks busy.** Work that may take noticeable time shows a sleek,
+   modern indicator where the result will appear: a loading pane with its
+   state and progress, a busy ring that turns while work runs and fills as a
+   measurable task progresses, or a translucent busy overlay over a surface
+   whose content is being prepared. The same ring appears beside the status
+   bar's **Activity** button while anything in the window is busy, and the
+   button's tooltip names what is running, so the signal is visible from
+   every page. (The ring is its own small widget: swapping the button's icon
+   every tick would relayout the whole window.)
+3. **Nothing stays silent.** Every indicator is fed from one place
+   (`studioWorkTracker()`): every loading pane and overlay registers itself
+   when it becomes busy, and the shell registers its activity tasks. A new
+   surface that uses the shared parts is counted without further wiring.
+4. **A frozen window is recorded, not excused.** A responsiveness monitor
+   watches the interface thread; a pause the user saw as a frozen window is
+   logged, counted in the diagnostic bundle, and recorded in the Activity
+   Center with the next practical step. Work that holds the window is a bug
+   to move to the background.
+
+The rules that follow from this:
+
+- Prefer asynchronous work with a visible home (a loading pane or a task
+  card). Where work must hold the interface thread, paint the indicator
+  first (`BusyOverlay::beginNow()`, `paintNow()`), so the user sees "Opening
+  the map" rather than a half-drawn page.
+- Indeterminate motion is a last resort: give a total whenever one is known,
+  and the ring fills instead of turning.
+- Under **Reduce motion** every ring stands still, the start-up screen does
+  not fade, and the shape and text alone say busy. A screen reader hears the
+  start-up screen once, and each overlay as it appears.
+- A brief operation must not flash: overlays appear after about a quarter of
+  a second, and the loading pane's marquee only when the state is busy.
+- Never show an indicator without context: every ring sits next to the name
+  of the work, and the status bar's tooltip lists what is running.
+- The indicators are described in `vibestudio --cli --ui-primitives`
+  (`busy-indicator`, `busy-overlay`, `start-up-screen`, `loading-pane`), and
+  the shared parts live in `app/studio_progress` and `app/studio_splash`.
 
 ## The Shell As It Stands
 
@@ -1524,6 +1577,17 @@ Use the right feedback surface for the job:
 - [x] Indeterminate activity indicators only when progress cannot be measured —
   the loading pane switches to a marquee bar only when a busy state reports no
   total, and reduced motion opts out of even that.
+- [x] A start-up screen that names each stage of start-up, and stays over the
+  window until the session is restored.
+- [x] A busy ring (`BusyIndicator`) for places too small for a loading pane,
+  which turns while work runs and fills as a measurable task progresses.
+- [x] A busy overlay (`BusyOverlay`) over a surface whose content is being
+  prepared, with progress and an optional Cancel, appearing after a short
+  delay so brief work never flashes.
+- [x] One window-wide signal: a ring turns beside the status bar's Activity
+  button while anything is busy, and the button lists the running work.
+- [x] An interface pause the user saw is recorded in the Activity Center and
+  counted in the diagnostic bundle (`UiResponsivenessMonitor`).
 - [x] Task cards for background operations.
 - [x] Activity center for queued/running/completed work.
 - [x] Status chips for package, project, compiler, and install health.
@@ -1610,6 +1674,9 @@ external commands run.
 
 ## Anti-Patterns
 - Silent background work.
+- A blank or missing window while the studio starts, or a window that stops
+  answering with nothing on screen to say why.
+- Work on the interface thread that was not painted for first.
 - Modal dead ends.
 - Decorative graphs without actionable meaning.
 - Spinners with no context.

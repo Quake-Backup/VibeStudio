@@ -1189,7 +1189,9 @@ app_sources = files(
   'app/studio_docks.cpp',
   'app/studio_icons.cpp',
   'app/studio_layout.cpp',
+  'app/studio_progress.cpp',
   'app/studio_runtime.cpp',
+  'app/studio_splash.cpp',
   'app/studio_sidebar.cpp',
   'app/tile_grid.cpp',
   'app/level_sidebar_actions.cpp',
@@ -1281,8 +1283,10 @@ app_moc_headers = files(
   'app/studio_actions.h',
   'app/studio_charts.h',
   'app/studio_layout.h',
+  'app/studio_progress.h',
   'app/studio_sidebar.h',
   'app/studio_sound_cues.h',
+  'app/studio_splash.h',
   'app/syntax_highlight.h',
   'app/tile_grid.h',
 )
@@ -3801,6 +3805,14 @@ test(
   ui_primitives_smoke_test,
   env: ui_primitives_test_env,
 )
+
+studio_progress_smoke_test = executable('studio_progress_smoke_test', ['tests/studio_progress_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+test('studio-progress-smoke', studio_progress_smoke_test, env: ui_primitives_test_env, timeout: 90)
+
+startup_progress_smoke_test = executable('startup_progress_smoke_test', ['tests/startup_progress_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+test('startup-progress-smoke', startup_progress_smoke_test, env: ui_primitives_test_env, timeout: 180)
 
 studio_sidebar_smoke_test = executable('studio_sidebar_smoke_test', ['tests/studio_sidebar_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)

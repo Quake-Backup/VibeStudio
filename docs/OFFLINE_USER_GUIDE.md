@@ -744,6 +744,19 @@ Alt.
 > If you cannot find something, press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>
 > and type what you want to do. Every command is in that list.
 
+### While the studio starts
+
+A start-up screen appears as soon as VibeStudio is launched, before the window
+exists, so you are never left wondering whether it is coming. It shows the
+VibeStudio mark, the version and its pre-alpha status, and a line that names
+what the studio is doing right now (**Building the Levels page**, **Applying
+your preferences**, **Restoring your session**) with a progress track that
+fills as the stages go by. It uses your theme, text size and language, keeps
+still under **Reduce motion**, and fades away once the window has painted and
+your last session is back.
+
+Start VibeStudio with `--no-splash` to skip it, for example from a script.
+
 ### The studio bar
 
 One row of controls runs along the top of the window. From left to right:
@@ -878,6 +891,11 @@ restores the default proportions and closes the side panels.
 The status bar reports what just happened on its left. On its right:
 
 - The **Activity** and **Inspector** buttons open and close those panels.
+  While anything in the window is busy (a package being scanned, a compile, a
+  preview being drawn) a turning ring appears beside the **Activity** button,
+  the button's label counts the running tasks, and its tooltip names them. The
+  ring fills instead of turning when the work knows how far along it is, and
+  stands still under **Reduce motion**.
 - Five items name the state of your work in words as well as colour: the
   project (**No project** until you open one), the package (**No package**),
   the game installation (**No game**), the compilers (**No compilers**, or how
@@ -920,8 +938,9 @@ page they work on. **Change Keys…** gives a command keys of your own, and
 - **Reopen the last session at start** is on by default (**Settings** >
   **Appearance and Language** > **Startup and Recovery**). VibeStudio reopens
   the package, map and code files that were open, on the page you closed it on,
-  and the status bar says what it reopened. Opening a file from the command
-  line with `--open <path>` skips this.
+  and the status bar says what it reopened. The start-up screen stays over the
+  window, saying **Restoring your session**, until that is done. Opening a file
+  from the command line with `--open <path>` skips this.
 - If VibeStudio closed unexpectedly, the next start shows
   **The studio closed unexpectedly last time.** in a bar above the page. The
   files that were open are not reopened by themselves, in case one of them
@@ -10247,7 +10266,10 @@ On **Settings** > **Accessibility**, under **Vision**:
 Under **Motion and Timing**:
 
 - **Reduce motion** replaces spinners and animated progress bars with plain
-  status text, opens the rail without sliding, switches pages without fading,
+  status text, keeps every busy ring still (including the start-up screen's
+  and the one beside the status bar's **Activity** button), opens the rail
+  without sliding,
+  switches pages without fading, lets the start-up screen go without a fade,
   and stops model animation playback.
 - **Stop the text cursor blinking** keeps the cursor steady everywhere.
 - **Status messages stay** sets how long status bar messages remain:
@@ -12843,6 +12865,26 @@ warnings and errors.
 
 `vibestudio --cli diagnostics crashes` prints the folder on any system. Crash reports are kept in the
 same folder. [Install VibeStudio](manual/install.md) lists where settings and recovery copies are kept.
+
+### The studio stopped answering for a moment
+
+VibeStudio is meant to show you that it is working: a start-up screen while it starts, a loading pane
+or a busy ring where a result will appear, and the status bar's **Activity** button turning while
+anything is busy. If the window itself stops answering, the studio notices once it is responding again:
+
+- Every pause of half a second or more is written to the session log as
+  `ui-responsiveness: the interface did not respond for N ms`.
+- A pause of two seconds or more, which you will have seen as a frozen window, is also recorded in
+  the **Activity** panel as **Studio paused**, with how long it lasted.
+- **Tools** > **Copy Diagnostic Bundle** includes how many pauses there were this session and the
+  longest.
+
+A pause is a defect in the studio, not something you did: work that holds the window should run in
+the background. If it keeps happening, note what you were doing and include the diagnostic bundle in
+a [bug report](manual/troubleshooting.md#report-a-bug).
+
+If the start-up screen itself is in the way, for example when VibeStudio is started from a script,
+start it with `--no-splash`.
 
 ### Create a diagnostics bundle
 

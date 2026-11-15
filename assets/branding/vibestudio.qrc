@@ -8,5 +8,6 @@
 	<file alias="vibestudio-64.png">icons/png/vibestudio-64.png</file>
 	<file alias="vibestudio-128.png">icons/png/vibestudio-128.png</file>
 	<file alias="vibestudio-256.png">icons/png/vibestudio-256.png</file>
+	<file alias="Manrope-ExtraBold.ttf">fonts/Manrope-ExtraBold.ttf</file>
 </qresource>
 </RCC>

@@ -155,6 +155,8 @@ struct PackageCopyResult;
 struct TexturePreviewSource;
 struct TexturePreviewResult;
 class LoadingPane;
+class BusyIndicator;
+class UiResponsivenessMonitor;
 class MapViewport;
 class LevelScenePanel;
 class LevelMapClassTable;
@@ -244,6 +246,11 @@ public:
 	// Exercises every work surface once so an offscreen CI run touches the real
 	// widgets, refresh paths, and paint code rather than only the CLI.
 	void runSelfTest();
+
+	// How many start-up stages the constructor reports through
+	// reportStartupStage() (app/studio_progress), so the start-up screen can
+	// show how far along it is. startup_progress_smoke_test keeps it honest.
+	[[nodiscard]] static constexpr int startupStageCount() { return 24; }
 
 	// Opens a map, package, project folder, or text file the same way a drop
 	// onto the window would, so command-line paths behave like drag and drop.
@@ -2096,6 +2103,15 @@ private:
 	void applySpeechPreferences();
 	void speakEvent(const QString& eventId, const QString& text);
 	void noteTaskOutcome(const OperationTask& task);
+	// Visible work: the Activity button's icon turns while anything is busy
+	// (every LoadingPane and overlay through studioWorkTracker(), and the
+	// activity tasks that are running), with the running work in its tooltip.
+	void refreshWorkIndicator();
+	// Keeps the tracker in step with the activity tasks that are busy.
+	void syncActivityWork();
+	// An interface pause the responsiveness monitor measured: logged always,
+	// and recorded in the Activity Center when long enough to have been seen.
+	void noteUiStall(qint64 milliseconds);
 	void handleStatusMessage(const QString& text);
 	void readAloud();
 	void stopSpeaking();
@@ -3212,6 +3228,15 @@ private:
 	StudioSoundCues* m_soundCuePlayer = nullptr;
 	// Tasks whose outcome was spoken, announced, or flashed already.
 	QSet<QString> m_reportedTaskOutcomes;
+	// Visible work in the status bar (see refreshWorkIndicator()): a ring
+	// beside the Activity button, shown while anything is busy. Its own
+	// repaint costs nothing else a layout; an icon swapped every tick would
+	// relayout the whole window.
+	BusyIndicator* m_workIndicator = nullptr;
+	QString m_activityToggleToolTip;
+	QHash<QString, int> m_activityWorkTokens;
+	UiResponsivenessMonitor* m_responsiveness = nullptr;
+	qint64 m_lastStallRecordMs = 0;
 	// Off until the window has settled after start, so start-up's own tasks
 	// are not read out.
 	bool m_accessibilityAnnouncementsReady = false;

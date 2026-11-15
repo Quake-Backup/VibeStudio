@@ -4,6 +4,7 @@
 #include "app/editor_profile_dialog.h"
 #include "app/wrapping_action_button.h"
 #include "app/studio_accessibility.h"
+#include "app/studio_progress.h"
 #include "app/studio_sound_cues.h"
 #include "app/studio_speech.h"
 #include "app/level_surface_worker.h"
@@ -939,6 +940,7 @@ ApplicationShell::ApplicationShell(QWidget* parent, std::unique_ptr<AudioPlaybac
 	initializeAudioBrowser(std::move(audioBackend));
 	buildUi();
 	timing.mark("ui");
+	reportStartupStage(tr("Checking for unsaved work"));
 	initializeCodeRecovery();
 	timing.mark("codeRecovery");
 	initializePackageRecovery();
@@ -975,11 +977,25 @@ ApplicationShell::ApplicationShell(QWidget* parent, std::unique_ptr<AudioPlaybac
 			speakEvent(event, message);
 		});
 	});
+	// From here on a frozen window is noticed and recorded (noteUiStall).
+	m_responsiveness = new UiResponsivenessMonitor(this);
+	connect(m_responsiveness, &UiResponsivenessMonitor::stallDetected, this, &ApplicationShell::noteUiStall);
+	m_responsiveness->start();
 	timing.mark("ready");
 }
 
 ApplicationShell::~ApplicationShell()
 {
+	// The loading panes and overlays leave the work tracker as QWidget deletes
+	// them, after this shell's members are gone: nothing here may hear that.
+	disconnect(&studioWorkTracker(), nullptr, this, nullptr);
+	if (m_responsiveness) {
+		m_responsiveness->stop();
+	}
+	for (const int token : std::as_const(m_activityWorkTokens)) {
+		studioWorkTracker().end(token);
+	}
+	m_activityWorkTokens.clear();
 	setStatusAnnouncementListener({});
 	disconnect(qApp, &QApplication::focusChanged, this, nullptr);
 	delete m_levelSurfaceWorker; m_levelSurfaceWorker = nullptr;
@@ -1710,6 +1726,10 @@ void ApplicationShell::buildUi()
 	resize(1440, 900);
 	setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowTabbedDocks | QMainWindow::GroupedDragging);
 
+	// Each stage is named to the start-up screen before it begins, so the
+	// screen always says what the studio is doing. startupStageCount() counts
+	// them; keep it in step when adding one.
+	reportStartupStage(tr("Preparing commands and menus"));
 	buildCommands();
 	buildMenuBar();
 	buildToolBar();
@@ -1718,6 +1738,7 @@ void ApplicationShell::buildUi()
 	QCoreApplication::instance()->installEventFilter(new ComboBoxKeepsF4(this));
 	QCoreApplication::instance()->installEventFilter(new PlaceButtons(this, [this]() { navigateBack(); }, [this]() { navigateForward(); }));
 
+	reportStartupStage(tr("Framing the window"));
 	m_modeRail = new ModeRail;
 	QVector<ModeRailEntry> railEntries;
 	for (const StudioModeDescriptor& descriptor : studioModeDescriptors()) {
@@ -1774,28 +1795,40 @@ void ApplicationShell::buildUi()
 	auto pageStyleGuard = qScopeGuard(restorePageStyle);
 	if (!pageStyleSheet.isEmpty()) { qApp->setStyleSheet({}); }
 
+	reportStartupStage(tr("Building the Workspace page"));
 	m_modeStack->addWidget(buildWorkspacePage());
 	timing.mark("workspace");
+	reportStartupStage(tr("Building the Levels page"));
 	m_modeStack->addWidget(buildLevelsPage());
 	timing.mark("levels");
+	reportStartupStage(tr("Building the Models page"));
 	m_modeStack->addWidget(buildAssetWorkspace(StudioMode::Models, buildModelsPage()));
 	timing.mark("models");
+	reportStartupStage(tr("Building the Textures page"));
 	m_modeStack->addWidget(buildAssetWorkspace(StudioMode::Textures, buildTexturesPage()));
 	timing.mark("textures");
+	reportStartupStage(tr("Building the Audio page"));
 	m_modeStack->addWidget(buildAssetWorkspace(StudioMode::Audio, buildAudioPage()));
 	timing.mark("audio");
+	reportStartupStage(tr("Building the Packages page"));
 	m_modeStack->addWidget(buildPackagesPage());
 	timing.mark("packages");
+	reportStartupStage(tr("Building the Code page"));
 	m_modeStack->addWidget(buildCodePage());
 	timing.mark("code");
+	reportStartupStage(tr("Building the Shaders page"));
 	m_modeStack->addWidget(buildShadersPage());
 	timing.mark("shaders");
+	reportStartupStage(tr("Building the Build page"));
 	m_modeStack->addWidget(buildBuildPage());
 	timing.mark("build");
+	reportStartupStage(tr("Building the Settings page"));
 	m_modeStack->addWidget(buildSettingsPage());
 	timing.mark("settings");
+	reportStartupStage(tr("Opening the side panels"));
 	buildSidePanel();
 	timing.mark("sidePanel");
+	reportStartupStage(tr("Styling the pages"));
 	restorePageStyle();
 	pageStyleGuard.dismiss();
 	timing.mark("pageStyles");
@@ -1823,21 +1856,27 @@ void ApplicationShell::buildUi()
 		clearOnEscape(field);
 	}
 
+	reportStartupStage(tr("Reading the workspace"));
 	seedActivityCenter();
 	refreshWorkspaceDashboard();
 	refreshWorkspaceContextPanels();
 	timing.mark("workspaceData");
+	reportStartupStage(tr("Reading setup and game installations"));
 	refreshSetupPanel();
 	refreshRecentProjects();
 	refreshGameInstallations();
 	timing.mark("setupData");
+	reportStartupStage(tr("Reading the package browser"));
 	refreshPackageBrowser();
 	timing.mark("packageData");
+	reportStartupStage(tr("Finding the build toolchain"));
 	refreshCompilerPipelineSummary();
 	refreshBuildSurface();
 	timing.mark("buildData");
+	reportStartupStage(tr("Preparing the Levels workbench"));
 	refreshLevelMapWorkbench();
 	timing.mark("mapData");
+	reportStartupStage(tr("Preparing the editors"));
 
 	// External change detection. One second is well under the time it takes a
 	// user to notice a file changed behind their back, and poll() only reads
@@ -1862,10 +1901,13 @@ void ApplicationShell::buildUi()
 			m_defaultLayoutStates.insert(it.key(), it.value()->saveState());
 		}
 	}
+	reportStartupStage(tr("Restoring the window layout"));
 	loadShellState();
 	timing.mark("layout");
+	reportStartupStage(tr("Applying your preferences"));
 	applyPreferencesToUi();
 	timing.mark("preferences");
+	reportStartupStage(tr("Checking project, package and compiler status"));
 	updateInspector();
 	refreshStatusChips();
 	refreshCommandEnablement();
@@ -13889,6 +13931,7 @@ void ApplicationShell::refreshActivityCenter(const QString& preferredTaskId)
 		setStatusBarButtonText(m_activityToggle, busy > 0 ? tr("Activity (%n running)", nullptr, busy) : tr("Activity"));
 		m_activityToggle->setAccessibleDescription(m_activity.summaryText());
 	}
+	syncActivityWork();
 	m_activityTasks->clear();
 
 	int selectedRow = -1;
@@ -13929,6 +13972,90 @@ void ApplicationShell::refreshActivityCenter(const QString& preferredTaskId)
 	// Only the per-item state colours need re-applying here. Re-running the whole
 	// stylesheet would repolish every widget on every streamed log line.
 	scheduleThemeRefresh();
+}
+
+void ApplicationShell::syncActivityWork()
+{
+	// Machine work only: a first-run setup that is "in progress" waits on the
+	// user, and the settings store's own record is a note, not a task.
+	WorkTracker& tracker = studioWorkTracker();
+	QSet<QString> busyIds;
+	for (const OperationTask& task : m_activity.tasks()) {
+		const bool busy = task.state == OperationState::Loading || task.state == OperationState::Running || task.state == OperationState::Queued;
+		if (!busy || task.id == m_setupActivityId || task.id == m_settingsActivityId) {
+			continue;
+		}
+		busyIds.insert(task.id);
+		const auto token = m_activityWorkTokens.constFind(task.id);
+		if (token == m_activityWorkTokens.cend()) {
+			m_activityWorkTokens.insert(task.id, tracker.begin(task.title, task.progress));
+		} else {
+			tracker.update(token.value(), task.title, task.progress);
+		}
+	}
+	for (auto it = m_activityWorkTokens.begin(); it != m_activityWorkTokens.end();) {
+		if (busyIds.contains(it.key())) {
+			++it;
+			continue;
+		}
+		tracker.end(it.value());
+		it = m_activityWorkTokens.erase(it);
+	}
+}
+
+void ApplicationShell::refreshWorkIndicator()
+{
+	if (!m_activityToggle) {
+		return;
+	}
+	const WorkTracker& tracker = studioWorkTracker();
+	const int count = tracker.activeCount();
+	if (count == 0) {
+		if (m_workIndicator) {
+			m_workIndicator->hide();
+		}
+		setStatusBarButtonToolTip(m_activityToggle, m_activityToggleToolTip);
+		return;
+	}
+	QStringList lines;
+	lines << m_activityToggleToolTip << QString();
+	lines << (count == 1 ? tr("Running now:") : tr("Running now (%n):", nullptr, count));
+	for (const QString& label : tracker.activeLabels()) {
+		lines << tr("  %1").arg(label);
+	}
+	setStatusBarButtonToolTip(m_activityToggle, lines.join(QLatin1Char('\n')));
+	if (m_workIndicator) {
+		// Under reduced motion the ring stands still: its shape alone says
+		// busy. A known total fills it instead of turning it.
+		m_workIndicator->setReducedMotion(m_settings.accessibilityPreferences().reducedMotion);
+		m_workIndicator->setProgress(tracker.progress());
+		m_workIndicator->setToolTip(tracker.summaryText());
+		m_workIndicator->show();
+	}
+}
+
+void ApplicationShell::noteUiStall(qint64 milliseconds)
+{
+	// Every pause goes to the session log for diagnostics; one the user will
+	// have seen as a frozen window (two seconds or more) is recorded where
+	// they can find it, no more often than every half minute.
+	qWarning("ui-responsiveness: the interface did not respond for %lld ms", static_cast<long long>(milliseconds));
+	// Headless runs (tests, snapshots) are held by their own harness and
+	// their load, not by anything the user saw; they keep the log line only,
+	// unless a test asks for the record (VIBESTUDIO_RECORD_UI_PAUSES=1).
+	static const bool recordsPauses = QGuiApplication::platformName() != QLatin1String("offscreen")
+		|| qEnvironmentVariableIntValue("VIBESTUDIO_RECORD_UI_PAUSES") > 0;
+	if (milliseconds < 2000 || !recordsPauses) {
+		return;
+	}
+	const qint64 now = QDateTime::currentMSecsSinceEpoch();
+	if (m_lastStallRecordMs != 0 && now - m_lastStallRecordMs < 30000) {
+		return;
+	}
+	m_lastStallRecordMs = now;
+	const QString seconds = QLocale().toString(milliseconds / 1000.0, 'f', 1);
+	recordActivity(tr("Studio paused"), tr("The interface did not respond for %1 seconds.").arg(seconds), QStringLiteral("studio"), OperationState::Warning,
+		tr("Work that holds the window should run in the background. If this keeps happening, note what you were doing and attach Tools > Copy Diagnostic Bundle to a bug report."));
 }
 
 void ApplicationShell::refreshActivityDetails(const QString& taskId)
@@ -14585,6 +14712,14 @@ void ApplicationShell::applyPreferencesToUi()
 		// Pages switch in one step instead of fading in.
 		m_pageTransition->setReducedMotion(preferences.reducedMotion);
 	}
+	for (BusyOverlay* overlay : findChildren<BusyOverlay*>()) {
+		overlay->setReducedMotion(preferences.reducedMotion);
+	}
+	for (BusyIndicator* indicator : findChildren<BusyIndicator*>()) {
+		indicator->setReducedMotion(preferences.reducedMotion);
+	}
+	// The status bar's ring stops or starts turning with the preference.
+	refreshWorkIndicator();
 	applyPreferencesToWidgets();
 }
 
@@ -17167,7 +17302,16 @@ void ApplicationShell::buildStatusBar()
 
 	statusBar()->setAccessibleName(tr("Status bar"));
 	statusBar()->setSizeGripEnabled(false);
-	m_activityToggle = makePanelToggle(QStringLiteral("activity"), tr("Activity"), tr("Show or hide the activity panel: every task with its progress, log, and result."));
+	// A ring beside the Activity button turns while anything in the window
+	// is busy (refreshWorkIndicator()).
+	m_workIndicator = new BusyIndicator(this);
+	m_workIndicator->setObjectName(QStringLiteral("statusWorkIndicator"));
+	m_workIndicator->setDiameter(14);
+	m_workIndicator->hide();
+	statusBar()->addPermanentWidget(m_workIndicator);
+	m_activityToggleToolTip = tr("Show or hide the activity panel: every task with its progress, log, and result.");
+	m_activityToggle = makePanelToggle(QStringLiteral("activity"), tr("Activity"), m_activityToggleToolTip);
+	connect(&studioWorkTracker(), &WorkTracker::changed, this, &ApplicationShell::refreshWorkIndicator);
 	m_inspectorToggle = makePanelToggle(trailingPanelGlyph(layoutDirection()), tr("Inspector"), tr("Show or hide the inspector panel: settings, setup, and project diagnostics."));
 	auto* divider = createDivider(Qt::Vertical);
 	divider->setFixedHeight(16);
@@ -27031,6 +27175,9 @@ void ApplicationShell::copyDiagnosticBundle()
 	lines << tr("Project: %1").arg(m_settings.currentProjectPath().isEmpty() ? tr("(none)") : nativePath(m_settings.currentProjectPath()));
 	lines << tr("Package: %1").arg(m_packageArchive.isOpen() ? nativePath(m_packageArchive.sourcePath()) : tr("(none)"));
 	lines << tr("Session log: %1").arg(sessionLogFilePath().isEmpty() ? tr("(not writable)") : nativePath(sessionLogFilePath()));
+	if (m_responsiveness) {
+		lines << tr("Interface pauses: %1").arg(m_responsiveness->summaryText());
+	}
 	const QVector<CrashReportInfo> crashes = recentCrashReports(20);
 	lines << tr("Crash reports kept: %1").arg(crashes.size());
 	if (!crashes.isEmpty()) {

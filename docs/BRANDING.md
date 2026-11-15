@@ -94,7 +94,9 @@ accent (`src/app/studio_theme.cpp`), so the app and its brand match.
 
 Manrope is © The Manrope Project Authors, used under the SIL Open Font
 License 1.1 (`assets/branding/fonts/OFL.txt`). The studio itself uses the
-operating system's UI font.
+operating system's UI font; the one exception is the wordmark on the start-up
+screen, which is set in Manrope ExtraBold from the resource file, with every
+other line of that screen in the interface font.
 
 ## The pixel accent
 
@@ -153,7 +155,7 @@ matches.
 | `icons/png/vibestudio-<size>.png` | App icon from 16 to 1024 px |
 | `icons/vibestudio.ico` | Windows icon (16 to 256 px), compiled into `vibestudio.exe` |
 | `icons/vibestudio.icns`, `icons/vibestudio-macos*` | macOS icon in the macOS tile shape |
-| `vibestudio.qrc` | Qt resource that gives the running app its window icon |
+| `vibestudio.qrc` | Qt resource that gives the running app its window icon and the start-up screen its wordmark typeface |
 | `web/` | Favicons and Manrope web fonts for the HTML documentation |
 | `installer/` | Windows installer wizard art and the macOS disk image background |
 | `fonts/` | Manrope ExtraBold and SemiBold, with their licence |

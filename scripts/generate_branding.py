@@ -938,6 +938,8 @@ def qrc_text() -> str:
     lines = ['<!DOCTYPE RCC>', '<RCC version="1.0">', '<qresource prefix="/branding">']
     for size in QRC_SIZES:
         lines.append(f'\t<file alias="vibestudio-{size}.png">icons/png/vibestudio-{size}.png</file>')
+    # The wordmark typeface for the start-up screen (app/studio_splash).
+    lines.append('\t<file alias="Manrope-ExtraBold.ttf">fonts/Manrope-ExtraBold.ttf</file>')
     lines += ['</qresource>', '</RCC>']
     return "\n".join(lines) + "\n"
 
