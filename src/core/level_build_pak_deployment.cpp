@@ -1,4 +1,5 @@
 #include "core/level_build_pak_deployment.h"
+#include "core/legacy_names.h"
 #include "core/package_storage.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -42,7 +43,7 @@ bool readReceipt(const QString& path, int slot, QJsonObject* value, QString* has
 	}
 	*value = QJsonDocument::fromJson(bytes).object();
 	const auto target = value->value("target").toString();
-	if (value->value("schemaVersion").toInt() != 1 || value->value("kind") != QStringLiteral("slopstudio-level-pak") ||
+	if (value->value("schemaVersion").toInt() != 1 || !isCurrentOrLegacyStudioName(value->value("kind").toString(), QStringLiteral("slopstudio-level-pak")) ||
 		value->value("slot").toInt(-1) != slot || levelBuildPakMaximumSlot(target) < slot ||
 		!QRegularExpression(QStringLiteral("^[A-Za-z0-9_-]{1,64}$")).match(value->value("mapName").toString()).hasMatch() ||
 		!QRegularExpression(QStringLiteral("^[0-9a-f]{64}$")).match(value->value("packageSha256").toString()).hasMatch()) {

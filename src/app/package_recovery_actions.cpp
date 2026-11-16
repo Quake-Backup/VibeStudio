@@ -1,4 +1,5 @@
 #include "app/application_shell.h"
+#include "core/legacy_names.h"
 #include "app/package_operation_dialog.h"
 #include "app/package_recovery_dialog.h"
 #include "app/package_recovery_writer.h"
@@ -47,7 +48,7 @@ void ApplicationShell::initializePackageRecovery()
 	auto* progress = new QTimer(this); progress->setInterval(250);
 	connect(progress, &QTimer::timeout, this, [this]() { if (m_packageRecoveryWriter->busy()) { refreshPackageRecoveryStatus(); } });
 	progress->start(); refreshPackageRecoveryStatus();
-	QDirIterator copies(packageRecoveryDirectory(), {QStringLiteral("*.sloppackage")}, QDir::Dirs | QDir::NoDotAndDotDot);
+	QDirIterator copies(packageRecoveryDirectory(), {QStringLiteral("*.sloppackage"), QStringLiteral("*") + legacyStudioId(QStringLiteral(".sloppackage"))}, QDir::Dirs | QDir::NoDotAndDotDot);
 	if (copies.hasNext()) {
 		QTimer::singleShot(0, this, [this]() { statusBar()->showMessage(tr("Package recovery copies are available in File > Recover Packages.")); });
 	}

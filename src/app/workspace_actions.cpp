@@ -1,4 +1,5 @@
 #include "app/application_shell.h"
+#include "core/legacy_names.h"
 #include "core/workspace_document.h"
 
 #include <QFileDialog>
@@ -105,7 +106,8 @@ bool ApplicationShell::openWorkspaceFrom(const QString& path, QString* error)
 
 void ApplicationShell::openWorkspaceFile()
 {
-	const auto path = QFileDialog::getOpenFileName(this, tr("Open Workspace"), m_workspaceDocumentPath, tr("SlopStudio workspace (*.slopworkspace)"));
+	const auto path = QFileDialog::getOpenFileName(this, tr("Open Workspace"), m_workspaceDocumentPath,
+		tr("SlopStudio workspace (*.slopworkspace)") + QStringLiteral(";;") + tr("VibeStudio workspace (*.vibeworkspace)"));
 	if (path.isEmpty()) { return; }
 	QString error;
 	if (!openWorkspaceFrom(path, &error)) { QMessageBox::warning(this, tr("Workspace Open Failed"), error); }

@@ -153,47 +153,52 @@ SlopStudio changes a compiler.
 | SlopMap3 | [themuffinator/q3mapx](https://github.com/themuffinator/q3mapx) | `main` | `897524439cb58d2b736bc96b16c231d22dc5ddce` | q3map2 from [NetRadiant Custom](https://github.com/Garux/netradiant-custom), revision `8216133` | GPL-3.0-or-later; imported q3map2 files keep their GPL-2.0-or-later notices |
 
 The two repositories still carry their earlier names, VibeyMapTools and q3mapx.
-They will be renamed SlopMap2 and SlopMap3 on GitHub, which redirects the old
-URLs. `.gitmodules` uses relative URLs (`../VibeyMapTools.git`, `../q3mapx.git`)
-that resolve beside the SlopStudio remote you cloned from.
+`.gitmodules` uses relative URLs (`../VibeyMapTools.git`, `../q3mapx.git`) that
+resolve beside the SlopStudio remote you cloned from, and GitHub redirects the
+old URLs when a repository is renamed.
 
-The pinned revisions are the forks' published `main` commits from just before
-the rename, so a build of the pinned sources still produces the VibeyMapTools
-(`vmt-*`) and q3mapx executables. Discovery accepts both sets of names. The
-rename itself is committed on each fork's `slopmap2-rebrand` and
-`slopmap3-rebrand` branches; the pins move to those commits once they are
-published, so a clone never points at a commit GitHub does not have.
+The compilers were first renamed VibeMap2 and VibeMap3, after the studio's
+former name, VibeStudio. SlopStudio now calls them SlopMap2 and SlopMap3, but
+the forks themselves have not taken the new names yet: their `vibemap2-rebrand`
+and `vibemap3-rebrand` branches build `vibemap2-*` and `vibemap3` executables
+that print VibeMap2 and VibeMap3 banners, and the pinned revisions are the
+forks' published `main` commits from before that, which build the VibeyMapTools
+(`vmt-*`) and q3mapx executables. Discovery and the version probe accept all
+three sets of names. The pins move once the forks publish their renames, so a
+clone never points at a commit GitHub does not have.
 
 ### Executables And Build Layouts
 
 | Compiler | Executables | Build output | Version line |
 |---|---|---|---|
-| SlopMap2 | `slopmap2-bsp`, `slopmap2-vis`, `slopmap2-light`, `slopmap2-bspinfo`, `slopmap2-bsputil`, `slopmap2-maputil`, `slopmap2-hub` (the build and lighting preview hub that succeeds ericw-tools' lightpreview) | `build/src/<tool directory>/`, inside `Release/` for multi-configuration generators; sources are in `src/qbsp`, `src/vis`, `src/light`, `src/bspinfo`, `src/bsputil`, `src/common`, `src/include` and `src/hub`. An install copies every executable flat into the prefix, and the release archives (`slopmap2-windows-<version>.zip`, `slopmap2-linux-<version>.tar.gz`, `slopmap2-macos-<version>.tar.gz`) hold every tool flat at the archive root. | Each tool's first line is `---- slopmap2-<tool> / SlopMap2 <version> ----`, for example `---- slopmap2-bsp / SlopMap2 <version> ----`. `-help` exits 0; `--version` is not supported (it exits 1 after the banner), so the registry probe runs the tool with no arguments. |
-| SlopMap3 | `slopmap3` (command line), `slopmap3-workbench` (GUI) | `build/<preset>/bin` for the `release`, `cli`, `cpu-only` and `debug` CMake presets; an install writes `<prefix>/bin`. | `slopmap3 --version` prints `SlopMap3 <version> (NRC <revision>)`; `-help` prints the same line after the inherited q3map2 version line. |
+| SlopMap2 | `slopmap2-bsp`, `slopmap2-vis`, `slopmap2-light`, `slopmap2-bspinfo`, `slopmap2-bsputil`, `slopmap2-maputil`, `slopmap2-hub` once the fork is renamed; `vibemap2-*` and `vmt-*` before that (the build and lighting preview hub that succeeds ericw-tools' lightpreview) | `build/src/<tool directory>/`, inside `Release/` for multi-configuration generators; sources are in `src/qbsp`, `src/vis`, `src/light`, `src/bspinfo`, `src/bsputil`, `src/common`, `src/include` and `src/hub`. An install copies every executable flat into the prefix, and the release archives (`slopmap2-windows-<version>.zip`, `slopmap2-linux-<version>.tar.gz`, `slopmap2-macos-<version>.tar.gz`) hold every tool flat at the archive root. | Each tool's first line is `---- slopmap2-<tool> / SlopMap2 <version> ----`, for example `---- slopmap2-bsp / SlopMap2 <version> ----`. `-help` exits 0; `--version` is not supported (it exits 1 after the banner), so the registry probe runs the tool with no arguments. |
+| SlopMap3 | `slopmap3` (command line) and `slopmap3-workbench` (GUI) once the fork is renamed; `vibemap3` or `q3mapx` before that | `build/<preset>/bin` for the `release`, `cli`, `cpu-only` and `debug` CMake presets; an install writes `<prefix>/bin`. | `slopmap3 --version` prints `SlopMap3 <version> (NRC <revision>)`; `-help` prints the same line after the inherited q3map2 version line. |
 
 ### Discovery
 
 The registry looks for SlopMap2 and SlopMap3 under their current names and
-their pre-rename names:
-- SlopMap2: `slopmap2-<tool>` or `vmt-<tool>` in
+their earlier names:
+- SlopMap2: `slopmap2-<tool>`, `vibemap2-<tool>` or `vmt-<tool>` in
   `external/compilers/slopmap2/build/src/<tool directory>/`, its `Release/`
   subfolder and `external/compilers/slopmap2/install/`, and on PATH.
-- SlopMap3: `slopmap3` or `q3mapx` in `external/compilers/slopmap3/build/release/bin`,
+- SlopMap3: `slopmap3`, `vibemap3` or `q3mapx` in `external/compilers/slopmap3/build/release/bin`,
   `build/cli/bin`, `build/cpu-only/bin` and `install/bin`, and on PATH.
 
 Stock `qbsp`, `vis`, `light` and `q3map2` executables are no longer found
 automatically. To use one, choose **Locate…** on the Build page's
 **Toolchain** tab or run `compiler set-path`, for example
 `compiler set-path slopmap2-bsp --executable /opt/ericw-tools/bin/qbsp`. The
-version probe still recognises the ericw-tools, q3map2, VibeyMapTools and q3mapx
-banners for executables configured this way.
+version probe still recognises the ericw-tools, q3map2, VibeyMapTools, q3mapx,
+VibeMap2 and VibeMap3 banners for executables configured this way.
 
 ### Renamed Ids
 
 Tool, profile and integration ids changed with the move. Old tool and profile
 ids are refused with a message that names the new one; pipeline ids (`quake-full`,
 `quake-fast`, `quake-bsp-only`, `quake3-full`, `quake3-bsp-only`) and stage ids
-(`qbsp`, `vis`, `light`, `bsp`) are unchanged.
+(`qbsp`, `vis`, `light`, `bsp`) are unchanged. The `vibemap2-*` and `vibemap3*`
+ids from before SlopStudio's own rename are not refused: every id lookup maps
+them to the `slopmap2-*` and `slopmap3*` ids silently.
 
 | Old id | New id |
 |---|---|

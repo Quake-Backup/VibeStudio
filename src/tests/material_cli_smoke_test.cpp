@@ -830,6 +830,17 @@ int main(int argc, char** argv)
 		expect(lastExit == 2, "override needs --base", lastOutput);
 		run({QStringLiteral("override"), mod, QStringLiteral("--base"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/none")});
 		expect(lastExit == 3, "overriding a material that is not there is not-found", lastOutput);
+		// A mod overridden by VibeStudio, before the rename, keeps adding to
+		// its VibeStudio-named script rather than starting a second one.
+		const QString oldMod = root.filePath(QStringLiteral("oldmod"));
+		const QString oldOverrides = oldMod + QStringLiteral("/scripts/zz_vibestudio_overrides.shader");
+		writeFile(oldOverrides, "textures/old/kept\n{\n\tsurfaceparm nodraw\n}\n");
+		result = run({QStringLiteral("override"), oldMod, QStringLiteral("--base"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow")});
+		expect(lastExit == 0 && result.value(QStringLiteral("virtualPath")).toString() == QStringLiteral("scripts/zz_vibestudio_overrides.shader")
+				&& result.value(QStringLiteral("appended")).toBool() && readFile(oldOverrides).contains("textures/old/kept")
+				&& readFile(oldOverrides).contains("textures/test/glow")
+				&& !QFile::exists(oldMod + QStringLiteral("/scripts/zz_slopstudio_overrides.shader")),
+			"an override script from before the rename keeps taking the copies", lastOutput);
 		// A Quake II texture: the WAL is copied whole.
 		const QString q2mod = root.filePath(QStringLiteral("q2mod"));
 		writeFile(q2mod + QStringLiteral("/readme.txt"), "mod\n");

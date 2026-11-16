@@ -1,4 +1,5 @@
 #include "core/audio_effect_preset.h"
+#include "core/legacy_names.h"
 #include "core/audio_publication.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -170,7 +171,7 @@ bool decodeAudioEffectPreset(const QByteArray &bytes, AudioEffectPreset *preset,
 	const double rate = object.value("sampleRate").toDouble(std::numeric_limits<double>::quiet_NaN());
 	AudioEffectPreset next;
 	if (!preset || parse.error != QJsonParseError::NoError || !json.isObject() || object.size() != 6 ||
-	    object.value("format") != QJsonValue("slopstudio.audio-effects") || object.value("version") != QJsonValue(1) ||
+	    !isCurrentOrLegacyStudioName(object.value("format").toString(), QStringLiteral("slopstudio.audio-effects")) || object.value("version") != QJsonValue(1) ||
 	    !object.value("name").isString() || !std::isfinite(rate) || rate != std::floor(rate) || rate < 1 ||
 	    rate > 384000 || !audioEffectsFromJson(object.value("effects"), &next.effects))
 		return fail(error,

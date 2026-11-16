@@ -1,4 +1,5 @@
 #include "core/level_build_artifacts.h"
+#include "core/legacy_names.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDir>
@@ -283,7 +284,7 @@ LevelBuildArtifacts inspectLevelBuildArtifacts(const LevelBuildWorkspace& worksp
 	QJsonParseError parse;
 	const auto json = QJsonDocument::fromJson(bytes, &parse).object();
 	if (parse.error != QJsonParseError::NoError || json.value("schemaVersion").toInt() != 1 ||
-		json.value("kind").toString() != "slopstudio-level-outputs" || json.value("state").toString() != "completed" ||
+		!isCurrentOrLegacyStudioName(json.value("kind").toString(), QStringLiteral("slopstudio-level-outputs")) || json.value("state").toString() != "completed" ||
 		!json.value("outputs").isArray()) {
 		return fail(text(QT_TRANSLATE_NOOP("LevelBuildArtifacts",
 										   "The last build is incomplete or its output record is invalid. Run a full prepared build.")));

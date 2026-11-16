@@ -1,4 +1,5 @@
 #include "core/model_session_draft.h"
+#include "core/legacy_names.h"
 
 #include "core/model_animation_curves.h"
 #include "core/model_document.h"
@@ -68,7 +69,7 @@ bool parseHeader(const QJsonObject &object, ModelSessionDraft *draft, QByteArray
 	const auto owner = object.value(QStringLiteral("owner")).toString();
 	const auto base = QByteArray::fromHex(object.value(QStringLiteral("baseFingerprint")).toString().toLatin1());
 	const auto sha = QByteArray::fromHex(object.value(QStringLiteral("payloadSha256")).toString().toLatin1());
-	if (object.value(QStringLiteral("format")).toString() != format || object.value(QStringLiteral("version")) != QJsonValue(1) ||
+	if (!isCurrentOrLegacyStudioName(object.value(QStringLiteral("format")).toString(), format) || object.value(QStringLiteral("version")) != QJsonValue(1) ||
 		!kindFromId(object.value(QStringLiteral("kind")).toString(), &kind) || !validOwner(owner) || base.isEmpty() || sha.size() != 32 ||
 		!object.value(QStringLiteral("payloadBytes")).isDouble())
 		return false;

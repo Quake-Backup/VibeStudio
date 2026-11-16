@@ -1,4 +1,5 @@
 #include "cli/cli.h"
+#include "core/legacy_names.h"
 #include "cli/audio_session.h"
 #include "cli/audio_take.h"
 #include "cli/audio_recording.h"
@@ -3729,7 +3730,7 @@ bool loadPackageForCliQuiet(const QString& path, PackageArchive* archive, QStrin
 	QElapsedTimer timer;
 	timer.start();
 	bool loaded = false;
-	if (archive && path.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) {
+	if (archive && isPackageDraftPath(path)) {
 		PackageStagingModel plan;
 		if (PackageDraft::load(path, &plan, &localError)) {
 			*archive = packagePlannedArchive(plan, &localError);
@@ -3950,7 +3951,7 @@ bool loadPackageStaging(const QString& packagePath, PackageStagingModel* staging
 		}
 		return false;
 	}
-	if (packagePath.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) { return PackageDraft::load(packagePath, staging, error); }
+	if (isPackageDraftPath(packagePath)) { return PackageDraft::load(packagePath, staging, error); }
 	PackageArchive archive;
 	if (!loadPackageForCliQuiet(packagePath, &archive, error)) {
 		return false;
@@ -6568,7 +6569,7 @@ int runPackageCreateCommand(const QStringList& tokens, const QStringList& args, 
 		return usage(QStringLiteral("Use --entry only as the target of --replace-file, without --replace-entry."));
 	}
 	const QString output = tokens.at(2);
-	const bool draft = output.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive);
+	const bool draft = isPackageDraftPath(output);
 	const auto archiveFormat = draft && !seen.contains(QStringLiteral("--format")) ? PackageArchiveFormat::Pk3 : packageWriteFormatFromArgs(args, output);
 	const QString magic = optionValue(args, QStringLiteral("--wad-magic"));
 	PackageStagingModel plan; QString error;
@@ -14203,7 +14204,7 @@ int runTextureExportCommand(const QString& command, const QString& input, const 
 	const auto output = optionValue(args, QStringLiteral("--output"));
 	const bool stagingOnly = command == QStringLiteral("texture stage");
 	const auto targetPackage = optionValue(args, QStringLiteral("--target-package")), targetEntry = optionValue(args, QStringLiteral("--target-entry"));
-	if (stagingOnly && (targetPackage.isEmpty() || targetEntry.isEmpty() || !output.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive))) {
+	if (stagingOnly && (targetPackage.isEmpty() || targetEntry.isEmpty() || !isPackageDraftPath(output))) {
 		return printCliError(command, CliExitCode::Usage, QStringLiteral("texture stage requires --target-package, --target-entry, and --output <draft.sloppackage>. --replace-texture permits entry replacement; --overwrite permits draft replacement."), format);
 	}
 	if (input.isEmpty() || (!validateOnly && output.isEmpty()) || (validateOnly && !output.isEmpty())) {
@@ -14274,7 +14275,7 @@ int runTextureExportCommand(const QString& command, const QString& input, const 
 	PackageStagingModel staging;
 	if (stagingOnly) {
 		if (QFileInfo(output).exists() && !hasOption(args, QStringLiteral("--overwrite"))) { return printCliError(command, CliExitCode::ValidationFailed, QStringLiteral("The draft output exists. Use --overwrite after reviewing it."), format); }
-		if (targetPackage.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) {
+		if (isPackageDraftPath(targetPackage)) {
 			if (!PackageDraft::load(targetPackage, &staging, &error)) { return printCliError(command, CliExitCode::ValidationFailed, error, format); }
 		} else {
 			PackageArchive target;
@@ -14944,7 +14945,7 @@ int runPackageSubsetCommand(const QStringList& tokens, const QStringList& args, 
 		return usage(QStringLiteral("Unknown compression level. Use store, fast, default, or best."));
 	}
 	QString error; std::shared_ptr<const PackageArchiveReader> archive;
-	if (packagePath.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) {
+	if (isPackageDraftPath(packagePath)) {
 		PackageStagingModel draft;
 		if (!PackageDraft::load(packagePath, &draft, &error)) { return printCliError(commandName, CliExitCode::Failure, error, format); }
 		archive = std::make_shared<PackageArchive>(packagePlannedArchive(draft, &error));
@@ -16653,7 +16654,7 @@ int runModelStageCommand(const QString& path, const QStringList& args, CliOutput
 			{QStringLiteral("entityClass"), placed.entityClass}, {QStringLiteral("warnings"), QJsonArray::fromStringList(placed.warnings)}};
 	}
 	bool written = false;
-	if (output.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) {
+	if (isPackageDraftPath(output)) {
 		if (!PackageDraft::save(output, &staging, overwrite, &error, packageDraftWriteControl(), dryRun)) { return printCliError(command, CliExitCode::Failure, error, format); }
 		written = !dryRun;
 	} else {

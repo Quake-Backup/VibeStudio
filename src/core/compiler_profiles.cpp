@@ -1,4 +1,5 @@
 #include "core/compiler_profiles.h"
+#include "core/legacy_names.h"
 
 #include "core/compiler_known_issues.h"
 #include "core/quake_map_preflight.h"
@@ -19,7 +20,8 @@ namespace {
 
 QString normalizedId(const QString& value)
 {
-	return value.trimmed().toLower().replace('_', '-');
+	// VibeStudio, the studio's former name, wrote vibemap2-* and vibemap3-* ids.
+	return withCurrentStudioName(value.trimmed().toLower().replace('_', '-'));
 }
 
 CompilerProfileDescriptor compilerProfile(

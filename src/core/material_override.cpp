@@ -1,5 +1,6 @@
 #include "core/material_override.h"
 
+#include "core/legacy_names.h"
 #include "core/material_script.h"
 
 #include <QCoreApplication>
@@ -10,6 +11,17 @@ namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
+
+bool readerHasPath(const PackageArchiveReader& reader, const QString& virtualPath)
+{
+	const QVector<PackageEntry> entries = reader.entries();
+	for (const PackageEntry& entry : entries) {
+		if (entry.kind == PackageEntryKind::File && entry.virtualPath.compare(virtualPath, Qt::CaseInsensitive) == 0) {
+			return true;
+		}
+	}
+	return false;
+}
 
 // A WAL is at most a few hundred KiB; this only stops a damaged entry.
 constexpr qint64 kMaximumOverrideFileBytes = 16LL * 1024 * 1024;
@@ -59,6 +71,13 @@ bool materialOverrideForEntry(const MaterialLibrary& library, int entry, Materia
 	}
 	const MaterialScript* script = item.scriptIndex >= 0 ? library.script(entry) : nullptr;
 	copy.virtualPath = materialOverrideScriptPath(item.engine, dialect);
+	// A package overridden before the rename keeps its VibeStudio-named script,
+	// so its copies stay in one file the game reads in the right order.
+	const QString legacyPath = legacyStudioId(copy.virtualPath);
+	if (library.reader && legacyPath != copy.virtualPath && !readerHasPath(*library.reader, copy.virtualPath)
+		&& readerHasPath(*library.reader, legacyPath)) {
+		copy.virtualPath = legacyPath;
+	}
 	if (!script || copy.virtualPath.isEmpty()) {
 		return failure(Text::tr("Only shaders, materials and Quake II textures can be copied into the package."));
 	}

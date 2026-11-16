@@ -1,4 +1,5 @@
 #include "cli/model_mdl.h"
+#include "core/legacy_names.h"
 #include "core/model_document.h"
 #include "core/model_file_io.h"
 #include "core/model_skin_handoff.h"
@@ -350,7 +351,7 @@ ModelMdlCliResult runModelMdl(const QStringList &arguments)
 			}
 			PackageArchive archive;
 			const auto package = values.value("--package");
-			if (package.endsWith(".sloppackage", Qt::CaseInsensitive))
+			if (isPackageDraftPath(package))
 			{
 				PackageStagingModel staging;
 				if (!PackageDraft::load(package, &staging, &error))

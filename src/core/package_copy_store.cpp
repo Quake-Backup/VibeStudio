@@ -1,4 +1,5 @@
 #include "core/package_copy_store.h"
+#include "core/legacy_names.h"
 #include "core/package_draft_access.h"
 #include "core/package_storage.h"
 
@@ -117,7 +118,7 @@ bool readRecord(const QString& path, QJsonObject* record, QByteArray* bytes, Pac
 	*record = QJsonDocument::fromJson(*bytes).object();
 	const QString id = QFileInfo(path).fileName().chopped(suffix.size());
 	if (!validId(id) || record->value(QStringLiteral("id")).toString() != id
-		|| record->value(QStringLiteral("kind")).toString() != QStringLiteral("slopstudio-package-copies")
+		|| !isCurrentOrLegacyStudioName(record->value(QStringLiteral("kind")).toString(), QStringLiteral("slopstudio-package-copies"))
 		|| !QDateTime::fromString(record->value(QStringLiteral("createdUtc")).toString(), Qt::ISODateWithMs).isValid()
 		|| !readUsage(*record, usage)) {
 		return fail(error, text(QT_TRANSLATE_NOOP("PackageCopyStore", "A copy session has no valid shared reservation record. Close older studio windows or review retained copies before preparing more: %1")).arg(path));
@@ -188,7 +189,8 @@ PackageCopyQuota readPolicy(const QString& directory)
 		result.limits = {static_cast<quint64>(payload), static_cast<qsizetype>(files), static_cast<qsizetype>(entries), static_cast<int>(batches)};
 	}
 	QCryptographicHash hash(QCryptographicHash::Sha256);
-	hash.addData("slopstudio-copy-policy-v1:"); hash.addData(directory.toUtf8());
+	hash.addData("vibestudio-copy-policy-v1:"); // former name kept: saved hashes must not change
+	hash.addData(directory.toUtf8());
 	hash.addData(result.configured ? ":configured:" : ":default:"); hash.addData(bytes);
 	result.policyFingerprint = hash.result(); return result;
 }
@@ -303,7 +305,7 @@ Snapshot inspectSession(const QString& path, const PackageReadControl& control, 
 					info.createdUtc = QDateTime::fromString(object.value(QStringLiteral("createdUtc")).toString(), Qt::ISODateWithMs);
 					const int schema = object.value(QStringLiteral("schemaVersion")).toInt(-1);
 					info.reservationKnown = readUsage(object, &info.reserved);
-					if ((schema != 1 && (schema != 2 || !info.reservationKnown)) || object.value(QStringLiteral("kind")).toString() != QStringLiteral("slopstudio-package-copies")
+					if ((schema != 1 && (schema != 2 || !info.reservationKnown)) || !isCurrentOrLegacyStudioName(object.value(QStringLiteral("kind")).toString(), QStringLiteral("slopstudio-package-copies"))
 						|| object.value(QStringLiteral("id")).toString() != info.id || !info.createdUtc.isValid()) {
 						info.error = text(QT_TRANSLATE_NOOP("PackageCopyStore", "The session record is incomplete or invalid. Review the remaining files before discarding them."));
 					}
@@ -317,7 +319,8 @@ Snapshot inspectSession(const QString& path, const PackageReadControl& control, 
 	std::sort(result.files.begin(), result.files.end(), [](const auto& a, const auto& b) { return a.relativePath < b.relativePath; });
 	std::sort(result.directories.begin(), result.directories.end(), [](const auto& a, const auto& b) { return a.relative < b.relative; });
 	if (stopped(control) || !view->matchesDirectory() || !snapshotUnchanged(result, control)) { return unsafe(text(QT_TRANSLATE_NOOP("PackageCopyStore", "Temporary copies changed during review. Refresh the list."))); }
-	QCryptographicHash hash(QCryptographicHash::Sha256); hashField(hash, QByteArrayLiteral("slopstudio-copy-review-v1")); hashField(hash, info.path.toUtf8());
+	QCryptographicHash hash(QCryptographicHash::Sha256); hashField(hash, QByteArrayLiteral("vibestudio-copy-review-v1")); // former name kept: saved hashes must not change
+	hashField(hash, info.path.toUtf8());
 	for (const auto& directory : result.directories) {
 		if (stopped(control)) { return unsafe(text(QT_TRANSLATE_NOOP("PackageCopyStore", "Temporary copy review cancelled."))); }
 		for (const auto& field : {directory.relative.toUtf8(), directory.canonical.toUtf8(), QByteArray::number(directory.birth), QByteArray::number(directory.modified)}) { hashField(hash, field); }

@@ -5,8 +5,10 @@ download a release, check it, install it, run its command line, and remove it
 again.
 
 > [!IMPORTANT]
-> Every build is pre-alpha, and builds are not signed yet. Download SlopStudio
-> only from the project's
+> No release has been published yet, and no nightly build has completed, so
+> for now [build SlopStudio from source](building-from-source.md). When builds
+> appear, every one will be pre-alpha and unsigned. Download SlopStudio only
+> from the project's
 > [Releases page](https://github.com/themuffinator/SlopStudio/releases), and
 > check each file against `SHA256SUMS.txt` before you run it.
 
@@ -160,7 +162,8 @@ the commands, JSON output and exit codes.
 ## Try a nightly build
 
 Nightly builds come from the **release-nightly** workflow on GitHub Actions.
-They have the newest changes and even less testing than releases.
+They have the newest changes and even less testing than releases. No nightly
+run has completed yet, so there is nothing to download until one does.
 
 1. Open the
    [release-nightly workflow](https://github.com/themuffinator/SlopStudio/actions/workflows/release-nightly.yml)

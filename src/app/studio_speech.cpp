@@ -1,4 +1,5 @@
 #include "app/studio_speech.h"
+#include "core/legacy_names.h"
 
 #include <QCoreApplication>
 #include <QElapsedTimer>
@@ -511,7 +512,7 @@ std::unique_ptr<SpeechBackend> createSpeechBackend()
 	// SLOPSTUDIO_SPEECH_ENGINE picks an engine by name: "none" silences the
 	// studio, and "log" records what would be said without a sound, which is
 	// what the tests use.
-	const QString requested = qEnvironmentVariable("SLOPSTUDIO_SPEECH_ENGINE").trimmed().toLower();
+	const QString requested = studioEnvironmentVariable("SPEECH_ENGINE").trimmed().toLower();
 	if (requested == QStringLiteral("none") || requested == QStringLiteral("off")) {
 		return std::make_unique<UnavailableSpeechBackend>(QCoreApplication::translate("SlopStudioSpeech", "Speech is turned off for this run by SLOPSTUDIO_SPEECH_ENGINE."));
 	}

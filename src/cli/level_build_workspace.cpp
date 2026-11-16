@@ -1,4 +1,5 @@
 #include "cli/level_build_workspace.h"
+#include "core/legacy_names.h"
 #include "core/compiler_registry.h"
 #include "core/level_build_workspace.h"
 #include "core/package_draft.h"
@@ -90,7 +91,7 @@ LevelBuildCliResult runLevelBuildWorkspaceCommand(const QStringList& arguments) 
 		}
 		std::shared_ptr<const PackageArchiveReader> reader;
 		const auto package = value("--package");
-		if (QFileInfo(package).suffix().compare("sloppackage", Qt::CaseInsensitive) == 0) {
+		if (isPackageDraftPath(package)) {
 			PackageStagingModel staging;
 			if (!PackageDraft::load(package, &staging, &error)) {
 				return fail(3, error);

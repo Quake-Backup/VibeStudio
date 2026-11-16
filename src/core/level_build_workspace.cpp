@@ -1,4 +1,5 @@
 #include "core/level_build_workspace.h"
+#include "core/legacy_names.h"
 #include "core/level_build_artifacts.h"
 #include "core/level_document.h"
 #include "core/level_quake_assets.h"
@@ -521,7 +522,7 @@ LevelBuildWorkspace readLevelBuildWorkspace(const QString& directory, const Pack
 	const auto object = json.object();
 	if (parseError.error != QJsonParseError::NoError ||
 		(object.value("schemaVersion").toInt() != 1 && object.value("schemaVersion").toInt() != 2) ||
-		object.value("kind").toString() != QStringLiteral("slopstudio-level-build") ||
+		!isCurrentOrLegacyStudioName(object.value("kind").toString(), QStringLiteral("slopstudio-level-build")) ||
 		!QStringList{"quake", "quake2", "quake3"}.contains(object.value("target").toString()) ||
 		(object.value("schemaVersion").toInt() == 1 && object.value("target").toString() != QStringLiteral("quake3")) ||
 		!validName(object.value("mapName").toString()) || !object.value("inputs").isArray()) {

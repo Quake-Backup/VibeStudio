@@ -1180,7 +1180,7 @@
 <context>
     <name>AudioRecovery</name>
     <message>
-        <location filename="../src/core/audio_recovery_store.cpp" line="+102"/>
+        <location filename="../src/core/audio_recovery_store.cpp" line="+103"/>
         <location line="+144"/>
         <location line="+89"/>
         <source>The audio recovery folder is unavailable or unsafe.</source>
@@ -2672,7 +2672,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cli/cli.cpp" line="+639"/>
+        <location filename="../src/cli/cli.cpp" line="+640"/>
         <source>Add or change one of the project&apos;s own build pipelines, kept in its manifest, as Build Pipelines… does: &lt;id&gt; --workspace-root DIR with --name, --description, --from PIPELINE (start from a built-in or project pipeline), --stage ID=PROFILE in order (replaces the stages; each later stage reads the previous output unless --map-input ID), --stage-args ID=ARGUMENTS (quotes keep spaces; ${MAP}, ${MAP_DIR}, ${MAP_NAME}, ${OUTPUT}, ${PROJECT_DIR}, ${GAME_DIR}, ${MOD}, ${CPU_COUNT} and the pipeline&apos;s variables), --disable-stage ID, --enable-stage ID and --variable NAME=VALUE, each repeatable. Exits 4 naming the problems of a pipeline that cannot be saved. Supports --dry-run.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4758,7 +4758,7 @@ The owning studio is still running. Close that document there before discarding 
 <context>
     <name>LevelBuildArtifacts</name>
     <message>
-        <location filename="../src/core/level_build_artifacts.cpp" line="+35"/>
+        <location filename="../src/core/level_build_artifacts.cpp" line="+36"/>
         <source>Build artifact operation cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4927,7 +4927,7 @@ The owning studio is still running. Close that document there before discarding 
     <message>
         <location filename="../src/cli/level_build_artifacts.cpp" line="+25"/>
         <location filename="../src/cli/level_build_deployment.cpp" line="+31"/>
-        <location filename="../src/cli/level_build_workspace.cpp" line="+30"/>
+        <location filename="../src/cli/level_build_workspace.cpp" line="+31"/>
         <source>Repeated option: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5054,7 +5054,7 @@ The owning studio is still running. Close that document there before discarding 
 <context>
     <name>LevelBuildDeployment</name>
     <message>
-        <location filename="../src/core/level_build_deployment.cpp" line="+38"/>
+        <location filename="../src/core/level_build_deployment.cpp" line="+39"/>
         <source>The deployment target overlaps protected source content.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5065,12 +5065,12 @@ The owning studio is still running. Close that document there before discarding 
     </message>
     <message>
         <location line="+58"/>
-        <location line="+71"/>
+        <location line="+79"/>
         <source>Deployment review cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-107"/>
+        <location line="-115"/>
         <location line="+39"/>
         <source>Choose an installation matching this prepared build target: %1.</source>
         <translation type="unfinished"></translation>
@@ -5091,7 +5091,12 @@ The owning studio is still running. Close that document there before discarding 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+13"/>
+        <source>%1 was deployed by VibeStudio before the rename and loads after this package, so the game would keep using it. Remove it to play the new build.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+22"/>
         <source>The chosen game folder is occupied by a file.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5535,7 +5540,7 @@ SHA-256: %2</source>
 <context>
     <name>LevelBuildPakDeployment</name>
     <message>
-        <location filename="../src/core/level_build_pak_deployment.cpp" line="+26"/>
+        <location filename="../src/core/level_build_pak_deployment.cpp" line="+27"/>
         <source>Invalid or oversized PAK deployment receipt: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5603,7 +5608,7 @@ SHA-256: %2</source>
 <context>
     <name>LevelBuildWorkspace</name>
     <message>
-        <location filename="../src/core/level_build_workspace.cpp" line="+43"/>
+        <location filename="../src/core/level_build_workspace.cpp" line="+44"/>
         <source>Build workspace paths must not traverse links: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7837,7 +7842,7 @@ Assets: %2</source>
 <context>
     <name>LevelGestures</name>
     <message>
-        <location filename="../src/core/level_gestures.cpp" line="+41"/>
+        <location filename="../src/core/level_gestures.cpp" line="+42"/>
         <location line="+20"/>
         <location line="+127"/>
         <source>None</source>
@@ -17007,7 +17012,7 @@ Format: %7, %8</source>
 <context>
     <name>LevelTrenchBroom</name>
     <message>
-        <location filename="../src/core/level_scene_trenchbroom.cpp" line="+278"/>
+        <location filename="../src/core/level_scene_trenchbroom.cpp" line="+279"/>
         <source>Layer</source>
         <translation type="unfinished"></translation>
     </message>
@@ -20127,7 +20132,7 @@ Format: %7, %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_document.cpp" line="+2077"/>
+        <location filename="../src/core/model_document.cpp" line="+2078"/>
         <source>Curve settings apply only to animation curve operations.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -20981,7 +20986,7 @@ Format: %7, %8</source>
 <context>
     <name>ModelAppearanceCli</name>
     <message>
-        <location filename="../src/cli/model_appearance.cpp" line="+33"/>
+        <location filename="../src/cli/model_appearance.cpp" line="+34"/>
         <source>Repeated option: %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -21042,7 +21047,7 @@ Format: %7, %8</source>
 <context>
     <name>ModelAssemblyCli</name>
     <message>
-        <location filename="../src/cli/model_assembly.cpp" line="+86"/>
+        <location filename="../src/cli/model_assembly.cpp" line="+87"/>
         <source>Repeated option: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -29199,7 +29204,7 @@ Original source files remain unchanged.</source>
 <context>
     <name>ModelMdlCli</name>
     <message>
-        <location filename="../src/cli/model_mdl.cpp" line="+43"/>
+        <location filename="../src/cli/model_mdl.cpp" line="+44"/>
         <source>Repeated option: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -34509,7 +34514,7 @@ Original source files remain unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cli/model_skin_bindings.cpp" line="+45"/>
+        <location filename="../src/cli/model_skin_bindings.cpp" line="+46"/>
         <source>Repeated option: %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -37217,7 +37222,7 @@ Target materials: %2
         </translation>
     </message>
     <message>
-        <location filename="../src/cli/model_tools.cpp" line="+68"/>
+        <location filename="../src/cli/model_tools.cpp" line="+69"/>
         <source>Repeated option: %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -42291,7 +42296,7 @@ Ownership and file metadata are checked again. Cancellation may leave some files
 <context>
     <name>PackageCopyStore</name>
     <message>
-        <location filename="../src/core/package_copy_store.cpp" line="+34"/>
+        <location filename="../src/core/package_copy_store.cpp" line="+35"/>
         <source>Temporary copies are in use or cannot be protected for maintenance. Close their studio window and retry.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -42336,7 +42341,7 @@ Ownership and file metadata are checked again. Cancellation may leave some files
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+31"/>
         <source>Shared copy reservations could not be reconciled; the previous charge was retained.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -42348,14 +42353,14 @@ Ownership and file metadata are checked again. Cancellation may leave some files
     <message>
         <location line="+9"/>
         <location line="+4"/>
-        <location line="+52"/>
+        <location line="+53"/>
         <location line="+4"/>
         <location line="+45"/>
         <source>Temporary copy review cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-104"/>
+        <location line="-105"/>
         <source>Temporary copy storage exceeds its review depth limit.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -42405,7 +42410,7 @@ Ownership and file metadata are checked again. Cancellation may leave some files
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+15"/>
         <source>Temporary copies changed. Refresh before discarding them.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -43168,7 +43173,7 @@ Releasing a lock keeps all working payloads. Refresh and review any session sepa
 <context>
     <name>PackageImportStore</name>
     <message>
-        <location filename="../src/core/package_import_store.cpp" line="+61"/>
+        <location filename="../src/core/package_import_store.cpp" line="+62"/>
         <source>Working import metadata is missing, unreadable or too large.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -43738,7 +43743,7 @@ Backup: %2</source>
 <context>
     <name>PackageRecovery</name>
     <message>
-        <location filename="../src/core/package_recovery.cpp" line="+57"/>
+        <location filename="../src/core/package_recovery.cpp" line="+58"/>
         <location line="+68"/>
         <location line="+47"/>
         <location line="+156"/>
@@ -45824,257 +45829,6 @@ Grids: %5 × %6 and %7 × %8</source>
     </message>
 </context>
 <context>
-    <name>StudioSettings</name>
-    <message>
-        <location filename="../src/core/studio_settings.cpp" line="+2026"/>
-        <source>Settings schema %1 inspected read-only; migration to %2 was skipped.</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>TextDocument</name>
-    <message>
-        <location filename="../src/core/text_document.cpp" line="+103"/>
-        <source>Text files larger than 4 MiB are read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>UTF-32 is not supported. This preview is read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The file is not valid UTF-8 or BOM-marked UTF-16. This preview is read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+20"/>
-        <source>Binary control characters were found. This preview is read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>The text file could not be opened: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The text file could not be read: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <location line="+43"/>
-        <source>No output buffer was supplied.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-41"/>
-        <location line="+43"/>
-        <source>This document cannot be saved.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-42"/>
-        <location line="+73"/>
-        <source>The edited text exceeds the 4 MiB limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-70"/>
-        <source>Editor text must use LF paragraph boundaries.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
-        <source>The edited text contains invalid Unicode and cannot be saved.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>The encoded file exceeds the 4 MiB limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <location line="+54"/>
-        <source>The edited text cannot be saved without changing its characters.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-26"/>
-        <source>Text edits must stay inside the reviewed document.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Text edits must use ordered, non-overlapping Unicode ranges and LF paragraph boundaries.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+17"/>
-        <source>The edited file exceeds its size limit or contains invalid Unicode.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+25"/>
-        <source>The file reappeared or its parent path changed. It has not been recreated.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The file changed, moved, or became unreadable after it was opened. Your edits have not been written.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <location line="+83"/>
-        <source>The file could not be written: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-79"/>
-        <location line="+84"/>
-        <source>The file could not be committed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-58"/>
-        <source>Choose a destination file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <source>The destination cannot be inspected safely: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>The destination folder must exist and the file must not be a broken link.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+14"/>
-        <source>The destination has not been inspected.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>The destination changed after it was reviewed. Your document has not been written.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+54"/>
-        <source>%1 with BOM</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>No line endings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Mixed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1 · %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>TextRecovery</name>
-    <message>
-        <location filename="../src/core/text_recovery.cpp" line="+62"/>
-        <source>Invalid recovery destination.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Recovery write cancelled.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The recovery folder is unavailable or is a link.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <source>The recovery file is not a regular file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The recovery record exceeds its size limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>The recovery copy could not be written: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>The recovery write was cancelled or its destination changed.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>The recovery copy could not be committed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>The recovery record is not a readable regular file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>The recovery record could not be read within its size limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>The recovery record has an unsupported or damaged header.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The recovery contents failed their checksum or size check.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>The recovery timestamp is invalid.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <location line="+21"/>
-        <source>The recovery folder is not a regular directory.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-2"/>
-        <source>Invalid recovery identifier.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Only regular recovery files may be discarded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>The recovery copy could not be discarded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>SlopStudioAccessibility</name>
     <message>
         <location filename="../src/app/studio_accessibility.cpp" line="+200"/>
@@ -46132,7 +45886,7 @@ Grids: %5 × %6 and %7 × %8</source>
 <context>
     <name>SlopStudioAdvancedStudio</name>
     <message>
-        <location filename="../src/core/advanced_studio.cpp" line="+82"/>
+        <location filename="../src/core/advanced_studio.cpp" line="+83"/>
         <source> (line %1)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -49899,7 +49653,7 @@ Grids: %5 × %6 and %7 × %8</source>
 <context>
     <name>SlopStudioAssetRegister</name>
     <message>
-        <location filename="../src/core/game_asset_register.cpp" line="+361"/>
+        <location filename="../src/core/game_asset_register.cpp" line="+362"/>
         <source>Quake</source>
         <translation type="unfinished">Quake</translation>
     </message>
@@ -51894,7 +51648,7 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>SlopStudioAssistant</name>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+16713"/>
+        <location filename="../src/app/application_shell.cpp" line="+16714"/>
         <source>Show the raw JSON</source>
         <translation type="unfinished"></translation>
     </message>
@@ -56071,7 +55825,7 @@ Select a WAV asset, or the audio could not be decoded.</source>
     <name>SlopStudioCompilerProfiles</name>
     <message>
         <location filename="../src/core/build_pipeline.cpp" line="-2081"/>
-        <location filename="../src/core/compiler_profiles.cpp" line="+844"/>
+        <location filename="../src/core/compiler_profiles.cpp" line="+846"/>
         <source>Input file does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -56822,12 +56576,12 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>SlopStudioCompilerRegistry</name>
     <message>
-        <location filename="../src/core/compiler_registry.cpp" line="+66"/>
+        <location filename="../src/core/compiler_registry.cpp" line="+68"/>
         <source>Configured compiler executable does not exist: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+169"/>
+        <location line="+185"/>
         <source>Version probe could not start.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -57947,12 +57701,12 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>SlopStudioEditorProfiles</name>
     <message>
-        <location filename="../src/core/editor_profiles.cpp" line="+127"/>
+        <location filename="../src/core/editor_profiles.cpp" line="+128"/>
         <source>Levels</source>
         <translation type="unfinished">Levels</translation>
     </message>
     <message>
-        <location line="+45"/>
+        <location line="+46"/>
         <source>SlopStudio Default</source>
         <translation type="unfinished">SlopStudio-Standard</translation>
     </message>
@@ -64457,6 +64211,14 @@ Select a WAV asset, or the audio could not be decoded.</source>
         <location line="+2"/>
         <source>Dismiss notice</source>
         <translation type="unfinished">Hinweis schließen</translation>
+    </message>
+</context>
+<context>
+    <name>SlopStudioLegacyNames</name>
+    <message>
+        <location filename="../src/core/legacy_names.cpp" line="+159"/>
+        <source>The VibeStudio project folder %1 could not be renamed to %2.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -76814,7 +76576,7 @@ Searched: %3
 <context>
     <name>SlopStudioLocalization</name>
     <message numerus="yes">
-        <location filename="../src/core/localization.cpp" line="+107"/>
+        <location filename="../src/core/localization.cpp" line="+108"/>
         <source>%n package(s) ready</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -77461,7 +77223,7 @@ Searched: %3
 <context>
     <name>SlopStudioMain</name>
     <message>
-        <location filename="../src/main.cpp" line="+234"/>
+        <location filename="../src/main.cpp" line="+242"/>
         <source>Starting the 3D renderer</source>
         <translation type="unfinished"></translation>
     </message>
@@ -83059,7 +82821,7 @@ Searched: %3
     </message>
     <message>
         <location filename="../src/app/material_workbench.cpp" line="+3610"/>
-        <location filename="../src/core/material_override.cpp" line="+43"/>
+        <location filename="../src/core/material_override.cpp" line="+55"/>
         <source>Only a base game material can be overridden in the package.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -83069,7 +82831,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+16"/>
         <source>Only shaders, materials and Quake II textures can be copied into the package.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -83203,7 +82965,7 @@ Searched: %3
 <context>
     <name>SlopStudioModelAssembly</name>
     <message>
-        <location filename="../src/core/model_assembly.cpp" line="+198"/>
+        <location filename="../src/core/model_assembly.cpp" line="+199"/>
         <source>An assembly needs a name of at most 128 characters and at most 32 parts.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -85531,7 +85293,7 @@ Searched: %3
     <message>
         <location line="+5"/>
         <location line="+70"/>
-        <location filename="../src/core/model_editor_controls.cpp" line="+913"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="+915"/>
         <source>Keys</source>
         <translation type="unfinished">Tasten</translation>
     </message>
@@ -85924,7 +85686,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_editor_controls.cpp" line="-947"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="-948"/>
         <source>Open or Import</source>
         <translation type="unfinished"></translation>
     </message>
@@ -86195,12 +85957,12 @@ Searched: %3
     </message>
     <message>
         <location line="+1"/>
-        <location line="+890"/>
+        <location line="+891"/>
         <source>Duplicate</source>
         <translation type="unfinished">Duplizieren</translation>
     </message>
     <message>
-        <location line="-889"/>
+        <location line="-890"/>
         <source>Loop Cut</source>
         <translation type="unfinished"></translation>
     </message>
@@ -86840,7 +86602,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+185"/>
+        <location line="+186"/>
         <source>%1 and %2 always move keyboard focus between panels.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -100600,7 +100362,7 @@ Second: surface %6 (%7), face %8</source>
         <location line="-78"/>
         <location line="+187"/>
         <location line="+48"/>
-        <location filename="../src/core/model_session_draft.cpp" line="+131"/>
+        <location filename="../src/core/model_session_draft.cpp" line="+132"/>
         <location line="+133"/>
         <source>The model recovery folder is unavailable or is a link.</source>
         <translation type="unfinished"></translation>
@@ -107612,7 +107374,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
 <context>
     <name>SlopStudioPackageArchive</name>
     <message>
-        <location filename="../src/core/package_archive.cpp" line="+1990"/>
+        <location filename="../src/core/package_archive.cpp" line="+1991"/>
         <location line="+610"/>
         <location line="+8"/>
         <location filename="../src/core/package_extraction.cpp" line="+150"/>
@@ -107620,15 +107382,15 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1791"/>
-        <location line="+1182"/>
+        <location line="-1792"/>
+        <location line="+1183"/>
         <location line="+8"/>
         <location filename="../src/core/package_extraction.cpp" line="+9"/>
         <source>Package entry not found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1580"/>
+        <location line="-1581"/>
         <source>Unsafe package mount path: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -107664,7 +107426,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+92"/>
+        <location line="+93"/>
         <source>The source snapshot entry changed size: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -107983,7 +107745,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1055"/>
+        <location line="-1056"/>
         <source>Package entry index is out of range.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -107998,7 +107760,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+105"/>
+        <location line="+106"/>
         <location line="+510"/>
         <source>The source package changed after it was opened. Reopen it before reading entries.</source>
         <translation type="unfinished"></translation>
@@ -108050,16 +107812,16 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_archive.cpp" line="-1412"/>
+        <location filename="../src/core/package_archive.cpp" line="-1413"/>
         <location line="+390"/>
         <location line="+127"/>
         <location line="+90"/>
-        <location line="+651"/>
+        <location line="+652"/>
         <source>Package opening cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-859"/>
+        <location line="-860"/>
         <source>Package layers exceed the limits of %1 records, %2 metadata bytes or %3 fingerprint bytes. Unmount a layer or use smaller sources.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -108074,7 +107836,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+165"/>
+        <location line="+166"/>
         <location line="+5"/>
         <location line="+33"/>
         <location line="+64"/>
@@ -109055,7 +108817,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
 <context>
     <name>SlopStudioPackageDialog</name>
     <message>
-        <location filename="../src/app/package_operation_dialog.cpp" line="+99"/>
+        <location filename="../src/app/package_operation_dialog.cpp" line="+100"/>
         <source>Package operation status</source>
         <translation type="unfinished"></translation>
     </message>
@@ -109683,7 +109445,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioPackageDraft</name>
     <message>
-        <location filename="../src/core/package_draft.cpp" line="+35"/>
+        <location filename="../src/core/package_draft.cpp" line="+36"/>
         <source>Package draft operation cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -110178,7 +109940,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioPackagePublication</name>
     <message>
-        <location filename="../src/core/package_publication.cpp" line="+46"/>
+        <location filename="../src/core/package_publication.cpp" line="+47"/>
         <source>Package save cancelled before publication; the destination was left untouched.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111585,7 +111347,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioProjectContent</name>
     <message>
-        <location filename="../src/core/project_content.cpp" line="+53"/>
+        <location filename="../src/core/project_content.cpp" line="+54"/>
         <location line="+14"/>
         <location line="+240"/>
         <location line="+15"/>
@@ -111670,18 +111432,18 @@ Output: %2</source>
 <context>
     <name>SlopStudioProjectManifest</name>
     <message>
-        <location filename="../src/core/project_manifest.cpp" line="+388"/>
+        <location filename="../src/core/project_manifest.cpp" line="+392"/>
         <source>Untitled Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+23"/>
-        <location line="+91"/>
+        <location line="+95"/>
         <source>Project root path is empty.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-83"/>
+        <location line="-87"/>
         <source>Project manifest does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111696,7 +111458,7 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+123"/>
+        <location line="+127"/>
         <source>Project root does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -113884,7 +113646,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioReleaseNotes</name>
     <message>
-        <location filename="../src/core/release_notes.cpp" line="+94"/>
+        <location filename="../src/core/release_notes.cpp" line="+95"/>
         <source>Maps</source>
         <translation type="unfinished">Maps</translation>
     </message>
@@ -115094,7 +114856,7 @@ Output: %2</source>
     <name>SlopStudioRendering</name>
     <message>
         <location filename="../src/app/model_viewport.cpp" line="-1920"/>
-        <location filename="../src/core/render_device.cpp" line="+371"/>
+        <location filename="../src/core/render_device.cpp" line="+372"/>
         <source>There was not enough memory to render this view.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -115216,7 +114978,7 @@ Output: %2</source>
     <message>
         <location line="+385"/>
         <location line="+280"/>
-        <location filename="../src/core/render_vulkan.cpp" line="+2000"/>
+        <location filename="../src/core/render_vulkan.cpp" line="+2001"/>
         <source>The graphics device stopped responding.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -115336,7 +115098,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioRuntime</name>
     <message>
-        <location filename="../src/app/studio_runtime.cpp" line="+459"/>
+        <location filename="../src/app/studio_runtime.cpp" line="+460"/>
         <source>Translation catalog could not be loaded: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -122077,7 +121839,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioSetup</name>
     <message>
-        <location filename="../src/core/studio_settings.cpp" line="+525"/>
+        <location filename="../src/core/studio_settings.cpp" line="+2554"/>
         <location line="+16"/>
         <source>Welcome and Access</source>
         <translation type="unfinished">Willkommen und Barrierefreiheit</translation>
@@ -122878,7 +122640,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioSpeech</name>
     <message>
-        <location filename="../src/app/studio_speech.cpp" line="+90"/>
+        <location filename="../src/app/studio_speech.cpp" line="+91"/>
         <source>Test log (silent)</source>
         <translation type="unfinished">Testprotokoll (stumm)</translation>
     </message>
@@ -128138,7 +127900,7 @@ Replace what is there with this variant?</source>
 <context>
     <name>SlopStudioWorkspace</name>
     <message>
-        <location filename="../src/core/workspace_document.cpp" line="+71"/>
+        <location filename="../src/core/workspace_document.cpp" line="+72"/>
         <source>Workspace files must contain 1–1,048,576 bytes.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128208,7 +127970,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+8"/>
         <source>A workspace keeps at most 32 model sources.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128309,6 +128071,257 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+1"/>
         <source>Missing: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>StudioSettings</name>
+    <message>
+        <location filename="../src/core/studio_settings.cpp" line="-562"/>
+        <source>Settings schema %1 inspected read-only; migration to %2 was skipped.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TextDocument</name>
+    <message>
+        <location filename="../src/core/text_document.cpp" line="+103"/>
+        <source>Text files larger than 4 MiB are read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>UTF-32 is not supported. This preview is read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>The file is not valid UTF-8 or BOM-marked UTF-16. This preview is read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Binary control characters were found. This preview is read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>The text file could not be opened: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>The text file could not be read: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <location line="+43"/>
+        <source>No output buffer was supplied.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-41"/>
+        <location line="+43"/>
+        <source>This document cannot be saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-42"/>
+        <location line="+73"/>
+        <source>The edited text exceeds the 4 MiB limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-70"/>
+        <source>Editor text must use LF paragraph boundaries.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>The edited text contains invalid Unicode and cannot be saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>The encoded file exceeds the 4 MiB limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+54"/>
+        <source>The edited text cannot be saved without changing its characters.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-26"/>
+        <source>Text edits must stay inside the reviewed document.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Text edits must use ordered, non-overlapping Unicode ranges and LF paragraph boundaries.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>The edited file exceeds its size limit or contains invalid Unicode.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>The file reappeared or its parent path changed. It has not been recreated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>The file changed, moved, or became unreadable after it was opened. Your edits have not been written.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <location line="+83"/>
+        <source>The file could not be written: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-79"/>
+        <location line="+84"/>
+        <source>The file could not be committed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-58"/>
+        <source>Choose a destination file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>The destination cannot be inspected safely: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>The destination folder must exist and the file must not be a broken link.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>The destination has not been inspected.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>The destination changed after it was reviewed. Your document has not been written.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+54"/>
+        <source>%1 with BOM</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>No line endings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Mixed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1 · %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TextRecovery</name>
+    <message>
+        <location filename="../src/core/text_recovery.cpp" line="+62"/>
+        <source>Invalid recovery destination.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Recovery write cancelled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>The recovery folder is unavailable or is a link.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>The recovery file is not a regular file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>The recovery record exceeds its size limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>The recovery copy could not be written: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>The recovery write was cancelled or its destination changed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>The recovery copy could not be committed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>The recovery record is not a readable regular file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>The recovery record could not be read within its size limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>The recovery record has an unsupported or damaged header.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>The recovery contents failed their checksum or size check.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>The recovery timestamp is invalid.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <location line="+21"/>
+        <source>The recovery folder is not a regular directory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-2"/>
+        <source>Invalid recovery identifier.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Only regular recovery files may be discarded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>The recovery copy could not be discarded.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -132463,7 +132476,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="+2"/>
         <location line="+451"/>
-        <location filename="../src/app/package_document_actions.cpp" line="+167"/>
+        <location filename="../src/app/package_document_actions.cpp" line="+168"/>
         <source>New Package</source>
         <translation type="unfinished">Neues Paket</translation>
     </message>
@@ -152441,7 +152454,7 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location line="-28"/>
-        <location filename="../src/app/package_recovery_actions.cpp" line="+117"/>
+        <location filename="../src/app/package_recovery_actions.cpp" line="+118"/>
         <source>Package Draft Directory (*.sloppackage)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -155913,7 +155926,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/workspace_actions.cpp" line="+42"/>
+        <location filename="../src/app/workspace_actions.cpp" line="+43"/>
         <source>The workspace exists. Choose another path or explicitly replace it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -155964,13 +155977,18 @@ Activate to open line %2.</source>
         <translation type="unfinished">Arbeitsbereich öffnen</translation>
     </message>
     <message>
-        <location filename="../src/app/workspace_actions.cpp" line="+0"/>
+        <location filename="../src/app/workspace_actions.cpp" line="+1"/>
         <location line="+8"/>
         <source>SlopStudio workspace (*.slopworkspace)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5"/>
+        <location line="-8"/>
+        <source>VibeStudio workspace (*.vibeworkspace)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Workspace Open Failed</source>
         <translation type="unfinished">Öffnen des Arbeitsbereichs fehlgeschlagen</translation>
     </message>

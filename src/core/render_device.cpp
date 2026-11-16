@@ -1,4 +1,5 @@
 #include "core/render_device.h"
+#include "core/legacy_names.h"
 
 #include "core/render_device_p.h"
 #include "core/render_shaders.h"
@@ -652,7 +653,7 @@ const EnvironmentChoice& environmentChoice()
 {
 	static const EnvironmentChoice value = [] {
 		EnvironmentChoice result;
-		const QString text = qEnvironmentVariable("SLOPSTUDIO_RENDER_BACKEND");
+		const QString text = studioEnvironmentVariable("RENDER_BACKEND");
 		result.set = !text.trimmed().isEmpty() && renderBackendChoiceFromId(text, &result.choice);
 		return result;
 	}();

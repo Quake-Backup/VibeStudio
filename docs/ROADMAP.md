@@ -476,6 +476,10 @@ idTech project workbench that proves the end-to-end loop:
 12. See loading/progress/results for every long-running step.
 13. Open detailed logs/manifests/metadata when the summary is not enough.
 
+The MVP is not reached yet, and SlopStudio stays pre-alpha until these criteria
+and the other alpha gates in [Project status](manual/status.md#what-alpha-will-need)
+are met.
+
 MVP exit criteria:
 
 - [ ] Runs on Windows, macOS, and Linux from CI-built artifacts.
@@ -537,6 +541,8 @@ Goal: make the repository easy to build, test, credit, and extend.
 - [x] Add `scripts/validate_docs.py` for link, credits, localization catalog, and submodule checks.
 - [x] Add `scripts/validate_source_layout.py` for required directories and generated-file exclusions.
 - [x] Add CI artifact retention for app binaries from PR builds.
+- [ ] Get `pr-ci` passing on Windows, macOS and Linux on the main branch, and keep it green. No run has passed all three yet.
+- [ ] Complete a `release-nightly` run and publish the first pre-release through `release.yml`.
 
 ### Documentation
 - [x] Add AGENTS rules.

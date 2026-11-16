@@ -17,6 +17,7 @@
 // a device name to choose a device.
 
 #include "core/render_device_p.h"
+#include "core/legacy_names.h"
 #include "core/render_shaders.h"
 
 #define VK_NO_PROTOTYPES
@@ -685,7 +686,7 @@ bool VulkanDevice::selectDevice(RenderDeviceInfo* info)
 	if (count) {
 		vkEnumeratePhysicalDevices(m_instance, &count, devices.data());
 	}
-	const QString wanted = qEnvironmentVariable("SLOPSTUDIO_VULKAN_DEVICE").trimmed();
+	const QString wanted = studioEnvironmentVariable("VULKAN_DEVICE").trimmed();
 	bool wantedIsIndex = false;
 	const int wantedIndex = wanted.toInt(&wantedIsIndex);
 	int bestScore = -1;
@@ -812,7 +813,7 @@ bool VulkanDevice::startDevice(RenderDeviceInfo* info)
 			enabledExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 		}
 	}
-	const bool validation = qEnvironmentVariableIntValue("SLOPSTUDIO_VULKAN_VALIDATION") != 0;
+	const bool validation = studioEnvironmentVariableIntValue("VULKAN_VALIDATION") != 0;
 	if (validation) {
 		quint32 layerCount = 0;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);

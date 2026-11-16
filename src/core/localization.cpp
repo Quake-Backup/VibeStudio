@@ -1,4 +1,5 @@
 #include "core/localization.h"
+#include "core/legacy_names.h"
 
 #include <QByteArrayView>
 #include <QCoreApplication>
@@ -633,7 +634,7 @@ QStringList systemLanguageTags()
 {
 	// SLOPSTUDIO_SYSTEM_LANGUAGES stands in for the platform's language list
 	// in tests, so "follow the system" can be checked on any machine.
-	const QString overridden = qEnvironmentVariable("SLOPSTUDIO_SYSTEM_LANGUAGES").trimmed();
+	const QString overridden = studioEnvironmentVariable("SYSTEM_LANGUAGES").trimmed();
 	if (!overridden.isEmpty()) {
 		return overridden.split(QRegularExpression(QStringLiteral("[,;\\s]+")), Qt::SkipEmptyParts);
 	}
@@ -757,7 +758,7 @@ CatalogRootResolution resolveTranslationCatalogRoot(const QString& explicitCatal
 		candidates.push_back({explicitPath, QStringLiteral("argument")});
 	}
 
-	const QString environmentPath = qEnvironmentVariable("SLOPSTUDIO_I18N_DIR").trimmed();
+	const QString environmentPath = studioEnvironmentVariable("I18N_DIR").trimmed();
 	if (!environmentPath.isEmpty()) {
 		candidates.push_back({environmentPath, QStringLiteral("environment")});
 	}

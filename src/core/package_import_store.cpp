@@ -1,4 +1,5 @@
 #include "core/package_import_store.h"
+#include "core/legacy_names.h"
 #include "core/package_storage.h"
 
 #include <QCoreApplication>
@@ -69,7 +70,7 @@ bool readCounter(const QString& session, Counter* result, QString* error)
 	bool byteCountOk = false; const auto text = object.value(QStringLiteral("reservedBytes")).toString();
 	value.bytes = text.toLongLong(&byteCountOk); value.files = object.value(QStringLiteral("reservedFiles")).toInt(-1);
 	if (file.error() != QFileDevice::NoError || bytes.size() > metadataLimit || parse.error != QJsonParseError::NoError
-		|| object.value(QStringLiteral("type")) != QStringLiteral("slopstudio-package-working")
+		|| !isCurrentOrLegacyStudioName(object.value(QStringLiteral("type")).toString(), QStringLiteral("slopstudio-package-working"))
 		|| object.value(QStringLiteral("version")).toInt() != 1 || object.value(QStringLiteral("sha256")).toString() != expectedHash || !validId(value.id)
 		|| QFileInfo(session).fileName() != value.id + suffix || !value.created.isValid()
 		|| !byteCountOk || value.bytes < 0 || QString::number(value.bytes) != text || value.files < 0 || value.files > PackageImportFileLimit

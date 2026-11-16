@@ -50,10 +50,11 @@ services as the studio.
 > [!WARNING]
 > **SlopStudio is pre-alpha and highly untested.** It is not ready for
 > production work. Most features have automated tests, but very few have been
-> used in real projects, and many planned parts of the studio do not exist yet.
-> Work on copies, and back up your maps, packages and projects before you open
-> them in SlopStudio. [Project status](manual/status.md) explains what is and is not
-> tested.
+> used in real projects, no release has been published yet, and many planned
+> parts of the studio do not exist yet. Work on copies, and back up your maps,
+> packages and projects before you open them in SlopStudio.
+> [Project status](manual/status.md) explains what is and is not tested, and what
+> alpha will need.
 
 ### What you can do today
 
@@ -122,11 +123,54 @@ automated tests, but almost none of them have been used by real people on real
 projects. Expect rough edges, missing pieces and bugs, and please report what
 you find.
 
+### Where things stand
+
+The studio covers a lot of ground: hundreds of automated test suites, 273
+command-line commands, and editors for levels, models, textures, audio,
+materials, packages and code. Breadth is not the same as readiness, though.
+As of 16 November 2026:
+
+- **There is no download yet.** No release has been published, and no nightly
+  build has completed. The only way to run SlopStudio is to
+  [build it from source](manual/building-from-source.md).
+- **The automated builds are failing.** No **pr-ci** run on the main branch
+  has passed all three platforms. The latest runs stop at compile errors on
+  Linux and macOS, and the Windows release build fails too.
+- **The first milestone is not finished.** Several of the
+  [MVP exit criteria](ROADMAP.md#mvp-definition) are still open: builds from
+  CI on all three systems, the full first-run setup, spoken feedback (TTS) and
+  the AI documentation.
+- **Nobody outside the project has used it.** No bug reports have come from
+  outside testers yet.
+
+### What alpha will need
+
+SlopStudio will be called alpha only when all of these are true:
+
+1. **pr-ci** passes on Windows, macOS and Linux on the main branch, with no
+   tests switched off to get there.
+2. A release built by the release workflow is published, and its installer or
+   package has been installed and started on a clean machine for each system.
+3. The [MVP exit criteria](ROADMAP.md#mvp-definition) are met.
+4. For each game family (Doom, Quake, Quake II and Quake III), one real
+   project has been taken by hand through the whole loop: open, edit, compile
+   with the studio's own compilers, package, and play the result in the game.
+5. People outside the project have tried that loop and reported back.
+
+Until then every page in this manual treats SlopStudio as pre-alpha.
+
+> [!NOTE]
+> Version numbers such as `0.1.0-alpha.1` use the Semantic Versioning
+> pre-release label. Semantic Versioning has no "pre-alpha" label, so the
+> first builds carry `-alpha` while the project's status is still pre-alpha.
+> The status on this page is the one that counts.
+
 ### What is tested
 
 Every pull request and every change to the main branch is built and tested on
 Windows, macOS and Linux by the project's continuous integration (the **pr-ci**
-workflow on GitHub Actions). Each run:
+workflow on GitHub Actions). Those runs are failing at the moment (see
+[Where things stand](manual/status.md#where-things-stand)). When a run completes, it:
 
 - builds SlopStudio and runs several hundred automated tests: format readers
   and writers, parser fuzzing and deliberately damaged files, saving and
@@ -303,8 +347,10 @@ download a release, check it, install it, run its command line, and remove it
 again.
 
 > [!IMPORTANT]
-> Every build is pre-alpha, and builds are not signed yet. Download SlopStudio
-> only from the project's
+> No release has been published yet, and no nightly build has completed, so
+> for now [build SlopStudio from source](manual/building-from-source.md). When builds
+> appear, every one will be pre-alpha and unsigned. Download SlopStudio only
+> from the project's
 > [Releases page](https://github.com/themuffinator/SlopStudio/releases), and
 > check each file against `SHA256SUMS.txt` before you run it.
 
@@ -458,7 +504,8 @@ the commands, JSON output and exit codes.
 ### Try a nightly build
 
 Nightly builds come from the **release-nightly** workflow on GitHub Actions.
-They have the newest changes and even less testing than releases.
+They have the newest changes and even less testing than releases. No nightly
+run has completed yet, so there is nothing to download until one does.
 
 1. Open the
    [release-nightly workflow](https://github.com/themuffinator/SlopStudio/actions/workflows/release-nightly.yml)
@@ -1235,6 +1282,29 @@ A workspace stores references, not contents: save your maps, packages and other 
 It does not keep unsaved edits, undo history or camera positions, and opening one never runs a
 compiler, launches a game or installs anything. Paths are stored relative to the workspace file, so
 you can move a folder that contains both.
+
+### Bring your work over from VibeStudio
+
+SlopStudio was called VibeStudio until 15 November 2026. Everything VibeStudio wrote still opens:
+
+| What VibeStudio wrote | What SlopStudio does with it |
+| --- | --- |
+| Settings | Copied into SlopStudio's settings the first time it starts with none of its own. The VibeStudio copy is left as it was. |
+| Recovery copies, logs and caches in your user folders | The VibeStudio folders are renamed to SlopStudio's the first time it starts, when SlopStudio has none yet. |
+| A project's `.vibestudio` folder | Renamed to `.slopstudio` the first time SlopStudio opens the project, with the manifest, builds, compiler runs and backups inside. A manifest that keeps temporary files under `.vibestudio` is read as `.slopstudio`. |
+| `.vibepackage` drafts and `.vibeworkspace` files | Open, save and recover as before. New ones are `.sloppackage` and `.slopworkspace`. |
+| Models, assemblies, gesture and control profiles, release records and other saved documents | Open as before; they are saved with the new format names. |
+| VibeMap2 and VibeMap3 compiler ids, executables and version banners | Recognised as SlopMap2 and SlopMap3. |
+| `VIBESTUDIO_*` environment variables | Still read when the matching `SLOPSTUDIO_*` variable is not set. |
+| A package's `vibestudio_overrides` material script from **Override in Package** | Kept: later overrides are added to it, so the game still reads every copy in the right order. New packages get a `slopstudio_overrides` script. |
+
+Two things are not carried over:
+
+- A `vibestudio_<map>.pk3` that VibeStudio deployed to a Quake III game folder stays there, and the
+  game loads it after SlopStudio's `slopstudio_<map>.pk3`. **Deploy** warns about it; remove it to
+  play the new build.
+- A Quake or Quake II PAK slot that VibeStudio deployed is treated as somebody else's PAK, so
+  SlopStudio deploys to the next free slot and leaves it alone.
 
 ### Command-line equivalents
 
@@ -13253,7 +13323,9 @@ building, testing, running and packaging.
 
 > [!NOTE]
 > The project's CI builds and tests every pull request on Windows, macOS and Linux with Qt 6.10.1.
-> Other compilers and Qt versions may work, but CI does not check them.
+> Other compilers and Qt versions may work, but CI does not check them. Those CI runs are failing
+> at the moment ([Project status](manual/status.md#where-things-stand)), so a build may stop with errors
+> on your system too.
 
 ### What you need
 

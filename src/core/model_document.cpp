@@ -1,4 +1,5 @@
 #include "core/model_document.h"
+#include "core/legacy_names.h"
 #include "core/model_animation_events.h"
 #include "core/model_decode_issues.h"
 #include "core/model_lod.h"
@@ -1372,7 +1373,7 @@ bool decodeSourceWithMember(const QByteArray &bytes, ModelMesh *mesh, QString *e
 		*memberValue = root.value(*member);
 	}
 	if (parseError.error != QJsonParseError::NoError || !json.isObject() ||
-		root.value(QStringLiteral("schema")) != QStringLiteral("slopstudio.mesh") ||
+		!isCurrentOrLegacyStudioName(root.value(QStringLiteral("schema")).toString(), QStringLiteral("slopstudio.mesh")) ||
 		(root.value(QStringLiteral("version")) != QJsonValue(1) && root.value(QStringLiteral("version")) != QJsonValue(2) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(3) && root.value(QStringLiteral("version")) != QJsonValue(4) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(5) && root.value(QStringLiteral("version")) != QJsonValue(6) &&

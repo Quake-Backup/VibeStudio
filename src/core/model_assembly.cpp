@@ -1,4 +1,5 @@
 #include "core/model_assembly.h"
+#include "core/legacy_names.h"
 
 #include "core/model_archive.h"
 #include "core/model_collision.h"
@@ -393,7 +394,7 @@ bool parseModelAssembly(const QByteArray &bytes, ModelAssembly *assembly, QStrin
 	const auto version = object.value("version").toDouble(-1);
 	if (parse.error != QJsonParseError::NoError || !document.isObject() ||
 		!keys(object, {"format", "version", "name", "parts", "q3Animation", "tagInterpolation"}) ||
-		object.value("format") != QStringLiteral("slopstudio-model-assembly") ||
+		!isCurrentOrLegacyStudioName(object.value("format").toString(), QStringLiteral("slopstudio-model-assembly")) ||
 		(version != 1 && version != 2 && version != 3 && version != 4) ||
 		(version < 4 && object.contains("tagInterpolation")) ||
 		(object.contains("tagInterpolation") && !modelTagInterpolationFromId(object.value("tagInterpolation").toString())) ||

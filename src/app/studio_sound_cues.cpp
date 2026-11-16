@@ -1,4 +1,5 @@
 #include "app/studio_sound_cues.h"
+#include "core/legacy_names.h"
 
 #include "app/audio_playback.h"
 
@@ -132,7 +133,7 @@ QByteArray soundCueWave(SoundCue cue)
 
 StudioSoundCues::StudioSoundCues(QObject* parent)
 	: QObject(parent)
-	, m_logOnly(qEnvironmentVariable("SLOPSTUDIO_SOUND_CUES") == QStringLiteral("log"))
+	, m_logOnly(studioEnvironmentVariable("SOUND_CUES") == QStringLiteral("log"))
 {
 	if (!m_logOnly) {
 		m_playback = new AudioPlayback(this);

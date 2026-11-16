@@ -1,4 +1,5 @@
 #include "core/compiler_registry.h"
+#include "core/legacy_names.h"
 
 #include "core/studio_manifest.h"
 
@@ -28,7 +29,8 @@ QString executableName(const QString& baseName)
 
 QString normalizedId(const QString& value)
 {
-	return value.trimmed().toLower().replace('_', '-');
+	// VibeStudio, the studio's former name, wrote vibemap2-* and vibemap3-* ids.
+	return withCurrentStudioName(value.trimmed().toLower().replace('_', '-'));
 }
 
 QString absolutePath(const QString& rootPath, const QString& relativePath)
@@ -131,6 +133,21 @@ QString commandLineText(const QString& program, const QStringList& arguments)
 	return parts.join(' ');
 }
 
+// The names VibeStudio, the studio's former name, gave the SlopMap executables
+// (vibemap2-bsp, vibemap3), after the current ones, so builds and installs made
+// before the rename are still found.
+QStringList withLegacyNames(const QStringList& names)
+{
+	QStringList result = names;
+	for (const QString& name : names) {
+		const QString legacy = legacyStudioId(name);
+		if (!result.contains(legacy)) {
+			result << legacy;
+		}
+	}
+	return result;
+}
+
 // SlopMap2 builds each tool under build/src/<tool directory>, inside a Release folder for
 // multi-config generators, and installs every executable flat into the install prefix
 // (external/compilers/slopmap2/src/*/CMakeLists.txt).
@@ -143,7 +160,7 @@ QStringList slopmap2ToolCandidatePaths(const QString& sourceDirectory, const QSt
 	};
 	QStringList paths;
 	for (const QString& directory : directories) {
-		for (const QString& baseName : baseNames) {
+		for (const QString& baseName : withLegacyNames(baseNames)) {
 			paths << QStringLiteral("%1/%2.exe").arg(directory, baseName) << QStringLiteral("%1/%2").arg(directory, baseName);
 		}
 	}
@@ -162,7 +179,7 @@ QStringList slopmap3CandidatePaths(const QStringList& baseNames)
 	};
 	QStringList paths;
 	for (const QString& directory : directories) {
-		for (const QString& baseName : baseNames) {
+		for (const QString& baseName : withLegacyNames(baseNames)) {
 			paths << QStringLiteral("%1/%2.exe").arg(directory, baseName) << QStringLiteral("%1/%2").arg(directory, baseName);
 		}
 	}
@@ -184,8 +201,9 @@ QString firstUsefulProbeLine(const QString& text)
 // SlopMap2 prints "---- <tool> / SlopMap2 <version> ----" (src/common/settings.cc), SlopMap3
 // answers --version with "SlopMap3 <version> (NRC <revision>)" (tools/quake3/q3map2/main.cpp),
 // ZDBSP prints "ZDBSP <version> (...)" and ZokumBSP prints "ZokumBSP Version: <version> ...".
-// The pre-rename banners (VibeyMapTools, q3mapx) and their upstreams' (ericw-tools, q3map2)
-// are still recognised for executables configured by hand.
+// The pre-rename banners (VibeMap2 and VibeMap3, which the forks print until they take the
+// SlopMap names, VibeyMapTools, q3mapx) and their upstreams' (ericw-tools, q3map2) are still
+// recognised for executables configured by hand.
 QString decodeProbeOutput(const QByteArray& bytes)
 {
 	if (bytes.isEmpty()) {
@@ -201,7 +219,7 @@ QString decodeProbeOutput(const QByteArray& bytes)
 
 QString versionBannerLine(const QString& text)
 {
-	static const QRegularExpression bannerPattern(QStringLiteral(R"regex((?:slopmap2|slopmap3|vibeymaptools|q3mapx|ericw-tools|zdbsp|zokumbsp|zennode|q3map|netradiant|version)\b)regex"), QRegularExpression::CaseInsensitiveOption);
+	static const QRegularExpression bannerPattern(QStringLiteral(R"regex((?:slopmap2|slopmap3|vibemap2|vibemap3|vibeymaptools|q3mapx|ericw-tools|zdbsp|zokumbsp|zennode|q3map|netradiant|version)\b)regex"), QRegularExpression::CaseInsensitiveOption);
 	static const QRegularExpression numberPattern(QStringLiteral(R"regex(\b\d+\.\d+)regex"));
 	const QStringList lines = text.split('\n');
 	for (QString line : lines) {
@@ -292,7 +310,7 @@ CompilerToolDescriptor tool(
 	bool versionProbeSupported = true)
 {
 	QStringList executableNames;
-	for (const QString& name : baseExecutableNames) {
+	for (const QString& name : withLegacyNames(baseExecutableNames)) {
 		executableNames << executableName(name);
 	}
 	return {id, integrationId, displayName, engineFamily, role, sourcePath, executableNames, candidateRelativePaths, versionProbeArguments, capabilityFlags, readinessWarnings, versionProbeSupported};

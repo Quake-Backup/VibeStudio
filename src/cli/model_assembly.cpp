@@ -1,4 +1,5 @@
 #include "cli/model_assembly.h"
+#include "core/legacy_names.h"
 #include "core/model_assembly.h"
 #include "core/model_assembly_animation.h"
 #include "core/model_assembly_recovery.h"
@@ -128,7 +129,7 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	// A package, a folder or a portable .sloppackage draft, read-only.
 	const auto loadPackage = [](const QString &path, std::shared_ptr<const PackageArchiveReader> *result, QString *error) {
 		PackageArchive archive;
-		if (path.endsWith(".sloppackage", Qt::CaseInsensitive))
+		if (isPackageDraftPath(path))
 		{
 			PackageStagingModel staging;
 			if (!PackageDraft::load(path, &staging, error))

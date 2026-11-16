@@ -1,4 +1,5 @@
 #include "core/studio_settings.h"
+#include "core/legacy_names.h"
 
 #include "core/editor_profiles.h"
 #include "core/level_hollow.h"
@@ -173,7 +174,9 @@ QDateTime normalizedTimestamp(const QDateTime& openedUtc)
 
 QString normalizedId(const QString& id)
 {
-	return id.trimmed().toLower().replace('_', '-');
+	// Settings carried over from VibeStudio, the studio's former name, hold
+	// vibemap2-* compiler ids and the vibestudio-default profile id.
+	return withCurrentStudioName(id.trimmed().toLower().replace('_', '-'));
 }
 
 QDateTime setupTimestamp()

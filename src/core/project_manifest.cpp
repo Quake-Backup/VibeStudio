@@ -1,4 +1,5 @@
 #include "core/project_manifest.h"
+#include "core/legacy_names.h"
 #include "core/game_installation.h"
 
 #include <QCoreApplication>
@@ -356,6 +357,9 @@ QString projectManifestPath(const QString& projectRootPath)
 	if (rootPath.isEmpty()) {
 		return {};
 	}
+	// Every project lookup passes here, so a project last opened by VibeStudio
+	// (the studio's former name) has its .vibestudio folder renamed once.
+	migrateLegacyProjectDirectory(rootPath);
 	return QDir(rootPath).filePath(QStringLiteral("%1/%2").arg(projectManifestDirectoryName(), projectManifestFileName()));
 }
 
@@ -447,6 +451,10 @@ bool loadProjectManifest(const QString& projectRootPath, ProjectManifest* manife
 	loaded.packageFolders = jsonToStringList(object.value(QStringLiteral("packageFolders")));
 	loaded.outputFolder = object.value(QStringLiteral("outputFolder")).toString(QStringLiteral("build")).trimmed();
 	loaded.tempFolder = object.value(QStringLiteral("tempFolder")).toString(QStringLiteral(".slopstudio/tmp")).trimmed();
+	if (loaded.tempFolder.startsWith(legacyProjectDirectoryName() + QLatin1Char('/'))) {
+		// The folder moved with the rename to .slopstudio.
+		loaded.tempFolder = projectManifestDirectoryName() + loaded.tempFolder.mid(legacyProjectDirectoryName().size());
+	}
 	loaded.selectedInstallationId = object.value(QStringLiteral("selectedInstallationId")).toString().trimmed();
 	loaded.compilerSearchPaths = jsonToStringList(object.value(QStringLiteral("compilerSearchPaths")));
 	loaded.compilerToolOverrides = compilerToolOverridesFromJson(object.value(QStringLiteral("compilerToolOverrides")));

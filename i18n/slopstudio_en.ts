@@ -1180,7 +1180,7 @@
 <context>
     <name>AudioRecovery</name>
     <message>
-        <location filename="../src/core/audio_recovery_store.cpp" line="+102"/>
+        <location filename="../src/core/audio_recovery_store.cpp" line="+103"/>
         <location line="+144"/>
         <location line="+89"/>
         <source>The audio recovery folder is unavailable or unsafe.</source>
@@ -2672,7 +2672,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cli/cli.cpp" line="+639"/>
+        <location filename="../src/cli/cli.cpp" line="+640"/>
         <source>Add or change one of the project&apos;s own build pipelines, kept in its manifest, as Build Pipelines… does: &lt;id&gt; --workspace-root DIR with --name, --description, --from PIPELINE (start from a built-in or project pipeline), --stage ID=PROFILE in order (replaces the stages; each later stage reads the previous output unless --map-input ID), --stage-args ID=ARGUMENTS (quotes keep spaces; ${MAP}, ${MAP_DIR}, ${MAP_NAME}, ${OUTPUT}, ${PROJECT_DIR}, ${GAME_DIR}, ${MOD}, ${CPU_COUNT} and the pipeline&apos;s variables), --disable-stage ID, --enable-stage ID and --variable NAME=VALUE, each repeatable. Exits 4 naming the problems of a pipeline that cannot be saved. Supports --dry-run.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4758,7 +4758,7 @@ The owning studio is still running. Close that document there before discarding 
 <context>
     <name>LevelBuildArtifacts</name>
     <message>
-        <location filename="../src/core/level_build_artifacts.cpp" line="+35"/>
+        <location filename="../src/core/level_build_artifacts.cpp" line="+36"/>
         <source>Build artifact operation cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4927,7 +4927,7 @@ The owning studio is still running. Close that document there before discarding 
     <message>
         <location filename="../src/cli/level_build_artifacts.cpp" line="+25"/>
         <location filename="../src/cli/level_build_deployment.cpp" line="+31"/>
-        <location filename="../src/cli/level_build_workspace.cpp" line="+30"/>
+        <location filename="../src/cli/level_build_workspace.cpp" line="+31"/>
         <source>Repeated option: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5054,7 +5054,7 @@ The owning studio is still running. Close that document there before discarding 
 <context>
     <name>LevelBuildDeployment</name>
     <message>
-        <location filename="../src/core/level_build_deployment.cpp" line="+38"/>
+        <location filename="../src/core/level_build_deployment.cpp" line="+39"/>
         <source>The deployment target overlaps protected source content.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5065,12 +5065,12 @@ The owning studio is still running. Close that document there before discarding 
     </message>
     <message>
         <location line="+58"/>
-        <location line="+71"/>
+        <location line="+79"/>
         <source>Deployment review cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-107"/>
+        <location line="-115"/>
         <location line="+39"/>
         <source>Choose an installation matching this prepared build target: %1.</source>
         <translation type="unfinished"></translation>
@@ -5091,7 +5091,12 @@ The owning studio is still running. Close that document there before discarding 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+13"/>
+        <source>%1 was deployed by VibeStudio before the rename and loads after this package, so the game would keep using it. Remove it to play the new build.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+22"/>
         <source>The chosen game folder is occupied by a file.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5535,7 +5540,7 @@ SHA-256: %2</source>
 <context>
     <name>LevelBuildPakDeployment</name>
     <message>
-        <location filename="../src/core/level_build_pak_deployment.cpp" line="+26"/>
+        <location filename="../src/core/level_build_pak_deployment.cpp" line="+27"/>
         <source>Invalid or oversized PAK deployment receipt: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5603,7 +5608,7 @@ SHA-256: %2</source>
 <context>
     <name>LevelBuildWorkspace</name>
     <message>
-        <location filename="../src/core/level_build_workspace.cpp" line="+43"/>
+        <location filename="../src/core/level_build_workspace.cpp" line="+44"/>
         <source>Build workspace paths must not traverse links: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7837,7 +7842,7 @@ Assets: %2</source>
 <context>
     <name>LevelGestures</name>
     <message>
-        <location filename="../src/core/level_gestures.cpp" line="+41"/>
+        <location filename="../src/core/level_gestures.cpp" line="+42"/>
         <location line="+20"/>
         <location line="+127"/>
         <source>None</source>
@@ -17007,7 +17012,7 @@ Format: %7, %8</source>
 <context>
     <name>LevelTrenchBroom</name>
     <message>
-        <location filename="../src/core/level_scene_trenchbroom.cpp" line="+278"/>
+        <location filename="../src/core/level_scene_trenchbroom.cpp" line="+279"/>
         <source>Layer</source>
         <translation type="unfinished"></translation>
     </message>
@@ -20127,7 +20132,7 @@ Format: %7, %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_document.cpp" line="+2077"/>
+        <location filename="../src/core/model_document.cpp" line="+2078"/>
         <source>Curve settings apply only to animation curve operations.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -20981,7 +20986,7 @@ Format: %7, %8</source>
 <context>
     <name>ModelAppearanceCli</name>
     <message>
-        <location filename="../src/cli/model_appearance.cpp" line="+33"/>
+        <location filename="../src/cli/model_appearance.cpp" line="+34"/>
         <source>Repeated option: %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -21042,7 +21047,7 @@ Format: %7, %8</source>
 <context>
     <name>ModelAssemblyCli</name>
     <message>
-        <location filename="../src/cli/model_assembly.cpp" line="+86"/>
+        <location filename="../src/cli/model_assembly.cpp" line="+87"/>
         <source>Repeated option: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -29199,7 +29204,7 @@ Original source files remain unchanged.</source>
 <context>
     <name>ModelMdlCli</name>
     <message>
-        <location filename="../src/cli/model_mdl.cpp" line="+43"/>
+        <location filename="../src/cli/model_mdl.cpp" line="+44"/>
         <source>Repeated option: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -34509,7 +34514,7 @@ Original source files remain unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cli/model_skin_bindings.cpp" line="+45"/>
+        <location filename="../src/cli/model_skin_bindings.cpp" line="+46"/>
         <source>Repeated option: %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -37223,7 +37228,7 @@ Target materials: %2
         </translation>
     </message>
     <message>
-        <location filename="../src/cli/model_tools.cpp" line="+68"/>
+        <location filename="../src/cli/model_tools.cpp" line="+69"/>
         <source>Repeated option: %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -42297,7 +42302,7 @@ Ownership and file metadata are checked again. Cancellation may leave some files
 <context>
     <name>PackageCopyStore</name>
     <message>
-        <location filename="../src/core/package_copy_store.cpp" line="+34"/>
+        <location filename="../src/core/package_copy_store.cpp" line="+35"/>
         <source>Temporary copies are in use or cannot be protected for maintenance. Close their studio window and retry.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -42342,7 +42347,7 @@ Ownership and file metadata are checked again. Cancellation may leave some files
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+31"/>
         <source>Shared copy reservations could not be reconciled; the previous charge was retained.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -42354,14 +42359,14 @@ Ownership and file metadata are checked again. Cancellation may leave some files
     <message>
         <location line="+9"/>
         <location line="+4"/>
-        <location line="+52"/>
+        <location line="+53"/>
         <location line="+4"/>
         <location line="+45"/>
         <source>Temporary copy review cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-104"/>
+        <location line="-105"/>
         <source>Temporary copy storage exceeds its review depth limit.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -42411,7 +42416,7 @@ Ownership and file metadata are checked again. Cancellation may leave some files
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+15"/>
         <source>Temporary copies changed. Refresh before discarding them.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -43174,7 +43179,7 @@ Releasing a lock keeps all working payloads. Refresh and review any session sepa
 <context>
     <name>PackageImportStore</name>
     <message>
-        <location filename="../src/core/package_import_store.cpp" line="+61"/>
+        <location filename="../src/core/package_import_store.cpp" line="+62"/>
         <source>Working import metadata is missing, unreadable or too large.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -43744,7 +43749,7 @@ Backup: %2</source>
 <context>
     <name>PackageRecovery</name>
     <message>
-        <location filename="../src/core/package_recovery.cpp" line="+57"/>
+        <location filename="../src/core/package_recovery.cpp" line="+58"/>
         <location line="+68"/>
         <location line="+47"/>
         <location line="+156"/>
@@ -45830,257 +45835,6 @@ Grids: %5 × %6 and %7 × %8</source>
     </message>
 </context>
 <context>
-    <name>StudioSettings</name>
-    <message>
-        <location filename="../src/core/studio_settings.cpp" line="+2026"/>
-        <source>Settings schema %1 inspected read-only; migration to %2 was skipped.</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>TextDocument</name>
-    <message>
-        <location filename="../src/core/text_document.cpp" line="+103"/>
-        <source>Text files larger than 4 MiB are read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>UTF-32 is not supported. This preview is read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The file is not valid UTF-8 or BOM-marked UTF-16. This preview is read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+20"/>
-        <source>Binary control characters were found. This preview is read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>The text file could not be opened: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The text file could not be read: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <location line="+43"/>
-        <source>No output buffer was supplied.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-41"/>
-        <location line="+43"/>
-        <source>This document cannot be saved.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-42"/>
-        <location line="+73"/>
-        <source>The edited text exceeds the 4 MiB limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-70"/>
-        <source>Editor text must use LF paragraph boundaries.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
-        <source>The edited text contains invalid Unicode and cannot be saved.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>The encoded file exceeds the 4 MiB limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <location line="+54"/>
-        <source>The edited text cannot be saved without changing its characters.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-26"/>
-        <source>Text edits must stay inside the reviewed document.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Text edits must use ordered, non-overlapping Unicode ranges and LF paragraph boundaries.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+17"/>
-        <source>The edited file exceeds its size limit or contains invalid Unicode.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+25"/>
-        <source>The file reappeared or its parent path changed. It has not been recreated.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The file changed, moved, or became unreadable after it was opened. Your edits have not been written.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <location line="+83"/>
-        <source>The file could not be written: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-79"/>
-        <location line="+84"/>
-        <source>The file could not be committed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-58"/>
-        <source>Choose a destination file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <source>The destination cannot be inspected safely: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>The destination folder must exist and the file must not be a broken link.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+14"/>
-        <source>The destination has not been inspected.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>The destination changed after it was reviewed. Your document has not been written.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+54"/>
-        <source>%1 with BOM</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>No line endings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Mixed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1 · %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>TextRecovery</name>
-    <message>
-        <location filename="../src/core/text_recovery.cpp" line="+62"/>
-        <source>Invalid recovery destination.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Recovery write cancelled.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The recovery folder is unavailable or is a link.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <source>The recovery file is not a regular file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The recovery record exceeds its size limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>The recovery copy could not be written: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>The recovery write was cancelled or its destination changed.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>The recovery copy could not be committed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>The recovery record is not a readable regular file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>The recovery record could not be read within its size limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>The recovery record has an unsupported or damaged header.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The recovery contents failed their checksum or size check.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>The recovery timestamp is invalid.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <location line="+21"/>
-        <source>The recovery folder is not a regular directory.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-2"/>
-        <source>Invalid recovery identifier.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Only regular recovery files may be discarded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>The recovery copy could not be discarded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>SlopStudioAccessibility</name>
     <message>
         <location filename="../src/app/studio_accessibility.cpp" line="+200"/>
@@ -46138,7 +45892,7 @@ Grids: %5 × %6 and %7 × %8</source>
 <context>
     <name>SlopStudioAdvancedStudio</name>
     <message>
-        <location filename="../src/core/advanced_studio.cpp" line="+82"/>
+        <location filename="../src/core/advanced_studio.cpp" line="+83"/>
         <source> (line %1)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -49905,7 +49659,7 @@ Grids: %5 × %6 and %7 × %8</source>
 <context>
     <name>SlopStudioAssetRegister</name>
     <message>
-        <location filename="../src/core/game_asset_register.cpp" line="+361"/>
+        <location filename="../src/core/game_asset_register.cpp" line="+362"/>
         <source>Quake</source>
         <translation type="unfinished"></translation>
     </message>
@@ -51900,7 +51654,7 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>SlopStudioAssistant</name>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+16713"/>
+        <location filename="../src/app/application_shell.cpp" line="+16714"/>
         <source>Show the raw JSON</source>
         <translation type="unfinished"></translation>
     </message>
@@ -56077,7 +55831,7 @@ Select a WAV asset, or the audio could not be decoded.</source>
     <name>SlopStudioCompilerProfiles</name>
     <message>
         <location filename="../src/core/build_pipeline.cpp" line="-2081"/>
-        <location filename="../src/core/compiler_profiles.cpp" line="+844"/>
+        <location filename="../src/core/compiler_profiles.cpp" line="+846"/>
         <source>Input file does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -56828,12 +56582,12 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>SlopStudioCompilerRegistry</name>
     <message>
-        <location filename="../src/core/compiler_registry.cpp" line="+66"/>
+        <location filename="../src/core/compiler_registry.cpp" line="+68"/>
         <source>Configured compiler executable does not exist: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+169"/>
+        <location line="+185"/>
         <source>Version probe could not start.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -57953,12 +57707,12 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>SlopStudioEditorProfiles</name>
     <message>
-        <location filename="../src/core/editor_profiles.cpp" line="+127"/>
+        <location filename="../src/core/editor_profiles.cpp" line="+128"/>
         <source>Levels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+45"/>
+        <location line="+46"/>
         <source>SlopStudio Default</source>
         <translation type="unfinished"></translation>
     </message>
@@ -64462,6 +64216,14 @@ Select a WAV asset, or the audio could not be decoded.</source>
     <message>
         <location line="+2"/>
         <source>Dismiss notice</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SlopStudioLegacyNames</name>
+    <message>
+        <location filename="../src/core/legacy_names.cpp" line="+159"/>
+        <source>The VibeStudio project folder %1 could not be renamed to %2.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -76820,7 +76582,7 @@ Searched: %3
 <context>
     <name>SlopStudioLocalization</name>
     <message numerus="yes">
-        <location filename="../src/core/localization.cpp" line="+107"/>
+        <location filename="../src/core/localization.cpp" line="+108"/>
         <source>%n package(s) ready</source>
         <translation>
             <numerusform>%n package ready</numerusform>
@@ -77467,7 +77229,7 @@ Searched: %3
 <context>
     <name>SlopStudioMain</name>
     <message>
-        <location filename="../src/main.cpp" line="+234"/>
+        <location filename="../src/main.cpp" line="+242"/>
         <source>Starting the 3D renderer</source>
         <translation type="unfinished"></translation>
     </message>
@@ -83065,7 +82827,7 @@ Searched: %3
     </message>
     <message>
         <location filename="../src/app/material_workbench.cpp" line="+3610"/>
-        <location filename="../src/core/material_override.cpp" line="+43"/>
+        <location filename="../src/core/material_override.cpp" line="+55"/>
         <source>Only a base game material can be overridden in the package.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -83075,7 +82837,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+16"/>
         <source>Only shaders, materials and Quake II textures can be copied into the package.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -83209,7 +82971,7 @@ Searched: %3
 <context>
     <name>SlopStudioModelAssembly</name>
     <message>
-        <location filename="../src/core/model_assembly.cpp" line="+198"/>
+        <location filename="../src/core/model_assembly.cpp" line="+199"/>
         <source>An assembly needs a name of at most 128 characters and at most 32 parts.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -85537,7 +85299,7 @@ Searched: %3
     <message>
         <location line="+5"/>
         <location line="+70"/>
-        <location filename="../src/core/model_editor_controls.cpp" line="+913"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="+915"/>
         <source>Keys</source>
         <translation type="unfinished"></translation>
     </message>
@@ -85930,7 +85692,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-947"/>
+        <location line="-948"/>
         <source>Open or Import</source>
         <translation type="unfinished"></translation>
     </message>
@@ -86201,12 +85963,12 @@ Searched: %3
     </message>
     <message>
         <location line="+1"/>
-        <location line="+890"/>
+        <location line="+891"/>
         <source>Duplicate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-889"/>
+        <location line="-890"/>
         <source>Loop Cut</source>
         <translation type="unfinished"></translation>
     </message>
@@ -86846,7 +86608,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+185"/>
+        <location line="+186"/>
         <source>%1 and %2 always move keyboard focus between panels.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -100606,7 +100368,7 @@ Second: surface %6 (%7), face %8</source>
         <location line="-78"/>
         <location line="+187"/>
         <location line="+48"/>
-        <location filename="../src/core/model_session_draft.cpp" line="+131"/>
+        <location filename="../src/core/model_session_draft.cpp" line="+132"/>
         <location line="+133"/>
         <source>The model recovery folder is unavailable or is a link.</source>
         <translation type="unfinished"></translation>
@@ -107618,7 +107380,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
 <context>
     <name>SlopStudioPackageArchive</name>
     <message>
-        <location filename="../src/core/package_archive.cpp" line="+1990"/>
+        <location filename="../src/core/package_archive.cpp" line="+1991"/>
         <location line="+610"/>
         <location line="+8"/>
         <location filename="../src/core/package_extraction.cpp" line="+150"/>
@@ -107626,7 +107388,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_extraction.cpp" line="-1791"/>
+        <location filename="../src/core/package_extraction.cpp" line="-1792"/>
         <location line="-459"/>
         <location line="-451"/>
         <location line="-442"/>
@@ -107634,38 +107396,38 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2022"/>
+        <location line="-2023"/>
         <source>Unsafe package mount path: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1914"/>
+        <location line="-1915"/>
         <source>This reader does not support bounded package streaming.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1877"/>
+        <location line="-1878"/>
         <source>Package path does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1785"/>
+        <location line="-1786"/>
         <source>Unsupported package format.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1755"/>
+        <location line="-1756"/>
         <source>The package document snapshot is not available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1725"/>
+        <location line="-1726"/>
         <source>The package snapshot has an unsupported WAD layout.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1640"/>
-        <location line="-1702"/>
+        <location line="-1641"/>
+        <location line="-1703"/>
         <source>No package is open.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -107989,7 +107751,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1055"/>
+        <location line="-1056"/>
         <source>Package entry index is out of range.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -108004,7 +107766,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+105"/>
+        <location line="+106"/>
         <location line="+510"/>
         <source>The source package changed after it was opened. Reopen it before reading entries.</source>
         <translation type="unfinished"></translation>
@@ -108056,16 +107818,16 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_archive.cpp" line="-1412"/>
+        <location filename="../src/core/package_archive.cpp" line="-1413"/>
         <location line="+390"/>
         <location line="+127"/>
         <location line="+90"/>
-        <location line="+651"/>
+        <location line="+652"/>
         <source>Package opening cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-859"/>
+        <location line="-860"/>
         <source>Package layers exceed the limits of %1 records, %2 metadata bytes or %3 fingerprint bytes. Unmount a layer or use smaller sources.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -108080,7 +107842,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+165"/>
+        <location line="+166"/>
         <location line="+5"/>
         <location line="+33"/>
         <location line="+64"/>
@@ -109061,7 +108823,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
 <context>
     <name>SlopStudioPackageDialog</name>
     <message>
-        <location filename="../src/app/package_operation_dialog.cpp" line="+99"/>
+        <location filename="../src/app/package_operation_dialog.cpp" line="+100"/>
         <source>Package operation status</source>
         <translation type="unfinished"></translation>
     </message>
@@ -109689,7 +109451,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioPackageDraft</name>
     <message>
-        <location filename="../src/core/package_draft.cpp" line="+35"/>
+        <location filename="../src/core/package_draft.cpp" line="+36"/>
         <source>Package draft operation cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -110184,7 +109946,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioPackagePublication</name>
     <message>
-        <location filename="../src/core/package_publication.cpp" line="+46"/>
+        <location filename="../src/core/package_publication.cpp" line="+47"/>
         <source>Package save cancelled before publication; the destination was left untouched.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111591,7 +111353,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioProjectContent</name>
     <message>
-        <location filename="../src/core/project_content.cpp" line="+53"/>
+        <location filename="../src/core/project_content.cpp" line="+54"/>
         <location line="+14"/>
         <location line="+240"/>
         <location line="+15"/>
@@ -111676,18 +111438,18 @@ Output: %2</source>
 <context>
     <name>SlopStudioProjectManifest</name>
     <message>
-        <location filename="../src/core/project_manifest.cpp" line="+388"/>
+        <location filename="../src/core/project_manifest.cpp" line="+392"/>
         <source>Untitled Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+23"/>
-        <location line="+91"/>
+        <location line="+95"/>
         <source>Project root path is empty.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-83"/>
+        <location line="-87"/>
         <source>Project manifest does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111702,7 +111464,7 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+123"/>
+        <location line="+127"/>
         <source>Project root does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -113890,7 +113652,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioReleaseNotes</name>
     <message>
-        <location filename="../src/core/release_notes.cpp" line="+94"/>
+        <location filename="../src/core/release_notes.cpp" line="+95"/>
         <source>Maps</source>
         <translation type="unfinished"></translation>
     </message>
@@ -115100,7 +114862,7 @@ Output: %2</source>
     <name>SlopStudioRendering</name>
     <message>
         <location filename="../src/app/model_viewport.cpp" line="-1920"/>
-        <location filename="../src/core/render_device.cpp" line="+371"/>
+        <location filename="../src/core/render_device.cpp" line="+372"/>
         <source>There was not enough memory to render this view.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -115222,7 +114984,7 @@ Output: %2</source>
     <message>
         <location line="+385"/>
         <location line="+280"/>
-        <location filename="../src/core/render_vulkan.cpp" line="+2000"/>
+        <location filename="../src/core/render_vulkan.cpp" line="+2001"/>
         <source>The graphics device stopped responding.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -115342,7 +115104,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioRuntime</name>
     <message>
-        <location filename="../src/app/studio_runtime.cpp" line="+459"/>
+        <location filename="../src/app/studio_runtime.cpp" line="+460"/>
         <source>Translation catalog could not be loaded: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -122083,7 +121845,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioSetup</name>
     <message>
-        <location filename="../src/core/studio_settings.cpp" line="+525"/>
+        <location filename="../src/core/studio_settings.cpp" line="+2554"/>
         <location line="+16"/>
         <source>Welcome and Access</source>
         <translation type="unfinished"></translation>
@@ -122884,7 +122646,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioSpeech</name>
     <message>
-        <location filename="../src/app/studio_speech.cpp" line="+90"/>
+        <location filename="../src/app/studio_speech.cpp" line="+91"/>
         <source>Test log (silent)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128144,7 +127906,7 @@ Replace what is there with this variant?</source>
 <context>
     <name>SlopStudioWorkspace</name>
     <message>
-        <location filename="../src/core/workspace_document.cpp" line="+71"/>
+        <location filename="../src/core/workspace_document.cpp" line="+72"/>
         <source>Workspace files must contain 1–1,048,576 bytes.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128214,7 +127976,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+8"/>
         <source>A workspace keeps at most 32 model sources.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128315,6 +128077,257 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+1"/>
         <source>Missing: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>StudioSettings</name>
+    <message>
+        <location filename="../src/core/studio_settings.cpp" line="-562"/>
+        <source>Settings schema %1 inspected read-only; migration to %2 was skipped.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TextDocument</name>
+    <message>
+        <location filename="../src/core/text_document.cpp" line="+103"/>
+        <source>Text files larger than 4 MiB are read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>UTF-32 is not supported. This preview is read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>The file is not valid UTF-8 or BOM-marked UTF-16. This preview is read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Binary control characters were found. This preview is read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>The text file could not be opened: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>The text file could not be read: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <location line="+43"/>
+        <source>No output buffer was supplied.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-41"/>
+        <location line="+43"/>
+        <source>This document cannot be saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-42"/>
+        <location line="+73"/>
+        <source>The edited text exceeds the 4 MiB limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-70"/>
+        <source>Editor text must use LF paragraph boundaries.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>The edited text contains invalid Unicode and cannot be saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>The encoded file exceeds the 4 MiB limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+54"/>
+        <source>The edited text cannot be saved without changing its characters.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-26"/>
+        <source>Text edits must stay inside the reviewed document.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Text edits must use ordered, non-overlapping Unicode ranges and LF paragraph boundaries.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>The edited file exceeds its size limit or contains invalid Unicode.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>The file reappeared or its parent path changed. It has not been recreated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>The file changed, moved, or became unreadable after it was opened. Your edits have not been written.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <location line="+83"/>
+        <source>The file could not be written: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-79"/>
+        <location line="+84"/>
+        <source>The file could not be committed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-58"/>
+        <source>Choose a destination file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>The destination cannot be inspected safely: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>The destination folder must exist and the file must not be a broken link.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>The destination has not been inspected.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>The destination changed after it was reviewed. Your document has not been written.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+54"/>
+        <source>%1 with BOM</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>No line endings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Mixed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1 · %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TextRecovery</name>
+    <message>
+        <location filename="../src/core/text_recovery.cpp" line="+62"/>
+        <source>Invalid recovery destination.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Recovery write cancelled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>The recovery folder is unavailable or is a link.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>The recovery file is not a regular file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>The recovery record exceeds its size limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>The recovery copy could not be written: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>The recovery write was cancelled or its destination changed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>The recovery copy could not be committed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>The recovery record is not a readable regular file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>The recovery record could not be read within its size limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>The recovery record has an unsupported or damaged header.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>The recovery contents failed their checksum or size check.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>The recovery timestamp is invalid.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <location line="+21"/>
+        <source>The recovery folder is not a regular directory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-2"/>
+        <source>Invalid recovery identifier.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Only regular recovery files may be discarded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>The recovery copy could not be discarded.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -132468,7 +132481,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="-20203"/>
         <location line="-19752"/>
-        <location filename="../src/app/package_document_actions.cpp" line="+167"/>
+        <location filename="../src/app/package_document_actions.cpp" line="+168"/>
         <source>New Package</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132478,64 +132491,64 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-281"/>
+        <location line="-280"/>
         <source>Start an empty PAK, ZIP, PK3 or WAD document.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-278"/>
+        <location line="-277"/>
         <source>Export Selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-277"/>
+        <location line="-276"/>
         <source>Export selected package files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-272"/>
+        <location line="-271"/>
         <source>Open a package before exporting a subset.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-261"/>
+        <location line="-260"/>
         <source>Select files or folders to export.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-257"/>
+        <location line="-256"/>
         <source>Package subset export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-249"/>
+        <location line="-248"/>
         <source>Compare</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-248"/>
+        <location line="-247"/>
         <source>Compare the open package with another</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-229"/>
-        <location line="+2803"/>
+        <location line="-228"/>
+        <location line="+2794"/>
         <source>Open Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-3031"/>
+        <location line="-3021"/>
         <source>Open folder package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-227"/>
+        <location line="-226"/>
         <source>Open a folder as a read-only package source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-221"/>
-        <location line="+3473"/>
+        <location line="-220"/>
+        <location line="+3461"/>
         <location line="+1577"/>
         <location line="+263"/>
         <location line="+200"/>
@@ -132544,47 +132557,47 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6825"/>
+        <location line="-6812"/>
         <source>Open package file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-219"/>
+        <location line="-218"/>
         <source>Open a PAK, WAD, ZIP, or PK3 package for read-only browsing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-213"/>
+        <location line="-212"/>
         <source>Package tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-210"/>
+        <location line="-209"/>
         <source>Package entry filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-209"/>
+        <location line="-208"/>
         <source>Filters loaded package entries by path or type hint, or by a query such as ext=wav size&gt;1mb.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-208"/>
+        <location line="-207"/>
         <source>Filter entries by path or type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-207"/>
+        <location line="-206"/>
         <source>Words search paths and types. key=value, key:text, key!=value, key&lt;n, and key&gt;n test each entry&apos;s path, name, ext, folder, type, storage, size, and packed size, all together: ext=wav size&gt;1mb, folder:textures. Sizes take k, m, and g. Down lists the queries used before.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-38"/>
+        <location line="-37"/>
         <source>No entry matches the filter.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-38"/>
+        <location line="-37"/>
         <source>%n matching entr(y)(ies) selected.</source>
         <translation>
             <numerusform>%n matching entry selected.</numerusform>
@@ -132592,160 +132605,160 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         </translation>
     </message>
     <message>
-        <location line="-168"/>
+        <location line="-167"/>
         <source>Extract</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-168"/>
+        <location line="-167"/>
         <source>Extract selected package entries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-167"/>
+        <location line="-166"/>
         <source>Extract selected package entries to a chosen folder without overwriting existing files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-166"/>
+        <location line="-165"/>
         <source>Extract All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-166"/>
+        <location line="-165"/>
         <source>Extract all package entries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-165"/>
+        <location line="-164"/>
         <source>Extract every readable package entry to a chosen folder without overwriting existing files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-164"/>
+        <location line="-163"/>
         <source>Cancel Extract</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-164"/>
+        <location line="-163"/>
         <source>Cancel package extraction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-161"/>
-        <location line="+16808"/>
+        <location line="-160"/>
+        <location line="+16778"/>
         <source>Package extraction cancellation requested</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16964"/>
+        <location line="-16933"/>
         <source>New Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-156"/>
+        <location line="-155"/>
         <source>Create package folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-155"/>
+        <location line="-154"/>
         <source>Create an empty folder in the package. ZIP and PK3 preserve empty folders.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-153"/>
+        <location line="-152"/>
         <source>WAD Groups</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-153"/>
+        <location line="-152"/>
         <source>Review WAD group edits</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-152"/>
+        <location line="-151"/>
         <source>Review map renames and complete group deletions, including GL companions and namespace boundaries.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-148"/>
+        <location line="-147"/>
         <source>Stage package add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-147"/>
+        <location line="-146"/>
         <source>Stage a local file as a new virtual package entry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-146"/>
+        <location line="-145"/>
         <source>Stage package replace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-145"/>
+        <location line="-144"/>
         <source>Stage a local file to replace the selected package entry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-144"/>
+        <location line="-143"/>
         <source>Stage package rename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-143"/>
-        <location line="+20266"/>
+        <location line="-142"/>
+        <location line="+20224"/>
         <source>Stage a rename for the selected package entry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20408"/>
+        <location line="-20365"/>
         <source>Stage package delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-141"/>
+        <location line="-140"/>
         <source>Stage deletion for the selected package entries.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-140"/>
+        <location line="-139"/>
         <source>Review Changes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-140"/>
+        <location line="-139"/>
         <source>Review staged package changes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-139"/>
-        <location line="+20983"/>
+        <location line="-138"/>
+        <location line="+20936"/>
         <source>Compare the source package with the staged result before saving.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21108"/>
+        <location line="-21060"/>
         <source>Package compression level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-124"/>
+        <location line="-123"/>
         <source>DEFLATE effort for ZIP and PK3 output. Every level measures each block as stored, fixed, and dynamic Huffman and keeps the smallest, so the levels trade search time for size, never correctness. PAK and WAD output is always stored.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-123"/>
+        <location line="-122"/>
         <source>Store (no compression)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-122"/>
+        <location line="-121"/>
         <source>Fast</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-121"/>
+        <location line="-120"/>
         <location filename="../src/app/level_object_selection_actions.cpp" line="+131"/>
         <location filename="../src/app/level_scene_layer_actions.cpp" line="+87"/>
         <location line="+67"/>
@@ -136206,35 +136219,35 @@ Last opened %3. Double-click to open.</source>
         <location line="-4843"/>
         <location line="+1123007"/>
         <location line="+221"/>
-        <location filename="../src/app/package_document_actions.cpp" line="-172"/>
-        <location line="-101"/>
-        <location line="-70"/>
-        <location line="-32"/>
-        <location line="+9859"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-171"/>
+        <location line="-100"/>
+        <location line="-69"/>
+        <location line="-31"/>
+        <location line="+9803"/>
         <source>package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_document_actions.cpp" line="-30030"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-29973"/>
         <source>Opening package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20096"/>
-        <location line="-20091"/>
+        <location line="-20095"/>
         <location line="-20090"/>
-        <location line="-15355"/>
-        <location line="-14921"/>
+        <location line="-20089"/>
+        <location line="-15354"/>
+        <location line="-14920"/>
         <source>No package loaded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20160"/>
+        <location line="-20159"/>
         <source>Package open failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-20139"/>
+        <location line="-20138"/>
         <source>Indexed %n package entries.</source>
         <translation>
             <numerusform>Indexed %n package entry.</numerusform>
@@ -136242,7 +136255,7 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-20134"/>
+        <location line="-20133"/>
         <source>Opened %1 with %n entries.</source>
         <translation>
             <numerusform>Opened %1 with %n entry.</numerusform>
@@ -136250,17 +136263,17 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message>
-        <location line="-20114"/>
+        <location line="-20113"/>
         <source>Package opened: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20095"/>
+        <location line="-20094"/>
         <source>No Package Loaded</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-20062"/>
+        <location line="-20061"/>
         <source>%1 / %n entries</source>
         <translation>
             <numerusform>%1 / %n entry</numerusform>
@@ -136268,329 +136281,329 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message>
-        <location line="-20061"/>
+        <location line="-20060"/>
         <source>Package Browser</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20055"/>
-        <location line="-19091"/>
-        <location line="-14935"/>
-        <location line="-14195"/>
-        <location line="-13835"/>
-        <location line="-13152"/>
+        <location line="-20054"/>
+        <location line="-19090"/>
+        <location line="-14934"/>
+        <location line="-14194"/>
+        <location line="-13834"/>
+        <location line="-13151"/>
         <source>Warnings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20013"/>
+        <location line="-20012"/>
         <source>Open a project folder to activate project health, package roots, and next actions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20012"/>
+        <location line="-20011"/>
         <source>No install selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20012"/>
+        <location line="-20011"/>
         <source>Add or detect a game installation profile when you are ready.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20011"/>
+        <location line="-20010"/>
         <source>No package mounted</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20011"/>
+        <location line="-20010"/>
         <source>Open a folder, PAK, WAD, ZIP, or PK3 to inspect package context.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20010"/>
+        <location line="-20009"/>
         <source>Compiler discovery</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20010"/>
+        <location line="-20009"/>
         <source>%1 of %2 executables found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20001"/>
+        <location line="-20000"/>
         <source>Initialize .slopstudio/project.json: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19974"/>
+        <location line="-19973"/>
         <source>No compiler executable found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19974"/>
+        <location line="-19973"/>
         <source>Compiler sources may be present, but no runnable tool was discovered in known paths or PATH.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19971"/>
+        <location line="-19970"/>
         <source>No recent tasks</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19971"/>
+        <location line="-19970"/>
         <source>Open a project, package, setup step, or compiler report to populate the activity timeline.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19968"/>
+        <location line="-19967"/>
         <source>Project has no blocking problems. Warnings and raw detail remain available in Workspace Details.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19954"/>
+        <location line="-19953"/>
         <source>Type to search project files and mounted package entries.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19914"/>
-        <location line="-97"/>
+        <location line="-19913"/>
+        <location line="-96"/>
         <source>Package: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19914"/>
+        <location line="-19913"/>
         <source>%1 / %2 / %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19909"/>
+        <location line="-19908"/>
         <source>No workspace search results.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19907"/>
+        <location line="-19906"/>
         <source>Search result limit reached; narrow the query for more precise results.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19894"/>
+        <location line="-19893"/>
         <source>No project open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19888"/>
+        <location line="-19887"/>
         <source>No Git repository detected for the active project.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19873"/>
+        <location line="-19872"/>
         <source>Reading Git status...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19858"/>
+        <location line="-19857"/>
         <source>Git status is unavailable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19852"/>
+        <location line="-19851"/>
         <source>No changed or staged files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19846"/>
-        <location line="-9282"/>
+        <location line="-19845"/>
+        <location line="-9281"/>
         <source>modified</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19810"/>
+        <location line="-19809"/>
         <source>No project open. Dependency graph will connect project roots, installs, packages, and compilers.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19791"/>
+        <location line="-19790"/>
         <source>Project &gt; Manifest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19791"/>
+        <location line="-19790"/>
         <source>Manifest not initialized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19788"/>
+        <location line="-19787"/>
         <source>Project &gt; Source Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19785"/>
+        <location line="-19784"/>
         <source>Project &gt; Package Folders</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19785"/>
+        <location line="-19784"/>
         <source>No package folders configured.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19781"/>
+        <location line="-19780"/>
         <source>Project &gt; Package Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19778"/>
+        <location line="-19777"/>
         <source>Project &gt; Installation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19778"/>
+        <location line="-19777"/>
         <source>No installation linked.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19767"/>
+        <location line="-19766"/>
         <source>Project &gt; Compiler Outputs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19767"/>
+        <location line="-19766"/>
         <source>No compiler outputs registered.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19763"/>
+        <location line="-19762"/>
         <source>Project &gt; Compiler Output</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19760"/>
+        <location line="-19759"/>
         <source>Workspace &gt; Mounted Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19760"/>
+        <location line="-19759"/>
         <source>No package mounted.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19759"/>
+        <location line="-19758"/>
         <source>Workspace &gt; Compiler Registry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19759"/>
+        <location line="-19758"/>
         <source>%1 of %2 executables discovered.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19723"/>
+        <location line="-19722"/>
         <source>No recent activity yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19683"/>
+        <location line="-19682"/>
         <source>Open Level Map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19681"/>
+        <location line="-19680"/>
         <source>Level maps (*.map *.wad);;Quake-family maps (*.map);;Doom WAD maps (*.wad);;All files (*.*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19665"/>
+        <location line="-19664"/>
         <source>No map is open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19639"/>
+        <location line="-19638"/>
         <source>Map closed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19622"/>
+        <location line="-19621"/>
         <source>%1, in %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19606"/>
+        <location line="-19605"/>
         <source>Path required</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19605"/>
+        <location line="-19604"/>
         <source>Choose a Doom WAD map or Quake-family .map source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19600"/>
+        <location line="-19599"/>
         <source>Parsing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19599"/>
+        <location line="-19598"/>
         <source>Reading %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19579"/>
+        <location line="-19578"/>
         <source>Load failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19577"/>
+        <location line="-19576"/>
         <source>Level map load failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19548"/>
+        <location line="-19547"/>
         <source>Level map inspected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19548"/>
+        <location line="-19547"/>
         <source>%1 issues</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19499"/>
+        <location line="-19498"/>
         <source>Objects (%1 of %2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19423"/>
+        <location line="-19422"/>
         <source>Showing the objects with %1; Enter selects them all.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19377"/>
+        <location line="-19376"/>
         <source>Recent queries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19332"/>
+        <location line="-19331"/>
         <source>Nothing here has %1; the filter&apos;s tooltip lists the keys it knows.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19245"/>
+        <location line="-19244"/>
         <source>Type a filter first; every object it keeps is then selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19214"/>
+        <location line="-19213"/>
         <source>Only hidden objects match; Show All Hidden brings them back.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19214"/>
+        <location line="-19213"/>
         <source>No object matches the filter.</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-19205"/>
+        <location line="-19204"/>
         <source>%n matching object(s) selected.</source>
         <translation>
             <numerusform>%n matching object selected.</numerusform>
@@ -136598,10 +136611,10 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-19203"/>
-        <location line="-17747"/>
-        <location line="-15957"/>
-        <location line="-15908"/>
+        <location line="-19202"/>
+        <location line="-17746"/>
+        <location line="-15956"/>
+        <location line="-15907"/>
         <source>%n hidden one(s) left out; Show All Hidden brings them back.</source>
         <translation>
             <numerusform>%n hidden one left out; Show All Hidden brings them back.</numerusform>
@@ -136609,7 +136622,7 @@ Last opened %3. Double-click to open.</source>
         </translation>
     </message>
     <message>
-        <location line="-19111"/>
+        <location line="-19110"/>
         <source>Open a Doom WAD map or Quake-family .map source to inspect entities, textures, health, and safe edits.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -140142,190 +140155,190 @@ Executable: %2</source>
         <location line="+23"/>
         <location line="+16"/>
         <location line="+363"/>
-        <location filename="../src/app/package_document_actions.cpp" line="-19151"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-19150"/>
         <source>%1 -&gt; %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_document_actions.cpp" line="-19529"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-19528"/>
         <source>Package Extract</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19525"/>
+        <location line="-19524"/>
         <source>Starting package extraction.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19524"/>
+        <location line="-19523"/>
         <source>Extracting Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19502"/>
+        <location line="-19501"/>
         <source>Cancelled after %1 of %2 entries.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19500"/>
+        <location line="-19499"/>
         <source>Extracted %1 entries to %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19498"/>
+        <location line="-19497"/>
         <source>Cancellation requested.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19480"/>
+        <location line="-19479"/>
         <source>Extraction Cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19480"/>
+        <location line="-19479"/>
         <source>Extraction Complete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19480"/>
+        <location line="-19479"/>
         <source>Extraction Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19461"/>
-        <location line="-19081"/>
+        <location line="-19460"/>
+        <location line="-19080"/>
         <source>Mode: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19461"/>
-        <location line="-19081"/>
+        <location line="-19460"/>
+        <location line="-19080"/>
         <source>dry run</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19461"/>
-        <location line="-19081"/>
+        <location line="-19460"/>
+        <location line="-19080"/>
         <source>write</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19460"/>
+        <location line="-19459"/>
         <source>Overwrite existing: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19459"/>
+        <location line="-19458"/>
         <source>Requested: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19458"/>
+        <location line="-19457"/>
         <source>Processed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19457"/>
+        <location line="-19456"/>
         <source>Written: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19456"/>
-        <location line="-6703"/>
+        <location line="-19455"/>
+        <location line="-6702"/>
         <source>Skipped: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19455"/>
+        <location line="-19454"/>
         <source>Errors: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19454"/>
-        <location line="-19078"/>
+        <location line="-19453"/>
+        <location line="-19077"/>
         <source>Bytes written: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19449"/>
+        <location line="-19448"/>
         <source>planned</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19447"/>
-        <location line="-19413"/>
-        <location line="-19053"/>
+        <location line="-19446"/>
+        <location line="-19412"/>
+        <location line="-19052"/>
         <source>failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19445"/>
+        <location line="-19444"/>
         <source>skipped</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19443"/>
+        <location line="-19442"/>
         <source>would create</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19443"/>
+        <location line="-19442"/>
         <source>would write</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19441"/>
+        <location line="-19440"/>
         <source>created</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19439"/>
+        <location line="-19438"/>
         <source>wrote</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19437"/>
+        <location line="-19436"/>
         <source>%1: %2 -&gt; %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19437"/>
+        <location line="-19436"/>
         <source>no output path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19435"/>
-        <location line="-18475"/>
+        <location line="-19434"/>
+        <location line="-18474"/>
         <source>  %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19432"/>
+        <location line="-19431"/>
         <source>  Error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19428"/>
+        <location line="-19427"/>
         <source>No output paths were produced.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19423"/>
+        <location line="-19422"/>
         <source>No extraction warnings.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19419"/>
+        <location line="-19418"/>
         <source>Package Extraction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19416"/>
+        <location line="-19415"/>
         <source>%1 entries written</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-19415"/>
+        <location line="-19414"/>
         <source>%n paths</source>
         <translation>
             <numerusform>%n path</numerusform>
@@ -140333,14 +140346,14 @@ Executable: %2</source>
         </translation>
     </message>
     <message>
-        <location line="-19415"/>
+        <location line="-19414"/>
         <source>Output Paths</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-19414"/>
-        <location line="-19054"/>
-        <location line="-18371"/>
+        <location line="-19413"/>
+        <location line="-19053"/>
+        <location line="-18370"/>
         <source>%n warnings</source>
         <translation>
             <numerusform>%n warning</numerusform>
@@ -140348,152 +140361,152 @@ Executable: %2</source>
         </translation>
     </message>
     <message>
-        <location line="-19413"/>
-        <location line="-19053"/>
+        <location line="-19412"/>
+        <location line="-19052"/>
         <source>Raw Report</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19413"/>
+        <location line="-19412"/>
         <source>cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19413"/>
-        <location line="-19053"/>
+        <location line="-19412"/>
+        <location line="-19052"/>
         <source>completed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19403"/>
+        <location line="-19402"/>
         <source>Block on conflict</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19402"/>
+        <location line="-19401"/>
         <source>Replace existing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19401"/>
+        <location line="-19400"/>
         <source>Skip conflicting operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19396"/>
+        <location line="-19395"/>
         <source>Conflict policy:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19356"/>
+        <location line="-19355"/>
         <source>Open a package before staging files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19352"/>
+        <location line="-19351"/>
         <source>Stage File Into Package</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19346"/>
+        <location line="-19345"/>
         <source>Stage Add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19346"/>
+        <location line="-19345"/>
         <source>Virtual package path:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19341"/>
+        <location line="-19340"/>
         <source>Stage Add Conflict Policy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19333"/>
+        <location line="-19332"/>
         <source>Stage add blocked: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19330"/>
-        <location line="-12223"/>
+        <location line="-19329"/>
+        <location line="-12222"/>
         <source>Package Stage Add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19330"/>
+        <location line="-19329"/>
         <source>File staged for save-as.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19323"/>
+        <location line="-19322"/>
         <source>Open a package before staging replacements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19309"/>
+        <location line="-19308"/>
         <source>Choose Replacement File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19299"/>
+        <location line="-19298"/>
         <source>Stage replace blocked: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19296"/>
+        <location line="-19295"/>
         <source>Package Stage Replace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19296"/>
+        <location line="-19295"/>
         <source>Replacement staged for save-as.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19310"/>
-        <location line="-19304"/>
+        <location line="-19309"/>
+        <location line="-19303"/>
         <source>Stage Rename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19310"/>
-        <location line="-19304"/>
+        <location line="-19309"/>
+        <location line="-19303"/>
         <source>Rename Package Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19309"/>
+        <location line="-19308"/>
         <source>New virtual package path:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19306"/>
+        <location line="-19305"/>
         <source>Stage Rename Conflict Policy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19297"/>
+        <location line="-19296"/>
         <source>Rename staged: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19296"/>
+        <location line="-19295"/>
         <source>Package Stage Rename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19295"/>
+        <location line="-19294"/>
         <source>Rename staged for save-as.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19256"/>
+        <location line="-19255"/>
         <source>Package Stage Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19256"/>
+        <location line="-19255"/>
         <source>Delete staged for save-as.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -140807,26 +140820,26 @@ Edited, not saved:
     </message>
     <message>
         <location line="+6"/>
-        <location filename="../src/app/package_document_actions.cpp" line="-19312"/>
-        <location line="-19276"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-19311"/>
+        <location line="-19275"/>
         <source>%1 (source entry %2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_document_actions.cpp" line="-31462"/>
-        <location line="-31457"/>
-        <location line="-31455"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-31461"/>
+        <location line="-31456"/>
+        <location line="-31454"/>
         <source>The studio is closing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19269"/>
-        <location line="-19298"/>
+        <location line="-19268"/>
+        <location line="-19297"/>
         <source>The package changed; select the entry again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19267"/>
+        <location line="-19266"/>
         <source>Delete selected entries</source>
         <translation type="unfinished"></translation>
     </message>
@@ -152355,29 +152368,29 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_document_actions.cpp" line="-19472"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-19471"/>
         <source>Open Package Draft (.sloppackage)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19468"/>
+        <location line="-19467"/>
         <source>Open Package Draft</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19468"/>
+        <location line="-19467"/>
         <source>Choose the complete .sloppackage draft directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19453"/>
-        <location line="-19424"/>
+        <location line="-19452"/>
+        <location line="-19423"/>
         <source>Save Package Draft</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19452"/>
-        <location filename="../src/app/package_recovery_actions.cpp" line="+117"/>
+        <location line="-19451"/>
+        <location filename="../src/app/package_recovery_actions.cpp" line="+118"/>
         <source>Package Draft Directory (*.sloppackage)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -152561,13 +152574,13 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="-8270"/>
-        <location filename="../src/app/package_document_actions.cpp" line="-19451"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-19450"/>
         <source>Rename Folder…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/package_document_actions.cpp" line="-19449"/>
-        <location line="-19448"/>
+        <location filename="../src/app/package_document_actions.cpp" line="-19448"/>
+        <location line="-19447"/>
         <source>Delete Folder</source>
         <translation type="unfinished"></translation>
     </message>
@@ -155825,7 +155838,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/workspace_actions.cpp" line="+42"/>
+        <location filename="../src/app/workspace_actions.cpp" line="+43"/>
         <source>The workspace exists. Choose another path or explicitly replace it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -155876,13 +155889,18 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/workspace_actions.cpp" line="+0"/>
+        <location filename="../src/app/workspace_actions.cpp" line="+1"/>
         <location line="+8"/>
         <source>SlopStudio workspace (*.slopworkspace)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5"/>
+        <location line="-8"/>
+        <source>VibeStudio workspace (*.vibeworkspace)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Workspace Open Failed</source>
         <translation type="unfinished"></translation>
     </message>

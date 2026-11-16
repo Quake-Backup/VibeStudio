@@ -1,4 +1,5 @@
 #include "core/package_publication.h"
+#include "core/legacy_names.h"
 #include "core/package_storage.h"
 
 #include <QCoreApplication>
@@ -213,7 +214,7 @@ bool readJournal(const QString& path, Journal* journal, QString* error)
 	journal->backup = object.value(QStringLiteral("backup")).toString();
 	journal->journalIdentity = {true, bytes.size(), QString::fromLatin1(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex())};
 	bool valid = parseError.error == QJsonParseError::NoError && object.value(QStringLiteral("schemaVersion")).toInt() == 1
-		&& object.value(QStringLiteral("kind")).toString() == QStringLiteral("slopstudio-package-publication")
+		&& isCurrentOrLegacyStudioName(object.value(QStringLiteral("kind")).toString(), QStringLiteral("slopstudio-package-publication"))
 		&& parseIdentity(object.value(QStringLiteral("before")), &journal->before)
 		&& parseIdentity(object.value(QStringLiteral("after")), &journal->after)
 		&& parseIdentity(object.value(QStringLiteral("backupBefore")), &journal->backupBefore) && journal->after.exists;

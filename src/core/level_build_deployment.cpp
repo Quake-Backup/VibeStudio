@@ -1,4 +1,5 @@
 #include "core/level_build_deployment.h"
+#include "core/legacy_names.h"
 #include "core/package_storage.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -126,6 +127,14 @@ LevelBuildDeploymentPlan planLevelBuildDeployment(const LevelBuildWorkspace& wor
 	const auto directory = QDir(plan.installation.rootPath).filePath(plan.gameDirectory);
 	if (workspace.target == QStringLiteral("quake3")) {
 		plan.packagePath = QDir(directory).filePath(QStringLiteral("slopstudio_%1.pk3").arg(workspace.mapName));
+		// VibeStudio, the studio's former name, deployed vibestudio_<map>.pk3. The
+		// game reads it after the new package, so its old map would win.
+		const QString legacyPackage = QDir(directory).filePath(legacyStudioId(QStringLiteral("slopstudio_%1.pk3")).arg(workspace.mapName));
+		if (QFileInfo::exists(legacyPackage)) {
+			plan.warnings << text(QT_TRANSLATE_NOOP("LevelBuildDeployment",
+				"%1 was deployed by VibeStudio before the rename and loads after this package, so the game would keep using it. Remove it to play the new build."))
+				.arg(QDir::toNativeSeparators(legacyPackage));
+		}
 	} else {
 		plan.pakSlot = planLevelBuildPakSlot(directory, workspace.target, workspace.mapName, pakSlot, control);
 		if (!plan.pakSlot.ready()) {

@@ -6,7 +6,9 @@ building, testing, running and packaging.
 
 > [!NOTE]
 > The project's CI builds and tests every pull request on Windows, macOS and Linux with Qt 6.10.1.
-> Other compilers and Qt versions may work, but CI does not check them.
+> Other compilers and Qt versions may work, but CI does not check them. Those CI runs are failing
+> at the moment ([Project status](status.md#where-things-stand)), so a build may stop with errors
+> on your system too.
 
 ## What you need
 

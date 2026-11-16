@@ -1,4 +1,5 @@
 #include "core/workspace_document.h"
+#include "core/legacy_names.h"
 #include "core/package_archive.h"
 
 #include <QCoreApplication>
@@ -76,7 +77,7 @@ bool parseWorkspaceDocument(const QByteArray& bytes, const QString& path, Worksp
 		return fail(error, QT_TRANSLATE_NOOP("SlopStudioWorkspace", "The workspace is not a valid JSON object."));
 	}
 	const auto object = json.object();
-	if (object.value("format") != QStringLiteral("slopstudio-workspace") || !object.value("version").isDouble() || object.value("version").toDouble() != 1) {
+	if (!isCurrentOrLegacyStudioName(object.value("format").toString(), QStringLiteral("slopstudio-workspace")) || !object.value("version").isDouble() || object.value("version").toDouble() != 1) {
 		return fail(error, QT_TRANSLATE_NOOP("SlopStudioWorkspace", "Unsupported workspace format or version. This reader supports version 1."));
 	}
 	const QSet<QString> keys {"format", "version", "project", "package", "map", "mapName", "codeFiles", "currentCodeFile", "activeModule", "assetSelections", "extensions"};
@@ -134,7 +135,10 @@ bool parseWorkspaceDocument(const QByteArray& bytes, const QString& path, Worksp
 		if (!object.value("extensions").isObject()) { return fail(error, QT_TRANSLATE_NOOP("SlopStudioWorkspace", "Workspace extensions must be an object.")); }
 		parsed.extensions = object.value("extensions").toObject();
 		// The modeller's open sources, kept in extensions for older readers.
-		const auto models = parsed.extensions.take(QStringLiteral("slopstudio.modelSources"));
+		auto models = parsed.extensions.take(QStringLiteral("slopstudio.modelSources"));
+		// VibeStudio, the studio's former name, wrote the same list under its own key.
+		const auto legacyModels = parsed.extensions.take(legacyStudioId(QStringLiteral("slopstudio.modelSources")));
+		if (models.isUndefined()) { models = legacyModels; }
 		if (!models.isUndefined()) {
 			if (!models.isArray() || models.toArray().size() > 32) { return fail(error, QT_TRANSLATE_NOOP("SlopStudioWorkspace", "A workspace keeps at most 32 model sources.")); }
 			for (const auto& entry : models.toArray()) {
@@ -169,7 +173,7 @@ bool writeWorkspaceDocument(const QString& path, const WorkspaceDocument& docume
 	if (error) { error->clear(); }
 	const QFileInfo info(path);
 	const auto directory = QDir(info.absolutePath()).canonicalPath();
-	if (path.isEmpty() || info.suffix().compare(QStringLiteral("slopworkspace"), Qt::CaseInsensitive) != 0 || directory.isEmpty() || info.isSymLink() ||
+	if (path.isEmpty() || !isWorkspaceDocumentPath(info.fileName()) || directory.isEmpty() || info.isSymLink() ||
 		(!expected.isEmpty() && expected.size() != 32)) {
 		return fail(error, QT_TRANSLATE_NOOP("SlopStudioWorkspace", "Choose a .slopworkspace file in an existing folder, with no symbolic-link destination."));
 	}

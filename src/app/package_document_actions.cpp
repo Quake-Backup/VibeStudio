@@ -1,4 +1,5 @@
 #include "app/application_shell.h"
+#include "core/legacy_names.h"
 
 #include "app/package_operation_dialog.h"
 #include "app/package_entry_view.h"
@@ -73,7 +74,7 @@ void ApplicationShell::openPackageDraft()
 	const QString path = QFileDialog::getExistingDirectory(this, tr("Open Package Draft (.sloppackage)"),
 		m_packageStaging.draftPath().isEmpty() ? m_settings.currentProjectPath() : m_packageStaging.draftPath());
 	if (path.isEmpty() || !confirmStagedPackageChangesHandled()) { return; }
-	if (!path.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) {
+	if (!isPackageDraftPath(path)) {
 		QMessageBox::warning(this, tr("Open Package Draft"), tr("Choose the complete .sloppackage draft directory.")); return;
 	}
 	loadPackagePath(path);

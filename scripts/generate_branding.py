@@ -18,7 +18,7 @@ import argparse
 import io
 import math
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 try:
@@ -518,56 +518,206 @@ def text_path(font: BrandFont, text: str, x: float, baseline: float, size: float
 
 
 # ---------------------------------------------------------------------------
-# The mark: an orange tile with a white V whose right arm sheds three pixels.
-# Designed on a 1024-unit square.
+# The mark: an orange tile holding a charcoal S built on a grid, the way a
+# level is built from brushes, with orange paint dripping off the tile's
+# bottom edge. Designed on a 1024-unit square.
 # ---------------------------------------------------------------------------
 @dataclass(frozen=True)
 class MarkStyle:
     plate: bool = True
     plate_fill: str | Linear | None = None   # default: orange gradient
-    glyph: str = WHITE
-    inset: float = 64.0                       # tile margin inside the 1024 square
+    glyph: str = CHARCOAL
+    drip_fill: str | None = None              # default: the plate's fill
+    inset: float = 112.0                      # tile margin left and right of the 1024 square
     shadow: bool = False
+    drips: bool = True
+    grid: bool = True                         # the faint editor grid on the tile (large sizes)
+
+
+# The tile on the 1024 square (at the default inset): its top, its size and
+# corner radius. The drips hang below it into the square's lower margin.
+TILE_TOP, TILE_SIZE, TILE_RADIUS = 24.0, 800.0, 180.0
+TILE_LEFT = (1024.0 - TILE_SIZE) / 2
+
+# The S on the tile, in the default tile's units: three bars and two stems of
+# one stroke on a grid, the outer corners of each bowl rounded and the inner
+# corners concentric with them, the terminals cut square.
+S_LEFT, S_TOP, S_WIDTH, S_HEIGHT, S_STROKE, S_OUTER, S_TERMINAL_RADIUS = 316.0, 200.0, 392.0, 448.0, 112.0, 136.0, 14.0
+
+# Drips below the tile's straight bottom edge: centre x, stem width, length
+# below the edge. The longest one sheds a drop.
+DRIPS = ((318.0, 42.0, 66.0), (548.0, 76.0, 120.0), (688.0, 54.0, 86.0))
+DRIP_FILLET = 26.0
+GRID_PITCH, GRID_WEIGHT, GRID_OPACITY = 56.0, 3.0, 0.09
+DROP = (548.0, 990.0, 16.0)  # centre x, centre y below the longest drip, radius
+
+
+def s_points() -> list[tuple[float, float, float]]:
+    """The S as a polygon: (x, y, corner radius) in tile units, clockwise from the upper terminal."""
+    x0, y0, w, h, t, outer, cut = S_LEFT, S_TOP, S_WIDTH, S_HEIGHT, S_STROKE, S_OUTER, S_TERMINAL_RADIUS
+    x1, y1 = x0 + w, y0 + h
+    gap = (h - 3 * t) / 2
+    mid0, mid1 = y0 + t + gap, y0 + 2 * t + gap
+    inner = outer - t
+    return [
+        (x1, y0, cut), (x1, y0 + t, cut), (x0 + t, y0 + t, inner), (x0 + t, mid0, inner),
+        (x1, mid0, outer), (x1, y1, outer), (x0, y1, cut), (x0, y1 - t, cut),
+        (x1 - t, y1 - t, inner), (x1 - t, mid1, inner), (x0, mid1, outer), (x0, y0, outer),
+    ]
+
+
+def rounded_polygon(points: list[tuple[float, float, float]]) -> Path2D:
+    """A closed polygon whose right-angled corners are rounded by each point's radius."""
+    path = Path2D()
+    count = len(points)
+    for index in range(count):
+        px, py, _ = points[index - 1]
+        vx, vy, radius = points[index]
+        nx, ny, _ = points[(index + 1) % count]
+        into = math.hypot(vx - px, vy - py)
+        out = math.hypot(nx - vx, ny - vy)
+        ax, ay = vx + (px - vx) / into * radius, vy + (py - vy) / into * radius
+        bx, by = vx + (nx - vx) / out * radius, vy + (ny - vy) / out * radius
+        if index == 0:
+            path.move(ax, ay)
+        else:
+            path.line(ax, ay)
+        path.cubic(ax + (vx - ax) * KAPPA, ay + (vy - ay) * KAPPA, bx + (vx - bx) * KAPPA, by + (vy - by) * KAPPA, bx, by)
+    return path
+
+
+def drip(cx: float, edge: float, width: float, length: float, fillet: float, overlap: float = 4.0) -> Path2D:
+    """Paint running off a horizontal edge at ``edge`` (y down): concave fillets
+    into the edge, a straight stem and a round end. The contour reaches
+    ``overlap`` above the edge so it merges with the shape it hangs from.
+    Traced counter-clockwise on screen; ``length`` must cover the fillet and
+    the round end."""
+    w = width / 2
+    centre = edge + max(length - w, fillet)
+    p = Path2D().move(cx - w - fillet, edge - overlap)
+    p.line(cx - w - fillet, edge)
+    arc(p, cx - w - fillet, edge + fillet, fillet, -90.0, 0.0)
+    p.line(cx - w, centre)
+    arc(p, cx, centre, w, 180.0, 0.0)
+    p.line(cx + w, edge + fillet)
+    arc(p, cx + w + fillet, edge + fillet, fillet, 180.0, 270.0)
+    p.line(cx + w + fillet, edge - overlap)
+    return p
+
+
+def drop(cx: float, cy: float, r: float, tip: float = 1.15) -> Path2D:
+    """A falling drop: a circle of radius ``r`` drawn up into a point ``tip * r`` above it."""
+    a, b = -35.0, 215.0
+    ra, rb = math.radians(a), math.radians(b)
+    top = (cx, cy - r - tip * r)
+    right = (cx + r * math.cos(ra), cy + r * math.sin(ra))
+    left = (cx + r * math.cos(rb), cy + r * math.sin(rb))
+    # Tangents where the sides meet the circle, traced clockwise on screen.
+    da = (-math.sin(ra), math.cos(ra))
+    db = (-math.sin(rb), math.cos(rb))
+    k = r * 0.6
+    p = Path2D().move(*top)
+    p.cubic(top[0] + r * 0.2, top[1] + r * 0.5, right[0] - k * da[0], right[1] - k * da[1], *right)
+    arc(p, cx, cy, r, a, b)
+    p.cubic(left[0] + k * db[0], left[1] + k * db[1], top[0] - r * 0.2, top[1] + r * 0.5, *top)
+    return p
 
 
 def mark_items(x: float, y: float, size: float, style: MarkStyle = MarkStyle()) -> list[Item]:
     """Mark placed with its 1024-unit square at (x, y) scaled to ``size``."""
     s = size / 1024.0
     items: list[Item] = []
-    inset = style.inset
-    plate_size = 1024 - inset * 2
-    # The glyph scales with the tile so the macOS inset tile keeps its proportions.
-    g = plate_size / 896.0
+    # The tile and everything on it scale together, so the macOS inset tile
+    # keeps the proportions; it stays centred in the square left to right and
+    # keeps the drips' room below it.
+    g = (1024 - style.inset * 2) / TILE_SIZE
+    left = (1024 - TILE_SIZE * g) / 2
+    # Without drips the tile is centred; with them it sits high to leave them room.
+    top = TILE_TOP + (TILE_SIZE - TILE_SIZE * g) * 0.4 if style.drips else (1024 - TILE_SIZE * g) / 2
 
     def gx(v: float) -> float:
-        return x + (inset + (v - 64) * g) * s
+        return x + (left + (v - TILE_LEFT) * g) * s
 
     def gy(v: float) -> float:
-        return y + (inset + (v - 64) * g) * s
+        return y + (top + (v - TILE_TOP) * g) * s
 
+    tile_x, tile_y, tile_size = gx(TILE_LEFT), gy(TILE_TOP), TILE_SIZE * g * s
+    fill = style.plate_fill or Linear(0, tile_y, 0, gy(DROP[1] + DROP[2]), ((0.0, FLARE), (0.45, ORANGE), (1.0, EMBER)))
+    drip_fill = style.drip_fill or fill
     if style.plate:
-        fill = style.plate_fill or Linear(0, y + inset * s, 0, y + (1024 - inset) * s, ((0.0, FLARE), (1.0, EMBER)))
         shadow = (0, 12 * s * g, 28 * s * g, 0.32) if style.shadow else None
-        items.append(Item(rounded_rect(x + inset * s, y + inset * s, plate_size * s, plate_size * s, 216 * g * s), fill, 1.0, shadow))
-    # V: arms from the top corners to the vertex, then three shrinking pixels
-    # continuing the right arm toward the tile's top-right corner.
-    cx, top, bottom, half, stroke = 476.0, 384.0, 738.0, 176.0, 128.0
-    w = stroke * g * s
-    glyph = Path2D()
-    glyph.extend(capsule(gx(cx - half), gy(top), gx(cx), gy(bottom), w))
-    items.append(Item(glyph, style.glyph))
-    items.append(Item(capsule(gx(cx), gy(bottom), gx(cx + half), gy(top), w), style.glyph))
-    ux, uy = half, -(bottom - top)
-    length = math.hypot(ux, uy)
-    ux, uy = ux / length, uy / length
-    distance = stroke / 2
-    for side, gap, opacity in ((72.0, 34.0, 1.0), (54.0, 30.0, 0.8), (38.0, 28.0, 0.55)):
-        distance += gap + side / 2
-        px = round(((cx + half) + ux * distance) / 2) * 2
-        py = round((top + uy * distance) / 2) * 2
-        items.append(Item(rect(gx(px - side / 2), gy(py - side / 2), side * g * s, side * g * s), style.glyph, opacity))
-        distance += side / 2
+        items.append(Item(rounded_rect(tile_x, tile_y, tile_size, tile_size, TILE_RADIUS * g * s), fill, 1.0, shadow))
+        if style.drips:
+            edge = TILE_TOP + TILE_SIZE
+            runs = Path2D()
+            for cx, width, length in DRIPS:
+                runs.extend(map_path(drip(cx, edge, width, length, DRIP_FILLET), gx, gy))
+            runs.extend(map_path(drop(*DROP), gx, gy))
+            items.append(Item(runs, drip_fill))
+        if style.grid:
+            # The level editor's grid, centred on the tile and kept off its
+            # rounded corners: the S is drawn to it.
+            lines = Path2D()
+            pitch, weight = GRID_PITCH, GRID_WEIGHT
+            centre_x, centre_y = TILE_LEFT + TILE_SIZE / 2, TILE_TOP + TILE_SIZE / 2
+            half, radius, margin = TILE_SIZE / 2, TILE_RADIUS, GRID_PITCH * 0.5
+
+            def span(offset: float) -> float:
+                """Half the tile's extent across a line ``offset`` from its centre, less the margin."""
+                straight = half - radius
+                if abs(offset) <= straight:
+                    return half - margin
+                rest = radius * radius - (abs(offset) - straight) ** 2
+                return straight + math.sqrt(max(0.0, rest)) - margin
+
+            # Columns sit half a cell off the centre so the S's 7-by-8-cell box,
+            # two-cell stems and one-cell gaps land on grid lines.
+            steps = int((half - margin) // pitch)
+            for i in range(-steps - 1, steps + 1):
+                for v, vertical in (((i + 0.5) * pitch, True), (i * pitch, False)):
+                    reach = span(v)
+                    if reach <= pitch * 0.5 or abs(v) > half - margin:
+                        continue
+                    if vertical:
+                        lines.extend(map_path(rect(centre_x + v - weight / 2, centre_y - reach, weight, reach * 2), gx, gy))
+                    else:
+                        lines.extend(map_path(rect(centre_x - reach, centre_y + v - weight / 2, reach * 2, weight), gx, gy))
+            items.append(Item(lines, style.glyph, GRID_OPACITY))
+    items.append(Item(map_path(rounded_polygon(s_points()), gx, gy), style.glyph))
     return items
+
+
+def arc(path: Path2D, cx: float, cy: float, r: float, a0: float, a1: float, move: bool = False) -> Path2D:
+    """Append a circular arc from a0 to a1 degrees (y down) as cubics of at most 90 degrees."""
+    sweep = a1 - a0
+    pieces = max(1, math.ceil(abs(sweep) / 90.0 - 1e-9))
+    step = math.radians(sweep / pieces)
+    k = 4.0 / 3.0 * math.tan(step / 4.0)
+    a = math.radians(a0)
+    if move:
+        path.move(cx + r * math.cos(a), cy + r * math.sin(a))
+    for _ in range(pieces):
+        b = a + step
+        x0, y0 = cx + r * math.cos(a), cy + r * math.sin(a)
+        x1, y1 = cx + r * math.cos(b), cy + r * math.sin(b)
+        path.cubic(x0 - k * r * math.sin(a), y0 + k * r * math.cos(a), x1 + k * r * math.sin(b), y1 - k * r * math.cos(b), x1, y1)
+        a = b
+    return path
+
+
+def map_path(path: Path2D, fx, fy) -> Path2D:
+    """``path`` with every point passed through fx (x) and fy (y)."""
+    out = Path2D()
+    for contour in path.contours:
+        segments = []
+        for segment in contour:
+            values = list(segment[1:])
+            mapped = []
+            for i in range(0, len(values), 2):
+                mapped.extend([fx(values[i]), fy(values[i + 1])])
+            segments.append((segment[0], *mapped))
+        out.contours.append(segments)
+    return out
 
 
 def mark_scene(style: MarkStyle = MarkStyle(), title: str = "SlopStudio") -> Scene:
@@ -576,58 +726,77 @@ def mark_scene(style: MarkStyle = MarkStyle(), title: str = "SlopStudio") -> Sce
     return scene
 
 
-def pixel_v(left: int, top: int, arm: int, step_rows: list[int], trail: list[tuple[int, int, int, float]]):
-    """Pixel cells of a V with ``arm``-wide arms stepping one column per entry of ``step_rows``.
-
-    The arms close into a tip that narrows by a pixel per side per row, then the
-    trail squares (x, y, side, opacity) are added.
-    """
+def pixel_glyph(left: int, top: int, rows: list[str]) -> dict[tuple[int, int], float]:
+    """Pixel cells from ``rows`` ('#' lit, anything else clear) placed at (left, top)."""
     cells: dict[tuple[int, int], float] = {}
-    steps = len(step_rows)
-    width = arm * 2 + (steps - 1) * 2  # outer width of the V
-    right = left + width - arm
-    row = top
-    for step, rows in enumerate(step_rows):
-        for _ in range(rows):
-            for c in range(arm):
-                cells[(left + step + c, row)] = 1.0
-                cells[(right - step + c, row)] = 1.0
-            row += 1
-    first, last = left + steps - 1, right - steps + 1 + arm - 1
-    while last - first > 1:
-        first, last = first + 1, last - 1
-        for c in range(first, last + 1):
-            cells[(c, row)] = 1.0
-        row += 1
-    for x, y, side, alpha in trail:
-        for dy in range(side):
-            for dx in range(side):
-                cells[(x + dx, y + dy)] = alpha
+    for dy, row in enumerate(rows):
+        for dx, char in enumerate(row):
+            if char == "#":
+                cells[(left + dx, top + dy)] = 1.0
     return cells
 
 
-# Hand-placed glyphs for the smallest sizes, where a soft diagonal turns to mush.
+# Hand-placed glyphs for the smallest sizes, where the vector S turns to mush.
+# The grid-built S keeps its three bars and two stems at every size.
 SMALL_GLYPHS = {
-    16: pixel_v(left=3, top=4, arm=2, step_rows=[2, 2, 2], trail=[(11, 2, 1, 0.8)]),
-    20: pixel_v(left=4, top=5, arm=2, step_rows=[2, 2, 2, 2], trail=[(14, 3, 1, 0.85)]),
-    24: pixel_v(left=5, top=6, arm=3, step_rows=[3, 3, 2, 2], trail=[(17, 3, 2, 0.9)]),
+    16: pixel_glyph(5, 3, [
+        ".######",
+        "#######",
+        "##.....",
+        "######.",
+        ".######",
+        ".....##",
+        "#######",
+        "######.",
+    ]),
+    20: pixel_glyph(6, 3, [
+        ".#######",
+        "########",
+        "##......",
+        "##......",
+        "#######.",
+        ".#######",
+        "......##",
+        "......##",
+        "########",
+        "#######.",
+    ]),
+    24: pixel_glyph(7, 3, [
+        ".#########",
+        "##########",
+        "##########",
+        "###.......",
+        "###.......",
+        "#########.",
+        "##########",
+        ".#########",
+        ".......###",
+        ".......###",
+        "##########",
+        "##########",
+        "#########.",
+    ]),
 }
 
 
 def small_icon(size: int) -> Image.Image:
-    """Tile rendered as vectors, glyph placed pixel by pixel."""
-    tile = rasterise(Scene(1024, 1024, "SlopStudio", mark_items(0, 0, 1024, MarkStyle())[:1]), size, 8)
+    """Tile and drips rendered as vectors, glyph placed pixel by pixel."""
+    style = MarkStyle(grid=False)
+    tile = rasterise(Scene(1024, 1024, "SlopStudio", mark_items(0, 0, 1024, style)[:-1]), size, 8)
     pixels = tile.load()
+    ink = rgb(style.glyph)
     for (column, row), alpha in SMALL_GLYPHS[size].items():
         if 0 <= column < size and 0 <= row < size:
             r, g, b, a = pixels[column, row]
-            pixels[column, row] = tuple(round(c + (255 - c) * alpha) for c in (r, g, b)) + (a,)
+            pixels[column, row] = tuple(round(c + (t - c) * alpha) for c, t in zip((r, g, b), ink)) + (a,)
     return tile
 
 
 def icon_png(size: int, style: MarkStyle = MarkStyle()) -> Image.Image:
     if size in SMALL_GLYPHS and style == MarkStyle():
         return small_icon(size)
+    if size < 128:
+        style = replace(style, grid=False)  # the grid turns to noise on small icons
     return rasterise(mark_scene(style), size, 4 if size >= 128 else 8)
 
 
@@ -641,33 +810,76 @@ class WordmarkStyle:
     dots: str
 
 
+# "Slop" in ExtraBold, "Studio" in SemiBold. The i of "Studio" is dotless so
+# the wordmark can give it a paint drop, and paint runs off the o of "Slop".
+WORDMARK_PARTS = ("Slop", "Stud\u0131o")
+WORDMARK_TEXT = "".join(WORDMARK_PARTS)
+
 ON_DARK = WordmarkStyle(ORANGE, WHITE, ORANGE)
 ON_LIGHT = WordmarkStyle(ORANGE, CHARCOAL, ORANGE)
-ON_ORANGE = WordmarkStyle(WHITE, WHITE, CHARCOAL)
+ON_ORANGE = WordmarkStyle(CHARCOAL, WHITE, CHARCOAL)
 
 
-def wordmark_items(font: BrandFont, x: float, baseline: float, size: float, style: WordmarkStyle) -> tuple[list[Item], float]:
-    """'SlopStudio' with square pixel dots on both i's. Returns items and width."""
-    text = "VıbeStudıo"
-    scale = size / font.upem
-    positions = font.pen_positions(text)
+@dataclass(frozen=True)
+class WordmarkMetrics:
+    width: float      # advance of the whole wordmark
+    descent: float    # deepest point below the baseline: the p, or the o's drip
+
+
+def stem_bounds(font: BrandFont, char: str) -> tuple[float, float, float, float]:
+    return font.bounds(font.glyph_name(char))
+
+
+def wordmark_layout(fonts: dict[str, BrandFont], size: float):
+    """Pen x of each part's characters, each part's scale and the o's drip, in artwork units from x = 0."""
+    heavy, medium = fonts["heavy"], fonts["medium"]
+    first, second = WORDMARK_PARTS
+    heavy_scale, medium_scale = size / heavy.upem, size / medium.upem
+    first_pens = [pen * heavy_scale for pen in heavy.pen_positions(first)]
+    # Optical join between the two weights: the heavy p's sidebearing plus a hair.
+    second_x = heavy.advance(first) * heavy_scale + size * 0.012
+    second_pens = [second_x + pen * medium_scale for pen in medium.pen_positions(second)]
+    width = second_x + medium.advance(second) * medium_scale
+    # Paint gathers at the lowest point of the o and runs off it.
+    o_box = stem_bounds(heavy, "o")
+    stroke = (stem_bounds(heavy, "l")[2] - stem_bounds(heavy, "l")[0]) * heavy_scale
+    drip_x = first_pens[2] + (o_box[0] + o_box[2]) / 2 * heavy_scale
+    drip_top = -o_box[1] * heavy_scale  # the o's overshoot below the baseline
+    drip_length = size * 0.2
+    descent = max(-stem_bounds(heavy, "p")[1] * heavy_scale, drip_top + drip_length)
+    return first_pens, second_pens, heavy_scale, medium_scale, (drip_x, drip_top, stroke, drip_length), WordmarkMetrics(width, descent)
+
+
+def wordmark_metrics(fonts: dict[str, BrandFont], size: float) -> WordmarkMetrics:
+    return wordmark_layout(fonts, size)[-1]
+
+
+def wordmark_items(fonts: dict[str, BrandFont], x: float, baseline: float, size: float,
+                   style: WordmarkStyle) -> tuple[list[Item], float]:
+    """'SlopStudio' with a drip under the o and a paint-drop dot on the i. Returns items and width."""
+    heavy, medium = fonts["heavy"], fonts["medium"]
+    first, second = WORDMARK_PARTS
+    first_pens, second_pens, heavy_scale, medium_scale, (drip_x, drip_top, stroke, drip_length), metrics = wordmark_layout(fonts, size)
     slop = Path2D()
+    for char, pen in zip(first, first_pens):
+        slop.extend(transform(heavy.outline(char), heavy_scale, x + pen, baseline))
     studio = Path2D()
-    for index, (char, pen_x) in enumerate(zip(text, positions)):
-        outline = transform(font.outline(char), scale, x + pen_x * scale, baseline)
-        (slop if index < 4 else studio).extend(outline)
-    items = [Item(slop, style.slop), Item(studio, style.studio)]
-    # Square "pixel" dots: as wide as the stem, centred where the font's round dot sits.
-    stem = font.bounds(font.glyph_name("ı"))
-    dot = font.dot()
-    side = (stem[2] - stem[0]) * scale
-    centre_y = baseline - (dot[1] + dot[3]) / 2 * scale
-    for index, char in enumerate(text):
-        if char != "ı":
-            continue
-        centre_x = x + (positions[index] + (stem[0] + stem[2]) / 2) * scale
-        items.append(Item(rect(centre_x - side / 2, centre_y - side / 2, side, side), style.dots))
-    return items, font.advance(text) * scale
+    for char, pen in zip(second, second_pens):
+        studio.extend(transform(medium.outline(char), medium_scale, x + pen, baseline))
+    # The drip's top reaches well into the o's curved stroke, so the fillets
+    # meet the curve rather than a straight edge.
+    run = drip(x + drip_x, baseline + drip_top - stroke * 0.12, stroke * 0.5, drip_length, stroke * 0.3, overlap=stroke * 0.6)
+    items = [Item(slop, style.slop), Item(run, style.slop), Item(studio, style.studio)]
+    # The i's dot: a drop as wide as the stem, its round end where the font's dot sits.
+    stem_box = stem_bounds(medium, "\u0131")
+    dot = medium.dot()
+    radius = (stem_box[2] - stem_box[0]) * medium_scale * 0.56
+    centre_y = baseline - (dot[1] + dot[3]) / 2 * medium_scale + radius * 0.35
+    for index, char in enumerate(second):
+        if char == "\u0131":
+            centre_x = x + second_pens[index] + (stem_box[0] + stem_box[2]) / 2 * medium_scale
+            items.append(Item(drop(centre_x, centre_y, radius, 0.95), style.dots))
+    return items, metrics.width
 
 
 def cap_height(font: BrandFont) -> float:
@@ -685,16 +897,19 @@ def lockup_scene(fonts: dict[str, BrandFont], style: WordmarkStyle, title: str, 
     left = 24.0
     text_x = left + mark + gap
     # The tagline is set to the wordmark's width so the two read as one block.
-    word_width = heavy.advance("VıbeStudıo") * text_size / heavy.upem
+    metrics = wordmark_metrics(fonts, text_size)
+    word_width = metrics.width
     tag_size = min(56.0, max(36.0, (word_width - 8) / (medium.advance(TAGLINE) / medium.upem)))
     tag_cap = cap_height(medium) * tag_size / medium.upem
+    descent = metrics.descent
     if with_tagline:
-        spacing = tag_size * 0.9
+        # Clear the wordmark's descender, then leave the tagline a little air.
+        spacing = max(tag_size * 0.9, descent + tag_size * 0.4)
         block = cap + spacing + tag_cap
         baseline = 32 + (mark - block) / 2 + cap
     else:
         baseline = 32 + mark / 2 + cap / 2
-    items, width = wordmark_items(heavy, text_x, baseline, text_size, style)
+    items, width = wordmark_items(fonts, text_x, baseline, text_size, style)
     total_width = text_x + width + left
     if with_tagline:
         tag, tag_width = text_path(medium, TAGLINE, text_x + 6, baseline + spacing + tag_cap, tag_size)
@@ -711,8 +926,9 @@ def wordmark_scene(fonts: dict[str, BrandFont], style: WordmarkStyle, title: str
     size = 200.0
     cap = cap_height(heavy) * size / heavy.upem
     pad = 24.0
-    items, width = wordmark_items(heavy, pad, pad + cap + 8, size, style)
-    scene = Scene(round(width + pad * 2), round(cap + pad * 2 + 16), title)
+    descent = wordmark_metrics(fonts, size).descent
+    items, width = wordmark_items(fonts, pad, pad + cap + 8, size, style)
+    scene = Scene(round(width + pad * 2), round(pad + cap + 8 + max(8.0, descent) + pad), title)
     scene.items.extend(items)
     return scene
 
@@ -732,31 +948,45 @@ def hash01(*values: int) -> float:
     return (h >> 11) / float(1 << 53)
 
 
-def pixel_field(x0: float, y0: float, x1: float, y1: float, cell: float, gap: float, strength,
-                avoid: list[tuple[float, float, float, float]] = (), colour: str = WHITE,
-                ceiling: float = 0.3) -> list[Item]:
-    """A grid of squares fading in by ``strength(u, v)``; cells inside ``avoid`` boxes are skipped."""
-    items = []
-    columns = int((x1 - x0) // cell)
-    rows = int((y1 - y0) // cell)
+def editor_grid(x0: float, y0: float, x1: float, y1: float, pitch: float, colour: str,
+                minor: float, major: float, major_every: int = 4, weight: float = 1.0) -> list[Item]:
+    """A level editor's 2D grid: thin minor lines and stronger lines every ``major_every`` cells."""
+    lines = {False: Path2D(), True: Path2D()}
+    columns = int((x1 - x0) // pitch) + 1
+    rows = int((y1 - y0) // pitch) + 1
+    for column in range(columns):
+        x = x0 + column * pitch
+        lines[column % major_every == 0].extend(rect(x - weight / 2, y0, weight, y1 - y0))
     for row in range(rows):
-        for column in range(columns):
-            u = (column + 0.5) / columns
-            v = (row + 0.5) / rows
-            level = min(1.0, strength(u, v))
-            if level <= 0:
-                continue
-            noise = hash01(row, column)
-            if noise > level:
-                continue
-            x = x0 + column * cell + gap / 2
-            y = y0 + row * cell + gap / 2
-            size = cell - gap
-            if any(x < ax1 and x + size > ax0 and y < ay1 and y + size > ay0 for ax0, ay0, ax1, ay1 in avoid):
-                continue
-            opacity = ceiling * (0.25 + 0.75 * level) * (0.55 + 0.45 * hash01(column, row, 7))
-            items.append(Item(rect(x, y, size, size), colour, round(opacity, 3)))
-    return items
+        y = y0 + row * pitch
+        lines[row % major_every == 0].extend(rect(x0, y - weight / 2, x1 - x0, weight))
+    return [Item(lines[False], colour, minor), Item(lines[True], colour, major)]
+
+
+def drip_curtain(x0: float, x1: float, edge: float, band: float, colour: str, opacity: float,
+                 seed: int, longest: float, width: float, count: int) -> list[Item]:
+    """Paint along an edge: a band ``band`` deep from ``edge`` down, with ``count`` drips
+    of deterministic, uneven widths and lengths, and a drop under the longest ones."""
+    paint = Path2D()
+    # Counter-clockwise on screen like drip(), so the overlaps add up instead of cancelling.
+    paint.move(x0, edge - 1).line(x0, edge + band).line(x1, edge + band).line(x1, edge - 1)
+    spacing = (x1 - x0) / count
+    for index in range(count):
+        jitter = hash01(seed, index, 1) - 0.5
+        cx = x0 + spacing * (index + 0.5 + jitter * 0.6)
+        w = width * (0.55 + 0.75 * hash01(seed, index, 2))
+        reach = longest * (0.12 + 0.88 * hash01(seed, index, 3) ** 2.4)
+        fillet = w * 0.55
+        if cx - w / 2 - fillet < x0 or cx + w / 2 + fillet > x1:
+            continue
+        paint.extend(drip(cx, edge + band, w, max(reach, w + fillet), fillet))
+        if reach > longest * 0.7:
+            paint.extend(drop(cx, edge + band + reach + w * 1.6, w * 0.32, 1.1))
+    return [Item(paint, colour, opacity)]
+
+
+# The mark on orange backgrounds: a white tile with an orange S.
+ON_ORANGE_MARK = MarkStyle(plate_fill=WHITE, glyph=ORANGE)
 
 
 def social_scene(fonts: dict[str, BrandFont]) -> Scene:
@@ -779,12 +1009,12 @@ def social_scene(fonts: dict[str, BrandFont]) -> Scene:
     # Inverted mark (white tile, orange glyph) beside the white wordmark.
     mark_size = 168.0
     top = 150.0
-    content.extend(mark_items(left, top, mark_size, MarkStyle(plate_fill=WHITE, glyph=ORANGE)))
+    content.extend(mark_items(left, top, mark_size, ON_ORANGE_MARK))
     text_size = 132.0
     cap = cap_height(heavy) * text_size / heavy.upem
     baseline = top + mark_size / 2 + cap / 2
     word_x = left + mark_size + 34
-    items, word_width = wordmark_items(heavy, word_x, baseline, text_size, ON_ORANGE)
+    items, word_width = wordmark_items(fonts, word_x, baseline, text_size, ON_ORANGE)
     content.extend(items)
     avoid.append((left - 24, top - 24, word_x + word_width + 32, top + mark_size + 24))
     line_y = top + mark_size + 84
@@ -801,9 +1031,10 @@ def social_scene(fonts: dict[str, BrandFont]) -> Scene:
         content.append(Item(label_path, WHITE))
         avoid.append((chip_x - 16, chip_y - 16, chip_x + chip_w + 16, chip_y + 62))
         chip_x += chip_w + 12
-    # Pixels dissolving in from the right edge, kept clear of the text.
-    scene.items.extend(pixel_field(560, 0, width, height, 40, 8,
-                                   lambda u, v: (u - 0.12) * 1.35 + (0.5 - v) * 0.25, avoid))
+    # The editor grid under everything, and charcoal paint running down from
+    # the top edge on the right, clear of the text.
+    scene.items.extend(editor_grid(0, 0, width, height, 32, CHARCOAL, 0.05, 0.1, weight=1.5))
+    scene.items.extend(drip_curtain(width * 0.6, width, 0, 14, CHARCOAL, 0.92, 11, 240, 34, 7))
     scene.items.extend(content)
     return scene
 
@@ -812,12 +1043,12 @@ def social_scene(fonts: dict[str, BrandFont]) -> Scene:
 # Installer art.
 # ---------------------------------------------------------------------------
 def wizard_scene(width: float, height: float) -> Scene:
-    """Inno Setup's tall side image: orange, mark and dissolving pixels."""
+    """Inno Setup's tall side image: orange over the editor grid, paint running off the top, the mark."""
     scene = Scene(width, height, "SlopStudio setup", background=Linear(0, 0, width * 0.4, height, ((0.0, FLARE), (1.0, EMBER))))
-    scene.items.extend(pixel_field(0, height * 0.52, width, height, width / 7, width / 7 * 0.16,
-                                   lambda u, v: max(0.0, v * 1.1 - 0.15)))
+    scene.items.extend(editor_grid(0, 0, width, height, width / 8, CHARCOAL, 0.05, 0.11, weight=0.75))
+    scene.items.extend(drip_curtain(0, width, 0, 6, CHARCOAL, 0.92, 5, height * 0.24, width * 0.07, 5))
     size = width * 0.62
-    scene.items.extend(mark_items((width - size) / 2, height * 0.16, size, MarkStyle(plate_fill=WHITE, glyph=ORANGE)))
+    scene.items.extend(mark_items((width - size) / 2, height * 0.34, size, ON_ORANGE_MARK))
     return scene
 
 
@@ -831,8 +1062,8 @@ def dmg_background_scene(fonts: dict[str, BrandFont]) -> Scene:
     """660x400 Finder window: app on the left, Applications on the right."""
     width, height = 660.0, 400.0
     scene = Scene(width, height, "Install SlopStudio", background=Linear(0, 0, 0, height, ((0.0, "#FBFBFA"), (1.0, "#EFEFED"))))
-    scene.items.extend(pixel_field(0, height - 96, width, height, 24, 5, lambda u, v: max(0.0, v - 0.1) * 0.9,
-                                   colour=ORANGE, ceiling=0.16))
+    scene.items.extend(editor_grid(0, 0, width, height, 20, CHARCOAL, 0.035, 0.07))
+    scene.items.extend(drip_curtain(0, width, 0, 8, ORANGE, 1.0, 3, 96, 18, 9))
     # Arrow between the two icon slots (icons are placed at x=165 and x=495, y=190).
     shaft = rounded_rect(262, 186, 120, 10, 5)
     scene.add(shaft, ORANGE)
@@ -962,7 +1193,7 @@ def generate(check: bool) -> int:
     mark = mark_scene()
     out.svg("logo/slopstudio-mark.svg", mark)
     out.svg("icons/slopstudio.svg", mark)
-    macos_style = MarkStyle(inset=100.0, shadow=True)
+    macos_style = MarkStyle(inset=124.0, shadow=True)
     out.svg("icons/slopstudio-macos.svg", mark_scene(macos_style))
     for size in sorted(set(PNG_SIZES + QRC_SIZES + HICOLOR_SIZES)):
         out.png(f"icons/png/slopstudio-{size}.png", lambda size=size: icon(size))
@@ -991,9 +1222,10 @@ def generate(check: bool) -> int:
     out.png("social/slopstudio-social-preview.png", lambda: rasterise(social, 1280, 3))
 
     # Web: favicons and fonts for the HTML documentation.
-    out.svg("web/favicon.svg", mark)
+    out.svg("web/favicon.svg", mark_scene(MarkStyle(grid=False)))
     out.png("web/favicon-32.png", lambda: icon(32))
-    out.png("web/apple-touch-icon.png", lambda: rasterise(mark_scene(MarkStyle(inset=0.0)), 180, 8))
+    # iOS masks the touch icon to its own rounded square: full bleed, no drips.
+    out.png("web/apple-touch-icon.png", lambda: rasterise(mark_scene(MarkStyle(inset=0.0, drips=False, grid=False)), 180, 8))
     out.binary("web/fonts/manrope-800.woff2", lambda: webfont_bytes("Manrope-ExtraBold.ttf"))
     out.binary("web/fonts/manrope-600.woff2", lambda: webfont_bytes("Manrope-SemiBold.ttf"))
 
