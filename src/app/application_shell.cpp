@@ -8097,7 +8097,8 @@ void ApplicationShell::refreshLevelMapWorkbench()
 	reconcileLevelTexturedSelection(false);
 	// Every GUI selection route shares the same units and editing boundary,
 	// including query results, related objects, undo and newly created content.
-	setLevelMapSelection(&m_levelMapDocument,pickLevelSceneObjects(levelSceneSelectionContext(m_levelMapDocument),{},m_levelMapDocument.selection,LevelScenePick::Replace));
+	const LevelSceneSelectionContext sceneContext = levelSceneSelectionContext(m_levelMapDocument);
+	setLevelMapSelection(&m_levelMapDocument,pickLevelSceneObjects(sceneContext,{},m_levelMapDocument.selection,LevelScenePick::Replace));
 	if (m_levelComponentsRefresh) { m_levelComponentsRefresh(); }
 	if (m_levelClipRefresh) { m_levelClipRefresh(); }
 	if (m_levelBrushAssembleRefresh) { m_levelBrushAssembleRefresh(); }
@@ -8106,6 +8107,11 @@ void ApplicationShell::refreshLevelMapWorkbench()
 	// package updates always reach the controls through the current document.
 	const auto summary = levelMapInspectionSummary(m_levelMapDocument);
 	const auto textureUses = levelMapTextureUsage(m_levelMapDocument);
+	// Lent to the refreshes below (the plan views, the tool shelf's material
+	// row): each would otherwise name every object, or scan every surface, of
+	// the map again.
+	const QScopedValueRollback<LevelRefreshShared> lent(m_levelRefreshShared,
+		LevelRefreshShared {&sceneContext, &textureUses, m_levelMapDocument.revision, m_levelMapDocument.historyRevision});
 	if (m_levelScenePanel) {
 		m_levelScenePanel->setSelectionUndoEnabled(m_levelControls.undoObjectSelection);
 		m_levelScenePanel->refresh();
@@ -23901,7 +23907,8 @@ void ApplicationShell::refreshLevelMapViewport()
 			}
 			if (sameSource) { m_levelMapViewport->restoreNavigationState(navigation); }
 		} else if (sameSource) {
-			m_levelMapViewport->updateDocument(m_levelMapDocument);
+			m_levelMapViewport->updateDocument(m_levelMapDocument,
+				m_levelRefreshShared.sceneContext && levelRefreshSharedCurrent() ? m_levelRefreshShared.sceneContext : nullptr);
 		} else {
 			m_levelMapViewport->setDocument(m_levelMapDocument);
 			m_leakTrailPath.clear();

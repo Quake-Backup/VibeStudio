@@ -80,7 +80,10 @@ public:
 	void setDocument(const LevelMapDocument& document, const MapBrushGeometryCache* prepared = nullptr);
 	// Re-reads geometry and selection from an edited document without touching
 	// the camera. Also cancels any drag or rubber band in progress.
-	void updateDocument(const LevelMapDocument& document);
+	// `context` is the document's scene selection context when the caller has
+	// already worked it out (it names every object of the map); it must be
+	// this document's.
+	void updateDocument(const LevelMapDocument& document, const LevelSceneSelectionContext* context = nullptr);
 	void clearDocument();
 	[[nodiscard]] bool hasDocument() const;
 	// Diagnostics for the most recent scene rebuild; retained bytes are an

@@ -3119,12 +3119,37 @@ bool brushFaceLinesShared(const LevelMapDocument& document, const LevelMapBrush&
 
 // Bulk edits must inspect source-line ownership once, rather than scan every
 // other brush for each selected brush. Editor copies have private source text.
+//
+// The first few brushes asked about are checked against the map directly
+// (brushFaceLinesShared), and the lines of the whole map are gathered only
+// when more follow. A nudge or a drag moves one brush or a handful, and
+// gathering every face line of the map for it was most of what such a move
+// cost. The document must outlive this object and keep its source lines
+// while it is asked.
 class LevelMapBrushLineConflicts {
 public:
 	explicit LevelMapBrushLineConflicts(const LevelMapDocument& document)
+		: m_document(&document)
+	{
+	}
+	bool contains(int id) const
+	{
+		if (!m_gathered) {
+			if (m_asked < 8) {
+				++m_asked;
+				const LevelMapBrush* brush = constRecordById(m_document->brushes, id);
+				return brush && brushFaceLinesShared(*m_document, *brush);
+			}
+			gather();
+		}
+		return m_conflicts.contains(id);
+	}
+
+private:
+	void gather() const
 	{
 		QHash<int, int> owners;
-		for (const auto& brush : document.brushes) {
+		for (const auto& brush : m_document->brushes) {
 			detail::placementCancellationCheckpoint();
 			QSet<int> own;
 			for (const auto& face : brush.faces) {
@@ -3140,11 +3165,12 @@ public:
 				}
 			}
 		}
+		m_gathered = true;
 	}
-	bool contains(int id) const { return m_conflicts.contains(id); }
-
-private:
-	QSet<int> m_conflicts;
+	const LevelMapDocument* m_document = nullptr;
+	mutable QSet<int> m_conflicts;
+	mutable int m_asked = 0;
+	mutable bool m_gathered = false;
 };
 
 // Where a Doom thing may stand, as the WAD holds it: whole map units within

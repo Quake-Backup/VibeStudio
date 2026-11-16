@@ -93,6 +93,7 @@ class QTreeWidgetItem;
 namespace vibestudio {
 
 struct LevelMapComponentSet;
+struct LevelSceneSelectionContext;
 struct LevelSurfaceFacePicks;
 struct LevelSurfaceFaceTransformReport;
 struct LevelViewFilterMaterials;
@@ -2764,6 +2765,22 @@ private:
 	QListWidget* m_codeDiagnostics = nullptr;
 	QString m_levelMapViewportKey;
 	QString m_levelMapViewportSourceKey;
+	// What refreshLevelMapWorkbench() worked out for the document it is
+	// showing, lent to the refreshes it calls for as long as it runs, so the
+	// map's objects and surfaces are walked once per refresh rather than once
+	// per panel. Used only while the document still carries these revisions.
+	struct LevelRefreshShared {
+		const LevelSceneSelectionContext* sceneContext = nullptr;
+		const QVector<LevelMapTextureUse>* textureUses = nullptr;
+		quint64 revision = 0;
+		quint64 historyRevision = 0;
+	};
+	LevelRefreshShared m_levelRefreshShared;
+	[[nodiscard]] bool levelRefreshSharedCurrent() const
+	{
+		return m_levelRefreshShared.revision == m_levelMapDocument.revision
+			&& m_levelRefreshShared.historyRevision == m_levelMapDocument.historyRevision;
+	}
 	bool m_syncingLevelMapSelection = false;
 	// The status message last shown about the Levels selection ("7 objects
 	// selected."). It is taken down when the selection changes, so the bar

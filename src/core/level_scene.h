@@ -14,6 +14,9 @@ inline constexpr qsizetype kLevelSceneMaxMetadataBytes = 4 * 1024 * 1024;
 // Default is implicit and has an empty id. Doom entities alias their things;
 // worldspawn is a container, not an assignable scene object.
 QStringList levelSceneObjects(const LevelMapDocument& document);
+// How many names levelSceneObjects() returns, without naming them: for
+// counts shown after every edit.
+qsizetype levelSceneObjectCount(const LevelMapDocument& document);
 QString levelSceneCanonicalObject(const LevelMapDocument& document, const QString& selector);
 const LevelSceneNode* levelSceneNode(const LevelSceneState& state, const QString& id);
 QString levelSceneMembership(const LevelSceneState& state, const QString& selector);
