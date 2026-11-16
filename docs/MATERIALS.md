@@ -194,7 +194,9 @@ the selected game installation's, when it is of the package's engine family;
 base materials show read only, and **Override in Package** copies one into
 `scripts/zz_slopstudio_overrides.shader` (`00_` where the first definition wins:
 Quake III 1.32 and Doom 3) or, for a Quake II WAL, copies the file; the rule
-lives in `core/material_override` and `material override` uses it too. The CLI
+lives in `core/material_override` and `material override` uses it too. A
+package overridden before the rename to SlopStudio keeps adding to its
+`vibestudio_overrides` script, so every copy stays in the one file. The CLI
 takes `--base`, and lists or checks base materials only with
 `--include-base`.
 
