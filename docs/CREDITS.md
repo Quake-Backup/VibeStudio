@@ -1079,6 +1079,16 @@ their own fixtures.
 | [QuakeSpasm](https://github.com/sezero/quakespasm), [DarkPlaces](https://github.com/DarkPlacesEngine/darkplaces), [FTEQW](https://github.com/fte-team/fteqw) | Lightmap overbright, fullbright and companion-image loading | The modern-port lightmap scale and the `_norm`, `_gloss`, `_glow`, `_luma`, `_pants`, `_shirt` and `_reflect` companions | GPL-2.0-or-later |
 
 The dialect, RoQ, heat haze and map format rows were read on 2026-10-28.
+The review round of 2026-11-16 checked further rules against the same
+releases, again without copying code: brace matching before a definition is
+parsed (`idLexer`/decl extents, ioquake3 and iortcw `ScanAndLoadShaderFiles`
+ignoring a file with a missing brace), the bare-keyword and `fogParms` rules
+of `ParseShader`/`ParseStage`, the image loaders each dialect tries
+(`R_FindImageFile` and its alternate formats), Doom 3's `AddImplicitStages`,
+`RB_T_FillDepthBuffer`, translucent interactions in
+`RB_ARB2_DrawInteractions`, border texels in `R_SetBorderTexels` and the
+`TR_CLAMP_TO_ZERO` repeat modes, and RoQ's two frame buffers in `cl_cin.c`
+and `Cinematic.cpp`.
 The node graph, its layout, the text edits that keep a script's layout, the
 renderer (GLSL shaders on OpenGL or Vulkan since 2026-10-08; see
 [3D Rendering: OpenGL And Vulkan](#3d-rendering-opengl-and-vulkan-2026-10-08)),

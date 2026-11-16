@@ -23,6 +23,7 @@
 
 #include <QByteArray>
 #include <QHash>
+#include <QSet>
 #include <QString>
 #include <QStringList>
 #include <QVector>
@@ -122,10 +123,23 @@ struct DoomMaterialCatalog {
 	QString animdefsText;
 	QStringList warnings;
 	QVector<MaterialDiagnostic> diagnostics;
+	// PNAMES names no lump in the package (or its base packages) holds:
+	// vanilla R_InitTextures stops with "Missing patch in texture".
+	QSet<QString> missingPatches;
+	// True when the package carries its IWAD or is one, so a missing patch
+	// is certain; a PWAD read alone may take its patches from the IWAD.
+	bool patchesComplete = false;
 
+	// First texture (vanilla's R_CheckTextureNumForName) and flat of a name;
+	// hash lookups once readDoomMaterialCatalog or rebuildIndex() ran.
 	[[nodiscard]] int textureIndex(const QString& name) const;
 	[[nodiscard]] int flatIndex(const QString& name) const;
 	[[nodiscard]] bool isFlat(const QString& name) const;
+	// Call after changing `textures` or `flats` directly.
+	void rebuildIndex();
+
+	QHash<QString, int> textureByName;
+	QHash<QString, int> flatByName;
 };
 
 DoomMaterialCatalog readDoomMaterialCatalog(const PackageArchiveReader& reader, const PackageReadControl& control = {});
@@ -156,8 +170,11 @@ QString animdefsEntryText(const DoomAnimdefsEntry& entry);
 // The material a Doom wall texture or flat becomes: its composition,
 // animation (ANIMDEFS first, then the Boom or vanilla ranges) and switch.
 MaterialDefinition doomMaterialDefinition(const DoomMaterialCatalog& catalog, const QString& name, bool flat);
-// Every material the catalog defines: walls, then flats.
-QVector<MaterialDefinition> doomMaterialDefinitions(const DoomMaterialCatalog& catalog);
+// Every material the catalog defines: walls, then flats. Each animation
+// range is worked out once. `progress` (done, total) returning false stops
+// early with the definitions made so far.
+QVector<MaterialDefinition> doomMaterialDefinitions(const DoomMaterialCatalog& catalog,
+	const std::function<bool(int done, int total)>& progress = {});
 
 // --- Quake -----------------------------------------------------------------
 

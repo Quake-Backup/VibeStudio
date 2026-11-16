@@ -3164,7 +3164,9 @@ One family for every idTech material, shared with the **Materials** page
 folder or WAD, or a loose `.shader` or `.mtr` script; a loose script's images
 and Doom 3 tables come from the folder above its `scripts/` or `materials/`
 folder, or from `--package`. `--base` puts the game's own packages or folders
-beneath the source (several separated as in `PATH`, lowest first): their
+beneath the source (several separated as in `PATH`, lowest first: `;` on
+Windows, where PowerShell needs the value quoted, `:` on macOS and Linux; a
+missing `--package` or `--base` path exits 3): their
 images, Doom 3 tables and Doom lumps are used (a PWAD's textures merge with
 its IWAD's), and their materials are known by name but listed and checked
 only with `--include-base`. `--dialect auto|quake3|quake3-1.32|rtcw|et|jediknight`
@@ -3172,8 +3174,13 @@ reads Quake III shader scripts as that game does: the keywords it loads (any
 other drops the shader) and which of two scripts defining a name wins; `auto`
 works it out from the scripts. `--material` names the material (it may be left
 out when the source defines only one), `--engine doom|quake|quake2|quake3|doom3`
-narrows or overrides the engine, and `--palette` picks the palette for
-paletted images when the package has none.
+narrows or overrides the engine, and `--palette auto|quake|quake2|doom|heretic|hexen|generic`
+picks the palette for paletted images when the package has none (another
+value exits 2). Image lookups follow the dialect's own loaders (see the
+dialect table in `docs/MATERIALS.md`), so Quake III 1.32, Wolfenstein, Enemy
+Territory and Jedi Knight report images their game would not find. Names
+given to `new`, `edit --rename` and `edit --duplicate` must read back as one
+word to the engine's own script reader (exit 2 otherwise).
 - [x] `material list` prints every material with its engine, kind, stages,
   traits and source line, including Quake III implicit shaders, Doom walls and
   flats, Quake WAD textures and Quake II WALs. `--where` takes the studio query
@@ -3183,31 +3190,51 @@ paletted images when the package has none.
   and `shadowed`, and each surface parameter, keyword flag or Quake II flag
   (`slick=yes`, `surfaceparm=nolightmap`), and `base=yes` for base packages'
   materials; `--limit` caps the rows and `--no-implicit` leaves out images no
-  script names.
+  script names. `blend` and `image` hold one value per stage blend and image,
+  so `image=<path>` matches a material that reads that image in any stage. A
+  number comparison with a value that is not a number, or a key no material
+  has, is a usage error (exit 2).
 - [x] `material inspect` shows one material: its summary, every image and
   where it resolved (or that it is missing), diagnostics, why the engine would
-  drop it, its node graph and, with `--show-source`, its text.
+  drop it, its node graph and, with `--show-source`, its text (for Doom and
+  Quake II textures the SWANTBLS, ANIMDEFS or `.wal_json` text, named by
+  `textKind`), and the materials sharing its images (JSON `sharedWith`, up to
+  40, and `sharedWithCount`). `--no-images`, `--sky <name>` and
+  `--developer-default` match the page's choices.
 - [x] `material validate` checks materials the way each engine loads them:
   script syntax, keywords the engine rejects (Quake III drops the shader,
   Doom 3 defaults the material), missing images, definitions another one
-  shadows, and Doom lump problems. It exits 4 on errors, or on warnings with
+  shadows, Doom 3 lookups into tables no loaded script defines
+  (`missing-table`), missing Doom patches and Doom lump problems. It exits 4
+  on errors, or on warnings with
   `--strict`; `--no-images` skips image lookups and `--where` narrows the set.
+  Scan warnings (a script over the read budget, too many scripts) are reported
+  even when the set is narrowed; JSON `complete` says whether the scan read
+  everything, and an incomplete scan fails `--strict`.
 - [x] `material render` draws a material the way its engine draws it on the
   GPU, with the same OpenGL or Vulkan renderer as the **Materials** page, and
   writes a PNG to `--output` (or reports with `--dry-run`). The JSON names the
   renderer that drew it; `--renderer automatic|opengl|vulkan` picks one for
   the run, and the command exits 5 when no renderer can start. `--shape wall|floor|cube|sphere|cylinder|room`, `--size WxH`,
   `--time`, `--yaw`, `--pitch`, `--zoom`, `--fov`, `--orthographic`, `--tiling`
-  and `--swatch` frame it; `--frames N --fps F --columns C` writes an animation
-  sheet. Lighting follows the engine: `--lightmap`, `--flat-lightmap`,
-  `--no-overbright` and `--context world|model|2d` (Quake III);
+  and `--swatch` frame it (`--swatch` draws the library swatch, square with its
+  own framing, and refuses the framing options it does not take);
+  `--frames N --fps F --columns C` writes an animation
+  sheet, and `--cycle` instead of `--fps` spreads the frames over one loop of
+  the material, as **Export Animation Sheet** does (JSON `cycleSeconds`).
+  Lighting follows the engine: `--lightmap`, `--flat-lightmap`,
+  `--no-overbright`, `--context world|model|2d`, `--grid-ambient N` and
+  `--grid-directed N` (the light grid for `rgbGen lightingDiffuse`, 0-255,
+  defaults 54 and 128) and `--entity-color r,g,b[,a]` (Quake III);
   `--doom-light`, `--doom-extralight`, `--no-doom-distance`,
   `--no-fake-contrast`, `--boom-wrapping` and `--sky` (Doom);
   `--quake-renderer glquake|modern|software`, `--quake-style`,
   `--quake-lightmap` and `--alternate` (Quake); `--quake2-intensity` and
-  `--sky` (Quake II); `--light-color`, `--light-angle`, `--ambient`,
-  `--no-specular`, `--doom3-shading vanilla|bfg`, `--parms 0=1,4=2` and
-  `--sound` (Doom 3). `--filter`, `--background`, `--no-checker`,
+  `--sky` (Quake II); `--light-color`, `--light-angle` or `--orbit-seconds`,
+  `--light-radius` (0 sizes it to the shape), `--ambient`,
+  `--no-specular`, `--doom3-shading vanilla|bfg`, `--parms 0=1,4=2`,
+  `--globals 0=1,7=2` and `--sound` (Doom 3); `--seed` fixes the random
+  frames. `--filter`, `--background`, `--no-checker`,
   `--editor-image`, `--ignore-rejection` (draw the stages even where the
   engine draws its fallback) and `--developer-default` complete it.
 - [x] `material graph` prints the material's node graph (nodes, properties
@@ -3216,8 +3243,12 @@ paletted images when the package has none.
   `rename`; setting the `material` node's `name` also renames) to
   the material's text, checks the result by parsing it again, and writes it to
   `--output` (or shows it with `--dry-run`). `--text-kind` picks the text for
-  classic materials: `swantbls`, `animdefs` or `wal-json`; a `wal-json` edit
-  written to a `.wal` file rewrites that WAL's header.
+  classic materials: `swantbls`, `animdefs` or `wal-json` (it must fit the
+  engine); a `wal-json` edit
+  written to a `.wal` file rewrites that WAL's header. Adding a Doom range
+  (`doom.range`, `doom.animdefs.range`) runs it from the material to the last
+  picture of the same name in its namespace. The edit file formats are in the
+  user manual's [Material edit files](manual/materials.md#material-edit-files).
 - [x] `material edit` applies text edits from `--edits <json>` (`set`, `add`,
   `remove`, `add-stage`, `remove-stage`, `move-stage`, `move`,
   `replace-definition`, `add-definition`, `remove-definition`, `rename`,
@@ -3226,19 +3257,21 @@ paletted images when the package has none.
   Instead of a JSON file, `--rename <name>`, `--duplicate <name>` (a renamed
   copy after the original) or `--remove` act on `--material`. It writes
   `--output` with `--overwrite` for the same file, or reports with
-  `--dry-run`; `--strict` refuses to write a script with errors.
+  `--dry-run`; `--strict` refuses to write a script with errors (exit 4).
 - [x] `material templates` lists the starting points for `material new`, by
   engine.
 - [x] `material new --template <id> --name <material>` writes a new material,
   with `--image` for its main image, to the console, to a new `--output`
-  script, or to the end of an existing one with `--append`.
+  script, or to the end of an existing one with `--append`; the output must
+  fit the template's engine (`.shader` for Quake III, `.mtr` for Doom 3).
 - [x] `material doom-tables` prints a Doom package's animation and switch
   tables (Boom `ANIMATED`/`SWITCHES` or the vanilla tables) as SWANTBLS text,
   or reads SWANTBLS text, and with `--output-dir` writes `ANIMATED.lmp`,
   `SWITCHES.lmp` and `SWANTBLS.txt`.
 - [x] `material wal` shows a Quake II WAL header (a `.wal` file, or
   `--material` in a package) as ericw-tools `.wal_json`; `--output` writes that
-  sidecar, and `--metadata <wal_json> --output <wal>` rewrites the header's
+  sidecar (a `.wal` name without `--metadata` is refused, exit 2), and
+  `--metadata <wal_json> --output <wal>` rewrites the header's
   flags, contents, value and next frame without touching the pixels.
 - [x] `material usage` reads the source's maps (`.map` sources of every idTech
   editor, Quake, Half-Life, Quake II and Quake III-family BSPs, Doom WAD and
@@ -3246,6 +3279,12 @@ paletted images when the package has none.
   that uses it, how often and on which `.map` lines; without it, every used
   material with its count, or with `--unused` the materials no map uses.
   `--where`, `--engine` and `--limit` narrow the list as in `material list`.
+  Over `--base` it reads only the source's own maps; `--include-base` also
+  reads each base package's maps on its own, leaving out a map the source or
+  a higher base replaces, marks those uses `"base": true` and lists the base
+  maps that use something under `baseMaps`. JSON `complete` says whether
+  every map was read.
+- [x] `material override <package> --base <game> --material <name>` copies a base game material into the package folder (or `--output-dir`), as the **Materials** page's **Override in Package** does, through the same core rule (`core/material_override`): a shader or Doom 3 material is appended to the override script the dialect reads last (`zz_`) or first (`00_`), a Quake II WAL is copied whole. `--output-dir` is required for an archive source and must exist; `--dry-run` reports it and `--overwrite` replaces an existing WAL copy. It exits 3 when the material is not found, 4 when it is already the package's own or the script already defines it.
 
 ### 3D Rendering
 Every 3D view and material preview draws on the GPU through one renderer

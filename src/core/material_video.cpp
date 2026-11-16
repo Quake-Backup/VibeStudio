@@ -26,12 +26,18 @@ constexpr quint16 kRoqVectorFrame = 0x1011;
 constexpr quint16 kRoqJpegFrame = 0x1012;
 
 // Cell codes, two bits each, read from 16-bit flag words high pair first.
-constexpr int kCodeSkip = 0;   // keep what the previous frame had
+// RoQ is double-buffered (id's cl_cin.c alternates two buffers, FFmpeg's
+// roqvideodec.c swaps current and last frame): a frame is decoded into the
+// buffer that holds the frame before the previous one.
+constexpr int kCodeSkip = 0;   // keep the buffer's pixels: two frames back
 constexpr int kCodeMotion = 1; // copy from the previous frame, displaced
 constexpr int kCodeVector = 2; // one 4x4 codebook cell, scaled to the block
 constexpr int kCodeSplit = 3;  // four quarter blocks with codes of their own
 
-constexpr int kMaximumSide = 4096;
+// Quake III and Doom 3 videos are 512 pixels or smaller.
+constexpr int kMaximumSide = 2048;
+// Chunks past this many frames are not indexed.
+constexpr int kMaximumFrames = 100000;
 constexpr qint64 kSnapshotBudget = 48LL * 1024 * 1024;
 
 struct Cell2 {
@@ -45,12 +51,16 @@ struct Cell4 {
 };
 
 // Planes at full resolution (4:4:4), so cells and motion copies write
-// whole pixels, and the codebooks in force.
+// whole pixels, and the codebooks in force. y/u/v hold the latest frame,
+// lastY/lastU/lastV the one before it.
 struct DecodeState {
 	int frame = -1;
 	QByteArray y;
 	QByteArray u;
 	QByteArray v;
+	QByteArray lastY;
+	QByteArray lastU;
+	QByteArray lastV;
 	std::array<Cell2, 256> cells2 {};
 	std::array<Cell4, 256> cells4 {};
 };
@@ -97,6 +107,9 @@ struct MaterialVideo::Data {
 		state.y = QByteArray(pixels, '\0');
 		state.u = QByteArray(pixels, static_cast<char>(128));
 		state.v = QByteArray(pixels, static_cast<char>(128));
+		state.lastY = state.y;
+		state.lastU = state.u;
+		state.lastV = state.v;
 	}
 
 	void readCodebook(qsizetype at) const
@@ -165,8 +178,10 @@ struct MaterialVideo::Data {
 		paint(x + half, y + half, state.cells2[cell.cells[3]], scale);
 	}
 
-	void motion(const DecodeState& previous, int x, int y, int size, int dx, int dy) const
+	// Copies a block from the previous frame (the last planes).
+	void motion(int x, int y, int size, int dx, int dy) const
 	{
+		const DecodeState& previous = state;
 		for (int row = 0; row < size; ++row) {
 			const int py = y + row;
 			const int sy = std::clamp(py + dy, 0, height - 1);
@@ -181,16 +196,16 @@ struct MaterialVideo::Data {
 				const int sx = std::clamp(px + dx, 0, width - 1);
 				const qsizetype to = static_cast<qsizetype>(py) * width + px;
 				const qsizetype from = static_cast<qsizetype>(sy) * width + sx;
-				state.y[to] = previous.y.at(from);
-				state.u[to] = previous.u.at(from);
-				state.v[to] = previous.v.at(from);
+				state.y[to] = previous.lastY.at(from);
+				state.u[to] = previous.lastU.at(from);
+				state.v[to] = previous.lastV.at(from);
 			}
 		}
 	}
 
+	// Decodes into y/u/v, which decodeNext() left holding two frames back.
 	void decodeVectorFrame(const FrameChunk& chunk) const
 	{
-		const DecodeState previous = state;
 		const qsizetype end = std::min<qsizetype>(chunk.offset + chunk.size, bytes.size());
 		qsizetype cursor = chunk.offset;
 		// The argument is the frame's mean motion, a signed byte per axis.
@@ -234,7 +249,7 @@ struct MaterialVideo::Data {
 						if (value < 0) {
 							return;
 						}
-						motion(previous, bx, by, 8, 8 - (value >> 4) - meanX, 8 - (value & 0xF) - meanY);
+						motion(bx, by, 8, 8 - (value >> 4) - meanX, 8 - (value & 0xF) - meanY);
 					} else if (code == kCodeVector) {
 						const int value = nextByte();
 						if (value < 0) {
@@ -254,7 +269,7 @@ struct MaterialVideo::Data {
 								if (value < 0) {
 									return;
 								}
-								motion(previous, qx, qy, 4, 8 - (value >> 4) - meanX, 8 - (value & 0xF) - meanY);
+								motion(qx, qy, 4, 8 - (value >> 4) - meanX, 8 - (value & 0xF) - meanY);
 							} else if (sub == kCodeVector) {
 								const int value = nextByte();
 								if (value < 0) {
@@ -308,6 +323,18 @@ struct MaterialVideo::Data {
 		const FrameChunk& chunk = frames.at(index);
 		for (qsizetype codebook : chunk.codebooks) {
 			readCodebook(codebook);
+		}
+		// Swap buffers: the latest frame becomes the motion source and the
+		// one before it the buffer decoded into. The second frame starts
+		// from a copy of the first (FFmpeg copies when its second buffer is
+		// still empty).
+		std::swap(state.y, state.lastY);
+		std::swap(state.u, state.lastU);
+		std::swap(state.v, state.lastV);
+		if (index == 1) {
+			state.y = state.lastY;
+			state.u = state.lastU;
+			state.v = state.lastV;
 		}
 		if (chunk.id == kRoqJpegFrame) {
 			decodeJpegFrame(chunk);
@@ -389,6 +416,9 @@ std::shared_ptr<MaterialVideo> MaterialVideo::open(const QByteArray& bytes, cons
 		} else if (id == kRoqCodebook) {
 			pendingCodebooks << cursor;
 		} else if (id == kRoqVectorFrame || id == kRoqJpegFrame) {
+			if (data.frames.size() >= kMaximumFrames) {
+				break;
+			}
 			FrameChunk frame;
 			frame.offset = payload;
 			frame.size = size;
@@ -407,7 +437,8 @@ std::shared_ptr<MaterialVideo> MaterialVideo::open(const QByteArray& bytes, cons
 		return fail(Text::tr("%1 holds no frames.").arg(path));
 	}
 	// Snapshots every few frames, as many as the budget holds.
-	const qint64 snapshotBytes = static_cast<qint64>(data.width) * data.height * 3;
+	// Each snapshot keeps both buffers: three planes twice.
+	const qint64 snapshotBytes = static_cast<qint64>(data.width) * data.height * 6;
 	const qint64 snapshots = std::max<qint64>(1, kSnapshotBudget / std::max<qint64>(1, snapshotBytes));
 	data.snapshotInterval = std::max(16, static_cast<int>(std::ceil(static_cast<double>(data.frames.size()) / static_cast<double>(snapshots))));
 	data.resetState();

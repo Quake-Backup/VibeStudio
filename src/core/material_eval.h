@@ -36,6 +36,10 @@ inline constexpr int kQuake3FunctionTableSize = 1024;
 // One entry of a function table, index wrapped to 0..1023. Noise has no
 // table (TableForFunc returns none for it).
 double quake3FunctionTable(MaterialWaveFunction function, int index);
+// A table index from a scaled value, truncated like ioquake3's (int) cast
+// and masked to 0..1023, for any value: huge ones wrap first, NaN and
+// infinities give 0.
+int quake3TableIndex(double value);
 // EvalWaveForm: base + table[(phase + time * frequency) * 1024 & 1023] * amp,
 // truncating like ioquake3. Noise evaluates R_NoiseGet4f.
 double evaluateQuake3Wave(const MaterialWave& wave, double time);

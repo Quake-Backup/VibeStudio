@@ -136,9 +136,13 @@ GpuCull gpuCull(CullMode cull);
 // How a stage's image repeats; the shaders sample with these rules.
 enum class Wrap {
 	Repeat,
-	Clamp,          // clamp to edge
-	ZeroClamp,      // outside is transparent black
-	AlphaZeroClamp, // outside keeps colour, alpha 0
+	Clamp, // clamp to edge
+	// Doom 3 TR_CLAMP_TO_ZERO and TR_CLAMP_TO_ZERO_ALPHA: R_SetBorderTexels
+	// overwrites the image's outer texels, then it clamps to edge. The border
+	// and everything outside is opaque black (0, 0, 0, 1), or white with no
+	// alpha (1, 1, 1, 0).
+	ZeroClamp,
+	AlphaZeroClamp,
 };
 
 // A soft light falling on a point, for synthetic lightmaps and vertex
@@ -199,17 +203,21 @@ public:
 	// Camera, viewport, preview light and time, ready for a draw to adjust.
 	[[nodiscard]] MaterialUniforms uniforms() const;
 
-	// Textures, uploaded once per frame each. -1 for an unusable texture.
-	int texture(const MaterialTexture* texture);
+	// Textures, added once per frame each; -1 for an unusable texture. The
+	// device keeps the upload between frames (an upload key per texture
+	// object, never reused), and the frame holds the texture until finish().
+	int texture(const MaterialTexturePtr& texture);
 	// Palette indices in red, the texel's alpha kept.
-	int indices(const MaterialTexture* texture);
+	int indices(const MaterialTexturePtr& texture);
 	// 256 colours in one row.
 	int palette(const QVector<QRgb>& palette);
 	// Rows of 256 palette indices (COLORMAP, colormap.lmp) in red.
 	int rows(const QByteArray& table, int rowCount);
 	// Binds a texture to a sampler slot of a draw: its wrap rule and mip
 	// levels go to the uniforms. A negative texture binds nothing.
-	void bind(GpuDraw* draw, MaterialUniforms* uniforms, int slot, int texture, Wrap wrap) const;
+	// `maximumLevels` above 0 limits the mip levels the shader may pick (1:
+	// the image as loaded without mips, as Quake III nomipmaps).
+	void bind(GpuDraw* draw, MaterialUniforms* uniforms, int slot, int texture, Wrap wrap, int maximumLevels = 0) const;
 	// The colour so far, for _currentRender; binds it to `slot`.
 	void bindSnapshot(GpuDraw* draw, MaterialUniforms* uniforms, int slot);
 
@@ -217,6 +225,9 @@ public:
 	// colour (or its own s, t and white when `stage` is null).
 	int vertices(const QVector<StageVertex>* stage = nullptr);
 	int vertices(const Mesh& mesh, const QVector<StageVertex>* stage = nullptr);
+	// The main mesh does not change from frame to frame (no deform moved
+	// it): its plain vertex data stays on the device too.
+	void setMeshStatic(bool value) { m_meshStatic = value; }
 
 	// Draws `program` over the mesh (or a substitute `mesh` given to
 	// vertices()) with this state. Depth compares nearness: Greater for the
@@ -233,8 +244,12 @@ public:
 	[[nodiscard]] int meshIndexCount() const { return m_meshIndexCount; }
 
 	// Renders and reads back the frame. On failure the result has no image
-	// and `error` says why; a cancelled frame sets `cancelled`.
+	// and `error` says why; a cancelled frame sets `cancelled`. The options'
+	// cancelFlag goes to the device, so a superseded frame stops there too.
 	void finish(double displayScale, MaterialRenderResult* result, const std::function<bool()>& cancelled);
+
+	// The frame as it would be submitted, for tests.
+	[[nodiscard]] const GpuFrame& frame() const { return m_frame; }
 
 private:
 	GpuPass& mainPass();
@@ -244,8 +259,11 @@ private:
 	const Mesh* m_mesh = nullptr;
 	const MaterialRenderOptions* m_options = nullptr;
 	GpuFrame m_frame;
+	// The textures the frame's images point into, alive until it renders.
+	QVector<MaterialTexturePtr> m_retained;
 	QHash<const void*, int> m_textures;
 	QHash<const void*, int> m_indexTextures;
+	bool m_meshStatic = false;
 	// Mip levels of each uploaded texture, by frame texture index.
 	QHash<int, int> m_levels;
 	int m_meshIndices = -1;
@@ -272,5 +290,87 @@ MaterialRenderResult renderClassicMaterial(const MaterialDefinition& definition,
 
 // The size of a material's main image, for repeat sizes and mip levels.
 QSize mainImageSize(const MaterialDefinition& definition, const MaterialImageSet& images);
+
+// ---------------------------------------------------------------------------
+// Engine rules worked out on the CPU, shared with tests
+// ---------------------------------------------------------------------------
+
+// One Quake III frame's constants.
+struct Quake3Frame {
+	const MaterialRenderOptions* options = nullptr;
+	double time = 0.0;
+	double identityLight = 0.5;
+	double displayScale = 2.0;
+	int shift = 1;
+	Color lightColor {1, 1, 1, 1};
+};
+
+// RB_DeformTessGeometry: deformVertexes in order, before texture coordinates.
+void applyQuake3Deforms(const MaterialDefinition& definition, Mesh* mesh, const Camera& camera, double time, QStringList* notes);
+// A vertex's tcGen, then its tcMods in written order (tr_shade_calc.c).
+void quake3TexCoords(const MaterialStage& stage, const Vertex& vertex, const Camera& camera, const Quake3Frame& frame, double* s, double* t);
+// A vertex's rgbGen and alphaGen (ComputeColors).
+Color quake3VertexColor(const MaterialDefinition& definition, const MaterialStage& stage, const Vertex& vertex, const Mesh& mesh,
+	const Camera& camera, const Quake3Frame& frame);
+
+// A Doom 3 material's evaluated expression registers.
+struct Doom3Registers {
+	QVector<double> values;
+
+	[[nodiscard]] double at(int index, double fallback = 1.0) const
+	{
+		if (index < 0 || index >= values.size()) {
+			return fallback;
+		}
+		const double value = values.at(index);
+		return std::isfinite(value) ? value : 0.0;
+	}
+};
+
+// The 2x3 texture matrix of a Doom 3 stage: each transform multiplies on
+// the right (MultiplyTextureMatrix), so the newest keyword acts on the raw
+// coordinates first.
+struct Doom3TextureMatrix {
+	double m[2][3] = {{1, 0, 0}, {0, 1, 0}};
+
+	void multiply(const double n[2][3]);
+	void apply(double* s, double* t) const;
+};
+
+Doom3TextureMatrix doom3StageMatrix(const MaterialStage& stage, const Doom3Registers& registers, const MaterialTableSet& tables);
+// SortInteractionStages: the stage order the engine keeps.
+QVector<int> doom3SortedStageOrder(const MaterialDefinition& definition);
+bool doom3StageActive(const MaterialStage& stage, const Doom3Registers& registers);
+// The stage's repeat: the material's clamp keyword (trpDefault) first, then
+// the stage's own clamp, noclamp, zeroclamp and alphazeroclamp, the last
+// one winning, as ParseStage reads them.
+Wrap doom3StageWrap(const MaterialStage& stage, const MaterialDefinition& definition);
+
+// AddImplicitStages: a material with lighting stages but no bump gets
+// `bumpmap _flat`; one with bumps and no diffuse, specular or texgen
+// reflect stage gets `diffusemap _white`. Neither has a condition.
+bool doom3NeedsImplicitBump(const MaterialDefinition& definition);
+bool doom3NeedsImplicitDiffuse(const MaterialDefinition& definition);
+// The `diffusemap _white` stage AddImplicitStages appends.
+MaterialStage doom3ImplicitDiffuseStage();
+// RB_T_FillDepthBuffer draws nothing when every stage is conditioned off;
+// the implicit stages count, and are never off.
+bool doom3AnyStageActive(const MaterialDefinition& definition, const Doom3Registers& registers);
+
+struct Doom3Interaction {
+	const MaterialStage* bump = nullptr;
+	const MaterialStage* diffuse = nullptr;
+	const MaterialStage* specular = nullptr;
+	Color diffuseColor;
+	Color specularColor;
+	MaterialVertexColor vertexColor = MaterialVertexColor::None;
+};
+
+// RB_CreateSingleDrawInteractions over `order`: a bump flushes and clears;
+// a second diffuse or specular flushes and replaces just that slot.
+// `implicitDiffuse`, when given, is the appended `diffusemap _white` stage
+// (it must outlive the result). `implicitBump` says whether _flat stood in.
+QVector<Doom3Interaction> doom3PairInteractions(const MaterialDefinition& definition, const QVector<int>& order, const Doom3Registers& registers,
+	const MaterialStage* implicitDiffuse, bool* implicitBump);
 
 } // namespace vibestudio::material_render

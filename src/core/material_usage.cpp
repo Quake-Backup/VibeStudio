@@ -1,6 +1,9 @@
 #include "core/material_usage.h"
 
+#include "core/material_library.h"
+
 #include <QCoreApplication>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QRegularExpression>
 #include <QSet>
@@ -28,8 +31,8 @@ QString suffixOf(const QString& path)
 // The uses of one map, gathered by name before they join the index.
 class MapUses {
 public:
-	MapUses(QString mapPath, QString mapName, MaterialMapKind kind)
-		: m_path(std::move(mapPath)), m_name(std::move(mapName)), m_kind(kind)
+	MapUses(QString mapPath, QString mapName, MaterialMapKind kind, bool base = false)
+		: m_path(std::move(mapPath)), m_name(std::move(mapName)), m_kind(kind), m_base(base)
 	{
 	}
 
@@ -47,6 +50,7 @@ public:
 			use.mapName = m_name;
 			use.kind = m_kind;
 			use.textureName = name;
+			use.base = m_base;
 			found = m_uses.insert(key, use);
 			m_order << key;
 		}
@@ -68,6 +72,7 @@ private:
 	QString m_path;
 	QString m_name;
 	MaterialMapKind m_kind;
+	bool m_base = false;
 	QHash<QString, MaterialMapUse> m_uses;
 	QStringList m_order;
 };
@@ -372,14 +377,27 @@ bool isMapDataLump(const QString& name)
 // Map lumps follow a marker lump (E1M1, MAP01 or any name): SIDEDEFS name
 // three textures per side (vanilla and Hexen alike, 30 bytes), SECTORS two
 // flats (26 bytes); UDMF writes them as fields in TEXTMAP.
-void scanDoomLumps(const QVector<DoomLump>& lumps, const QString& wadPath, MaterialUsageIndex* index, const MaterialUsageProgress& progress)
+// `hidden` names maps a WAD above this one replaces (Doom finds the last
+// marker of a name); this WAD's markers are added to it afterwards.
+void scanDoomLumps(const QVector<DoomLump>& lumps, const QString& wadPath, MaterialUsageIndex* index, const MaterialUsageProgress& progress,
+	bool base = false, QSet<QString>* hidden = nullptr)
 {
 	static const QRegularExpression udmf(QStringLiteral("\\b(texturetop|texturebottom|texturemiddle|texturefloor|textureceiling)\\s*=\\s*\"([^\"]*)\""),
 		QRegularExpression::CaseInsensitiveOption);
+	QSet<QString> markers;
 	for (qsizetype at = 0; at < lumps.size(); ++at) {
 		const QString& marker = lumps.at(at).name;
 		if (at + 1 >= lumps.size() || isMapDataLump(marker)
 			|| (lumps.at(at + 1).name != QStringLiteral("THINGS") && lumps.at(at + 1).name != QStringLiteral("TEXTMAP"))) {
+			continue;
+		}
+		markers.insert(marker);
+		if (hidden && hidden->contains(marker)) {
+			qsizetype data = at + 1;
+			while (data < lumps.size() && isMapDataLump(lumps.at(data).name)) {
+				++data;
+			}
+			at = data - 1;
 			continue;
 		}
 		if (progress && !progress(static_cast<int>(at), static_cast<int>(lumps.size()), marker)) {
@@ -387,7 +405,7 @@ void scanDoomLumps(const QVector<DoomLump>& lumps, const QString& wadPath, Mater
 			index->complete = false;
 			return;
 		}
-		MapUses uses(wadPath, marker, MaterialMapKind::DoomMap);
+		MapUses uses(wadPath, marker, MaterialMapKind::DoomMap, base);
 		qsizetype data = at + 1;
 		for (; data < lumps.size() && isMapDataLump(lumps.at(data).name); ++data) {
 			const QString& name = lumps.at(data).name;
@@ -412,20 +430,30 @@ void scanDoomLumps(const QVector<DoomLump>& lumps, const QString& wadPath, Mater
 					uses.add(fixedString(bytes, sector + 12, 8).toUpper());
 				}
 			} else {
+				// Lines are counted from the previous match on, so a large
+				// TEXTMAP is read in one pass.
 				const QString text = QString::fromUtf8(bytes);
+				qsizetype counted = 0;
+				int line = 1;
 				for (auto match = udmf.globalMatch(text); match.hasNext();) {
 					const QRegularExpressionMatch found = match.next();
-					uses.add(found.captured(2), 1, static_cast<int>(text.left(found.capturedStart()).count(QLatin1Char('\n'))) + 1);
+					const qsizetype start = found.capturedStart();
+					line += static_cast<int>(QStringView(text).mid(counted, start - counted).count(u'\n'));
+					counted = start;
+					uses.add(found.captured(2), 1, line);
 				}
 			}
 		}
 		uses.commit(index);
 		at = data - 1;
 	}
+	if (hidden) {
+		hidden->unite(markers);
+	}
 }
 
 // A Doom WAD held as bytes (maps/*.wad in a ZDoom PK3).
-void scanWadBytes(const QByteArray& bytes, const QString& wadPath, MaterialUsageIndex* index)
+void scanWadBytes(const QByteArray& bytes, const QString& wadPath, MaterialUsageIndex* index, bool base = false)
 {
 	if (bytes.size() < 12 || (!bytes.startsWith("IWAD") && !bytes.startsWith("PWAD"))) {
 		return;
@@ -450,7 +478,105 @@ void scanWadBytes(const QByteArray& bytes, const QString& wadPath, MaterialUsage
 							 return true;
 						 }});
 	}
-	scanDoomLumps(lumps, wadPath, index, {});
+	scanDoomLumps(lumps, wadPath, index, {}, base);
+}
+
+void addUsageFromBytes(const QByteArray& bytes, const QString& mapPath, MaterialUsageIndex* index, bool base)
+{
+	const QString suffix = suffixOf(mapPath);
+	if (suffix == QStringLiteral("wad")) {
+		scanWadBytes(bytes, mapPath, index, base);
+		return;
+	}
+	if (suffix == QStringLiteral("bsp")) {
+		MapUses uses(mapPath, QString(), MaterialMapKind::Bsp, base);
+		QString error;
+		if (!scanBsp(bytes, &uses, &error)) {
+			index->warnings << Text::tr("%1 was not read: %2.").arg(mapPath, error);
+			index->complete = false;
+			return;
+		}
+		uses.commit(index);
+		return;
+	}
+	MapUses uses(mapPath, QString(), MaterialMapKind::MapSource, base);
+	scanMapText(QString::fromUtf8(bytes), &uses);
+	uses.commit(index);
+}
+
+// One package's maps. A WAD's lumps are read in its directory order and its
+// maps named by marker; other packages' map files by path. `wadLabel` names
+// a WAD's maps (empty for the package itself). Maps in `hiddenMarkers` or
+// `hiddenPaths` were replaced by a package above; this one's are added.
+// Returns false when cancelled.
+bool scanPackageMaps(const PackageArchiveReader& reader, const QString& wadLabel, bool base, QSet<QString>* hiddenMarkers,
+	QSet<QString>* hiddenPaths, MaterialUsageIndex* index, const MaterialUsageProgress& progress)
+{
+	const QVector<PackageEntry> entries = reader.entries();
+	if (reader.format() == PackageArchiveFormat::Wad) {
+		QVector<qsizetype> order(entries.size());
+		for (qsizetype at = 0; at < entries.size(); ++at) {
+			order[at] = at;
+		}
+		std::stable_sort(order.begin(), order.end(), [&](qsizetype a, qsizetype b) { return entries.at(a).sourceOrdinal < entries.at(b).sourceOrdinal; });
+		QVector<DoomLump> lumps;
+		for (qsizetype at : std::as_const(order)) {
+			const PackageEntry& entry = entries.at(at);
+			if (entry.kind != PackageEntryKind::File) {
+				continue;
+			}
+			lumps.push_back({packageVirtualPathFileName(entry.virtualPath).section(QLatin1Char('.'), 0, 0).toUpper(), [&reader, at](QByteArray* out) {
+								 QString error;
+								 return reader.readEntryAt(at, out, &error, kMapReadLimit);
+							 }});
+		}
+		scanDoomLumps(lumps, wadLabel, index, progress, base, hiddenMarkers);
+		return !index->cancelled;
+	}
+	QVector<qsizetype> maps;
+	for (qsizetype at = 0; at < entries.size(); ++at) {
+		const PackageEntry& entry = entries.at(at);
+		const QString suffix = suffixOf(entry.virtualPath);
+		if (entry.kind == PackageEntryKind::File && (suffix == QStringLiteral("map") || suffix == QStringLiteral("bsp") || suffix == QStringLiteral("wad"))) {
+			const QString key = entry.virtualPath.toLower();
+			if (hiddenPaths && hiddenPaths->contains(key)) {
+				continue;
+			}
+			maps << at;
+		}
+	}
+	std::sort(maps.begin(), maps.end(), [&](qsizetype a, qsizetype b) { return entries.at(a).virtualPath.compare(entries.at(b).virtualPath, Qt::CaseInsensitive) < 0; });
+	const QString phase = Text::tr("Reading maps");
+	for (qsizetype position = 0; position < maps.size(); ++position) {
+		if (progress && !progress(static_cast<int>(position), static_cast<int>(maps.size()), phase)) {
+			index->cancelled = true;
+			index->complete = false;
+			return false;
+		}
+		const PackageEntry& entry = entries.at(maps.at(position));
+		if (entry.sizeBytes > static_cast<quint64>(kMapReadLimit)) {
+			index->warnings << Text::tr("%1 is skipped: it is larger than 64 MiB.").arg(entry.virtualPath);
+			index->complete = false;
+			continue;
+		}
+		QByteArray bytes;
+		QString error;
+		if (!reader.readEntryAt(maps.at(position), &bytes, &error, kMapReadLimit)) {
+			index->warnings << Text::tr("%1 could not be read: %2").arg(entry.virtualPath, error);
+			index->complete = false;
+			continue;
+		}
+		addUsageFromBytes(bytes, entry.virtualPath, index, base);
+	}
+	if (hiddenPaths) {
+		for (const qsizetype at : std::as_const(maps)) {
+			hiddenPaths->insert(entries.at(at).virtualPath.toLower());
+		}
+	}
+	if (progress) {
+		progress(static_cast<int>(maps.size()), static_cast<int>(maps.size()), phase);
+	}
+	return true;
 }
 
 } // namespace
@@ -500,85 +626,36 @@ int MaterialUsageIndex::useCount(const QString& materialName) const
 
 void addMaterialUsageFromBytes(const QByteArray& bytes, const QString& mapPath, MaterialUsageIndex* index)
 {
-	const QString suffix = suffixOf(mapPath);
-	if (suffix == QStringLiteral("wad")) {
-		scanWadBytes(bytes, mapPath, index);
-		return;
-	}
-	if (suffix == QStringLiteral("bsp")) {
-		MapUses uses(mapPath, QString(), MaterialMapKind::Bsp);
-		QString error;
-		if (!scanBsp(bytes, &uses, &error)) {
-			index->warnings << Text::tr("%1 was not read: %2.").arg(mapPath, error);
-			index->complete = false;
-			return;
-		}
-		uses.commit(index);
-		return;
-	}
-	MapUses uses(mapPath, QString(), MaterialMapKind::MapSource);
-	scanMapText(QString::fromUtf8(bytes), &uses);
-	uses.commit(index);
+	addUsageFromBytes(bytes, mapPath, index, false);
 }
 
-MaterialUsageIndex scanMaterialUsage(const PackageArchiveReader& reader, const MaterialUsageProgress& progress)
+MaterialUsageIndex scanMaterialUsage(const PackageArchiveReader& reader, const MaterialUsageProgress& progress, MaterialUsageScope scope)
 {
 	MaterialUsageIndex index;
-	QVector<PackageEntry> entries = reader.entries();
-	if (reader.format() == PackageArchiveFormat::Wad) {
-		// The open WAD's own maps, in directory order.
-		QVector<qsizetype> order(entries.size());
-		for (qsizetype at = 0; at < entries.size(); ++at) {
-			order[at] = at;
-		}
-		std::stable_sort(order.begin(), order.end(), [&](qsizetype a, qsizetype b) { return entries.at(a).sourceOrdinal < entries.at(b).sourceOrdinal; });
-		QVector<DoomLump> lumps;
-		for (qsizetype at : std::as_const(order)) {
-			const PackageEntry& entry = entries.at(at);
-			if (entry.kind != PackageEntryKind::File) {
-				continue;
-			}
-			lumps.push_back({packageVirtualPathFileName(entry.virtualPath).section(QLatin1Char('.'), 0, 0).toUpper(), [&reader, at](QByteArray* out) {
-								 QString error;
-								 return reader.readEntryAt(at, out, &error, kMapReadLimit);
-							 }});
-		}
-		scanDoomLumps(lumps, QString(), &index, progress);
+	const auto* layered = dynamic_cast<const MaterialLayeredReader*>(&reader);
+	if (!layered || !layered->package()) {
+		scanPackageMaps(reader, QString(), false, nullptr, nullptr, &index, progress);
 		return index;
 	}
-	QVector<qsizetype> maps;
-	for (qsizetype at = 0; at < entries.size(); ++at) {
-		const PackageEntry& entry = entries.at(at);
-		const QString suffix = suffixOf(entry.virtualPath);
-		if (entry.kind == PackageEntryKind::File && (suffix == QStringLiteral("map") || suffix == QStringLiteral("bsp") || suffix == QStringLiteral("wad"))) {
-			maps << at;
-		}
+	// A package over its base packages: never the merged entry list, whose
+	// WAD lumps would interleave by each file's own directory position.
+	QSet<QString> hiddenMarkers;
+	QSet<QString> hiddenPaths;
+	if (!scanPackageMaps(*layered->package(), QString(), false, &hiddenMarkers, &hiddenPaths, &index, progress)
+		|| scope == MaterialUsageScope::Package) {
+		return index;
 	}
-	std::sort(maps.begin(), maps.end(), [&](qsizetype a, qsizetype b) { return entries.at(a).virtualPath.compare(entries.at(b).virtualPath, Qt::CaseInsensitive) < 0; });
-	const QString phase = Text::tr("Reading maps");
-	for (qsizetype position = 0; position < maps.size(); ++position) {
-		if (progress && !progress(static_cast<int>(position), static_cast<int>(maps.size()), phase)) {
-			index.cancelled = true;
-			index.complete = false;
-			return index;
-		}
-		const PackageEntry& entry = entries.at(maps.at(position));
-		if (entry.sizeBytes > static_cast<quint64>(kMapReadLimit)) {
-			index.warnings << Text::tr("%1 is skipped: it is larger than 64 MiB.").arg(entry.virtualPath);
-			index.complete = false;
+	// Highest base first, so a map a higher layer has hides the lower one.
+	const QVector<std::shared_ptr<const PackageArchiveReader>>& base = layered->base();
+	for (qsizetype layer = base.size() - 1; layer >= 0; --layer) {
+		const PackageArchiveReader* source = base.at(layer).get();
+		if (!source) {
 			continue;
 		}
-		QByteArray bytes;
-		QString error;
-		if (!reader.readEntryAt(maps.at(position), &bytes, &error, kMapReadLimit)) {
-			index.warnings << Text::tr("%1 could not be read: %2").arg(entry.virtualPath, error);
-			index.complete = false;
-			continue;
+		const QString label = QFileInfo(source->sourcePath()).fileName();
+		if (!scanPackageMaps(*source, label, true, &hiddenMarkers, &hiddenPaths, &index, progress)) {
+			break;
 		}
-		addMaterialUsageFromBytes(bytes, entry.virtualPath, &index);
-	}
-	if (progress) {
-		progress(static_cast<int>(maps.size()), static_cast<int>(maps.size()), phase);
 	}
 	return index;
 }
@@ -593,6 +670,9 @@ QJsonObject materialMapUseJson(const MaterialMapUse& use)
 	object.insert(QStringLiteral("kind"), materialMapKindId(use.kind));
 	object.insert(QStringLiteral("texture"), use.textureName);
 	object.insert(QStringLiteral("count"), use.count);
+	if (use.base) {
+		object.insert(QStringLiteral("base"), true);
+	}
 	if (!use.lines.isEmpty()) {
 		QJsonArray lines;
 		for (int line : use.lines) {

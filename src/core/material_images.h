@@ -113,6 +113,25 @@ private:
 	QHash<QString, Slot> m_slots;
 };
 
+// How a Quake III-family game turns a stage image name into files
+// (R_LoadImage in each game's tr_image.c).
+enum class MaterialImageExtensionRule {
+	// ioquake3 (and iortcw): the name as written, then the same name with
+	// each other loader's extension: tga, jpg, jpeg, png, pcx, bmp. A name
+	// without an extension tries them all.
+	Ioquake3,
+	// Quake III Arena 1.32 and Enemy Territory 2.60b: `.tga` with a `.jpg`
+	// retry; `.jpg`, `.pcx` and `.bmp` as written; any other name, or none,
+	// loads nothing.
+	Quake3Original,
+	// Jedi Knight II and Jedi Academy (OpenJK): the name as written when it
+	// is a jpg, tga or png, then jpg, tga and png.
+	JediKnight,
+};
+
+// The rule a dialect's game uses; Automatic and Quake3 give Ioquake3.
+MaterialImageExtensionRule materialImageExtensionRule(MaterialDialect dialect);
+
 struct MaterialImageSource {
 	// Immutable snapshots: the open package first, then fallbacks such as a
 	// game installation's base packages.
@@ -131,8 +150,9 @@ struct MaterialImageSource {
 	// Doom 3: draw _default as the developer grid instead of transparent
 	// black (the release build's image).
 	bool developerDefault = false;
-	// Quake III: also try ioquake3's extra extensions.
-	bool ioquake3Extensions = true;
+	// Quake III family: which files a stage image name finds. Set it from
+	// the library's dialect with materialImageExtensionRule().
+	MaterialImageExtensionRule extensionRule = MaterialImageExtensionRule::Ioquake3;
 	int maximumDimension = 2048;
 	qint64 byteBudget = 192LL * 1024 * 1024;
 	MaterialImageCache* cache = nullptr;
@@ -170,7 +190,10 @@ struct MaterialImageSet {
 QString materialImageKey(const QString& reference);
 
 // Candidate package paths for an image reference, in the engine's order.
-QStringList materialImageCandidates(MaterialEngine engine, const QString& reference, bool ioquake3Extensions = true);
+// `rule` applies to Quake III only; an empty list means the game reads no
+// file for the name (Quake III 1.32 and a name without an extension).
+QStringList materialImageCandidates(MaterialEngine engine, const QString& reference,
+	MaterialImageExtensionRule rule = MaterialImageExtensionRule::Ioquake3);
 
 // Quake III sky box faces for a far box base: _rt _bk _lf _ft _up _dn, in
 // that order (the order tr_sky.c loads them).

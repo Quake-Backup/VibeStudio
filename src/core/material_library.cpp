@@ -97,6 +97,22 @@ MaterialLibraryEntry entryFor(const MaterialDefinition& definition)
 	return entry;
 }
 
+// Doom 3 table lookups against every table the library holds (one script
+// cannot know the others'); run whenever the scripts or tables change,
+// before the entries count errors and rejections.
+void checkLibraryTables(QVector<MaterialScript>* scripts, const MaterialTableSet& tables)
+{
+	const auto find = [&tables](const QString& name) { return tables.find(name); };
+	for (MaterialScript& script : *scripts) {
+		if (script.engine != MaterialEngine::Doom3) {
+			continue;
+		}
+		for (MaterialDefinition& definition : script.materials) {
+			checkMaterialTables(&definition, find);
+		}
+	}
+}
+
 } // namespace
 
 MaterialLayeredReader::MaterialLayeredReader(std::shared_ptr<const PackageArchiveReader> package, QVector<std::shared_ptr<const PackageArchiveReader>> base)
@@ -134,6 +150,10 @@ MaterialLayeredReader::MaterialLayeredReader(std::shared_ptr<const PackageArchiv
 			if (baseLayer) {
 				item.layerId = QStringLiteral("base:%1").arg(index);
 			}
+			if (item.kind == PackageEntryKind::File) {
+				// Later entries win, as readEntryBytes searched from the end.
+				m_pathIndex.insert(item.virtualPath.toLower(), m_entries.size());
+			}
 			m_entries.push_back(item);
 			m_sources.push_back({index, entry});
 		}
@@ -170,11 +190,9 @@ bool MaterialLayeredReader::isOpen() const
 
 bool MaterialLayeredReader::readEntryBytes(const QString& virtualPath, QByteArray* out, QString* error, qint64 maxBytes) const
 {
-	const QString key = virtualPath.toLower();
-	for (qsizetype index = m_entries.size() - 1; index >= 0; --index) {
-		if (m_entries.at(index).kind == PackageEntryKind::File && m_entries.at(index).virtualPath.toLower() == key) {
-			return readEntryAt(index, out, error, maxBytes);
-		}
+	const auto found = m_pathIndex.constFind(virtualPath.toLower());
+	if (found != m_pathIndex.constEnd()) {
+		return readEntryAt(*found, out, error, maxBytes);
 	}
 	if (error) {
 		*error = Text::tr("%1 is not in the package or its base packages.").arg(virtualPath);
@@ -202,24 +220,65 @@ bool MaterialLayeredReader::isBaseEntry(qsizetype index) const
 
 int MaterialLibrary::indexOf(const QString& name, MaterialEngine engine) const
 {
+	return indexOfKind(name, engine, QString());
+}
+
+int MaterialLibrary::indexOfKind(const QString& name, MaterialEngine engine, const QString& kind) const
+{
 	const QString key = materialLookupKey(name);
 	int fallback = -1;
-	for (int index = 0; index < entries.size(); ++index) {
+	const auto consider = [&](int index) {
 		const MaterialLibraryEntry& entry = entries.at(index);
-		if (materialLookupKey(entry.name) != key) {
-			continue;
-		}
 		if (engine != MaterialEngine::Unknown && entry.engine != engine) {
-			continue;
+			return false;
+		}
+		if (!kind.isEmpty() && entry.kind != kind) {
+			return false;
 		}
 		if (!entry.shadowed) {
-			return index;
+			return true;
 		}
 		if (fallback < 0) {
 			fallback = index;
 		}
+		return false;
+	};
+	if (indexCurrent()) {
+		const auto found = m_byName.constFind(key);
+		if (found == m_byName.constEnd()) {
+			return -1;
+		}
+		for (int index : *found) {
+			if (consider(index)) {
+				return index;
+			}
+		}
+		return fallback;
+	}
+	for (int index = 0; index < entries.size(); ++index) {
+		if (materialLookupKey(entries.at(index).name) == key && consider(index)) {
+			return index;
+		}
 	}
 	return fallback;
+}
+
+void MaterialLibrary::rebuildIndex()
+{
+	m_byName.clear();
+	m_byImage.clear();
+	for (int index = 0; index < entries.size(); ++index) {
+		const MaterialLibraryEntry& entry = entries.at(index);
+		m_byName[materialLookupKey(entry.name)].push_back(index);
+		QSet<QString> images;
+		for (const QString& reference : entry.images) {
+			images.insert(materialLookupKey(withoutSuffix(reference)));
+		}
+		for (const QString& image : std::as_const(images)) {
+			m_byImage[image].push_back(index);
+		}
+	}
+	m_indexedSize = entries.size();
 }
 
 MaterialDefinition MaterialLibrary::definition(int entry) const
@@ -273,6 +332,10 @@ QVector<int> MaterialLibrary::entriesUsingImage(const QString& image) const
 {
 	QVector<int> result;
 	const QString key = materialLookupKey(withoutSuffix(image));
+	if (indexCurrent()) {
+		// Indexes were pushed in entry order, so the list is sorted.
+		return m_byImage.value(key);
+	}
 	for (int index = 0; index < entries.size(); ++index) {
 		for (const QString& reference : entries.at(index).images) {
 			if (materialLookupKey(withoutSuffix(reference)) == key) {
@@ -297,6 +360,7 @@ void MaterialLibrary::replaceScript(int scriptIndex, const MaterialScript& scrip
 		}
 		rebuilt.addStandIns();
 		tables = rebuilt;
+		checkLibraryTables(&scripts, tables);
 	}
 	rebuildEntries();
 }
@@ -306,6 +370,7 @@ int MaterialLibrary::addScript(const MaterialScript& script)
 	scripts.push_back(script);
 	if (script.engine == MaterialEngine::Doom3) {
 		tables.addAll(script.tables);
+		checkLibraryTables(&scripts, tables);
 	}
 	rebuildEntries();
 	return static_cast<int>(scripts.size()) - 1;
@@ -386,14 +451,21 @@ void MaterialLibrary::rebuildEntries()
 	if (!listBase) {
 		entries.erase(std::remove_if(entries.begin(), entries.end(), [](const MaterialLibraryEntry& entry) { return entry.base; }), entries.end());
 	}
+	rebuildIndex();
 }
 
 void MaterialLibrary::resolveShadowing()
 {
-	// Group by engine and name.
+	// Group by engine and name; Doom walls (TEXTURE1/TEXTURE2) and flats
+	// (F_START..F_END) are separate namespaces, so their kind joins the key.
 	QHash<QString, QVector<int>> groups;
 	for (int index = 0; index < entries.size(); ++index) {
-		groups[materialEngineId(entries.at(index).engine) + QLatin1Char('|') + materialLookupKey(entries.at(index).name)].push_back(index);
+		const MaterialLibraryEntry& entry = entries.at(index);
+		QString key = materialEngineId(entry.engine) + QLatin1Char('|') + materialLookupKey(entry.name);
+		if (entry.engine == MaterialEngine::Doom) {
+			key += QLatin1Char('|') + entry.kind;
+		}
+		groups[key].push_back(index);
 	}
 	for (auto it = groups.cbegin(); it != groups.cend(); ++it) {
 		const QVector<int>& members = it.value();
@@ -604,6 +676,7 @@ MaterialLibrary scanMaterialLibrary(const PackageArchiveReader& reader, const Ma
 		library.scripts.push_back(script);
 	}
 	library.tables.addStandIns();
+	checkLibraryTables(&library.scripts, library.tables);
 
 	// 2. Images no script defines: Quake III or Doom 3 implicit materials.
 	const MaterialEngine detected = detectMaterialEngine(reader);
@@ -642,12 +715,21 @@ MaterialLibrary scanMaterialLibrary(const PackageArchiveReader& reader, const Ma
 				   return entry.typeHint == QStringLiteral("wad-flat") || name == QStringLiteral("TEXTURE1") || name == QStringLiteral("PNAMES")
 					   || entry.virtualPath.startsWith(QStringLiteral("flats/"), Qt::CaseInsensitive);
 			   })) {
-			if (!report(0, 1, Text::tr("Reading Doom textures"))) {
+			const QString doomPhase = Text::tr("Reading Doom textures");
+			if (!report(0, 1, doomPhase)) {
 				return library;
 			}
-			auto catalog = std::make_shared<DoomMaterialCatalog>(readDoomMaterialCatalog(reader));
+			PackageReadControl control;
+			control.isCancelled = [&]() { return !report(0, 1, doomPhase); };
+			auto catalog = std::make_shared<DoomMaterialCatalog>(readDoomMaterialCatalog(reader, control));
 			library.warnings += catalog->warnings;
-			for (MaterialDefinition definition : doomMaterialDefinitions(*catalog)) {
+			const QVector<MaterialDefinition> doomDefinitions = doomMaterialDefinitions(*catalog, [&](int done, int total) {
+				return done % 64 != 0 || report(done, total, doomPhase);
+			});
+			if (library.cancelled) {
+				return library;
+			}
+			for (MaterialDefinition definition : doomDefinitions) {
 				definition.sourcePath = definition.classic.definitionLump.isEmpty() ? definition.name : definition.classic.definitionLump;
 				library.ownDefinitions.push_back(definition);
 			}
@@ -721,8 +803,10 @@ MaterialLibrary scanMaterialLibrary(const PackageArchiveReader& reader, const Ma
 					continue;
 				}
 				const QString key = materialLookupKey(name);
+				// A WAL whose header name is blank is still listed once.
+				const bool listed = infos.contains(key);
 				Quake2WalInfo info = infos.value(key);
-				if (info.name.isEmpty()) {
+				if (!listed) {
 					info.name = name;
 					order << name;
 					paths.insert(key, entry.virtualPath);
@@ -752,6 +836,7 @@ MaterialLibrary scanMaterialLibrary(const PackageArchiveReader& reader, const Ma
 	if (library.entries.size() > options.maximumEntries) {
 		library.warnings << Text::tr("Only the first %1 materials are listed.").arg(options.maximumEntries);
 		library.entries.resize(options.maximumEntries);
+		library.rebuildIndex();
 		library.complete = false;
 	}
 	report(1, 1, Text::tr("Materials ready"));
@@ -796,6 +881,9 @@ StudioQueryProperties materialLibraryEntryQueryProperties(const MaterialLibraryE
 		}
 		properties.insert(QStringLiteral("value"), QString::number(definition.classic.surfaceValue));
 	}
+	// Each stage's blend pair (and its written form) and each image is a
+	// value of its own, so `blend=gl_one gl_one` and `image=<path>` match one
+	// of them exactly; `:` still finds a part of any.
 	QStringList blends;
 	for (const MaterialStage& stage : definition.stages) {
 		blends << materialBlendFactorId(stage.blend.source) + QLatin1Char(' ') + materialBlendFactorId(stage.blend.destination);
@@ -803,11 +891,12 @@ StudioQueryProperties materialLibraryEntryQueryProperties(const MaterialLibraryE
 			blends << stage.blend.written;
 		}
 	}
-	if (!blends.isEmpty()) {
-		properties.insert(QStringLiteral("blend"), blends.join(QStringLiteral(", ")));
+	blends.removeDuplicates();
+	for (const QString& blend : std::as_const(blends)) {
+		properties.insert(QStringLiteral("blend"), blend);
 	}
-	if (!entry.images.isEmpty()) {
-		properties.insert(QStringLiteral("image"), entry.images.join(QLatin1Char(' ')));
+	for (const QString& image : entry.images) {
+		properties.insert(QStringLiteral("image"), image);
 	}
 	return properties;
 }

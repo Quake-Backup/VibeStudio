@@ -2047,9 +2047,17 @@ English, inside translated sentences; its report keys are technical
 identifiers.
 
 The Materials workbench exposes its node graph to screen readers as a list of
-nodes (`QAccessibleWidget` children), each named by its title and described by
-its subtitle, what feeds it and what it feeds; selection and focus changes are
-announced. The arrow keys follow the graph's wires, Enter moves to the node's
+nodes (`QAccessibleWidget` children), each named by its stage and title
+("Stage 2: Coordinates") and described by its kind, its subtitle, what feeds
+it, what it feeds and whether it can be removed or moved; nodes expose press
+and menu actions, and selection and focus changes and the result of each
+graph edit are announced. Property edits are sent once the control's own
+event has finished and focus returns to the same property, and the mouse
+wheel over a choice or number box scrolls the panel unless that control has
+focus, so scrolling never edits by accident. Property choices show
+translatable labels, while numbers, paths and expressions stay left to right
+in right-to-left layouts. The timeline's accessible description does not
+change while the preview plays. The arrow keys follow the graph's wires, Enter moves to the node's
 properties, Delete removes a node and Alt+Up/Alt+Down reorder stages. Ports
 differ by shape as well as colour, library swatches carry shape badges for
 animated and rejected materials, node text scales with the text-size

@@ -1652,6 +1652,10 @@ private:
 	// Shaders mode, fed the package view whenever it changes.
 	QWidget* buildMaterialWorkbench();
 	void syncMaterialWorkbench();
+	// Asks about material texts with unsaved changes (Save All, Discard,
+	// Cancel) before they could be lost: closing, another package or script.
+	// True means go ahead.
+	bool confirmMaterialEditsHandled(const QString& question);
 	void openMaterialScript(const QString& path);
 	void showMaterialsForImage(const QString& virtualPath);
 	void showMaterialNamed(const QString& name);

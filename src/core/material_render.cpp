@@ -1,5 +1,6 @@
 #include "core/material_render.h"
 #include "core/material_render_p.h"
+#include "core/material_video.h"
 
 #include <QCoreApplication>
 #include <QElapsedTimer>
@@ -395,15 +396,6 @@ QSize mainImageSize(const MaterialDefinition& definition, const MaterialImageSet
 
 namespace {
 
-struct Quake3Frame {
-	const MaterialRenderOptions* options = nullptr;
-	double time = 0.0;
-	double identityLight = 0.5;
-	double displayScale = 2.0;
-	int shift = 1;
-	Color lightColor {1, 1, 1, 1};
-};
-
 // R_ColorShiftLightingBytes: shift, then scale all channels down together
 // when one overflows, keeping the hue.
 Color hueClamp(Color color)
@@ -430,6 +422,8 @@ double quake3Sin(int index)
 {
 	return quake3FunctionTable(MaterialWaveFunction::Sin, index);
 }
+
+} // namespace
 
 void applyQuake3Deforms(const MaterialDefinition& definition, Mesh* mesh, const Camera& camera, double time, QStringList* notes)
 {
@@ -461,7 +455,7 @@ void applyQuake3Deforms(const MaterialDefinition& definition, Mesh* mesh, const 
 		case MaterialDeformKind::Bulge: {
 			const double now = time * deform.values[2];
 			for (Vertex& vertex : mesh->vertices) {
-				const int off = static_cast<int>(kQuake3FunctionTableSize / (2 * kPi) * (vertex.s * deform.values[0] + now));
+				const int off = quake3TableIndex(kQuake3FunctionTableSize / (2 * kPi) * (vertex.s * deform.values[0] + now));
 				vertex.position = vertex.position + vertex.normal * (quake3Sin(off) * deform.values[1]);
 			}
 			break;
@@ -532,8 +526,8 @@ void quake3TexCoords(const MaterialStage& stage, const Vertex& vertex, const Cam
 		switch (mod.kind) {
 		case MaterialTexModKind::Turbulent: {
 			const double now = mod.wave.phase + time * mod.wave.frequency;
-			*s += quake3Sin(static_cast<int>(((vertex.position.x + vertex.position.z) / 1024.0 + now) * kQuake3FunctionTableSize)) * mod.wave.amplitude;
-			*t += quake3Sin(static_cast<int>((vertex.position.y / 1024.0 + now) * kQuake3FunctionTableSize)) * mod.wave.amplitude;
+			*s += quake3Sin(quake3TableIndex(((vertex.position.x + vertex.position.z) / 1024.0 + now) * kQuake3FunctionTableSize)) * mod.wave.amplitude;
+			*t += quake3Sin(quake3TableIndex((vertex.position.y / 1024.0 + now) * kQuake3FunctionTableSize)) * mod.wave.amplitude;
 			break;
 		}
 		case MaterialTexModKind::Scroll: {
@@ -551,7 +545,7 @@ void quake3TexCoords(const MaterialStage& stage, const Vertex& vertex, const Cam
 			break;
 		case MaterialTexModKind::Rotate: {
 			const double degrees = -mod.values[0] * time;
-			const int index = static_cast<int>(degrees * (kQuake3FunctionTableSize / 360.0));
+			const int index = quake3TableIndex(degrees * (kQuake3FunctionTableSize / 360.0));
 			const double sn = quake3Sin(index);
 			const double cs = quake3Sin(index + kQuake3FunctionTableSize / 4);
 			const double s0 = *s;
@@ -584,6 +578,8 @@ void quake3TexCoords(const MaterialStage& stage, const Vertex& vertex, const Cam
 	}
 }
 
+namespace {
+
 Color quake3VertexLight(const Vertex& vertex, const Mesh& mesh, const Quake3Frame& frame)
 {
 	const MaterialRenderOptions& options = *frame.options;
@@ -593,6 +589,8 @@ Color quake3VertexLight(const Vertex& vertex, const Mesh& mesh, const Quake3Fram
 	const double level = previewLightAt(vertex.position, vertex.normal, mesh, options.lighting, frame.time);
 	return quake3Lightmap(level, frame);
 }
+
+} // namespace
 
 Color quake3VertexColor(const MaterialDefinition& definition, const MaterialStage& stage, const Vertex& vertex, const Mesh& mesh,
 	const Camera& camera, const Quake3Frame& frame)
@@ -717,6 +715,8 @@ Color quake3VertexColor(const MaterialDefinition& definition, const MaterialStag
 	return color;
 }
 
+namespace {
+
 int alphaTestCode(MaterialAlphaTest test)
 {
 	switch (test) {
@@ -745,7 +745,8 @@ MaterialTexturePtr quake3StageTexture(const MaterialStage& stage, const Material
 		}
 		// R_BindAnimatedImage: (int)(time * fps * 1024) >> 10, at least 0;
 		// Jedi Knight's one-shot animations hold the last frame.
-		long long index = static_cast<long long>(time * stage.animationFrequency * kQuake3FunctionTableSize) >> 10;
+		const double scaled = time * stage.animationFrequency * kQuake3FunctionTableSize;
+		long long index = std::isfinite(scaled) ? static_cast<long long>(std::clamp(scaled, -9.0e18, 9.0e18)) >> 10 : 0;
 		index = stage.animationOnce ? std::clamp(index, 0LL, static_cast<long long>(stage.animationFrames.size() - 1))
 									: std::max(0LL, index) % stage.animationFrames.size();
 		return images.find(stage.animationFrames.at(static_cast<int>(index)));
@@ -861,7 +862,7 @@ void cloudTexMods(const MaterialStage& stage, const Quake3Frame& frame, Material
 			break;
 		case MaterialTexModKind::Rotate: {
 			const double degrees = -mod.values[0] * time;
-			const int index = static_cast<int>(degrees * (kQuake3FunctionTableSize / 360.0));
+			const int index = quake3TableIndex(degrees * (kQuake3FunctionTableSize / 360.0));
 			const double sn = quake3Sin(index);
 			const double cs = quake3Sin(index + kQuake3FunctionTableSize / 4);
 			m[0][0] = cs;
@@ -922,7 +923,7 @@ void drawQuake3Sky(MaterialGpuFrame* gpu, const MaterialDefinition& definition, 
 		GpuDraw textures;
 		for (int face = 0; face < 6; ++face) {
 			const MaterialTexturePtr& texture = box ? box->faces[size_t(face)] : MaterialTexturePtr();
-			gpu->bind(&textures, &u, face, texture && texture->usable() ? gpu->texture(texture.get()) : -1, Wrap::Clamp);
+			gpu->bind(&textures, &u, face, texture && texture->usable() ? gpu->texture(texture) : -1, Wrap::Clamp);
 		}
 		gpu->draw(GpuProgram::MaterialQuake3, u, coverage, vertices, textures);
 	}
@@ -959,7 +960,7 @@ void drawQuake3Sky(MaterialGpuFrame* gpu, const MaterialDefinition& definition, 
 		u.setParam(4, height, source);
 		cloudTexMods(stage, frame, &u);
 		GpuDraw textures;
-		gpu->bind(&textures, &u, 0, gpu->texture(texture.get()), stage.clamp ? Wrap::Clamp : Wrap::Repeat);
+		gpu->bind(&textures, &u, 0, gpu->texture(texture), stage.clamp ? Wrap::Clamp : Wrap::Repeat, definition.noMipMaps ? 1 : 0);
 		GpuState state = coverage;
 		state.blend = !stage.blend.isOpaqueReplace();
 		state.sourceColor = gpuBlendFactor(stage.blend.source);
@@ -994,27 +995,31 @@ MaterialRenderResult renderQuake3Material(const MaterialDefinition& source, cons
 
 	// What the engine actually draws: the shader, its default when it
 	// would be dropped, or the editor image on request.
-	MaterialDefinition definition = source;
+	// The source is used as it is unless something stands in for it.
+	MaterialDefinition substitute;
+	const MaterialDefinition* chosen = &source;
 	if (options.editorImage && !source.editorImage.isEmpty()) {
-		definition = implicitQuake3Material(source.name, MaterialSurfaceContext::TwoD, source.editorImage);
-		definition.stages.first().blend = MaterialBlend();
+		substitute = implicitQuake3Material(source.name, MaterialSurfaceContext::TwoD, source.editorImage);
+		substitute.stages.first().blend = MaterialBlend();
+		chosen = &substitute;
 	} else if (options.honourRejection) {
 		const QString missingImage = quake3MissingImage(source, images);
 		if (!source.engineRejection.isEmpty() || !missingImage.isEmpty()) {
 			// tr.defaultShader: the 16x16 box, identityLighting, unlit.
-			definition = MaterialDefinition();
-			definition.name = source.name;
-			definition.engine = MaterialEngine::Quake3;
+			substitute.name = source.name;
+			substitute.engine = MaterialEngine::Quake3;
 			MaterialStage stage;
 			stage.imageKind = MaterialImageKind::File;
 			stage.imagePath = QStringLiteral("$quake3default");
 			stage.rgbGen.source = MaterialColorSource::IdentityLighting;
-			definition.stages.push_back(stage);
+			substitute.stages.push_back(stage);
+			chosen = &substitute;
 			result.fallback = true;
 			result.notes << (missingImage.isEmpty() ? source.engineRejection
 													: Text::tr("Quake III cannot find %1 and draws its default shader instead.").arg(missingImage));
 		}
 	}
+	const MaterialDefinition& definition = *chosen;
 
 	const QSize imageSize = mainImageSize(definition, images);
 	// Quake III maps default to a texture scale of 0.5: two texels a unit.
@@ -1033,6 +1038,7 @@ MaterialRenderResult renderQuake3Material(const MaterialDefinition& source, cons
 	applyQuake3Deforms(definition, &mesh, camera, frame.time, &result.notes);
 
 	MaterialGpuFrame gpu(camera, mesh, options);
+	gpu.setMeshStatic(definition.deforms.isEmpty());
 	gpu.background(options.background, options.checker, frame.identityLight);
 
 	if (definition.isSky()) {
@@ -1049,6 +1055,9 @@ MaterialRenderResult renderQuake3Material(const MaterialDefinition& source, cons
 	const CullMode cull = cullModeFor(definition.cull);
 	const bool bilinear = options.filtering != MaterialFiltering::Nearest;
 	const MaterialTexturePtr defaultBox = quake3DefaultTexture();
+	// nomipmaps loads the images without mip levels.
+	const int mipLimit = definition.noMipMaps ? 1 : 0;
+	QVector<StageVertex> perVertex;
 	int stageNumber = 0;
 	for (const MaterialStage& stage : definition.stages) {
 		if (cancelled && cancelled()) {
@@ -1077,7 +1086,7 @@ MaterialRenderResult renderQuake3Material(const MaterialDefinition& source, cons
 		}
 		const bool noLightmap = lightmap && options.context != MaterialSurfaceContext::World;
 		// Per-vertex coordinates and colours, as the engine computes them.
-		QVector<StageVertex> perVertex(mesh.vertices.size());
+		perVertex.resize(mesh.vertices.size());
 		for (int index = 0; index < mesh.vertices.size(); ++index) {
 			const Vertex& vertex = mesh.vertices.at(index);
 			StageVertex& values = perVertex[index];
@@ -1094,7 +1103,7 @@ MaterialRenderResult renderQuake3Material(const MaterialDefinition& source, cons
 		u.viewport[3] = static_cast<float>(frame.identityLight);
 		GpuDraw textures;
 		if (!lightmap) {
-			gpu.bind(&textures, &u, 0, gpu.texture(texture.get()), stage.clamp ? Wrap::Clamp : Wrap::Repeat);
+			gpu.bind(&textures, &u, 0, gpu.texture(texture), stage.clamp ? Wrap::Clamp : Wrap::Repeat, mipLimit);
 		}
 		// Equal-depth stages line up exactly: every pass draws the same
 		// positions with the same (invariant) transform.
@@ -1249,26 +1258,31 @@ MaterialRenderResult renderMaterial(const MaterialDefinition& definition, const 
 {
 	QElapsedTimer timer;
 	timer.start();
+	// The flag stops the frame wherever the callback is checked, and on
+	// the device (MaterialGpuFrame::finish).
+	const std::function<bool()> stop = !options.cancelFlag ? cancelled : std::function<bool()>([&cancelled, flag = options.cancelFlag]() {
+		return flag->load() || (cancelled && cancelled());
+	});
 	MaterialRenderOptions bounded = options;
 	bounded.size = QSize(std::clamp(options.size.width(), 8, 4096), std::clamp(options.size.height(), 8, 4096));
 	MaterialRenderResult result;
 	switch (definition.engine) {
 	case MaterialEngine::Quake3:
-		result = renderQuake3Material(definition, images, tables, bounded, cancelled);
+		result = renderQuake3Material(definition, images, tables, bounded, stop);
 		break;
 	case MaterialEngine::Doom3:
-		result = renderDoom3Material(definition, images, tables, bounded, cancelled);
+		result = renderDoom3Material(definition, images, tables, bounded, stop);
 		break;
 	case MaterialEngine::Doom:
 	case MaterialEngine::Quake:
 	case MaterialEngine::Quake2:
-		result = renderClassicMaterial(definition, images, bounded, cancelled);
+		result = renderClassicMaterial(definition, images, bounded, stop);
 		break;
 	case MaterialEngine::Unknown: {
 		const Mesh mesh = buildMesh(MaterialPreviewShape::Wall, 64.0, 64.0, 1.0, 64.0);
 		MaterialGpuFrame gpu(makeCamera(mesh, bounded), mesh, bounded);
 		gpu.background(bounded.background, bounded.checker, 1.0);
-		gpu.finish(1.0, &result, cancelled);
+		gpu.finish(1.0, &result, stop);
 		result.notes << QCoreApplication::translate("VibeStudioMaterials", "The material's engine is unknown, so nothing is drawn.");
 		break;
 	}
@@ -1279,20 +1293,23 @@ MaterialRenderResult renderMaterial(const MaterialDefinition& definition, const 
 }
 
 MaterialRenderResult renderMaterialSwatch(const MaterialDefinition& definition, const MaterialImageSet& images, const MaterialTableSet& tables, int side,
-	double time, const MaterialPreviewLighting& lighting)
+	double time, const MaterialRenderOptions& base)
 {
-	MaterialRenderOptions options;
+	const MaterialRenderOptions framing;
+	MaterialRenderOptions options = base;
 	options.size = QSize(side, side);
 	options.time = time;
+	options.yaw = framing.yaw;
+	options.pitch = framing.pitch;
+	options.zoom = framing.zoom;
+	options.fieldOfView = framing.fieldOfView;
 	options.orthographic = true;
 	options.tiling = 1.0;
-	options.lighting = lighting;
 	options.lighting.lightmapSpot = false;
 	options.lighting.lightOrbit = false;
 	options.lighting.lightAngle = 0.0;
 	options.lighting.doomDistance = false;
 	options.lighting.doomLight = 255;
-	options.checker = true;
 	options.shape = definition.kind == QStringLiteral("doom-flat") ? MaterialPreviewShape::Floor : MaterialPreviewShape::Wall;
 	if (definition.isSky() || definition.isFog()) {
 		options.orthographic = false;
@@ -1300,6 +1317,32 @@ MaterialRenderResult renderMaterialSwatch(const MaterialDefinition& definition, 
 		options.pitch = 22.0;
 	}
 	return renderMaterial(definition, images, tables, options);
+}
+
+MaterialRenderResult renderMaterialSwatch(const MaterialDefinition& definition, const MaterialImageSet& images, const MaterialTableSet& tables, int side,
+	double time, const MaterialPreviewLighting& lighting, const std::atomic_bool* cancelFlag)
+{
+	MaterialRenderOptions base;
+	base.cancelFlag = cancelFlag;
+	base.lighting = lighting;
+	base.checker = true;
+	return renderMaterialSwatch(definition, images, tables, side, time, base);
+}
+
+double materialCycleSeconds(const MaterialDefinition& definition, const MaterialImageSet& images)
+{
+	double cycle = materialFramesCycleSeconds(definition.classic.frames);
+	for (const MaterialStage& stage : definition.stages) {
+		if (!stage.animationFrames.isEmpty() && stage.animationFrequency > 0.0) {
+			cycle = std::max(cycle, stage.animationFrames.size() / stage.animationFrequency);
+		}
+		if (stage.imageKind == MaterialImageKind::Video) {
+			if (const MaterialVideoPtr video = images.findVideo(stage.imagePath)) {
+				cycle = std::max(cycle, video->durationSeconds());
+			}
+		}
+	}
+	return cycle > 0.0 ? std::clamp(cycle, 1.0, 60.0) : 10.0;
 }
 
 } // namespace vibestudio

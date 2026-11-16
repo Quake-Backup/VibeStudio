@@ -23,6 +23,8 @@
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMessageBox>
+#include <QPushButton>
 #include <QStatusBar>
 #include <QTabWidget>
 #include <QTimer>
@@ -94,6 +96,15 @@ QWidget* ApplicationShell::buildMaterialWorkbench()
 	host.revealInPackage = [this](const QString& path) { revealPackageEntry(path); };
 	host.loadState = [this]() { return m_settings.shellLayoutState(QStringLiteral("materialsWorkbench")); };
 	host.saveState = [this](const QByteArray& state) { m_settings.setShellLayoutState(QStringLiteral("materialsWorkbench"), state); };
+	// The base packages Levels has read already, while their files are as read.
+	host.baseReader = [this](const QString& path) -> std::shared_ptr<const PackageArchiveReader> {
+		for (const std::shared_ptr<const PackageArchiveReader>& reader : levelBaseReaders()) {
+			if (reader && QFileInfo(reader->sourcePath()).absoluteFilePath().compare(path, Qt::CaseInsensitive) == 0) {
+				return reader;
+			}
+		}
+		return nullptr;
+	};
 	m_materialWorkbench->setHost(host);
 	connect(m_materialWorkbench, &MaterialWorkbench::statusMessage, this, [this](const QString& message) { statusBar()->showMessage(message); });
 	connect(m_materialWorkbench, &MaterialWorkbench::contentChanged, this, [this]() { refreshSurfaceStates(); });
@@ -150,12 +161,26 @@ void ApplicationShell::refreshLevelBaseReaders()
 		return;
 	}
 	m_levelBaseLoadingKey = key;
+	// The Materials page may have read them already: those are not read and
+	// hashed again.
+	QHash<QString, std::shared_ptr<const PackageArchiveReader>> known;
+	if (m_materialWorkbench) {
+		for (const QString& path : paths) {
+			if (std::shared_ptr<const PackageArchiveReader> reader = m_materialWorkbench->loadedBasePackage(path)) {
+				known.insert(path, std::move(reader));
+			}
+		}
+	}
 	QPointer<ApplicationShell> self(this);
-	m_levelBaseLane->submit([paths, key, self](const MaterialTaskLane::Cancelled& cancelled) -> std::function<void()> {
+	m_levelBaseLane->submit([paths, key, self, known](const MaterialTaskLane::Cancelled& cancelled) -> std::function<void()> {
 		QVector<std::shared_ptr<const PackageArchiveReader>> readers;
 		PackageReadControl control;
 		control.isCancelled = cancelled;
 		for (const QString& path : paths) {
+			if (std::shared_ptr<const PackageArchiveReader> reader = known.value(path)) {
+				readers.push_back(std::move(reader));
+				continue;
+			}
 			auto archive = std::make_shared<PackageArchive>();
 			QString error;
 			// One that does not open is left out, as on the Materials page.
@@ -450,9 +475,52 @@ void ApplicationShell::showMaterialNamed(const QString& name)
 	}
 }
 
+bool ApplicationShell::confirmMaterialEditsHandled(const QString& question)
+{
+	if (!m_materialWorkbench || !m_materialWorkbench->hasUnsavedChanges()) {
+		return true;
+	}
+	const QStringList titles = m_materialWorkbench->unsavedTextTitles();
+	const int count = static_cast<int>(titles.size());
+	QMessageBox box(this);
+	box.setIcon(QMessageBox::Warning);
+	box.setWindowTitle(tr("Unsaved Material Edits"));
+	box.setText(count == 1 ? tr("%1 has unsaved changes.").arg(titles.first())
+						   : tr("%n material text(s) have unsaved changes.", nullptr, count));
+	box.setInformativeText(question);
+	if (count > 1) {
+		box.setDetailedText(titles.join(QLatin1Char('\n')));
+	}
+	// Save All stages package texts into the package (saved with it) and
+	// writes loose scripts in place.
+	QPushButton* save = box.addButton(tr("Save All"), QMessageBox::AcceptRole);
+	QPushButton* discard = box.addButton(tr("Discard Edits"), QMessageBox::DestructiveRole);
+	box.addButton(QMessageBox::Cancel);
+	box.setDefaultButton(save);
+	box.exec();
+	if (box.clickedButton() == discard) {
+		m_materialWorkbench->discardUnsavedChanges();
+		return true;
+	}
+	if (box.clickedButton() == save) {
+		QString error;
+		if (m_materialWorkbench->saveAll(&error)) {
+			return true;
+		}
+		// Shown, not only in the status bar: the step the user asked for stops.
+		QMessageBox::warning(this, tr("Unsaved Material Edits"), error);
+		return false;
+	}
+	return false;
+}
+
 void ApplicationShell::openMaterialScript(const QString& path)
 {
 	if (!m_materialWorkbench) {
+		return;
+	}
+	// The open script's edits are asked about before another one replaces it.
+	if (!confirmMaterialEditsHandled(tr("Save them before opening %1?").arg(QFileInfo(path).fileName()))) {
 		return;
 	}
 	syncMaterialWorkbench();

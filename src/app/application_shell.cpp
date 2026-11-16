@@ -7066,6 +7066,9 @@ void ApplicationShell::openPackageFolder()
 bool ApplicationShell::confirmStagedPackageChangesHandled()
 {
 	if (m_packageSaveRunning || m_packageReadRunning || m_packageExtractionRunning) { return false; }
+	// Material texts are staged only when saved: asked about first, so the
+	// package question below covers what Save All stages.
+	if (!confirmMaterialEditsHandled(tr("Save them before continuing?"))) { return false; }
 	if (!m_packageArchive.isOpen() || !m_packageStaging.isModified()) { return true; }
 	const auto answer = QMessageBox::question(this, tr("Save Package Draft?"),
 		tr("Package edits or undo history have changed. Save a draft before continuing?"),

@@ -246,8 +246,12 @@ void MaterialPreviewView::requestRender(bool supersede)
 	const bool animating = m_playing || m_dragging;
 	m_lane->submit(
 		[this, definition, images, tables, options, animating](const MaterialTaskLane::Cancelled& cancelled) -> std::function<void()> {
+			// A superseded frame stops on the graphics device too, not only
+			// between stages, so the frame asked for next is not kept waiting.
+			MaterialRenderOptions frame = options;
+			frame.cancelFlag = MaterialTaskLane::currentStopFlag();
 			MaterialRenderResult result =
-				renderMaterial(definition, images ? *images : emptyImages(), tables ? *tables : emptyTables(), options, cancelled);
+				renderMaterial(definition, images ? *images : emptyImages(), tables ? *tables : emptyTables(), frame, cancelled);
 			if (result.cancelled) {
 				return {};
 			}

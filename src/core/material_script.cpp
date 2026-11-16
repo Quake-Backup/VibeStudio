@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <optional>
 
 namespace vibestudio {
@@ -77,12 +78,37 @@ struct LineIndex {
 	}
 };
 
+// Line and column of each token start. Tokens come in text order, so one
+// forward walk replaces a binary search per token.
+struct LineTracker {
+	const QString& text;
+	int position = 0;
+	int line = 1;
+	int lineStart = 0;
+
+	void place(Token* token)
+	{
+		const QChar* data = text.constData();
+		while (position < token->start) {
+			if (data[position] == QLatin1Char('\n')) {
+				++line;
+				lineStart = position + 1;
+			}
+			++position;
+		}
+		token->line = line;
+		token->column = token->start - lineStart + 1;
+	}
+};
+
 // Quake III's COM_ParseExt: whitespace-separated words, quoted strings that
 // may span lines, `//` comments and `/* */` comments. A block comment does
 // not count as a line break, as in the engine.
-QVector<Token> lexQuake3(const QString& text, const LineIndex& lines)
+QVector<Token> lexQuake3(const QString& text)
 {
 	QVector<Token> tokens;
+	tokens.reserve(text.size() / 6);
+	LineTracker lines {text};
 	const int size = text.size();
 	int position = 0;
 	bool sawNewline = true;
@@ -134,9 +160,8 @@ QVector<Token> lexQuake3(const QString& text, const LineIndex& lines)
 			token.type = TokenType::Word;
 		}
 		token.end = position;
-		token.line = lines.lineOf(token.start);
-		token.column = lines.columnOf(token.start);
-		tokens.push_back(token);
+		lines.place(&token);
+		tokens.push_back(std::move(token));
 	}
 	return tokens;
 }
@@ -159,14 +184,24 @@ bool isNameChar(QChar c)
 // Doom 3's idLexer with the decl flags: names may hold path characters,
 // punctuation is its own token, and line breaks only matter to the few
 // keywords that read "on line".
-QVector<Token> lexDoom3(const QString& text, const LineIndex& lines)
+QVector<Token> lexDoom3(const QString& text)
 {
 	QVector<Token> tokens;
+	tokens.reserve(text.size() / 5);
+	LineTracker lines {text};
 	const int size = text.size();
 	int position = 0;
 	bool sawNewline = true;
-	static const QStringList multiPunctuation {QStringLiteral("&&"), QStringLiteral("||"), QStringLiteral(">="),
-		QStringLiteral("<="), QStringLiteral("=="), QStringLiteral("!=")};
+	// The two-character operators: && || >= <= == !=.
+	const auto pairAt = [&](int at) {
+		if (at + 1 >= size) {
+			return false;
+		}
+		const char16_t first = text.at(at).unicode();
+		const char16_t second = text.at(at + 1).unicode();
+		return (first == u'&' && second == u'&') || (first == u'|' && second == u'|')
+			|| (second == u'=' && (first == u'>' || first == u'<' || first == u'=' || first == u'!'));
+	};
 	while (position < size) {
 		const QChar c = text.at(position);
 		if (c == QLatin1Char('\n')) {
@@ -247,9 +282,8 @@ QVector<Token> lexDoom3(const QString& text, const LineIndex& lines)
 			token.type = TokenType::Word;
 		} else {
 			token.type = TokenType::Punctuation;
-			const QString pair = text.mid(position, 2);
-			if (multiPunctuation.contains(pair)) {
-				token.text = pair;
+			if (pairAt(position)) {
+				token.text = text.mid(position, 2);
 				position += 2;
 			} else {
 				token.text = QString(c);
@@ -257,11 +291,29 @@ QVector<Token> lexDoom3(const QString& text, const LineIndex& lines)
 			}
 		}
 		token.end = position;
-		token.line = lines.lineOf(token.start);
-		token.column = lines.columnOf(token.start);
-		tokens.push_back(token);
+		lines.place(&token);
+		tokens.push_back(std::move(token));
 	}
 	return tokens;
+}
+
+// For every brace token the index of its partner, -1 when it has none.
+// Quoted strings never count, as in SkipBracedSection.
+QVector<int> matchBraces(const QVector<Token>& tokens)
+{
+	QVector<int> match(tokens.size(), -1);
+	QVector<int> open;
+	for (int index = 0; index < tokens.size(); ++index) {
+		const Token& token = tokens.at(index);
+		if (token.isBrace(QLatin1Char('{'))) {
+			open.push_back(index);
+		} else if (token.isBrace(QLatin1Char('}')) && !open.isEmpty()) {
+			const int partner = open.takeLast();
+			match[partner] = index;
+			match[index] = partner;
+		}
+	}
+	return match;
 }
 
 double toNumber(const QString& text, bool* ok = nullptr)
@@ -317,12 +369,41 @@ public:
 	}
 
 protected:
-	[[nodiscard]] bool atEnd() const { return m_position >= m_tokens.size(); }
+	// Both engines find where each definition ends by brace matching before
+	// they parse it (idDeclFile::LoadAndParse, ScanAndLoadShaderFiles), so a
+	// mistake inside one definition never reaches the next. The parser reads
+	// a definition or a stage with the limit set to its matched closing
+	// brace: tokens from the limit on are out of reach.
+	[[nodiscard]] bool atEnd() const { return m_position >= m_limit; }
 	const Token* peek(int ahead = 0) const
 	{
 		const int index = m_position + ahead;
-		return index >= 0 && index < m_tokens.size() ? &m_tokens.at(index) : nullptr;
+		return index >= 0 && index < m_limit ? &m_tokens.at(index) : nullptr;
 	}
+	void lex(QVector<Token> tokens)
+	{
+		m_tokens = std::move(tokens);
+		m_match = matchBraces(m_tokens);
+		m_limit = static_cast<int>(m_tokens.size());
+		m_position = 0;
+	}
+	// The matched closing brace of the opening brace at `open`, -1 if none.
+	[[nodiscard]] int closingBrace(int open) const { return open >= 0 && open < m_match.size() ? m_match.at(open) : -1; }
+	class Limit {
+	public:
+		Limit(ParserBase* parser, int limit)
+			: m_parser(parser), m_saved(parser->m_limit)
+		{
+			m_parser->m_limit = std::min(limit, m_saved);
+		}
+		~Limit() { m_parser->m_limit = m_saved; }
+		Limit(const Limit&) = delete;
+		Limit& operator=(const Limit&) = delete;
+
+	private:
+		ParserBase* m_parser;
+		int m_saved;
+	};
 	const Token* take()
 	{
 		return atEnd() ? nullptr : &m_tokens.at(m_position++);
@@ -386,6 +467,9 @@ protected:
 		const Token& keyword = m_tokens.at(keywordIndex);
 		directive.keyword = keyword.text;
 		int end = keyword.end;
+		if (endIndex > keywordIndex + 1) {
+			directive.arguments.reserve(endIndex - keywordIndex - 1);
+		}
 		for (int index = keywordIndex + 1; index < endIndex; ++index) {
 			directive.arguments << m_tokens.at(index).text;
 			end = m_tokens.at(index).end;
@@ -402,7 +486,9 @@ protected:
 	LineIndex m_lines;
 	MaterialScript* m_script = nullptr;
 	QVector<Token> m_tokens;
+	QVector<int> m_match;
 	int m_position = 0;
+	int m_limit = 0;
 };
 
 // ---------------------------------------------------------------------------
@@ -585,6 +671,24 @@ const QStringList& quake3GlobalKeywordList()
 	return keywords;
 }
 
+// NameToSrcBlendMode and NameToDstBlendMode, the same in both engines: each
+// side takes its own set of GL factors.
+bool blendSourceFactor(const QString& name, MaterialBlendFactor* factor)
+{
+	static const QSet<QString> names {QStringLiteral("GL_ONE"), QStringLiteral("GL_ZERO"), QStringLiteral("GL_DST_COLOR"),
+		QStringLiteral("GL_ONE_MINUS_DST_COLOR"), QStringLiteral("GL_SRC_ALPHA"), QStringLiteral("GL_ONE_MINUS_SRC_ALPHA"),
+		QStringLiteral("GL_DST_ALPHA"), QStringLiteral("GL_ONE_MINUS_DST_ALPHA"), QStringLiteral("GL_SRC_ALPHA_SATURATE")};
+	return names.contains(name.toUpper()) && materialBlendFactorFromId(name, factor);
+}
+
+bool blendDestinationFactor(const QString& name, MaterialBlendFactor* factor)
+{
+	static const QSet<QString> names {QStringLiteral("GL_ONE"), QStringLiteral("GL_ZERO"), QStringLiteral("GL_SRC_ALPHA"),
+		QStringLiteral("GL_ONE_MINUS_SRC_ALPHA"), QStringLiteral("GL_DST_ALPHA"), QStringLiteral("GL_ONE_MINUS_DST_ALPHA"),
+		QStringLiteral("GL_SRC_COLOR"), QStringLiteral("GL_ONE_MINUS_SRC_COLOR")};
+	return names.contains(name.toUpper()) && materialBlendFactorFromId(name, factor);
+}
+
 class Quake3Parser final : public ParserBase {
 public:
 	using ParserBase::ParserBase;
@@ -593,7 +697,7 @@ public:
 
 	void parse()
 	{
-		m_tokens = lexQuake3(m_text, m_lines);
+		lex(lexQuake3(m_text));
 		while (!atEnd()) {
 			const int nameIndex = m_position;
 			const Token* name = take();
@@ -605,24 +709,73 @@ public:
 				diagnostic.line = name->line;
 				diagnostic.column = name->column;
 				m_script->diagnostics.push_back(diagnostic);
+				noteBraceProblem(name->text, name->line);
 				if (name->isBrace(QLatin1Char('{'))) {
-					skipBracedSection(1);
+					skipBracedSection(nameIndex);
 				}
 				continue;
 			}
 			parseShader(nameIndex);
 		}
+		applyBrokenFileRule();
 	}
 
 private:
-	void skipBracedSection(int depth)
+	// Jumps past the section the brace at `open` starts; to the end when it
+	// has no closing brace.
+	void skipBracedSection(int open)
 	{
-		while (depth > 0 && !atEnd()) {
-			const Token* token = take();
-			if (token->isBrace(QLatin1Char('{'))) {
-				++depth;
-			} else if (token->isBrace(QLatin1Char('}'))) {
-				--depth;
+		const int close = closingBrace(open);
+		m_position = close >= 0 ? close + 1 : m_limit;
+	}
+
+	// ioquake3's ScanAndLoadShaderFiles checks every shader's braces first
+	// and ignores the whole file when one is missing ("Ignoring shader file
+	// %s. Shader \"%s\" on line %d missing opening/closing brace"), so no
+	// shader in it loads. iortcw does the same for a missing opening brace
+	// only (a missing closing brace only drops its own common.shader). Quake
+	// III 1.32, Enemy Territory 2.60b and OpenJK have no such check.
+	struct BraceProblem {
+		QString name;
+		int line = 0;
+	};
+	std::optional<BraceProblem> m_openingProblem;
+	std::optional<BraceProblem> m_closingProblem;
+
+	void noteBraceProblem(const QString& name, int line, bool opening = true)
+	{
+		std::optional<BraceProblem>& slot = opening ? m_openingProblem : m_closingProblem;
+		if (!slot) {
+			slot = BraceProblem {name, line};
+		}
+	}
+
+	void applyBrokenFileRule()
+	{
+		std::optional<BraceProblem> problem;
+		if (m_dialect == MaterialDialect::Quake3) {
+			problem = m_openingProblem ? m_openingProblem : m_closingProblem;
+			if (m_openingProblem && m_closingProblem && m_closingProblem->line < m_openingProblem->line) {
+				problem = m_closingProblem;
+			}
+		} else if (m_dialect == MaterialDialect::Wolfenstein) {
+			problem = m_openingProblem;
+		}
+		if (!problem) {
+			return;
+		}
+		const QString reason = Text::tr("%1 ignores this whole file: shader '%2' on line %3 is missing a brace.")
+								   .arg(dialectShortName(m_dialect), problem->name)
+								   .arg(problem->line);
+		MaterialDiagnostic diagnostic;
+		diagnostic.severity = MaterialDiagnosticSeverity::Error;
+		diagnostic.code = QStringLiteral("script-ignored");
+		diagnostic.message = reason;
+		diagnostic.line = problem->line;
+		m_script->diagnostics.push_back(diagnostic);
+		for (MaterialDefinition& definition : m_script->materials) {
+			if (definition.engineRejection.isEmpty()) {
+				definition.engineRejection = reason;
 			}
 		}
 	}
@@ -642,45 +795,63 @@ private:
 		if (!open || !open->isBrace(QLatin1Char('{'))) {
 			// ParseShader warns "expecting '{'" and the shader is not loaded.
 			reject(&definition, Text::tr("Quake III expects '{' after the shader name and does not load this shader."), open ? open : &nameToken);
+			noteBraceProblem(nameToken.text, nameToken.line);
 			if (open) {
 				take();
 			}
 			definition.span = spanOf(nameToken.start, open ? open->end : nameToken.end);
-			m_script->materials.push_back(definition);
+			m_script->materials.push_back(std::move(definition));
 			return;
 		}
+		const int openIndex = m_position;
 		take();
+		const int close = closingBrace(openIndex);
 		const int bodyStart = open->start;
 		int stageCount = 0;
 		bool closed = false;
 		int bodyEnd = open->end;
-		while (!atEnd()) {
-			const int keywordIndex = m_position;
-			const Token* token = take();
-			if (token->isBrace(QLatin1Char('}'))) {
-				closed = true;
-				bodyEnd = token->end;
-				break;
+		{
+			// A matched body is read up to its closing brace and no further.
+			std::optional<Limit> limit;
+			if (close >= 0) {
+				limit.emplace(this, close);
 			}
-			if (token->isBrace(QLatin1Char('{'))) {
-				if (stageCount >= 8) {
-					reject(&definition, Text::tr("Quake III allows at most 8 stages (MAX_SHADER_STAGES) and drops this shader."), token, stageCount);
+			while (!atEnd()) {
+				const int keywordIndex = m_position;
+				const Token* token = take();
+				if (token->isBrace(QLatin1Char('}'))) {
+					// Only reached when a line skip swallowed this brace's
+					// partner: the engine's shader ends here.
+					closed = true;
+					bodyEnd = token->end;
+					break;
 				}
-				parseStage(&definition, keywordIndex, stageCount);
-				++stageCount;
-				continue;
+				if (token->isBrace(QLatin1Char('{'))) {
+					if (stageCount >= 8) {
+						reject(&definition, Text::tr("Quake III allows at most 8 stages (MAX_SHADER_STAGES) and drops this shader."), token, stageCount);
+					}
+					parseStage(&definition, keywordIndex, stageCount);
+					++stageCount;
+					continue;
+				}
+				parseGlobal(&definition, keywordIndex);
 			}
-			parseGlobal(&definition, keywordIndex);
+		}
+		if (close >= 0) {
+			closed = true;
+			bodyEnd = m_tokens.at(close).end;
+			m_position = close + 1;
 		}
 		if (!closed) {
 			reject(&definition, Text::tr("The shader has no closing brace; Quake III stops reading it."), &nameToken);
+			noteBraceProblem(nameToken.text, nameToken.line, false);
 			bodyEnd = m_tokens.isEmpty() ? nameToken.end : m_tokens.last().end;
 		}
 		definition.bodySpan = spanOf(bodyStart, bodyEnd);
 		definition.span = spanOf(nameToken.start, bodyEnd);
 		applyImplicitStages(&definition);
 		finishShader(&definition);
-		m_script->materials.push_back(definition);
+		m_script->materials.push_back(std::move(definition));
 	}
 
 	// Enemy Territory's SetImplicitShaderStages for a lightmapped surface:
@@ -749,6 +920,12 @@ private:
 					Text::tr("Quake III skips the rest of this line, including this brace."), token, stage);
 			}
 		}
+		// The block's own closing brace on the same line is out of reach
+		// here, but the engine's line skip swallows it too.
+		if (m_position == m_limit && m_limit < m_tokens.size() && !m_tokens.at(m_limit).newlineBefore) {
+			diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("brace-swallowed"),
+				Text::tr("Quake III skips the rest of this line, including this brace."), &m_tokens.at(m_limit), stage);
+		}
 		return m_position;
 	}
 
@@ -769,16 +946,20 @@ private:
 		return true;
 	}
 
-	// Parse1DMatrix: "( a b c )".
+	// ParseVector: "( a b c )". Like the engine, the numbers read before a
+	// missing one or a missing ")" are kept.
 	static bool parseVector(const QStringList& words, int first, int count, double* out)
 	{
-		if (words.size() < first + count + 2 || words.at(first) != QStringLiteral("(") || words.at(first + count + 1) != QStringLiteral(")")) {
+		if (words.value(first) != QStringLiteral("(")) {
 			return false;
 		}
 		for (int index = 0; index < count; ++index) {
+			if (first + 1 + index >= words.size()) {
+				return false;
+			}
 			out[index] = toNumber(words.at(first + 1 + index));
 		}
-		return true;
+		return words.value(first + count + 1) == QStringLiteral(")");
 	}
 
 	QStringList takeLineWords()
@@ -847,8 +1028,9 @@ private:
 			const QStringList words = takeLineWords();
 			double color[3] = {0.0, 0.0, 0.0};
 			if (!parseVector(words, 0, 3, color)) {
-				diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("bad-arguments"),
-					Text::tr("fogParms needs a colour in parentheses: fogParms ( r g b ) distance."), &keyword);
+				// ParseShader returns qfalse when the colour does not parse.
+				reject(definition, Text::tr("fogParms needs a colour in parentheses, fogParms ( r g b ) distance; Quake III drops this shader."),
+					&keyword);
 			} else if (words.size() < 6) {
 				diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("missing-argument"),
 					Text::tr("fogParms is missing the distance to opaque."), &keyword);
@@ -863,18 +1045,18 @@ private:
 			definition->sortValue = 1;
 		} else if (key == QStringLiteral("skyparms")) {
 			const QStringList words = takeLineWords();
+			// ParseSkyParms returns before marking the shader a sky when a
+			// parameter is missing.
 			if (words.size() < 3) {
 				diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("missing-argument"),
-					Text::tr("skyParms needs a far box, a cloud height and a near box (use - for none)."), &keyword);
-			}
-			definition->sky.present = true;
-			definition->sky.farBox = words.value(0);
-			const double height = toNumber(words.value(1));
-			definition->sky.cloudHeight = height == 0.0 ? 512.0 : height;
-			definition->sky.nearBox = words.value(2);
-			if (definition->sort.isEmpty()) {
-				definition->sort = QStringLiteral("sky");
-				definition->sortValue = 2;
+					Text::tr("skyParms needs a far box, a cloud height and a near box (use - for none); Quake III does not draw this shader as a sky."),
+					&keyword);
+			} else {
+				definition->sky.present = true;
+				definition->sky.farBox = words.value(0);
+				const double height = toNumber(words.value(1));
+				definition->sky.cloudHeight = height == 0.0 ? 512.0 : height;
+				definition->sky.nearBox = words.value(2);
 			}
 		} else if (key == QStringLiteral("light")) {
 			takeOnLine();
@@ -980,7 +1162,7 @@ private:
 			if (div == 0.0) {
 				diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("bad-arguments"),
 					Text::tr("deformVertexes wave needs a non-zero spread; Quake III uses 100."), &keyword);
-				deform.spread = 1.0 / 100.0;
+				deform.spread = 100.0;
 			} else {
 				deform.spread = 1.0 / div;
 			}
@@ -1004,7 +1186,8 @@ private:
 			deform.kind = MaterialDeformKind::Autosprite2;
 		} else if (type == QStringLiteral("projectionshadow")) {
 			deform.kind = MaterialDeformKind::ProjectionShadow;
-		} else if (type.startsWith(QStringLiteral("text")) && type.size() == 5) {
+		} else if (type.startsWith(QStringLiteral("text"))) {
+			// Q_stricmpn( token, "text", 4 ): any digit after it, 0 otherwise.
 			deform.kind = MaterialDeformKind::Text;
 		} else {
 			diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("bad-arguments"),
@@ -1037,20 +1220,36 @@ private:
 		bool closed = false;
 		int end = open.end;
 		bool blendSeen = false;
-		while (!atEnd()) {
-			const int keywordIndex = m_position;
-			const Token* token = take();
-			if (token->isBrace(QLatin1Char('}'))) {
-				closed = true;
-				end = token->end;
-				break;
+		const int close = closingBrace(openIndex);
+		{
+			std::optional<Limit> limit;
+			if (close >= 0) {
+				limit.emplace(this, close);
 			}
-			if (token->isBrace(QLatin1Char('{'))) {
-				reject(definition, Text::tr("A stage cannot contain another stage; Quake III drops this shader."), token, stageIndex);
-				stage.directives.push_back(directiveFrom(keywordIndex, m_position));
-				continue;
+			while (!atEnd()) {
+				const int keywordIndex = m_position;
+				const Token* token = take();
+				if (token->isBrace(QLatin1Char('}'))) {
+					closed = true;
+					end = token->end;
+					break;
+				}
+				if (token->isBrace(QLatin1Char('{'))) {
+					// ParseStage reads it as an unknown parameter; the stage
+					// still ends at its own closing brace.
+					reject(definition, Text::tr("A stage cannot contain another stage; Quake III drops this shader."), token, stageIndex);
+					const int nestedClose = closingBrace(keywordIndex);
+					m_position = nestedClose >= 0 ? nestedClose + 1 : m_limit;
+					stage.directives.push_back(directiveFrom(keywordIndex, keywordIndex + 1));
+					continue;
+				}
+				parseStageKeyword(definition, &stage, keywordIndex, &blendSeen);
 			}
-			parseStageKeyword(definition, &stage, keywordIndex, &blendSeen);
+		}
+		if (close >= 0) {
+			closed = true;
+			end = m_tokens.at(close).end;
+			m_position = close + 1;
 		}
 		if (!closed) {
 			reject(definition, Text::tr("A stage has no closing brace; Quake III drops this shader."), &open, stageIndex);
@@ -1058,7 +1257,7 @@ private:
 		}
 		stage.span = spanOf(open.start, end);
 		finishStage(&stage, blendSeen);
-		definition->stages.push_back(stage);
+		definition->stages.push_back(std::move(stage));
 	}
 
 	void parseStageKeyword(MaterialDefinition* definition, MaterialStage* stage, int keywordIndex, bool* blendSeen)
@@ -1115,8 +1314,9 @@ private:
 		} else if (key == QStringLiteral("detail")) {
 			stage->detail = true;
 		} else if (key == QStringLiteral("blendfunc")) {
-			parseBlendFunc(definition, stage, keyword);
-			*blendSeen = true;
+			if (parseBlendFunc(definition, stage, keyword)) {
+				*blendSeen = true;
+			}
 		} else if (key == QStringLiteral("rgbgen")) {
 			parseColorGen(definition, stage, keyword, false);
 		} else if (key == QStringLiteral("alphagen")) {
@@ -1132,9 +1332,11 @@ private:
 			} else if (source == QStringLiteral("texture") || source == QStringLiteral("base")) {
 				stage->tcGen.source = MaterialTexCoordSource::Base;
 			} else if (source == QStringLiteral("vector")) {
-				double s[3] = {1, 0, 0};
-				double t[3] = {0, 1, 0};
-				if (!parseVector(words, 1, 3, s) || !parseVector(words, 6, 3, t)) {
+				// The stage starts zeroed; what ParseVector read stays.
+				double s[3] = {0, 0, 0};
+				double t[3] = {0, 0, 0};
+				const bool first = parseVector(words, 1, 3, s);
+				if (!first || !parseVector(words, 6, 3, t)) {
 					diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("bad-arguments"),
 						Text::tr("tcGen vector needs two vectors: ( sx sy sz ) ( tx ty tz )."), &keyword, stageIndex);
 				}
@@ -1142,6 +1344,8 @@ private:
 				stage->tcGen.vectorS = {s[0], s[1], s[2]};
 				stage->tcGen.vectorT = {t[0], t[1], t[2]};
 			} else {
+				// The engine warns and leaves the default coordinates.
+				stage->tcGen.explicitlySet = false;
 				diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("bad-arguments"),
 					Text::tr("Unknown tcGen '%1'.").arg(words.value(0)), &keyword, stageIndex);
 			}
@@ -1183,8 +1387,9 @@ private:
 		const QString name = image->text;
 		stage->clamp = clamp;
 		if (name.compare(QStringLiteral("$lightmap"), Qt::CaseInsensitive) == 0) {
+			// The lightmap coordinates are only a default (finishStage): an
+			// explicit tcGen wins, written before or after the map.
 			stage->imageKind = MaterialImageKind::Lightmap;
-			stage->tcGen.source = MaterialTexCoordSource::Lightmap;
 		} else if (name.compare(QStringLiteral("$whiteimage"), Qt::CaseInsensitive) == 0 || name.compare(QStringLiteral("*white"), Qt::CaseInsensitive) == 0) {
 			stage->imageKind = MaterialImageKind::White;
 		} else {
@@ -1253,67 +1458,74 @@ private:
 		}
 	}
 
-	void parseBlendFunc(MaterialDefinition* definition, MaterialStage* stage, const Token& keyword)
+	// False when the line is ignored: ParseStage warns about a missing
+	// parameter and goes on with the next line, keeping the shader.
+	bool parseBlendFunc(MaterialDefinition* definition, MaterialStage* stage, const Token& keyword)
 	{
 		const Token* first = takeOnLine();
 		if (!first) {
-			reject(definition, Text::tr("Missing parameter for 'blendFunc'; Quake III drops this shader."), &keyword, stage->index);
-			return;
+			diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("missing-argument"),
+				Text::tr("blendFunc has no parameter; Quake III ignores this line."), &keyword, stage->index);
+			return false;
 		}
-		stage->blend.explicitBlend = true;
 		const QString shorthand = first->text.toLower();
 		if (shorthand == QStringLiteral("add")) {
+			stage->blend.explicitBlend = true;
 			stage->blend.source = MaterialBlendFactor::One;
 			stage->blend.destination = MaterialBlendFactor::One;
 			stage->blend.written = first->text;
-			return;
+			return true;
 		}
 		if (shorthand == QStringLiteral("filter")) {
+			stage->blend.explicitBlend = true;
 			stage->blend.source = MaterialBlendFactor::DestinationColor;
 			stage->blend.destination = MaterialBlendFactor::Zero;
 			stage->blend.written = first->text;
-			return;
+			return true;
 		}
 		if (shorthand == QStringLiteral("blend")) {
+			stage->blend.explicitBlend = true;
 			stage->blend.source = MaterialBlendFactor::SourceAlpha;
 			stage->blend.destination = MaterialBlendFactor::OneMinusSourceAlpha;
 			stage->blend.written = first->text;
-			return;
+			return true;
 		}
 		const Token* second = takeOnLine();
 		if (!second) {
-			reject(definition, Text::tr("blendFunc needs two GL factors or add, filter or blend; Quake III drops this shader."), &keyword, stage->index);
-			return;
+			// The engine has already taken the source factor but skips the
+			// depth-mask change, so the stage still writes depth; the preview
+			// ignores the whole line.
+			diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("missing-argument"),
+				Text::tr("blendFunc needs two GL factors or add, filter or blend; Quake III ignores this line."), &keyword, stage->index);
+			return false;
 		}
+		stage->blend.explicitBlend = true;
 		stage->blend.written = first->text + QLatin1Char(' ') + second->text;
 		MaterialBlendFactor source = MaterialBlendFactor::One;
 		MaterialBlendFactor destination = MaterialBlendFactor::One;
-		static const QSet<QString> sourceFactors {QStringLiteral("GL_ONE"), QStringLiteral("GL_ZERO"), QStringLiteral("GL_DST_COLOR"),
-			QStringLiteral("GL_ONE_MINUS_DST_COLOR"), QStringLiteral("GL_SRC_ALPHA"), QStringLiteral("GL_ONE_MINUS_SRC_ALPHA"),
-			QStringLiteral("GL_DST_ALPHA"), QStringLiteral("GL_ONE_MINUS_DST_ALPHA"), QStringLiteral("GL_SRC_ALPHA_SATURATE")};
-		static const QSet<QString> destinationFactors {QStringLiteral("GL_ONE"), QStringLiteral("GL_ZERO"), QStringLiteral("GL_SRC_ALPHA"),
-			QStringLiteral("GL_ONE_MINUS_SRC_ALPHA"), QStringLiteral("GL_DST_ALPHA"), QStringLiteral("GL_ONE_MINUS_DST_ALPHA"),
-			QStringLiteral("GL_SRC_COLOR"), QStringLiteral("GL_ONE_MINUS_SRC_COLOR")};
 		// NameToSrcBlendMode / NameToDstBlendMode warn and fall back to GL_ONE.
-		if (!sourceFactors.contains(first->text.toUpper()) || !materialBlendFactorFromId(first->text, &source)) {
+		if (!blendSourceFactor(first->text, &source)) {
 			source = MaterialBlendFactor::One;
 			diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("bad-arguments"),
 				Text::tr("Unknown blend source '%1'; Quake III uses GL_ONE.").arg(first->text), first, stage->index);
 		}
-		if (!destinationFactors.contains(second->text.toUpper()) || !materialBlendFactorFromId(second->text, &destination)) {
+		if (!blendDestinationFactor(second->text, &destination)) {
 			destination = MaterialBlendFactor::One;
 			diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("bad-arguments"),
 				Text::tr("Unknown blend destination '%1'; Quake III uses GL_ONE.").arg(second->text), second, stage->index);
 		}
 		stage->blend.source = source;
 		stage->blend.destination = destination;
+		return true;
 	}
 
 	void parseColorGen(MaterialDefinition* definition, MaterialStage* stage, const Token& keyword, bool alpha)
 	{
 		const QStringList words = takeLineWords();
 		if (words.isEmpty()) {
-			reject(definition, Text::tr("Missing parameter for '%1'; Quake III drops this shader.").arg(keyword.text), &keyword, stage->index);
+			// ParseStage warns "missing parameters" and keeps the shader.
+			diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("missing-argument"),
+				Text::tr("%1 has no parameter; Quake III ignores this line.").arg(keyword.text), &keyword, stage->index);
 			return;
 		}
 		MaterialColorGen& gen = alpha ? stage->alphaGen : stage->rgbGen;
@@ -1339,7 +1551,9 @@ private:
 				}
 				gen.constantAlpha = toNumber(words.value(1));
 			} else {
-				double color[3] = {1, 1, 1};
+				// VectorClear first: a malformed colour is black where it
+				// is missing.
+				double color[3] = {0, 0, 0};
 				if (!parseVector(words, 1, 3, color)) {
 					bad();
 				}
@@ -1483,27 +1697,36 @@ private:
 
 	static void finishShader(MaterialDefinition* definition)
 	{
-		if (definition->sort.isEmpty()) {
-			// FinishShader: decal for polygonOffset, fog without stages;
-			// a blended first stage sorts as seeThrough when a blended
-			// stage writes depth, else blend0; otherwise opaque.
-			if (definition->polygonOffset) {
-				definition->sort = QStringLiteral("decal");
-				definition->sortValue = 4;
-			} else if (definition->stages.isEmpty()) {
-				definition->sort = QStringLiteral("fog");
-				definition->sortValue = 7;
-			} else if (!definition->stages.first().blend.isOpaqueReplace()) {
-				bool blendedDepth = false;
-				for (const MaterialStage& stage : definition->stages) {
-					blendedDepth |= !stage.blend.isOpaqueReplace() && stage.depthWrite;
+		// FinishShader: a sky always sorts as the environment; polygonOffset
+		// makes an unsorted shader a decal; otherwise the first drawn stage
+		// that blends while stage 1 blends too sets it, seeThrough when that
+		// stage writes depth, else blend0; then opaque. A shader without
+		// stages that is no sky is a fog shader whatever its sort said.
+		if (definition->sky.present) {
+			definition->sort = QStringLiteral("sky");
+			definition->sortValue = 2;
+		}
+		if (definition->sort.isEmpty() && definition->polygonOffset) {
+			definition->sort = QStringLiteral("decal");
+			definition->sortValue = 4;
+		}
+		if (definition->sort.isEmpty() && !definition->stages.isEmpty() && !definition->stages.first().blend.isOpaqueReplace()) {
+			for (const MaterialStage& stage : definition->stages) {
+				if (stage.imageKind == MaterialImageKind::None || stage.blend.isOpaqueReplace()) {
+					continue;
 				}
-				definition->sort = blendedDepth ? QStringLiteral("seeThrough") : QStringLiteral("blend0");
-				definition->sortValue = blendedDepth ? 5 : 9;
-			} else {
-				definition->sort = QStringLiteral("opaque");
-				definition->sortValue = 3;
+				definition->sort = stage.depthWrite ? QStringLiteral("seeThrough") : QStringLiteral("blend0");
+				definition->sortValue = stage.depthWrite ? 5 : 9;
+				break;
 			}
+		}
+		if (definition->sort.isEmpty()) {
+			definition->sort = QStringLiteral("opaque");
+			definition->sortValue = 3;
+		}
+		if (definition->stages.isEmpty() && !definition->sky.present) {
+			definition->sort = QStringLiteral("fog");
+			definition->sortValue = 7;
 		}
 		for (const MaterialStage& stage : definition->stages) {
 			if (stage.imageKind == MaterialImageKind::None) {
@@ -1622,7 +1845,7 @@ public:
 
 	void parse()
 	{
-		m_tokens = lexDoom3(m_text, m_lines);
+		lex(lexDoom3(m_text));
 		while (!atEnd()) {
 			const int startIndex = m_position;
 			const Token* token = take();
@@ -1635,7 +1858,7 @@ public:
 				diagnostic.column = token->column;
 				m_script->diagnostics.push_back(diagnostic);
 				if (token->isBrace(QLatin1Char('{'))) {
-					skipBracedSection(1);
+					skipBracedSection(startIndex);
 				}
 				continue;
 			}
@@ -1660,8 +1883,7 @@ public:
 				diagnostic.column = token->column;
 				m_script->diagnostics.push_back(diagnostic);
 				if (peek() && peek()->isBrace(QLatin1Char('{'))) {
-					take();
-					skipBracedSection(1);
+					skipBracedSection(m_position);
 				}
 			} else {
 				parseMaterial(startIndex, startIndex);
@@ -1670,16 +1892,12 @@ public:
 	}
 
 private:
-	void skipBracedSection(int depth)
+	// Jumps past the section the brace at `open` starts; to the end when it
+	// has no closing brace.
+	void skipBracedSection(int open)
 	{
-		while (depth > 0 && !atEnd()) {
-			const Token* token = take();
-			if (token->isBrace(QLatin1Char('{'))) {
-				++depth;
-			} else if (token->isBrace(QLatin1Char('}'))) {
-				--depth;
-			}
-		}
+		const int close = closingBrace(open);
+		m_position = close >= 0 ? close + 1 : m_limit;
 	}
 
 	bool expect(MaterialDefinition* definition, const char* punctuation, const Token* near)
@@ -1705,7 +1923,7 @@ public:
 	// One expression on its own, for the graph editor and the CLI.
 	int parseStandaloneExpression(QVector<MaterialExpressionNode>* nodes, QString* error)
 	{
-		m_tokens = lexDoom3(m_text, m_lines);
+		lex(lexDoom3(m_text));
 		MaterialDefinition scratch;
 		scratch.name = QStringLiteral("expression");
 		scratch.engine = MaterialEngine::Doom3;
@@ -1743,23 +1961,6 @@ public:
 
 private:
 	QString m_lastReason;
-
-	// After the first error the engine stops reading the material: skip the
-	// rest of its body, braces balanced from `depth`.
-	int skipRestOfBody(int depth)
-	{
-		int end = m_tokens.isEmpty() ? 0 : m_tokens.at(std::max(0, m_position - 1)).end;
-		while (depth > 0 && !atEnd()) {
-			const Token* token = take();
-			end = token->end;
-			if (token->isBrace(QLatin1Char('{'))) {
-				++depth;
-			} else if (token->isBrace(QLatin1Char('}'))) {
-				--depth;
-			}
-		}
-		return depth == 0 ? end : -1;
-	}
 
 	// A float that may be written with a leading minus (idLexer::ParseFloat).
 	std::optional<double> parseFloat()
@@ -1810,12 +2011,21 @@ private:
 			fail(Text::tr("Table '%1' has no body.").arg(table.name), name);
 			return;
 		}
+		const int open = m_position;
 		take();
+		const int close = closingBrace(open);
 		bool ok = true;
 		int end = name->end;
+		std::optional<Limit> limit;
+		if (close >= 0) {
+			limit.emplace(this, close);
+			end = m_tokens.at(close).end;
+		}
 		while (!atEnd()) {
 			const Token* token = take();
-			end = token->end;
+			if (close < 0) {
+				end = token->end;
+			}
 			if (token->isBrace(QLatin1Char('}'))) {
 				break;
 			}
@@ -1837,7 +2047,9 @@ private:
 						ok = false;
 						break;
 					}
-					end = separator->end;
+					if (close < 0) {
+						end = separator->end;
+					}
 					if (separator->isBrace(QLatin1Char('}'))) {
 						break;
 					}
@@ -1849,15 +2061,19 @@ private:
 					break;
 				}
 				if (!ok) {
-					skipBracedSection(1);
+					m_position = m_limit;
 					break;
 				}
 			} else {
 				fail(Text::tr("Unknown token '%1' in table '%2'.").arg(token->text, table.name), token);
 				ok = false;
-				skipBracedSection(1);
+				m_position = m_limit;
 				break;
 			}
+		}
+		if (close >= 0) {
+			limit.reset();
+			m_position = close + 1;
 		}
 		table.span = spanOf(keyword.start, end);
 		if (ok && table.values.isEmpty()) {
@@ -1942,30 +2158,44 @@ private:
 			m_script->materials.push_back(definition);
 			return;
 		}
+		const int openIndex = m_position;
 		take();
+		// idDeclFile::LoadAndParse hands idMaterial only the text up to the
+		// matched closing brace, or to the end of the file when there is
+		// none.
+		const int close = closingBrace(openIndex);
 		int end = open->end;
 		bool closed = false;
-		while (!atEnd()) {
-			if (!definition.engineRejection.isEmpty()) {
-				const int bodyEnd = skipRestOfBody(1);
-				if (bodyEnd >= 0) {
-					closed = true;
-					end = bodyEnd;
+		{
+			std::optional<Limit> limit;
+			if (close >= 0) {
+				limit.emplace(this, close);
+			}
+			while (!atEnd()) {
+				if (!definition.engineRejection.isEmpty()) {
+					// After the first error the engine stops reading the
+					// material.
+					m_position = m_limit;
+					break;
 				}
-				break;
+				const int keywordIndex = m_position;
+				const Token* token = take();
+				if (token->isBrace(QLatin1Char('}'))) {
+					closed = true;
+					end = token->end;
+					break;
+				}
+				if (token->isBrace(QLatin1Char('{'))) {
+					parseStage(&definition, keywordIndex);
+					continue;
+				}
+				parseGlobal(&definition, keywordIndex);
 			}
-			const int keywordIndex = m_position;
-			const Token* token = take();
-			if (token->isBrace(QLatin1Char('}'))) {
-				closed = true;
-				end = token->end;
-				break;
-			}
-			if (token->isBrace(QLatin1Char('{'))) {
-				parseStage(&definition, keywordIndex);
-				continue;
-			}
-			parseGlobal(&definition, keywordIndex);
+		}
+		if (close >= 0) {
+			closed = true;
+			end = m_tokens.at(close).end;
+			m_position = close + 1;
 		}
 		if (!closed) {
 			defaulted(&definition, Text::tr("The material has no closing brace."), &name);
@@ -1974,7 +2204,7 @@ private:
 		definition.bodySpan = spanOf(open->start, end);
 		definition.span = spanOf(start.start, end);
 		finishMaterial(&definition);
-		m_script->materials.push_back(definition);
+		m_script->materials.push_back(std::move(definition));
 	}
 
 	// R_ParsePastImageProgram: an image name or a function call.
@@ -2243,7 +2473,11 @@ private:
 				definition->guiSurface = gui->text;
 			}
 		} else if (key == QStringLiteral("sort")) {
-			if (const Token* value = takeOnLine()) {
+			const Token* value = takeOnLine();
+			if (!value) {
+				// ParseSort: "missing sort parameter" defaults the material.
+				defaulted(definition, Text::tr("sort needs a name or a number."), &keyword);
+			} else {
 				static const QHash<QString, double> sorts {
 					{QStringLiteral("subview"), -3},
 					{QStringLiteral("opaque"), 0},
@@ -2419,37 +2653,40 @@ private:
 		stage.index = definition->stages.size();
 		int end = open.end;
 		bool closed = false;
-		while (!atEnd()) {
-			if (!definition->engineRejection.isEmpty()) {
-				// A defaulted material stops parsing; skip to this stage's end.
-				int depth = 1;
-				while (depth > 0 && !atEnd()) {
-					const Token* token = take();
-					end = token->end;
-					if (token->isBrace(QLatin1Char('{'))) {
-						++depth;
-					} else if (token->isBrace(QLatin1Char('}'))) {
-						--depth;
-					}
+		const int close = closingBrace(openIndex);
+		{
+			std::optional<Limit> limit;
+			if (close >= 0) {
+				limit.emplace(this, close);
+			}
+			while (!atEnd()) {
+				if (!definition->engineRejection.isEmpty()) {
+					// A defaulted material stops parsing; the stage still ends
+					// at its own closing brace.
+					m_position = m_limit;
+					break;
 				}
-				closed = depth == 0;
-				break;
+				const int keywordIndex = m_position;
+				const Token* token = take();
+				if (token->isBrace(QLatin1Char('}'))) {
+					closed = true;
+					end = token->end;
+					break;
+				}
+				parseStageKeyword(definition, &stage, keywordIndex);
 			}
-			const int keywordIndex = m_position;
-			const Token* token = take();
-			if (token->isBrace(QLatin1Char('}'))) {
-				closed = true;
-				end = token->end;
-				break;
-			}
-			parseStageKeyword(definition, &stage, keywordIndex);
+		}
+		if (close >= 0) {
+			closed = true;
+			end = m_tokens.at(close).end;
+			m_position = close + 1;
 		}
 		if (!closed) {
 			defaulted(definition, Text::tr("A stage has no closing brace."), &open, stage.index);
 			end = m_tokens.isEmpty() ? open.end : m_tokens.last().end;
 		}
 		stage.span = spanOf(open.start, end);
-		definition->stages.push_back(stage);
+		definition->stages.push_back(std::move(stage));
 	}
 
 	void parseTwoExpressions(MaterialDefinition* definition, MaterialStage* stage, const Token& keyword, MaterialTexModKind kind)
@@ -2646,17 +2883,49 @@ private:
 				}
 			}
 			previewIgnored = true;
-			diagnose(definition, MaterialDiagnosticSeverity::Info, QStringLiteral("not-simulated"),
-				Text::tr("ARB programs run on the graphics card in game; the preview draws the stage's image without them."), &keyword, stageIndex);
-		} else if (key == QStringLiteral("vertexparm")) {
-			const int parm = static_cast<int>(parseFloat().value_or(-1.0));
-			std::array<int, 4> expressions {-1, -1, -1, -1};
-			expressions[0] = parseExpression(definition, &keyword, stageIndex);
-			for (int extra = 0; extra < 3 && peek() && peek()->text == QStringLiteral(","); ++extra) {
-				take();
-				expressions[static_cast<size_t>(extra + 1)] = parseExpression(definition, &keyword, stageIndex);
+			// The renderer approximates Doom 3's stock heat haze and
+			// bumpy environment programs and says so in its own notes.
+			const QString program = stage->fragmentProgram.isEmpty() ? stage->vertexProgram : stage->fragmentProgram;
+			const QString base = program.section(QLatin1Char('.'), 0, 0).toLower();
+			if (!base.startsWith(QStringLiteral("heathaze")) && !base.startsWith(QStringLiteral("bumpyenvironment"))) {
+				diagnose(definition, MaterialDiagnosticSeverity::Info, QStringLiteral("not-simulated"),
+					Text::tr("ARB programs run on the graphics card in game; the preview draws the stage's image without them."), &keyword, stageIndex);
 			}
-			if (parm >= 0 && parm < 16) {
+		} else if (key == QStringLiteral("vertexparm")) {
+			// ParseVertexParm: a register 0-3 (MAX_VERTEX_PARMS), then one to
+			// four expressions. One value fills all four; a missing z is 0
+			// and a missing w is 1.
+			const Token* number = takeOnLine();
+			const bool numeric = number && number->type == TokenType::Number;
+			const int parm = numeric ? static_cast<int>(toNumber(number->text)) : -1;
+			if (!numeric || parm < 0 || parm >= 4) {
+				defaulted(definition, Text::tr("vertexParm needs a register number from 0 to 3."), number ? number : &keyword, stageIndex);
+			} else {
+				std::array<int, 4> expressions {-1, -1, -1, -1};
+				expressions[0] = parseExpression(definition, &keyword, stageIndex);
+				int count = 1;
+				while (count < 4 && peek() && !peek()->newlineBefore && peek()->text == QStringLiteral(",")) {
+					take();
+					expressions[static_cast<size_t>(count)] = parseExpression(definition, &keyword, stageIndex);
+					++count;
+				}
+				const auto constant = [&](double value) {
+					MaterialExpressionNode node;
+					node.op = MaterialExpressionOp::Constant;
+					node.value = value;
+					definition->expressions.push_back(node);
+					return static_cast<int>(definition->expressions.size()) - 1;
+				};
+				if (count == 1) {
+					expressions[1] = expressions[2] = expressions[3] = expressions[0];
+				} else {
+					if (count < 3) {
+						expressions[2] = constant(0.0);
+					}
+					if (count < 4) {
+						expressions[3] = constant(1.0);
+					}
+				}
 				if (stage->vertexParms.size() <= parm) {
 					stage->vertexParms.resize(parm + 1, {-1, -1, -1, -1});
 				}
@@ -2664,9 +2933,15 @@ private:
 			}
 			previewIgnored = true;
 		} else if (key == QStringLiteral("fragmentmap")) {
-			const int unit = static_cast<int>(parseFloat().value_or(-1.0));
+			// ParseFragmentMap: a unit 0-7 (MAX_FRAGMENT_IMAGES).
+			const Token* number = takeOnLine();
+			const bool numeric = number && number->type == TokenType::Number;
+			const int unit = numeric ? static_cast<int>(toNumber(number->text)) : -1;
+			if (!numeric || unit < 0 || unit >= 8) {
+				defaulted(definition, Text::tr("fragmentMap needs a unit number from 0 to 7."), number ? number : &keyword, stageIndex);
+			}
 			int cube = 0;
-			while (peek() && peek()->type == TokenType::Word
+			while (definition->engineRejection.isEmpty() && peek() && peek()->type == TokenType::Word
 				&& QStringList {QStringLiteral("cubemap"), QStringLiteral("cameracubemap"), QStringLiteral("nearest"), QStringLiteral("linear"),
 					   QStringLiteral("clamp"), QStringLiteral("noclamp"), QStringLiteral("zeroclamp"), QStringLiteral("alphazeroclamp"),
 					   QStringLiteral("forcehighquality"), QStringLiteral("uncompressed"), QStringLiteral("highquality"),
@@ -2675,8 +2950,8 @@ private:
 				const QString option = take()->text.toLower();
 				cube = option == QStringLiteral("cubemap") ? 1 : option == QStringLiteral("cameracubemap") ? 2 : cube;
 			}
-			const int program = parseImageProgram(definition, &keyword, stageIndex);
-			if (unit >= 0 && unit < 16) {
+			const int program = definition->engineRejection.isEmpty() ? parseImageProgram(definition, &keyword, stageIndex) : -1;
+			if (definition->engineRejection.isEmpty() && unit >= 0 && unit < 8) {
 				if (stage->fragmentMaps.size() <= unit) {
 					stage->fragmentMaps.resize(unit + 1, -1);
 					stage->fragmentMapCubes.resize(unit + 1, 0);
@@ -2724,21 +2999,22 @@ private:
 		} else if (key == QStringLiteral("specularmap")) {
 			stage->role = MaterialStageRole::Specular;
 		} else {
+			// NameToSrcBlendMode / NameToDstBlendMode: an unknown factor
+			// warns, uses GL_ONE and defaults the material.
 			MaterialBlendFactor source = MaterialBlendFactor::One;
-			if (!materialBlendFactorFromId(first->text, &source)) {
-				diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("bad-arguments"),
-					Text::tr("Unknown blend factor '%1'; Doom 3 uses GL_ONE.").arg(first->text), first, stage->index);
+			if (!blendSourceFactor(first->text, &source)) {
+				source = MaterialBlendFactor::One;
+				defaulted(definition, Text::tr("Unknown blend source '%1'.").arg(first->text), first, stage->index);
 			}
 			if (!expect(definition, ",", first)) {
 				return;
 			}
 			const Token* second = take();
 			MaterialBlendFactor destination = MaterialBlendFactor::Zero;
-			if (!second || !materialBlendFactorFromId(second->text, &destination)) {
-				diagnose(definition, MaterialDiagnosticSeverity::Warning, QStringLiteral("bad-arguments"),
-					Text::tr("Unknown blend factor '%1'; Doom 3 uses GL_ONE.").arg(second ? second->text : QString()), second ? second : first,
-					stage->index);
+			if (!second || !blendDestinationFactor(second->text, &destination)) {
 				destination = MaterialBlendFactor::One;
+				defaulted(definition, Text::tr("Unknown blend destination '%1'.").arg(second ? second->text : QString()), second ? second : first,
+					stage->index);
 			}
 			stage->blend.source = source;
 			stage->blend.destination = destination;
@@ -2772,7 +3048,10 @@ private:
 			specular |= stage.role == MaterialStageRole::Specular;
 			reflect |= stage.tcGen.source == MaterialTexCoordSource::Reflect;
 			currentRender |= stage.imagePath.compare(QStringLiteral("_currentRender"), Qt::CaseInsensitive) == 0;
-			if (stage.imageKind == MaterialImageKind::None && definition->engineRejection.isEmpty()) {
+			// A program stage (newStage) draws its fragment maps; Doom 3 only
+			// warns about a stage with no image and no program.
+			const bool programStage = !stage.vertexProgram.isEmpty() || !stage.fragmentProgram.isEmpty();
+			if (stage.imageKind == MaterialImageKind::None && !programStage && definition->engineRejection.isEmpty()) {
 				MaterialDiagnostic diagnostic;
 				diagnostic.severity = MaterialDiagnosticSeverity::Warning;
 				diagnostic.code = QStringLiteral("stage-without-image");
@@ -2792,20 +3071,30 @@ private:
 		if (bump && !diffuse && !specular && !reflect) {
 			note(definition, QStringLiteral("implicit-diffuse"), Text::tr("No diffuse map: Doom 3 lights this material with _white."));
 		}
-		// Coverage: the last of translucent, forceOpaque, mirror and
-		// alphaTest wins; otherwise it follows the stages.
+		// Coverage: the last of translucent, forceOpaque, mirror and a
+		// stage's alphaTest in the text wins, as idMaterial sets it while it
+		// parses; otherwise it follows the stages.
 		QString coverage;
+		int coverageAt = -1;
+		const auto setCoverage = [&](const QString& value, int offset) {
+			if (offset >= coverageAt) {
+				coverage = value;
+				coverageAt = offset;
+			}
+		};
 		for (const MaterialDirective& directive : definition->directives) {
-			const QString key = directive.keyword.toLower();
-			if (key == QStringLiteral("translucent")) {
-				coverage = QStringLiteral("translucent");
-			} else if (key == QStringLiteral("forceopaque") || key == QStringLiteral("mirror")) {
-				coverage = QStringLiteral("opaque");
+			if (directive.keyword.compare(QStringLiteral("translucent"), Qt::CaseInsensitive) == 0) {
+				setCoverage(QStringLiteral("translucent"), directive.span.start);
+			} else if (directive.keyword.compare(QStringLiteral("forceopaque"), Qt::CaseInsensitive) == 0
+				|| directive.keyword.compare(QStringLiteral("mirror"), Qt::CaseInsensitive) == 0) {
+				setCoverage(QStringLiteral("opaque"), directive.span.start);
 			}
 		}
 		for (const MaterialStage& stage : definition->stages) {
-			if (stage.alphaTest == MaterialAlphaTest::Expression) {
-				coverage = QStringLiteral("perforated");
+			for (const MaterialDirective& directive : stage.directives) {
+				if (directive.keyword.compare(QStringLiteral("alphatest"), Qt::CaseInsensitive) == 0) {
+					setCoverage(QStringLiteral("perforated"), directive.span.start);
+				}
 			}
 		}
 		if (coverage.isEmpty()) {
@@ -2975,6 +3264,10 @@ QString newlineFor(const QString& text)
 // lines when nothing else shares them.
 std::pair<int, int> removalRange(const QString& text, int start, int end)
 {
+	if (start < 0 || end < start || end > text.size()) {
+		// A synthetic span: nothing to remove.
+		return {0, 0};
+	}
 	const int lineStart = lineStartOf(text, start);
 	int lineEnd = lineEndOf(text, end);
 	if (onlyWhitespace(text, lineStart, start) && whitespaceOrComment(text, end, lineEnd)) {
@@ -3001,6 +3294,12 @@ struct Block {
 	bool shorthand = false;
 };
 
+// Stages with no text: Enemy Territory's implicitMap and friends make them.
+QString implicitStageError(int stage)
+{
+	return Text::tr("Stage %1 comes from an implicit keyword such as implicitMap; write stage blocks to edit it.").arg(stage + 1);
+}
+
 bool blockFor(const MaterialDefinition& definition, int stage, Block* block, QString* error)
 {
 	if (stage < 0) {
@@ -3013,6 +3312,10 @@ bool blockFor(const MaterialDefinition& definition, int stage, Block* block, QSt
 		return false;
 	}
 	const MaterialStage& target = definition.stages.at(stage);
+	if (!target.span.isValid()) {
+		*error = implicitStageError(stage);
+		return false;
+	}
 	if (target.shorthandDirective >= 0) {
 		*error = Text::tr("Stage %1 is a %2 shorthand; edit its global directive or expand it into a stage block.")
 					 .arg(stage + 1)
@@ -3092,7 +3395,8 @@ MaterialEditResult finish(const MaterialScript& script, const QString& text, int
 {
 	MaterialEditResult result;
 	result.text = text;
-	result.script = parseMaterialScript(text, script.engine, script.path, script.dialect);
+	// An edit that changes nothing (a move onto itself) keeps the parse.
+	result.script = text == script.text ? script : parseMaterialScript(text, script.engine, script.path, script.dialect);
 	result.ok = true;
 	result.changeStart = changeStart;
 	result.changeEnd = changeEnd;
@@ -3177,10 +3481,53 @@ MaterialDialect detectMaterialDialect(const QStringList& texts)
 		QStringLiteral("^[ \\t]*(fogvars|skyfogvars|waterfogvars|sunshader|lightgridmulamb|lightgridmuldir|nofog|allowcompress|nocompress|"
 					   "nomipmap|map16|map32|mapcomp|mapnocomp|animmapcomp|animmapnocomp|fog[ \\t]+(on|off))\\b"),
 		QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
+	// Comments become spaces (line breaks kept), so keywords inside them
+	// never count.
+	const auto withoutComments = [](const QString& text) {
+		if (!text.contains(QLatin1Char('/'))) {
+			return text;
+		}
+		QString result = text;
+		QChar* data = result.data();
+		const int size = static_cast<int>(result.size());
+		bool quoted = false;
+		for (int index = 0; index < size; ++index) {
+			if (data[index] == QLatin1Char('"')) {
+				quoted = !quoted;
+			} else if (data[index] == QLatin1Char('\n')) {
+				quoted = false;
+			}
+			if (quoted || data[index] != QLatin1Char('/') || index + 1 >= size) {
+				continue;
+			}
+			if (data[index + 1] == QLatin1Char('/')) {
+				while (index < size && data[index] != QLatin1Char('\n')) {
+					data[index++] = QLatin1Char(' ');
+				}
+			} else if (data[index + 1] == QLatin1Char('*')) {
+				data[index++] = QLatin1Char(' ');
+				data[index++] = QLatin1Char(' ');
+				while (index < size && !(data[index] == QLatin1Char('*') && index + 1 < size && data[index + 1] == QLatin1Char('/'))) {
+					if (data[index] != QLatin1Char('\n')) {
+						data[index] = QLatin1Char(' ');
+					}
+					++index;
+				}
+				if (index < size) {
+					data[index] = QLatin1Char(' ');
+					if (index + 1 < size) {
+						data[++index] = QLatin1Char(' ');
+					}
+				}
+			}
+		}
+		return result;
+	};
 	int jedi = 0;
 	int wolf = 0;
 	bool et = false;
-	for (const QString& text : texts) {
+	for (const QString& source : texts) {
+		const QString text = withoutComments(source);
 		et = et || enemyTerritory.match(text).hasMatch();
 		for (auto match = jediKnight.globalMatch(text); match.hasNext(); match.next()) {
 			++jedi;
@@ -3389,7 +3736,7 @@ const KeywordHelp kKeywordHelp[] = {
 	{MaterialEngine::Quake3, true, "depthwrite", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Writes depth even when the stage blends.")},
 	{MaterialEngine::Quake3, true, "detail", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Marks a detail texture that r_detailtextures can turn off.")},
 	{MaterialEngine::Quake3, false, "surfaceparm", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A compiler and game flag such as nonsolid, trans, water or sky.")},
-	{MaterialEngine::Quake3, false, "cull", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Which faces draw: front (default), back, or none for both.")},
+	{MaterialEngine::Quake3, false, "cull", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Which faces draw: back, or none (twosided) for both; front faces are the default.")},
 	{MaterialEngine::Quake3, false, "deformvertexes", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Moves vertices every frame: wave, normal, bulge, move, autosprite.")},
 	{MaterialEngine::Quake3, false, "skyparms", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Sky box images, cloud height and inner box.")},
 	{MaterialEngine::Quake3, false, "fogparms", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Fog volume colour and the distance at which it is opaque.")},
@@ -3415,7 +3762,7 @@ const KeywordHelp kKeywordHelp[] = {
 	{MaterialEngine::Doom3, true, "map", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The stage's image or image program, such as heightmap( image, 4 ).")},
 	{MaterialEngine::Doom3, true, "cubemap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A cube map from six images with _px, _nx... suffixes.")},
 	{MaterialEngine::Doom3, true, "cameracubemap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A cube map from six camera-style images (_forward, _back...).")},
-	{MaterialEngine::Doom3, true, "texgen", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Generated coordinates: normal, reflect, skybox, wobbleSky, screen.")},
+	{MaterialEngine::Doom3, true, "texgen", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Generated coordinates: normal, reflect, skybox or wobbleSky; screen, screen2 and glassWarp are stage keywords.")},
 	{MaterialEngine::Doom3, true, "scroll", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Offsets the coordinates by two expressions, such as scroll time * 0.1, 0.")},
 	{MaterialEngine::Doom3, true, "translate", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The same as scroll.")},
 	{MaterialEngine::Doom3, true, "scale", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Scales the coordinates about the origin.")},
@@ -3443,6 +3790,121 @@ const KeywordHelp kKeywordHelp[] = {
 	{MaterialEngine::Doom3, false, "polygonoffset", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Pulls the surface towards the viewer.")},
 	{MaterialEngine::Doom3, false, "qer_editorimage", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image the editor shows.")},
 	{MaterialEngine::Doom3, false, "decal_macro", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Polygon offset, discrete, decal sort and no shadows in one word.")},
+	// Quake III keywords the list above leaves out.
+	{MaterialEngine::Quake3, true, "texgen", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Another spelling of tcGen.")},
+	{MaterialEngine::Quake3, false, "qer_trans", QT_TRANSLATE_NOOP("VibeStudioMaterials", "How see-through level editors draw this shader, from 0 to 1.")},
+	{MaterialEngine::Quake3, false, "qer_nocarve", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Level editors do not cut brushes with this shader in CSG operations.")},
+	{MaterialEngine::Quake3, false, "qer_alphafunc", QT_TRANSLATE_NOOP("VibeStudioMaterials", "How level editors alpha-test the editor image.")},
+	{MaterialEngine::Quake3, false, "q3map_sun", QT_TRANSLATE_NOOP("VibeStudioMaterials", "q3map2: the sky's sun colour, brightness and direction.")},
+	{MaterialEngine::Quake3, false, "q3map_surfacelight", QT_TRANSLATE_NOOP("VibeStudioMaterials", "q3map2: how much light the surface gives off.")},
+	{MaterialEngine::Quake3, false, "q3map_lightimage", QT_TRANSLATE_NOOP("VibeStudioMaterials", "q3map2: the image whose colour the emitted light takes.")},
+	{MaterialEngine::Quake3, false, "q3map_lightsubdivide", QT_TRANSLATE_NOOP("VibeStudioMaterials", "q3map2: the spacing of the light emitters on the surface.")},
+	{MaterialEngine::Quake3, false, "q3map_globaltexture", QT_TRANSLATE_NOOP("VibeStudioMaterials", "q3map2: keeps texture coordinates in world space so they line up across surfaces.")},
+	{MaterialEngine::Quake3, false, "q3map_backsplash", QT_TRANSLATE_NOOP("VibeStudioMaterials", "q3map2: the share and distance of light cast back onto the surface.")},
+	{MaterialEngine::Quake3, false, "q3map_nolightmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "q3map2: no lightmap for this surface.")},
+	{MaterialEngine::Quake3, false, "q3map_novertexshadows", QT_TRANSLATE_NOOP("VibeStudioMaterials", "q3map2: vertex lighting ignores shadows on this surface.")},
+	{MaterialEngine::Quake3, false, "q3map_flare", QT_TRANSLATE_NOOP("VibeStudioMaterials", "q3map2: the flare shader drawn at the surface's lights.")},
+	{MaterialEngine::Quake3, false, "clamptime", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Stops the shader's time-driven effects after this many seconds.")},
+	{MaterialEngine::Quake3, false, "entitymergable", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Lets sprites of entities that share this shader be drawn together.")},
+	{MaterialEngine::Quake3, false, "light", QT_TRANSLATE_NOOP("VibeStudioMaterials", "An old light value that the game ignores.")},
+	{MaterialEngine::Quake3, false, "nomipmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: another spelling of noMipMaps.")},
+	{MaterialEngine::Quake3, false, "skyfogvars", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the fog colour and density against the sky.")},
+	{MaterialEngine::Quake3, false, "waterfogvars", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the fog under water.")},
+	{MaterialEngine::Quake3, false, "lightgridmulamb", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: scales the light grid's ambient light.")},
+	{MaterialEngine::Quake3, false, "lightgridmuldir", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: scales the light grid's directed light.")},
+	{MaterialEngine::Quake3, false, "nofog", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the surface is not fogged.")},
+	{MaterialEngine::Quake3, false, "allowcompress", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the images may be compressed.")},
+	{MaterialEngine::Quake3, false, "nocompress", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the images are never compressed.")},
+	{MaterialEngine::Quake3, true, "map16", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the image used at 16-bit colour.")},
+	{MaterialEngine::Quake3, true, "map32", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the image used at 32-bit colour.")},
+	{MaterialEngine::Quake3, true, "animmapcomp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the animMap used while texture compression is on.")},
+	{MaterialEngine::Quake3, true, "animmapnocomp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the animMap used while texture compression is off.")},
+	{MaterialEngine::Quake3, true, "fog", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: on or off, whether the stage is fogged.")},
+	{MaterialEngine::Quake3, false, "distancecull", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Enemy Territory: the distances over which the surface fades out and is culled.")},
+	{MaterialEngine::Quake3, false, "implicitmask", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Enemy Territory: like implicitMap, alpha-tested and two-sided.")},
+	{MaterialEngine::Quake3, false, "implicitblend", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Enemy Territory: like implicitMap, blended and two-sided.")},
+	{MaterialEngine::Quake3, false, "sun", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: the sky's sun colour, brightness and direction.")},
+	{MaterialEngine::Quake3, false, "surfacelight", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: how much light the surface gives off.")},
+	{MaterialEngine::Quake3, false, "lightcolor", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: the colour of the light the surface gives off.")},
+	{MaterialEngine::Quake3, false, "deform", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: another spelling of deformVertexes.")},
+	{MaterialEngine::Quake3, false, "noglfog", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: no hardware fog on this surface.")},
+	{MaterialEngine::Quake3, false, "notc", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: the surface keeps no texture coordinates.")},
+	{MaterialEngine::Quake3, false, "hitlocation", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: the image that maps where a model is hit.")},
+	{MaterialEngine::Quake3, false, "hitmaterial", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: the image that maps the materials of a model's skin.")},
+	{MaterialEngine::Quake3, true, "ssfademax", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprites: the distance at which they have faded out.")},
+	{MaterialEngine::Quake3, true, "ssfadescale", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprites: how fast they fade with distance.")},
+	{MaterialEngine::Quake3, true, "ssvariance", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprites: random variation of width and height.")},
+	{MaterialEngine::Quake3, true, "sshangdown", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprites: they hang down from the surface.")},
+	{MaterialEngine::Quake3, true, "ssanyangle", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprites: they grow from surfaces at any angle.")},
+	{MaterialEngine::Quake3, true, "ssfaceup", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprites: they lie flat, facing up.")},
+	{MaterialEngine::Quake3, true, "sswind", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprites: how much the wind moves them.")},
+	{MaterialEngine::Quake3, true, "sswindidle", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprites: how much they sway without wind.")},
+	{MaterialEngine::Quake3, true, "ssvertskew", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprites: how far their tops lean.")},
+	{MaterialEngine::Quake3, true, "ssfxduration", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprite effects: how long each lasts.")},
+	{MaterialEngine::Quake3, true, "ssfxgrow", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprite effects: how much each grows while it lasts.")},
+	{MaterialEngine::Quake3, true, "ssfxalpharange", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprite effects: the alpha at start and end.")},
+	{MaterialEngine::Quake3, true, "ssfxweather", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight surface sprite effects: they appear as weather.")},
+	// Doom 3 keywords the list above leaves out.
+	{MaterialEngine::Doom3, false, "description", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A note for the editor; the game ignores it.")},
+	{MaterialEngine::Doom3, false, "guisurf", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Draws a GUI on this surface: a .gui file, or entity, entity2, entity3 for the entity's own.")},
+	{MaterialEngine::Doom3, false, "spectrum", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Light spectrum number: lights only light surfaces of the same spectrum.")},
+	{MaterialEngine::Doom3, false, "decalinfo", QT_TRANSLATE_NOOP("VibeStudioMaterials", "For decals: seconds to stay, seconds to fade, start colour and end colour.")},
+	{MaterialEngine::Doom3, false, "renderbump", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Options for the renderbump tool that makes normal maps; the game ignores it.")},
+	{MaterialEngine::Doom3, false, "noselfshadow", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Casts shadows on other surfaces but not on itself.")},
+	{MaterialEngine::Doom3, false, "forceshadows", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Casts shadows even where the material would not.")},
+	{MaterialEngine::Doom3, false, "noportalfog", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Fog does not reach through this area portal.")},
+	{MaterialEngine::Doom3, false, "nooverlays", QT_TRANSLATE_NOOP("VibeStudioMaterials", "No decals or other overlays on this surface.")},
+	{MaterialEngine::Doom3, false, "forceoverlays", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Overlays even where they would not otherwise go.")},
+	{MaterialEngine::Doom3, false, "zeroclamp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Every image of the material is black outside its edges.")},
+	{MaterialEngine::Doom3, false, "clamp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "No image of the material repeats.")},
+	{MaterialEngine::Doom3, false, "alphazeroclamp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Every image of the material is transparent outside its edges.")},
+	{MaterialEngine::Doom3, false, "forceopaque", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Treated as opaque whatever its stages do.")},
+	{MaterialEngine::Doom3, false, "backsided", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Draws only the back faces.")},
+	{MaterialEngine::Doom3, false, "foglight", QT_TRANSLATE_NOOP("VibeStudioMaterials", "For a light: it fogs what it reaches.")},
+	{MaterialEngine::Doom3, false, "blendlight", QT_TRANSLATE_NOOP("VibeStudioMaterials", "For a light: its image is blended over what it reaches.")},
+	{MaterialEngine::Doom3, false, "ambientlight", QT_TRANSLATE_NOOP("VibeStudioMaterials", "For a light: it lights evenly from all sides, without bump mapping.")},
+	{MaterialEngine::Doom3, false, "mirror", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The surface is a mirror.")},
+	{MaterialEngine::Doom3, false, "nofog", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Fog lights do not fog this surface.")},
+	{MaterialEngine::Doom3, false, "unsmoothedtangents", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Tangents are not smoothed between triangles.")},
+	{MaterialEngine::Doom3, false, "suppressinsubview", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Not drawn in mirrors, remote cameras or other subviews.")},
+	{MaterialEngine::Doom3, false, "portalsky", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Draws the portal sky's view through the surface.")},
+	{MaterialEngine::Doom3, false, "islightgemsurf", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Marks the surface the light gem measures (a Dark Mod extension).")},
+	{MaterialEngine::Doom3, true, "remoterendermap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The view of a remote camera, at the given width and height.")},
+	{MaterialEngine::Doom3, true, "mirrorrendermap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The mirrored view, at the given width and height.")},
+	{MaterialEngine::Doom3, true, "xrayrendermap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The view drawn with x-ray materials, at the given width and height.")},
+	{MaterialEngine::Doom3, true, "screen", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Coordinates from the position on screen.")},
+	{MaterialEngine::Doom3, true, "screen2", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Coordinates from the position on screen, another mapping.")},
+	{MaterialEngine::Doom3, true, "glasswarp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Screen coordinates bent as if seen through glass.")},
+	{MaterialEngine::Doom3, true, "videomap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Plays a RoQ video as the stage's image; loop repeats it.")},
+	{MaterialEngine::Doom3, true, "soundmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Draws the sound playing nearby as a wave, or as bars with waveform.")},
+	{MaterialEngine::Doom3, true, "ignorealphatest", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The stage draws even where the material's alpha test fails.")},
+	{MaterialEngine::Doom3, true, "nearest", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image is not filtered: hard pixels.")},
+	{MaterialEngine::Doom3, true, "linear", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image is filtered smoothly (the default).")},
+	{MaterialEngine::Doom3, true, "noclamp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image repeats (the default).")},
+	{MaterialEngine::Doom3, true, "alphazeroclamp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Outside the image is transparent.")},
+	{MaterialEngine::Doom3, true, "uncompressed", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image is never compressed.")},
+	{MaterialEngine::Doom3, true, "highquality", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image is never compressed.")},
+	{MaterialEngine::Doom3, true, "forcehighquality", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image is never compressed, even when image_ignoreHighQuality is set.")},
+	{MaterialEngine::Doom3, true, "nopicmip", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image keeps full resolution whatever image_downSize says.")},
+	{MaterialEngine::Doom3, true, "inversevertexcolor", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Multiplies by one minus the vertex colour.")},
+	{MaterialEngine::Doom3, true, "privatepolygonoffset", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Pulls only this stage towards the viewer.")},
+	{MaterialEngine::Doom3, true, "maskred", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The stage does not write red.")},
+	{MaterialEngine::Doom3, true, "maskgreen", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The stage does not write green.")},
+	{MaterialEngine::Doom3, true, "maskblue", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The stage does not write blue.")},
+	{MaterialEngine::Doom3, true, "maskalpha", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The stage does not write alpha.")},
+	{MaterialEngine::Doom3, true, "maskcolor", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The stage writes no colour, only depth or alpha.")},
+	{MaterialEngine::Doom3, true, "maskdepth", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The stage does not write depth.")},
+	{MaterialEngine::Doom3, true, "red", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Sets red to an expression.")},
+	{MaterialEngine::Doom3, true, "green", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Sets green to an expression.")},
+	{MaterialEngine::Doom3, true, "blue", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Sets blue to an expression.")},
+	{MaterialEngine::Doom3, true, "alpha", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Sets alpha to an expression.")},
+	{MaterialEngine::Doom3, true, "program", QT_TRANSLATE_NOOP("VibeStudioMaterials", "An ARB vertex and fragment program for the stage, such as heatHaze.vfp.")},
+	{MaterialEngine::Doom3, true, "vertexprogram", QT_TRANSLATE_NOOP("VibeStudioMaterials", "An ARB vertex program for the stage.")},
+	{MaterialEngine::Doom3, true, "fragmentprogram", QT_TRANSLATE_NOOP("VibeStudioMaterials", "An ARB fragment program for the stage.")},
+	{MaterialEngine::Doom3, true, "vertexparm", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A program input 0-3: one to four expressions separated by commas.")},
+	{MaterialEngine::Doom3, true, "fragmentmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A program image 0-7, with options such as cubeMap before the image.")},
+	{MaterialEngine::Doom3, true, "megatexture", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A megatexture file drawn by its own program.")},
+	{MaterialEngine::Doom3, true, "name", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A name for the stage; the game ignores it.")},
 };
 
 } // namespace
@@ -3456,6 +3918,99 @@ QString materialKeywordHelp(MaterialEngine engine, const QString& keyword, bool 
 		}
 	}
 	return QString();
+}
+
+bool isValidMaterialName(MaterialEngine engine, const QString& name, QString* error)
+{
+	const auto fail = [&](const QString& message) {
+		if (error) {
+			*error = message;
+		}
+		return false;
+	};
+	if (name.trimmed().isEmpty()) {
+		return fail(Text::tr("A material name cannot be empty."));
+	}
+	const bool doom3 = engine == MaterialEngine::Doom3;
+	const QVector<Token> tokens = doom3 ? lexDoom3(name) : lexQuake3(name);
+	// One word that covers the whole name; braces and quotes are refused in
+	// both engines even where a lexer would keep them inside a word.
+	const bool oneWord = tokens.size() == 1 && tokens.first().type == TokenType::Word && tokens.first().start == 0
+		&& tokens.first().end == name.size() && !name.contains(QLatin1Char('{')) && !name.contains(QLatin1Char('}'))
+		&& !name.contains(QLatin1Char('"'));
+	if (!oneWord) {
+		return fail(doom3 ? Text::tr("A Doom 3 material name is one word: no spaces, quotes, braces or punctuation such as - + ( ) , and no digit first.")
+						  : Text::tr("A Quake III shader name is one word: no spaces, braces or quotes, and no // or /* at the start."));
+	}
+	if (doom3) {
+		const QString key = name.toLower();
+		if (key == QStringLiteral("material") || key == QStringLiteral("table") || key == QStringLiteral("guide") || doom3OtherDeclTypes().contains(key)) {
+			return fail(Text::tr("'%1' is a Doom 3 decl type; it cannot name a material.").arg(name));
+		}
+	}
+	return true;
+}
+
+int checkMaterialTables(MaterialDefinition* definition, const std::function<const MaterialTable*(const QString&)>& findTable)
+{
+	if (!definition || definition->engine != MaterialEngine::Doom3 || !findTable) {
+		return 0;
+	}
+	// Running again replaces the earlier results, the rejection included.
+	for (int index = static_cast<int>(definition->diagnostics.size()) - 1; index >= 0; --index) {
+		const MaterialDiagnostic& diagnostic = definition->diagnostics.at(index);
+		if (diagnostic.code == QStringLiteral("missing-table") || diagnostic.code == QStringLiteral("stand-in-table")) {
+			if (definition->engineRejection == diagnostic.message) {
+				definition->engineRejection.clear();
+			}
+			definition->diagnostics.removeAt(index);
+		}
+	}
+	// With the game's tables.mtr loaded, a name no script defines is a real
+	// mistake; without it, it may be one of the game's own tables.
+	const MaterialTable* sine = findTable(QStringLiteral("sinTable"));
+	const bool stockTables = sine && !sine->generated;
+	QSet<QString> reported;
+	int missing = 0;
+	for (const MaterialExpressionNode& node : std::as_const(definition->expressions)) {
+		if (node.op != MaterialExpressionOp::Table) {
+			continue;
+		}
+		const QString key = node.name.toLower();
+		if (reported.contains(key)) {
+			continue;
+		}
+		reported.insert(key);
+		const MaterialTable* table = findTable(node.name);
+		if (table && !table->generated) {
+			continue;
+		}
+		MaterialDiagnostic diagnostic;
+		diagnostic.material = definition->name;
+		diagnostic.line = node.span.line;
+		if (table) {
+			diagnostic.severity = MaterialDiagnosticSeverity::Info;
+			diagnostic.code = QStringLiteral("stand-in-table");
+			diagnostic.message = Text::tr("'%1' is a generated stand-in because the game's tables.mtr is not loaded; the preview's values are close, not exact.")
+									 .arg(node.name);
+		} else {
+			++missing;
+			diagnostic.code = QStringLiteral("missing-table");
+			if (stockTables) {
+				diagnostic.severity = MaterialDiagnosticSeverity::Error;
+				diagnostic.message = Text::tr("No loaded script defines the table '%1'; Doom 3 marks the material as defaulted.").arg(node.name);
+				if (definition->engineRejection.isEmpty()) {
+					definition->engineRejection = diagnostic.message;
+				}
+			} else {
+				diagnostic.severity = MaterialDiagnosticSeverity::Warning;
+				diagnostic.message =
+					Text::tr("No loaded script defines the table '%1'; Doom 3 defaults the material unless the game's own tables define it.").arg(node.name);
+			}
+		}
+		definition->diagnostics.push_back(diagnostic);
+	}
+	return missing;
 }
 
 QString materialEditKindId(MaterialEditKind kind)
@@ -3551,15 +4106,23 @@ MaterialEditResult applyMaterialEdit(const MaterialScript& script, const Materia
 	case MaterialEditKind::RenameDefinition:
 	case MaterialEditKind::DuplicateDefinition: {
 		const QString name = edit.text.trimmed();
-		if (name.isEmpty() || name.contains(QRegularExpression(QStringLiteral("[\\s{}\"]")))) {
-			return failure(Text::tr("A material name cannot be empty or hold spaces, braces or quotes."));
+		QString nameError;
+		if (!isValidMaterialName(script.engine, name, &nameError)) {
+			return failure(nameError);
 		}
 		if (materialLookupKey(name) != materialLookupKey(definition.name) && script.find(name)) {
 			return failure(Text::tr("This script already defines %1.").arg(name));
 		}
+		// The new name must read back as the definition it names.
+		const auto checked = [&](MaterialEditResult result) {
+			if (result.ok && !result.script.find(name)) {
+				return failure(Text::tr("'%1' does not read back as a material name.").arg(name));
+			}
+			return result;
+		};
 		if (edit.kind == MaterialEditKind::RenameDefinition) {
 			const Patch patch {definition.nameSpan.start, definition.nameSpan.end, name};
-			return finish(script, applyPatch(text, patch), patch.start, patch.start + name.size());
+			return checked(finish(script, applyPatch(text, patch), patch.start, patch.start + name.size()));
 		}
 		if (materialLookupKey(name) == materialLookupKey(definition.name)) {
 			return failure(Text::tr("A copy needs a name of its own."));
@@ -3571,7 +4134,7 @@ MaterialEditResult applyMaterialEdit(const MaterialScript& script, const Materia
 		const QString insertion = newline + newline + copy;
 		const Patch patch {definition.span.end, definition.span.end, insertion};
 		const int start = definition.span.end + static_cast<int>(newline.size()) * 2;
-		return finish(script, applyPatch(text, patch), start, start + static_cast<int>(copy.size()));
+		return checked(finish(script, applyPatch(text, patch), start, start + static_cast<int>(copy.size())));
 	}
 	case MaterialEditKind::ReplaceDefinition: {
 		QString replacement = edit.text.trimmed();
@@ -3660,6 +4223,9 @@ MaterialEditResult applyMaterialEdit(const MaterialScript& script, const Materia
 		}
 		if (edit.position >= 0 && edit.position < blocks.size()) {
 			const MaterialStage& before = *blocks.at(edit.position);
+			if (!before.span.isValid()) {
+				return failure(implicitStageError(edit.position));
+			}
 			insertAt = lineStartOf(text, before.span.start);
 			if (!onlyWhitespace(text, insertAt, before.span.start)) {
 				insertAt = before.span.start;
@@ -3682,6 +4248,9 @@ MaterialEditResult applyMaterialEdit(const MaterialScript& script, const Materia
 			return failure(Text::tr("Stage %1 does not exist.").arg(edit.stage + 1));
 		}
 		const MaterialStage& stage = definition.stages.at(edit.stage);
+		if (!stage.span.isValid()) {
+			return failure(implicitStageError(edit.stage));
+		}
 		if (stage.shorthandDirective >= 0) {
 			const MaterialDirective& directive = definition.directives.at(stage.shorthandDirective);
 			const auto [start, end] = removalRange(text, directive.span.start, directive.span.end);
@@ -3695,6 +4264,9 @@ MaterialEditResult applyMaterialEdit(const MaterialScript& script, const Materia
 			return failure(Text::tr("Stage %1 does not exist.").arg(edit.stage + 1));
 		}
 		const MaterialStage& stage = definition.stages.at(edit.stage);
+		if (!stage.span.isValid()) {
+			return failure(implicitStageError(edit.stage));
+		}
 		if (stage.shorthandDirective >= 0) {
 			return failure(Text::tr("Stage %1 is a shorthand directive; it has no block to move.").arg(edit.stage + 1));
 		}
@@ -3702,14 +4274,63 @@ MaterialEditResult applyMaterialEdit(const MaterialScript& script, const Materia
 		if (target == edit.stage) {
 			return finish(script, text, stage.span.start, stage.span.end);
 		}
-		// Carry the block's own lines, then re-insert as a fresh block.
-		QString body;
-		for (const MaterialDirective& directive : stage.directives) {
-			body += text.mid(directive.span.start, directive.span.end - directive.span.start) + QLatin1Char('\n');
+		for (const MaterialStage& other : definition.stages) {
+			if (!other.span.isValid()) {
+				return failure(implicitStageError(other.index));
+			}
 		}
 		const auto [start, end] = stageLines(text, stage);
 		const QString removed = applyPatch(text, {start, end, QString()});
 		MaterialScript intermediate = parseMaterialScript(removed, script.engine, script.path, script.dialect);
+		const int intermediateIndex = intermediate.indexOf(definition.name);
+		// The block moves as written, comments and layout included, when it
+		// has its lines to itself and the target does too.
+		const bool ownLines = onlyWhitespace(text, lineStartOf(text, stage.span.start), stage.span.start)
+			&& whitespaceOrComment(text, stage.span.end, lineEndOf(text, stage.span.end));
+		if (intermediateIndex >= 0 && ownLines) {
+			const MaterialDefinition& moved = intermediate.materials.at(intermediateIndex);
+			int insertAt = -1;
+			QString indent;
+			if (target < moved.stages.size()) {
+				const MaterialStage& before = moved.stages.at(target);
+				const int lineStart = lineStartOf(removed, before.span.start);
+				if (before.span.isValid() && onlyWhitespace(removed, lineStart, before.span.start)) {
+					insertAt = lineStart;
+					indent = indentationOf(removed, before.span.start);
+				}
+			} else if (moved.bodySpan.isValid()) {
+				const int close = moved.bodySpan.end - 1;
+				const int lineStart = lineStartOf(removed, close);
+				if (onlyWhitespace(removed, lineStart, close)) {
+					insertAt = lineStart;
+					indent = stageIndent(removed, moved);
+				}
+			}
+			if (insertAt >= 0) {
+				QString raw = text.mid(start, end - start);
+				if (!raw.endsWith(QLatin1Char('\n'))) {
+					raw += newline;
+				}
+				const QString sourceIndent = indentationOf(text, stage.span.start);
+				if (sourceIndent != indent) {
+					// Swap the leading indentation, line by line.
+					QStringList lines = raw.split(QLatin1Char('\n'));
+					for (QString& line : lines) {
+						if (line.startsWith(sourceIndent) && !line.trimmed().isEmpty()) {
+							line = indent + line.mid(sourceIndent.size());
+						}
+					}
+					raw = lines.join(QLatin1Char('\n'));
+				}
+				return finish(script, applyPatch(removed, {insertAt, insertAt, raw}), insertAt, insertAt + static_cast<int>(raw.size()));
+			}
+		}
+		// The block shares a line with other text: re-insert its directives
+		// as a fresh block.
+		QString body;
+		for (const MaterialDirective& directive : stage.directives) {
+			body += text.mid(directive.span.start, directive.span.end - directive.span.start) + QLatin1Char('\n');
+		}
 		MaterialEdit insert;
 		insert.kind = MaterialEditKind::AddStage;
 		insert.material = definition.name;
@@ -3744,8 +4365,12 @@ bool parseMaterialEditsJson(const QByteArray& json, const QString& defaultMateri
 {
 	QJsonParseError parseError;
 	const QJsonDocument document = QJsonDocument::fromJson(json, &parseError);
-	if (parseError.error != QJsonParseError::NoError || !document.isArray()) {
+	if (parseError.error != QJsonParseError::NoError) {
 		*error = Text::tr("Edits must be a JSON array: %1").arg(parseError.errorString());
+		return false;
+	}
+	if (!document.isArray()) {
+		*error = Text::tr("Edits must be a JSON array of edits; the file holds a JSON object.");
 		return false;
 	}
 	const QJsonArray array = document.array();
@@ -3767,36 +4392,52 @@ bool parseMaterialEditsJson(const QByteArray& json, const QString& defaultMateri
 				return false;
 			}
 		}
+		// Text fields must be JSON strings when given: an array or a number
+		// would otherwise read as empty text and edit the wrong thing.
+		for (const QString& key : {QStringLiteral("op"), QStringLiteral("material"), QStringLiteral("keyword"), QStringLiteral("arguments"), QStringLiteral("text")}) {
+			const QJsonValue value = object.value(key);
+			if (!value.isUndefined() && !value.isString()) {
+				*error = Text::tr("Edit %1: '%2' must be text.").arg(index + 1).arg(key);
+				return false;
+			}
+		}
 		MaterialEdit edit;
 		if (!materialEditKindFromId(object.value(QStringLiteral("op")).toString(), &edit.kind)) {
 			*error = Text::tr("Edit %1 has an unknown op '%2'.").arg(index + 1).arg(object.value(QStringLiteral("op")).toString());
 			return false;
 		}
 		edit.material = object.value(QStringLiteral("material")).toString(defaultMaterial);
-		const auto integer = [&](const QString& key, int fallback, int* out) {
+		// Stage, directive and position numbers are 1-based in JSON, like the
+		// UI. Leaving one out means "none": the global block, the directive
+		// named by its keyword, or the end of the block.
+		const auto counted = [&](const QString& key, int* out) {
 			const QJsonValue value = object.value(key);
 			if (value.isUndefined()) {
-				*out = fallback;
+				*out = -1;
 				return true;
 			}
-			if (!value.isDouble() || value.toDouble() != std::floor(value.toDouble())) {
+			const double number = value.toDouble();
+			if (!value.isDouble() || number != std::floor(number) || std::abs(number) > double(std::numeric_limits<int>::max())) {
 				*error = Text::tr("Edit %1: '%2' must be an integer.").arg(index + 1).arg(key);
 				return false;
 			}
-			*out = value.toInt();
+			if (number < 1) {
+				if (key == QStringLiteral("stage")) {
+					*error = Text::tr("Edit %1: '%2' counts from 1; leave it out for the material's global block.").arg(index + 1).arg(key);
+				} else if (key == QStringLiteral("position")) {
+					*error = Text::tr("Edit %1: '%2' counts from 1; leave it out for the end.").arg(index + 1).arg(key);
+				} else {
+					*error = Text::tr("Edit %1: '%2' counts from 1; leave it out to find the directive by its keyword.").arg(index + 1).arg(key);
+				}
+				return false;
+			}
+			*out = int(number) - 1;
 			return true;
 		};
-		// Stage and directive numbers are 1-based in JSON, like the UI.
-		int stage = 0;
-		int directive = 0;
-		int position = 0;
-		if (!integer(QStringLiteral("stage"), 0, &stage) || !integer(QStringLiteral("directive"), 0, &directive)
-			|| !integer(QStringLiteral("position"), 0, &position)) {
+		if (!counted(QStringLiteral("stage"), &edit.stage) || !counted(QStringLiteral("directive"), &edit.directive)
+			|| !counted(QStringLiteral("position"), &edit.position)) {
 			return false;
 		}
-		edit.stage = stage - 1;
-		edit.directive = directive - 1;
-		edit.position = position - 1;
 		edit.keyword = object.value(QStringLiteral("keyword")).toString();
 		edit.arguments = object.value(QStringLiteral("arguments")).toString();
 		edit.text = object.value(QStringLiteral("text")).toString();
@@ -3894,67 +4535,82 @@ MaterialDefinition implicitDoom3Material(const QString& name)
 
 QVector<MaterialTemplate> materialTemplates(MaterialEngine engine)
 {
-	static const QVector<MaterialTemplate> all = [] {
-		QVector<MaterialTemplate> list;
-		const auto add = [&](const char* id, MaterialEngine engine, const QString& name, const QString& description, const char* body) {
-			list.push_back({QString::fromLatin1(id), engine, name, description, QString::fromLatin1(body)});
+	// Names and descriptions are translated on every call, so a language
+	// chosen after the first call shows too.
+	struct Entry {
+		const char* id;
+		MaterialEngine engine;
+		const char* name;
+		const char* description;
+		const char* body;
+	};
+	static const QVector<Entry> entries = [] {
+		QVector<Entry> list;
+		const auto add = [&](const char* id, MaterialEngine engine, const char* name, const char* description, const char* body) {
+			list.push_back({id, engine, name, description, body});
 		};
-		add("q3-lightmapped", MaterialEngine::Quake3, Text::tr("Lightmapped wall"),
-			Text::tr("The standard two-pass world surface: lightmap, then the image multiplied in."),
+		add("q3-lightmapped", MaterialEngine::Quake3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Lightmapped wall"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "The standard two-pass world surface: lightmap, then the image multiplied in."),
 			"%1\n{\n\tqer_editorimage %2\n\t{\n\t\tmap $lightmap\n\t\trgbGen identity\n\t}\n\t{\n\t\tmap %2\n\t\tblendFunc filter\n\t\trgbGen identity\n\t}\n}\n");
-		add("q3-glow", MaterialEngine::Quake3, Text::tr("Pulsing glow"),
-			Text::tr("A lit wall with an added light pass whose brightness follows a sine wave."),
+		add("q3-glow", MaterialEngine::Quake3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Pulsing glow"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "A lit wall with an added light pass whose brightness follows a sine wave."),
 			"%1\n{\n\tqer_editorimage %2\n\tq3map_surfacelight 500\n\t{\n\t\tmap $lightmap\n\t\trgbGen identity\n\t}\n\t{\n\t\tmap %2\n\t\tblendFunc filter\n\t\trgbGen identity\n\t}\n\t{\n\t\tmap %2\n\t\tblendFunc add\n\t\trgbGen wave sin 0.5 0.5 0 0.5\n\t}\n}\n");
-		add("q3-liquid", MaterialEngine::Quake3, Text::tr("Rippling liquid"),
-			Text::tr("Translucent water with turbulent, scrolling coordinates and gently moving vertices."),
-			"%1\n{\n\tqer_editorimage %2\n\tqer_trans 0.5\n\tsurfaceparm trans\n\tsurfaceparm nonsolid\n\tsurfaceparm water\n\tcull disable\n\tdeformVertexes wave 64 sin 0 2 0 0.5\n\ttessSize 64\n\t{\n\t\tmap %2\n\t\tblendFunc blend\n\t\talphaGen const 0.6\n\t\ttcMod turb 0 0.1 0 0.2\n\t\ttcMod scroll 0.02 0.01\n\t}\n\t{\n\t\tmap $lightmap\n\t\tblendFunc filter\n\t\trgbGen identity\n\t\tdepthFunc equal\n\t}\n}\n");
-		add("q3-sky", MaterialEngine::Quake3, Text::tr("Sky with clouds"),
-			Text::tr("A sky box with two scrolling cloud layers."),
+		add("q3-liquid", MaterialEngine::Quake3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Rippling liquid"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "Translucent water with turbulent, scrolling coordinates and gently moving vertices."),
+			"%1\n{\n\tqer_editorimage %2\n\tqer_trans 0.5\n\tsurfaceparm trans\n\tsurfaceparm nonsolid\n\tsurfaceparm water\n\tcull disable\n\tdeformVertexes wave 64 sin 0 2 0 0.5\n\ttessSize 64\n\t{\n\t\tmap %2\n\t\tblendFunc blend\n\t\talphaGen const 0.6\n\t\ttcMod turb 0 0.1 0 0.2\n\t\ttcMod scroll 0.02 0.01\n\t}\n}\n");
+		add("q3-sky", MaterialEngine::Quake3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Sky with clouds"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "A sky box with two scrolling cloud layers."),
 			"%1\n{\n\tqer_editorimage %2\n\tsurfaceparm sky\n\tsurfaceparm noimpact\n\tsurfaceparm nolightmap\n\tskyParms - 512 -\n\t{\n\t\tmap %2\n\t\ttcMod scale 3 2\n\t\ttcMod scroll 0.015 0.016\n\t\tdepthWrite\n\t}\n\t{\n\t\tmap %2\n\t\tblendFunc add\n\t\ttcMod scale 3 3\n\t\ttcMod scroll 0.005 0.003\n\t}\n}\n");
-		add("q3-grate", MaterialEngine::Quake3, Text::tr("Alpha-tested grate"),
-			Text::tr("A see-through grate: alpha test writes depth, then the lightmap draws only where it passed."),
+		add("q3-grate", MaterialEngine::Quake3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Alpha-tested grate"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "A see-through grate: alpha test writes depth, then the lightmap draws only where it passed."),
 			"%1\n{\n\tqer_editorimage %2\n\tsurfaceparm alphashadow\n\tsurfaceparm trans\n\tcull none\n\tnopicmip\n\t{\n\t\tmap %2\n\t\talphaFunc GE128\n\t\tdepthWrite\n\t\trgbGen identity\n\t}\n\t{\n\t\tmap $lightmap\n\t\trgbGen identity\n\t\tblendFunc filter\n\t\tdepthFunc equal\n\t}\n}\n");
-		add("q3-envmap", MaterialEngine::Quake3, Text::tr("Shiny metal"),
-			Text::tr("A lit surface with an environment-mapped reflection added."),
+		add("q3-envmap", MaterialEngine::Quake3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Shiny metal"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "A lit surface with an environment-mapped reflection added."),
 			"%1\n{\n\tqer_editorimage %2\n\t{\n\t\tmap $lightmap\n\t\trgbGen identity\n\t}\n\t{\n\t\tmap %2\n\t\tblendFunc filter\n\t\trgbGen identity\n\t}\n\t{\n\t\tmap %2\n\t\ttcGen environment\n\t\tblendFunc add\n\t\trgbGen const ( 0.25 0.25 0.25 )\n\t}\n}\n");
-		add("q3-animmap", MaterialEngine::Quake3, Text::tr("Animated frames"),
-			Text::tr("Cycles images at a fixed rate, such as fire or a screen."),
+		add("q3-animmap", MaterialEngine::Quake3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Animated frames"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "Cycles images at a fixed rate, such as fire or a screen."),
 			"%1\n{\n\tqer_editorimage %2\n\tsurfaceparm nolightmap\n\t{\n\t\tanimMap 8 %2 %2 %2 %2\n\t\trgbGen identity\n\t}\n}\n");
-		add("q3-flicker", MaterialEngine::Quake3, Text::tr("Flickering light"),
-			Text::tr("A light panel that flickers with a noise wave."),
+		add("q3-flicker", MaterialEngine::Quake3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Flickering light"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "A light panel that flickers with a noise wave."),
 			"%1\n{\n\tqer_editorimage %2\n\tq3map_surfacelight 1000\n\tsurfaceparm nolightmap\n\t{\n\t\tmap %2\n\t\trgbGen wave noise 0.75 0.25 0 6\n\t}\n}\n");
-		add("q3-fog", MaterialEngine::Quake3, Text::tr("Fog volume"),
-			Text::tr("A fog brush that reaches full opacity at the given distance."),
+		add("q3-fog", MaterialEngine::Quake3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Fog volume"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "A fog brush that reaches full opacity at the given distance."),
 			"%1\n{\n\tqer_editorimage %2\n\tqer_nocarve\n\tsurfaceparm trans\n\tsurfaceparm nonsolid\n\tsurfaceparm fog\n\tsurfaceparm nolightmap\n\tfogparms ( 0.4 0.45 0.5 ) 512\n}\n");
-		add("q3-decal", MaterialEngine::Quake3, Text::tr("Decal"),
-			Text::tr("A stain or marking drawn on top of walls without flicker."),
+		add("q3-decal", MaterialEngine::Quake3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Decal"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "A stain or marking drawn on top of walls without flicker."),
 			"%1\n{\n\tqer_editorimage %2\n\tsurfaceparm nonsolid\n\tsurfaceparm nomarks\n\tsurfaceparm trans\n\tpolygonOffset\n\t{\n\t\tmap %2\n\t\tblendFunc filter\n\t\trgbGen identity\n\t}\n}\n");
-		add("d3-standard", MaterialEngine::Doom3, Text::tr("Lit surface"),
-			Text::tr("Diffuse, normal and specular maps lit by the scene's lights."),
+		add("d3-standard", MaterialEngine::Doom3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Lit surface"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "Diffuse, normal and specular maps lit by the scene's lights."),
 			"%1\n{\n\tqer_editorimage %2\n\tdiffusemap %2\n\tbumpmap addnormals( %2_local, heightmap( %2_h, 4 ) )\n\tspecularmap %2_s\n}\n");
-		add("d3-glow", MaterialEngine::Doom3, Text::tr("Glowing panel"),
-			Text::tr("A lit surface with an added glow that pulses using sinTable."),
+		add("d3-glow", MaterialEngine::Doom3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Glowing panel"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "A lit surface with an added glow that pulses using sinTable."),
 			"%1\n{\n\tqer_editorimage %2\n\tdiffusemap %2\n\tbumpmap %2_local\n\t{\n\t\tblend add\n\t\tmap %2_add\n\t\trgb 0.75 + 0.25 * sinTable[ time * 0.5 ]\n\t}\n}\n");
-		add("d3-glass", MaterialEngine::Doom3, Text::tr("Reflective glass"),
-			Text::tr("Translucent glass reflecting an environment cube map."),
+		add("d3-glass", MaterialEngine::Doom3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Reflective glass"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "Translucent glass reflecting an environment cube map."),
 			"%1\n{\n\tqer_editorimage %2\n\ttranslucent\n\tnoShadows\n\tglass\n\t{\n\t\tblend filter\n\t\tmap %2\n\t}\n\t{\n\t\tblend add\n\t\tcubeMap env/gen1\n\t\ttexgen reflect\n\t\trgb 0.2\n\t}\n}\n");
-		add("d3-scroll", MaterialEngine::Doom3, Text::tr("Scrolling screen"),
-			Text::tr("An unlit screen whose image scrolls over time."),
+		add("d3-scroll", MaterialEngine::Doom3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Scrolling screen"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "An unlit screen whose image scrolls over time."),
 			"%1\n{\n\tqer_editorimage %2\n\tnoShadows\n\t{\n\t\tblend add\n\t\tmap %2\n\t\tscroll time * 0.1, 0\n\t}\n}\n");
-		add("d3-light", MaterialEngine::Doom3, Text::tr("Light"),
-			Text::tr("A light shader: a projected image faded by a falloff image, tinted by the light's colour."),
+		add("d3-light", MaterialEngine::Doom3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Light"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "A light shader: a projected image faded by a falloff image, tinted by the light's colour."),
 			"%1\n{\n\tlightFalloffImage makeintensity( lights/squarelight1a.tga )\n\t{\n\t\tmap %2\n\t\tcolored\n\t\tzeroClamp\n\t}\n}\n");
-		add("d3-flicker-light", MaterialEngine::Doom3, Text::tr("Flickering light"),
-			Text::tr("A light whose brightness follows a table that you can edit."),
+		add("d3-flicker-light", MaterialEngine::Doom3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Flickering light"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "A light whose brightness follows a table that you can edit."),
 			"%1\n{\n\tlightFalloffImage makeintensity( lights/squarelight1a.tga )\n\t{\n\t\tmap %2\n\t\tzeroClamp\n\t\tred parm0 * flickertable[ time * 3 ]\n\t\tgreen parm1 * flickertable[ time * 3 ]\n\t\tblue parm2 * flickertable[ time * 3 ]\n\t}\n}\n");
-		add("d3-sky", MaterialEngine::Doom3, Text::tr("Sky box"),
-			Text::tr("An unlit sky drawn from a camera cube map behind everything."),
+		add("d3-sky", MaterialEngine::Doom3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Sky box"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "An unlit sky drawn from a camera cube map behind everything."),
 			"%1\n{\n\tqer_editorimage %2\n\tnoShadows\n\tnoFragment\n\tnonsolid\n\tnoimpact\n\tforceOpaque\n\t{\n\t\tblend add\n\t\tcameraCubeMap %2\n\t\ttexgen skybox\n\t\ttexgen wobblesky 0 0 0\n\t}\n}\n");
-		add("d3-decal", MaterialEngine::Doom3, Text::tr("Decal"),
-			Text::tr("A marking drawn over walls, fading after a while."),
+		add("d3-decal", MaterialEngine::Doom3, QT_TRANSLATE_NOOP("VibeStudioMaterials", "Decal"),
+			QT_TRANSLATE_NOOP("VibeStudioMaterials", "A marking drawn over walls, fading after a while."),
 			"%1\n{\n\tqer_editorimage %2\n\tDECAL_MACRO\n\tdecalInfo 10 2 ( 1 1 1 1 ) ( 0 0 0 0 )\n\t{\n\t\tblend filter\n\t\tmap %2\n\t\tvertexColor\n\t}\n}\n");
 		return list;
 	}();
+	QVector<MaterialTemplate> all;
+	all.reserve(entries.size());
+	for (const Entry& entry : entries) {
+		all.push_back({QString::fromLatin1(entry.id), entry.engine, QCoreApplication::translate("VibeStudioMaterials", entry.name),
+			QCoreApplication::translate("VibeStudioMaterials", entry.description), QString::fromLatin1(entry.body)});
+	}
 	if (engine == MaterialEngine::Unknown) {
 		return all;
 	}

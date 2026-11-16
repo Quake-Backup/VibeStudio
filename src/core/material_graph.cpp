@@ -10,7 +10,9 @@
 #include <QSet>
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
+#include <limits>
 #include <memory>
 
 namespace vibestudio {
@@ -20,8 +22,11 @@ struct Text {
 	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
 };
 
-constexpr double kColumn = 230.0;
-constexpr double kRow = 96.0;
+// The automatic layout: the gap between columns, between nodes stacked in a
+// column, and between the output's inputs (stages, deforms).
+constexpr double kColumnGap = 44.0;
+constexpr double kSiblingGap = 14.0;
+constexpr double kLaneGap = 36.0;
 
 QString numberText(double value)
 {
@@ -48,6 +53,16 @@ MaterialGraphProperty property(const QString& id, const QString& label, Material
 	result.value = value;
 	result.options = options;
 	result.help = help;
+	return result;
+}
+
+// An Enum whose ids are not keywords a person would recognise: each id has a
+// translated label.
+MaterialGraphProperty labelledProperty(const QString& id, const QString& label, const QString& value, const QStringList& options,
+	const QStringList& labels, const QString& help = {})
+{
+	MaterialGraphProperty result = property(id, label, MaterialGraphPropertyType::Enum, value, options, help);
+	result.optionLabels = labels;
 	return result;
 }
 
@@ -86,6 +101,44 @@ QVector<int> findDirectives(const QVector<MaterialDirective>& directives, const 
 		}
 	}
 	return found;
+}
+
+// Every Quake III stage keyword that sets the stage's image, with the
+// derivatives' forms (core/material_script.cpp parseStageKeyword and
+// parseDialectStage). The last one the game reads wins. map16, mapcomp and
+// animMapComp are read only at 16-bit colour or with compressed textures, so
+// they are never the image the preview draws.
+QStringList quake3ImageKeywords()
+{
+	return {QStringLiteral("map"), QStringLiteral("clampmap"), QStringLiteral("animmap"), QStringLiteral("videomap"), QStringLiteral("map32"),
+		QStringLiteral("mapnocomp"), QStringLiteral("animmapnocomp"), QStringLiteral("lightmap"), QStringLiteral("clampanimmap"),
+		QStringLiteral("oneshotanimmap")};
+}
+
+int quake3ImageDirective(const MaterialStage& stage)
+{
+	const QStringList keywords = quake3ImageKeywords();
+	for (int index = static_cast<int>(stage.directives.size()) - 1; index >= 0; --index) {
+		const MaterialDirective& directive = stage.directives.at(index);
+		if (directive.recognised && keywords.contains(directive.keyword.toLower())) {
+			return index;
+		}
+	}
+	return -1;
+}
+
+// The surfaceparm arguments as written, known to the parser or not, in order
+// and without repeats.
+QStringList surfaceParmArguments(const MaterialDefinition& definition)
+{
+	QStringList parms;
+	for (int index : findDirectives(definition.directives, {QStringLiteral("surfaceparm")})) {
+		const QString parm = definition.directives.at(index).argumentText.trimmed();
+		if (!parm.isEmpty() && !parms.contains(parm, Qt::CaseInsensitive)) {
+			parms << parm;
+		}
+	}
+	return parms;
 }
 
 QString waveText(const MaterialWave& wave)
@@ -159,12 +212,6 @@ QString blendChoice(const MaterialBlend& blend)
 
 void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 {
-	int maxMods = 1;
-	for (const MaterialStage& stage : definition.stages) {
-		maxMods = std::max(maxMods, static_cast<int>(stage.tcMods.size()));
-	}
-	const double stageX = kColumn * (2 + maxMods);
-	const double outputX = stageX + kColumn * 1.2;
 	MaterialGraphNode output;
 	output.id = QStringLiteral("material");
 	output.kind = QStringLiteral("output");
@@ -174,14 +221,21 @@ void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph
 	output.imageReference = definition.editorImage;
 	output.properties.push_back(property(QStringLiteral("name"), Text::tr("Name"), MaterialGraphPropertyType::Text, definition.name, {},
 		Text::tr("The shader's name; maps and models refer to it by this.")));
-	output.properties.push_back(property(QStringLiteral("cull"), Text::tr("Cull"), MaterialGraphPropertyType::Enum, materialCullId(definition.cull),
-		{QStringLiteral("front"), QStringLiteral("back"), QStringLiteral("none")}, materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("cull"), false)));
+	// "cull front" is not a Quake III keyword; the default (front faces
+	// drawn) is the absence of a cull line.
+	output.properties.push_back(labelledProperty(QStringLiteral("cull"), Text::tr("Cull"),
+		definition.cull == MaterialCull::Front ? QStringLiteral("default") : materialCullId(definition.cull),
+		{QStringLiteral("default"), QStringLiteral("back"), QStringLiteral("none")},
+		{Text::tr("Front faces drawn (default)"), Text::tr("Back faces drawn (back)"), Text::tr("Two-sided (none)")},
+		materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("cull"), false)));
 	const int sortDirective = findDirective(definition.directives, {QStringLiteral("sort")});
 	output.properties.push_back(property(QStringLiteral("sort"), Text::tr("Sort"), MaterialGraphPropertyType::Text,
 		sortDirective >= 0 ? definition.directives.at(sortDirective).argumentText : QString(), {},
 		materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("sort"), false)));
+	// From the directives, so parameters the parser does not know (q3map2
+	// custom infoparms, the derivatives' footstep parms) are shown and kept.
 	output.properties.push_back(property(QStringLiteral("surfaceparms"), Text::tr("Surface parameters"), MaterialGraphPropertyType::Text,
-		definition.surfaceParms.join(QLatin1Char(' ')), {}, materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("surfaceparm"), false)));
+		surfaceParmArguments(definition).join(QLatin1Char(' ')), {}, materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("surfaceparm"), false)));
 	output.properties.push_back(property(QStringLiteral("editorImage"), Text::tr("Editor image"), MaterialGraphPropertyType::Image, definition.editorImage));
 	output.properties.push_back(property(QStringLiteral("polygonOffset"), Text::tr("Polygon offset"), MaterialGraphPropertyType::Bool,
 		boolText(definition.polygonOffset)));
@@ -197,23 +251,23 @@ void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph
 	if (!definition.engineRejection.isEmpty()) {
 		output.properties.push_back(property(QStringLiteral("rejected"), Text::tr("In game"), MaterialGraphPropertyType::ReadOnly, definition.engineRejection));
 	}
-	const double outputY = std::max(0.0, (definition.stages.size() - 1) * kRow * 3.2 / 2.0);
-	output.position = QPointF(outputX, outputY);
 
 	for (int stageIndex = 0; stageIndex < definition.stages.size(); ++stageIndex) {
 		const MaterialStage& stage = definition.stages.at(stageIndex);
-		const double laneY = stageIndex * kRow * 3.2;
 		const QString stageId = QStringLiteral("stage/%1").arg(stageIndex);
 		// The image.
 		MaterialGraphNode image;
 		image.id = stageId + QStringLiteral("/image");
 		image.stage = stageIndex;
 		image.line = stage.span.line;
-		image.position = QPointF(0, laneY);
 		image.outputs.push_back(port(QStringLiteral("image"), Text::tr("Image"), MaterialGraphPortType::Image));
-		const int mapDirective = findDirective(stage.directives, {QStringLiteral("map"), QStringLiteral("clampmap"), QStringLiteral("animmap"),
-			QStringLiteral("videomap")});
+		// The directive the game reads the image from, whichever form it is
+		// written in (map, clampMap, map32, mapnocomp, oneshotAnimMap...).
+		const int mapDirective = quake3ImageDirective(stage);
 		image.directive = mapDirective;
+		if (mapDirective >= 0) {
+			image.line = stage.directives.at(mapDirective).span.line;
+		}
 		if (stage.imageKind == MaterialImageKind::Animation) {
 			image.kind = QStringLiteral("animmap");
 			image.title = Text::tr("Animated images");
@@ -238,8 +292,9 @@ void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph
 			const QString source = stage.imageKind == MaterialImageKind::Lightmap ? QStringLiteral("$lightmap")
 				: stage.imageKind == MaterialImageKind::White                     ? QStringLiteral("$whiteimage")
 																				  : QStringLiteral("image");
-			image.properties.push_back(property(QStringLiteral("source"), Text::tr("Source"), MaterialGraphPropertyType::Enum, source,
-				{QStringLiteral("image"), QStringLiteral("$lightmap"), QStringLiteral("$whiteimage")}));
+			image.properties.push_back(labelledProperty(QStringLiteral("source"), Text::tr("Source"), source,
+				{QStringLiteral("image"), QStringLiteral("$lightmap"), QStringLiteral("$whiteimage")},
+				{Text::tr("Image file"), Text::tr("Lightmap ($lightmap)"), Text::tr("White ($whiteimage)")}));
 			image.properties.push_back(property(QStringLiteral("path"), Text::tr("Image"), MaterialGraphPropertyType::Image, stage.imagePath, {},
 				materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("map"), true)));
 			image.properties.push_back(property(QStringLiteral("clamp"), Text::tr("Clamp"), MaterialGraphPropertyType::Bool, boolText(stage.clamp)));
@@ -256,7 +311,6 @@ void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph
 		tcGen.stage = stageIndex;
 		tcGen.directive = findDirective(stage.directives, {QStringLiteral("tcgen"), QStringLiteral("texgen")});
 		tcGen.removable = tcGen.directive >= 0;
-		tcGen.position = QPointF(kColumn, laneY);
 		tcGen.outputs.push_back(port(QStringLiteral("coords"), Text::tr("Coordinates"), MaterialGraphPortType::Coordinates));
 		tcGen.properties.push_back(property(QStringLiteral("source"), Text::tr("Source"), MaterialGraphPropertyType::Enum,
 			materialTexCoordSourceId(stage.tcGen.source),
@@ -282,7 +336,6 @@ void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph
 			node.subtitle = mod.directive >= 0 && mod.directive < stage.directives.size() ? stage.directives.at(mod.directive).argumentText : QString();
 			node.removable = true;
 			node.reorderable = true;
-			node.position = QPointF(kColumn * (2 + modIndex), laneY);
 			node.inputs.push_back(port(QStringLiteral("coords"), Text::tr("Coordinates"), MaterialGraphPortType::Coordinates));
 			node.outputs.push_back(port(QStringLiteral("coords"), Text::tr("Coordinates"), MaterialGraphPortType::Coordinates));
 			node.properties.push_back(property(QStringLiteral("type"), Text::tr("Type"), MaterialGraphPropertyType::Enum, materialTexModKindId(mod.kind),
@@ -333,11 +386,10 @@ void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph
 			node.id = stageId + (alpha ? QStringLiteral("/alphagen") : QStringLiteral("/rgbgen"));
 			node.kind = alpha ? QStringLiteral("alphagen") : QStringLiteral("rgbgen");
 			node.title = alpha ? Text::tr("Alpha") : Text::tr("Colour");
-			node.subtitle = materialColorSourceId(gen.source) + (gen.explicitlySet ? QString() : Text::tr(" (default)"));
+			node.subtitle = gen.explicitlySet ? materialColorSourceId(gen.source) : Text::tr("%1 (default)").arg(materialColorSourceId(gen.source));
 			node.stage = stageIndex;
 			node.directive = findDirective(stage.directives, {alpha ? QStringLiteral("alphagen") : QStringLiteral("rgbgen")});
 			node.removable = node.directive >= 0;
-			node.position = QPointF(kColumn * 2, laneY + kRow * (alpha ? 2.0 : 1.1));
 			node.outputs.push_back(port(alpha ? QStringLiteral("alpha") : QStringLiteral("color"), alpha ? Text::tr("Alpha") : Text::tr("Colour"),
 				alpha ? MaterialGraphPortType::Alpha : MaterialGraphPortType::Color));
 			const QStringList sources = alpha
@@ -376,30 +428,33 @@ void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph
 		stageNode.subtitle = blendChoice(stage.blend);
 		stageNode.stage = stageIndex;
 		stageNode.line = stage.span.line;
-		stageNode.removable = true;
-		stageNode.reorderable = true;
+		// Enemy Territory's implicit stages have no text of their own: the
+		// script cannot remove or move them.
+		stageNode.removable = stage.span.isValid();
+		stageNode.reorderable = stage.span.isValid();
 		stageNode.inactive = stage.imageKind == MaterialImageKind::None;
 		stageNode.imageReference = image.imageReference;
-		stageNode.position = QPointF(stageX, laneY + kRow * 0.6);
 		stageNode.inputs = {port(QStringLiteral("image"), Text::tr("Image"), MaterialGraphPortType::Image),
 			port(QStringLiteral("coords"), Text::tr("Coordinates"), MaterialGraphPortType::Coordinates),
 			port(QStringLiteral("color"), Text::tr("Colour"), MaterialGraphPortType::Color),
 			port(QStringLiteral("alpha"), Text::tr("Alpha"), MaterialGraphPortType::Alpha)};
 		stageNode.outputs.push_back(port(QStringLiteral("stage"), Text::tr("Stage"), MaterialGraphPortType::Stage));
-		stageNode.properties.push_back(property(QStringLiteral("blend"), Text::tr("Blend"), MaterialGraphPropertyType::Enum, blendChoice(stage.blend),
+		stageNode.properties.push_back(labelledProperty(QStringLiteral("blend"), Text::tr("Blend"), blendChoice(stage.blend),
 			{QStringLiteral("opaque"), QStringLiteral("add"), QStringLiteral("filter"), QStringLiteral("blend"), QStringLiteral("custom")},
+			{Text::tr("Opaque"), Text::tr("Add (add)"), Text::tr("Filter (filter)"), Text::tr("Blend (blend)"), Text::tr("Custom factors")},
 			materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("blendfunc"), true)));
 		stageNode.properties.push_back(property(QStringLiteral("source"), Text::tr("Source factor"), MaterialGraphPropertyType::Enum,
 			materialBlendFactorId(stage.blend.source), blendFactors()));
 		stageNode.properties.push_back(property(QStringLiteral("destination"), Text::tr("Destination factor"), MaterialGraphPropertyType::Enum,
 			materialBlendFactorId(stage.blend.destination), blendFactors()));
 		const QString alphaFunc = stage.alphaTest == MaterialAlphaTest::None ? QStringLiteral("none") : materialAlphaTestId(stage.alphaTest);
-		stageNode.properties.push_back(property(QStringLiteral("alphaFunc"), Text::tr("Alpha test"), MaterialGraphPropertyType::Enum, alphaFunc,
+		stageNode.properties.push_back(labelledProperty(QStringLiteral("alphaFunc"), Text::tr("Alpha test"), alphaFunc,
 			{QStringLiteral("none"), QStringLiteral("GT0"), QStringLiteral("LT128"), QStringLiteral("GE128")},
+			{Text::tr("None"), QStringLiteral("GT0"), QStringLiteral("LT128"), QStringLiteral("GE128")},
 			materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("alphafunc"), true)));
-		stageNode.properties.push_back(property(QStringLiteral("depthFunc"), Text::tr("Depth test"), MaterialGraphPropertyType::Enum,
-			stage.depthFunc == MaterialDepthFunc::Equal ? QStringLiteral("equal") : QStringLiteral("lequal"),
-			{QStringLiteral("lequal"), QStringLiteral("equal")}, materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("depthfunc"), true)));
+		stageNode.properties.push_back(labelledProperty(QStringLiteral("depthFunc"), Text::tr("Depth test"),
+			stage.depthFunc == MaterialDepthFunc::Equal ? QStringLiteral("equal") : QStringLiteral("lequal"), {QStringLiteral("lequal"), QStringLiteral("equal")},
+			{Text::tr("Nearer or equal (lequal)"), Text::tr("Equal (equal)")}, materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("depthfunc"), true)));
 		stageNode.properties.push_back(property(QStringLiteral("depthWrite"), Text::tr("Write depth"), MaterialGraphPropertyType::Bool,
 			boolText(stage.depthWriteExplicit), {}, materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("depthwrite"), true)));
 		stageNode.properties.push_back(property(QStringLiteral("detail"), Text::tr("Detail"), MaterialGraphPropertyType::Bool, boolText(stage.detail)));
@@ -422,7 +477,6 @@ void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph
 		node.line = deform.directive >= 0 && deform.directive < definition.directives.size() ? definition.directives.at(deform.directive).span.line : 0;
 		node.subtitle = deform.directive >= 0 && deform.directive < definition.directives.size() ? definition.directives.at(deform.directive).argumentText
 																								 : QString();
-		node.position = QPointF(stageX, -kRow * (1.4 + deformIndex));
 		node.outputs.push_back(port(QStringLiteral("geometry"), Text::tr("Geometry"), MaterialGraphPortType::Geometry));
 		node.properties.push_back(property(QStringLiteral("type"), Text::tr("Type"), MaterialGraphPropertyType::Enum, materialDeformKindId(deform.kind),
 			{QStringLiteral("wave"), QStringLiteral("normal"), QStringLiteral("bulge"), QStringLiteral("move"), QStringLiteral("autosprite"),
@@ -464,7 +518,6 @@ void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph
 		node.subtitle = definition.sky.farBox;
 		node.directive = findDirective(definition.directives, {QStringLiteral("skyparms")});
 		node.removable = true;
-		node.position = QPointF(outputX, outputY - kRow * 2.0);
 		node.outputs.push_back(port(QStringLiteral("sky"), Text::tr("Sky"), MaterialGraphPortType::Image));
 		node.properties.push_back(property(QStringLiteral("farBox"), Text::tr("Far box"), MaterialGraphPropertyType::Text, definition.sky.farBox, {},
 			materialKeywordHelp(MaterialEngine::Quake3, QStringLiteral("skyparms"), false)));
@@ -482,7 +535,6 @@ void buildQuake3Graph(const MaterialDefinition& definition, MaterialGraph* graph
 		node.title = Text::tr("Fog");
 		node.directive = findDirective(definition.directives, {QStringLiteral("fogparms")});
 		node.removable = true;
-		node.position = QPointF(outputX, outputY + kRow * 2.0);
 		node.outputs.push_back(port(QStringLiteral("fog"), Text::tr("Fog"), MaterialGraphPortType::Color));
 		node.properties.push_back(property(QStringLiteral("color"), Text::tr("Colour (r g b)"), MaterialGraphPropertyType::Text,
 			QStringLiteral("%1 %2 %3").arg(numberText(definition.fog.color[0]), numberText(definition.fog.color[1]), numberText(definition.fog.color[2])),
@@ -508,6 +560,21 @@ QStringList expressionOperators()
 		QStringLiteral("equal"), QStringLiteral("notEqual"), QStringLiteral("and"), QStringLiteral("or")};
 }
 
+QStringList expressionOperatorLabels()
+{
+	return {Text::tr("Number"), Text::tr("Time (time)"), Text::tr("Parameter (parm)"), Text::tr("Global (global)"), Text::tr("Sound (sound)"),
+		Text::tr("Table lookup"), Text::tr("Add (+)"), Text::tr("Subtract (-)"), Text::tr("Multiply (*)"), Text::tr("Divide (/)"),
+		Text::tr("Modulo (%)"), Text::tr("Greater (>)"), Text::tr("Greater or equal (>=)"), Text::tr("Less (<)"), Text::tr("Less or equal (<=)"),
+		Text::tr("Equal (==)"), Text::tr("Not equal (!=)"), Text::tr("And (&&)"), Text::tr("Or (||)")};
+}
+
+// Doom 3's image program functions (idImageManager's R_ParseImageProgram).
+QStringList imageProgramFunctions()
+{
+	return {QStringLiteral("heightmap"), QStringLiteral("addnormals"), QStringLiteral("smoothnormals"), QStringLiteral("add"), QStringLiteral("scale"),
+		QStringLiteral("invertalpha"), QStringLiteral("invertcolor"), QStringLiteral("makeintensity"), QStringLiteral("makealpha")};
+}
+
 QString expressionTitle(const MaterialExpressionNode& node)
 {
 	switch (node.op) {
@@ -531,10 +598,9 @@ QString expressionTitle(const MaterialExpressionNode& node)
 	return materialExpressionOpToken(node.op);
 }
 
-// Adds an expression tree right to left from its consumer; returns the
-// root node's id.
-QString addExpressionNodes(MaterialGraph* graph, const MaterialDefinition& definition, int expression, const QString& id, const QPointF& anchor,
-	int depth = 0)
+// Adds an expression tree feeding a node of stage `stage`; returns the root
+// node's id.
+QString addExpressionNodes(MaterialGraph* graph, const MaterialDefinition& definition, int expression, const QString& id, int stage, int depth = 0)
 {
 	if (expression < 0 || expression >= definition.expressions.size() || depth > 24) {
 		return QString();
@@ -545,12 +611,12 @@ QString addExpressionNodes(MaterialGraph* graph, const MaterialDefinition& defin
 	node.kind = QStringLiteral("expression");
 	node.title = expressionTitle(source);
 	node.subtitle = materialExpressionOpId(source.op);
+	node.stage = stage;
 	node.removable = depth > 0;
 	node.line = source.span.line;
-	node.position = anchor;
 	node.outputs.push_back(port(QStringLiteral("value"), Text::tr("Value"), MaterialGraphPortType::Scalar));
-	node.properties.push_back(property(QStringLiteral("op"), Text::tr("Operation"), MaterialGraphPropertyType::Enum, materialExpressionOpId(source.op),
-		expressionOperators()));
+	node.properties.push_back(labelledProperty(QStringLiteral("op"), Text::tr("Operation"), materialExpressionOpId(source.op), expressionOperators(),
+		expressionOperatorLabels()));
 	switch (source.op) {
 	case MaterialExpressionOp::Constant:
 		node.properties.push_back(property(QStringLiteral("value"), Text::tr("Value"), MaterialGraphPropertyType::Number, numberText(source.value)));
@@ -567,11 +633,10 @@ QString addExpressionNodes(MaterialGraph* graph, const MaterialDefinition& defin
 	}
 	node.properties.push_back(property(QStringLiteral("text"), Text::tr("As text"), MaterialGraphPropertyType::Expression,
 		materialExpressionText(definition.expressions, expression)));
-	const double childX = anchor.x() - kColumn * 0.9;
 	if (source.op == MaterialExpressionOp::Table) {
 		node.inputs.push_back(port(QStringLiteral("a"), Text::tr("Index"), MaterialGraphPortType::Scalar));
 		graph->nodes.push_back(node);
-		const QString child = addExpressionNodes(graph, definition, source.a, id + QStringLiteral("/a"), QPointF(childX, anchor.y()), depth + 1);
+		const QString child = addExpressionNodes(graph, definition, source.a, id + QStringLiteral("/a"), stage, depth + 1);
 		if (!child.isEmpty()) {
 			link(graph, child, QStringLiteral("value"), id, QStringLiteral("a"));
 		}
@@ -581,9 +646,8 @@ QString addExpressionNodes(MaterialGraph* graph, const MaterialDefinition& defin
 		node.inputs.push_back(port(QStringLiteral("a"), Text::tr("A"), MaterialGraphPortType::Scalar));
 		node.inputs.push_back(port(QStringLiteral("b"), Text::tr("B"), MaterialGraphPortType::Scalar));
 		graph->nodes.push_back(node);
-		const double spread = kRow * 0.75 / std::max(1, depth + 1) * 2.0;
-		const QString a = addExpressionNodes(graph, definition, source.a, id + QStringLiteral("/a"), QPointF(childX, anchor.y() - spread / 2), depth + 1);
-		const QString b = addExpressionNodes(graph, definition, source.b, id + QStringLiteral("/b"), QPointF(childX, anchor.y() + spread / 2), depth + 1);
+		const QString a = addExpressionNodes(graph, definition, source.a, id + QStringLiteral("/a"), stage, depth + 1);
+		const QString b = addExpressionNodes(graph, definition, source.b, id + QStringLiteral("/b"), stage, depth + 1);
 		if (!a.isEmpty()) {
 			link(graph, a, QStringLiteral("value"), id, QStringLiteral("a"));
 		}
@@ -596,8 +660,8 @@ QString addExpressionNodes(MaterialGraph* graph, const MaterialDefinition& defin
 	return id;
 }
 
-QString addProgramNodes(MaterialGraph* graph, const MaterialDefinition& definition, int program, const QString& id, const QPointF& anchor, int stage,
-	int directive, int depth = 0)
+QString addProgramNodes(MaterialGraph* graph, const MaterialDefinition& definition, int program, const QString& id, int stage, int directive,
+	int depth = 0)
 {
 	if (program < 0 || program >= definition.imagePrograms.size() || depth > 16) {
 		return QString();
@@ -609,8 +673,10 @@ QString addProgramNodes(MaterialGraph* graph, const MaterialDefinition& definiti
 	node.stage = stage;
 	node.directive = directive;
 	node.line = source.span.line;
-	node.position = anchor;
-	node.removable = depth > 0;
+	// Removing a function node puts its first input in its place; a plain
+	// image has nothing to put in its place (change its path instead).
+	node.removable = !source.function.isEmpty();
+	node.programNode = true;
 	node.outputs.push_back(port(QStringLiteral("image"), Text::tr("Image"), MaterialGraphPortType::Image));
 	if (source.function.isEmpty()) {
 		node.title = Text::tr("Image");
@@ -624,8 +690,7 @@ QString addProgramNodes(MaterialGraph* graph, const MaterialDefinition& definiti
 	node.title = source.function + QStringLiteral("()");
 	node.imageReference = materialImageProgramText(definition.imagePrograms, program);
 	node.properties.push_back(property(QStringLiteral("function"), Text::tr("Function"), MaterialGraphPropertyType::Enum, source.function,
-		{QStringLiteral("heightmap"), QStringLiteral("addnormals"), QStringLiteral("smoothnormals"), QStringLiteral("add"), QStringLiteral("scale"),
-			QStringLiteral("invertalpha"), QStringLiteral("invertcolor"), QStringLiteral("makeintensity"), QStringLiteral("makealpha")}));
+		imageProgramFunctions()));
 	if (source.function == QStringLiteral("heightmap")) {
 		node.properties.push_back(property(QStringLiteral("scale"), Text::tr("Bump scale"), MaterialGraphPropertyType::Number,
 			numberText(source.numbers.value(0, 1.0))));
@@ -641,8 +706,8 @@ QString addProgramNodes(MaterialGraph* graph, const MaterialDefinition& definiti
 	}
 	graph->nodes.push_back(node);
 	for (int child = 0; child < source.children.size(); ++child) {
-		const QString childId = addProgramNodes(graph, definition, source.children.at(child), id + QStringLiteral("/%1").arg(child),
-			QPointF(anchor.x() - kColumn * 0.95, anchor.y() + (child - (source.children.size() - 1) / 2.0) * kRow), stage, directive, depth + 1);
+		const QString childId = addProgramNodes(graph, definition, source.children.at(child), id + QStringLiteral("/%1").arg(child), stage, directive,
+			depth + 1);
 		if (!childId.isEmpty()) {
 			link(graph, childId, QStringLiteral("image"), id, QStringLiteral("in%1").arg(child));
 		}
@@ -683,8 +748,6 @@ QString wrapChoice(const MaterialStage& stage)
 
 void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 {
-	const double stageX = kColumn * 4.6;
-	const double outputX = stageX + kColumn * 1.4;
 	MaterialGraphNode output;
 	output.id = QStringLiteral("material");
 	output.kind = QStringLiteral("output");
@@ -708,21 +771,24 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 	output.properties.push_back(property(QStringLiteral("sort"), Text::tr("Sort"), MaterialGraphPropertyType::Text,
 		findDirective(definition.directives, {QStringLiteral("sort")}) >= 0 ? definition.sort : QString(), {},
 		materialKeywordHelp(MaterialEngine::Doom3, QStringLiteral("sort"), false)));
-	output.properties.push_back(property(QStringLiteral("surfaceType"), Text::tr("Surface type"), MaterialGraphPropertyType::Enum,
+	output.properties.push_back(labelledProperty(QStringLiteral("surfaceType"), Text::tr("Surface type"),
 		definition.surfaceType.isEmpty() ? QStringLiteral("none") : definition.surfaceType,
 		{QStringLiteral("none"), QStringLiteral("metal"), QStringLiteral("stone"), QStringLiteral("flesh"), QStringLiteral("wood"),
-			QStringLiteral("cardboard"), QStringLiteral("liquid"), QStringLiteral("glass"), QStringLiteral("plastic"), QStringLiteral("ricochet")}));
+			QStringLiteral("cardboard"), QStringLiteral("liquid"), QStringLiteral("glass"), QStringLiteral("plastic"), QStringLiteral("ricochet")},
+		{Text::tr("None"), QStringLiteral("metal"), QStringLiteral("stone"), QStringLiteral("flesh"), QStringLiteral("wood"), QStringLiteral("cardboard"),
+			QStringLiteral("liquid"), QStringLiteral("glass"), QStringLiteral("plastic"), QStringLiteral("ricochet")}));
 	output.properties.push_back(property(QStringLiteral("editorImage"), Text::tr("Editor image"), MaterialGraphPropertyType::Image, definition.editorImage));
 	output.properties.push_back(property(QStringLiteral("description"), Text::tr("Description"), MaterialGraphPropertyType::Text, definition.description));
 	if (definition.isLight() || !definition.lightFalloffImage.isEmpty()) {
 		output.properties.push_back(property(QStringLiteral("lightFalloffImage"), Text::tr("Falloff image"), MaterialGraphPropertyType::Text,
 			definition.lightFalloffImage, {}, materialKeywordHelp(MaterialEngine::Doom3, QStringLiteral("lightfalloffimage"), false)));
-		output.properties.push_back(property(QStringLiteral("lightKind"), Text::tr("Light kind"), MaterialGraphPropertyType::Enum,
+		output.properties.push_back(labelledProperty(QStringLiteral("lightKind"), Text::tr("Light kind"),
 			definition.fogLight ? QStringLiteral("fogLight")
 				: definition.blendLight ? QStringLiteral("blendLight")
 				: definition.ambientLight ? QStringLiteral("ambientLight")
 										: QStringLiteral("normal"),
-			{QStringLiteral("normal"), QStringLiteral("ambientLight"), QStringLiteral("blendLight"), QStringLiteral("fogLight")}));
+			{QStringLiteral("normal"), QStringLiteral("ambientLight"), QStringLiteral("blendLight"), QStringLiteral("fogLight")},
+			{Text::tr("Normal light"), QStringLiteral("ambientLight"), QStringLiteral("blendLight"), QStringLiteral("fogLight")}));
 	}
 	if (!definition.engineRejection.isEmpty()) {
 		output.properties.push_back(property(QStringLiteral("rejected"), Text::tr("In game"), MaterialGraphPropertyType::ReadOnly, definition.engineRejection));
@@ -731,11 +797,9 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 	for (int index = 0; index < definition.stages.size(); ++index) {
 		output.inputs.push_back(port(QStringLiteral("stage%1").arg(index), Text::tr("Stage %1").arg(index + 1), MaterialGraphPortType::Stage));
 	}
-	output.position = QPointF(outputX, std::max(0.0, (definition.stages.size() - 1) * kRow * 3.6 / 2.0));
 
 	for (int stageIndex = 0; stageIndex < definition.stages.size(); ++stageIndex) {
 		const MaterialStage& stage = definition.stages.at(stageIndex);
-		const double laneY = stageIndex * kRow * 3.6;
 		const QString stageId = QStringLiteral("stage/%1").arg(stageIndex);
 		const bool shorthand = stage.shorthandDirective >= 0;
 		const int imageDirective = shorthand ? stage.shorthandDirective
@@ -746,12 +810,11 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 		stageNode.kind = QStringLiteral("stage");
 		stageNode.title = shorthand ? QStringLiteral("%1").arg(definition.directives.value(stage.shorthandDirective).keyword)
 									: Text::tr("Stage %1").arg(stageIndex + 1);
-		stageNode.subtitle = materialStageRoleId(stage.role);
+		stageNode.subtitle = materialStageRoleDisplayName(stage.role);
 		stageNode.stage = stageIndex;
 		stageNode.line = stage.span.line;
-		stageNode.removable = true;
-		stageNode.reorderable = !shorthand;
-		stageNode.position = QPointF(stageX, laneY + kRow * 0.8);
+		stageNode.removable = stage.span.isValid();
+		stageNode.reorderable = !shorthand && stage.span.isValid();
 		stageNode.inputs = {port(QStringLiteral("image"), Text::tr("Image"), MaterialGraphPortType::Image),
 			port(QStringLiteral("coords"), Text::tr("Coordinates"), MaterialGraphPortType::Coordinates),
 			port(QStringLiteral("color"), Text::tr("Colour"), MaterialGraphPortType::Color),
@@ -763,26 +826,32 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 			stageNode.properties.push_back(property(QStringLiteral("shorthand"), Text::tr("Shorthand"), MaterialGraphPropertyType::ReadOnly,
 				Text::tr("Expand it into a stage block to change more than the image.")));
 		} else {
-			stageNode.properties.push_back(property(QStringLiteral("blend"), Text::tr("Blend"), MaterialGraphPropertyType::Enum, d3BlendChoice(stage),
+			stageNode.properties.push_back(labelledProperty(QStringLiteral("blend"), Text::tr("Blend"), d3BlendChoice(stage),
 				{QStringLiteral("replace"), QStringLiteral("blend"), QStringLiteral("add"), QStringLiteral("filter"), QStringLiteral("modulate"),
 					QStringLiteral("none"), QStringLiteral("diffusemap"), QStringLiteral("bumpmap"), QStringLiteral("specularmap"), QStringLiteral("custom")},
+				{Text::tr("Replace (opaque)"), Text::tr("Blend (blend)"), Text::tr("Add (add)"), Text::tr("Filter (filter)"), Text::tr("Modulate (modulate)"),
+					Text::tr("Nothing drawn (none)"), QStringLiteral("diffusemap"), QStringLiteral("bumpmap"), QStringLiteral("specularmap"),
+					Text::tr("Custom factors")},
 				materialKeywordHelp(MaterialEngine::Doom3, QStringLiteral("blend"), true)));
 			stageNode.properties.push_back(property(QStringLiteral("source"), Text::tr("Source factor"), MaterialGraphPropertyType::Enum,
 				materialBlendFactorId(stage.blend.source), blendFactors()));
 			stageNode.properties.push_back(property(QStringLiteral("destination"), Text::tr("Destination factor"), MaterialGraphPropertyType::Enum,
 				materialBlendFactorId(stage.blend.destination), blendFactors()));
-			stageNode.properties.push_back(property(QStringLiteral("wrap"), Text::tr("Edges"), MaterialGraphPropertyType::Enum, wrapChoice(stage),
-				{QStringLiteral("repeat"), QStringLiteral("clamp"), QStringLiteral("zeroclamp"), QStringLiteral("alphazeroclamp")}));
-			stageNode.properties.push_back(property(QStringLiteral("filter"), Text::tr("Filter"), MaterialGraphPropertyType::Enum,
+			stageNode.properties.push_back(labelledProperty(QStringLiteral("wrap"), Text::tr("Edges"), wrapChoice(stage),
+				{QStringLiteral("repeat"), QStringLiteral("clamp"), QStringLiteral("zeroclamp"), QStringLiteral("alphazeroclamp")},
+				{Text::tr("Repeat"), Text::tr("Clamp (clamp)"), QStringLiteral("zeroclamp"), QStringLiteral("alphazeroclamp")}));
+			stageNode.properties.push_back(labelledProperty(QStringLiteral("filter"), Text::tr("Filter"),
 				findDirective(stage.directives, {QStringLiteral("nearest")}) >= 0 ? QStringLiteral("nearest")
 					: findDirective(stage.directives, {QStringLiteral("linear")}) >= 0 ? QStringLiteral("linear")
 																					   : QStringLiteral("default"),
-				{QStringLiteral("default"), QStringLiteral("nearest"), QStringLiteral("linear")}));
-			stageNode.properties.push_back(property(QStringLiteral("vertexColor"), Text::tr("Vertex colour"), MaterialGraphPropertyType::Enum,
+				{QStringLiteral("default"), QStringLiteral("nearest"), QStringLiteral("linear")},
+				{Text::tr("Default"), Text::tr("Nearest (nearest)"), Text::tr("Linear (linear)")}));
+			stageNode.properties.push_back(labelledProperty(QStringLiteral("vertexColor"), Text::tr("Vertex colour"),
 				stage.vertexColor == MaterialVertexColor::Vertex ? QStringLiteral("vertexColor")
 					: stage.vertexColor == MaterialVertexColor::InverseVertex ? QStringLiteral("inverseVertexColor")
 																			  : QStringLiteral("none"),
-				{QStringLiteral("none"), QStringLiteral("vertexColor"), QStringLiteral("inverseVertexColor")}));
+				{QStringLiteral("none"), QStringLiteral("vertexColor"), QStringLiteral("inverseVertexColor")},
+				{Text::tr("None"), QStringLiteral("vertexColor"), QStringLiteral("inverseVertexColor")}));
 			stageNode.properties.push_back(property(QStringLiteral("ignoreAlphaTest"), Text::tr("Ignore alpha test"), MaterialGraphPropertyType::Bool,
 				boolText(stage.ignoreAlphaTest)));
 			stageNode.properties.push_back(property(QStringLiteral("maskColor"), Text::tr("Mask colour"), MaterialGraphPropertyType::Bool,
@@ -796,8 +865,7 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 		// Image (program tree), cube map or video.
 		QString imageId;
 		if (stage.imageProgram >= 0 && stage.imageKind != MaterialImageKind::CubeMap) {
-			imageId = addProgramNodes(graph, definition, stage.imageProgram, stageId + QStringLiteral("/image"), QPointF(stageX - kColumn * 2.2, laneY),
-				stageIndex, imageDirective);
+			imageId = addProgramNodes(graph, definition, stage.imageProgram, stageId + QStringLiteral("/image"), stageIndex, imageDirective);
 		} else if (stage.imageKind != MaterialImageKind::None) {
 			MaterialGraphNode node;
 			node.id = stageId + QStringLiteral("/image");
@@ -810,7 +878,6 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 			node.subtitle = stage.imagePath;
 			node.stage = stageIndex;
 			node.directive = imageDirective;
-			node.position = QPointF(stageX - kColumn * 2.2, laneY);
 			node.outputs.push_back(port(QStringLiteral("image"), Text::tr("Image"), MaterialGraphPortType::Image));
 			node.properties.push_back(property(QStringLiteral("path"), Text::tr("Image"), MaterialGraphPropertyType::Text, stage.imagePath));
 			graph->nodes.push_back(node);
@@ -832,7 +899,6 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 		texgen.stage = stageIndex;
 		texgen.directive = findDirective(stage.directives, {QStringLiteral("texgen"), QStringLiteral("screen"), QStringLiteral("screen2"), QStringLiteral("glasswarp")});
 		texgen.removable = texgen.directive >= 0;
-		texgen.position = QPointF(stageX - kColumn * 3.2, laneY + kRow * 1.2);
 		texgen.outputs.push_back(port(QStringLiteral("coords"), Text::tr("Coordinates"), MaterialGraphPortType::Coordinates));
 		texgen.properties.push_back(property(QStringLiteral("source"), Text::tr("Source"), MaterialGraphPropertyType::Enum,
 			materialTexCoordSourceId(stage.tcGen.source),
@@ -853,7 +919,6 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 			node.reorderable = true;
 			node.line = mod.directive >= 0 && mod.directive < stage.directives.size() ? stage.directives.at(mod.directive).span.line : 0;
 			node.subtitle = mod.directive >= 0 && mod.directive < stage.directives.size() ? stage.directives.at(mod.directive).argumentText : QString();
-			node.position = QPointF(stageX - kColumn * 2.2, laneY + kRow * (1.2 + 0.95 * (modIndex + 1)));
 			node.inputs.push_back(port(QStringLiteral("coords"), Text::tr("Coordinates"), MaterialGraphPortType::Coordinates));
 			node.inputs.push_back(port(QStringLiteral("a"), mod.kind == MaterialTexModKind::RotateExpression ? Text::tr("Turns") : Text::tr("S"),
 				MaterialGraphPortType::Scalar));
@@ -876,14 +941,12 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 			graph->nodes.push_back(node);
 			link(graph, coordsFrom, QStringLiteral("coords"), node.id, QStringLiteral("coords"));
 			coordsFrom = node.id;
-			const QString a = addExpressionNodes(graph, definition, mod.expressions[0], node.id + QStringLiteral("/a/e"),
-				QPointF(node.position.x() - kColumn, node.position.y() - kRow * 0.25));
+			const QString a = addExpressionNodes(graph, definition, mod.expressions[0], node.id + QStringLiteral("/a/e"), stageIndex);
 			if (!a.isEmpty()) {
 				link(graph, a, QStringLiteral("value"), node.id, QStringLiteral("a"));
 			}
 			if (mod.kind != MaterialTexModKind::RotateExpression) {
-				const QString b = addExpressionNodes(graph, definition, mod.expressions[1], node.id + QStringLiteral("/b/e"),
-					QPointF(node.position.x() - kColumn, node.position.y() + kRow * 0.25));
+				const QString b = addExpressionNodes(graph, definition, mod.expressions[1], node.id + QStringLiteral("/b/e"), stageIndex);
 				if (!b.isEmpty()) {
 					link(graph, b, QStringLiteral("value"), node.id, QStringLiteral("b"));
 				}
@@ -898,7 +961,6 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 		color.title = Text::tr("Colour");
 		color.stage = stageIndex;
 		color.removable = std::any_of(stage.colorExpressions.cbegin(), stage.colorExpressions.cend(), [](int e) { return e >= 0; });
-		color.position = QPointF(stageX - kColumn * 1.1, laneY + kRow * 1.6);
 		color.outputs.push_back(port(QStringLiteral("color"), Text::tr("Colour"), MaterialGraphPortType::Color));
 		const QStringList channels {QStringLiteral("red"), QStringLiteral("green"), QStringLiteral("blue"), QStringLiteral("alpha")};
 		const QStringList labels {Text::tr("Red"), Text::tr("Green"), Text::tr("Blue"), Text::tr("Alpha")};
@@ -922,14 +984,13 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 				link(graph, shown.value(expression), QStringLiteral("value"), color.id, channels.at(channel));
 				continue;
 			}
-			const QString id = addExpressionNodes(graph, definition, expression, color.id + QLatin1Char('/') + channels.at(channel) + QStringLiteral("/e"),
-				QPointF(color.position.x() - kColumn, color.position.y() + (channel - 1.5) * kRow * 0.55));
+			const QString id = addExpressionNodes(graph, definition, expression, color.id + QLatin1Char('/') + channels.at(channel) + QStringLiteral("/e"), stageIndex);
 			if (!id.isEmpty()) {
 				shown.insert(expression, id);
 				link(graph, id, QStringLiteral("value"), color.id, channels.at(channel));
 			}
 		}
-		const auto scalarNode = [&](const char* kind, const QString& title, const char* keyword, int expression, double rowOffset) {
+		const auto scalarNode = [&](const char* kind, const QString& title, const char* keyword, int expression) {
 			if (expression < 0) {
 				return;
 			}
@@ -940,7 +1001,6 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 			node.stage = stageIndex;
 			node.directive = findDirective(stage.directives, {QString::fromLatin1(keyword)});
 			node.removable = true;
-			node.position = QPointF(stageX - kColumn * 1.1, laneY + kRow * rowOffset);
 			node.inputs.push_back(port(QStringLiteral("value"), title, MaterialGraphPortType::Scalar));
 			node.outputs.push_back(port(QStringLiteral("value"), title, MaterialGraphPortType::Scalar));
 			node.properties.push_back(property(QStringLiteral("value"), title, MaterialGraphPropertyType::Expression,
@@ -949,14 +1009,13 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 			graph->nodes.push_back(node);
 			link(graph, node.id, QStringLiteral("value"), stageId, QString::fromLatin1(kind) == QStringLiteral("condition") ? QStringLiteral("condition")
 																														 : QStringLiteral("alphaTest"));
-			const QString root = addExpressionNodes(graph, definition, expression, node.id + QStringLiteral("/value/e"),
-				QPointF(node.position.x() - kColumn, node.position.y()));
+			const QString root = addExpressionNodes(graph, definition, expression, node.id + QStringLiteral("/value/e"), stageIndex);
 			if (!root.isEmpty()) {
 				link(graph, root, QStringLiteral("value"), node.id, QStringLiteral("value"));
 			}
 		};
-		scalarNode("condition", Text::tr("Condition"), "if", stage.conditionExpression, -0.4);
-		scalarNode("alphatest", Text::tr("Alpha test"), "alphatest", stage.alphaTestExpression, 2.8);
+		scalarNode("condition", Text::tr("Condition"), "if", stage.conditionExpression);
+		scalarNode("alphatest", Text::tr("Alpha test"), "alphatest", stage.alphaTestExpression);
 	}
 
 	for (int deformIndex = 0; deformIndex < definition.deforms.size(); ++deformIndex) {
@@ -969,7 +1028,6 @@ void buildDoom3Graph(const MaterialDefinition& definition, MaterialGraph* graph)
 		node.removable = true;
 		node.subtitle = deform.directive >= 0 && deform.directive < definition.directives.size() ? definition.directives.at(deform.directive).argumentText
 																								 : QString();
-		node.position = QPointF(stageX, -kRow * (1.4 + deformIndex));
 		node.outputs.push_back(port(QStringLiteral("geometry"), Text::tr("Geometry"), MaterialGraphPortType::Geometry));
 		node.properties.push_back(property(QStringLiteral("arguments"), Text::tr("Arguments"), MaterialGraphPropertyType::Text, node.subtitle, {},
 			materialKeywordHelp(MaterialEngine::Doom3, QStringLiteral("deform"), false)));
@@ -991,7 +1049,6 @@ void buildClassicGraph(const MaterialDefinition& definition, MaterialTextKind te
 	output.title = definition.name;
 	output.subtitle = materialEngineDisplayName(definition.engine);
 	output.imageReference = definition.name;
-	output.position = QPointF(kColumn * 3.2, 0);
 	output.inputs.push_back(port(QStringLiteral("frames"), Text::tr("Frames"), MaterialGraphPortType::Frame));
 	if (definition.classic.size.isValid()) {
 		output.properties.push_back(property(QStringLiteral("size"), Text::tr("Size"), MaterialGraphPropertyType::ReadOnly,
@@ -1007,7 +1064,6 @@ void buildClassicGraph(const MaterialDefinition& definition, MaterialTextKind te
 		node.title = frames.at(index).name;
 		node.subtitle = Text::tr("%1 s").arg(QString::number(frames.at(index).duration, 'f', 3));
 		node.imageReference = frames.at(index).name;
-		node.position = QPointF(0, (index - (frames.size() - 1) / 2.0) * kRow);
 		node.outputs.push_back(port(QStringLiteral("frame"), Text::tr("Frame"), MaterialGraphPortType::Frame));
 		graph->nodes.push_back(node);
 		previous = node.id;
@@ -1018,7 +1074,6 @@ void buildClassicGraph(const MaterialDefinition& definition, MaterialTextKind te
 		animation.kind = QStringLiteral("animation");
 		animation.title = Text::tr("Animation");
 		animation.subtitle = definition.classic.animationSource;
-		animation.position = QPointF(kColumn * 1.6, 0);
 		animation.outputs.push_back(port(QStringLiteral("frames"), Text::tr("Frames"), MaterialGraphPortType::Frame));
 		for (int index = 0; index < frames.size(); ++index) {
 			animation.inputs.push_back(port(QStringLiteral("frame%1").arg(index), frames.at(index).name, MaterialGraphPortType::Frame));
@@ -1034,7 +1089,14 @@ void buildClassicGraph(const MaterialDefinition& definition, MaterialTextKind te
 				Text::tr("%1 s a frame, set by the engine").arg(QString::number(frames.first().duration, 'f', 3))));
 		}
 		animation.properties.push_back(property(QStringLiteral("first"), Text::tr("First"), MaterialGraphPropertyType::ReadOnly, frames.first().name));
-		animation.properties.push_back(property(QStringLiteral("last"), Text::tr("Last"), MaterialGraphPropertyType::ReadOnly, frames.last().name));
+		// A Boom or ANIMDEFS range ends where the text says; the frames are
+		// every picture between the ends in namespace order.
+		const bool editableRange = doom
+			&& ((textKind == MaterialTextKind::DoomSwantbls && definition.classic.animationSource == QStringLiteral("boom-animated"))
+				|| (textKind == MaterialTextKind::DoomAnimdefs && definition.classic.animationSource == QStringLiteral("animdefs")));
+		animation.properties.push_back(property(QStringLiteral("last"), Text::tr("Last"),
+			editableRange ? MaterialGraphPropertyType::Text : MaterialGraphPropertyType::ReadOnly, frames.last().name, {},
+			editableRange ? Text::tr("The range's last picture; every picture from the first to it in the WAD's order is a frame.") : QString()));
 		graph->nodes.push_back(animation);
 		link(graph, animation.id, QStringLiteral("frames"), output.id, QStringLiteral("frames"));
 	}
@@ -1047,7 +1109,6 @@ void buildClassicGraph(const MaterialDefinition& definition, MaterialTextKind te
 			node.title = patch.patch;
 			node.subtitle = QStringLiteral("%1, %2").arg(patch.x).arg(patch.y);
 			node.imageReference = patch.patch;
-			node.position = QPointF(kColumn * 1.6, kRow * (2.0 + index));
 			node.outputs.push_back(port(QStringLiteral("image"), Text::tr("Patch"), MaterialGraphPortType::Image));
 			node.properties.push_back(property(QStringLiteral("offset"), Text::tr("Offset"), MaterialGraphPropertyType::ReadOnly, node.subtitle));
 			graph->nodes.push_back(node);
@@ -1059,7 +1120,6 @@ void buildClassicGraph(const MaterialDefinition& definition, MaterialTextKind te
 		node.kind = QStringLiteral("switch");
 		node.title = Text::tr("Switch");
 		node.subtitle = definition.classic.switchPartner.isEmpty() ? Text::tr("none") : definition.classic.switchPartner;
-		node.position = QPointF(kColumn * 3.2, -kRow * 1.8);
 		node.outputs.push_back(port(QStringLiteral("frame"), Text::tr("Pressed"), MaterialGraphPortType::Frame));
 		node.properties.push_back(property(QStringLiteral("partner"), Text::tr("Pressed texture"),
 			textKind == MaterialTextKind::DoomSwantbls ? MaterialGraphPropertyType::Text : MaterialGraphPropertyType::ReadOnly,
@@ -1070,7 +1130,6 @@ void buildClassicGraph(const MaterialDefinition& definition, MaterialTextKind te
 			warp.id = QStringLiteral("warp");
 			warp.kind = QStringLiteral("warp");
 			warp.title = materialWarpStyleId(definition.classic.warp);
-			warp.position = QPointF(kColumn * 1.6, -kRow * 1.8);
 			warp.outputs.push_back(port(QStringLiteral("coords"), Text::tr("Coordinates"), MaterialGraphPortType::Coordinates));
 			warp.properties.push_back(property(QStringLiteral("speed"), Text::tr("Speed"),
 				textKind == MaterialTextKind::DoomAnimdefs ? MaterialGraphPropertyType::Number : MaterialGraphPropertyType::ReadOnly,
@@ -1085,7 +1144,6 @@ void buildClassicGraph(const MaterialDefinition& definition, MaterialTextKind te
 		info.id = QStringLiteral("info");
 		info.kind = QStringLiteral("info");
 		info.title = Text::tr("Name rules");
-		info.position = QPointF(kColumn * 1.6, kRow * 2.0);
 		info.properties.push_back(property(QStringLiteral("liquid"), Text::tr("Liquid (*)"), MaterialGraphPropertyType::ReadOnly, boolText(parsed.liquid)));
 		info.properties.push_back(property(QStringLiteral("sky"), Text::tr("Sky (sky...)"), MaterialGraphPropertyType::ReadOnly, boolText(parsed.sky)));
 		info.properties.push_back(property(QStringLiteral("masked"), Text::tr("Masked ({)"), MaterialGraphPropertyType::ReadOnly, boolText(parsed.masked)));
@@ -1100,7 +1158,6 @@ void buildClassicGraph(const MaterialDefinition& definition, MaterialTextKind te
 		flags.id = QStringLiteral("flags");
 		flags.kind = QStringLiteral("flags");
 		flags.title = Text::tr("Surface");
-		flags.position = QPointF(kColumn * 1.6, kRow * 2.0);
 		flags.outputs.push_back(port(QStringLiteral("flags"), Text::tr("Flags"), MaterialGraphPortType::Geometry));
 		const bool editable = textKind == MaterialTextKind::Quake2WalJson;
 		for (const MaterialFlagDescriptor& descriptor : quake2SurfaceFlagDescriptors()) {
@@ -1131,7 +1188,137 @@ void buildClassicGraph(const MaterialDefinition& definition, MaterialTextKind te
 	graph->nodes.push_back(output);
 }
 
+// ---------------------------------------------------------------------------
+// Automatic layout
+// ---------------------------------------------------------------------------
+
+// Lays the graph out as a tree growing leftwards from the output: each node's
+// inputs, in port order, form its children; a node that feeds several others
+// belongs to the first one reached. Columns follow the depth below the output,
+// and each subtree gets its own band of rows as tall as its nodes need, so no
+// two nodes overlap whatever the expressions, transforms or stages hold.
+void layoutGraph(MaterialGraph* graph)
+{
+	const int count = static_cast<int>(graph->nodes.size());
+	if (count == 0) {
+		return;
+	}
+	QHash<QString, int> indexById;
+	indexById.reserve(count);
+	for (int index = 0; index < count; ++index) {
+		indexById.insert(graph->nodes.at(index).id, index);
+	}
+	// Each node's inputs: (port order, source node).
+	QVector<QVector<std::pair<int, int>>> inputs(count);
+	for (const MaterialGraphLink& link : std::as_const(graph->links)) {
+		const int from = indexById.value(link.fromNode, -1);
+		const int to = indexById.value(link.toNode, -1);
+		if (from < 0 || to < 0 || from == to) {
+			continue;
+		}
+		const QVector<MaterialGraphPort>& ports = graph->nodes.at(to).inputs;
+		int order = static_cast<int>(ports.size());
+		for (int port = 0; port < ports.size(); ++port) {
+			if (ports.at(port).id == link.toPort) {
+				order = port;
+				break;
+			}
+		}
+		inputs[to].push_back({order, from});
+	}
+	for (QVector<std::pair<int, int>>& list : inputs) {
+		std::stable_sort(list.begin(), list.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+	}
+	const int root = indexById.value(QStringLiteral("material"), count - 1);
+	QVector<QVector<int>> children(count);
+	QVector<int> depth(count, -1);
+	depth[root] = 0;
+	const std::function<void(int)> visit = [&](int node) {
+		for (const auto& [order, source] : inputs.at(node)) {
+			Q_UNUSED(order);
+			if (depth.at(source) >= 0) {
+				continue;
+			}
+			depth[source] = depth.at(node) + 1;
+			children[node].push_back(source);
+			visit(source);
+		}
+	};
+	visit(root);
+	// Nodes nothing links to the output (a Doom switch, Quake's name rules)
+	// sit beside the output's inputs.
+	for (int index = 0; index < count; ++index) {
+		if (depth.at(index) < 0) {
+			depth[index] = 1;
+			children[root].push_back(index);
+			visit(index);
+		}
+	}
+	const int deepest = *std::max_element(depth.cbegin(), depth.cend());
+	QVector<double> height(count);
+	for (int index = 0; index < count; ++index) {
+		height[index] = materialGraphNodeSize(graph->nodes.at(index), true).height();
+	}
+	QVector<double> band(count, 0.0);
+	const std::function<double(int)> measure = [&](int node) {
+		const double gap = node == root ? kLaneGap : kSiblingGap;
+		double total = 0.0;
+		for (int child : children.at(node)) {
+			total += measure(child);
+		}
+		total += gap * std::max(0, static_cast<int>(children.at(node).size()) - 1);
+		band[node] = std::max(height.at(node), total);
+		return band.at(node);
+	};
+	measure(root);
+	const std::function<void(int, double)> place = [&](int node, double top) {
+		const double gap = node == root ? kLaneGap : kSiblingGap;
+		double total = 0.0;
+		for (int child : children.at(node)) {
+			total += band.at(child);
+		}
+		total += gap * std::max(0, static_cast<int>(children.at(node).size()) - 1);
+		MaterialGraphNode& item = graph->nodes[node];
+		item.position = QPointF((deepest - depth.at(node)) * (kMaterialGraphNodeWidth + kColumnGap), top + (band.at(node) - height.at(node)) / 2.0);
+		double childTop = top + (band.at(node) - total) / 2.0;
+		for (int child : children.at(node)) {
+			place(child, childTop);
+			childTop += band.at(child) + gap;
+		}
+	};
+	place(root, 0.0);
+}
+
 } // namespace
+
+QSizeF materialGraphNodeSize(const MaterialGraphNode& node, bool thumbnail)
+{
+	double height = kMaterialGraphHeader;
+	if (!node.subtitle.isEmpty() || node.inactive) {
+		height += kMaterialGraphSubtitle;
+	}
+	height += static_cast<double>(std::max(node.inputs.size(), node.outputs.size())) * kMaterialGraphPortRow;
+	if (thumbnail && !node.imageReference.isEmpty()) {
+		height += kMaterialGraphThumbnail;
+	}
+	height += kMaterialGraphPadding;
+	return {kMaterialGraphNodeWidth, std::max(height, kMaterialGraphHeader + kMaterialGraphPadding * 2)};
+}
+
+QString materialGraphNodeLabel(const MaterialGraphNode& node)
+{
+	if (node.kind == QStringLiteral("output")) {
+		return Text::tr("Output: %1").arg(node.title);
+	}
+	if (node.stage < 0) {
+		return node.title;
+	}
+	const QString stageTitle = Text::tr("Stage %1").arg(node.stage + 1);
+	if (node.kind == QStringLiteral("stage") && node.title == stageTitle) {
+		return node.title;
+	}
+	return Text::tr("Stage %1: %2").arg(node.stage + 1).arg(node.title);
+}
 
 const MaterialGraphProperty* MaterialGraphNode::property(const QString& propertyId) const
 {
@@ -1274,6 +1461,7 @@ MaterialGraph buildMaterialGraph(const MaterialDefinition& definition, MaterialT
 	case MaterialEngine::Unknown:
 		break;
 	}
+	layoutGraph(&graph);
 	return graph;
 }
 
@@ -1700,20 +1888,38 @@ bool writeSlot(const MaterialDefinition& definition, const QString& owner, const
 		} else if (slot == QStringLiteral("rgb")) {
 			values[0] = values[1] = values[2] = replacement;
 		}
-		removeAll(edits, definition.name, stageIndex, stage.directives,
-			{QStringLiteral("red"), QStringLiteral("green"), QStringLiteral("blue"), QStringLiteral("alpha"), QStringLiteral("rgb"),
-				QStringLiteral("rgba"), QStringLiteral("color"), QStringLiteral("colored")});
 		// One canonical directive for the four channels.
+		QString keyword;
+		QString arguments;
 		if (values == QStringList {QStringLiteral("parm0"), QStringLiteral("parm1"), QStringLiteral("parm2"), QStringLiteral("parm3")}) {
-			edits->push_back(addEdit(definition.name, stageIndex, QStringLiteral("colored"), QString()));
+			keyword = QStringLiteral("colored");
 		} else if (values.at(0) == values.at(1) && values.at(1) == values.at(2) && values.at(2) == values.at(3)) {
 			if (values.at(0) != QStringLiteral("1")) {
-				edits->push_back(addEdit(definition.name, stageIndex, QStringLiteral("rgba"), values.at(0)));
+				keyword = QStringLiteral("rgba");
+				arguments = values.at(0);
 			}
 		} else if (values.at(0) == values.at(1) && values.at(1) == values.at(2) && values.at(3) == QStringLiteral("1")) {
-			edits->push_back(addEdit(definition.name, stageIndex, QStringLiteral("rgb"), values.at(0)));
+			keyword = QStringLiteral("rgb");
+			arguments = values.at(0);
 		} else {
-			edits->push_back(addEdit(definition.name, stageIndex, QStringLiteral("color"), values.join(QStringLiteral(", "))));
+			keyword = QStringLiteral("color");
+			arguments = values.join(QStringLiteral(", "));
+		}
+		// The first colour directive is rewritten in place (keeping its line
+		// and any comment after it); the others go. Fewer primitive edits
+		// mean fewer re-parses.
+		const QVector<int> existing = findDirectives(stage.directives,
+			{QStringLiteral("red"), QStringLiteral("green"), QStringLiteral("blue"), QStringLiteral("alpha"), QStringLiteral("rgb"), QStringLiteral("rgba"),
+				QStringLiteral("color"), QStringLiteral("colored")});
+		for (int index = static_cast<int>(existing.size()) - 1; index >= (keyword.isEmpty() ? 0 : 1); --index) {
+			edits->push_back(removeEdit(definition.name, stageIndex, existing.at(index)));
+		}
+		if (!keyword.isEmpty()) {
+			if (existing.isEmpty()) {
+				edits->push_back(addEdit(definition.name, stageIndex, keyword, arguments));
+			} else {
+				edits->push_back(setEdit(definition.name, stageIndex, existing.first(), keyword, arguments));
+			}
 		}
 		return true;
 	}
@@ -1950,10 +2156,7 @@ bool programEdit(const MaterialDefinition& definition, const MaterialGraph& grap
 			target->path = edit.value.trimmed();
 		} else if (edit.property == QStringLiteral("function")) {
 			const QString function = edit.value.trimmed().toLower();
-			static const QStringList functions {QStringLiteral("heightmap"), QStringLiteral("addnormals"), QStringLiteral("smoothnormals"),
-				QStringLiteral("add"), QStringLiteral("scale"), QStringLiteral("invertalpha"), QStringLiteral("invertcolor"),
-				QStringLiteral("makeintensity"), QStringLiteral("makealpha")};
-			if (!functions.contains(function)) {
+			if (!imageProgramFunctions().contains(function)) {
 				*error = Text::tr("Unknown image function '%1'.").arg(edit.value);
 				return false;
 			}
@@ -1986,9 +2189,13 @@ bool programEdit(const MaterialDefinition& definition, const MaterialGraph& grap
 			target->numbers[at] = value;
 		}
 	} else if (edit.kind == MaterialGraphEditKind::WrapExpression) {
-		const QString function = edit.value.trimmed().toLower();
+		const QString function = edit.value.trimmed().isEmpty() ? QStringLiteral("makeintensity") : edit.value.trimmed().toLower();
+		if (!imageProgramFunctions().contains(function)) {
+			*error = Text::tr("Unknown image function '%1'.").arg(edit.value);
+			return false;
+		}
 		auto wrapper = std::make_unique<ProgramTree>();
-		wrapper->function = function.isEmpty() ? QStringLiteral("makeintensity") : function;
+		wrapper->function = function;
 		wrapper->children.push_back(std::move(*slot));
 		while (static_cast<int>(wrapper->children.size()) < programChildren(wrapper->function)) {
 			auto child = std::make_unique<ProgramTree>();
@@ -2041,7 +2248,7 @@ bool quake3PropertyEdit(const MaterialDefinition& definition, const MaterialGrap
 	if (node.kind == QStringLiteral("output")) {
 		const QVector<MaterialDirective>& directives = definition.directives;
 		if (edit.property == QStringLiteral("cull")) {
-			if (value == QStringLiteral("front")) {
+			if (value == QStringLiteral("default") || value == QStringLiteral("front")) {
 				removeAll(edits, material, -1, directives, {QStringLiteral("cull")});
 			} else {
 				setOrAdd(edits, material, -1, directives, QStringLiteral("cull"), value);
@@ -2053,10 +2260,13 @@ bool quake3PropertyEdit(const MaterialDefinition& definition, const MaterialGrap
 				setOrAdd(edits, material, -1, directives, QStringLiteral("sort"), value);
 			}
 		} else if (edit.property == QStringLiteral("surfaceparms")) {
-			const QStringList wanted = value.toLower().split(QRegularExpression(QStringLiteral("[\\s,]+")), Qt::SkipEmptyParts);
+			// Compared with the directives as written, so a parameter the
+			// parser does not know is kept unless the user takes it out.
+			const QStringList wanted = value.split(QRegularExpression(QStringLiteral("[\\s,]+")), Qt::SkipEmptyParts);
+			const QStringList present = surfaceParmArguments(definition);
 			QVector<int> remove;
 			for (int index : findDirectives(directives, {QStringLiteral("surfaceparm")})) {
-				if (!wanted.contains(directives.at(index).argumentText.trimmed().toLower())) {
+				if (!wanted.contains(directives.at(index).argumentText.trimmed(), Qt::CaseInsensitive)) {
 					remove.push_back(index);
 				}
 			}
@@ -2064,9 +2274,11 @@ bool quake3PropertyEdit(const MaterialDefinition& definition, const MaterialGrap
 			for (int index : remove) {
 				edits->push_back(removeEdit(material, -1, index));
 			}
+			QStringList added;
 			for (const QString& parm : wanted) {
-				if (!definition.surfaceParms.contains(parm)) {
-					edits->push_back(addEdit(material, -1, QStringLiteral("surfaceparm"), parm));
+				if (!present.contains(parm, Qt::CaseInsensitive) && !added.contains(parm, Qt::CaseInsensitive)) {
+					edits->push_back(addEdit(material, -1, QStringLiteral("surfaceparm"), parm.toLower()));
+					added << parm;
 				}
 			}
 		} else if (edit.property == QStringLiteral("editorImage")) {
@@ -2165,12 +2377,26 @@ bool quake3PropertyEdit(const MaterialDefinition& definition, const MaterialGrap
 			return false;
 		}
 		const bool clamp = source == QStringLiteral("image") && isTrue(propertyValue(node, QStringLiteral("clamp")));
-		const QString keyword = clamp ? QStringLiteral("clampmap") : QStringLiteral("map");
-		if (node.directive >= 0) {
-			edits->push_back(setEdit(material, stageIndex, node.directive, keyword, path));
-		} else {
-			edits->push_back(addEdit(material, stageIndex, keyword, path, 0));
+		if (node.directive < 0) {
+			edits->push_back(addEdit(material, stageIndex, clamp ? QStringLiteral("clampmap") : QStringLiteral("map"), path, 0));
+			return true;
 		}
+		// The directive keeps its own keyword (map32, mapnocomp, ET's
+		// lightmap...) unless Clamp changes it; only map and clampMap have
+		// both forms.
+		QString keyword = directives.at(node.directive).keyword;
+		const QString key = keyword.toLower();
+		if (edit.property == QStringLiteral("clamp") || key == QStringLiteral("map") || key == QStringLiteral("clampmap")) {
+			if (key == QStringLiteral("map") || key == QStringLiteral("clampmap")) {
+				if (clamp != (key == QStringLiteral("clampmap"))) {
+					keyword = clamp ? QStringLiteral("clampmap") : QStringLiteral("map");
+				}
+			} else if (clamp != stage.clamp) {
+				*error = Text::tr("%1 has no clamped and repeating forms; change the keyword in the text.").arg(keyword);
+				return false;
+			}
+		}
+		edits->push_back(setEdit(material, stageIndex, node.directive, keyword, path));
 		return true;
 	}
 	if (node.kind == QStringLiteral("animmap")) {
@@ -2179,12 +2405,16 @@ bool quake3PropertyEdit(const MaterialDefinition& definition, const MaterialGrap
 			*error = Text::tr("animMap needs at least one frame.");
 			return false;
 		}
-		edits->push_back(setEdit(material, stageIndex, node.directive, QStringLiteral("animMap"),
+		// animMap, clampAnimMap, oneshotAnimMap and animMapNoComp take the
+		// same arguments; the line keeps its keyword.
+		const QString keyword = node.directive >= 0 ? directives.at(node.directive).keyword : QStringLiteral("animMap");
+		edits->push_back(setEdit(material, stageIndex, node.directive, keyword,
 			propertyValue(node, QStringLiteral("frequency"), QStringLiteral("1")) + QLatin1Char(' ') + frames));
 		return true;
 	}
 	if (node.kind == QStringLiteral("video")) {
-		edits->push_back(setEdit(material, stageIndex, node.directive, QStringLiteral("videoMap"), value));
+		const QString keyword = node.directive >= 0 ? directives.at(node.directive).keyword : QStringLiteral("videoMap");
+		edits->push_back(setEdit(material, stageIndex, node.directive, keyword, value));
 		return true;
 	}
 	if (node.kind == QStringLiteral("tcgen")) {
@@ -2477,7 +2707,9 @@ bool addNodeEdits(const MaterialDefinition& definition, const MaterialGraphEdit&
 	if (id == QStringLiteral("q3.stage.filter")) {
 		return addStage(QStringLiteral("map %1\nblendFunc filter\nrgbGen identity").arg(image));
 	}
-	const auto stageDirective = [&](const QString& keyword, const QString& arguments, bool replace) {
+	// Adds or replaces a stage directive and selects the node it makes
+	// (`node` below the stage; empty selects the stage itself).
+	const auto stageDirective = [&](const QString& keyword, const QString& arguments, bool replace, const QString& node) {
 		if (!needStage()) {
 			return false;
 		}
@@ -2487,69 +2719,88 @@ bool addNodeEdits(const MaterialDefinition& definition, const MaterialGraphEdit&
 		} else {
 			edits->push_back(addEdit(material, stageIndex, keyword, arguments));
 		}
-		*focus = QStringLiteral("stage/%1").arg(stageIndex);
+		*focus = node.isEmpty() ? QStringLiteral("stage/%1").arg(stageIndex) : QStringLiteral("stage/%1/%2").arg(stageIndex).arg(node);
 		return true;
 	};
+	const auto nextMod = [&](const char* kind) {
+		const int count = stageIndex >= 0 && stageIndex < definition.stages.size() ? static_cast<int>(definition.stages.at(stageIndex).tcMods.size()) : 0;
+		return QStringLiteral("%1/%2").arg(QString::fromLatin1(kind)).arg(count);
+	};
+	const auto tcMod = [&](const QString& arguments) {
+		if (!needStage()) {
+			return false;
+		}
+		// ioquake3's ParseTexMod refuses a fifth tcMod (TR_MAX_TEXMODS) and
+		// the shader is lost.
+		if (definition.stages.at(stageIndex).tcMods.size() >= 4) {
+			*error = Text::tr("Quake III allows at most 4 tcMods in a stage; remove one first.");
+			return false;
+		}
+		return stageDirective(QStringLiteral("tcMod"), arguments, false, nextMod("tcmod"));
+	};
 	if (id == QStringLiteral("q3.tcmod.scroll")) {
-		return stageDirective(QStringLiteral("tcMod"), QStringLiteral("scroll 0.1 0"), false);
+		return tcMod(QStringLiteral("scroll 0.1 0"));
 	}
 	if (id == QStringLiteral("q3.tcmod.scale")) {
-		return stageDirective(QStringLiteral("tcMod"), QStringLiteral("scale 2 2"), false);
+		return tcMod(QStringLiteral("scale 2 2"));
 	}
 	if (id == QStringLiteral("q3.tcmod.rotate")) {
-		return stageDirective(QStringLiteral("tcMod"), QStringLiteral("rotate 30"), false);
+		return tcMod(QStringLiteral("rotate 30"));
 	}
 	if (id == QStringLiteral("q3.tcmod.turb")) {
-		return stageDirective(QStringLiteral("tcMod"), QStringLiteral("turb 0 0.1 0 0.5"), false);
+		return tcMod(QStringLiteral("turb 0 0.1 0 0.5"));
 	}
 	if (id == QStringLiteral("q3.tcmod.stretch")) {
-		return stageDirective(QStringLiteral("tcMod"), QStringLiteral("stretch sin 1 0.1 0 0.5"), false);
+		return tcMod(QStringLiteral("stretch sin 1 0.1 0 0.5"));
 	}
 	if (id == QStringLiteral("q3.tcgen.environment")) {
-		return stageDirective(QStringLiteral("tcGen"), QStringLiteral("environment"), true);
+		return stageDirective(QStringLiteral("tcGen"), QStringLiteral("environment"), true, QStringLiteral("tcgen"));
 	}
 	if (id == QStringLiteral("q3.rgbgen.wave")) {
-		return stageDirective(QStringLiteral("rgbGen"), QStringLiteral("wave sin 0.5 0.5 0 1"), true);
+		return stageDirective(QStringLiteral("rgbGen"), QStringLiteral("wave sin 0.5 0.5 0 1"), true, QStringLiteral("rgbgen"));
 	}
 	if (id == QStringLiteral("q3.rgbgen.const")) {
-		return stageDirective(QStringLiteral("rgbGen"), QStringLiteral("const ( 1 0.5 0.25 )"), true);
+		return stageDirective(QStringLiteral("rgbGen"), QStringLiteral("const ( 1 0.5 0.25 )"), true, QStringLiteral("rgbgen"));
 	}
 	if (id == QStringLiteral("q3.alphagen.const")) {
-		return stageDirective(QStringLiteral("alphaGen"), QStringLiteral("const 0.5"), true);
+		return stageDirective(QStringLiteral("alphaGen"), QStringLiteral("const 0.5"), true, QStringLiteral("alphagen"));
 	}
 	if (id == QStringLiteral("q3.alphafunc")) {
-		return stageDirective(QStringLiteral("alphaFunc"), QStringLiteral("GE128"), true);
+		// alphaFunc is a property of the stage node.
+		return stageDirective(QStringLiteral("alphaFunc"), QStringLiteral("GE128"), true, QString());
 	}
-	const auto global = [&](const QString& keyword, const QString& arguments, bool replace) {
+	const auto global = [&](const QString& keyword, const QString& arguments, bool replace, const QString& node) {
 		if (replace) {
 			setOrAdd(edits, material, -1, definition.directives, keyword, arguments);
 		} else {
 			edits->push_back(addEdit(material, -1, keyword, arguments));
 		}
-		*focus = QStringLiteral("material");
+		*focus = node;
 		return true;
 	};
+	// Deforms are appended after the others, so the new one is the last.
+	const QString nextDeform = QStringLiteral("deform/%1").arg(definition.deforms.size());
 	if (id == QStringLiteral("q3.deform.wave")) {
-		return global(QStringLiteral("deformVertexes"), QStringLiteral("wave 64 sin 0 2 0 0.5"), false);
+		return global(QStringLiteral("deformVertexes"), QStringLiteral("wave 64 sin 0 2 0 0.5"), false, nextDeform);
 	}
 	if (id == QStringLiteral("q3.deform.bulge")) {
-		return global(QStringLiteral("deformVertexes"), QStringLiteral("bulge 3 3 1"), false);
+		return global(QStringLiteral("deformVertexes"), QStringLiteral("bulge 3 3 1"), false, nextDeform);
 	}
 	if (id == QStringLiteral("q3.deform.move")) {
-		return global(QStringLiteral("deformVertexes"), QStringLiteral("move 0 0 2 sin 0 1 0 0.5"), false);
+		return global(QStringLiteral("deformVertexes"), QStringLiteral("move 0 0 2 sin 0 1 0 0.5"), false, nextDeform);
 	}
 	if (id == QStringLiteral("q3.deform.autosprite")) {
-		return global(QStringLiteral("deformVertexes"), QStringLiteral("autosprite"), false);
+		return global(QStringLiteral("deformVertexes"), QStringLiteral("autosprite"), false, nextDeform);
 	}
 	if (id == QStringLiteral("q3.surfaceparm")) {
-		return global(QStringLiteral("surfaceparm"), QStringLiteral("nolightmap"), false);
+		return global(QStringLiteral("surfaceparm"), QStringLiteral("nolightmap"), false, QStringLiteral("material"));
 	}
 	if (id == QStringLiteral("q3.sky")) {
-		return global(QStringLiteral("skyParms"), QStringLiteral("env/sky 512 -"), true);
+		return global(QStringLiteral("skyParms"), QStringLiteral("env/sky 512 -"), true, QStringLiteral("sky"));
 	}
 	if (id == QStringLiteral("q3.fog")) {
-		global(QStringLiteral("surfaceparm"), QStringLiteral("fog"), false);
-		return global(QStringLiteral("fogParms"), QStringLiteral("( 0.5 0.5 0.5 ) 512"), true);
+		global(QStringLiteral("surfaceparm"), QStringLiteral("fog"), false, QStringLiteral("fog"));
+		return global(QStringLiteral("fogParms"), QStringLiteral("( 0.5 0.5 0.5 ) 512"), true, QStringLiteral("fog"));
 	}
 	// Doom 3.
 	const QString d3Image = image == QStringLiteral("$whiteimage") ? QStringLiteral("_white") : image;
@@ -2569,22 +2820,22 @@ bool addNodeEdits(const MaterialDefinition& definition, const MaterialGraphEdit&
 		return addStage(QStringLiteral("blend specularmap\nmap _white"));
 	}
 	if (id == QStringLiteral("d3.transform.scroll")) {
-		return stageDirective(QStringLiteral("scroll"), QStringLiteral("time * 0.1, 0"), false);
+		return stageDirective(QStringLiteral("scroll"), QStringLiteral("time * 0.1, 0"), false, nextMod("transform"));
 	}
 	if (id == QStringLiteral("d3.transform.scale")) {
-		return stageDirective(QStringLiteral("scale"), QStringLiteral("2, 2"), false);
+		return stageDirective(QStringLiteral("scale"), QStringLiteral("2, 2"), false, nextMod("transform"));
 	}
 	if (id == QStringLiteral("d3.transform.centerscale")) {
-		return stageDirective(QStringLiteral("centerScale"), QStringLiteral("1, 1"), false);
+		return stageDirective(QStringLiteral("centerScale"), QStringLiteral("1, 1"), false, nextMod("transform"));
 	}
 	if (id == QStringLiteral("d3.transform.rotate")) {
-		return stageDirective(QStringLiteral("rotate"), QStringLiteral("time * 0.1"), false);
+		return stageDirective(QStringLiteral("rotate"), QStringLiteral("time * 0.1"), false, nextMod("transform"));
 	}
 	if (id == QStringLiteral("d3.transform.shear")) {
-		return stageDirective(QStringLiteral("shear"), QStringLiteral("0.1, 0"), false);
+		return stageDirective(QStringLiteral("shear"), QStringLiteral("0.1, 0"), false, nextMod("transform"));
 	}
 	if (id == QStringLiteral("d3.texgen.reflect")) {
-		return stageDirective(QStringLiteral("texGen"), QStringLiteral("reflect"), true);
+		return stageDirective(QStringLiteral("texGen"), QStringLiteral("reflect"), true, QStringLiteral("texgen"));
 	}
 	if (id == QStringLiteral("d3.color.rgb") || id == QStringLiteral("d3.color.pulse")) {
 		if (!needStage()) {
@@ -2595,22 +2846,23 @@ bool addNodeEdits(const MaterialDefinition& definition, const MaterialGraphEdit&
 			id == QStringLiteral("d3.color.rgb") ? QStringLiteral("0.5") : QStringLiteral("0.5 + 0.5 * sinTable[ time ]"), edits, error);
 	}
 	if (id == QStringLiteral("d3.condition")) {
-		return stageDirective(QStringLiteral("if"), QStringLiteral("parm7 == 0"), true);
+		return stageDirective(QStringLiteral("if"), QStringLiteral("parm7 == 0"), true, QStringLiteral("condition"));
 	}
 	if (id == QStringLiteral("d3.alphatest")) {
-		return stageDirective(QStringLiteral("alphaTest"), QStringLiteral("0.5"), true);
+		return stageDirective(QStringLiteral("alphaTest"), QStringLiteral("0.5"), true, QStringLiteral("alphatest"));
 	}
+	// Doom 3 keeps one deform: a new one replaces it.
 	if (id == QStringLiteral("d3.deform.turbulent")) {
-		return global(QStringLiteral("deform"), QStringLiteral("turbulent sinTable 0.0175 time * 0.15 10"), true);
+		return global(QStringLiteral("deform"), QStringLiteral("turbulent sinTable 0.0175 time * 0.15 10"), true, QStringLiteral("deform/0"));
 	}
 	if (id == QStringLiteral("d3.deform.expand")) {
-		return global(QStringLiteral("deform"), QStringLiteral("expand 0.5"), true);
+		return global(QStringLiteral("deform"), QStringLiteral("expand 0.5"), true, QStringLiteral("deform/0"));
 	}
 	if (id == QStringLiteral("d3.deform.sprite")) {
-		return global(QStringLiteral("deform"), QStringLiteral("sprite"), true);
+		return global(QStringLiteral("deform"), QStringLiteral("sprite"), true, QStringLiteral("deform/0"));
 	}
 	if (id == QStringLiteral("d3.translucent")) {
-		return global(QStringLiteral("translucent"), QString(), true);
+		return global(QStringLiteral("translucent"), QString(), true, QStringLiteral("material"));
 	}
 	if (id == QStringLiteral("d3.table")) {
 		MaterialEdit add;
@@ -2727,82 +2979,430 @@ bool moveNodeEdits(const MaterialDefinition& definition, const MaterialGraph& gr
 	return true;
 }
 
+int countNodes(const MaterialGraph& graph, const QString& prefix)
+{
+	// Ids "<prefix>/<n>" exactly, e.g. the stages or a stage's tcMods.
+	int count = 0;
+	for (const MaterialGraphNode& node : graph.nodes) {
+		if (node.id.startsWith(prefix + QLatin1Char('/'))) {
+			bool number = false;
+			node.id.mid(prefix.size() + 1).toInt(&number);
+			count += number ? 1 : 0;
+		}
+	}
+	return count;
+}
+
+// The node to select after a removal: the one that fed the removed node (the
+// tcMod before it, the tcGen), the stage for a stage's parts, the stage that
+// takes a removed stage's place. A node that stays with its default (a
+// stage's tcGen, rgbGen or colour) or whose first input takes its place
+// (expressions, image functions) keeps the selection.
+QString removalFocus(const MaterialGraph& graph, const MaterialGraphNode& node)
+{
+	const QString& id = node.id;
+	if (node.kind == QStringLiteral("expression") || node.programNode) {
+		return id;
+	}
+	static const QStringList stays {QStringLiteral("tcgen"), QStringLiteral("texgen"), QStringLiteral("rgbgen"), QStringLiteral("alphagen"),
+		QStringLiteral("color")};
+	if (stays.contains(node.kind)) {
+		return id;
+	}
+	const int slash = id.lastIndexOf(QLatin1Char('/'));
+	const QString list = slash > 0 ? id.left(slash) : QString();
+	bool number = false;
+	const int position = slash > 0 ? id.mid(slash + 1).toInt(&number) : -1;
+	if (number && (node.kind == QStringLiteral("tcmod") || node.kind == QStringLiteral("transform"))) {
+		if (position > 0) {
+			return QStringLiteral("%1/%2").arg(list).arg(position - 1);
+		}
+		return QStringLiteral("stage/%1/%2").arg(node.stage).arg(node.kind == QStringLiteral("tcmod") ? QStringLiteral("tcgen") : QStringLiteral("texgen"));
+	}
+	if (number && (node.kind == QStringLiteral("stage") || node.kind == QStringLiteral("deform"))) {
+		const int count = countNodes(graph, list);
+		if (position + 1 < count) {
+			return id;
+		}
+		if (position > 0) {
+			return QStringLiteral("%1/%2").arg(list).arg(position - 1);
+		}
+		return QStringLiteral("material");
+	}
+	if (node.stage >= 0) {
+		return QStringLiteral("stage/%1").arg(node.stage);
+	}
+	return QStringLiteral("material");
+}
+
+} // namespace
+
+QVector<MaterialGraphIdMove> materialGraphIdMoves(const MaterialGraph& graph, const MaterialGraphEdit& edit)
+{
+	QVector<MaterialGraphIdMove> moves;
+	const MaterialGraphNode* node = graph.node(edit.node);
+	if (!node) {
+		return moves;
+	}
+	const QString& id = node->id;
+	const int slash = id.lastIndexOf(QLatin1Char('/'));
+	const QString list = slash > 0 ? id.left(slash) : QString();
+	bool number = false;
+	const int position = slash > 0 ? id.mid(slash + 1).toInt(&number) : -1;
+	const bool listed = number
+		&& (node->kind == QStringLiteral("stage") || node->kind == QStringLiteral("tcmod") || node->kind == QStringLiteral("transform")
+			|| node->kind == QStringLiteral("deform"));
+	const bool tree = node->kind == QStringLiteral("expression") || node->programNode;
+	const QString firstInput = node->kind == QStringLiteral("expression") ? QStringLiteral("/a") : QStringLiteral("/0");
+	switch (edit.kind) {
+	case MaterialGraphEditKind::MoveNode:
+		if (listed && node->reorderable) {
+			const int target = position + (edit.step < 0 ? -1 : 1);
+			if (target >= 0 && target < countNodes(graph, list)) {
+				const QString other = QStringLiteral("%1/%2").arg(list).arg(target);
+				moves.push_back({id, other});
+				moves.push_back({other, id});
+			}
+		}
+		break;
+	case MaterialGraphEditKind::RemoveNode:
+	case MaterialGraphEditKind::UnwrapExpression:
+		if (edit.kind == MaterialGraphEditKind::RemoveNode && listed) {
+			moves.push_back({id, QString()});
+			const int count = countNodes(graph, list);
+			for (int later = position + 1; later < count; ++later) {
+				moves.push_back({QStringLiteral("%1/%2").arg(list).arg(later), QStringLiteral("%1/%2").arg(list).arg(later - 1)});
+			}
+		} else if (tree && !node->inputs.isEmpty()) {
+			// The first input takes the node's place; the rest go.
+			moves.push_back({id + firstInput, id});
+			moves.push_back({id, QString()});
+		}
+		break;
+	case MaterialGraphEditKind::WrapExpression:
+		if (tree) {
+			moves.push_back({id, id + firstInput});
+		}
+		break;
+	default:
+		break;
+	}
+	return moves;
+}
+
+QString remapMaterialGraphId(const QString& id, const QVector<MaterialGraphIdMove>& moves)
+{
+	for (const MaterialGraphIdMove& move : moves) {
+		if (id == move.from) {
+			return move.to;
+		}
+		if (id.startsWith(move.from) && id.size() > move.from.size() && id.at(move.from.size()) == QLatin1Char('/')) {
+			return move.to.isEmpty() ? QString() : move.to + id.mid(move.from.size());
+		}
+	}
+	return id;
+}
+
+namespace {
+
 // ---------------------------------------------------------------------------
 // Classic text edits
 // ---------------------------------------------------------------------------
 
+// The last picture of a new range: the latest name after the material that
+// shares its stem and has a higher trailing number (NUKAGE1 -> NUKAGE3), from
+// the names the caller passes in namespace order. Empty when there is none.
+QString guessRangeLast(const QString& key, const QStringList& related)
+{
+	static const QRegularExpression numbered(QStringLiteral("^(.*?)(\\d+)$"));
+	const QRegularExpressionMatch own = numbered.match(key);
+	if (!own.hasMatch()) {
+		return QString();
+	}
+	const QString stem = own.captured(1);
+	const qlonglong number = own.captured(2).toLongLong();
+	QString best;
+	qlonglong bestNumber = number;
+	for (const QString& name : related) {
+		const QRegularExpressionMatch match = numbered.match(name.trimmed().toUpper());
+		if (match.hasMatch() && match.captured(1) == stem && match.captured(2).toLongLong() > bestNumber) {
+			best = name.trimmed().toUpper();
+			bestNumber = match.captured(2).toLongLong();
+		}
+	}
+	return best;
+}
+
+bool validLumpName(const QString& name)
+{
+	return !name.isEmpty() && name.size() <= 8 && !name.contains(QRegularExpression(QStringLiteral("[\\s#]")));
+}
+
+// One line of a SWANTBLS text, read the way parseSwantblsText reads it, with
+// where each word sits so an edit can replace just that word.
+struct SwantblsLine {
+	int start = 0;
+	int end = 0;     // before the line break
+	int next = 0;    // after the line break
+	QString section; // "flats", "textures", "switches" or empty
+	bool header = false;
+	QStringList words;
+	QVector<int> wordStarts;
+	[[nodiscard]] bool data() const { return !header && !section.isEmpty() && words.size() >= 3; }
+};
+
+QVector<SwantblsLine> swantblsLines(const QString& text)
+{
+	QVector<SwantblsLine> lines;
+	static const QRegularExpression word(QStringLiteral("\\S+"));
+	QString section;
+	const int size = static_cast<int>(text.size());
+	int start = 0;
+	while (start <= size) {
+		int lineEnd = static_cast<int>(text.indexOf(QLatin1Char('\n'), start));
+		const bool lastLine = lineEnd < 0;
+		if (lastLine) {
+			lineEnd = size;
+		}
+		const int next = lastLine ? size : lineEnd + 1;
+		int end = lineEnd;
+		if (end > start && text.at(end - 1) == QLatin1Char('\r')) {
+			--end;
+		}
+		SwantblsLine line;
+		line.start = start;
+		line.end = end;
+		line.next = next;
+		QString body = text.mid(start, end - start);
+		const int comment = body.indexOf(QLatin1Char('#'));
+		if (comment >= 0) {
+			body.truncate(comment);
+		}
+		const QString upper = body.trimmed().toUpper();
+		if (upper == QStringLiteral("[FLATS]") || upper == QStringLiteral("[TEXTURES]") || upper == QStringLiteral("[SWITCHES]")) {
+			section = upper.mid(1, upper.size() - 2).toLower();
+			line.header = true;
+		} else {
+			QRegularExpressionMatchIterator words = word.globalMatch(body);
+			while (words.hasNext()) {
+				const QRegularExpressionMatch match = words.next();
+				line.words << match.captured(0);
+				line.wordStarts << start + static_cast<int>(match.capturedStart(0));
+			}
+		}
+		line.section = section;
+		lines.push_back(line);
+		if (lastLine) {
+			break;
+		}
+		start = next;
+	}
+	return lines;
+}
+
+struct TextPatch {
+	int start = 0;
+	int end = 0;
+	QString replacement;
+};
+
+// Replaces one word, keeping the columns after it lined up when it is
+// followed by a run of spaces.
+TextPatch replaceWord(const QString& text, const SwantblsLine& line, int word, const QString& replacement)
+{
+	const int start = line.wordStarts.at(word);
+	const int end = start + static_cast<int>(line.words.at(word).size());
+	if (word + 1 < line.words.size()) {
+		const int following = line.wordStarts.at(word + 1);
+		const QString gap = text.mid(end, following - end);
+		if (gap.size() > 1 && gap.count(QLatin1Char(' ')) == gap.size()) {
+			const int spaces = std::max(1, static_cast<int>(gap.size() - (replacement.size() - line.words.at(word).size())));
+			return {start, following, replacement + QString(spaces, QLatin1Char(' '))};
+		}
+	}
+	return {start, end, replacement};
+}
+
+QString applyPatches(QString text, QVector<TextPatch> patches)
+{
+	std::sort(patches.begin(), patches.end(), [](const TextPatch& a, const TextPatch& b) { return a.start > b.start; });
+	for (const TextPatch& patch : patches) {
+		text.replace(patch.start, patch.end - patch.start, patch.replacement);
+	}
+	return text;
+}
+
+// Where a new line goes at the end of a section: after its last line with
+// words (or its header), or a new section at the end of the text.
+TextPatch sectionInsertion(const QString& text, const QVector<SwantblsLine>& lines, const QString& section, const QString& line,
+	const QString& newline)
+{
+	int after = -1;
+	for (int index = 0; index < lines.size(); ++index) {
+		if (lines.at(index).section == section && (lines.at(index).header || !lines.at(index).words.isEmpty())) {
+			after = index;
+		}
+	}
+	if (after < 0) {
+		const QString lead = text.isEmpty() || text.endsWith(QLatin1Char('\n')) ? QString() : newline;
+		const QString gap = text.trimmed().isEmpty() ? QString() : newline;
+		const QString header = QStringLiteral("[%1]").arg(section.toUpper());
+		return {static_cast<int>(text.size()), static_cast<int>(text.size()), lead + gap + header + newline + line + newline};
+	}
+	const SwantblsLine& previous = lines.at(after);
+	if (previous.next == previous.end) {
+		// The text's last line, with no line break after it.
+		return {previous.end, previous.end, newline + line};
+	}
+	return {previous.next, previous.next, line + newline};
+}
+
+QString rangeLine(int tics, const QString& last, const QString& first)
+{
+	return QStringLiteral("%1 %2 %3").arg(QString::number(tics).leftJustified(7), last.leftJustified(11), first);
+}
+
+QString switchLine(int episode, const QString& off, const QString& on)
+{
+	return QStringLiteral("%1 %2 %3").arg(QString::number(episode).leftJustified(7), off.leftJustified(11), on);
+}
+
+// SWANTBLS edits patch the lines they change; comments, order, spacing and
+// line endings stay as the user wrote them.
 MaterialGraphEditResult swantblsEdit(const QString& text, const QString& material, const MaterialGraphEdit& edit)
 {
-	QVector<DoomAnimationRange> ranges;
-	QVector<DoomSwitchPair> switches;
-	QVector<MaterialDiagnostic> diagnostics;
-	parseSwantblsText(text, &ranges, &switches, &diagnostics);
 	const QString key = material.trimmed().toUpper();
+	const QString newline = text.contains(QStringLiteral("\r\n")) ? QStringLiteral("\r\n") : QStringLiteral("\n");
+	const QVector<SwantblsLine> lines = swantblsLines(text);
+	// A range is found from any member: both its ends are among the
+	// material's frames.
+	const auto holds = [&](const SwantblsLine& line) {
+		if (!line.data() || line.section == QStringLiteral("switches")) {
+			return false;
+		}
+		const QString last = line.words.at(1).toUpper();
+		const QString first = line.words.at(2).toUpper();
+		const bool ends = first == key || last == key;
+		const bool member = edit.related.contains(first, Qt::CaseInsensitive) && edit.related.contains(last, Qt::CaseInsensitive);
+		return ends || member;
+	};
+	const auto switchHolds = [&](const SwantblsLine& line) {
+		return line.data() && line.section == QStringLiteral("switches") && (line.words.at(1).toUpper() == key || line.words.at(2).toUpper() == key);
+	};
 	MaterialGraphEditResult result;
+	QVector<TextPatch> patches;
 	if (edit.kind == MaterialGraphEditKind::SetProperty && edit.node == QStringLiteral("animation") && edit.property == QStringLiteral("tics")) {
 		bool ok = false;
 		const int tics = edit.value.toInt(&ok);
 		if (!ok || tics <= 0 || tics > 35 * 60) {
 			return fail(Text::tr("Tics must be a whole number from 1 to 2100."));
 		}
-		// A range is found from any member: both its ends are among the
-		// material's frames.
-		bool changed = false;
-		for (DoomAnimationRange& range : ranges) {
-			const bool ends = range.first.toUpper() == key || range.last.toUpper() == key;
-			const bool member = edit.related.contains(range.first, Qt::CaseInsensitive) && edit.related.contains(range.last, Qt::CaseInsensitive);
-			if (ends || member) {
-				range.tics = tics;
-				changed = true;
+		for (const SwantblsLine& line : lines) {
+			if (holds(line)) {
+				patches.push_back(replaceWord(text, line, 0, QString::number(tics)));
 			}
 		}
-		if (!changed) {
+		if (patches.isEmpty()) {
+			return fail(Text::tr("No animated range in this table holds %1; add one first.").arg(material));
+		}
+	} else if (edit.kind == MaterialGraphEditKind::SetProperty && edit.node == QStringLiteral("animation") && edit.property == QStringLiteral("last")) {
+		const QString last = edit.value.trimmed().toUpper();
+		if (!validLumpName(last)) {
+			return fail(Text::tr("Doom lump names have 1 to 8 characters and no spaces."));
+		}
+		for (const SwantblsLine& line : lines) {
+			if (holds(line)) {
+				if (line.words.at(2).toUpper() == last) {
+					return fail(Text::tr("A range needs at least two pictures; Boom stops at start-up when the last is the first."));
+				}
+				patches.push_back(replaceWord(text, line, 1, last));
+				break;
+			}
+		}
+		if (patches.isEmpty()) {
 			return fail(Text::tr("No animated range in this table holds %1; add one first.").arg(material));
 		}
 	} else if (edit.kind == MaterialGraphEditKind::SetProperty && edit.node == QStringLiteral("switch") && edit.property == QStringLiteral("partner")) {
 		const QString partner = edit.value.trimmed().toUpper();
-		QVector<DoomSwitchPair> kept;
-		int episode = 1;
-		for (const DoomSwitchPair& pair : switches) {
-			if (pair.off.toUpper() != key && pair.on.toUpper() != key) {
-				kept.push_back(pair);
+		if (!partner.isEmpty() && !validLumpName(partner)) {
+			return fail(Text::tr("Doom lump names have 1 to 8 characters and no spaces."));
+		}
+		bool kept = false;
+		for (const SwantblsLine& line : lines) {
+			if (!switchHolds(line)) {
+				continue;
+			}
+			if (!partner.isEmpty() && !kept) {
+				// The material becomes the unpressed texture of the pair.
+				kept = true;
+				patches.push_back(replaceWord(text, line, 2, partner));
+				if (line.words.at(1).toUpper() != key) {
+					patches.push_back(replaceWord(text, line, 1, key));
+				}
 			} else {
-				episode = pair.episode;
+				patches.push_back({line.start, line.next, QString()});
 			}
 		}
-		if (!partner.isEmpty()) {
-			if (partner.size() > 8) {
-				return fail(Text::tr("Doom lump names have at most 8 characters."));
-			}
-			DoomSwitchPair pair;
-			pair.off = key;
-			pair.on = partner;
-			pair.episode = episode;
-			kept.push_back(pair);
+		if (!partner.isEmpty() && !kept) {
+			patches.push_back(sectionInsertion(text, lines, QStringLiteral("switches"), switchLine(1, key, partner), newline));
 		}
-		switches = kept;
+		if (patches.isEmpty()) {
+			result.ok = true;
+			result.text = text;
+			return result;
+		}
 	} else if (edit.kind == MaterialGraphEditKind::AddNode && edit.nodeTemplate == QStringLiteral("doom.range")) {
+		for (const SwantblsLine& line : lines) {
+			if (holds(line)) {
+				return fail(Text::tr("%1 is already in an animated range.").arg(material));
+			}
+		}
+		// Boom refuses a range of fewer than two pictures (P_InitPicAnims:
+		// "bad cycle"), so the range needs a real last picture.
+		const QString last = guessRangeLast(key, edit.related);
+		if (last.isEmpty()) {
+			return fail(Text::tr("No picture after %1 with the same name and a higher number was found; a range needs at least two pictures, "
+								 "so write it in the text.")
+					.arg(material));
+		}
 		// The value says what the range animates: "flat" or "texture".
-		DoomAnimationRange range;
-		range.first = key;
-		range.last = key;
-		range.texture = edit.value.compare(QStringLiteral("flat"), Qt::CaseInsensitive) != 0;
-		range.tics = 8;
-		range.source = QStringLiteral("boom-animated");
-		ranges.push_back(range);
+		const bool texture = edit.value.compare(QStringLiteral("flat"), Qt::CaseInsensitive) != 0;
+		if (text.trimmed().isEmpty()) {
+			DoomAnimationRange range;
+			range.first = key;
+			range.last = last;
+			range.texture = texture;
+			range.source = QStringLiteral("boom-animated");
+			result.ok = true;
+			result.text = swantblsText({range}, {});
+			result.focusNode = QStringLiteral("animation");
+			return result;
+		}
+		patches.push_back(sectionInsertion(text, lines, texture ? QStringLiteral("textures") : QStringLiteral("flats"), rangeLine(8, last, key), newline));
 		result.focusNode = QStringLiteral("animation");
 	} else if (edit.kind == MaterialGraphEditKind::AddNode && edit.nodeTemplate == QStringLiteral("doom.switch")) {
-		DoomSwitchPair pair;
-		pair.off = key;
-		pair.on = key.startsWith(QStringLiteral("SW1")) ? QStringLiteral("SW2") + key.mid(3) : key;
-		pair.episode = 1;
-		switches.push_back(pair);
+		for (const SwantblsLine& line : lines) {
+			if (switchHolds(line)) {
+				return fail(Text::tr("%1 is already a switch.").arg(material));
+			}
+		}
+		const QString on = key.startsWith(QStringLiteral("SW1")) ? QStringLiteral("SW2") + key.mid(3) : key;
+		if (text.trimmed().isEmpty()) {
+			DoomSwitchPair pair;
+			pair.off = key;
+			pair.on = on;
+			result.ok = true;
+			result.text = swantblsText({}, {pair});
+			result.focusNode = QStringLiteral("switch");
+			return result;
+		}
+		patches.push_back(sectionInsertion(text, lines, QStringLiteral("switches"), switchLine(1, key, on), newline));
 		result.focusNode = QStringLiteral("switch");
 	} else {
 		return fail(Text::tr("That edit does not apply to a Boom animation table."));
 	}
 	result.ok = true;
-	result.text = swantblsText(ranges, switches);
+	result.text = applyPatches(text, patches);
 	return result;
 }
 
@@ -2817,9 +3417,23 @@ MaterialGraphEditResult animdefsEdit(const QString& text, const QString& materia
 		entry.base = key;
 		entry.texture = true;
 		if (edit.nodeTemplate == QStringLiteral("doom.animdefs.range")) {
-			entry.kind = QStringLiteral("texture");
+			for (const DoomAnimdefsEntry& existing : entries) {
+				if (existing.base.toUpper() == key && (existing.kind == QStringLiteral("texture") || existing.kind == QStringLiteral("flat"))) {
+					return fail(Text::tr("ANIMDEFS already animates %1.").arg(material));
+				}
+			}
+			// A range to itself is accepted by ZDoom but never animates.
+			const QString last = guessRangeLast(key, edit.related);
+			if (last.isEmpty()) {
+				return fail(Text::tr("No picture after %1 with the same name and a higher number was found; a range needs at least two pictures, "
+									 "so write it in the text.")
+						.arg(material));
+			}
+			const bool flat = edit.value.compare(QStringLiteral("flat"), Qt::CaseInsensitive) == 0;
+			entry.kind = flat ? QStringLiteral("flat") : QStringLiteral("texture");
+			entry.texture = !flat;
 			entry.range = true;
-			entry.rangeLast = key;
+			entry.rangeLast = last;
 			entry.rangeTics = 8;
 		} else if (edit.nodeTemplate == QStringLiteral("doom.animdefs.warp") || edit.nodeTemplate == QStringLiteral("doom.animdefs.warp2")) {
 			entry.kind = edit.nodeTemplate.endsWith(QLatin1Char('2')) ? QStringLiteral("warp2") : QStringLiteral("warp");
@@ -2836,7 +3450,21 @@ MaterialGraphEditResult animdefsEdit(const QString& text, const QString& materia
 			continue;
 		}
 		DoomAnimdefsEntry changed = entry;
-		if (edit.node == QStringLiteral("animation") && edit.property == QStringLiteral("tics")) {
+		const bool animation = entry.kind == QStringLiteral("texture") || entry.kind == QStringLiteral("flat");
+		const bool warp = entry.kind == QStringLiteral("warp") || entry.kind == QStringLiteral("warp2");
+		if (edit.node == QStringLiteral("animation") && edit.property == QStringLiteral("last") && animation) {
+			if (!entry.range) {
+				return fail(Text::tr("This ANIMDEFS entry lists its pictures one by one; change them in the text."));
+			}
+			const QString last = edit.value.trimmed().toUpper();
+			if (!validLumpName(last)) {
+				return fail(Text::tr("Doom lump names have 1 to 8 characters and no spaces."));
+			}
+			if (last == key) {
+				return fail(Text::tr("A range needs at least two pictures; the last cannot be the first."));
+			}
+			changed.rangeLast = last;
+		} else if (edit.node == QStringLiteral("animation") && edit.property == QStringLiteral("tics") && animation) {
 			bool ok = false;
 			const int tics = edit.value.toInt(&ok);
 			if (!ok || tics <= 0) {
@@ -2846,7 +3474,7 @@ MaterialGraphEditResult animdefsEdit(const QString& text, const QString& materia
 			for (DoomAnimdefsFrame& frame : changed.frames) {
 				frame.tics = tics;
 			}
-		} else if (edit.node == QStringLiteral("warp") && edit.property == QStringLiteral("speed")) {
+		} else if (edit.node == QStringLiteral("warp") && edit.property == QStringLiteral("speed") && warp) {
 			bool ok = false;
 			const double speed = edit.value.toDouble(&ok);
 			if (!ok || speed <= 0) {
@@ -2867,6 +3495,73 @@ MaterialGraphEditResult animdefsEdit(const QString& text, const QString& materia
 		return result;
 	}
 	return fail(Text::tr("ANIMDEFS has no entry for %1 that this edit changes.").arg(material));
+}
+
+bool sameDirectives(const QVector<MaterialDirective>& a, const QVector<MaterialDirective>& b)
+{
+	if (a.size() != b.size()) {
+		return false;
+	}
+	for (int index = 0; index < a.size(); ++index) {
+		if (a.at(index).keyword != b.at(index).keyword) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool sameShape(const MaterialDefinition& a, const MaterialDefinition& b)
+{
+	if (a.name != b.name || a.stages.size() != b.stages.size() || !sameDirectives(a.directives, b.directives)) {
+		return false;
+	}
+	for (int index = 0; index < a.stages.size(); ++index) {
+		if (a.stages.at(index).shorthandDirective != b.stages.at(index).shorthandDirective
+			|| !sameDirectives(a.stages.at(index).directives, b.stages.at(index).directives)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+// Applies one definition's edits to that definition's text alone and puts
+// the result back into the script. Each primitive edit re-reads the text it
+// patched, so in a large script this re-reads a few hundred characters per
+// step instead of the whole file. Edits that reach outside the definition (a
+// new table decl) use the whole script, and so does a definition that does
+// not read the same on its own.
+MaterialEditResult applyDefinitionEdits(const MaterialScript& script, const QString& text, const MaterialDefinition& definition,
+	const QVector<MaterialEdit>& edits)
+{
+	bool local = !definition.name.isEmpty() && definition.span.isValid() && definition.span.start >= 0 && definition.span.end <= text.size()
+		&& definition.span.start < definition.span.end;
+	for (const MaterialEdit& edit : edits) {
+		const bool outside = edit.kind == MaterialEditKind::AddDefinition || edit.kind == MaterialEditKind::RemoveDefinition
+			|| edit.kind == MaterialEditKind::RenameDefinition || edit.kind == MaterialEditKind::DuplicateDefinition
+			|| edit.kind == MaterialEditKind::ReplaceDefinition;
+		local = local && !outside && edit.material == definition.name;
+	}
+	if (local) {
+		const int start = definition.span.start;
+		const int end = definition.span.end;
+		const MaterialScript piece = parseMaterialScript(text.mid(start, end - start), script.engine, script.path, script.dialect);
+		const MaterialDefinition* again = piece.find(definition.name);
+		if (piece.materials.size() == 1 && again && sameShape(*again, definition)) {
+			MaterialEditResult applied = applyMaterialEdits(piece, edits);
+			if (applied.ok) {
+				applied.text = text.left(start) + applied.text + text.mid(end);
+				if (applied.changeStart >= 0) {
+					applied.changeStart += start;
+					applied.changeEnd += start;
+				}
+				// The parse covers the definition only; the caller reads the
+				// whole text again.
+				applied.script = MaterialScript();
+			}
+			return applied;
+		}
+	}
+	return applyMaterialEdits(script, edits);
 }
 
 MaterialGraphEditResult walJsonEdit(const QString& text, const MaterialGraphEdit& edit)
@@ -2958,6 +3653,10 @@ MaterialGraphEditResult applyMaterialGraphEdit(const QString& text, MaterialText
 		renaming.kind = MaterialEditKind::RenameDefinition;
 		renaming.material = subject.name;
 		renaming.text = edit.value.trimmed();
+		QString nameError;
+		if (!isValidMaterialName(engine, renaming.text, &nameError)) {
+			return fail(nameError);
+		}
 		const MaterialEditResult applied = applyMaterialEdit(script, renaming);
 		if (!applied.ok) {
 			return fail(applied.error);
@@ -2979,7 +3678,9 @@ MaterialGraphEditResult applyMaterialGraphEdit(const QString& text, MaterialText
 		break;
 	case MaterialGraphEditKind::RemoveNode:
 		ok = removeNodeEdits(subject, graph, edit, &edits, &error);
-		focus = QStringLiteral("material");
+		if (const MaterialGraphNode* removed = graph.node(edit.node)) {
+			focus = removalFocus(graph, *removed);
+		}
 		break;
 	case MaterialGraphEditKind::MoveNode:
 		ok = moveNodeEdits(subject, graph, edit, &edits, &focus, &error);
@@ -3003,11 +3704,16 @@ MaterialGraphEditResult applyMaterialGraphEdit(const QString& text, MaterialText
 		const MaterialStage& stage = subject.stages.at(stageIndex);
 		const MaterialDirective& directive = subject.directives.at(stage.shorthandDirective);
 		edits.push_back(removeEdit(subject.name, -1, stage.shorthandDirective));
+		// Without the shorthand, the stage that came after it is stage k:
+		// the block goes in before it, so draw order (and Doom 3's grouping
+		// of bump, diffuse and specular stages) stays as it was.
 		MaterialEdit add;
 		add.kind = MaterialEditKind::AddStage;
 		add.material = subject.name;
+		add.position = stageIndex;
 		add.text = QStringLiteral("blend %1\nmap %2").arg(directive.keyword.toLower(), directive.argumentText);
 		edits.push_back(add);
+		focus = QStringLiteral("stage/%1").arg(stageIndex);
 		ok = true;
 		break;
 	}
@@ -3015,7 +3721,7 @@ MaterialGraphEditResult applyMaterialGraphEdit(const QString& text, MaterialText
 	if (!ok) {
 		return fail(error);
 	}
-	const MaterialEditResult applied = applyMaterialEdits(script, edits);
+	const MaterialEditResult applied = applyDefinitionEdits(script, text, subject, edits);
 	if (!applied.ok) {
 		return fail(applied.error);
 	}
@@ -3023,6 +3729,7 @@ MaterialGraphEditResult applyMaterialGraphEdit(const QString& text, MaterialText
 	result.ok = true;
 	result.text = applied.text;
 	result.focusNode = focus;
+	result.idMoves = materialGraphIdMoves(graph, edit);
 	return result;
 }
 
@@ -3054,6 +3761,9 @@ QJsonObject materialGraphJson(const MaterialGraph& graph)
 		}
 		if (node.inactive) {
 			item.insert(QStringLiteral("inactive"), true);
+		}
+		if (node.programNode) {
+			item.insert(QStringLiteral("imageProgram"), true);
 		}
 		QJsonArray inputs;
 		for (const MaterialGraphPort& item : node.inputs) {
@@ -3093,8 +3803,12 @@ bool parseMaterialGraphEditsJson(const QByteArray& json, QVector<MaterialGraphEd
 {
 	QJsonParseError parseError;
 	const QJsonDocument document = QJsonDocument::fromJson(json, &parseError);
-	if (parseError.error != QJsonParseError::NoError || !document.isArray()) {
+	if (parseError.error != QJsonParseError::NoError) {
 		*error = Text::tr("Graph edits must be a JSON array: %1").arg(parseError.errorString());
+		return false;
+	}
+	if (!document.isArray()) {
+		*error = Text::tr("Graph edits must be a JSON array of edits; the file holds a JSON object.");
 		return false;
 	}
 	const QJsonArray array = document.array();
@@ -3102,8 +3816,9 @@ bool parseMaterialGraphEditsJson(const QByteArray& json, QVector<MaterialGraphEd
 		*error = Text::tr("At most 256 graph edits are accepted at once.");
 		return false;
 	}
-	static const QSet<QString> known {QStringLiteral("edit"), QStringLiteral("node"), QStringLiteral("property"), QStringLiteral("value"),
-		QStringLiteral("template"), QStringLiteral("step")};
+	// "op" is accepted in place of "edit", as text edits name the kind.
+	static const QSet<QString> known {QStringLiteral("edit"), QStringLiteral("op"), QStringLiteral("node"), QStringLiteral("property"),
+		QStringLiteral("value"), QStringLiteral("template"), QStringLiteral("step")};
 	for (int index = 0; index < array.size(); ++index) {
 		if (!array.at(index).isObject()) {
 			*error = Text::tr("Graph edit %1 is not an object.").arg(index + 1);
@@ -3116,17 +3831,43 @@ bool parseMaterialGraphEditsJson(const QByteArray& json, QVector<MaterialGraphEd
 				return false;
 			}
 		}
+		if (object.contains(QStringLiteral("edit")) && object.contains(QStringLiteral("op"))) {
+			*error = Text::tr("Graph edit %1 gives both 'edit' and 'op'.").arg(index + 1);
+			return false;
+		}
+		for (const QString& key : {QStringLiteral("edit"), QStringLiteral("op"), QStringLiteral("node"), QStringLiteral("property"), QStringLiteral("template")}) {
+			const QJsonValue field = object.value(key);
+			if (!field.isUndefined() && !field.isString()) {
+				*error = Text::tr("Graph edit %1: '%2' must be text.").arg(index + 1).arg(key);
+				return false;
+			}
+		}
+		const QString kindKey = object.contains(QStringLiteral("op")) ? QStringLiteral("op") : QStringLiteral("edit");
 		MaterialGraphEdit edit;
-		if (!materialGraphEditKindFromId(object.value(QStringLiteral("edit")).toString(QStringLiteral("set")), &edit.kind)) {
-			*error = Text::tr("Graph edit %1 has an unknown kind '%2'.").arg(index + 1).arg(object.value(QStringLiteral("edit")).toString());
+		if (!materialGraphEditKindFromId(object.value(kindKey).toString(QStringLiteral("set")), &edit.kind)) {
+			*error = Text::tr("Graph edit %1 has an unknown kind '%2'.").arg(index + 1).arg(object.value(kindKey).toString());
 			return false;
 		}
 		edit.node = object.value(QStringLiteral("node")).toString();
 		edit.property = object.value(QStringLiteral("property")).toString();
 		const QJsonValue value = object.value(QStringLiteral("value"));
+		if (!value.isUndefined() && !value.isString() && !value.isDouble() && !value.isBool()) {
+			*error = Text::tr("Graph edit %1: 'value' must be text, a number or true or false.").arg(index + 1);
+			return false;
+		}
 		edit.value = value.isBool() ? boolText(value.toBool()) : value.isDouble() ? numberText(value.toDouble()) : value.toString();
 		edit.nodeTemplate = object.value(QStringLiteral("template")).toString();
-		edit.step = object.value(QStringLiteral("step")).toInt(1);
+		const QJsonValue step = object.value(QStringLiteral("step"));
+		if (!step.isUndefined()) {
+			const double number = step.toDouble();
+			if (!step.isDouble() || number != std::floor(number) || std::abs(number) > double(std::numeric_limits<int>::max())) {
+				*error = Text::tr("Graph edit %1: 'step' must be a whole number.").arg(index + 1);
+				return false;
+			}
+			edit.step = int(number);
+		} else {
+			edit.step = 1;
+		}
 		edits->push_back(edit);
 	}
 	return true;

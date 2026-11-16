@@ -9,10 +9,13 @@
 #include "app/material_tasks.h"
 #include "app/studio_icons.h"
 #include "app/studio_layout.h"
+#include "app/studio_progress.h"
 #include "app/studio_theme.h"
 #include "app/syntax_highlight.h"
 #include "app/ui_primitives.h"
 #include "core/material_eval.h"
+#include "core/material_override.h"
+#include "core/material_render.h"
 #include "core/material_script.h"
 #include "core/material_video.h"
 
@@ -25,6 +28,7 @@
 #include <QColorDialog>
 #include <QComboBox>
 #include <QCompleter>
+#include <QContextMenuEvent>
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QDialog>
@@ -43,12 +47,14 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
 #include <QMenu>
 #include <QMessageBox>
 #include <QPainter>
+#include <QPlainTextDocumentLayout>
 #include <QPushButton>
 #include <QSaveFile>
 #include <QScrollBar>
@@ -58,6 +64,7 @@
 #include <QSplitter>
 #include <QTabWidget>
 #include <QTextBlock>
+#include <QTextDocument>
 #include <QTextEdit>
 #include <QTimer>
 #include <QToolButton>
@@ -73,7 +80,13 @@ namespace {
 
 constexpr int kReparseDelayMs = 250;
 constexpr int kStateSaveDelayMs = 600;
+constexpr int kFilterDelayMs = 150;
 constexpr int kWholeProblemLimit = 2000;
+// An exported sheet keeps within this many pixels a side, and each of its
+// frames (or a single exported frame) within the frame limit.
+constexpr int kSheetSideLimit = 8192;
+constexpr int kFrameSideLimit = 2048;
+constexpr int kSingleFrameSideLimit = 4096;
 // The tab order of the editors.
 constexpr int kNodesTab = 0;
 constexpr int kTextTab = 1;
@@ -136,11 +149,83 @@ QString imageStatusName(const QString& status)
 	return status;
 }
 
-bool plainMaterialName(const QString& name)
+// The frames of an export and the size of each, kept within the limits.
+struct PreviewSheetPlan {
+	int count = 1;
+	int columns = 1;
+	int rows = 1;
+	QSize cell;
+	bool shrunk = false;
+};
+
+PreviewSheetPlan planPreviewSheet(int frames, QSize cell)
 {
-	return !name.isEmpty() && std::none_of(name.cbegin(), name.cend(), [](QChar c) {
-		return c.isSpace() || c == QLatin1Char('{') || c == QLatin1Char('}') || c == QLatin1Char('"');
-	});
+	PreviewSheetPlan plan;
+	plan.count = std::clamp(frames, 1, 256);
+	plan.columns = static_cast<int>(std::ceil(std::sqrt(static_cast<double>(plan.count))));
+	plan.rows = (plan.count + plan.columns - 1) / plan.columns;
+	if (!cell.isValid() || cell.isEmpty()) {
+		cell = QSize(512, 512);
+	}
+	const int limit = plan.count == 1 ? kSingleFrameSideLimit : std::min(kFrameSideLimit, kSheetSideLimit / std::max(plan.columns, plan.rows));
+	if (cell.width() > limit || cell.height() > limit) {
+		cell = cell.scaled(limit, limit, Qt::KeepAspectRatio);
+		plan.shrunk = true;
+	}
+	plan.cell = QSize(std::max(1, cell.width()), std::max(1, cell.height()));
+	return plan;
+}
+
+struct PreviewSheetResult {
+	QImage image;
+	QString problem;
+	bool cancelled = false;
+};
+
+// Draws an export's frames, on any thread; `progress` hears each frame.
+PreviewSheetResult drawPreviewSheet(const MaterialDefinition& definition, const MaterialImageSet& images, const MaterialTableSet& tables,
+	MaterialRenderOptions options, const PreviewSheetPlan& plan, double cycle, double now, const std::function<bool()>& cancelled,
+	const std::function<void(int done, int total)>& progress)
+{
+	PreviewSheetResult sheet;
+	options.size = plan.cell;
+	for (int frame = 0; frame < plan.count; ++frame) {
+		if (cancelled && cancelled()) {
+			sheet.cancelled = true;
+			return sheet;
+		}
+		options.time = plan.count == 1 ? now : cycle * frame / plan.count;
+		const MaterialRenderResult result = renderMaterial(definition, images, tables, options, cancelled);
+		if (result.cancelled) {
+			sheet.cancelled = true;
+			return sheet;
+		}
+		if (result.image.isNull()) {
+			sheet.problem = result.error.isEmpty() ? MaterialWorkbench::tr("The preview could not be drawn.") : result.error;
+			return sheet;
+		}
+		if (plan.count == 1) {
+			sheet.image = result.image;
+		} else {
+			if (sheet.image.isNull()) {
+				const QSize size(result.image.width() * plan.columns, result.image.height() * plan.rows);
+				sheet.image = QImage(size, QImage::Format_ARGB32_Premultiplied);
+				if (sheet.image.isNull()) {
+					sheet.problem = MaterialWorkbench::tr("There is not enough memory for a %1 x %2 pixel sheet; ask for fewer frames or a smaller size.")
+										.arg(size.width())
+										.arg(size.height());
+					return sheet;
+				}
+				sheet.image.fill(Qt::transparent);
+			}
+			QPainter painter(&sheet.image);
+			painter.drawImage((frame % plan.columns) * result.image.width(), (frame / plan.columns) * result.image.height(), result.image);
+		}
+		if (progress) {
+			progress(frame + 1, plan.count);
+		}
+	}
+	return sheet;
 }
 
 } // namespace
@@ -154,6 +239,10 @@ MaterialWorkbench::MaterialWorkbench(QWidget* parent)
 	m_scanLane = new MaterialTaskLane(this);
 	m_imageLane = new MaterialTaskLane(this);
 	m_usageLane = new MaterialTaskLane(this);
+	m_exportLane = new MaterialTaskLane(this);
+	m_filterTimer = new QTimer(this);
+	m_filterTimer->setSingleShot(true);
+	m_filterTimer->setInterval(kFilterDelayMs);
 	m_stateTimer = new QTimer(this);
 	m_stateTimer->setSingleShot(true);
 	m_stateTimer->setInterval(kStateSaveDelayMs);
@@ -185,6 +274,9 @@ MaterialWorkbench::~MaterialWorkbench()
 	m_imageLane = nullptr;
 	delete m_usageLane;
 	m_usageLane = nullptr;
+	delete m_exportLane;
+	m_exportLane = nullptr;
+	finishUsageTracking();
 	if (m_stateTimer->isActive() && m_host.saveState) {
 		m_host.saveState(saveState());
 	}
@@ -236,11 +328,15 @@ void MaterialWorkbench::buildUi()
 		connect(splitter, &QSplitter::splitterMoved, this, &MaterialWorkbench::scheduleStateSave);
 	}
 
+	// Ctrl+S does what the Save button does; Ctrl+Alt+S saves every text.
 	auto* saveShortcut = new QShortcut(QKeySequence::Save, this);
 	saveShortcut->setContext(Qt::WidgetWithChildrenShortcut);
-	connect(saveShortcut, &QShortcut::activated, this, [this]() {
+	connect(saveShortcut, &QShortcut::activated, this, &MaterialWorkbench::saveCurrent);
+	auto* saveAllShortcut = new QShortcut(QKeySequence(Qt::ControlModifier | Qt::AltModifier | Qt::Key_S), this);
+	saveAllShortcut->setContext(Qt::WidgetWithChildrenShortcut);
+	connect(saveAllShortcut, &QShortcut::activated, this, [this]() {
 		if (hasUnsavedChanges()) {
-			save();
+			saveAll();
 		}
 	});
 	// Undo and redo reach the text from the graph and the properties too:
@@ -324,15 +420,14 @@ QWidget* MaterialWorkbench::buildLibraryPanel()
 	m_libraryCount->setWordWrap(true);
 	layout->addWidget(m_libraryCount);
 
-	connect(m_filter, &QLineEdit::textChanged, this, [this](const QString& text) {
-		m_proxy->setQuery(text);
-		updateLibraryCount();
-		m_visibleTimer->start();
-	});
+	// Typing filters after a short pause, not on every key: a big library
+	// refilters in one go once the word is there.
+	// The page's own changes to the field apply at once (flushFilter()).
+	connect(m_filter, &QLineEdit::textChanged, this, [this]() { m_filterTimer->start(); });
+	connect(m_filterTimer, &QTimer::timeout, this, &MaterialWorkbench::flushFilter);
 	connect(m_engineFilter, &QComboBox::activated, this, [this](int) {
-		m_proxy->setEngine(static_cast<MaterialEngine>(m_engineFilter->currentData().toInt()));
-		updateLibraryCount();
-		m_visibleTimer->start();
+		const auto engine = static_cast<MaterialEngine>(m_engineFilter->currentData().toInt());
+		applyFilter([this, engine]() { m_proxy->setEngine(engine); });
 	});
 	connect(m_viewMode, &QToolButton::toggled, this, [this](bool list) {
 		m_libraryView->setViewMode(list ? QListView::ListMode : QListView::IconMode);
@@ -350,11 +445,16 @@ QWidget* MaterialWorkbench::buildLibraryPanel()
 		scheduleStateSave();
 	});
 	connect(m_libraryView->selectionModel(), &QItemSelectionModel::currentChanged, this, [this](const QModelIndex& current) {
-		if (current.isValid()) {
+		// A refilter that hides the current row moves the current index; that
+		// is not the user choosing another material.
+		if (current.isValid() && !m_refiltering) {
 			selectEntry(m_proxy->mapToSource(current).row());
 		}
 	});
-	connect(m_libraryView, &QListView::activated, this, [this](const QModelIndex&) { m_preview->setFocus(Qt::OtherFocusReason); });
+	// Enter moves to the preview (see eventFilter); a click, which some
+	// styles also report as activation, leaves focus in the library.
+	m_libraryView->installEventFilter(this);
+	m_libraryView->viewport()->installEventFilter(this);
 	connect(m_libraryView->verticalScrollBar(), &QScrollBar::valueChanged, this, [this]() { m_visibleTimer->start(); });
 	return panel;
 }
@@ -394,7 +494,7 @@ QWidget* MaterialWorkbench::buildPreviewPanel()
 	m_timeline->setPageStep(100);
 	m_timeLabel = new QLabel(panel);
 	m_timeLabel->setObjectName(QStringLiteral("materialTime"));
-	m_timeLabel->setMinimumWidth(m_timeLabel->fontMetrics().horizontalAdvance(QStringLiteral("000.0 s")));
+	m_timeLabel->setAlignment(Qt::AlignVCenter | Qt::AlignTrailing);
 	m_shape = new QComboBox(panel);
 	m_shape->setObjectName(QStringLiteral("materialShape"));
 	for (MaterialPreviewShape shape : materialPreviewShapes()) {
@@ -405,6 +505,9 @@ QWidget* MaterialWorkbench::buildPreviewPanel()
 	m_lightingMenu = new QMenu(m_lighting);
 	m_lighting->setMenu(m_lightingMenu);
 	m_lighting->setPopupMode(QToolButton::InstantPopup);
+	// Built as it opens, so its checks match choices made elsewhere (Preview
+	// Settings, Shift+drag of the light).
+	connect(m_lightingMenu, &QMenu::aboutToShow, this, &MaterialWorkbench::rebuildLightingMenu);
 	controls->addWidget(m_play);
 	controls->addWidget(m_restart);
 	controls->addWidget(m_speed);
@@ -416,6 +519,18 @@ QWidget* MaterialWorkbench::buildPreviewPanel()
 
 	m_preview = new MaterialPreviewView(panel);
 	layout->addWidget(m_preview, 1);
+	// While a new material's images are read, and while an export draws, the
+	// preview says so rather than show the last material under a new name.
+	m_imagesBusy = new BusyOverlay(m_preview);
+	m_imagesBusy->setObjectName(QStringLiteral("materialImagesBusy"));
+	m_exportBusy = new BusyOverlay(m_preview);
+	m_exportBusy->setObjectName(QStringLiteral("materialExportBusy"));
+	m_exportBusy->setCancellable(true);
+	connect(m_exportBusy, &BusyOverlay::cancelRequested, this, [this]() {
+		m_exportLane->cancel();
+		m_exportBusy->finish();
+		Q_EMIT statusMessage(tr("The export was cancelled."));
+	});
 
 	m_notes = new QLabel(panel);
 	m_notes->setObjectName(QStringLiteral("materialNotes"));
@@ -436,7 +551,12 @@ QWidget* MaterialWorkbench::buildPreviewPanel()
 		m_shapeChosen = true;
 		m_preview->setShape(static_cast<MaterialPreviewShape>(m_shape->currentData().toInt()));
 	});
-	connect(m_preview, &MaterialPreviewView::playingChanged, this, [this](bool) { refreshPlayButton(); });
+	connect(m_preview, &MaterialPreviewView::playingChanged, this, [this](bool) {
+		refreshPlayButton();
+		// Paused, the timeline says where it stopped at once.
+		m_timelineThrottle.invalidate();
+		updateTimeline();
+	});
 	connect(m_preview, &MaterialPreviewView::timeChanged, this, [this](double) { updateTimeline(); });
 	connect(m_preview, &MaterialPreviewView::frameRendered, this, &MaterialWorkbench::updateNotes);
 	return panel;
@@ -478,11 +598,19 @@ QWidget* MaterialWorkbench::buildEditorTabs()
 	nodeBar->addWidget(m_addNode);
 	nodeBar->addWidget(fit);
 	nodeBar->addStretch(1);
-	nodeBar->addWidget(m_newMaterial);
-	nodeBar->addWidget(m_revert);
-	nodeBar->addWidget(m_save);
-	nodeBar->addWidget(m_more);
 	nodesLayout->addLayout(nodeBar);
+	// The document's actions belong to the document, not to one editor:
+	// they sit beside the tabs, whichever tab is open (mirrored right to left).
+	auto* documentBar = new QWidget(m_tabs);
+	documentBar->setObjectName(QStringLiteral("materialDocumentActions"));
+	auto* documentLayout = new QHBoxLayout(documentBar);
+	documentLayout->setContentsMargins(0, 0, 0, 0);
+	documentLayout->setSpacing(4);
+	documentLayout->addWidget(m_newMaterial);
+	documentLayout->addWidget(m_revert);
+	documentLayout->addWidget(m_save);
+	documentLayout->addWidget(m_more);
+	m_tabs->setCornerWidget(documentBar, Qt::TopRightCorner);
 	auto* graphSplitter = createSplitter(Qt::Horizontal, QStringLiteral("materialGraphSplitter"), tr("Node graph and properties"));
 	m_graphSplitter = graphSplitter;
 	m_graph = new MaterialGraphView(graphSplitter);
@@ -605,6 +733,10 @@ QWidget* MaterialWorkbench::buildEditorTabs()
 	m_mapsSummary->setForegroundRole(QPalette::PlaceholderText);
 	m_mapsRescan = createToolButton(QStringLiteral("refresh"), QString(), QString(), false);
 	m_mapsRescan->setObjectName(QStringLiteral("materialMapsRescan"));
+	m_mapsBusy = new BusyIndicator(m_mapsTab);
+	m_mapsBusy->setObjectName(QStringLiteral("materialMapsBusy"));
+	m_mapsBusy->setActive(false);
+	mapsBar->addWidget(m_mapsBusy);
 	mapsBar->addWidget(m_mapsSummary, 1);
 	mapsBar->addWidget(m_mapsRescan);
 	mapsLayout->addLayout(mapsBar);
@@ -636,18 +768,16 @@ QWidget* MaterialWorkbench::buildEditorTabs()
 		if (index == kMapsTab && (m_usageStale || !m_usage) && !m_usageScanning) {
 			scanUsage();
 		}
+		// Details are worked out only while they show.
+		if (index == kDetailsTab) {
+			updateDetails();
+		}
 		scheduleStateSave();
 	});
 
 	connect(fit, &QToolButton::clicked, m_graph, &MaterialGraphView::fitToView);
 	connect(m_newMaterial, &QToolButton::clicked, this, &MaterialWorkbench::showNewMaterialDialog);
-	connect(m_save, &QToolButton::clicked, this, [this]() {
-		if (m_document.filePath.isEmpty() && m_document.virtualPath.isEmpty()) {
-			chooseSaveAs();
-		} else {
-			save();
-		}
-	});
+	connect(m_save, &QToolButton::clicked, this, &MaterialWorkbench::saveCurrent);
 	connect(m_revert, &QToolButton::clicked, this, &MaterialWorkbench::revert);
 	connect(m_graph, &MaterialGraphView::selectionChanged, this, [this](const QString& id) {
 		m_properties->setNode(m_graph->graph().node(id), m_graph->isReadOnly());
@@ -683,12 +813,20 @@ QWidget* MaterialWorkbench::buildEditorTabs()
 		}
 	});
 	connect(m_editor, &QPlainTextEdit::textChanged, this, [this]() {
-		// Highlighting changes formats and fires textChanged too; only a
-		// change to the text itself needs parsing.
-		if (!m_applyingText && m_editor->toPlainText() != m_parsedText) {
-			scheduleReparse();
-			refreshDocumentState();
+		// Highlighting changes formats and fires textChanged too, but leaves
+		// the document's revision alone; only a change to the text itself
+		// needs parsing. Undo and redo move the revision as well.
+		const int revision = m_editor->document()->revision();
+		if (m_applyingText || revision == m_textRevision) {
+			return;
 		}
+		m_textRevision = revision;
+		// Typing, Undo or Redo between two property edits keeps them apart.
+		if (!m_applyingPropertyEdit) {
+			m_lastPropertyEdit.clear();
+		}
+		scheduleReparse();
+		refreshDocumentState();
 	});
 	connect(m_problems, &QTreeWidget::itemActivated, this, [this, text](QTreeWidgetItem* item) {
 		if (!item) {
@@ -825,8 +963,16 @@ void MaterialWorkbench::retranslate()
 	m_mapsRescan->setAccessibleName(tr("Read maps again"));
 	m_mapsSummary->setAccessibleName(tr("Map use summary"));
 	m_details->setAccessibleName(tr("Material details"));
+	refreshTimeLabelWidth();
 	updateLibraryCount();
 	refreshDocumentState();
+}
+
+void MaterialWorkbench::refreshTimeLabelWidth()
+{
+	// Wide enough for the longest time, so the controls do not shift as the
+	// digits change; measured again when the text size or language changes.
+	m_timeLabel->setMinimumWidth(m_timeLabel->fontMetrics().horizontalAdvance(tr("%1 s").arg(88888.8, 0, 'f', 1)));
 }
 
 void MaterialWorkbench::refreshPlayButton()
@@ -861,7 +1007,14 @@ void MaterialWorkbench::refreshTabTexts()
 void MaterialWorkbench::applyTheme()
 {
 	const StudioThemeTokens& tokens = currentStudioTheme();
-	m_highlighter->setTheme(studioSyntaxTheme(tokens.light, tokens.highContrast));
+	const StudioSyntaxTheme theme = studioSyntaxTheme(tokens.light, tokens.highContrast);
+	highlightQuietly([&]() { m_highlighter->setTheme(theme); });
+	// Buffered texts show in the new colours when they come back.
+	for (QTextDocument* buffered : std::as_const(m_buffers)) {
+		if (MaterialScriptHighlighter* highlighter = highlighterOf(buffered)) {
+			highlighter->setTheme(theme);
+		}
+	}
 }
 
 void MaterialWorkbench::changeEvent(QEvent* event)
@@ -883,6 +1036,16 @@ void MaterialWorkbench::changeEvent(QEvent* event)
 			m_libraryView->setGridSize(libraryGridSize());
 			m_model->setItemSize(libraryGridSize() - QSize(6, 6));
 		}
+		if (event->type() == QEvent::FontChange) {
+			refreshTimeLabelWidth();
+		}
+		// Swatch backgrounds and badges are painted in the theme's colours.
+		if (event->type() == QEvent::PaletteChange) {
+			m_model->refreshThumbnails();
+		}
+		break;
+	case QEvent::DevicePixelRatioChange:
+		m_model->setDevicePixelRatio(m_libraryView->devicePixelRatioF());
 		break;
 	default:
 		break;
@@ -1001,7 +1164,7 @@ void MaterialWorkbench::requestScan()
 		startScan();
 	} else {
 		m_scanPending = true;
-		Q_EMIT contentChanged();
+		notifyContentChanged();
 	}
 }
 
@@ -1019,6 +1182,9 @@ void MaterialWorkbench::setReducedMotion(bool reduced)
 	m_preview->setReducedMotion(reduced);
 	m_model->setAnimateThumbnails(m_animateSwatches->isChecked() && !reduced);
 	m_state->setReducedMotion(reduced);
+	m_imagesBusy->setReducedMotion(reduced);
+	m_exportBusy->setReducedMotion(reduced);
+	m_mapsBusy->setReducedMotion(reduced);
 }
 
 void MaterialWorkbench::startScan()
@@ -1034,7 +1200,20 @@ void MaterialWorkbench::startScan()
 	const QString looseFile = m_looseFile;
 	const QString select = m_materialName;
 	const QStringList basePaths = m_basePaths;
-	const QHash<QString, std::shared_ptr<const PackageArchiveReader>> knownBases = m_baseReaders;
+	QHash<QString, std::shared_ptr<const PackageArchiveReader>> knownBases = m_baseReaders;
+	// Base packages the studio has read already (for Levels) are used as they
+	// are rather than read and hashed a second time.
+	if (m_host.baseReader) {
+		for (const QString& path : basePaths) {
+			const QFileInfo info(path);
+			const QString key = info.absoluteFilePath() + QLatin1Char('|') + QString::number(info.lastModified().toMSecsSinceEpoch());
+			if (!knownBases.contains(key)) {
+				if (std::shared_ptr<const PackageArchiveReader> shared = m_host.baseReader(info.absoluteFilePath())) {
+					knownBases.insert(key, std::move(shared));
+				}
+			}
+		}
+	}
 	MaterialLibraryOptions options;
 	options.dialect = m_dialectChoice;
 	options.listBaseMaterials = m_showBase;
@@ -1042,6 +1221,17 @@ void MaterialWorkbench::startScan()
 	m_scanLane->submit([this, reader, looseFile, select, self, basePaths, knownBases, options](
 						   const MaterialTaskLane::Cancelled& cancelled) mutable -> std::function<void()> {
 		auto library = std::make_shared<MaterialLibrary>();
+		const auto report = [self](const QString& phase, int done, int total) {
+			QMetaObject::invokeMethod(
+				QCoreApplication::instance(),
+				[self, phase, done, total]() {
+					if (self && self->m_scanning) {
+						self->m_state->setProgress({done, total});
+						self->m_state->setDetail(phase);
+					}
+				},
+				Qt::QueuedConnection);
+		};
 		// Base packages, read again only when their file changed.
 		QHash<QString, std::shared_ptr<const PackageArchiveReader>> bases;
 		QStringList baseWarnings;
@@ -1052,7 +1242,26 @@ void MaterialWorkbench::startScan()
 			if (!base) {
 				auto archive = std::make_shared<PackageArchive>();
 				QString error;
-				if (!archive->load(path, &error)) {
+				// A big base package takes a while: the read can be stopped, and
+				// says how far it is.
+				const QString phase = tr("Reading base package %1").arg(info.fileName());
+				report(phase, 0, 0);
+				QElapsedTimer throttle;
+				throttle.start();
+				PackageReadControl control;
+				control.isCancelled = cancelled;
+				control.progress = [report, phase, throttle](const QString&, qint64 completed, qint64 total) mutable {
+					if (throttle.elapsed() > 150) {
+						throttle.restart();
+						// Counts may be bytes; the pane shows only how far along.
+						const int done = total > 0 ? static_cast<int>(std::clamp<qint64>(completed * 1000 / total, 0, 1000)) : 0;
+						report(phase, done, total > 0 ? 1000 : 0);
+					}
+				};
+				if (!archive->load(path, &error, control)) {
+					if (cancelled()) {
+						return {};
+					}
 					baseWarnings << tr("The base package %1 could not be read: %2").arg(QDir::toNativeSeparators(path), error);
 					continue;
 				}
@@ -1115,7 +1324,7 @@ void MaterialWorkbench::startScan()
 			applyLibrary(library, rows, loose, select);
 		};
 	});
-	Q_EMIT contentChanged();
+	notifyContentChanged();
 }
 
 void MaterialWorkbench::applyLibrary(std::shared_ptr<MaterialLibrary> library, const MaterialLibraryRows& rows, int looseScript, const QString& select)
@@ -1123,6 +1332,10 @@ void MaterialWorkbench::applyLibrary(std::shared_ptr<MaterialLibrary> library, c
 	m_scanning = false;
 	m_library = std::move(library);
 	m_looseScript = looseScript;
+	// The tables every parse reads, made once per library rather than per step.
+	m_libraryTables = std::make_shared<const MaterialTableSet>(m_library->tables);
+	m_scriptTables.clear();
+	m_model->setDevicePixelRatio(m_libraryView->devicePixelRatioF());
 	m_model->setRows(rows, imageSource(), m_cache);
 	applyLibraryOrder();
 	rebuildEngineFilter();
@@ -1144,19 +1357,30 @@ void MaterialWorkbench::applyLibrary(std::shared_ptr<MaterialLibrary> library, c
 	int entry = -1;
 	if (!m_requestedName.isEmpty()) {
 		const QString requested = m_requestedName;
+		const QString requestedKind = m_requestedKind;
 		const auto missing = std::move(m_requestedMissing);
 		m_requestedName.clear();
+		m_requestedKind.clear();
 		m_requestedMissing = {};
-		entry = m_library->indexOf(requested);
+		// As revealMaterial does: the name, then under textures/, then (for a
+		// Doom slot) a picture of the other kind.
+		entry = m_library->indexOfKind(requested, MaterialEngine::Unknown, requestedKind);
 		if (entry < 0 && !requested.startsWith(QStringLiteral("textures/"), Qt::CaseInsensitive)) {
-			entry = m_library->indexOf(QStringLiteral("textures/") + requested);
+			entry = m_library->indexOfKind(QStringLiteral("textures/") + requested, MaterialEngine::Unknown, requestedKind);
+		}
+		if (entry < 0 && !requestedKind.isEmpty()) {
+			entry = m_library->indexOf(requested);
 		}
 		if (entry < 0 && !(missing && missing(requested))) {
-			m_filter->setText(requested);
+			setFilterText(requested);
 		}
 	}
 	if (entry < 0 && !select.isEmpty()) {
-		entry = m_library->indexOf(select, m_engine);
+		// The open Doom material keeps its kind, so a wall stays the wall.
+		entry = m_library->indexOfKind(select, m_engine, select == m_materialName ? m_materialKind : QString());
+		if (entry < 0) {
+			entry = m_library->indexOf(select, m_engine);
+		}
 		if (looseScript >= 0) {
 			for (int index = 0; index < total; ++index) {
 				if (m_library->entries.at(index).scriptIndex == looseScript
@@ -1184,13 +1408,18 @@ void MaterialWorkbench::applyLibrary(std::shared_ptr<MaterialLibrary> library, c
 	if (entry >= 0) {
 		const QModelIndex proxyIndex = m_proxy->mapFromSource(m_model->index(entry));
 		if (proxyIndex.isValid()) {
+			// Selected once, below: the selection signal does not fire when
+			// the row stays current, and need not when it moves.
+			m_refiltering = true;
 			m_libraryView->setCurrentIndex(proxyIndex);
+			m_refiltering = false;
 			m_libraryView->scrollTo(proxyIndex);
 		}
-		// The selection signal does not fire when the row stays current.
 		selectEntry(entry);
 	} else {
 		m_materialName.clear();
+		m_imageLane->cancel();
+		m_imagesBusy->finish();
 		m_preview->clearMaterial(m_reader || !m_looseFile.isEmpty() ? tr("This package has no textures, shaders or materials.")
 																	: tr("Open a package or a .shader or .mtr script to see its materials."));
 		m_graph->clearGraph(tr("No material selected."));
@@ -1207,7 +1436,56 @@ void MaterialWorkbench::applyLibrary(std::shared_ptr<MaterialLibrary> library, c
 	}
 	// The detected Quake III game may have changed.
 	rebuildLightingMenu();
+	notifyContentChanged();
+}
+
+void MaterialWorkbench::notifyContentChanged()
+{
+	// The shell refreshes every page header on this signal: only say so when
+	// what it shows changed.
+	const bool content = hasContent();
+	const QString text = summary();
+	if (m_contentKnown && content == m_lastHasContent && text == m_lastSummary) {
+		return;
+	}
+	m_contentKnown = true;
+	m_lastHasContent = content;
+	m_lastSummary = text;
 	Q_EMIT contentChanged();
+}
+
+void MaterialWorkbench::applyFilter(const std::function<void()>& change)
+{
+	// A refilter that hides the open material moves the view's current row;
+	// that does not open another material. The open one stays selected when
+	// the filter keeps it.
+	m_refiltering = true;
+	change();
+	const int entry = currentEntry();
+	const QModelIndex kept = entry >= 0 ? m_proxy->mapFromSource(m_model->index(entry)) : QModelIndex();
+	if (kept.isValid()) {
+		m_libraryView->setCurrentIndex(kept);
+	} else {
+		m_libraryView->selectionModel()->clearSelection();
+	}
+	m_refiltering = false;
+	updateLibraryCount();
+	m_visibleTimer->start();
+}
+
+void MaterialWorkbench::flushFilter()
+{
+	m_filterTimer->stop();
+	const QString text = m_filter->text();
+	if (text != m_proxy->queryText()) {
+		applyFilter([this, text]() { m_proxy->setQuery(text); });
+	}
+}
+
+void MaterialWorkbench::setFilterText(const QString& text)
+{
+	m_filter->setText(text);
+	flushFilter();
 }
 
 void MaterialWorkbench::applyLibraryOrder()
@@ -1236,7 +1514,9 @@ void MaterialWorkbench::rebuildEngineFilter()
 	}
 	const int keep = m_engineFilter->findData(static_cast<int>(current));
 	m_engineFilter->setCurrentIndex(std::max(0, keep));
+	m_refiltering = true;
 	m_proxy->setEngine(static_cast<MaterialEngine>(m_engineFilter->currentData().toInt()));
+	m_refiltering = false;
 	m_engineFilter->setVisible(m_engineFilter->count() > 2 || current != MaterialEngine::Unknown);
 }
 
@@ -1300,13 +1580,22 @@ MaterialImageSource MaterialWorkbench::imageSource() const
 		}
 	}
 	source.revision = (m_revision.isEmpty() ? m_packagePath + QLatin1Char('|') + m_looseFile : m_revision) + QLatin1Char('|')
-		+ m_basePaths.join(QLatin1Char('|'));
+		+ m_basePaths.join(QLatin1Char('|')) + QLatin1Char('|') + materialDialectId(dialect());
+	// The extensions the game tries for an image name follow its dialect;
+	// the library's swatches read with this same source.
+	source.extensionRule = materialImageExtensionRule(dialect());
 	source.doomCatalog = m_library ? m_library->doomCatalog : nullptr;
 	source.developerDefault = m_developerDefault;
 	source.quake2Sky = m_skyName;
 	source.doomSky = m_skyName;
 	source.cache = m_cache.get();
 	return source;
+}
+
+std::shared_ptr<const PackageArchiveReader> MaterialWorkbench::loadedBasePackage(const QString& path) const
+{
+	const QFileInfo info(path);
+	return m_baseReaders.value(info.absoluteFilePath() + QLatin1Char('|') + QString::number(info.lastModified().toMSecsSinceEpoch()));
 }
 
 QStringList MaterialWorkbench::packageImages() const
@@ -1373,6 +1662,16 @@ QString MaterialWorkbench::freeScriptPath(MaterialEngine engine) const
 		for (const MaterialScript& script : m_library->scripts) {
 			used = used || script.path.compare(candidate, Qt::CaseInsensitive) == 0;
 		}
+		// A new script not saved yet holds its path too, so a second one never
+		// shares it and replaces it on save.
+		const QString package = packageIdentity();
+		const auto holds = [&](const Document& document) {
+			return document.package == package && document.virtualPath.compare(candidate, Qt::CaseInsensitive) == 0;
+		};
+		used = used || holds(m_document);
+		for (const Document& document : std::as_const(m_bufferDocuments)) {
+			used = used || holds(document);
+		}
 		if (!used) {
 			return candidate;
 		}
@@ -1424,6 +1723,12 @@ QString MaterialWorkbench::busyReason() const
 	if (m_reparseTimer->isActive()) {
 		return QStringLiteral("parsing");
 	}
+	if (m_usageScanning) {
+		return QStringLiteral("maps");
+	}
+	if (exportRunning()) {
+		return QStringLiteral("exporting");
+	}
 	return {};
 }
 
@@ -1431,12 +1736,54 @@ bool MaterialWorkbench::isBusy() const
 {
 	// A playing preview always has a frame coming; that is not being busy.
 	return m_scanning || (m_imageLane && m_imageLane->pending()) || (!m_preview->isPlaying() && m_preview->renderPending())
-		|| m_reparseTimer->isActive();
+		|| m_reparseTimer->isActive() || m_usageScanning || exportRunning();
+}
+
+bool MaterialWorkbench::exportRunning() const
+{
+	return m_exportLane && m_exportLane->pending();
 }
 
 bool MaterialWorkbench::hasUnsavedChanges() const
 {
-	return (m_document.kind != MaterialTextKind::None && m_editor->toPlainText() != m_document.savedText) || !m_buffers.isEmpty();
+	return m_currentModified || !m_buffers.isEmpty();
+}
+
+bool MaterialWorkbench::currentTextModified() const
+{
+	if (m_document.kind == MaterialTextKind::None || m_document.readOnly) {
+		return false;
+	}
+	// The document knows when it is back at its clean state (undo included),
+	// which saves copying a big text to compare.
+	if (!m_editor->document()->isModified()) {
+		return false;
+	}
+	return m_editor->toPlainText() != m_document.savedText;
+}
+
+QStringList MaterialWorkbench::unsavedTextTitles() const
+{
+	QStringList titles;
+	if (m_currentModified) {
+		titles << m_document.title;
+	}
+	for (auto it = m_bufferDocuments.cbegin(); it != m_bufferDocuments.cend(); ++it) {
+		if (m_buffers.contains(it.key())) {
+			titles << it.value().title;
+		}
+	}
+	return titles;
+}
+
+QString MaterialWorkbench::packageIdentity() const
+{
+	return m_packagePath.isEmpty() ? QString() : QDir::cleanPath(QFileInfo(m_packagePath).absoluteFilePath()).toLower();
+}
+
+QString MaterialWorkbench::scriptKey(const QString& package, const QString& virtualPath) const
+{
+	return QStringLiteral("script:") + package + QLatin1Char('|') + virtualPath.toLower();
 }
 
 MaterialTextKind MaterialWorkbench::currentTextKind() const
@@ -1449,12 +1796,17 @@ QString MaterialWorkbench::currentText() const
 	return m_editor->toPlainText();
 }
 
-bool MaterialWorkbench::selectMaterial(const QString& name)
+int MaterialWorkbench::currentEntry() const
+{
+	return m_library ? m_library->indexOfKind(m_materialName, m_engine, m_materialKind) : -1;
+}
+
+bool MaterialWorkbench::selectMaterial(const QString& name, const QString& kind)
 {
 	if (!m_library) {
 		return false;
 	}
-	const int entry = m_library->indexOf(name);
+	const int entry = m_library->indexOfKind(name, MaterialEngine::Unknown, kind);
 	if (entry < 0) {
 		return false;
 	}
@@ -1463,36 +1815,45 @@ bool MaterialWorkbench::selectMaterial(const QString& name)
 		m_libraryView->setCurrentIndex(proxyIndex);
 		m_libraryView->scrollTo(proxyIndex);
 	}
-	if (m_materialName != m_library->entries.at(entry).name) {
+	// A Doom wall and flat of one name are different materials.
+	const MaterialLibraryEntry& item = m_library->entries.at(entry);
+	if (m_materialName != item.name || (item.engine == MaterialEngine::Doom && m_materialKind != item.kind)) {
 		selectEntry(entry);
 	}
 	return true;
 }
 
-void MaterialWorkbench::revealMaterial(const QString& name, std::function<bool(const QString&)> missing)
+void MaterialWorkbench::revealMaterial(const QString& name, std::function<bool(const QString&)> missing, const QString& kind)
 {
 	const QString wanted = name.trimmed();
 	if (wanted.isEmpty()) {
 		return;
 	}
-	m_filter->clear();
+	setFilterText(QString());
 	if (m_scanning || m_scanPending) {
 		m_requestedName = wanted;
+		m_requestedKind = kind;
 		m_requestedMissing = std::move(missing);
 		return;
 	}
 	m_requestedMissing = {};
-	if (selectMaterial(wanted)) {
+	m_requestedKind.clear();
+	if (selectMaterial(wanted, kind)) {
 		return;
 	}
 	// Quake III maps name shaders without their textures/ folder.
-	if (!wanted.startsWith(QStringLiteral("textures/"), Qt::CaseInsensitive) && selectMaterial(QStringLiteral("textures/") + wanted)) {
+	if (!wanted.startsWith(QStringLiteral("textures/"), Qt::CaseInsensitive) && selectMaterial(QStringLiteral("textures/") + wanted, kind)) {
+		return;
+	}
+	// ZDoom draws a flat on a wall (and a wall on a plane) when that is the
+	// only picture of the name.
+	if (!kind.isEmpty() && selectMaterial(wanted)) {
 		return;
 	}
 	if (missing && missing(wanted)) {
 		return;
 	}
-	m_filter->setText(wanted);
+	setFilterText(wanted);
 	Q_EMIT statusMessage(tr("No material is named %1; showing the ones whose names contain it.").arg(wanted));
 }
 
@@ -1509,7 +1870,7 @@ void MaterialWorkbench::showMaterialsUsingImage(const QString& image)
 		return;
 	}
 	const QString term = stem.contains(QLatin1Char(' ')) ? QStringLiteral("image:\"%1\"").arg(stem) : QStringLiteral("image:%1").arg(stem);
-	m_filter->setText(term);
+	setFilterText(term);
 	if (m_proxy->rowCount() > 0) {
 		const QModelIndex first = m_proxy->index(0, 0);
 		m_libraryView->setCurrentIndex(first);
@@ -1526,23 +1887,34 @@ MaterialWorkbench::Document MaterialWorkbench::documentFor(int entry, const Mate
 	Document document;
 	const MaterialLibraryEntry& item = m_library->entries.at(entry);
 	document.engine = item.engine;
+	// Texts are told apart by the package they came from too: the same path
+	// in another package is another text.
+	const QString package = packageIdentity();
+	document.package = package;
+	document.packagePath = m_packagePath;
 	if (item.scriptIndex >= 0 && item.scriptIndex < m_library->scripts.size()) {
 		const MaterialScript& script = m_library->scripts.at(item.scriptIndex);
 		document.kind = script.engine == MaterialEngine::Doom3 ? MaterialTextKind::Doom3Material : MaterialTextKind::Quake3Shader;
 		document.engine = script.engine;
 		document.savedText = script.text;
+		document.scriptIndex = item.scriptIndex;
 		if (item.scriptIndex == m_looseScript && !m_looseFile.isEmpty()) {
 			document.filePath = m_looseFile;
 			document.title = QDir::toNativeSeparators(m_looseFile);
-		} else if (item.base) {
-			document.virtualPath = script.path;
+			document.package.clear();
+			document.packagePath.clear();
+			document.key = QStringLiteral("file:") + QDir::cleanPath(m_looseFile).toLower();
+			return document;
+		}
+		document.virtualPath = script.path;
+		if (item.base) {
 			document.readOnly = true;
 			document.title = tr("%1 (base game, read only)").arg(script.path);
+			document.key = QStringLiteral("base:") + package + QLatin1Char('|') + script.path.toLower();
 		} else {
-			document.virtualPath = script.path;
 			document.title = script.path;
+			document.key = scriptKey(package, script.path);
 		}
-		document.key = QStringLiteral("script:") + script.path.toLower();
 		return document;
 	}
 	if ((item.kind == QStringLiteral("doom-wall") || item.kind == QStringLiteral("doom-flat")) && m_library->doomCatalog) {
@@ -1552,13 +1924,13 @@ MaterialWorkbench::Document MaterialWorkbench::documentFor(int entry, const Mate
 			document.savedText = catalog.animdefsText;
 			document.virtualPath = catalog.animdefsPath.isEmpty() ? QStringLiteral("ANIMDEFS") : catalog.animdefsPath;
 			document.title = document.virtualPath;
-			document.key = QStringLiteral("animdefs:") + document.virtualPath.toLower();
+			document.key = QStringLiteral("animdefs:") + package + QLatin1Char('|') + document.virtualPath.toLower();
 		} else {
 			document.kind = MaterialTextKind::DoomSwantbls;
 			document.savedText = swantblsText(catalog.ranges, catalog.switches);
 			document.virtualPath = QStringLiteral("ANIMATED");
 			document.title = tr("Animations and switches (Boom SWANTBLS, saved as ANIMATED and SWITCHES)");
-			document.key = QStringLiteral("swantbls");
+			document.key = QStringLiteral("swantbls:") + package;
 		}
 		return document;
 	}
@@ -1571,13 +1943,13 @@ MaterialWorkbench::Document MaterialWorkbench::documentFor(int entry, const Mate
 			document.walBytes = bytes;
 			document.virtualPath = item.sourcePath;
 			document.title = tr("%1 header (ericw-tools .wal_json)").arg(item.sourcePath);
-			document.key = QStringLiteral("wal:") + item.sourcePath.toLower();
+			document.key = QStringLiteral("wal:") + package + QLatin1Char('|') + item.sourcePath.toLower();
 			return document;
 		}
 	}
 	document.kind = MaterialTextKind::None;
 	document.title = definition.sourcePath.isEmpty() ? definition.name : definition.sourcePath;
-	document.key = QStringLiteral("none:") + materialEngineId(item.engine) + QLatin1Char(':') + definition.name.toLower();
+	document.key = QStringLiteral("none:") + package + QLatin1Char('|') + materialEngineId(item.engine) + QLatin1Char(':') + definition.name.toLower();
 	return document;
 }
 
@@ -1588,44 +1960,117 @@ void MaterialWorkbench::selectEntry(int entry)
 	}
 	const MaterialLibraryEntry& item = m_library->entries.at(entry);
 	const MaterialDefinition definition = m_library->definition(entry);
-	m_materialChangePending = m_materialChangePending || item.name != m_materialName || item.engine != m_engine;
+	const QString kind = item.engine == MaterialEngine::Doom ? item.kind : QString();
+	m_materialChangePending = m_materialChangePending || item.name != m_materialName || item.engine != m_engine || kind != m_materialKind;
 	m_materialName = item.name;
 	m_engine = item.engine;
+	m_materialKind = kind;
 	m_baseDefinition = definition;
 	const Document document = documentFor(entry, definition);
+	bool scrollToDefinition = true;
 	if (document.key != m_document.key) {
-		switchDocument(document);
+		// Back to a buffered text at the material last shown in it: the
+		// place it was left is where the user was.
+		const QString previous = m_bufferDocuments.value(document.key).material;
+		if (switchDocument(document) && materialLookupKey(previous) == materialLookupKey(item.name)) {
+			scrollToDefinition = false;
+		}
 	} else {
 		// The same document, read again (after a save or a rescan): take the
 		// new saved text, and show it if nothing was typed since.
-		const bool untouched = m_editor->toPlainText() == m_document.savedText;
-		m_document = document;
-		if (untouched && m_editor->toPlainText() != document.savedText) {
+		const bool untouched = !m_currentModified;
+		const bool changedUnderneath = document.savedText != m_document.savedText;
+		m_document.savedText = document.savedText;
+		m_document.walBytes = document.walBytes;
+		m_document.scriptIndex = document.scriptIndex;
+		m_document.title = document.title;
+		m_document.readOnly = document.readOnly;
+		m_document.isNew = false;
+		const QString text = m_editor->toPlainText();
+		if (untouched && text != document.savedText) {
 			setEditorText(document.savedText);
+		} else if (!untouched && changedUnderneath && text != document.savedText) {
+			// Changed in the package (on the Packages or Code page) while being
+			// edited here: keep the edits, and say what Save will do.
+			m_documentConflict = tr("%1 changed in the package since you started editing it; saving replaces that version with this text, "
+									"and Revert goes to it.")
+									 .arg(document.title);
+			Q_EMIT statusMessage(m_documentConflict);
 		}
+		if (text == m_document.savedText) {
+			m_editor->document()->setModified(false);
+		}
+		// Read again for the same material: the place in the text stays.
+		scrollToDefinition = m_materialChangePending;
 	}
-	reparse(true);
-	Q_EMIT contentChanged();
+	reparse(scrollToDefinition);
+	notifyContentChanged();
 }
 
-void MaterialWorkbench::switchDocument(const Document& document)
+bool MaterialWorkbench::switchDocument(const Document& document)
 {
-	if (!m_document.key.isEmpty() && m_document.kind != MaterialTextKind::None) {
-		const QString text = m_editor->toPlainText();
-		if (text != m_document.savedText) {
-			m_buffers.insert(m_document.key, text);
-			m_bufferDocuments.insert(m_document.key, m_document);
-		} else {
-			m_buffers.remove(m_document.key);
-			m_bufferDocuments.remove(m_document.key);
+	// Guarded: the editor deletes its own first document when it is replaced.
+	const QPointer<QTextDocument> current = m_editor->document();
+	m_documentConflict.clear();
+	bool keepCurrent = false;
+	if (!m_document.key.isEmpty() && m_document.kind != MaterialTextKind::None && currentTextModified()) {
+		// The open text waits in a buffer, with its undo history and place.
+		Document kept = m_document;
+		kept.material = m_materialName;
+		kept.materialEngine = m_engine;
+		kept.materialKind = m_materialKind;
+		const QTextCursor cursor = m_editor->textCursor();
+		kept.anchor = cursor.anchor();
+		kept.position = cursor.position();
+		kept.scroll = m_editor->verticalScrollBar()->value();
+		forgetBuffer(m_document.key);
+		// Never the editor's own first document, which the editor deletes.
+		if (current->parent() != m_editor) {
+			current->setParent(m_editor);
 		}
+		m_buffers.insert(m_document.key, current);
+		m_bufferDocuments.insert(m_document.key, kept);
+		keepCurrent = true;
+	} else if (!m_document.key.isEmpty()) {
+		forgetBuffer(m_document.key);
 	}
-	m_bufferDocuments.remove(document.key);
+	Document stored = m_bufferDocuments.take(document.key);
+	QTextDocument* next = m_buffers.take(document.key);
+	const bool restored = next != nullptr;
 	m_document = document;
-	m_highlighter->setTextKind(document.kind);
-	m_highlighter->setDiagnostics({});
-	const QString text = m_buffers.contains(document.key) ? m_buffers.take(document.key) : document.savedText;
-	setEditorText(text);
+	if (!next) {
+		next = createTextDocument(document.kind, document.savedText);
+	}
+	next->setDefaultFont(m_editor->font());
+	m_applyingText = true;
+	// The editor's line, bracket and match marks point into the old text;
+	// they go first, as that text may go too. The editor draws new ones.
+	m_editor->setExtraSelections({});
+	m_editor->setDocument(next);
+	m_applyingText = false;
+	// Tab stops live in the document's text option, so each one takes the
+	// editor's.
+	m_editor->setTabStopDistance(QFontMetricsF(m_editor->font()).horizontalAdvance(QLatin1Char(' ')) * 4.0);
+	m_highlighter = highlighterOf(next);
+	m_textRevision = next->revision();
+	// A new text is highlighted now, while its change signals are ignored,
+	// rather than by the highlighter's own deferred pass.
+	if (!restored && m_highlighter) {
+		highlightQuietly([this]() { m_highlighter->rehighlight(); });
+	}
+	// A text nobody keeps goes with its highlighter; the editor's first
+	// document belongs to the editor itself.
+	if (!keepCurrent && current && current != next && current->parent() == m_editor) {
+		current->deleteLater();
+	}
+	if (restored && stored.position >= 0) {
+		const int last = std::max(0, next->characterCount() - 1);
+		QTextCursor cursor(next);
+		cursor.setPosition(std::clamp(stored.anchor, 0, last));
+		cursor.setPosition(std::clamp(stored.position, 0, last), QTextCursor::KeepAnchor);
+		m_editor->setTextCursor(cursor);
+		m_editor->verticalScrollBar()->setValue(stored.scroll);
+	}
 	m_editor->setReadOnly(document.kind == MaterialTextKind::None || document.readOnly);
 	if (document.kind == MaterialTextKind::None) {
 		m_editor->setPlaceholderText(m_engine == MaterialEngine::Quake
@@ -1635,6 +2080,52 @@ void MaterialWorkbench::switchDocument(const Document& document)
 		m_editor->setPlaceholderText(QString());
 	}
 	refreshDocumentState();
+	return restored;
+}
+
+QTextDocument* MaterialWorkbench::createTextDocument(MaterialTextKind kind, const QString& text)
+{
+	// The editor owns the texts it shows; buffered ones wait beside it.
+	auto* document = new QTextDocument(m_editor);
+	document->setDocumentLayout(new QPlainTextDocumentLayout(document));
+	document->setDefaultFont(m_editor->font());
+	document->setPlainText(text);
+	document->setModified(false);
+	document->clearUndoRedoStacks();
+	// Highlighted once the text is in, for its kind, rather than twice.
+	auto* highlighter = new MaterialScriptHighlighter(nullptr);
+	highlighter->setParent(document);
+	highlighter->setTextKind(kind);
+	const StudioThemeTokens& tokens = currentStudioTheme();
+	highlighter->setTheme(studioSyntaxTheme(tokens.light, tokens.highContrast));
+	highlighter->setDocument(document);
+	return document;
+}
+
+void MaterialWorkbench::highlightQuietly(const std::function<void()>& work)
+{
+	// Highlighting runs in edit blocks: the editor reports a change and the
+	// document's revision moves, though the text is the same. That is not an
+	// edit to parse again (a parse highlights its problems, so it would never
+	// settle).
+	const bool applying = m_applyingText;
+	m_applyingText = true;
+	work();
+	m_applyingText = applying;
+	m_textRevision = m_editor->document()->revision();
+}
+
+MaterialScriptHighlighter* MaterialWorkbench::highlighterOf(QTextDocument* document) const
+{
+	return document ? document->findChild<MaterialScriptHighlighter*>(QString(), Qt::FindDirectChildrenOnly) : nullptr;
+}
+
+void MaterialWorkbench::forgetBuffer(const QString& key)
+{
+	if (QTextDocument* buffered = m_buffers.take(key); buffered && buffered != m_editor->document()) {
+		delete buffered;
+	}
+	m_bufferDocuments.remove(key);
 }
 
 void MaterialWorkbench::setEditorText(const QString& text)
@@ -1642,9 +2133,11 @@ void MaterialWorkbench::setEditorText(const QString& text)
 	m_applyingText = true;
 	m_editor->setPlainText(text);
 	m_applyingText = false;
+	m_textRevision = m_editor->document()->revision();
+	m_editor->document()->setModified(text != m_document.savedText);
 }
 
-void MaterialWorkbench::replaceEditorText(const QString& text)
+void MaterialWorkbench::replaceEditorText(const QString& text, bool join)
 {
 	// One undo step changing only the part that differs, so the cursor and
 	// the scroll position stay where they were.
@@ -1662,7 +2155,11 @@ void MaterialWorkbench::replaceEditorText(const QString& text)
 		++suffix;
 	}
 	QTextCursor cursor(m_editor->document());
-	cursor.beginEditBlock();
+	if (join) {
+		cursor.joinPreviousEditBlock();
+	} else {
+		cursor.beginEditBlock();
+	}
 	cursor.setPosition(prefix);
 	cursor.setPosition(static_cast<int>(current.size()) - suffix, QTextCursor::KeepAnchor);
 	cursor.insertText(text.mid(prefix, text.size() - prefix - suffix));
@@ -1694,18 +2191,41 @@ void MaterialWorkbench::reparse(bool scrollToDefinition)
 {
 	m_reparseTimer->stop();
 	const QString text = m_editor->toPlainText();
-	m_parsedText = text;
 	QVector<MaterialDiagnostic> diagnostics;
 	m_definitionProblem.clear();
 	MaterialDefinition definition = m_baseDefinition;
-	std::shared_ptr<const MaterialTableSet> tables =
-		m_library ? std::make_shared<const MaterialTableSet>(m_library->tables) : std::make_shared<const MaterialTableSet>();
+	if (!m_libraryTables) {
+		m_libraryTables = std::make_shared<const MaterialTableSet>(m_library ? m_library->tables : MaterialTableSet());
+	}
+	std::shared_ptr<const MaterialTableSet> tables = m_libraryTables;
 	const bool flat = m_baseDefinition.kind == QStringLiteral("doom-flat");
 	switch (m_document.kind) {
 	case MaterialTextKind::Quake3Shader:
 	case MaterialTextKind::Doom3Material: {
-		const QString path = m_document.virtualPath.isEmpty() ? m_document.filePath : m_document.virtualPath;
-		const MaterialScript script = parseMaterialScript(text, m_document.engine, path, scriptDialect(m_document.engine));
+		// An unchanged library script was parsed with the library: browsing
+		// it reuses that parse instead of reading the whole text again.
+		const int index = m_document.scriptIndex;
+		const bool unchanged = m_library && index >= 0 && index < m_library->scripts.size() && text == m_document.savedText
+			&& m_library->scripts.at(index).text == text;
+		MaterialScript parsed;
+		if (!unchanged) {
+			const QString path = m_document.virtualPath.isEmpty() ? m_document.filePath : m_document.virtualPath;
+			parsed = parseMaterialScript(text, m_document.engine, path, scriptDialect(m_document.engine));
+			++m_parseCount;
+		}
+		if (!unchanged) {
+			tables = tablesFor(parsed);
+			// Doom 3 table lookups against every table the game would see, as
+			// the library checks its own scripts: Problems lists the undefined
+			// ones (an unchanged library script was checked with the library).
+			if (parsed.engine == MaterialEngine::Doom3) {
+				const std::shared_ptr<const MaterialTableSet> lookup = tables;
+				for (MaterialDefinition& each : parsed.materials) {
+					checkMaterialTables(&each, [&lookup](const QString& name) { return lookup->find(name); });
+				}
+			}
+		}
+		const MaterialScript& script = unchanged ? m_library->scripts.at(index) : parsed;
 		diagnostics = script.allDiagnostics();
 		if (const MaterialDefinition* found = script.find(m_materialName)) {
 			definition = *found;
@@ -1713,7 +2233,13 @@ void MaterialWorkbench::reparse(bool scrollToDefinition)
 			m_definitionProblem = tr("The text no longer defines %1; the preview shows the last version that did.").arg(m_materialName);
 			definition = m_definition.name.isEmpty() ? m_baseDefinition : m_definition;
 		}
-		tables = tablesFor(script);
+		if (unchanged) {
+			auto cached = m_scriptTables.constFind(index);
+			if (cached == m_scriptTables.constEnd()) {
+				cached = m_scriptTables.insert(index, tablesFor(script));
+			}
+			tables = cached.value();
+		}
 		break;
 	}
 	case MaterialTextKind::DoomSwantbls: {
@@ -1761,7 +2287,7 @@ void MaterialWorkbench::reparse(bool scrollToDefinition)
 	}
 	m_definition = definition;
 	m_tables = tables;
-	m_highlighter->setDiagnostics(diagnostics);
+	highlightQuietly([&]() { m_highlighter->setDiagnostics(diagnostics); });
 	updateProblems(diagnostics);
 	const bool materialChanged = m_materialChangePending;
 	m_materialChangePending = false;
@@ -1780,6 +2306,10 @@ void MaterialWorkbench::updateViews(bool materialChanged, bool scrollToDefinitio
 	updateDetails();
 	if (materialChanged) {
 		rebuildLightingMenu();
+		// Preview Settings shows the rows of the material's engine.
+		if (m_previewSettings && m_previewSettings->isVisible() && m_definition.engine != m_previewSettingsEngine) {
+			buildPreviewSettings(false);
+		}
 	}
 	updateTimeline();
 	updateNotes();
@@ -1797,36 +2327,62 @@ void MaterialWorkbench::updateViews(bool materialChanged, bool scrollToDefinitio
 void MaterialWorkbench::resolveImages(bool materialChanged)
 {
 	const QStringList references = m_definition.imageReferences();
-	if (!materialChanged && m_images && references == m_imageReferences) {
+	const MaterialImageSource source = imageSource();
+	// The images in hand serve only when they were read for these references
+	// from the package as it is now (a staged or replaced image, or other base
+	// packages, read them again), and no newer request is still being read:
+	// a pending one for other references would otherwise publish over this.
+	const bool pendingOther = m_imageLane->pending() && references != m_requestedImageReferences;
+	if (!materialChanged && m_images && references == m_imageReferences && source.revision == m_imagesRevision && !pendingOther) {
+		if (!m_imageLane->pending()) {
+			m_imagesBusy->finish();
+		}
 		pushPreview(false);
 		return;
 	}
 	const MaterialDefinition definition = m_definition;
-	const MaterialImageSource source = imageSource();
 	const std::shared_ptr<MaterialImageCache> cache = m_cache;
+	m_requestedImageReferences = references;
+	if (materialChanged) {
+		// Until its images arrive, the preview says the new material is coming
+		// instead of showing the previous one under its name.
+		m_imagesBusy->begin(tr("Reading images"), m_definition.name.isEmpty() ? m_materialName : m_definition.name);
+	}
 	updateNotes();
-	m_imageLane->submit([this, definition, source, cache, references, materialChanged](const MaterialTaskLane::Cancelled& cancelled) -> std::function<void()> {
-		auto set = std::make_shared<MaterialImageSet>(resolveMaterialImages(definition, source, cancelled));
-		if (set->cancelled) {
-			return {};
-		}
-		QHash<QString, QImage> thumbnails;
-		for (const QString& reference : references) {
-			if (const MaterialTexturePtr texture = set->find(reference)) {
-				if (texture->usable()) {
-					thumbnails.insert(reference, texture->toImage().scaled(48, 48, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	const QString revision = source.revision;
+	m_imageLane->submit(
+		[this, definition, source, cache, references, materialChanged, revision](const MaterialTaskLane::Cancelled& cancelled) -> std::function<void()> {
+			auto set = std::make_shared<MaterialImageSet>(resolveMaterialImages(definition, source, cancelled));
+			if (set->cancelled) {
+				return {};
+			}
+			QHash<QString, QImage> thumbnails;
+			for (const QString& reference : references) {
+				if (const MaterialTexturePtr texture = set->find(reference)) {
+					if (texture->usable()) {
+						thumbnails.insert(reference, texture->toImage().scaled(48, 48, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+					}
 				}
 			}
-		}
-		return [this, set, references, thumbnails, materialChanged]() {
-			m_images = set;
-			m_imageReferences = references;
-			m_graph->setThumbnails(thumbnails);
-			updateImagesTab();
-			pushPreview(materialChanged);
-			updateNotes();
-		};
-	});
+			return [this, set, references, thumbnails, materialChanged, revision]() {
+				m_imagesBusy->finish();
+				// Read for references the text has moved on from: a newer
+				// request follows, or the next parse asks again.
+				if (references != m_definition.imageReferences()) {
+					if (!m_imageLane->pending()) {
+						resolveImages(materialChanged);
+					}
+					return;
+				}
+				m_images = set;
+				m_imageReferences = references;
+				m_imagesRevision = revision;
+				m_graph->setThumbnails(thumbnails);
+				updateImagesTab();
+				pushPreview(materialChanged);
+				updateNotes();
+			};
+		});
 }
 
 void MaterialWorkbench::pushPreview(bool materialChanged)
@@ -1927,6 +2483,9 @@ void MaterialWorkbench::updateProblems(const QVector<MaterialDiagnostic>& diagno
 	if (!m_definitionProblem.isEmpty()) {
 		all.push_back(diagnosticOf(MaterialDiagnosticSeverity::Warning, QStringLiteral("material-gone"), m_definitionProblem));
 	}
+	if (!m_documentConflict.isEmpty()) {
+		all.push_back(diagnosticOf(MaterialDiagnosticSeverity::Warning, QStringLiteral("changed-in-package"), m_documentConflict));
+	}
 	for (const MaterialDiagnostic& diagnostic : std::as_const(all)) {
 		auto* item = new QTreeWidgetItem(m_problems);
 		const QString icon = diagnostic.severity == MaterialDiagnosticSeverity::Error ? QStringLiteral("error")
@@ -1982,6 +2541,11 @@ void MaterialWorkbench::updateImagesTab()
 
 void MaterialWorkbench::updateDetails()
 {
+	// Looking up what else reads the same images walks the whole library:
+	// only worth it while the tab shows (it is filled again when it opens).
+	if (m_tabs->currentIndex() != kDetailsTab) {
+		return;
+	}
 	if (m_definition.name.isEmpty()) {
 		m_details->clear();
 		return;
@@ -2052,18 +2616,9 @@ void MaterialWorkbench::updateNotes()
 
 double MaterialWorkbench::cycleSeconds() const
 {
-	double cycle = materialFramesCycleSeconds(m_definition.classic.frames);
-	for (const MaterialStage& stage : m_definition.stages) {
-		if (!stage.animationFrames.isEmpty() && stage.animationFrequency > 0.0) {
-			cycle = std::max(cycle, stage.animationFrames.size() / stage.animationFrequency);
-		}
-		if (stage.imageKind == MaterialImageKind::Video && m_images) {
-			if (const MaterialVideoPtr video = m_images->findVideo(stage.imagePath)) {
-				cycle = std::max(cycle, video->durationSeconds());
-			}
-		}
-	}
-	return cycle > 0.0 ? std::clamp(cycle, 1.0, 60.0) : 10.0;
+	// Shared with `material render --cycle`, so the CLI's sheets loop alike.
+	static const MaterialImageSet noImages;
+	return materialCycleSeconds(m_definition, m_images ? *m_images : noImages);
 }
 
 void MaterialWorkbench::updateTimeline()
@@ -2074,18 +2629,35 @@ void MaterialWorkbench::updateTimeline()
 		const QSignalBlocker blocker(m_timeline);
 		m_timeline->setValue(static_cast<int>(std::fmod(time, cycle) / cycle * 1000.0));
 	}
-	m_timeLabel->setText(tr("%1 s").arg(time, 0, 'f', 1));
-	m_timeline->setAccessibleDescription(tr("%1 of a %2 second cycle").arg(std::fmod(time, cycle), 0, 'f', 1).arg(cycle, 0, 'f', 1));
+	// While playing, the time label (in tenths) changes at most ten times a
+	// second, and the timeline's description not at all: a screen reader is
+	// not flooded with a change every frame. Paused, both say where it is.
+	const bool playing = m_preview->isPlaying();
+	if (playing && m_timelineThrottle.isValid() && m_timelineThrottle.elapsed() < 100) {
+		return;
+	}
+	m_timelineThrottle.start();
+	const QString label = tr("%1 s").arg(time, 0, 'f', 1);
+	if (m_timeLabel->text() != label) {
+		m_timeLabel->setText(label);
+	}
+	const QString description = playing ? tr("Playing a %1 second cycle").arg(cycle, 0, 'f', 1)
+										: tr("%1 of a %2 second cycle").arg(std::fmod(time, cycle), 0, 'f', 1).arg(cycle, 0, 'f', 1);
+	if (m_timeline->accessibleDescription() != description) {
+		m_timeline->setAccessibleDescription(description);
+	}
 }
 
 void MaterialWorkbench::rebuildLightingMenu()
 {
 	m_lightingMenu->clear();
 	const MaterialRenderOptions options = m_preview->renderOptions();
+	// Engine View choices are kept between sessions like Preview Settings.
 	const auto change = [this](const std::function<void(MaterialRenderOptions&)>& apply) {
 		MaterialRenderOptions next = m_preview->renderOptions();
 		apply(next);
 		m_preview->setRenderOptions(next);
+		scheduleStateSave();
 	};
 	const auto toggle = [this, change](QMenu* menu, const QString& text, bool checked, const std::function<void(MaterialRenderOptions&, bool)>& apply) {
 		QAction* action = menu->addAction(text);
@@ -2268,30 +2840,42 @@ void MaterialWorkbench::refreshDocumentState()
 		return;
 	}
 	const bool hasText = m_document.kind != MaterialTextKind::None && !m_document.readOnly;
-	const bool modified = hasText && m_editor->toPlainText() != m_document.savedText;
+	// Worked out once per change and kept: every keystroke asks.
+	const bool modified = currentTextModified();
+	m_currentModified = modified;
+	if (!modified) {
+		m_documentConflict.clear();
+	}
 	QString label = m_document.title;
 	if (modified) {
 		label = tr("%1 (modified)").arg(label);
 	}
 	if (!m_buffers.isEmpty()) {
 		const int others = static_cast<int>(m_buffers.size());
-		label += QStringLiteral(" · ") + tr("%n other text(s) with unsaved changes", nullptr, others);
+		label += QStringLiteral(" · ") + tr("%n other text(s) with unsaved changes (More, Unsaved Texts)", nullptr, others);
 	}
 	m_documentLabel->setText(label);
 	m_documentLabel->setAccessibleName(label);
 	const bool canStage = static_cast<bool>(m_host.stageFile) || static_cast<bool>(m_host.stageLump);
-	const bool canSave = hasText && (!m_document.filePath.isEmpty() || (m_reader && canStage) || m_document.virtualPath.isEmpty());
+	const bool ownPackage = m_document.package == packageIdentity();
+	const bool canSave = hasText && (!m_document.filePath.isEmpty() || (m_reader && canStage && ownPackage) || m_document.virtualPath.isEmpty());
 	m_save->setEnabled(modified && canSave);
 	m_save->setToolTip(!m_document.filePath.isEmpty() ? tr("Save to %1 (Ctrl+S).").arg(QDir::toNativeSeparators(m_document.filePath))
 		: m_document.virtualPath.isEmpty()			 ? tr("Save the new script to a file (Ctrl+S).")
 													 : tr("Stage the change into the open package (Ctrl+S); saving the package publishes it."));
+	if (!m_document.virtualPath.isEmpty() && m_document.filePath.isEmpty() && !ownPackage) {
+		m_save->setToolTip(tr("This text belongs to another package; open that package again to save it."));
+	}
+	if (!m_documentConflict.isEmpty()) {
+		m_save->setToolTip(m_save->toolTip() + QLatin1Char('\n') + m_documentConflict);
+	}
 	m_revert->setEnabled(modified);
 	m_newMaterial->setEnabled(true);
 	const bool unsaved = hasUnsavedChanges();
 	if (unsaved != m_lastModified) {
 		m_lastModified = unsaved;
 		Q_EMIT unsavedChangesChanged(unsaved);
-		Q_EMIT contentChanged();
+		notifyContentChanged();
 	}
 }
 
@@ -2306,13 +2890,32 @@ bool MaterialWorkbench::applyGraphEdit(const MaterialGraphEdit& requested, QStri
 		problem = tr("This material comes from the base game; Override in Package copies it into your package to edit.");
 	}
 	MaterialGraphEdit edit = requested;
+	const bool addsRange = edit.kind == MaterialGraphEditKind::AddNode
+		&& (edit.nodeTemplate == QStringLiteral("doom.range") || edit.nodeTemplate == QStringLiteral("doom.animdefs.range"));
+	if (addsRange && edit.related.isEmpty() && m_library) {
+		// A new range runs to a later picture of the same stem: the names
+		// after the material in its namespace (flats or walls), in order.
+		const QString kind = m_baseDefinition.kind == QStringLiteral("doom-flat") ? QStringLiteral("doom-flat") : QStringLiteral("doom-wall");
+		const QString own = materialLookupKey(m_materialName);
+		bool after = false;
+		for (const MaterialLibraryEntry& entry : m_library->entries) {
+			if (entry.engine != MaterialEngine::Doom || entry.kind != kind) {
+				continue;
+			}
+			if (after) {
+				edit.related << entry.name;
+			} else if (materialLookupKey(entry.name) == own) {
+				after = true;
+			}
+		}
+	}
 	if (edit.related.isEmpty()) {
 		edit.related << m_materialName;
 		for (const MaterialFrame& frame : m_definition.classic.frames) {
 			edit.related << frame.name;
 		}
 	}
-	if (edit.kind == MaterialGraphEditKind::AddNode && edit.nodeTemplate == QStringLiteral("doom.range") && edit.value.isEmpty()) {
+	if (addsRange && edit.value.isEmpty()) {
 		edit.value = m_baseDefinition.kind == QStringLiteral("doom-flat") ? QStringLiteral("flat") : QStringLiteral("texture");
 	}
 	MaterialGraphEditResult result;
@@ -2333,9 +2936,27 @@ bool MaterialWorkbench::applyGraphEdit(const MaterialGraphEdit& requested, QStri
 		return false;
 	}
 	if (!result.renamedTo.isEmpty()) {
+		// The graph's layout follows the material to its new name.
+		m_graph->renameLayoutKey(m_materialName, result.renamedTo);
 		m_materialName = result.renamedTo;
 	}
-	replaceEditorText(result.text);
+	// Quick repeated changes of one property (a spin box stepped, a slider
+	// dragged) are one undo step, so Undo does not walk back every value.
+	const QString editKey = QStringLiteral("%1|%2").arg(edit.node, edit.property);
+	const bool join = edit.kind == MaterialGraphEditKind::SetProperty && result.renamedTo.isEmpty() && editKey == m_lastPropertyEdit
+		&& m_lastPropertyEditDocument == m_editor->document() && m_lastPropertyEditSteps == m_editor->document()->availableUndoSteps()
+		&& m_lastPropertyEditClock.isValid() && m_lastPropertyEditClock.elapsed() < 1000;
+	m_applyingPropertyEdit = true;
+	replaceEditorText(result.text, join);
+	m_applyingPropertyEdit = false;
+	if (edit.kind == MaterialGraphEditKind::SetProperty) {
+		m_lastPropertyEdit = editKey;
+		m_lastPropertyEditDocument = m_editor->document();
+		m_lastPropertyEditSteps = m_editor->document()->availableUndoSteps();
+		m_lastPropertyEditClock.start();
+	} else {
+		m_lastPropertyEdit.clear();
+	}
 	reparse(false);
 	if (!result.focusNode.isEmpty()) {
 		m_graph->selectNode(result.focusNode);
@@ -2353,8 +2974,9 @@ bool MaterialWorkbench::addMaterialFromTemplate(const QString& templateId, const
 	const QString trimmed = name.trimmed();
 	if (!materialTemplateById(templateId, &materialTemplate)) {
 		problem = tr("Unknown template %1.").arg(templateId);
-	} else if (!plainMaterialName(trimmed)) {
-		problem = tr("A material name cannot hold spaces, braces or quotes.");
+	} else if (QString why; !isValidMaterialName(materialTemplate.engine, trimmed, &why)) {
+		// The script's own rule: one word to its lexer, not a keyword.
+		problem = why.isEmpty() ? tr("%1 cannot be a material name.").arg(trimmed) : why;
 	}
 	const MaterialTextKind kind = materialTemplate.engine == MaterialEngine::Doom3 ? MaterialTextKind::Doom3Material : MaterialTextKind::Quake3Shader;
 	const QString body = problem.isEmpty() ? instantiateMaterialTemplate(materialTemplate, trimmed, image) : QString();
@@ -2373,6 +2995,7 @@ bool MaterialWorkbench::addMaterialFromTemplate(const QString& templateId, const
 			} else {
 				m_materialName = trimmed;
 				m_engine = materialTemplate.engine;
+				m_materialKind.clear();
 				m_baseDefinition = MaterialDefinition();
 				m_materialChangePending = true;
 				replaceEditorText(result.text);
@@ -2380,24 +3003,29 @@ bool MaterialWorkbench::addMaterialFromTemplate(const QString& templateId, const
 			}
 		}
 	} else if (problem.isEmpty()) {
-		// A new script: staged into the package on save, or saved as a file.
-		Document document;
-		document.kind = kind;
-		document.engine = materialTemplate.engine;
-		if (m_reader) {
-			document.virtualPath = freeScriptPath(materialTemplate.engine);
-			document.title = tr("%1 (new)").arg(document.virtualPath);
-		} else {
-			document.title = tr("New script (not saved)");
+		// A new script, staged into the package on save or saved as a file. A
+		// second template of the same engine joins the new script that is not
+		// saved yet, rather than starting another at the same path.
+		QString scriptPath;
+		const QString package = packageIdentity();
+		for (auto it = m_bufferDocuments.cbegin(); it != m_bufferDocuments.cend() && scriptPath.isEmpty(); ++it) {
+			const Document& each = it.value();
+			if (each.isNew && each.engine == materialTemplate.engine && each.package == package && m_buffers.contains(it.key())) {
+				scriptPath = each.virtualPath.isEmpty() ? freeScriptPath(materialTemplate.engine) : each.virtualPath;
+			}
 		}
-		document.key = QStringLiteral("new:") + document.virtualPath + QLatin1Char(':') + trimmed.toLower();
-		switchDocument(document);
-		m_materialName = trimmed;
-		m_engine = materialTemplate.engine;
-		m_baseDefinition = MaterialDefinition();
-		m_materialChangePending = true;
-		replaceEditorText(body + QLatin1Char('\n'));
-		reparse(true);
+		if (scriptPath.isEmpty()) {
+			scriptPath = freeScriptPath(materialTemplate.engine);
+		}
+		if (!addDefinitionText(materialTemplate.engine, scriptPath, trimmed, body, &problem) && problem.isEmpty()) {
+			problem = tr("%1 could not be added.").arg(trimmed);
+		}
+		if (!problem.isEmpty()) {
+			if (error) {
+				*error = problem;
+			}
+			return false;
+		}
 	}
 	if (!problem.isEmpty()) {
 		if (error) {
@@ -2509,6 +3137,13 @@ bool MaterialWorkbench::writeDocument(Document* document, const QString& text, Q
 		*problem = tr("Base game scripts are read only; Override in Package copies a material into your package.");
 		return false;
 	}
+	// A text read from another package is never staged into this one, even
+	// at the same path: it would replace a different file.
+	if (document->filePath.isEmpty() && !document->package.isEmpty() && document->package != packageIdentity()) {
+		*problem = tr("This text was read from %1, which is not the open package; open that package again to save it, or discard it.")
+					   .arg(QDir::toNativeSeparators(document->packagePath));
+		return false;
+	}
 	switch (document->kind) {
 	case MaterialTextKind::None:
 		*problem = tr("This material has no text to save.");
@@ -2589,8 +3224,11 @@ bool MaterialWorkbench::save(QString* error)
 		Q_EMIT statusMessage(problem);
 		return false;
 	}
-	m_buffers.remove(m_document.key);
-	m_bufferDocuments.remove(m_document.key);
+	forgetBuffer(m_document.key);
+	m_documentConflict.clear();
+	if (m_editor->toPlainText() == m_document.savedText) {
+		m_editor->document()->setModified(false);
+	}
 	refreshDocumentState();
 	if (!m_document.filePath.isEmpty() && m_document.filePath == m_looseFile) {
 		// A loose script: read it again so the library shows what was saved.
@@ -2618,12 +3256,20 @@ bool MaterialWorkbench::saveAs(const QString& path, QString* error)
 		return false;
 	}
 	const QFileInfo info(path);
-	m_buffers.remove(m_document.key);
+	forgetBuffer(m_document.key);
 	m_document.filePath = info.absoluteFilePath();
 	m_document.virtualPath.clear();
+	m_document.package.clear();
+	m_document.packagePath.clear();
+	m_document.isNew = false;
+	m_document.scriptIndex = -1;
 	m_document.title = QDir::toNativeSeparators(info.absoluteFilePath());
 	m_document.savedText = m_editor->toPlainText();
-	m_document.key = QStringLiteral("file:") + info.absoluteFilePath().toLower();
+	m_document.key = QStringLiteral("file:") + QDir::cleanPath(info.absoluteFilePath()).toLower();
+	// A file of that name with unsaved text of its own is the same file now.
+	forgetBuffer(m_document.key);
+	m_documentConflict.clear();
+	m_editor->document()->setModified(false);
 	m_looseFile = info.absoluteFilePath();
 	refreshDocumentState();
 	startScan();
@@ -2648,8 +3294,89 @@ void MaterialWorkbench::revert()
 	if (m_document.kind == MaterialTextKind::None) {
 		return;
 	}
+	m_documentConflict.clear();
 	replaceEditorText(m_document.savedText);
 	reparse(false);
+}
+
+void MaterialWorkbench::saveCurrent()
+{
+	// Ctrl+S and the Save button: one behaviour.
+	if (!m_save->isEnabled()) {
+		if (!m_buffers.isEmpty()) {
+			const int others = static_cast<int>(m_buffers.size());
+			Q_EMIT statusMessage(tr("This text has nothing to save; %n other text(s) have unsaved changes: Save All (Ctrl+Alt+S) saves them.",
+				nullptr, others));
+		} else if (m_currentModified && m_document.package != packageIdentity() && m_document.filePath.isEmpty()) {
+			Q_EMIT statusMessage(tr("This text belongs to another package; open that package again to save it."));
+		}
+		return;
+	}
+	if (m_document.filePath.isEmpty() && m_document.virtualPath.isEmpty()) {
+		chooseSaveAs();
+	} else {
+		save();
+	}
+}
+
+void MaterialWorkbench::discardUnsavedChanges()
+{
+	const QStringList keys = m_buffers.keys();
+	for (const QString& key : keys) {
+		forgetBuffer(key);
+	}
+	m_documentConflict.clear();
+	if (m_document.kind != MaterialTextKind::None && currentTextModified()) {
+		// No undo step: the edits are thrown away, not reverted.
+		setEditorText(m_document.savedText);
+		m_editor->document()->clearUndoRedoStacks();
+		reparse(false);
+	}
+	refreshDocumentState();
+}
+
+void MaterialWorkbench::discardBufferedText(const QString& key)
+{
+	if (!m_buffers.contains(key)) {
+		return;
+	}
+	const QString title = m_bufferDocuments.value(key).title;
+	forgetBuffer(key);
+	refreshDocumentState();
+	Q_EMIT statusMessage(tr("Discarded the unsaved changes to %1.").arg(title));
+}
+
+void MaterialWorkbench::showBufferedText(const QString& key)
+{
+	if (!m_buffers.contains(key) || !m_bufferDocuments.contains(key)) {
+		return;
+	}
+	const Document document = m_bufferDocuments.value(key);
+	const QString material = document.material;
+	const MaterialEngine engine = document.materialEngine;
+	switchDocument(document);
+	// The material last shown in that text, as the library has it when it
+	// is still there.
+	m_materialName = material;
+	m_engine = engine == MaterialEngine::Unknown ? document.engine : engine;
+	m_materialKind = m_engine == MaterialEngine::Doom ? document.materialKind : QString();
+	const int entry = currentEntry();
+	m_baseDefinition = entry >= 0 ? m_library->definition(entry) : MaterialDefinition();
+	m_materialChangePending = true;
+	if (entry >= 0) {
+		const QModelIndex proxyIndex = m_proxy->mapFromSource(m_model->index(entry));
+		if (proxyIndex.isValid()) {
+			m_refiltering = true;
+			m_libraryView->setCurrentIndex(proxyIndex);
+			m_refiltering = false;
+			m_libraryView->scrollTo(proxyIndex);
+		}
+	} else {
+		m_libraryView->selectionModel()->clearSelection();
+	}
+	reparse(false);
+	m_tabs->setCurrentIndex(kTextTab);
+	notifyContentChanged();
 }
 
 // --- Saving everything ---------------------------------------------------------
@@ -2658,7 +3385,7 @@ bool MaterialWorkbench::saveAll(QString* error)
 {
 	QStringList failures;
 	int saved = 0;
-	if (m_document.kind != MaterialTextKind::None && !m_document.readOnly && m_editor->toPlainText() != m_document.savedText) {
+	if (currentTextModified()) {
 		QString problem;
 		if (save(&problem)) {
 			++saved;
@@ -2666,15 +3393,16 @@ bool MaterialWorkbench::saveAll(QString* error)
 			failures << tr("%1: %2").arg(m_document.title, problem);
 		}
 	}
-	for (const QString& key : m_buffers.keys()) {
+	const QStringList keys = m_buffers.keys();
+	for (const QString& key : keys) {
 		Document document = m_bufferDocuments.value(key);
-		if (document.key.isEmpty()) {
+		QTextDocument* buffered = m_buffers.value(key);
+		if (document.key.isEmpty() || !buffered) {
 			continue;
 		}
 		QString problem;
-		if (writeDocument(&document, m_buffers.value(key), &problem)) {
-			m_buffers.remove(key);
-			m_bufferDocuments.remove(key);
+		if (writeDocument(&document, buffered->toPlainText(), &problem)) {
+			forgetBuffer(key);
 			++saved;
 		} else {
 			failures << tr("%1: %2").arg(document.title, problem);
@@ -2700,7 +3428,7 @@ bool MaterialWorkbench::currentIsBase() const
 	if (!m_library) {
 		return false;
 	}
-	const int entry = m_library->indexOf(m_materialName, m_engine);
+	const int entry = currentEntry();
 	return entry >= 0 && m_library->entries.at(entry).base;
 }
 
@@ -2712,6 +3440,10 @@ bool MaterialWorkbench::applyWholeDefinitionEdit(const MaterialEdit& requested, 
 		problem = tr("Only Quake III shaders and Doom 3 materials are whole definitions to rename, copy or delete.");
 	} else if (m_document.readOnly) {
 		problem = tr("This material comes from the base game; Override in Package copies it into your package to edit.");
+	} else if (QString why; (requested.kind == MaterialEditKind::RenameDefinition || requested.kind == MaterialEditKind::DuplicateDefinition)
+			   && !isValidMaterialName(m_document.engine, requested.text, &why)) {
+		// A new name must read back as one name in this engine's script.
+		problem = why.isEmpty() ? tr("%1 cannot be a material name.").arg(requested.text) : why;
 	} else {
 		const QString path = m_document.virtualPath.isEmpty() ? m_document.filePath : m_document.virtualPath;
 		const MaterialScript script = parseMaterialScript(m_editor->toPlainText(), m_document.engine, path, scriptDialect(m_document.engine));
@@ -2737,7 +3469,14 @@ bool MaterialWorkbench::applyWholeDefinitionEdit(const MaterialEdit& requested, 
 	if (next.isEmpty() && !result.script.materials.isEmpty()) {
 		next = result.script.materials.first().name;
 	}
-	m_materialChangePending = materialLookupKey(next) != materialLookupKey(m_materialName);
+	if (requested.kind == MaterialEditKind::RenameDefinition) {
+		// The graph's layout follows the material to its new name, and the
+		// same material stays in view rather than counting as another.
+		m_graph->renameLayoutKey(m_materialName, next);
+		m_materialChangePending = false;
+	} else {
+		m_materialChangePending = materialLookupKey(next) != materialLookupKey(m_materialName);
+	}
 	m_materialName = next;
 	replaceEditorText(result.text);
 	reparse(true);
@@ -2786,21 +3525,35 @@ bool MaterialWorkbench::addDefinitionText(MaterialEngine engine, const QString& 
 	Document document;
 	QString text;
 	bool exists = false;
+	// A package script and a new one there share a key, so a new script
+	// that was staged is the same text once the library lists it. With no
+	// package, a new script of each engine waits for Save As.
+	const QString package = packageIdentity();
+	const QString key = m_reader ? scriptKey(package, scriptPath) : QStringLiteral("unsaved:") + materialEngineId(engine);
 	const QString currentPath = m_document.virtualPath.isEmpty() ? m_document.filePath : m_document.virtualPath;
-	if (m_document.kind == kind && !m_document.readOnly && currentPath.compare(scriptPath, Qt::CaseInsensitive) == 0) {
+	if (m_document.kind == kind && !m_document.readOnly
+		&& (m_document.key == key || (m_document.package == package && currentPath.compare(scriptPath, Qt::CaseInsensitive) == 0))) {
 		document = m_document;
 		text = m_editor->toPlainText();
 		exists = true;
-	} else if (m_library) {
-		for (const MaterialScript& script : m_library->scripts) {
+	} else if (m_buffers.contains(key) && m_bufferDocuments.contains(key)) {
+		document = m_bufferDocuments.value(key);
+		text = m_buffers.value(key)->toPlainText();
+		exists = true;
+	} else if (m_library && m_reader) {
+		for (int index = 0; index < m_library->scripts.size(); ++index) {
+			const MaterialScript& script = m_library->scripts.at(index);
 			if (script.path.compare(scriptPath, Qt::CaseInsensitive) == 0 && !m_library->basePaths.contains(script.path.toLower())) {
 				document.kind = kind;
 				document.engine = engine;
+				document.package = package;
+				document.packagePath = m_packagePath;
 				document.virtualPath = script.path;
 				document.title = script.path;
-				document.key = QStringLiteral("script:") + script.path.toLower();
+				document.key = scriptKey(package, script.path);
 				document.savedText = script.text;
-				text = m_buffers.value(document.key, script.text);
+				document.scriptIndex = index;
+				text = script.text;
 				exists = true;
 				break;
 			}
@@ -2809,39 +3562,35 @@ bool MaterialWorkbench::addDefinitionText(MaterialEngine engine, const QString& 
 	if (!exists) {
 		document.kind = kind;
 		document.engine = engine;
+		document.isNew = true;
+		document.package = m_reader ? package : QString();
+		document.packagePath = m_reader ? m_packagePath : QString();
 		document.virtualPath = m_reader ? scriptPath : QString();
 		document.title = m_reader ? tr("%1 (new)").arg(scriptPath) : tr("New script (not saved)");
-		document.key = QStringLiteral("new:") + scriptPath.toLower();
+		document.key = key;
 	}
-	QString newText = body + QLatin1Char('\n');
-	if (exists && !text.trimmed().isEmpty()) {
-		const MaterialScript script = parseMaterialScript(text, engine, scriptPath, scriptDialect(engine));
-		if (script.find(name)) {
-			const QString problem = tr("%1 already defines %2.").arg(scriptPath, name);
-			if (error) {
-				*error = problem;
-			}
-			Q_EMIT statusMessage(problem);
-			return false;
+	// The same rule as `material override`: refuse a name the script already
+	// defines, else append the definition (a new or empty script is just it).
+	MaterialOverride addition;
+	addition.name = name;
+	addition.engine = engine;
+	addition.virtualPath = scriptPath;
+	addition.definitionText = body;
+	QString newText;
+	QString problem;
+	if (!materialOverrideScriptText(exists ? text : QString(), addition, scriptDialect(engine), &newText, &problem)) {
+		if (error) {
+			*error = problem;
 		}
-		MaterialEdit edit;
-		edit.kind = MaterialEditKind::AddDefinition;
-		edit.text = body;
-		const MaterialEditResult result = applyMaterialEdit(script, edit);
-		if (!result.ok) {
-			if (error) {
-				*error = result.error;
-			}
-			Q_EMIT statusMessage(result.error);
-			return false;
-		}
-		newText = result.text;
+		Q_EMIT statusMessage(problem);
+		return false;
 	}
 	if (document.key != m_document.key) {
 		switchDocument(document);
 	}
 	m_materialName = name;
 	m_engine = engine;
+	m_materialKind.clear();
 	m_baseDefinition = MaterialDefinition();
 	m_materialChangePending = true;
 	replaceEditorText(newText);
@@ -2852,44 +3601,27 @@ bool MaterialWorkbench::addDefinitionText(MaterialEngine engine, const QString& 
 bool MaterialWorkbench::overrideInPackage(QString* error)
 {
 	QString problem;
-	const int entry = m_library ? m_library->indexOf(m_materialName, m_engine) : -1;
-	if (entry < 0 || !m_library->entries.at(entry).base) {
-		problem = tr("Only a base game material can be overridden in the package.");
+	// The rule (which script, which entries, the Quake II file copy) is the
+	// core one `material override` uses (core/material_override.h).
+	MaterialOverride copy;
+	const int entry = currentEntry();
+	if (!m_library || !materialOverrideForEntry(*m_library, entry, dialect(), &copy, &problem)) {
+		if (problem.isEmpty()) {
+			problem = QCoreApplication::translate("VibeStudioMaterials", "Only a base game material can be overridden in the package.");
+		}
 	} else if (!m_reader) {
 		problem = tr("Open the package to put the copy in.");
-	}
-	const MaterialLibraryEntry item = entry >= 0 ? m_library->entries.at(entry) : MaterialLibraryEntry();
-	if (problem.isEmpty() && item.engine == MaterialEngine::Quake2) {
+	} else if (copy.copiesFile()) {
 		// A Quake II WAL: the package gets its own copy of the file.
-		QByteArray bytes;
-		QString readError;
-		if (!m_library->reader || !m_library->reader->readEntryBytes(item.sourcePath, &bytes, &readError, 16LL * 1024 * 1024)) {
-			problem = readError.isEmpty() ? tr("%1 could not be read.").arg(item.sourcePath) : readError;
-		} else if (!m_host.stageFile || !m_host.stageFile(bytes, item.sourcePath, &problem)) {
+		if (!m_host.stageFile || !m_host.stageFile(copy.fileBytes, copy.virtualPath, &problem)) {
 			problem = problem.isEmpty() ? tr("The package cannot take files.") : problem;
 		} else {
-			Q_EMIT statusMessage(tr("Copied %1 into the package; its header is now yours to edit.").arg(item.sourcePath));
+			Q_EMIT statusMessage(tr("Copied %1 into the package; its header is now yours to edit.").arg(copy.virtualPath));
 			return true;
 		}
-	} else if (problem.isEmpty() && item.scriptIndex < 0) {
-		problem = tr("Only shaders, materials and Quake II textures can be copied into the package.");
-	}
-	if (problem.isEmpty()) {
-		const MaterialScript& script = m_library->scripts.at(item.scriptIndex);
-		const MaterialDefinition definition = m_library->definition(entry);
-		const QString body = script.text.mid(definition.span.start, definition.span.length());
-		// A script the game reads after the base scripts wins (before them for
-		// Quake III 1.32 and Doom 3, where the first definition wins).
-		const bool lastWins = item.engine == MaterialEngine::Quake3 && materialDialectLastScriptWins(dialect());
-		const QString folder = item.engine == MaterialEngine::Doom3 ? QStringLiteral("materials/") : QStringLiteral("scripts/");
-		const QString suffix = item.engine == MaterialEngine::Doom3 ? QStringLiteral(".mtr") : QStringLiteral(".shader");
-		const QString path = folder + (lastWins ? QStringLiteral("zz_vibestudio_overrides") : QStringLiteral("00_vibestudio_overrides")) + suffix;
-		if (body.isEmpty() || !addDefinitionText(item.engine, path, definition.name, body, &problem)) {
-			problem = problem.isEmpty() ? tr("The definition's text could not be read.") : problem;
-		} else {
-			Q_EMIT statusMessage(tr("Copied %1 into %2; save to stage it into the package.").arg(definition.name, path));
-			return true;
-		}
+	} else if (addDefinitionText(copy.engine, copy.virtualPath, copy.name, copy.definitionText, &problem)) {
+		Q_EMIT statusMessage(tr("Copied %1 into %2; save to stage it into the package.").arg(copy.name, copy.virtualPath));
+		return true;
 	}
 	if (error) {
 		*error = problem;
@@ -2919,33 +3651,15 @@ bool MaterialWorkbench::exportPreview(const QString& path, int frames, const QSi
 {
 	QString problem;
 	QImage output;
+	PreviewSheetPlan plan;
 	if (m_definition.name.isEmpty() || !m_images || !m_tables) {
 		problem = tr("Choose a material and wait for its images first.");
 	} else {
-		MaterialRenderOptions options = m_preview->renderOptions();
-		options.size = requested.isValid() ? requested : (m_preview->lastImage().isNull() ? QSize(512, 512) : m_preview->lastImage().size());
-		const int count = std::clamp(frames, 1, 256);
-		const int columns = static_cast<int>(std::ceil(std::sqrt(static_cast<double>(count))));
-		const int rows = (count + columns - 1) / columns;
-		const double cycle = cycleSeconds();
-		for (int frame = 0; frame < count && problem.isEmpty(); ++frame) {
-			options.time = count == 1 ? m_preview->time() : cycle * frame / count;
-			const MaterialRenderResult result = renderMaterial(m_definition, *m_images, *m_tables, options);
-			if (result.image.isNull()) {
-				problem = result.error.isEmpty() ? tr("The preview could not be drawn.") : result.error;
-				break;
-			}
-			if (count == 1) {
-				output = result.image;
-				break;
-			}
-			if (output.isNull()) {
-				output = QImage(result.image.width() * columns, result.image.height() * rows, QImage::Format_ARGB32_Premultiplied);
-				output.fill(Qt::transparent);
-			}
-			QPainter painter(&output);
-			painter.drawImage((frame % columns) * result.image.width(), (frame / columns) * result.image.height(), result.image);
-		}
+		plan = planPreviewSheet(frames, requested.isValid() ? requested : exportFrameSize());
+		const PreviewSheetResult sheet =
+			drawPreviewSheet(m_definition, *m_images, *m_tables, m_preview->renderOptions(), plan, cycleSeconds(), m_preview->time(), {}, {});
+		problem = sheet.problem;
+		output = sheet.image;
 	}
 	if (problem.isEmpty() && !output.save(path, "PNG")) {
 		problem = tr("Could not write %1.").arg(QDir::toNativeSeparators(path));
@@ -2957,8 +3671,80 @@ bool MaterialWorkbench::exportPreview(const QString& path, int frames, const QSi
 		Q_EMIT statusMessage(problem);
 		return false;
 	}
-	Q_EMIT statusMessage(tr("Wrote %1.").arg(QDir::toNativeSeparators(path)));
+	Q_EMIT statusMessage(plan.shrunk ? tr("Wrote %1, with frames of %2 x %3 pixels to keep the image within its size limit.")
+										   .arg(QDir::toNativeSeparators(path))
+										   .arg(plan.cell.width())
+										   .arg(plan.cell.height())
+									 : tr("Wrote %1.").arg(QDir::toNativeSeparators(path)));
 	return true;
+}
+
+QSize MaterialWorkbench::exportFrameSize() const
+{
+	// The preview's own size at full resolution: a playing preview draws
+	// fewer pixels to keep its pace, which is no size for an export.
+	const double dpr = m_preview->devicePixelRatioF();
+	const int width = std::clamp(static_cast<int>(std::lround(m_preview->width() * dpr)), 16, kFrameSideLimit);
+	const int height = std::clamp(static_cast<int>(std::lround(m_preview->height() * dpr)), 16, kFrameSideLimit);
+	return {width, height};
+}
+
+void MaterialWorkbench::exportPreviewInBackground(const QString& path, int frames, const QSize& requested)
+{
+	if (m_definition.name.isEmpty() || !m_images || !m_tables) {
+		Q_EMIT statusMessage(tr("Choose a material and wait for its images first."));
+		return;
+	}
+	const PreviewSheetPlan plan = planPreviewSheet(frames, requested.isValid() ? requested : exportFrameSize());
+	const MaterialDefinition definition = m_definition;
+	const std::shared_ptr<const MaterialImageSet> images = m_images;
+	const std::shared_ptr<const MaterialTableSet> tables = m_tables;
+	MaterialRenderOptions options = m_preview->renderOptions();
+	options.cancelFlag = nullptr;
+	const double cycle = cycleSeconds();
+	const double now = m_preview->time();
+	m_exportBusy->setProgress({0, plan.count});
+	m_exportBusy->begin(plan.count == 1 ? tr("Exporting the preview") : tr("Exporting an animation sheet"), QDir::toNativeSeparators(path));
+	QPointer<MaterialWorkbench> self(this);
+	m_exportLane->submit([self, path, plan, definition, images, tables, options, cycle, now](
+							 const MaterialTaskLane::Cancelled& cancelled) -> std::function<void()> {
+		// Cancel stops a frame on the graphics device as well.
+		MaterialRenderOptions frameOptions = options;
+		frameOptions.cancelFlag = MaterialTaskLane::currentStopFlag();
+		const PreviewSheetResult sheet = drawPreviewSheet(definition, *images, *tables, frameOptions, plan, cycle, now, cancelled, [self](int done, int total) {
+			QMetaObject::invokeMethod(
+				QCoreApplication::instance(),
+				[self, done, total]() {
+					if (self && self->m_exportBusy->isActive()) {
+						self->m_exportBusy->setProgress({done, total});
+					}
+				},
+				Qt::QueuedConnection);
+		});
+		if (sheet.cancelled) {
+			return {};
+		}
+		QString problem = sheet.problem;
+		if (problem.isEmpty() && !sheet.image.save(path, "PNG")) {
+			problem = MaterialWorkbench::tr("Could not write %1.").arg(QDir::toNativeSeparators(path));
+		}
+		return [self, path, plan, problem]() {
+			if (!self) {
+				return;
+			}
+			self->m_exportBusy->finish();
+			if (!problem.isEmpty()) {
+				Q_EMIT self->statusMessage(problem);
+			} else if (plan.shrunk) {
+				Q_EMIT self->statusMessage(tr("Wrote %1, with frames of %2 x %3 pixels to keep the image within its size limit.")
+											   .arg(QDir::toNativeSeparators(path))
+											   .arg(plan.cell.width())
+											   .arg(plan.cell.height()));
+			} else {
+				Q_EMIT self->statusMessage(tr("Wrote %1.").arg(QDir::toNativeSeparators(path)));
+			}
+		};
+	});
 }
 
 void MaterialWorkbench::chooseExportImage(bool sheet)
@@ -2977,7 +3763,7 @@ void MaterialWorkbench::chooseExportImage(bool sheet)
 	const QString path = QFileDialog::getSaveFileName(this, sheet ? tr("Export Animation Sheet") : tr("Export Preview Image"), suggested,
 		tr("PNG images (*.png)"));
 	if (!path.isEmpty()) {
-		exportPreview(path, frames);
+		exportPreviewInBackground(path, frames);
 	}
 }
 
@@ -2991,15 +3777,39 @@ void MaterialWorkbench::scanUsage()
 		m_usage.reset();
 		m_usageStale = false;
 		m_usageScanning = false;
+		finishUsageTracking();
 		updateMapsTab();
 		return;
 	}
 	m_usageScanning = true;
 	m_usageStale = false;
+	// Counted with the rest of the window's work, so the status bar's
+	// Activity ring turns while the maps are read.
+	finishUsageTracking();
+	m_usageToken = studioWorkTracker().begin(tr("Reading maps for material uses"));
+	m_mapsBusy->setProgress({});
 	updateMapsTab();
 	QPointer<MaterialWorkbench> self(this);
-	m_usageLane->submit([reader, self](const MaterialTaskLane::Cancelled& cancelled) -> std::function<void()> {
-		auto usage = std::make_shared<MaterialUsageIndex>(scanMaterialUsage(*reader, [cancelled](int, int, const QString&) { return !cancelled(); }));
+	const int token = m_usageToken;
+	m_usageLane->submit([reader, self, token](const MaterialTaskLane::Cancelled& cancelled) -> std::function<void()> {
+		QElapsedTimer throttle;
+		throttle.start();
+		auto usage = std::make_shared<MaterialUsageIndex>(
+			scanMaterialUsage(*reader, [cancelled, self, token, throttle](int done, int total, const QString&) mutable {
+				if (throttle.elapsed() > 100 || done == total) {
+					throttle.restart();
+					QMetaObject::invokeMethod(
+						QCoreApplication::instance(),
+						[self, token, done, total]() {
+							if (self && self->m_usageScanning && self->m_usageToken == token) {
+								self->m_mapsBusy->setProgress({done, total});
+								studioWorkTracker().setProgress(token, {done, total});
+							}
+						},
+						Qt::QueuedConnection);
+				}
+				return !cancelled();
+			}));
 		if (usage->cancelled) {
 			return {};
 		}
@@ -3009,13 +3819,20 @@ void MaterialWorkbench::scanUsage()
 			}
 			self->m_usage = usage;
 			self->m_usageScanning = false;
+			self->finishUsageTracking();
 			self->applyLibraryOrder();
 			self->updateMapsTab();
 			self->refreshTabTexts();
-			Q_EMIT self->contentChanged();
 		};
 	});
-	Q_EMIT contentChanged();
+}
+
+void MaterialWorkbench::finishUsageTracking()
+{
+	if (m_usageToken != 0) {
+		studioWorkTracker().end(m_usageToken);
+		m_usageToken = 0;
+	}
 }
 
 void MaterialWorkbench::showMapUses()
@@ -3072,6 +3889,8 @@ void MaterialWorkbench::updateMapsTab()
 	}
 	m_mapsSummary->setText(summary);
 	m_mapsSummary->setAccessibleDescription(summary);
+	m_mapsBusy->setActive(m_usageScanning);
+	m_mapsBusy->setReducedMotion(m_reducedMotion);
 	m_mapsRescan->setEnabled(m_reader != nullptr && !m_usageScanning);
 	refreshTabTexts();
 }
@@ -3143,9 +3962,25 @@ void MaterialWorkbench::updateWholeProblems()
 
 void MaterialWorkbench::showPreviewSettings()
 {
-	delete m_previewSettings;
+	buildPreviewSettings(false);
+}
+
+void MaterialWorkbench::buildPreviewSettings(bool focusReset)
+{
+	// A dialog already open is replaced where it is (never deleted while one
+	// of its own buttons is still being handled).
+	QRect geometry;
+	bool keepGeometry = false;
+	if (m_previewSettings) {
+		keepGeometry = m_previewSettings->isVisible();
+		geometry = m_previewSettings->geometry();
+		m_previewSettings->hide();
+		m_previewSettings->deleteLater();
+		m_previewSettings = nullptr;
+	}
 	auto* dialog = new QDialog(this);
 	m_previewSettings = dialog;
+	m_previewSettingsEngine = m_definition.engine;
 	dialog->setObjectName(QStringLiteral("materialPreviewSettings"));
 	dialog->setWindowTitle(tr("Preview Settings"));
 	dialog->setAccessibleName(tr("Preview settings"));
@@ -3311,7 +4146,9 @@ void MaterialWorkbench::showPreviewSettings()
 		next.lighting.lightOrbitSeconds = defaults.lighting.lightOrbitSeconds;
 		m_preview->setRenderOptions(next);
 		scheduleStateSave();
-		showPreviewSettings();
+		// The fields show the defaults once this click has been handled; the
+		// Reset button keeps the keyboard focus.
+		QTimer::singleShot(0, this, [this]() { buildPreviewSettings(true); });
 	});
 	auto* layout = new QVBoxLayout(dialog);
 	auto* note = new QLabel(tr("Changes show in the preview as you make them."), dialog);
@@ -3320,8 +4157,14 @@ void MaterialWorkbench::showPreviewSettings()
 	layout->addWidget(note);
 	layout->addLayout(form);
 	layout->addWidget(buttons);
+	if (keepGeometry) {
+		dialog->setGeometry(geometry);
+	}
 	dialog->show();
 	dialog->raise();
+	if (focusReset) {
+		buttons->button(QDialogButtonBox::Reset)->setFocus(Qt::OtherFocusReason);
+	}
 }
 
 // --- Menus -----------------------------------------------------------------------
@@ -3379,11 +4222,7 @@ void MaterialWorkbench::rebuildLibraryMenu()
 	QAction* shadowed = m_libraryMenu->addAction(tr("Show Shadowed Definitions"));
 	shadowed->setCheckable(true);
 	shadowed->setChecked(m_proxy->showShadowed());
-	connect(shadowed, &QAction::toggled, this, [this](bool show) {
-		m_proxy->setShowShadowed(show);
-		updateLibraryCount();
-		m_visibleTimer->start();
-	});
+	connect(shadowed, &QAction::toggled, this, [this](bool show) { applyFilter([this, show]() { m_proxy->setShowShadowed(show); }); });
 	if (m_library && std::any_of(m_library->scripts.cbegin(), m_library->scripts.cend(),
 						 [](const MaterialScript& script) { return script.engine == MaterialEngine::Quake3; })) {
 		QMenu* game = m_libraryMenu->addMenu(tr("Quake III Game"));
@@ -3409,7 +4248,38 @@ void MaterialWorkbench::rebuildMoreMenu()
 	QAction* saveEverything = m_moreMenu->addAction(studioIcon(QStringLiteral("save")), tr("Save All"));
 	saveEverything->setEnabled(hasUnsavedChanges());
 	saveEverything->setToolTip(tr("Save every material text with unsaved changes."));
+	saveEverything->setShortcut(QKeySequence(Qt::ControlModifier | Qt::AltModifier | Qt::Key_S));
+	saveEverything->setShortcutContext(Qt::WidgetShortcut);
 	connect(saveEverything, &QAction::triggered, this, [this]() { saveAll(); });
+	// Texts with unsaved changes that are not open: go back to one, or
+	// throw its changes away.
+	QMenu* unsaved = m_moreMenu->addMenu(tr("Unsaved Texts"));
+	unsaved->setToolTipsVisible(true);
+	unsaved->setEnabled(!m_buffers.isEmpty());
+	const QString package = packageIdentity();
+	for (auto it = m_bufferDocuments.cbegin(); it != m_bufferDocuments.cend(); ++it) {
+		if (!m_buffers.contains(it.key())) {
+			continue;
+		}
+		const QString key = it.key();
+		const Document& document = it.value();
+		const bool elsewhere = document.filePath.isEmpty() && !document.package.isEmpty() && document.package != package;
+		QMenu* text = unsaved->addMenu(elsewhere ? tr("%1 (in %2)").arg(document.title, QFileInfo(document.packagePath).fileName()) : document.title);
+		QAction* show = text->addAction(tr("Show"));
+		// A text of another package is shown in that package, not over this one.
+		show->setEnabled(!elsewhere);
+		show->setToolTip(elsewhere ? tr("Open %1 again to go on editing or save this text.").arg(QDir::toNativeSeparators(document.packagePath))
+								   : tr("Go back to this text where you left it."));
+		connect(show, &QAction::triggered, this, [this, key]() { showBufferedText(key); });
+		QAction* discard = text->addAction(studioIcon(QStringLiteral("delete")), tr("Discard Changes..."));
+		connect(discard, &QAction::triggered, this, [this, key]() {
+			const QString title = m_bufferDocuments.value(key).title;
+			if (QMessageBox::question(this, tr("Discard Changes"), tr("Throw away the unsaved changes to %1? This cannot be undone.").arg(title))
+				== QMessageBox::Yes) {
+				discardBufferedText(key);
+			}
+		});
+	}
 	QAction* saveAs = m_moreMenu->addAction(tr("Save Script As..."));
 	saveAs->setEnabled(m_document.kind == MaterialTextKind::Quake3Shader || m_document.kind == MaterialTextKind::Doom3Material);
 	connect(saveAs, &QAction::triggered, this, &MaterialWorkbench::chooseSaveAs);
@@ -3466,7 +4336,8 @@ void MaterialWorkbench::rebuildMoreMenu()
 	connect(code, &QAction::triggered, this, [this, file]() { m_host.openInCode(file, std::max(1, m_definition.span.line)); });
 	const QString packagePath = m_document.virtualPath;
 	QAction* reveal = m_moreMenu->addAction(studioIcon(QStringLiteral("package")), tr("Show in Packages"));
-	reveal->setEnabled(!packagePath.isEmpty() && !m_document.readOnly && m_host.revealInPackage && !m_document.key.startsWith(QStringLiteral("new:")));
+	reveal->setEnabled(!packagePath.isEmpty() && !m_document.readOnly && m_host.revealInPackage && !m_document.isNew
+		&& m_document.package == packageIdentity());
 	connect(reveal, &QAction::triggered, this, [this, packagePath]() { m_host.revealInPackage(packagePath); });
 	QAction* uses = m_moreMenu->addAction(studioIcon(QStringLiteral("map")), tr("Find Uses in Maps"));
 	uses->setEnabled(named && m_reader);
@@ -3477,7 +4348,40 @@ void MaterialWorkbench::rebuildMoreMenu()
 
 void MaterialWorkbench::showLibraryContextMenu(const QPoint& position)
 {
-	const QModelIndex index = m_libraryView->indexAt(position);
+	showLibraryContextMenuFor(m_libraryView->indexAt(position), position);
+}
+
+bool MaterialWorkbench::eventFilter(QObject* watched, QEvent* event)
+{
+	if (m_libraryView && (watched == m_libraryView || watched == m_libraryView->viewport())) {
+		if (event->type() == QEvent::KeyPress && watched == m_libraryView) {
+			// Enter (not a click, which some styles report as activation too)
+			// moves on to the material's preview.
+			const auto* key = static_cast<QKeyEvent*>(event);
+			if ((key->key() == Qt::Key_Return || key->key() == Qt::Key_Enter) && key->modifiers() == Qt::NoModifier
+				&& m_libraryView->currentIndex().isValid()) {
+				m_preview->setFocus(Qt::OtherFocusReason);
+				return true;
+			}
+		}
+		if (event->type() == QEvent::ContextMenu) {
+			// From the keyboard (Menu key, Shift+F10) the menu is for the
+			// current material, wherever the pointer happens to be.
+			const auto* menuEvent = static_cast<QContextMenuEvent*>(event);
+			if (menuEvent->reason() == QContextMenuEvent::Keyboard) {
+				const QModelIndex current = m_libraryView->currentIndex();
+				if (current.isValid()) {
+					showLibraryContextMenuFor(current, m_libraryView->visualRect(current).center());
+				}
+				return true;
+			}
+		}
+	}
+	return QWidget::eventFilter(watched, event);
+}
+
+void MaterialWorkbench::showLibraryContextMenuFor(const QModelIndex& index, const QPoint& position)
+{
 	if (!index.isValid()) {
 		return;
 	}

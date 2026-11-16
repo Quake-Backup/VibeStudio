@@ -57,6 +57,7 @@ void MaterialLookup::setPackage(std::shared_ptr<const PackageArchiveReader> read
 	QMutexLocker locker(&m_mutex);
 	m_reader = std::move(reader);
 	m_library.reset();
+	++m_generation;
 	m_cache->clear();
 }
 
@@ -65,6 +66,7 @@ void MaterialLookup::setOptions(const MaterialLibraryOptions& options)
 	QMutexLocker locker(&m_mutex);
 	m_options = options;
 	m_library.reset();
+	++m_generation;
 	m_cache->clear();
 }
 
@@ -85,6 +87,7 @@ void MaterialLookup::reload(const MaterialLibraryProgress& progress)
 	// A package changed meanwhile keeps the newer state.
 	if (reader == m_reader) {
 		m_library = library;
+		++m_generation;
 		m_cache->clear();
 	}
 }
@@ -93,6 +96,7 @@ void MaterialLookup::invalidate()
 {
 	QMutexLocker locker(&m_mutex);
 	m_library.reset();
+	++m_generation;
 	m_cache->clear();
 }
 
@@ -108,7 +112,7 @@ std::shared_ptr<const MaterialLibrary> MaterialLookup::library() const
 	return m_library;
 }
 
-MaterialLookupResult MaterialLookup::find(const QString& faceTexture, MaterialEngine engine) const
+MaterialLookupResult MaterialLookup::find(const QString& faceTexture, MaterialEngine engine, const QString& kind) const
 {
 	MaterialLookupResult result;
 	const QString name = faceTexture.trimmed();
@@ -116,12 +120,38 @@ MaterialLookupResult MaterialLookup::find(const QString& faceTexture, MaterialEn
 		return result;
 	}
 	const std::shared_ptr<const MaterialLibrary> library = this->library();
-	int entry = library ? library->indexOf(name, engine) : -1;
+	const auto lookup = [&](const QString& candidate) {
+		if (!library) {
+			return -1;
+		}
+		// Doom: a sidedef names a wall, a sector a flat; prefer that kind.
+		if (!kind.isEmpty()) {
+			const int exact = library->indexOfKind(candidate, engine, kind);
+			if (exact >= 0) {
+				return exact;
+			}
+		}
+		return library->indexOf(candidate, engine);
+	};
 	// Quake III maps name shaders without their textures/ folder.
-	const QString prefixed = QStringLiteral("textures/") + name;
-	if (entry < 0 && library && !name.startsWith(QStringLiteral("textures/"), Qt::CaseInsensitive)) {
-		entry = library->indexOf(prefixed, engine);
+	const auto lookupWithFolder = [&](const QString& candidate) {
+		int found = lookup(candidate);
+		if (found < 0 && !candidate.startsWith(QStringLiteral("textures/"), Qt::CaseInsensitive)) {
+			found = lookup(QStringLiteral("textures/") + candidate);
+		}
+		return found;
+	};
+	int entry = lookupWithFolder(name);
+	// R_FindShader (COM_StripExtension) and Doom 3's decl manager
+	// (MakeNameCanonical) drop the extension a face writes.
+	if (entry < 0 && (engine == MaterialEngine::Quake3 || engine == MaterialEngine::Doom3 || engine == MaterialEngine::Unknown)) {
+		const int slash = name.lastIndexOf(QLatin1Char('/'));
+		const int dot = name.lastIndexOf(QLatin1Char('.'));
+		if (dot > slash && dot > 0) {
+			entry = lookupWithFolder(name.left(dot));
+		}
 	}
+	const QString prefixed = QStringLiteral("textures/") + name;
 	if (entry >= 0) {
 		result.found = true;
 		result.entry = entry;
@@ -142,11 +172,20 @@ QImage MaterialLookup::swatch(const MaterialLookupResult& result, int side, doub
 	if (result.definition.name.isEmpty() || side <= 0) {
 		return {};
 	}
-	const std::shared_ptr<const MaterialLibrary> library = this->library();
+	std::shared_ptr<const MaterialLibrary> library;
+	quint64 generation = 0;
+	{
+		// The library and its generation together, so images this swatch
+		// caches are keyed to the library they were read from.
+		QMutexLocker locker(&m_mutex);
+		library = m_library;
+		generation = m_generation;
+	}
 	MaterialImageSource source;
 	source.archive = library ? library->reader : std::shared_ptr<const PackageArchiveReader>();
 	source.doomCatalog = library ? library->doomCatalog : nullptr;
-	source.revision = library ? library->sourcePath : QString();
+	source.revision = library ? library->sourcePath + QLatin1Char('|') + QString::number(generation) : QString();
+	source.extensionRule = materialImageExtensionRule(library ? library->dialect : MaterialDialect::Automatic);
 	source.cache = m_cache.get();
 	const MaterialImageSet images = resolveMaterialImages(result.definition, source);
 	const MaterialTableSet tables = library ? library->tables : MaterialTableSet();

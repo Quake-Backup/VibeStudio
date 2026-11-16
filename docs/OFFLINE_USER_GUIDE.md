@@ -7037,7 +7037,8 @@ would refuse to draw. **Show as List** switches to a compact list, and
 **Library Options** sorts the library (as the game reads it, by name, engine,
 script, problems first or most used in maps), sets the swatch size, and
 shows or hides base game materials and shadowed definitions. The page keeps
-these choices, the tab you were on and its panel sizes for next time.
+these choices, the tab you were on, its panel sizes and your **Engine View**
+choices for next time.
 
 #### The game underneath
 
@@ -7059,9 +7060,13 @@ Quake III shader scripts with keywords of their own, and each drops a shader
 that uses a keyword it does not know. The page works out the game from the
 scripts' keywords; to choose it, use **Library Options** > **Quake III Game**
 or **Engine View** > **Game**. The choice also decides which of two scripts
-defining one name wins (Quake III Arena 1.32 keeps the first).
+defining one name wins (Quake III Arena 1.32 keeps the first), and which image
+files a stage can use: Quake III Arena 1.32 and Enemy Territory load only
+`.tga`, `.jpg`, `.pcx` and `.bmp` images, so a stage whose image exists only
+as a `.png` shows as missing for them.
 
-Type in the filter to search names. Terms test what the material is, as in
+Type in the filter to search names; the list updates after a short pause and
+the open material stays open. Terms test what the material is, as in
 the command line's `--where`:
 
 | Term | Keeps |
@@ -7080,7 +7085,9 @@ Choose a material to see it drawn by its engine's rules: Quake III stages,
 blending, waves, scrolling and deforms; Doom 3 lighting with a moving light;
 Doom sector light and the colormap; Quake and Quake II liquids, skies and
 animations. A material that animates plays by itself, unless **Reduce
-motion** is on in Accessibility settings.
+motion** is on in Accessibility settings. While a newly chosen material's
+images load, the preview says **Reading images** rather than showing the last
+material.
 
 - **Play** and **Pause** (<kbd>Space</kbd> in the preview), **Restart**, the
   speed menu and the time bar control the clock. <kbd>,</kbd> and
@@ -7114,7 +7121,10 @@ Videos on `videoMap` stages play from their RoQ files, looping in Quake III
 and, in Doom 3, unless the stage says `loop`, holding the last frame. Doom 3's
 heat haze stages ripple whatever is drawn behind them by their normal map, as
 the game's heat haze programs do, and its shiny glass and metal stages
-(`bumpyEnvironment`) reflect their environment cube map.
+(`bumpyEnvironment`) reflect their environment cube map. As in Doom 3, a
+material with only a bump map is lit as if white, translucent materials take
+the light too, and a surface whose stages are all switched off by their
+conditions is not drawn at all.
 
 When the game would refuse a material, the preview shows what it draws
 instead (Quake III's default shader, for example) and says why under the
@@ -7140,13 +7150,29 @@ Select a node to edit its properties beside the graph.
   or texture modifier earlier or later.
 - The arrow keys follow the wires from node to node; <kbd>Enter</kbd> moves to
   the node's properties. Right-click for more, such as wrapping a Doom 3
-  expression in an operator or expanding a `diffusemap` shorthand into a
-  full stage.
+  expression in an operator or a table lookup, wrapping a Doom 3 image in an
+  image function, or expanding a `diffusemap` shorthand into a full stage.
+- The graph lays itself out so nodes never overlap; drag nodes where you like,
+  and **Reset Layout** on the context menu puts them back. **Fit Graph**
+  (<kbd>F</kbd> or <kbd>Ctrl</kbd>+<kbd>0</kbd>) keeps node text readable,
+  centring on the selected node when the whole graph would be too small;
+  **Show Whole Graph** (<kbd>Shift</kbd>+<kbd>F</kbd>) fits everything.
+- After you remove a node, the node that fed it is selected; after you add
+  one, the new node is.
+- In the properties, the mouse wheel scrolls the panel; it changes a choice
+  or number only when that control has focus. Holding <kbd>Up</kbd> or
+  <kbd>Down</kbd> in a number field is one edit and one undo step.
+- Quake III allows four texture modifiers per stage, so a fifth cannot be
+  added. A Doom **Animated range** runs from the material to the last picture
+  of the same name, and a range of one picture is refused, because Boom stops
+  at start-up on one.
 
 Every node edit is a change to the text, so <kbd>Ctrl</kbd>+<kbd>Z</kbd>
 undoes it from either tab. The material node's **Name** renames the material;
 **More** and the library's context menu also offer **Rename Material**,
 **Duplicate Material** (a renamed copy after it) and **Delete Material**.
+A name the game would read as several words (a space, a brace or quote, or in
+Doom 3 punctuation such as `-` or a word like `table`) is refused.
 Maps and models name materials, so a renamed one needs its new name there
 too: **Maps** shows where it is used.
 
@@ -7154,8 +7180,10 @@ too: **Maps** shows where it is used.
 
 The **Text** tab shows the whole script with highlighting. As you type, the
 preview, the graph, **Images** and **Problems** follow, and problems are
-underlined where they are. For games without material scripts the text is
-the form their tools use:
+underlined where they are. A mistake inside one material affects only that
+material, never the ones after it in the file. Switching to another script
+and back keeps each one's undo history and place. For games without material
+scripts the text is the form their tools use:
 
 | Game | Text | Saved as |
 | --- | --- | --- |
@@ -7186,19 +7214,35 @@ sums the material up with the other materials that share its images.
 often: `.map` sources, compiled Quake, Quake II and Quake III-family maps, and
 Doom and UDMF maps. Press <kbd>Enter</kbd> on a map to open it in **Levels**
 with the material's faces selected; compiled maps are shown on the
-**Packages** page instead. The maps are read the first time the tab opens;
-**Read Maps Again** reads them after they change.
+**Packages** page instead. The maps are read the first time the tab opens,
+with a ring beside the status bar's **Activity** button while they are read;
+**Read Maps Again** reads them after they change. Only the package's own maps
+are read, not the base game's.
+
+**Save**, **Revert**, **New Material** and **More** sit beside the editor
+tabs, so they are there whichever tab you are on.
 
 **Save** (<kbd>Ctrl</kbd>+<kbd>S</kbd> on the page) writes a loose script in
 place. For a script, lump or WAL inside the open package it stages the
 change, which you review and save with the package on the **Packages** page.
-**More** > **Save All** saves every text you changed, including ones you
-moved away from. **Revert** goes back to the saved text; Undo brings your
-edits back.
+**More** > **Save All** (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd>) saves
+every text you changed, including ones you moved away from; **More** >
+**Unsaved Texts** lists those, to show or discard each one. **Revert** goes
+back to the saved text; Undo brings your edits back.
+
+Your edits belong to the package you made them in: they are never saved into
+another package, so open that package again to save them. If a script
+changes in the package while you edit it, your edits stay and **Problems**
+says that saving replaces the newer version. Closing the studio, opening or
+closing a package, or opening another script asks what to do with unsaved
+material edits: **Save All**, **Discard Edits** or **Cancel**.
 
 **More** also copies the material's name or preview picture, writes the
 preview, or a sheet of animation frames, to a PNG, opens a script that is a
-file in **Code**, and shows a script on the **Packages** page.
+file in **Code**, and shows a script on the **Packages** page. Exports run in
+the background with progress and **Cancel**, at the preview's full
+resolution; a sheet stays within 8192 pixels a side, with smaller frames
+when needed, and says so.
 
 ### What the preview leaves out
 
@@ -7221,6 +7265,7 @@ vibestudio --cli material validate ./mymod --base ./baseq3
 vibestudio --cli material render ./baseq3 --material textures/sfx/fire_ctfblue --frames 8 --fps 10 --output fire.png
 vibestudio --cli material usage ./mymod --unused
 vibestudio --cli material inspect ./scripts/jk.shader --dialect jediknight
+vibestudio --cli material override ./mymod --base ./baseq3 --material textures/base_wall/basewall01
 ```
 
 `material render` draws with the same renderer; add `--renderer opengl` or
@@ -7242,9 +7287,115 @@ vibestudio --cli material inspect ./scripts/jk.shader --dialect jediknight
 | Show or rewrite a Quake II WAL header | `material wal` |
 | List the maps that use a material, or the unused ones | `material usage` |
 | Rename, copy or remove a material in a script | `material edit --rename`, `--duplicate`, `--remove` |
+| Copy a base game material into your package | `material override` |
 | Read with the game's packages beneath, as one game | `--base`, `--include-base`, `--dialect` |
 
+##### Options for every material command
+
+Every command except `templates` and `new` reads a **source**: a package,
+folder or WAD, or a loose `.shader` or `.mtr` script, given first or with
+`--input`.
+
+| Option | What it does |
+| --- | --- |
+| `--package <path>` | The folder or package a loose script's images and tables come from |
+| `--base <paths>` | The game's own packages beneath the source, lowest first. Separate several with `;` on Windows (quote the value in PowerShell) and `:` on macOS and Linux |
+| `--dialect <id>` | `auto`, `quake3`, `quake3-1.32`, `rtcw`, `et` or `jediknight`: which game reads the Quake III scripts |
+| `--material <name>` | The material; leave it out when the source defines only one |
+| `--engine <id>` | `doom`, `quake`, `quake2`, `quake3` or `doom3` |
+| `--palette <id>` | `auto`, `quake`, `quake2`, `doom`, `heretic`, `hexen` or `generic`, for paletted images when the package has none |
+| `--no-implicit` | Leave out images no script names |
+| `--json` | A JSON report instead of text |
+
+| Command | Its own options |
+| --- | --- |
+| `list` | `--where <query>`, `--limit N`, `--include-base` |
+| `inspect` | `--show-source`, `--no-images`, `--sky <name>`, `--developer-default` |
+| `validate` | `--strict` (fail on warnings), `--no-images`, `--where`, `--include-base`, `--sky`, `--developer-default` |
+| `render` | `--output <png>` or `--dry-run`, `--overwrite`, `--renderer`; framing `--shape`, `--size WxH`, `--time`, `--yaw`, `--pitch`, `--zoom`, `--fov`, `--orthographic`, `--tiling`, `--swatch`; sheets `--frames`, `--fps` or `--cycle`, `--columns`; lighting as in **Preview Settings** (`--lightmap`, `--flat-lightmap`, `--no-overbright`, `--context`, `--grid-ambient`, `--grid-directed`, `--entity-color`, `--doom-light`, `--doom-extralight`, `--no-doom-distance`, `--no-fake-contrast`, `--boom-wrapping`, `--quake-renderer`, `--quake-style`, `--quake-lightmap`, `--alternate`, `--quake2-intensity`, `--light-color`, `--light-angle`, `--light-radius`, `--orbit-seconds`, `--ambient`, `--no-specular`, `--doom3-shading`, `--parms`, `--globals`, `--sound`, `--seed`, `--sky`); `--filter`, `--background`, `--no-checker`, `--editor-image`, `--ignore-rejection`, `--developer-default` |
+| `graph` | `--edits <json>`, `--output` or `--dry-run`, `--overwrite`, `--text-kind` |
+| `edit` | `--edits <json>` or `--rename`, `--duplicate`, `--remove`; `--script <path>`, `--output` or `--dry-run`, `--overwrite`, `--strict` |
+| `templates` | `--engine` |
+| `new` | `--template`, `--name`, `--image`, `--output`, `--append`, `--overwrite`, `--dry-run` |
+| `doom-tables` | `--output-dir`, `--base`, `--overwrite`, `--dry-run`; reads SWANTBLS text from a `.txt` or `.dat` file |
+| `wal` | `--material` (in a package), `--metadata <wal_json>`, `--output`, `--overwrite`, `--dry-run` |
+| `usage` | `--unused`, `--where`, `--limit`, `--include-base` (also read the base game's maps) |
+| `override` | `--base` (required), `--output-dir`, `--overwrite`, `--dry-run` |
+
+Exit codes: 0 done, 1 failed (or the output exists without `--overwrite`),
+2 usage error, 3 not found, 4 validation failed, 5 no 3D renderer could start.
+
 </details>
+
+#### Material edit files
+
+`material edit --edits` and `material graph --edits` read a JSON array of up
+to 256 edits, applied in order. Unknown fields, and fields of the wrong type,
+are refused. Nothing is written until every edit applies; use `--dry-run` to
+see the result.
+
+**Text edits** (`material edit`). Each edit has an `op`:
+
+| `op` | What it does | Fields it reads |
+| --- | --- | --- |
+| `set` | Replaces a directive's arguments, or adds the directive when it is missing | `stage`, `directive` or `keyword`, `arguments` |
+| `add` | Inserts a directive | `stage`, `keyword`, `arguments`, `position` |
+| `remove` | Removes a directive | `stage`, `directive` or `keyword` |
+| `move` | Moves a directive within its block | `stage`, `directive`, `position` |
+| `add-stage` | Inserts a stage; `text` holds its directives, one per line, without braces | `text`, `position` |
+| `remove-stage` | Removes a stage | `stage` |
+| `move-stage` | Moves a stage to `position` | `stage`, `position` |
+| `replace-definition` | Replaces the whole definition, name to closing brace | `text` |
+| `add-definition` | Adds a definition to the end of the script | `text` |
+| `remove-definition` | Removes the definition | |
+| `rename` | Renames the material to `text` | `text` |
+| `duplicate` | Adds a copy named `text` right after it | `text` |
+
+`material` names the material (default: `--material`). `stage`, `directive`
+and `position` count from 1, as the page does; leave `stage` out to address
+the material's global block, and `position` out to append. `keyword`,
+`arguments` and `text` are strings, so give `"arguments": "GL_ONE GL_ONE"`,
+not an array.
+
+```json
+[
+  {"op": "set", "material": "textures/mymod/glow", "stage": 1, "keyword": "blendFunc", "arguments": "GL_ONE GL_ONE"},
+  {"op": "add", "material": "textures/mymod/glow", "keyword": "surfaceparm", "arguments": "nolightmap", "position": 1},
+  {"op": "add-stage", "material": "textures/mymod/glow", "text": "map $lightmap\nblendFunc filter"}
+]
+```
+
+**Graph edits** (`material graph`). Each edit has an `edit` kind (default
+`set`; `op` is accepted in its place):
+
+| `edit` | What it does | Fields it reads |
+| --- | --- | --- |
+| `set` | Sets a node's property | `node`, `property`, `value` |
+| `add` | Adds a node from a template; templates that need a stage take `node` `stage/N` | `template`, `node` |
+| `remove` | Removes a node | `node` |
+| `move` | Moves a stage or tcMod one step: `step` -1 earlier, 1 later (default 1) | `node`, `step` |
+| `wrap` | Doom 3: puts an operator (`value`, such as `multiply`) above an expression node, or an image function above an image | `node`, `value` |
+| `unwrap` | Doom 3: replaces an operator node by its first operand | `node` |
+| `expand` | Doom 3: turns a `diffusemap`, `bumpmap` or `specularmap` line into a stage block | `node` |
+| `rename` | Renames the material to `value` (setting the `material` node's `name` does the same) | `value` |
+
+Node ids, property ids and template ids come from
+`material graph <source> --material <name> --json`: `graph.nodes[].id`
+(`material`, `stage/0`, `stage/0/tcmod/0`, `stage/0/rgbgen`, `flags` for a
+Quake II texture), each node's `properties[].id`, and `nodeTemplates[].id`.
+Node ids count stages from 0, unlike text edits. `value` may be a string,
+number or `true`/`false`.
+
+```json
+[
+  {"edit": "set", "node": "stage/0/rgbgen", "property": "frequency", "value": 2},
+  {"edit": "move", "node": "stage/1", "step": -1}
+]
+```
+
+For a Doom texture choose the text with `--text-kind swantbls` or `animdefs`;
+for a Quake II texture the text is `wal-json`, and writing it to a `.wal` file
+rewrites that WAL's header (flags, contents, value, next frame).
 
 See the [command-line reference](manual/cli.md) for the shared options and exit
 codes.

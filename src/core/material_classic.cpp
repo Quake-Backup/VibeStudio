@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace vibestudio {
 namespace {
@@ -230,6 +231,16 @@ QVector<MaterialFrame> rotatedFrames(const QStringList& names, int rotation, dou
 int DoomMaterialCatalog::textureIndex(const QString& name) const
 {
 	const QString key = upperKey(name);
+	if (!textureByName.isEmpty() || textures.isEmpty()) {
+		const auto found = textureByName.constFind(key);
+		if (found == textureByName.constEnd()) {
+			return -1;
+		}
+		// A hit is checked, in case `textures` changed after the index.
+		if (*found >= 0 && *found < textures.size() && upperKey(textures.at(*found).name) == key) {
+			return *found;
+		}
+	}
 	for (int index = 0; index < textures.size(); ++index) {
 		if (upperKey(textures.at(index).name) == key) {
 			return index;
@@ -241,6 +252,15 @@ int DoomMaterialCatalog::textureIndex(const QString& name) const
 int DoomMaterialCatalog::flatIndex(const QString& name) const
 {
 	const QString key = upperKey(name);
+	if (!flatByName.isEmpty() || flats.isEmpty()) {
+		const auto found = flatByName.constFind(key);
+		if (found == flatByName.constEnd()) {
+			return -1;
+		}
+		if (*found >= 0 && *found < flats.size() && upperKey(flats.at(*found)) == key) {
+			return *found;
+		}
+	}
 	for (int index = 0; index < flats.size(); ++index) {
 		if (upperKey(flats.at(index)) == key) {
 			return index;
@@ -252,6 +272,25 @@ int DoomMaterialCatalog::flatIndex(const QString& name) const
 bool DoomMaterialCatalog::isFlat(const QString& name) const
 {
 	return flatIndex(name) >= 0;
+}
+
+void DoomMaterialCatalog::rebuildIndex()
+{
+	textureByName.clear();
+	flatByName.clear();
+	// The first texture of a name wins (R_CheckTextureNumForName).
+	for (int index = 0; index < textures.size(); ++index) {
+		const QString key = upperKey(textures.at(index).name);
+		if (!textureByName.contains(key)) {
+			textureByName.insert(key, index);
+		}
+	}
+	for (int index = 0; index < flats.size(); ++index) {
+		const QString key = upperKey(flats.at(index));
+		if (!flatByName.contains(key)) {
+			flatByName.insert(key, index);
+		}
+	}
 }
 
 QVector<DoomAnimationRange> doomVanillaAnimations()
@@ -800,23 +839,35 @@ DoomMaterialCatalog readDoomMaterialCatalog(const PackageArchiveReader& reader, 
 	QByteArray bytes;
 	// Namespaces in directory order: flats and TX_ textures in WADs, flats/
 	// and textures/ folders in ZDoom PK3s.
+	QSet<QString> flatSeen;
+	QSet<QString> directSeen;
+	QSet<QString> lumpNames;
 	for (const PackageEntry& entry : entries) {
 		if (entry.kind != PackageEntryKind::File) {
 			continue;
 		}
+		const QString name = lumpKey(entry.virtualPath);
+		lumpNames.insert(name);
 		const QString folder = packageVirtualPathParent(entry.virtualPath).toLower();
 		if (entry.typeHint == QStringLiteral("wad-flat") || folder == QStringLiteral("flats")) {
-			const QString name = lumpKey(entry.virtualPath);
-			if (!catalog.flats.contains(name)) {
+			if (!flatSeen.contains(name)) {
+				flatSeen.insert(name);
 				catalog.flats << name;
 			}
 		} else if (folder == QStringLiteral("textures") || entry.typeHint == QStringLiteral("wad-texture")) {
-			const QString name = lumpKey(entry.virtualPath);
-			if (!catalog.directTextures.contains(name)) {
+			if (!directSeen.contains(name)) {
+				directSeen.insert(name);
 				catalog.directTextures << name;
 			}
 		}
 	}
+	// A WAD's patches are certain when it is an IWAD or is read over one
+	// (a layered reader reports the package's magic, so check for a base
+	// layer's lumps by the IWAD's PLAYPAL as well).
+	catalog.patchesComplete = reader.wadMagic().compare(QStringLiteral("IWAD"), Qt::CaseInsensitive) == 0
+		|| std::any_of(entries.cbegin(), entries.cend(), [](const PackageEntry& entry) {
+			   return entry.layerId.startsWith(QStringLiteral("base:")) && lumpKey(entry.virtualPath) == QStringLiteral("PLAYPAL");
+		   });
 	if (control.isCancelled && control.isCancelled()) {
 		return catalog;
 	}
@@ -827,7 +878,11 @@ DoomMaterialCatalog readDoomMaterialCatalog(const PackageArchiveReader& reader, 
 			catalog.warnings << Text::tr("PNAMES is malformed.");
 		} else {
 			for (int index = 0; index < count; ++index) {
-				catalog.patchNames << fixedName(bytes, 4 + 8 * index, 8).toUpper();
+				const QString name = fixedName(bytes, 4 + 8 * index, 8).toUpper();
+				catalog.patchNames << name;
+				if (!name.isEmpty() && !lumpNames.contains(name)) {
+					catalog.missingPatches.insert(name);
+				}
 			}
 		}
 	}
@@ -914,6 +969,7 @@ DoomMaterialCatalog readDoomMaterialCatalog(const PackageArchiveReader& reader, 
 		catalog.animdefsPath = entry.virtualPath;
 		catalog.animdefsText = text;
 	}
+	catalog.rebuildIndex();
 	return catalog;
 }
 
@@ -970,9 +1026,69 @@ QString animdefsFrameName(const DoomMaterialCatalog& catalog, const DoomAnimdefs
 	return index >= 0 && index < catalog.flats.size() ? catalog.flats.at(index) : QString();
 }
 
+// One range's names, worked out once for every definition.
+struct DoomRangeNames {
+	QStringList names;
+	int firstIndex = -1;
+	// Each name's first position in `names`.
+	QHash<QString, int> position;
+};
+
+DoomRangeNames doomRangeNames(const DoomMaterialCatalog& catalog, bool texture, const QString& first, const QString& last)
+{
+	DoomRangeNames result;
+	QString error;
+	result.names = rangeNames(catalog, texture, first, last, &result.firstIndex, &error);
+	for (int index = 0; index < result.names.size(); ++index) {
+		if (!result.position.contains(result.names.at(index))) {
+			result.position.insert(result.names.at(index), index);
+		}
+	}
+	return result;
+}
+
+// catalog.ranges and catalog.animdefs' range entries, index for index.
+struct DoomRangeTables {
+	QVector<DoomRangeNames> ranges;
+	QVector<DoomRangeNames> animdefs;
+};
+
+DoomRangeTables doomRangeTables(const DoomMaterialCatalog& catalog)
+{
+	DoomRangeTables tables;
+	tables.ranges.reserve(catalog.ranges.size());
+	for (const DoomAnimationRange& range : catalog.ranges) {
+		tables.ranges.push_back(doomRangeNames(catalog, range.texture, range.first, range.last));
+	}
+	tables.animdefs.resize(catalog.animdefs.size());
+	for (int index = 0; index < catalog.animdefs.size(); ++index) {
+		const DoomAnimdefsEntry& entry = catalog.animdefs.at(index);
+		if (!entry.range || (entry.kind != QStringLiteral("flat") && entry.kind != QStringLiteral("texture"))) {
+			continue;
+		}
+		QString last = entry.rangeLast;
+		if (last.startsWith(QLatin1Char('#'))) {
+			DoomAnimdefsFrame frame;
+			frame.pic = last.mid(1).toInt();
+			last = animdefsFrameName(catalog, entry, frame);
+		}
+		tables.animdefs[index] = doomRangeNames(catalog, entry.texture, entry.base, last);
+	}
+	return tables;
+}
+
+MaterialDefinition doomDefinitionWith(const DoomMaterialCatalog& catalog, const QString& name, bool flat, const DoomRangeTables& tables);
+
 } // namespace
 
 MaterialDefinition doomMaterialDefinition(const DoomMaterialCatalog& catalog, const QString& name, bool flat)
+{
+	return doomDefinitionWith(catalog, name, flat, doomRangeTables(catalog));
+}
+
+namespace {
+
+MaterialDefinition doomDefinitionWith(const DoomMaterialCatalog& catalog, const QString& name, bool flat, const DoomRangeTables& tables)
 {
 	MaterialDefinition definition;
 	definition.name = upperKey(name);
@@ -989,21 +1105,48 @@ MaterialDefinition doomMaterialDefinition(const DoomMaterialCatalog& catalog, co
 			definition.classic.size = composite.size;
 			definition.classic.patches = composite.patches;
 			definition.classic.definitionLump = composite.lump;
+			// R_InitTextures: "Missing patch in texture %s" ends the game.
+			QSet<QString> reported;
+			for (const MaterialPatchPlacement& placement : composite.patches) {
+				if (reported.contains(placement.patch)) {
+					continue;
+				}
+				if (placement.patch.startsWith(QLatin1Char('#'))) {
+					reported.insert(placement.patch);
+					definition.diagnostics.push_back(diagnostic(MaterialDiagnosticSeverity::Error, QStringLiteral("missing-patch"),
+						Text::tr("Texture %1 names patch number %2, which PNAMES does not list: Doom stops with an error.")
+							.arg(definition.name, placement.patch.mid(1)),
+						definition.name));
+				} else if (catalog.missingPatches.contains(placement.patch)) {
+					reported.insert(placement.patch);
+					if (catalog.patchesComplete) {
+						definition.diagnostics.push_back(diagnostic(MaterialDiagnosticSeverity::Error, QStringLiteral("missing-patch"),
+							Text::tr("Patch %1 of texture %2 is in no lump: Doom stops with an error.").arg(placement.patch, definition.name),
+							definition.name));
+					} else {
+						definition.diagnostics.push_back(diagnostic(MaterialDiagnosticSeverity::Warning, QStringLiteral("missing-patch"),
+							Text::tr("Patch %1 of texture %2 is not in this package; Doom stops with an error unless the IWAD has it.")
+								.arg(placement.patch, definition.name),
+							definition.name));
+					}
+				}
+			}
 		}
 	}
 	// Animation: Boom or vanilla ranges first, then ANIMDEFS, which replaces
 	// earlier definitions of the same texture.
-	for (const DoomAnimationRange& range : catalog.ranges) {
-		if (range.texture == flat) {
+	for (int rangeIndex = 0; rangeIndex < catalog.ranges.size(); ++rangeIndex) {
+		const DoomAnimationRange& range = catalog.ranges.at(rangeIndex);
+		if (range.texture == flat || rangeIndex >= tables.ranges.size()) {
 			continue;
 		}
-		QString error;
-		int firstIndex = -1;
-		const QStringList names = rangeNames(catalog, range.texture, range.first, range.last, &firstIndex, &error);
+		const DoomRangeNames& data = tables.ranges.at(rangeIndex);
+		const QStringList& names = data.names;
+		const int firstIndex = data.firstIndex;
 		if (names.isEmpty()) {
 			continue;
 		}
-		const qsizetype position = names.indexOf(key);
+		const qsizetype position = data.position.value(key, -1);
 		if (position < 0) {
 			continue;
 		}
@@ -1021,7 +1164,8 @@ MaterialDefinition doomMaterialDefinition(const DoomMaterialCatalog& catalog, co
 		definition.classic.frames = rotatedFrames(names, rotation, range.tics / kDoomTicsPerSecond);
 		definition.classic.animationSource = range.source;
 	}
-	for (const DoomAnimdefsEntry& entry : catalog.animdefs) {
+	for (int entryIndex = 0; entryIndex < catalog.animdefs.size(); ++entryIndex) {
+		const DoomAnimdefsEntry& entry = catalog.animdefs.at(entryIndex);
 		if (entry.texture == flat && (entry.kind == QStringLiteral("flat") || entry.kind == QStringLiteral("texture"))) {
 			continue;
 		}
@@ -1043,16 +1187,12 @@ MaterialDefinition doomMaterialDefinition(const DoomMaterialCatalog& catalog, co
 			continue;
 		}
 		if (entry.range) {
-			QString last = entry.rangeLast;
-			if (last.startsWith(QLatin1Char('#'))) {
-				DoomAnimdefsFrame frame;
-				frame.pic = last.mid(1).toInt();
-				last = animdefsFrameName(catalog, entry, frame);
+			if (entryIndex >= tables.animdefs.size()) {
+				continue;
 			}
-			QString error;
-			int firstIndex = -1;
-			const QStringList names = rangeNames(catalog, entry.texture, entry.base, last, &firstIndex, &error);
-			const qsizetype position = names.indexOf(key);
+			const DoomRangeNames& data = tables.animdefs.at(entryIndex);
+			const QStringList& names = data.names;
+			const qsizetype position = data.position.value(key, -1);
 			if (position < 0) {
 				continue;
 			}
@@ -1114,27 +1254,42 @@ MaterialDefinition doomMaterialDefinition(const DoomMaterialCatalog& catalog, co
 	return definition;
 }
 
-QVector<MaterialDefinition> doomMaterialDefinitions(const DoomMaterialCatalog& catalog)
+} // namespace
+
+QVector<MaterialDefinition> doomMaterialDefinitions(const DoomMaterialCatalog& catalog, const std::function<bool(int done, int total)>& progress)
 {
+	const DoomRangeTables tables = doomRangeTables(catalog);
+	const int total = static_cast<int>(catalog.textures.size() + catalog.directTextures.size() + catalog.flats.size());
+	int done = 0;
+	const auto proceed = [&]() { return !progress || progress(done++, total); };
 	QVector<MaterialDefinition> definitions;
 	QSet<QString> seen;
 	for (const DoomCompositeTexture& texture : catalog.textures) {
+		if (!proceed()) {
+			return definitions;
+		}
 		if (!seen.contains(texture.name)) {
 			seen.insert(texture.name);
-			definitions.push_back(doomMaterialDefinition(catalog, texture.name, false));
+			definitions.push_back(doomDefinitionWith(catalog, texture.name, false, tables));
 		}
 	}
 	for (const QString& texture : catalog.directTextures) {
+		if (!proceed()) {
+			return definitions;
+		}
 		if (!seen.contains(texture)) {
 			seen.insert(texture);
-			definitions.push_back(doomMaterialDefinition(catalog, texture, false));
+			definitions.push_back(doomDefinitionWith(catalog, texture, false, tables));
 		}
 	}
 	QSet<QString> flatsSeen;
 	for (const QString& flat : catalog.flats) {
+		if (!proceed()) {
+			return definitions;
+		}
 		if (!flatsSeen.contains(flat)) {
 			flatsSeen.insert(flat);
-			definitions.push_back(doomMaterialDefinition(catalog, flat, true));
+			definitions.push_back(doomDefinitionWith(catalog, flat, true, tables));
 		}
 	}
 	return definitions;
@@ -1269,6 +1424,13 @@ MaterialDefinition quakeMaterialDefinition(const QString& name, const QStringLis
 // Quake II
 // ---------------------------------------------------------------------------
 
+namespace {
+
+// The largest side idtech_image.cpp's WAL decoder accepts.
+constexpr quint32 kQuake2WalMaximumDimension = 8192;
+
+} // namespace
+
 bool readQuake2WalInfo(const QByteArray& bytes, Quake2WalInfo* info, QString* error)
 {
 	// miptex_t in qfiles.h: name[32], width, height, offsets[4],
@@ -1279,8 +1441,21 @@ bool readQuake2WalInfo(const QByteArray& bytes, Quake2WalInfo* info, QString* er
 		}
 		return false;
 	}
+	// The image decoder reads at most 8192 x 8192; a larger header would
+	// also wrap negative as an int.
+	const quint32 width = readU32(bytes, 32);
+	const quint32 height = readU32(bytes, 36);
+	if (width > kQuake2WalMaximumDimension || height > kQuake2WalMaximumDimension) {
+		if (error) {
+			*error = Text::tr("The WAL header says %1 x %2 pixels; at most %3 x %3 can be read.")
+						 .arg(width)
+						 .arg(height)
+						 .arg(kQuake2WalMaximumDimension);
+		}
+		return false;
+	}
 	info->name = fixedName(bytes, 0, 32);
-	info->size = QSize(static_cast<int>(readU32(bytes, 32)), static_cast<int>(readU32(bytes, 36)));
+	info->size = QSize(static_cast<int>(width), static_cast<int>(height));
 	info->nextFrame = fixedName(bytes, 56, 32);
 	info->surfaceFlags = readU32(bytes, 88);
 	info->contentFlags = readU32(bytes, 92);
@@ -1418,8 +1593,17 @@ bool flagValue(const QJsonValue& value, const QVector<MaterialFlagDescriptor>& d
 	quint32 flags = 0;
 	for (const QJsonValue& item : items) {
 		if (item.isDouble()) {
-			flags |= static_cast<quint32>(item.toDouble());
+			const double number = item.toDouble();
+			if (number < 0 || number > 4294967295.0 || number != std::floor(number)) {
+				*error = Text::tr("Flag numbers must be whole and unsigned.");
+				return false;
+			}
+			flags |= static_cast<quint32>(number);
 			continue;
+		}
+		if (!item.isString()) {
+			*error = Text::tr("Flags must be numbers or flag names.");
+			return false;
 		}
 		QString name = item.toString().trimmed().toLower();
 		if (name.startsWith(prefix)) {
@@ -1448,9 +1632,15 @@ bool parseQuake2WalInfoText(const QString& text, Quake2WalInfo* info, QString* e
 {
 	QJsonParseError parseError;
 	const QJsonDocument document = QJsonDocument::fromJson(text.toUtf8(), &parseError);
-	if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
+	if (parseError.error != QJsonParseError::NoError) {
 		if (error) {
 			*error = Text::tr("The WAL metadata is not a JSON object: %1").arg(parseError.errorString());
+		}
+		return false;
+	}
+	if (!document.isObject()) {
+		if (error) {
+			*error = Text::tr("The WAL metadata must be a JSON object; the file holds a JSON array.");
 		}
 		return false;
 	}
@@ -1475,17 +1665,54 @@ bool parseQuake2WalInfoText(const QString& text, Quake2WalInfo* info, QString* e
 		}
 		return false;
 	}
+	// Check every field before changing the info, so a refused file leaves
+	// it as it was.
+	const auto wholeNumber = [&object](const QString& key, double minimum, double maximum, int* out) {
+		const QJsonValue value = object.value(key);
+		if (value.isUndefined()) {
+			return true;
+		}
+		const double number = value.toDouble();
+		if (!value.isDouble() || number != std::floor(number) || number < minimum || number > maximum) {
+			return false;
+		}
+		*out = static_cast<int>(number);
+		return true;
+	};
+	int value = info->value;
+	if (!wholeNumber(QStringLiteral("value"), double(std::numeric_limits<qint32>::min()), double(std::numeric_limits<qint32>::max()), &value)) {
+		if (error) {
+			*error = Text::tr("The WAL metadata's 'value' must be a whole number from %1 to %2.")
+						 .arg(std::numeric_limits<qint32>::min())
+						 .arg(std::numeric_limits<qint32>::max());
+		}
+		return false;
+	}
+	int width = info->size.width();
+	int height = info->size.height();
+	for (const QString& key : {QStringLiteral("width"), QStringLiteral("height")}) {
+		if (!wholeNumber(key, 0, double(kQuake2WalMaximumDimension), key == QStringLiteral("width") ? &width : &height)) {
+			if (error) {
+				*error = Text::tr("The WAL metadata's '%1' must be a whole number from 0 to %2.").arg(key).arg(kQuake2WalMaximumDimension);
+			}
+			return false;
+		}
+	}
+	const QJsonValue animation = object.value(QStringLiteral("animation"));
+	if (!animation.isUndefined() && !animation.isString()) {
+		if (error) {
+			*error = Text::tr("The WAL metadata's 'animation' must be text: the next frame's texture name.");
+		}
+		return false;
+	}
 	info->surfaceFlags = flags;
 	info->contentFlags = contents;
-	if (object.contains(QStringLiteral("value"))) {
-		info->value = object.value(QStringLiteral("value")).toInt();
-	}
-	if (object.contains(QStringLiteral("animation"))) {
-		info->nextFrame = object.value(QStringLiteral("animation")).toString().trimmed();
+	info->value = value;
+	if (animation.isString()) {
+		info->nextFrame = animation.toString().trimmed();
 	}
 	if (object.contains(QStringLiteral("width")) || object.contains(QStringLiteral("height"))) {
-		info->size = QSize(object.value(QStringLiteral("width")).toInt(info->size.width()),
-			object.value(QStringLiteral("height")).toInt(info->size.height()));
+		info->size = QSize(width, height);
 	}
 	return true;
 }

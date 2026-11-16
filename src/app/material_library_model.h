@@ -57,12 +57,19 @@ public:
 	void clear();
 	[[nodiscard]] std::shared_ptr<const MaterialLibrary> library() const { return m_rows.library; }
 	[[nodiscard]] const StudioQueryProperties& properties(int row) const;
-	[[nodiscard]] QSet<QString> propertyKeys() const;
+	[[nodiscard]] const QSet<QString>& propertyKeys() const { return m_keys; }
 	[[nodiscard]] int rowForName(const QString& name, MaterialEngine engine = MaterialEngine::Unknown) const;
 	void setThumbnailSide(int side);
-	// Draws every swatch again, after the 3D renderer changed.
+	// Draws every swatch again, after the 3D renderer or the theme changed.
 	void refreshThumbnails();
 	[[nodiscard]] int thumbnailSide() const { return m_side; }
+	// Swatches are drawn at the screen's pixel density, so they stay sharp
+	// at 150 % or 200 % scaling.
+	void setDevicePixelRatio(qreal ratio);
+	[[nodiscard]] qreal devicePixelRatio() const { return m_devicePixelRatio; }
+	// How many swatches stay in memory: a fixed budget of bytes, so larger
+	// swatches keep fewer.
+	[[nodiscard]] int thumbnailBudget() const;
 	// The size of each item in the grid, so names use the whole cell; an
 	// invalid size leaves sizing to the view (the list).
 	void setItemSize(const QSize& size);
@@ -77,14 +84,19 @@ public:
 
 private:
 	void requestThumbnail(int row, double time) const;
-	void deliverThumbnail(quint64 generation, int row, const QImage& image);
+	void deliverThumbnail(quint64 generation, int row, const QImage& image, qreal ratio);
 	void advanceAnimation();
+	// Drops queued swatches and stops the ones being drawn.
+	void dropSwatchWork();
 	[[nodiscard]] QString rowDescription(int row) const;
 
 	MaterialLibraryRows m_rows;
+	// Every filter key some row has, gathered once per library.
+	QSet<QString> m_keys;
 	MaterialImageSource m_images;
 	std::shared_ptr<MaterialImageCache> m_cache;
 	int m_side = 72;
+	qreal m_devicePixelRatio = 1.0;
 	QSize m_itemSize;
 	bool m_animate = false;
 	double m_time = 0.0;
@@ -96,6 +108,9 @@ private:
 	QThreadPool* m_pool = nullptr;
 	QTimer* m_animation = nullptr;
 	std::shared_ptr<std::atomic_int> m_pending;
+	// Set when the swatches being drawn are no longer wanted (a new library,
+	// size or theme): their frames stop on the graphics device too.
+	std::shared_ptr<std::atomic_bool> m_swatchStop;
 };
 
 class MaterialLibraryFilter final : public QSortFilterProxyModel {

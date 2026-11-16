@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <memory>
+#include <mutex>
 
 namespace vibestudio {
 namespace {
@@ -102,6 +104,14 @@ double sanitize(double value)
 	return std::isfinite(value) ? value : 0.0;
 }
 
+// A noise lattice coordinate, wrapped by the lattice's 256 period so the
+// integer part always fits an int. fmod is exact, so floor() and the
+// fraction match the unwrapped value's modulo 256.
+double noiseCoordinate(double value)
+{
+	return std::isfinite(value) ? std::fmod(value, 256.0) : 0.0;
+}
+
 // A deterministic 0..1 value for frame `occurrence` of a cycle.
 double unitHash(quint32 seed, quint32 occurrence)
 {
@@ -112,6 +122,76 @@ double unitHash(quint32 seed, quint32 occurrence)
 	x *= 0xC2B2AE35u;
 	x ^= x >> 16;
 	return (x & 0xFFFFFF) / static_cast<double>(0xFFFFFF);
+}
+
+// Frames with random durations (ANIMDEFS rand): frame `index` of cycle `c`
+// lasts minimum + (maximum - minimum) * unitHash(seed, c * frames + index).
+// cycleStarts[c] is when cycle c starts, accumulated frame by frame like a
+// walk from 0; the last entry is where the kept cycles end.
+struct RandomFrameSchedule {
+	quint32 seed = 0;
+	QVector<double> minimum;
+	QVector<double> maximum;
+	QVector<double> cycleStarts {0.0};
+};
+
+// About a million frames are kept (a day or more of a typical sequence);
+// past that the schedule repeats.
+constexpr int kRandomFrameSteps = 1 << 20;
+
+double randomFrameDuration(const RandomFrameSchedule& schedule, int cycle, int index)
+{
+	const double minimum = schedule.minimum.at(index);
+	const double maximum = schedule.maximum.at(index);
+	if (maximum <= minimum) {
+		return minimum;
+	}
+	const auto occurrence = static_cast<quint32>(qint64(cycle) * schedule.minimum.size() + index);
+	return minimum + (maximum - minimum) * unitHash(schedule.seed, occurrence);
+}
+
+// The schedule for these frames and seed, with cycles built at least up to
+// `time` (or to the cap). Shared between threads and calls; each moment
+// then costs a binary search instead of a walk from 0.
+RandomFrameSchedule randomFrameSchedule(const QVector<MaterialFrame>& frames, quint32 seed, double time)
+{
+	static std::mutex mutex;
+	static QHash<quint64, std::shared_ptr<RandomFrameSchedule>> schedules;
+	QVector<double> minimum;
+	QVector<double> maximum;
+	minimum.reserve(frames.size());
+	maximum.reserve(frames.size());
+	for (const MaterialFrame& frame : frames) {
+		minimum << frame.duration;
+		maximum << frame.maximumDuration;
+	}
+	quint64 key = qHashBits(minimum.constData(), size_t(minimum.size()) * sizeof(double), seed);
+	key = qHashBits(maximum.constData(), size_t(maximum.size()) * sizeof(double), key);
+	std::lock_guard lock(mutex);
+	std::shared_ptr<RandomFrameSchedule> schedule = schedules.value(key);
+	if (!schedule || schedule->seed != seed || schedule->minimum != minimum || schedule->maximum != maximum) {
+		if (schedules.size() >= 64) {
+			schedules.clear();
+		}
+		schedule = std::make_shared<RandomFrameSchedule>();
+		schedule->seed = seed;
+		schedule->minimum = minimum;
+		schedule->maximum = maximum;
+		schedules.insert(key, schedule);
+	}
+	const int count = static_cast<int>(frames.size());
+	const int maximumCycles = std::max(1, kRandomFrameSteps / count);
+	while (schedule->cycleStarts.size() - 1 < maximumCycles && schedule->cycleStarts.last() <= time) {
+		const int cycle = static_cast<int>(schedule->cycleStarts.size()) - 1;
+		double elapsed = schedule->cycleStarts.last();
+		for (int index = 0; index < count; ++index) {
+			elapsed += std::max(randomFrameDuration(*schedule, cycle, index), 1.0e-4);
+		}
+		schedule->cycleStarts << elapsed;
+	}
+	// A copy (its vectors are shared, not copied) that cannot change under
+	// the caller while another thread grows the schedule.
+	return *schedule;
 }
 
 } // namespace
@@ -137,9 +217,20 @@ double quake3FunctionTable(MaterialWaveFunction function, int index)
 	return 0.0;
 }
 
+int quake3TableIndex(double value)
+{
+	return wrappedIndex(value);
+}
+
 double quake3Noise(double x, double y, double z, double t)
 {
 	const Quake3Noise& noise = quake3NoiseTables();
+	// Every lattice lookup masks with 255, so the noise repeats every 256
+	// units on each axis; wrapping keeps the casts below defined.
+	x = noiseCoordinate(x);
+	y = noiseCoordinate(y);
+	z = noiseCoordinate(z);
+	t = noiseCoordinate(t);
 	const int ix = static_cast<int>(std::floor(x));
 	const int iy = static_cast<int>(std::floor(y));
 	const int iz = static_cast<int>(std::floor(z));
@@ -456,24 +547,30 @@ int materialFrameIndexAt(const QVector<MaterialFrame>& frames, double time, quin
 		}
 		return static_cast<int>(frames.size()) - 1;
 	}
-	// Random durations: walk the timeline with one deterministic pick per
-	// frame shown, bounded so long scrubs stay cheap.
-	double elapsed = 0.0;
-	quint32 occurrence = 0;
-	for (int step = 0; step < 200000; ++step) {
-		const int index = step % frames.size();
-		const MaterialFrame& frame = frames.at(index);
-		double duration = frame.duration;
-		if (frame.maximumDuration > frame.duration) {
-			duration += (frame.maximumDuration - frame.duration) * unitHash(seed, occurrence);
-		}
-		++occurrence;
+	if (frames.size() == 1) {
+		return 0;
+	}
+	// Random durations: one deterministic pick per frame shown. The cycle
+	// starts are kept, so any moment costs a search and one cycle's walk.
+	const RandomFrameSchedule schedule = randomFrameSchedule(frames, seed, time);
+	const QVector<double>& starts = schedule.cycleStarts;
+	const int cycles = static_cast<int>(starts.size()) - 1;
+	if (time >= starts.last()) {
+		// Past the longest schedule kept: it repeats.
+		time = std::fmod(time, starts.last());
+	}
+	const int found = static_cast<int>(std::upper_bound(starts.cbegin(), starts.cend(), time) - starts.cbegin()) - 1;
+	const int cycleIndex = std::clamp(found, 0, cycles - 1);
+	const int count = static_cast<int>(frames.size());
+	double elapsed = starts.at(cycleIndex);
+	for (int index = 0; index < count; ++index) {
+		const double duration = randomFrameDuration(schedule, cycleIndex, index);
 		if (time < elapsed + duration) {
 			return index;
 		}
 		elapsed += std::max(duration, 1.0e-4);
 	}
-	return static_cast<int>(std::fmod(time, cycle) / cycle * frames.size()) % frames.size();
+	return count - 1;
 }
 
 QVector<QuakeLightStyle> quakeLightStyles()
@@ -504,8 +601,10 @@ int quakeLightStyleRaw(const QString& pattern, double time)
 		time = 0.0;
 	}
 	// R_AnimateLight: i = (int)(cl.time * 10), one letter a tenth of a second.
-	const long long step = static_cast<long long>(time * 10.0);
-	const QChar c = pattern.at(static_cast<int>(step % pattern.size())).toLower();
+	// Wrapped by the pattern's length first, so a long scrub cannot overflow.
+	const double steps = time * 10.0;
+	const int step = std::isfinite(steps) ? static_cast<int>(std::fmod(steps, static_cast<double>(pattern.size()))) : 0;
+	const QChar c = pattern.at(std::clamp(step, 0, static_cast<int>(pattern.size()) - 1)).toLower();
 	const int value = c.unicode() - 'a';
 	return std::clamp(value, 0, 25) * 22;
 }

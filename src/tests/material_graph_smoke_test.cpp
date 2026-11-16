@@ -7,6 +7,9 @@
 #include "core/material_script.h"
 
 #include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QRectF>
+#include <QSet>
 
 #include <iostream>
 
@@ -46,6 +49,155 @@ const MaterialDefinition* parsed(const QString& text, MaterialEngine engine, Mat
 {
 	*holder = parseMaterialScript(text, engine);
 	return holder->materials.isEmpty() ? nullptr : &holder->materials.first();
+}
+
+// No two laid-out nodes overlap, with room kept for every thumbnail.
+bool laidOutWithoutOverlap(const MaterialGraph& graph, std::string* detail)
+{
+	QVector<QRectF> rects;
+	for (const MaterialGraphNode& node : graph.nodes) {
+		rects.push_back(QRectF(node.position, materialGraphNodeSize(node, true)));
+	}
+	for (int a = 0; a < rects.size(); ++a) {
+		for (int b = a + 1; b < rects.size(); ++b) {
+			if (rects.at(a).intersects(rects.at(b))) {
+				*detail = (graph.nodes.at(a).id + QStringLiteral(" overlaps ") + graph.nodes.at(b).id).toStdString();
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+// Every node the graph offers to remove can be removed.
+void checkRemovable(const QString& text, MaterialTextKind kind, const QString& name, MaterialEngine engine, const std::string& what)
+{
+	MaterialScript script;
+	const MaterialDefinition* definition = parsed(text, engine, &script);
+	if (!definition) {
+		expect(false, what + ": the fixture parses");
+		return;
+	}
+	const MaterialGraph graph = buildMaterialGraph(*definition, kind);
+	for (const MaterialGraphNode& node : graph.nodes) {
+		if (!node.removable) {
+			continue;
+		}
+		MaterialGraphEdit edit;
+		edit.kind = MaterialGraphEditKind::RemoveNode;
+		edit.node = node.id;
+		const MaterialGraphEditResult result = applyMaterialGraphEdit(text, kind, name, edit);
+		expect(result.ok, what + ": a node marked removable can be removed: " + node.id.toStdString() + " " + result.error.toStdString());
+	}
+}
+
+int lineCount(const QString& text, const QString& keyword)
+{
+	int count = 0;
+	for (const QString& line : text.split(QLatin1Char('\n'))) {
+		count += line.trimmed().startsWith(keyword + QLatin1Char(' '), Qt::CaseInsensitive) ? 1 : 0;
+	}
+	return count;
+}
+
+void checkQuake3Edits()
+{
+	const MaterialTextKind kind = MaterialTextKind::Quake3Shader;
+	// Wolfenstein's mapnocomp and Jedi Knight's oneshotAnimMap set the stage's
+	// image; an edit changes that line, not a new map line before it.
+	const QString wolf = QStringLiteral("textures/test/wolf\n{\n\t{\n\t\tmapnocomp textures/a.tga\n\t\trgbGen identity\n\t}\n}\n");
+	MaterialGraphEditResult result = apply(wolf, kind, QStringLiteral("textures/test/wolf"), MaterialGraphEditKind::SetProperty,
+		QStringLiteral("stage/0/image"), QStringLiteral("path"), QStringLiteral("textures/b.tga"));
+	MaterialScript script;
+	const MaterialDefinition* definition = parsed(result.text, MaterialEngine::Quake3, &script);
+	expect(result.ok && definition && definition->stages.size() == 1 && definition->stages.first().imagePath == QStringLiteral("textures/b.tga")
+			&& lineCount(result.text, QStringLiteral("mapnocomp")) == 1 && lineCount(result.text, QStringLiteral("map")) == 0,
+		"an image written with mapnocomp is edited in place");
+	result = apply(wolf, kind, QStringLiteral("textures/test/wolf"), MaterialGraphEditKind::SetProperty, QStringLiteral("stage/0/image"),
+		QStringLiteral("clamp"), QStringLiteral("true"));
+	expect(!result.ok, "mapnocomp has no clamped form, so Clamp is refused rather than adding a second image line");
+	const QString jedi = QStringLiteral("textures/test/jk\n{\n\t{\n\t\toneshotAnimMap 10 textures/a.tga textures/b.tga\n\t}\n}\n");
+	result = apply(jedi, kind, QStringLiteral("textures/test/jk"), MaterialGraphEditKind::SetProperty, QStringLiteral("stage/0/image"),
+		QStringLiteral("frequency"), QStringLiteral("5"));
+	expect(result.ok && result.text.contains(QStringLiteral("oneshotAnimMap 5 textures/a.tga textures/b.tga"))
+			&& lineCount(result.text, QStringLiteral("animMap")) == 0,
+		"an oneshotAnimMap's speed changes on its own line");
+
+	// Surface parameters the parser does not know are shown and kept.
+	const QString parms = QStringLiteral("textures/test/wood\n{\n\tsurfaceparm woodsteps\n\tsurfaceparm nolightmap\n\t{\n\t\tmap textures/a.tga\n\t}\n}\n");
+	definition = parsed(parms, MaterialEngine::Quake3, &script);
+	const MaterialGraph parmGraph = buildMaterialGraph(*definition);
+	expect(parmGraph.node(QStringLiteral("material"))->property(QStringLiteral("surfaceparms"))->value.contains(QStringLiteral("woodsteps")),
+		"an unknown surfaceparm is listed");
+	result = apply(parms, kind, QStringLiteral("textures/test/wood"), MaterialGraphEditKind::SetProperty, QStringLiteral("material"),
+		QStringLiteral("surfaceparms"), QStringLiteral("woodsteps trans"));
+	expect(result.ok && result.text.contains(QStringLiteral("surfaceparm woodsteps")) && result.text.contains(QStringLiteral("surfaceparm trans"))
+			&& !result.text.contains(QStringLiteral("nolightmap")) && lineCount(result.text, QStringLiteral("surfaceparm")) == 2,
+		"editing the surface parameters keeps the unknown one and adds no duplicate");
+
+	// tcMods: the limit, focus after adding and removing, and id moves.
+	const QString mods = QStringLiteral(
+		"textures/test/mods\n{\n\t{\n\t\tmap textures/a.tga\n\t\ttcMod scroll 1 0\n\t\ttcMod scale 2 2\n\t}\n\t{\n\t\tmap $lightmap\n\t}\n}\n");
+	const QString modsName = QStringLiteral("textures/test/mods");
+	result = apply(mods, kind, modsName, MaterialGraphEditKind::AddNode, QStringLiteral("stage/0"), {}, {}, QStringLiteral("q3.tcmod.rotate"));
+	expect(result.ok && result.focusNode == QStringLiteral("stage/0/tcmod/2"), "adding a tcMod selects the new tcMod");
+	result = apply(result.text, kind, modsName, MaterialGraphEditKind::AddNode, QStringLiteral("stage/0"), {}, {}, QStringLiteral("q3.tcmod.turb"));
+	expect(result.ok, "a fourth tcMod is accepted");
+	result = apply(result.text, kind, modsName, MaterialGraphEditKind::AddNode, QStringLiteral("stage/0"), {}, {}, QStringLiteral("q3.tcmod.scroll"));
+	expect(!result.ok && !result.error.isEmpty(), "a fifth tcMod is refused (Quake III would drop the shader)");
+	result = apply(mods, kind, modsName, MaterialGraphEditKind::RemoveNode, QStringLiteral("stage/0/tcmod/1"));
+	expect(result.ok && result.focusNode == QStringLiteral("stage/0/tcmod/0"), "removing a tcMod selects the one before it");
+	result = apply(mods, kind, modsName, MaterialGraphEditKind::RemoveNode, QStringLiteral("stage/0/tcmod/0"));
+	expect(result.ok && result.focusNode == QStringLiteral("stage/0/tcgen"), "removing the first tcMod selects the coordinates it read");
+	result = apply(mods, kind, modsName, MaterialGraphEditKind::AddNode, QStringLiteral("stage/1"), {}, {}, QStringLiteral("q3.rgbgen.wave"));
+	expect(result.ok && result.focusNode == QStringLiteral("stage/1/rgbgen"), "adding an rgbGen selects it");
+	result = apply(mods, kind, modsName, MaterialGraphEditKind::RemoveNode, QStringLiteral("stage/1"));
+	expect(result.ok && result.focusNode == QStringLiteral("stage/0"), "removing the last stage selects the one before it");
+	result = apply(mods, kind, modsName, MaterialGraphEditKind::MoveNode, QStringLiteral("stage/1"), {}, {}, {}, -1);
+	expect(result.ok && remapMaterialGraphId(QStringLiteral("stage/1/image"), result.idMoves) == QStringLiteral("stage/0/image")
+			&& remapMaterialGraphId(QStringLiteral("stage/0"), result.idMoves) == QStringLiteral("stage/1"),
+		"moving a stage reports the ids that swapped");
+	result = apply(mods, kind, modsName, MaterialGraphEditKind::RemoveNode, QStringLiteral("stage/0/tcmod/0"));
+	expect(result.ok && remapMaterialGraphId(QStringLiteral("stage/0/tcmod/1"), result.idMoves) == QStringLiteral("stage/0/tcmod/0")
+			&& remapMaterialGraphId(QStringLiteral("stage/0/tcmod/0"), result.idMoves).isEmpty(),
+		"removing a tcMod moves the later ones up");
+
+	// Labels name the stage, so two stages' coordinates are told apart.
+	definition = parsed(mods, MaterialEngine::Quake3, &script);
+	const MaterialGraph modGraph = buildMaterialGraph(*definition);
+	expect(materialGraphNodeLabel(*modGraph.node(QStringLiteral("stage/0/tcgen"))) != materialGraphNodeLabel(*modGraph.node(QStringLiteral("stage/1/tcgen"))),
+		"node labels include the stage");
+	for (const MaterialGraphNode& node : modGraph.nodes) {
+		for (const MaterialGraphProperty& property : node.properties) {
+			expect(property.optionLabels.isEmpty() || property.optionLabels.size() == property.options.size(),
+				"an enum's labels match its options: " + property.id.toStdString());
+		}
+	}
+	const MaterialGraphProperty* cull = modGraph.node(QStringLiteral("material"))->property(QStringLiteral("cull"));
+	expect(cull && cull->value == QStringLiteral("default") && !cull->options.contains(QStringLiteral("front")),
+		"Cull offers the default, back and none; 'cull front' is not a Quake III keyword");
+	result = apply(QString(mods).replace(QStringLiteral("{\n\t{"), QStringLiteral("{\n\tcull none\n\t{")), kind, modsName,
+		MaterialGraphEditKind::SetProperty, QStringLiteral("material"), QStringLiteral("cull"), QStringLiteral("default"));
+	expect(result.ok && !result.text.contains(QStringLiteral("cull")), "Cull's default removes the cull line");
+	result = apply(mods, kind, modsName, MaterialGraphEditKind::RenameMaterial, QStringLiteral("material"), {}, QStringLiteral("  "));
+	expect(!result.ok, "an empty name is refused");
+	const MaterialGraphProperty* blend = modGraph.node(QStringLiteral("stage/0"))->property(QStringLiteral("blend"));
+	expect(blend && blend->options.first() == QStringLiteral("opaque") && !blend->optionLabels.isEmpty(), "Blend's choices have readable labels");
+
+	// A large shader lays out without overlaps: 8 stages with 4 tcMods each.
+	QString big = QStringLiteral("textures/test/big\n{\n\tqer_editorimage textures/a.tga\n\tdeformVertexes wave 64 sin 0 2 0 0.5\n\tskyParms env/sky 512 -\n");
+	for (int stage = 0; stage < 8; ++stage) {
+		big += QStringLiteral("\t{\n\t\tmap textures/s%1.tga\n\t\ttcMod scroll 1 0\n\t\ttcMod scale 2 2\n\t\ttcMod rotate 3\n\t\ttcMod turb 0 0.1 0 1\n"
+							  "\t\trgbGen wave sin 0 1 0 1\n\t\talphaGen const 0.5\n\t\tblendFunc add\n\t}\n")
+				   .arg(stage);
+	}
+	big += QStringLiteral("}\n");
+	definition = parsed(big, MaterialEngine::Quake3, &script);
+	std::string overlap;
+	expect(definition && laidOutWithoutOverlap(buildMaterialGraph(*definition), &overlap), "the Quake III layout has no overlapping nodes: " + overlap);
+
+	checkRemovable(mods, kind, modsName, MaterialEngine::Quake3, "Quake III");
+	checkRemovable(big, kind, QStringLiteral("textures/test/big"), MaterialEngine::Quake3, "Quake III, large");
 }
 
 void checkQuake3Graph()
@@ -165,6 +317,87 @@ void checkDoom3Graph()
 	expect(!result.ok, "a broken expression is refused before the text changes");
 }
 
+void checkDoom3Edits()
+{
+	const MaterialTextKind kind = MaterialTextKind::Doom3Material;
+	// Expanding a shorthand keeps the draw order and selects the new block.
+	const QString interactions = QStringLiteral(
+		"textures/test/set\n{\n\tdiffusemap textures/test/a\n\tbumpmap textures/test/b\n\tspecularmap textures/test/c\n}\n");
+	MaterialGraphEditResult result =
+		apply(interactions, kind, QStringLiteral("textures/test/set"), MaterialGraphEditKind::ExpandShorthand, QStringLiteral("stage/1"));
+	MaterialScript script;
+	const MaterialDefinition* definition = parsed(result.text, MaterialEngine::Doom3, &script);
+	expect(result.ok && definition && definition->stages.size() == 3 && definition->stages.at(1).shorthandDirective < 0
+			&& definition->stages.at(1).role == MaterialStageRole::Bump && definition->stages.at(2).role == MaterialStageRole::Specular
+			&& definition->stages.at(2).shorthandDirective >= 0 && result.focusNode == QStringLiteral("stage/1"),
+		"expanding a shorthand puts the block where the shorthand was and selects it");
+
+	// Image programs: wrapping needs a known function; every node marked
+	// removable can be removed.
+	const QString text = QStringLiteral(
+		"textures/test/panel\n{\n\tdiffusemap textures/test/panel\n\tbumpmap addnormals( textures/test/n, heightmap( textures/test/h, 4 ) )\n"
+		"\t{\n\t\tif parm7 == 0\n\t\tblend add\n\t\tmap textures/test/panel_add\n\t\tred 0.5 + 0.5 * sinTable[ time ]\n\t\tgreen parm1 * 2\n"
+		"\t\tblue ( time * 0.5 ) % 1\n\t\talpha 1 - parm3\n\t\tscroll time * 0.1, time * -0.2\n\t\tscale 2 + parm4, 2 - parm5\n"
+		"\t\tshear 0.1, sinTable[ time * 0.2 ]\n\t\talphaTest 0.5 * parm6\n\t}\n}\n");
+	const QString name = QStringLiteral("textures/test/panel");
+	result = apply(text, kind, name, MaterialGraphEditKind::WrapExpression, QStringLiteral("stage/0/image"), {}, QStringLiteral("frobnicate"));
+	expect(!result.ok, "wrapping an image in an unknown function is refused");
+	result = apply(text, kind, name, MaterialGraphEditKind::WrapExpression, QStringLiteral("stage/0/image"), {}, QStringLiteral("heightmap"));
+	expect(result.ok && result.text.contains(QStringLiteral("diffusemap heightmap( textures/test/panel, 4 )"))
+			&& remapMaterialGraphId(QStringLiteral("stage/0/image"), result.idMoves) == QStringLiteral("stage/0/image/0"),
+		"wrapping an image in heightmap, and the image's id moves below it");
+	definition = parsed(text, MaterialEngine::Doom3, &script);
+	if (expect(definition != nullptr, "the Doom 3 fixture parses")) {
+		const MaterialGraph graph = buildMaterialGraph(*definition);
+		expect(graph.node(QStringLiteral("stage/1/image/0")) && !graph.node(QStringLiteral("stage/1/image/0"))->removable
+				&& graph.node(QStringLiteral("stage/1/image/1"))->removable && graph.node(QStringLiteral("stage/1/image"))->removable,
+			"in an image program only function nodes are removable");
+		expect(graph.node(QStringLiteral("stage/1/image"))->programNode, "image program nodes say they can be wrapped");
+		std::string overlap;
+		expect(laidOutWithoutOverlap(graph, &overlap), "the Doom 3 layout has no overlapping nodes: " + overlap);
+		QSet<QString> names;
+		for (const MaterialGraphNode& node : graph.nodes) {
+			if (node.kind == QStringLiteral("stage") || node.kind == QStringLiteral("texgen")) {
+				names.insert(materialGraphNodeLabel(node));
+			}
+		}
+		expect(names.size() == 4, "stages and their coordinates have distinct labels");
+	}
+	checkRemovable(text, kind, name, MaterialEngine::Doom3, "Doom 3");
+	result = apply(text, kind, name, MaterialGraphEditKind::RemoveNode, QStringLiteral("stage/2/transform/1"));
+	expect(result.ok && result.focusNode == QStringLiteral("stage/2/transform/0"), "removing a transform selects the one before it");
+	result = apply(text, kind, name, MaterialGraphEditKind::AddNode, QStringLiteral("stage/2"), {}, {}, QStringLiteral("d3.transform.rotate"));
+	expect(result.ok && result.focusNode == QStringLiteral("stage/2/transform/3"), "adding a transform selects it");
+
+	// A colour edit rewrites the colour line in place and keeps its comment.
+	const QString colored = QStringLiteral("textures/test/tint\n{\n\t{\n\t\tblend add\n\t\tmap textures/a\n\t\trgb 0.5 // dim\n\t}\n}\n");
+	result = apply(colored, kind, QStringLiteral("textures/test/tint"), MaterialGraphEditKind::SetProperty, QStringLiteral("stage/0/color"),
+		QStringLiteral("alpha"), QStringLiteral("0.25"));
+	expect(result.ok && result.text.contains(QStringLiteral("color 0.5, 0.5, 0.5, 0.25 // dim")), "a colour edit keeps the line's comment");
+
+	// One edit in a large script costs about the same as in a small one:
+	// only the material's own text is re-read per primitive edit, and the
+	// rest of the script stays byte for byte.
+	QString large;
+	for (int index = 0; index < 4000; ++index) {
+		large += QStringLiteral("textures/gen/m%1\n{\n\tqer_editorimage textures/gen/m%1\n\tdiffusemap textures/gen/m%1_d\n\t{\n\t\tblend add\n"
+								"\t\tmap textures/gen/m%1_glow\n\t\tred 0.5\n\t\tgreen 0.5\n\t\tblue 0.5\n\t\tscroll time * 0.1, 0\n\t}\n}\n\n")
+					 .arg(index);
+	}
+	const QString target = QStringLiteral("textures/gen/m2000");
+	QElapsedTimer timer;
+	timer.start();
+	result = apply(large, kind, target, MaterialGraphEditKind::SetProperty, QStringLiteral("stage/1/color"), QStringLiteral("alpha"), QStringLiteral("0.5"));
+	const qint64 elapsed = timer.elapsed();
+	const int start = static_cast<int>(large.indexOf(target + QLatin1Char('\n')));
+	const int end = static_cast<int>(large.indexOf(QStringLiteral("textures/gen/m2001\n")));
+	expect(result.ok && result.text.left(start) == large.left(start) && result.text.mid(result.text.indexOf(QStringLiteral("textures/gen/m2001\n"))) == large.mid(end)
+			&& result.text.contains(QStringLiteral("\t\trgba 0.5\n")),
+		"an edit in a large script changes only its material");
+	std::cout << "  colour edit in a " << large.size() / 1024 << " KiB script: " << elapsed << " ms\n";
+	expect(elapsed < 30000, "an edit in a large script finishes within its budget");
+}
+
 void checkClassicGraph()
 {
 	QVector<DoomAnimationRange> ranges = doomVanillaAnimations();
@@ -210,6 +443,86 @@ void checkClassicGraph()
 	expect(parseMaterialGraphEditsJson(QByteArray(R"([{"edit":"set","node":"stage/0","property":"blend","value":"add"}])"), &edits, &error)
 			&& edits.size() == 1,
 		"graph edits read from JSON");
+	edits.clear();
+	expect(parseMaterialGraphEditsJson(QByteArray(R"([{"op":"move","node":"stage/1","step":-1},{"node":"stage/0","property":"blend","value":true}])"), &edits,
+			   &error)
+			&& edits.size() == 2 && edits.at(0).kind == MaterialGraphEditKind::MoveNode && edits.at(0).step == -1
+			&& edits.at(1).kind == MaterialGraphEditKind::SetProperty && edits.at(1).step == 1,
+		"'op' names a graph edit's kind like 'edit' does: " + error.toStdString());
+	const auto graphRefused = [](const char* json, const QString& needle) {
+		QVector<MaterialGraphEdit> ignored;
+		QString message;
+		return !parseMaterialGraphEditsJson(QByteArray(json), &ignored, &message) && message.contains(needle);
+	};
+	expect(graphRefused(R"([{"edit":"move","op":"move","node":"stage/0"}])", QStringLiteral("both 'edit' and 'op'")), "'edit' and 'op' together are refused");
+	expect(graphRefused(R"([{"edit":"move","node":"stage/0","step":0.5}])", QStringLiteral("whole number")), "a fractional step is refused");
+	expect(graphRefused(R"([{"edit":"move","node":"stage/0","step":"1"}])", QStringLiteral("whole number")), "a step given as text is refused");
+	expect(graphRefused(R"([{"edit":"set","node":3,"property":"blend","value":"add"}])", QStringLiteral("'node' must be text")), "a numeric node is refused");
+	expect(graphRefused(R"([{"edit":"set","node":"stage/0","property":["blend"],"value":"add"}])", QStringLiteral("'property' must be text")),
+		"a property given as an array is refused");
+	expect(graphRefused(R"([{"edit":"add","template":{},"node":"stage/0"}])", QStringLiteral("'template' must be text")), "an object template is refused");
+	expect(graphRefused(R"([{"edit":7}])", QStringLiteral("'edit' must be text")), "a numeric kind is refused");
+	expect(graphRefused(R"([{"edit":"set","node":"stage/0","property":"blend","value":["add"]}])", QStringLiteral("'value'")),
+		"a value given as an array is refused");
+	expect(graphRefused(R"([{"edit":"set","node":"stage/0","property":"blend","value":null}])", QStringLiteral("'value'")), "a null value is refused");
+	expect(graphRefused(R"({"edit":"set"})", QStringLiteral("JSON object")), "an object instead of an array says what the file holds");
+
+	// SWANTBLS edits keep the user's comments, layout and line endings.
+	const QString table = QStringLiteral(
+		"# my animations\r\n[FLATS]\r\n#spd    last        first\r\n8       NUKAGE3     NUKAGE1 # slime\r\n\r\n[TEXTURES]\r\n8       SLADRIP3    SLADRIP1\r\n");
+	MaterialGraphEdit tics;
+	tics.kind = MaterialGraphEditKind::SetProperty;
+	tics.node = QStringLiteral("animation");
+	tics.property = QStringLiteral("tics");
+	tics.value = QStringLiteral("12");
+	tics.related = {QStringLiteral("NUKAGE1"), QStringLiteral("NUKAGE2"), QStringLiteral("NUKAGE3")};
+	result = applyMaterialGraphEdit(table, MaterialTextKind::DoomSwantbls, QStringLiteral("NUKAGE2"), tics);
+	const QStringList before = table.split(QStringLiteral("\r\n"));
+	const QStringList after = result.text.split(QStringLiteral("\r\n"));
+	int differing = 0;
+	for (int line = 0; line < std::min(before.size(), after.size()); ++line) {
+		differing += before.at(line) != after.at(line) ? 1 : 0;
+	}
+	expect(result.ok && before.size() == after.size() && differing == 1 && result.text.contains(QStringLiteral("# my animations\r\n"))
+			&& result.text.contains(QStringLiteral("12      NUKAGE3     NUKAGE1 # slime\r\n")) && !QString(result.text).remove(QStringLiteral("\r\n")).contains(QLatin1Char('\n')),
+		"a tics edit changes one line and keeps comments, columns and CRLF");
+	MaterialGraphEdit last = tics;
+	last.property = QStringLiteral("last");
+	last.value = QStringLiteral("NUKAGE2");
+	result = applyMaterialGraphEdit(table, MaterialTextKind::DoomSwantbls, QStringLiteral("NUKAGE1"), last);
+	expect(result.ok && parseSwantblsText(result.text, &parsedRanges, &parsedSwitches, &diagnostics) && parsedRanges.first().last == QStringLiteral("NUKAGE2"),
+		"a range's last picture is editable");
+	last.value = QStringLiteral("NUKAGE1");
+	expect(!applyMaterialGraphEdit(table, MaterialTextKind::DoomSwantbls, QStringLiteral("NUKAGE1"), last).ok,
+		"a range whose last picture is its first is refused");
+
+	// Adding a range finds its last picture; one picture alone is refused.
+	MaterialGraphEdit range;
+	range.kind = MaterialGraphEditKind::AddNode;
+	range.node = QStringLiteral("material");
+	range.nodeTemplate = QStringLiteral("doom.range");
+	range.value = QStringLiteral("flat");
+	range.related = {QStringLiteral("BLOOD1"), QStringLiteral("BLOOD2"), QStringLiteral("BLOOD3"), QStringLiteral("FLAT5")};
+	result = applyMaterialGraphEdit(table, MaterialTextKind::DoomSwantbls, QStringLiteral("BLOOD1"), range);
+	bool added = false;
+	if (result.ok && parseSwantblsText(result.text, &parsedRanges, &parsedSwitches, &diagnostics)) {
+		for (const DoomAnimationRange& each : parsedRanges) {
+			added |= each.first == QStringLiteral("BLOOD1") && each.last == QStringLiteral("BLOOD3") && !each.texture;
+		}
+	}
+	expect(added && result.text.contains(QStringLiteral("# my animations")), "a new range runs to the last picture with the same name");
+	range.related = {QStringLiteral("BLOOD1")};
+	expect(!applyMaterialGraphEdit(table, MaterialTextKind::DoomSwantbls, QStringLiteral("BLOOD1"), range).ok,
+		"a range of one picture is refused (Boom stops at start-up)");
+	range.related = {QStringLiteral("NUKAGE1"), QStringLiteral("NUKAGE3")};
+	expect(!applyMaterialGraphEdit(table, MaterialTextKind::DoomSwantbls, QStringLiteral("NUKAGE1"), range).ok,
+		"a texture already in a range is not added again");
+	MaterialGraphEdit animdefsRange = range;
+	animdefsRange.nodeTemplate = QStringLiteral("doom.animdefs.range");
+	animdefsRange.related = {QStringLiteral("NUKAGE1"), QStringLiteral("NUKAGE2"), QStringLiteral("NUKAGE3")};
+	result = applyMaterialGraphEdit(animdefs, MaterialTextKind::DoomAnimdefs, QStringLiteral("NUKAGE1"), animdefsRange);
+	expect(result.ok && result.text.contains(QStringLiteral("NUKAGE3")) && result.text.contains(QStringLiteral("flat NUKAGE1")),
+		"an ANIMDEFS range ends at the last picture with the same name");
 }
 
 } // namespace
@@ -218,7 +531,9 @@ int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
 	checkQuake3Graph();
+	checkQuake3Edits();
 	checkDoom3Graph();
+	checkDoom3Edits();
 	checkClassicGraph();
 	if (failures > 0) {
 		std::cerr << failures << " graph check(s) failed\n";

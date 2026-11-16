@@ -12,13 +12,15 @@
 #include <QTimer>
 
 #include <algorithm>
+#include <cmath>
+#include <utility>
 
 namespace vibestudio {
 
 namespace {
 
-// How many swatches stay in memory; the rest are drawn again when seen.
-constexpr int kThumbnailBudget = 1500;
+// How much memory swatches may hold; the rest are drawn again when seen.
+constexpr qint64 kThumbnailBudgetBytes = 64LL * 1024 * 1024;
 constexpr int kAnimationIntervalMs = 250;
 
 QString shortName(const QString& name)
@@ -31,20 +33,27 @@ QString shortName(const QString& name)
 	return parts.mid(parts.size() - 2).join(QLatin1Char('/'));
 }
 
+// The theme colours a swatch is painted with, taken on the GUI thread when
+// it is asked for.
+struct SwatchColors {
+	QColor blank;
+	QColor warning;
+};
+
 // Marks a swatch with shapes, not colour alone: a triangle for animated
 // materials, an exclamation for ones the engine drops or that have errors.
-QPixmap badged(const QImage& image, const MaterialLibraryEntry& entry, int side)
+// Runs on the worker that drew the swatch; `side` is in device pixels.
+QImage badged(const QImage& image, bool animated, bool problem, int side, qreal ratio, const SwatchColors& colors)
 {
 	QImage canvas = image.isNull() ? QImage(side, side, QImage::Format_ARGB32_Premultiplied) : image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 	if (image.isNull()) {
-		canvas.fill(currentStudioTheme().colors.panelRaised);
+		canvas.fill(colors.blank);
 	}
 	QPainter painter(&canvas);
 	painter.setRenderHint(QPainter::Antialiasing, true);
-	const StudioThemeColors& colors = currentStudioTheme().colors;
-	const double badge = std::max(10.0, canvas.width() / 5.0);
-	const double margin = 3.0;
-	if (entry.animated) {
+	const double badge = std::max(10.0 * ratio, canvas.width() / 5.0);
+	const double margin = 3.0 * ratio;
+	if (animated) {
 		const QRectF box(canvas.width() - badge - margin, canvas.height() - badge - margin, badge, badge);
 		painter.setPen(Qt::NoPen);
 		painter.setBrush(QColor(0, 0, 0, 150));
@@ -54,18 +63,49 @@ QPixmap badged(const QImage& image, const MaterialLibraryEntry& entry, int side)
 		painter.setBrush(Qt::white);
 		painter.drawPolygon(play);
 	}
-	if (entry.rejected || entry.errors > 0) {
+	if (problem) {
 		const QRectF box(margin, margin, badge, badge);
 		const QPolygonF triangle {QPointF(box.center().x(), box.top()), QPointF(box.right(), box.bottom()), QPointF(box.left(), box.bottom())};
-		painter.setPen(QPen(QColor(0, 0, 0, 180), 1.0));
+		painter.setPen(QPen(QColor(0, 0, 0, 180), ratio));
 		painter.setBrush(colors.warning);
 		painter.drawPolygon(triangle);
-		painter.setPen(QPen(Qt::black, std::max(1.5, badge / 8.0)));
+		painter.setPen(QPen(Qt::black, std::max(1.5 * ratio, badge / 8.0)));
 		painter.drawLine(QPointF(box.center().x(), box.top() + badge * 0.35), QPointF(box.center().x(), box.bottom() - badge * 0.32));
 		painter.drawPoint(QPointF(box.center().x(), box.bottom() - badge * 0.15));
 	}
 	painter.end();
-	return QPixmap::fromImage(canvas);
+	return canvas;
+}
+
+// The kind of a library entry as the user reads it; the identifiers are
+// technical (doom-wall, quake2-wal).
+QString entryKindName(const QString& kind)
+{
+	if (kind == QStringLiteral("shader")) {
+		return MaterialLibraryModel::tr("shader");
+	}
+	if (kind == QStringLiteral("material")) {
+		return MaterialLibraryModel::tr("material");
+	}
+	if (kind == QStringLiteral("guide")) {
+		return MaterialLibraryModel::tr("material from a guide");
+	}
+	if (kind == QStringLiteral("implicit")) {
+		return MaterialLibraryModel::tr("image without a script");
+	}
+	if (kind == QStringLiteral("doom-wall")) {
+		return MaterialLibraryModel::tr("wall texture");
+	}
+	if (kind == QStringLiteral("doom-flat")) {
+		return MaterialLibraryModel::tr("flat");
+	}
+	if (kind == QStringLiteral("quake-miptex")) {
+		return MaterialLibraryModel::tr("texture");
+	}
+	if (kind == QStringLiteral("quake2-wal")) {
+		return MaterialLibraryModel::tr("WAL texture");
+	}
+	return kind;
 }
 
 } // namespace
@@ -94,22 +134,36 @@ MaterialLibraryModel::MaterialLibraryModel(QObject* parent)
 	m_animation->setInterval(kAnimationIntervalMs);
 	connect(m_animation, &QTimer::timeout, this, &MaterialLibraryModel::advanceAnimation);
 	m_pending = std::make_shared<std::atomic_int>(0);
+	m_swatchStop = std::make_shared<std::atomic_bool>(false);
 	// OpenGL's surface is made on the GUI thread, before swatches draw.
 	prepareRenderBackends();
 }
 
 MaterialLibraryModel::~MaterialLibraryModel()
 {
-	m_pool->clear();
+	dropSwatchWork();
 	m_pool->waitForDone();
+}
+
+void MaterialLibraryModel::dropSwatchWork()
+{
+	m_pool->clear();
+	m_swatchStop->store(true);
+	m_swatchStop = std::make_shared<std::atomic_bool>(false);
 }
 
 void MaterialLibraryModel::setRows(MaterialLibraryRows rows, const MaterialImageSource& images, std::shared_ptr<MaterialImageCache> cache)
 {
 	beginResetModel();
-	m_pool->clear();
+	dropSwatchWork();
 	++m_generation;
 	m_rows = std::move(rows);
+	m_keys.clear();
+	for (const StudioQueryProperties& properties : std::as_const(m_rows.properties)) {
+		for (auto it = properties.keyBegin(); it != properties.keyEnd(); ++it) {
+			m_keys.insert(*it);
+		}
+	}
 	m_images = images;
 	m_cache = std::move(cache);
 	m_thumbnails.clear();
@@ -129,17 +183,6 @@ const StudioQueryProperties& MaterialLibraryModel::properties(int row) const
 	return row >= 0 && row < m_rows.properties.size() ? m_rows.properties.at(row) : empty;
 }
 
-QSet<QString> MaterialLibraryModel::propertyKeys() const
-{
-	QSet<QString> keys;
-	for (const StudioQueryProperties& properties : m_rows.properties) {
-		for (auto it = properties.keyBegin(); it != properties.keyEnd(); ++it) {
-			keys.insert(*it);
-		}
-	}
-	return keys;
-}
-
 int MaterialLibraryModel::rowForName(const QString& name, MaterialEngine engine) const
 {
 	return m_rows.library ? m_rows.library->indexOf(name, engine) : -1;
@@ -157,14 +200,32 @@ void MaterialLibraryModel::setThumbnailSide(int side)
 
 void MaterialLibraryModel::refreshThumbnails()
 {
-	m_pool->clear();
+	dropSwatchWork();
 	++m_generation;
 	m_thumbnails.clear();
 	m_requested.clear();
+	// The blank swatch is painted in the theme's colour too.
+	m_placeholder = QPixmap();
 	if (!m_rows.library || m_rows.library->entries.isEmpty()) {
 		return;
 	}
 	Q_EMIT dataChanged(index(0), index(rowCount() - 1), {Qt::DecorationRole});
+}
+
+void MaterialLibraryModel::setDevicePixelRatio(qreal ratio)
+{
+	ratio = std::clamp(ratio, 1.0, 4.0);
+	if (qFuzzyCompare(ratio, m_devicePixelRatio)) {
+		return;
+	}
+	m_devicePixelRatio = ratio;
+	refreshThumbnails();
+}
+
+int MaterialLibraryModel::thumbnailBudget() const
+{
+	const qint64 pixels = static_cast<qint64>(std::lround(m_side * m_devicePixelRatio));
+	return static_cast<int>(std::clamp<qint64>(kThumbnailBudgetBytes / std::max<qint64>(1, pixels * pixels * 4), 64, 4000));
 }
 
 void MaterialLibraryModel::setItemSize(const QSize& size)
@@ -196,7 +257,7 @@ void MaterialLibraryModel::setVisibleRows(const QVector<int>& rows)
 		m_pool->clear();
 		m_requested.clear();
 	}
-	if (m_thumbnails.size() > kThumbnailBudget) {
+	if (m_thumbnails.size() > thumbnailBudget()) {
 		const QSet<int> keep(rows.cbegin(), rows.cend());
 		for (auto it = m_thumbnails.begin(); it != m_thumbnails.end();) {
 			it = keep.contains(it.key()) ? std::next(it) : m_thumbnails.erase(it);
@@ -248,7 +309,7 @@ QString MaterialLibraryModel::rowDescription(int row) const
 	if (entry.warnings > 0) {
 		traits << tr("%n warning(s)", nullptr, entry.warnings);
 	}
-	QString text = tr("%1, %2 %3").arg(entry.name, materialEngineDisplayName(entry.engine), entry.kind);
+	QString text = tr("%1, %2 %3").arg(entry.name, materialEngineDisplayName(entry.engine), entryKindName(entry.kind));
 	if (!traits.isEmpty()) {
 		text += QStringLiteral(", ") + traits.join(QStringLiteral(", "));
 	}
@@ -287,9 +348,11 @@ QVariant MaterialLibraryModel::data(const QModelIndex& index, int role) const
 		requestThumbnail(row, m_time);
 		// A blank swatch of the final size while it draws, so the view lays
 		// out icon space from the start.
-		if (m_placeholder.width() != m_side) {
-			m_placeholder = QPixmap(m_side, m_side);
+		const int pixels = static_cast<int>(std::lround(m_side * m_devicePixelRatio));
+		if (m_placeholder.isNull() || m_placeholder.width() != pixels) {
+			m_placeholder = QPixmap(pixels, pixels);
 			m_placeholder.fill(currentStudioTheme().colors.panelRaised);
+			m_placeholder.setDevicePixelRatio(m_devicePixelRatio);
 		}
 		return m_placeholder;
 	}
@@ -333,33 +396,53 @@ void MaterialLibraryModel::requestThumbnail(int row, double time) const
 	const MaterialImageSource images = m_images;
 	const std::shared_ptr<MaterialImageCache> cache = m_cache;
 	const quint64 generation = m_generation;
-	const int side = m_side;
+	const qreal ratio = m_devicePixelRatio;
+	// Drawn at the screen's pixel density; the badges too, on the worker,
+	// in the theme's colours as they are now.
+	const int side = static_cast<int>(std::lround(m_side * ratio));
+	const StudioThemeColors& theme = currentStudioTheme().colors;
+	const SwatchColors colors {theme.panelRaised, theme.warning};
+	const std::shared_ptr<std::atomic_bool> stop = m_swatchStop;
 	QPointer<MaterialLibraryModel> self(const_cast<MaterialLibraryModel*>(this));
-	m_pool->start([library, images, cache, generation, side, row, time, self]() {
+	m_pool->start([library, images, cache, generation, side, ratio, colors, stop, row, time, self]() {
+		if (stop->load()) {
+			return;
+		}
 		QImage image;
+		bool animated = false;
+		bool problem = false;
 		if (row < library->entries.size()) {
+			const MaterialLibraryEntry& entry = library->entries.at(row);
+			animated = entry.animated;
+			problem = entry.rejected || entry.errors > 0;
 			const MaterialDefinition definition = library->definition(row);
 			const MaterialImageSet set = resolveMaterialImages(definition, images);
-			image = renderMaterialSwatch(definition, set, library->tables, side, time).image;
+			image = renderMaterialSwatch(definition, set, library->tables, side, time, {}, stop.get()).image;
 		}
+		if (stop->load()) {
+			return;
+		}
+		image = badged(image, animated, problem, side, ratio, colors);
 		QMetaObject::invokeMethod(
 			QCoreApplication::instance(),
-			[self, generation, row, image]() {
+			[self, generation, row, image, ratio]() {
 				if (self) {
-					self->deliverThumbnail(generation, row, image);
+					self->deliverThumbnail(generation, row, image, ratio);
 				}
 			},
 			Qt::QueuedConnection);
 	});
 }
 
-void MaterialLibraryModel::deliverThumbnail(quint64 generation, int row, const QImage& image)
+void MaterialLibraryModel::deliverThumbnail(quint64 generation, int row, const QImage& image, qreal ratio)
 {
 	if (generation != m_generation || !m_rows.library || row >= m_rows.library->entries.size()) {
 		return;
 	}
 	m_requested.remove(row);
-	m_thumbnails.insert(row, badged(image, m_rows.library->entries.at(row), m_side));
+	QPixmap pixmap = QPixmap::fromImage(image);
+	pixmap.setDevicePixelRatio(ratio);
+	m_thumbnails.insert(row, pixmap);
 	const QModelIndex changed = index(row);
 	Q_EMIT dataChanged(changed, changed, {Qt::DecorationRole});
 }

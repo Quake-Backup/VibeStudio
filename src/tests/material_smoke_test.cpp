@@ -390,6 +390,27 @@ void checkQuake3Edits()
 			&& edits.size() == 1 && edits.first().stage == 0,
 		"JSON edits use 1-based stages");
 	expect(!parseMaterialEditsJson(QByteArray(R"([{"op":"set","bogus":1}])"), {}, &edits, &error), "unknown JSON fields are refused");
+	// Stricter field checks: 1-based numbers, int range, text fields.
+	const auto refused = [&](const char* json, const QString& needle) {
+		QVector<MaterialEdit> ignored;
+		QString message;
+		return !parseMaterialEditsJson(QByteArray(json), QStringLiteral("shader/b"), &ignored, &message) && message.contains(needle);
+	};
+	expect(refused(R"([{"op":"set","stage":0,"keyword":"cull"}])", QStringLiteral("global block")), "stage 0 is refused, naming the global block");
+	expect(refused(R"([{"op":"add","keyword":"cull","position":0}])", QStringLiteral("for the end")), "position 0 is refused");
+	expect(refused(R"([{"op":"set","directive":-2,"arguments":"x"}])", QStringLiteral("counts from 1")), "a negative directive is refused");
+	expect(refused(R"([{"op":"set","stage":4294967297,"keyword":"cull"}])", QStringLiteral("integer")), "a stage past the int range is refused");
+	expect(refused(R"([{"op":"set","stage":1.5,"keyword":"cull"}])", QStringLiteral("integer")), "a fractional stage is refused");
+	expect(refused(R"([{"op":"set","keyword":"blendFunc","arguments":["GL_ONE","GL_ONE"]}])", QStringLiteral("'arguments' must be text")),
+		"arguments given as an array are refused");
+	expect(refused(R"([{"op":1}])", QStringLiteral("'op' must be text")), "a numeric op is refused");
+	expect(refused(R"([{"op":"rename","text":5}])", QStringLiteral("'text' must be text")), "numeric text is refused");
+	expect(refused(R"([{"op":"set","material":["a"]}])", QStringLiteral("'material' must be text")), "a material given as an array is refused");
+	expect(refused(R"({"op":"set"})", QStringLiteral("JSON object")), "an object instead of an array says what the file holds");
+	expect(refused("[{", QStringLiteral("JSON array:")), "broken JSON reports the parser's error");
+	expect(parseMaterialEditsJson(QByteArray(R"([{"op":"add","keyword":"cull","arguments":"none"}])"), QStringLiteral("shader/b"), &edits, &error)
+			&& edits.last().stage == -1 && edits.last().position == -1 && edits.last().directive == -1,
+		"left-out numbers address the global block and the end");
 }
 
 void checkDoom3Parsing()
@@ -544,12 +565,103 @@ void checkClassic()
 			&& json.surfaceFlags == (kQuake2SurfWarp | kQuake2SurfTrans33) && json.value == 5,
 		".wal_json flags take names");
 	expect(parseQuake2WalInfoText(quake2WalInfoText(read), &json, &error) && json.surfaceFlags == read.surfaceFlags, ".wal_json round-trips");
+	// Field types are checked, and a refused file leaves the info alone.
+	for (const char* bad : {R"({"value": "300"})", R"({"value": 1.5})", R"({"value": 3000000000})", R"({"animation": 5})", R"({"width": 64.5})",
+			 R"({"height": -1})", R"({"width": 100000})", R"({"flags": [1.5]})", R"({"flags": [-1]})", R"({"flags": [4294967296]})", R"({"flags": [true]})",
+			 R"(["warp"])"}) {
+		Quake2WalInfo untouched = read;
+		QString message;
+		expect(!parseQuake2WalInfoText(QString::fromUtf8(bad), &untouched, &message) && !message.isEmpty() && untouched.value == read.value
+				&& untouched.nextFrame == read.nextFrame && untouched.surfaceFlags == read.surfaceFlags && untouched.size == read.size,
+			std::string(".wal_json refuses ") + bad);
+	}
+	{
+		QString message;
+		Quake2WalInfo arrayInfo = read;
+		parseQuake2WalInfoText(QStringLiteral("[1]"), &arrayInfo, &message);
+		expect(message.contains(QStringLiteral("JSON array")) && !message.contains(QStringLiteral("no error")), "a JSON array says what the file holds");
+	}
+	expect(parseQuake2WalInfoText(QStringLiteral("{\"value\": -5, \"width\": 64, \"height\": 32, \"animation\": \"e1u1/next\"}"), &json, &error) && json.value == -5
+			&& json.size == QSize(64, 32) && json.nextFrame == QStringLiteral("e1u1/next"),
+		".wal_json takes whole numbers and text");
 	const MaterialDefinition chain = quake2MaterialDefinition(QStringLiteral("e1u1/lava1"), read, [](const QString& name, Quake2WalInfo* out) {
 		out->name = name;
 		out->nextFrame = name == QStringLiteral("e1u1/lava2") ? QStringLiteral("e1u1/lava1") : QString();
 		return name == QStringLiteral("e1u1/lava2");
 	});
 	expect(chain.classic.frames.size() == 2 && near(chain.classic.frames.first().duration, 0.5), "WAL chains animate at 2 Hz");
+}
+
+// Damaged files: every reader refuses or stops cleanly, never reads past
+// the bytes it was given.
+void checkDamagedInput(const QString& root)
+{
+	QString error;
+	Quake2WalInfo info;
+	expect(!readQuake2WalInfo(QByteArray(99, '\0'), &info, &error) && !error.isEmpty(), "a WAL under 100 bytes is refused");
+	QByteArray huge(100, '\0');
+	qToLittleEndian<quint32>(0xFFFFFFFFu, huge.data() + 32);
+	qToLittleEndian<quint32>(16, huge.data() + 36);
+	error.clear();
+	expect(!readQuake2WalInfo(huge, &info, &error) && error.contains(QStringLiteral("8192")), "a WAL header 0xFFFFFFFF pixels wide is refused");
+	qToLittleEndian<quint32>(8192, huge.data() + 32);
+	expect(readQuake2WalInfo(huge, &info, &error) && info.size == QSize(8192, 16), "a WAL as wide as the decoder reads is accepted");
+
+	// Boom lumps without their terminating record keep the whole records.
+	const QVector<DoomAnimationRange> ranges = doomVanillaAnimations().mid(0, 2);
+	QByteArray animated = boomAnimatedLump(ranges);
+	animated.chop(23); // the type 255 record
+	QVector<DoomAnimationRange> parsedRanges;
+	error.clear();
+	expect(parseBoomAnimatedLump(animated, &parsedRanges, &error) && parsedRanges.size() == 2 && error.contains(QStringLiteral("255")),
+		"ANIMATED without its terminator keeps its records and says so");
+	error.clear();
+	expect(!parseBoomAnimatedLump(animated.left(30), &parsedRanges, &error) && !error.isEmpty(), "ANIMATED ending inside a record is refused");
+	const QVector<DoomSwitchPair> pairs = doomVanillaSwitches().mid(0, 2);
+	QByteArray switchLump = boomSwitchesLump(pairs);
+	switchLump.chop(20); // the episode 0 record
+	QVector<DoomSwitchPair> parsedPairs;
+	error.clear();
+	expect(parseBoomSwitchesLump(switchLump, &parsedPairs, &error) && parsedPairs.size() == 2 && !error.isEmpty(),
+		"SWITCHES without its terminator keeps its records and says so");
+	expect(!parseBoomSwitchesLump(switchLump.left(15), &parsedPairs, &error) && parsedPairs.isEmpty(), "SWITCHES shorter than a record is refused");
+
+	// TEXTURE1 counting more textures than the lump holds, TEXTURE2 with a
+	// texture whose patch count runs past the lump.
+	QByteArray pnames(4, '\0');
+	qToLittleEndian<qint32>(1, pnames.data());
+	pnames.append(QByteArray("WALLPAT\0", 8));
+	QByteArray texture1(8, '\0');
+	qToLittleEndian<qint32>(1000, texture1.data());
+	qToLittleEndian<qint32>(8, texture1.data() + 4);
+	QByteArray texture2(8, '\0');
+	qToLittleEndian<qint32>(1, texture2.data());
+	qToLittleEndian<qint32>(8, texture2.data() + 4);
+	QByteArray maptexture(22, '\0');
+	maptexture.replace(0, 6, QByteArray("BADTEX"));
+	qToLittleEndian<qint16>(64, maptexture.data() + 12);
+	qToLittleEndian<qint16>(64, maptexture.data() + 14);
+	qToLittleEndian<qint16>(500, maptexture.data() + 20);
+	texture2 += maptexture + QByteArray(10, '\0');
+	QByteArray pastOffset(8, '\0');
+	qToLittleEndian<qint32>(1, pastOffset.data());
+	qToLittleEndian<qint32>(0x7FFFFFF0, pastOffset.data() + 4);
+	writeFile(root + QStringLiteral("/damaged.wad"),
+		doomWad({{"PNAMES", pnames}, {"TEXTURE1", texture1}, {"TEXTURE2", texture2}, {"P_START", {}}, {"WALLPAT", doomPatch(8, 8, 1)}, {"P_END", {}}}));
+	writeFile(root + QStringLiteral("/offset.wad"), doomWad({{"PNAMES", pnames}, {"TEXTURE1", pastOffset}}));
+	PackageArchive damaged;
+	if (expect(damaged.load(root + QStringLiteral("/damaged.wad"), &error), "the damaged WAD opens")) {
+		const DoomMaterialCatalog catalog = readDoomMaterialCatalog(damaged);
+		const QString warnings = catalog.warnings.join(QLatin1Char('\n'));
+		expect(warnings.contains(QStringLiteral("TEXTURE1")) && warnings.contains(QStringLiteral("BADTEX")) && catalog.textures.isEmpty(),
+			"TEXTURE1 counts past its lump and a truncated patch list are reported, not read");
+	}
+	PackageArchive offset;
+	if (expect(offset.load(root + QStringLiteral("/offset.wad"), &error), "the WAD with a bad texture offset opens")) {
+		const DoomMaterialCatalog catalog = readDoomMaterialCatalog(offset);
+		expect(catalog.warnings.join(QLatin1Char('\n')).contains(QStringLiteral("TEXTURE1")) && catalog.textures.isEmpty(),
+			"a TEXTURE1 offset past the lump is reported");
+	}
 }
 
 QImage renderOf(const MaterialDefinition& definition, const MaterialImageSet& images, const MaterialTableSet& tables, double time,
@@ -791,6 +903,9 @@ int main(int argc, char** argv)
 	checkEvaluation();
 	checkClassic();
 	QTemporaryDir directory;
+	if (expect(directory.isValid(), "a temporary folder for damaged files")) {
+		checkDamagedInput(directory.path());
+	}
 	// Drawing needs OpenGL or Vulkan; every other check runs anywhere.
 	const int renderSkip = vibestudio::test_support::exitCodeWithoutRenderer("material-smoke");
 	if (renderSkip == 1) {

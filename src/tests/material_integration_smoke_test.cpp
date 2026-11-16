@@ -107,8 +107,9 @@ QByteArray roqChunk(quint16 id, quint16 argument, const QByteArray& data)
 }
 
 // A 16 x 16 video: a bright frame, a dark one, then a frame whose first 8 x 8
-// block splits into 4 x 4 cells (the top left bright) while the rest keeps the
-// dark frame.
+// block splits into 4 x 4 cells (the top left bright) while the rest is kept.
+// RoQ is double-buffered, so kept blocks show the frame before the previous
+// one: the bright frame.
 QByteArray roqVideo()
 {
 	QByteArray bytes;
@@ -158,8 +159,8 @@ void checkVideo()
 	expect(first && first->usable() && qRed(first->pixels.at(5 * 16 + 5)) == 200 && first->status == QStringLiteral("video"),
 		"vector frames paint 4x4 codebook cells scaled to 8x8 blocks");
 	expect(second && qRed(second->pixels.at(12 * 16 + 12)) == 50, "the next frame replaces the cells");
-	expect(third && qRed(third->pixels.at(1 * 16 + 1)) == 200 && qRed(third->pixels.at(5 * 16 + 5)) == 50 && qRed(third->pixels.at(12 * 16 + 12)) == 50,
-		"split blocks take 2x2 cells and skipped blocks keep the previous frame");
+	expect(third && qRed(third->pixels.at(1 * 16 + 1)) == 200 && qRed(third->pixels.at(5 * 16 + 5)) == 50 && qRed(third->pixels.at(12 * 16 + 12)) == 200,
+		"split blocks take 2x2 cells and skipped blocks keep the frame two back (RoQ double-buffering)");
 	const MaterialTexturePtr looped = video->frameAt(3.0 / 30.0 + 0.001, true);
 	const MaterialTexturePtr held = video->frameAt(10.0, false);
 	expect(looped && qRed(looped->pixels.at(5 * 16 + 5)) == 200, "a looping video starts again");
@@ -516,6 +517,100 @@ void checkUsage(const QDir& root)
 	}
 }
 
+// --- Damaged input -----------------------------------------------------------------
+
+// BSPs and RoQ videos cut short or with lumps pointing outside the file are
+// refused or stop at the last whole part; nothing reads past the bytes.
+void checkDamagedInput()
+{
+	const QByteArray bsp = quake3Bsp();
+	const auto warned = [](const QByteArray& bytes, const QString& path) {
+		MaterialUsageIndex index;
+		addMaterialUsageFromBytes(bytes, path, &index);
+		return !index.complete && !index.warnings.isEmpty() && index.uses.isEmpty();
+	};
+	expect(warned(bsp.left(40), QStringLiteral("maps/short.bsp")), "a Quake III BSP cut inside its lump directory is refused");
+	expect(warned(bsp.left(bsp.size() - 10), QStringLiteral("maps/cut.bsp")), "a Quake III BSP whose last lump runs past the end is refused");
+	QByteArray negative = bsp;
+	qToLittleEndian<qint32>(-72, negative.data() + 8 + 1 * 8 + 4); // the shaders lump's length
+	expect(warned(negative, QStringLiteral("maps/negative.bsp")), "a negative lump length is refused");
+	QByteArray outside = bsp;
+	qToLittleEndian<qint32>(0x7FFFFF00, outside.data() + 8 + 13 * 8); // the surfaces lump's offset
+	expect(warned(outside, QStringLiteral("maps/outside.bsp")), "a lump offset past the end is refused");
+	const QByteArray quake2 = quake2Bsp();
+	expect(warned(quake2.left(quake2.size() - 5), QStringLiteral("maps/q2cut.bsp")), "a Quake II BSP cut short is refused");
+	const QByteArray quake = quakeBsp();
+	expect(warned(quake.left(20), QStringLiteral("maps/q1cut.bsp")), "a Quake BSP cut inside its header is refused");
+
+	// RoQ: a cut last chunk ends the video; a file cut before any frame is refused.
+	const QByteArray roq = roqVideo();
+	QString error;
+	const std::shared_ptr<MaterialVideo> cut = MaterialVideo::open(roq.left(roq.size() - 3), QString(), QStringLiteral("cut.roq"), &error);
+	expect(cut && cut->frameCount() == 2, "a RoQ whose last frame is cut keeps the whole frames", error);
+	if (cut) {
+		const MaterialTexturePtr last = cut->frameAt(10.0, false);
+		expect(last && last->usable(), "the cut video still decodes its last whole frame");
+	}
+	error.clear();
+	expect(!MaterialVideo::open(roq.left(8), QString(), QStringLiteral("header.roq"), &error) && !error.isEmpty(),
+		"a RoQ with only its signature is refused");
+	error.clear();
+	expect(!MaterialVideo::open(roq.left(12), QString(), QStringLiteral("info.roq"), &error) && !error.isEmpty(),
+		"a RoQ cut inside its info chunk is refused");
+}
+
+// --- Library checks ----------------------------------------------------------------
+
+// The library scan checks Doom 3 table lookups against every loaded table,
+// so the listing, its query and the swatch badge see the rejection; and
+// blends and images are separate query values.
+void checkLibraryRules(const QDir& root)
+{
+	const QString folder = root.filePath(QStringLiteral("tables"));
+	writeFile(folder + QStringLiteral("/materials/tables.mtr"), "table sinTable { { 0, 1, 0, -1 } }\n");
+	writeFile(folder + QStringLiteral("/materials/pulse.mtr"),
+		"textures/d3/pulse\n{\n\t{\n\t\tblend add\n\t\tmap _white\n\t\trgb nosuchTable[ time ]\n\t}\n}\n"
+		"textures/d3/steady\n{\n\t{\n\t\tblend add\n\t\tmap _white\n\t\trgb sinTable[ time ]\n\t}\n}\n");
+	auto archive = std::make_shared<PackageArchive>();
+	QString error;
+	if (expect(archive->load(folder, &error), "the Doom 3 tables folder opens", error)) {
+		MaterialLibraryOptions options;
+		options.includeImplicit = false;
+		const MaterialLibrary library = scanMaterialLibrary(std::shared_ptr<const PackageArchiveReader>(archive), options);
+		const int pulse = library.indexOf(QStringLiteral("textures/d3/pulse"));
+		const int steady = library.indexOf(QStringLiteral("textures/d3/steady"));
+		if (expect(pulse >= 0 && steady >= 0, "both Doom 3 materials are listed")) {
+			const MaterialLibraryEntry& entry = library.entries.at(pulse);
+			expect(entry.rejected && entry.errors > 0, "a table no loaded script defines rejects the material in the listing",
+				QString::number(entry.errors));
+			expect(materialLibraryEntryQueryProperties(entry, library.definition(pulse)).value(QStringLiteral("rejected")) == QStringLiteral("yes"),
+				"the listing's rejected trait sees the table check");
+			expect(!library.entries.at(steady).rejected, "a table the game's tables.mtr defines is fine");
+		}
+	}
+
+	const QString images = root.filePath(QStringLiteral("multi"));
+	writeFile(images + QStringLiteral("/scripts/multi.shader"),
+		"textures/m/two\n{\n\t{\n\t\tmap textures/m/a.tga\n\t}\n\t{\n\t\tmap textures/m/b.tga\n\t\tblendFunc GL_ONE GL_ONE\n\t}\n}\n");
+	auto multi = std::make_shared<PackageArchive>();
+	if (expect(multi->load(images, &error), "the multi-stage folder opens", error)) {
+		MaterialLibraryOptions options;
+		options.includeImplicit = false;
+		const MaterialLibrary library = scanMaterialLibrary(std::shared_ptr<const PackageArchiveReader>(multi), options);
+		const int two = library.indexOf(QStringLiteral("textures/m/two"));
+		if (expect(two >= 0, "the two-stage material is listed")) {
+			const StudioQueryProperties properties = materialLibraryEntryQueryProperties(library.entries.at(two), library.definition(two));
+			const QList<QString> imageValues = properties.values(QStringLiteral("image"));
+			expect(imageValues.contains(QStringLiteral("textures/m/a.tga")) && imageValues.contains(QStringLiteral("textures/m/b.tga")),
+				"each image is its own query value", QStringList(imageValues).join(QStringLiteral(", ")));
+			expect(properties.values(QStringLiteral("blend")).size() >= 2, "each stage's blend is its own query value",
+				QStringList(properties.values(QStringLiteral("blend"))).join(QStringLiteral(", ")));
+			const StudioQuery query = parseStudioQuery(QStringLiteral("image=textures/m/b.tga"));
+			expect(studioQueryMatches(query, properties, QString()), "image= matches one of several images exactly");
+		}
+	}
+}
+
 // --- Edits -------------------------------------------------------------------------
 
 void checkWholeDefinitionEdits()
@@ -667,6 +762,8 @@ int main(int argc, char** argv)
 	checkScriptOrder(root);
 	checkBasePackages(root);
 	checkUsage(root);
+	checkDamagedInput();
+	checkLibraryRules(root);
 	checkWholeDefinitionEdits();
 	checkHeatHaze(root);
 	if (failures > 0) {

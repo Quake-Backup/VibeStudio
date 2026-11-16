@@ -34,7 +34,8 @@ VIBE_UNIFORMS {
 	vec4 params[8];
 	// Two rows (2x3 texture matrices, xyz used) a slot.
 	vec4 matrices[16];
-	// Per sampler: x wrap (0 repeat, 1 clamp, 2 zero, 3 alpha zero);
+	// Per sampler: x wrap (0 repeat, 1 clamp, 2 zero border, 3 alpha zero
+	// border);
 	// y mip levels; z, w mode-specific.
 	ivec4 samplerInfo[8];
 };
@@ -116,17 +117,14 @@ vec4 texelWrapped(int slot, int x, int y, int level, ivec2 size, int wrap)
 	} else if (wrap == 1) {
 		x = clamp(x, 0, size.x - 1);
 		y = clamp(y, 0, size.y - 1);
-	} else if (wrap == 2) {
-		if (x < 0 || y < 0 || x >= size.x || y >= size.y) {
-			return vec4(0.0);
-		}
 	} else {
-		bool outside = x < 0 || y < 0 || x >= size.x || y >= size.y;
-		vec4 edge = fetchSlot(slot, ivec2(clamp(x, 0, size.x - 1), clamp(y, 0, size.y - 1)), level);
-		if (outside) {
-			edge.a = 0.0;
+		// Doom 3's zero clamps (Image_load.cpp): R_SetBorderTexels replaces
+		// the outer texels of every level, then the image clamps to edge, so
+		// the border colour covers the edge and everything beyond it: opaque
+		// black for zeroclamp, white with no alpha for alphazeroclamp.
+		if (x <= 0 || y <= 0 || x >= size.x - 1 || y >= size.y - 1) {
+			return wrap == 2 ? vec4(0.0, 0.0, 0.0, 1.0) : vec4(1.0, 1.0, 1.0, 0.0);
 		}
-		return edge;
 	}
 	return fetchSlot(slot, ivec2(x, y), level);
 }

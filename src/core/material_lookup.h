@@ -57,8 +57,12 @@ public:
 
 	// A face's texture name as the map writes it: Quake III maps leave out
 	// textures/, Doom names are lump names, Doom 3 names are whole. `engine`
-	// narrows the search (Unknown takes any).
-	[[nodiscard]] MaterialLookupResult find(const QString& faceTexture, MaterialEngine engine = MaterialEngine::Unknown) const;
+	// narrows the search (Unknown takes any); `kind` ("doom-wall" for a
+	// sidedef, "doom-flat" for a sector plane) picks between a Doom wall and
+	// flat of the same name. Quake III and Doom 3 drop a written extension,
+	// as R_FindShader and the decl manager do.
+	[[nodiscard]] MaterialLookupResult find(const QString& faceTexture, MaterialEngine engine = MaterialEngine::Unknown,
+		const QString& kind = QString()) const;
 	// The material drawn face-on at `seconds` (renderMaterialSwatch), for a
 	// texture that animates in a level view. Null without a 3D renderer.
 	[[nodiscard]] QImage swatch(const MaterialLookupResult& result, int side, double seconds) const;
@@ -69,6 +73,9 @@ private:
 	std::shared_ptr<const PackageArchiveReader> m_reader;
 	std::shared_ptr<const MaterialLibrary> m_library;
 	std::shared_ptr<MaterialImageCache> m_cache;
+	// Counts library changes; part of the image cache key, so a swatch still
+	// drawing from a replaced library cannot leave its images for the next.
+	quint64 m_generation = 0;
 };
 
 } // namespace vibestudio
